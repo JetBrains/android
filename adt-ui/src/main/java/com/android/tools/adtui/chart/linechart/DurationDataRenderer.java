@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import org.jetbrains.annotations.NotNull;
@@ -144,10 +145,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
           SeriesData<Long> seriesData = attachedSeriesList.get(j);
           if (seriesData.x - data.x > EPSILON) {
             // Stop as soon as we found a point on the attached series greater than the duration data's start point.
-            // Interpolate the y value in case the attached series and the duration data series do not match.
             if (lastFoundData == null) {
-              lastFoundData = seriesData;
+              // If the duraiton data is before the first data point on the attached series, simply places the DurationData
+              // at the bottom (yStart == 1), as we have nothing to attach to.
+              break;
             }
+            // Interpolate the y value in case the attached series and the duration data series do not match.
             assert myModel.getInterpolatable() != null;
             double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
             yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
@@ -327,6 +330,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     float maxScaledY = hostHeight - height;
     float scaledY = normalizedY * hostHeight - height + myLabelYOffset;
     return Math.max(0, Math.min(scaledY, maxScaledY));
+  }
+
+  @VisibleForTesting
+  List<Rectangle2D.Float> GetDurationDataRegions() {
+    return myClickRegionCache;
   }
 
   public static class Builder<E extends DurationData> {
