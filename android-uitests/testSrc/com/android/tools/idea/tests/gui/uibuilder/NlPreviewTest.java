@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
@@ -26,18 +28,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
@@ -94,7 +93,7 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
-  @Ignore("Disable this test for now as it fails with the new error panel")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks

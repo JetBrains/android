@@ -19,8 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
@@ -41,12 +39,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Panel that displays a list of {@link NlIssue}.
  */
 public class IssuePanel extends JPanel implements Disposable {
-  public static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
+  private static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
   private static final String WARNING = "Warning";
@@ -55,7 +54,8 @@ public class IssuePanel extends JPanel implements Disposable {
   private static final String ACTION_NEXT = "next";
   private static final String ACTION_EXPAND = "expand";
   private static final String ACTION_COLLAPSE = "collapse";
-  public static final String SHOW_ISSUES_CHECKBOX_TEXT = "Show issues on the preview";
+  private static final String SHOW_ISSUES_CHECKBOX_TEXT = "Show issues on the preview";
+  private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
   private final HashBiMap<NlIssue, IssueView> myDisplayedError = HashBiMap.create();
   private final IssueModel myIssueModel;
@@ -429,7 +429,8 @@ public class IssuePanel extends JPanel implements Disposable {
   public boolean containsErrorWithText(@NotNull String text) {
     return myDisplayedError.values()
       .stream()
-      .anyMatch(view -> view.getIssueTitle().contains(text) || view.getIssueDescription().contains(text));
+      .anyMatch(
+        view -> view.getIssueTitle().contains(text) || MULTIPLE_SPACES.matcher(view.getIssueDescription()).replaceAll(" ").contains(text));
   }
 
   /**
