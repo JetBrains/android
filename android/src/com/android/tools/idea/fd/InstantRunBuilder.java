@@ -108,7 +108,9 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
     args.addAll(getInstantRunArguments(buildSelection.getBuildMode()));
     args.addAll(getFlightRecorderArguments());
-    args.add("--no-build-cache"); // Instant Run doesn't work with task caching.
+    if (myInstantRunContext.getGradlePluginVersion().isAtLeast(3, 0, 0, "alpha", 4, false)) {
+      args.add("--no-build-cache"); // Instant Run doesn't work with task caching (introduced in 3.0.0-alpha4).
+    }
 
     List<String> tasks = new LinkedList<>();
     tasks.addAll(myTasksProvider.getFullBuildTasks());
