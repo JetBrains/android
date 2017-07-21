@@ -46,7 +46,7 @@ public abstract class IdeModel implements Serializable {
                                             @Nullable V defaultValue) {
     try {
       K key = keyCreator.compute();
-      return modelCache.computeIfAbsent(key, mapper);
+      return key != null ? modelCache.computeIfAbsent(key, mapper) : defaultValue;
     }
     catch (UnsupportedMethodException ignored) {
       return defaultValue;
