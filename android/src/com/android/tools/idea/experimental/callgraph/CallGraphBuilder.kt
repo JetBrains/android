@@ -49,16 +49,16 @@ fun buildUFiles(project: Project, scope: AnalysisScope): Collection<UFile> {
   return res
 }
 
-fun buildIntraproceduralReceiverEval(files: Collection<UFile>): CallReceiverEvaluator {
-  val receiverEval = IntraproceduralReceiverVisitor()
-  files.forEach { it.accept(receiverEval) }
-  return receiverEval
-}
-
 fun buildClassHierarchy(files: Collection<UFile>): ClassHierarchy {
   val classHierarchyVisitor = ClassHierarchyVisitor()
   files.forEach { it.accept(classHierarchyVisitor) }
   return classHierarchyVisitor.classHierarchy
+}
+
+fun buildIntraproceduralReceiverEval(files: Collection<UFile>, cha: ClassHierarchy): CallReceiverEvaluator {
+  val receiverEval = IntraproceduralReceiverVisitor(cha)
+  files.forEach { it.accept(receiverEval) }
+  return receiverEval
 }
 
 fun buildCallGraph(files: Collection<UFile>,

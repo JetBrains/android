@@ -133,6 +133,52 @@ class Initializers {
 }
 
 
+/** Test return values. */
+class Return {
+
+  interface RetUniqueIt { void f(); }
+
+  static class RetUnique implements RetUniqueIt {
+    @Override
+    public void f() {}
+  }
+
+  RetUniqueIt createRetUniqueIt() { return new RetUnique(); }
+
+  void unique() {
+    RetUniqueIt it = createRetUniqueIt();
+    it.f();
+  }
+
+  interface RetAmbigIt { void f(); }
+
+  class RetAmbigA implements RetAmbigIt {
+    @Override
+    public void f() {}
+  }
+
+  class RetAmbigB implements RetAmbigIt {
+    @Override
+    public void f() {}
+  }
+
+  RetAmbigIt createRetAmbigNull() { return null; }
+
+  void ambig() {
+    RetAmbigIt it = createRetAmbigNull();
+    it.f();
+  }
+
+  RetAmbigIt evidenced3() { return new RetAmbigA(); }
+  RetAmbigIt evidenced2() { return evidenced3(); }
+  RetAmbigIt evidenced1() { return evidenced2(); }
+  RetAmbigIt evidenced()  {
+    RetAmbigIt it = evidenced1();
+    it.f();
+  }
+}
+
+
 /** Test lambdas. */
 class Lambdas {
   void f() {}

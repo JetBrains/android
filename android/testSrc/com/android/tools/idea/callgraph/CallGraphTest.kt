@@ -30,14 +30,14 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
   private fun doTest(file: String) {
     myFixture.copyFileToProject(file)
     val files = buildUFiles(project, AnalysisScope(project))
-    val receiverEval = buildIntraproceduralReceiverEval(files)
     val classHierarchy = buildClassHierarchy(files)
+    val receiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
     val graph = buildCallGraph(files, receiverEval, classHierarchy)
     val nodeMap = graph.nodes.associateBy({ it.shortName })
 
     fun String.assertCalls(vararg callees: String) {
       val node = nodeMap[this] ?: if (callees.isEmpty()) return else throw Error("No node found for ${this}")
-      val actual = node.likelyEdges.map { it.node.shortName }
+      val actual = node.likelyEdges.map { it.node.shortName }.toSet().toList()
       TestCase.assertEquals("Unexpected callees for ${this}", callees.sorted(), actual.sorted())
     }
 
@@ -88,6 +88,11 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     "Inner#defaultCtor".assertCalls(/*nothing*/)
     "Nested#Nested".assertCalls("Nested#h", "Object#Object")
     assert("Nested#defaultCtor" !in nodeMap)
+
+    // Test return values.
+    "Return#unique".assertCalls("Return#createRetUniqueIt", "RetUnique#f")
+    "Return#ambig".assertCalls("Return#createRetAmbigNull")
+    "Return#evidenced".assertCalls("Return#evidenced1", "RetAmbigA#f")
 
     // Test lambdas.
     "Lambdas#g".assertCalls("Lambdas#f")

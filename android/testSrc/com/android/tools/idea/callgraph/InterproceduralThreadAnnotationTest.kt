@@ -27,8 +27,8 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
   private fun doTest(ext: String) {
     myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext)
     val files = buildUFiles(project, AnalysisScope(project))
-    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
     val classHierarchy = buildClassHierarchy(files)
+    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
     val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)
     val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
 
