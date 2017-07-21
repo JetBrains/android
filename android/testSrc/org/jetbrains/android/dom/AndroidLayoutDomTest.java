@@ -1259,6 +1259,69 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                              "tools:targetApi");
   }
 
+  public void testIncludeCompletion() throws Throwable {
+    // <include> tag should support auto-completion of android:layout_XXX attributes.
+    // The actual supported attributes depend on the type of parent.
+    // (e.g. <include> tag in RelativeLayout support android:layout_alignXXX attributes
+    //  and <include> tag in AbsoluteLayout support android:layout_x/y attributes.
+
+    // Check all attributes here
+    doTestCompletionVariants("include_in_linear_layout.xml",
+                             "android:id",
+                             "android:layout_gravity",
+                             "android:layout_height",
+                             "android:layout_margin",
+                             "android:layout_marginBottom",
+                             "android:layout_marginEnd",
+                             "android:layout_marginHorizontal",
+                             "android:layout_marginLeft",
+                             "android:layout_marginRight",
+                             "android:layout_marginStart",
+                             "android:layout_marginTop",
+                             "android:layout_marginVertical",
+                             "android:layout_weight",
+                             "android:layout_width",
+                             "android:visibility");
+
+    // The duplicated attributes have been tested, only test the specified attributes for the remaining test cases.
+
+    doTestCompletionVariantsContains("include_in_relative_layout.xml",
+                                     "android:layout_above",
+                                     "android:layout_alignBaseline",
+                                     "android:layout_alignBottom",
+                                     "android:layout_alignEnd",
+                                     "android:layout_alignLeft",
+                                     "android:layout_alignParentBottom",
+                                     "android:layout_alignParentEnd",
+                                     "android:layout_alignParentLeft",
+                                     "android:layout_alignParentRight",
+                                     "android:layout_alignParentStart",
+                                     "android:layout_alignParentTop",
+                                     "android:layout_alignRight",
+                                     "android:layout_alignStart",
+                                     "android:layout_alignTop",
+                                     "android:layout_alignWithParentIfMissing",
+                                     "android:layout_centerHorizontal",
+                                     "android:layout_centerInParent",
+                                     "android:layout_centerVertical",
+                                     "android:layout_toEndOf",
+                                     "android:layout_toLeftOf",
+                                     "android:layout_toRightOf",
+                                     "android:layout_toStartOf");
+
+    doTestCompletionVariantsContains("include_in_absolute_layout.xml",
+                                     "android:layout_x",
+                                     "android:layout_y");
+
+    doTestCompletionVariantsContains("include_in_frame_layout.xml",
+                                     "android:layout_gravity");
+
+    // <include> tag should also support auto-completion of layout_XXX attributes with cusomized domain name.
+    // For example, app:layout_constraintXXX attributes should be supported when it is in the ConstraintLayout.
+
+    // TODO: Improve the test framework and test the cusomized domain case.
+  }
+
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");

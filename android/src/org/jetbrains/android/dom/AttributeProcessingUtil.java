@@ -423,7 +423,7 @@ public class AttributeProcessingUtil {
       }
     }
 
-    if (element instanceof Tag || element instanceof Include || element instanceof Data) {
+    if (element instanceof Tag || element instanceof Data) {
       // don't want view attributes inside these tags
       return;
     }
