@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
@@ -66,7 +67,7 @@ public class NlComponent implements NlAttributesHolder {
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
   final HashMap<Object, Object> myClientProperties = new HashMap<>();
-  private final ArrayList<ChangeListener> myListeners = new ArrayList<>();
+  private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
 
   /**
@@ -500,9 +501,7 @@ public class NlComponent implements NlAttributesHolder {
    * @param listener
    */
   public void addLiveChangeListener(ChangeListener listener) {
-    if (!myListeners.contains(listener)) {
-      myListeners.add(listener);
-    }
+    myListeners.add(listener);
   }
 
   /**

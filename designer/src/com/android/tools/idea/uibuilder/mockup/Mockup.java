@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.pixelprobe.*;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.Disposer;
@@ -118,7 +118,7 @@ public class Mockup implements ModelListener {
 
   private static final WeakHashMap<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
 
-  private final List<MockupModelListener> myListeners = new ArrayList<>();
+  private final ListenerCollection<MockupModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final Rectangle myBounds;
   private final Rectangle myCropping;
   private final Rectangle mySwingBounds;
@@ -543,7 +543,6 @@ public class Mockup implements ModelListener {
 
   public void addMockupListener(MockupModelListener listener) {
     if (listener != null) {
-      myListeners.remove(listener);
       myListeners.add(listener);
     }
   }
@@ -554,9 +553,7 @@ public class Mockup implements ModelListener {
 
   private void notifyListeners(int changedFlags) {
     myChangingFlags = changedFlags;
-    for (int i = 0; i < myListeners.size(); i++) {
-      myListeners.get(i).mockupChanged(this, changedFlags);
-    }
+    myListeners.forEach(l -> l.mockupChanged(this, changedFlags));
   }
 
   public NlComponent getComponent() {

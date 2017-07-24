@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -22,10 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.datatransfer.Transferable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Represents a selection of components
@@ -34,7 +33,7 @@ public class SelectionModel {
   @NotNull
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
-  private List<SelectionListener> myListeners = new LinkedList<>();
+  private ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private Map<NlComponent, SelectionHandles> myHandles;
 
   @NotNull
@@ -105,13 +104,11 @@ public class SelectionModel {
   }
 
   private void notifySelectionChanged() {
-    for (SelectionListener listener : myListeners) {
-      listener.selectionChanged(this, mySelection);
-    }
+    myListeners.forEach(l -> l.selectionChanged(this, mySelection));
+
   }
 
   public void addListener(@NotNull SelectionListener listener) {
-    myListeners.remove(listener); // ensure single registration
     myListeners.add(listener);
   }
 
