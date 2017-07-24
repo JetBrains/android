@@ -85,9 +85,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     double system =
       100.0 * (data.getCpuUsage().getSystemCpuTimeInMillisec() - lastData.getCpuUsage().getSystemCpuTimeInMillisec()) / elapsed;
 
-    // System and app usages are read from them device in slightly different times. Make sure that appUsage <= systemUsage <= 100%
-    system = Math.min(system, 100.0);
-    app = Math.min(app, system);
+    // System and app usages are read from them device in slightly different times. That can cause app usage to be slightly higher than
+    // system usage and we need to adjust our values to cover these scenarios. Also, we use iowait (time waiting for I/O to complete) when
+    // calculating the total elapsed CPU time. The problem is this value is not reliable (http://man7.org/linux/man-pages/man5/proc.5.html)
+    // and can actually decrease. In these case we could end up with slightly negative system and app usages. That also needs adjustment and
+    // we should make sure that 0% <= appUsage <= systemUsage <= 100%
+    system = Math.max(0, Math.min(system, 100.0));
+    app = Math.max(0, Math.min(app, system));
 
     return new CpuUsageDataSeries.CpuUsageData(app, system);
   }
