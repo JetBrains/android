@@ -94,7 +94,6 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
