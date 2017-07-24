@@ -19,17 +19,154 @@ import com.android.SdkConstants
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
 import com.android.tools.idea.uibuilder.model.AttributesTransaction
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.Scene
 import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget
 import com.android.tools.idea.uibuilder.scene.target.Target
+import com.intellij.openapi.application.Result
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.text.StringUtil
+import java.awt.Point
 
 /**
  * Target to handle the drag of RelativeLayout's children
  */
 class RelativeDragTarget : DragBaseTarget() {
-  private var myClosestX: RelativeParentTarget? = null
-  private var myClosestY: RelativeParentTarget? = null
+  private var myTargetX: BaseRelativeTarget? = null
+  private var myTargetY: BaseRelativeTarget? = null
 
-  private val ALIGNING_ATTRIBUTE_NAMES: Array<String> = arrayOf(
+  private val mySnappedPoint = Point()
+
+  /**
+   * Calculate the align and margin on x axis.
+   * This functions should only be used when there is no Notch on X axis
+   */
+  private fun updateMarginOnX(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int) {
+    val parent = myComponent.parent!!
+    if (myComponent.centerX < parent.drawX + parent.drawWidth / 2) {
+      // near to left side
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true")
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_START,
+          String.format(SdkConstants.VALUE_N_DP, Math.max(x - parent.drawX, 0)))
+    }
+    else {
+      // near to right side
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END, "true")
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_END,
+          String.format(SdkConstants.VALUE_N_DP, Math.max(parent.drawWidth - (x - parent.drawX) - myComponent.drawWidth, 0)))
+    }
+  }
+
+  /**
+   * Calculate the align and margin on y axis.
+   * This functions should only be used when there is no Notch on Y axis
+   */
+  private fun updateMarginOnY(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int) {
+    val parent = myComponent.parent!!
+    if (myComponent.centerY < parent.drawY + parent.drawHeight / 2) {
+      // near to top side
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true")
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+          String.format(SdkConstants.VALUE_N_DP, Math.max(y - parent.drawY, 0)))
+    }
+    else {
+      // near to bottom side
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, "true")
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+          String.format(SdkConstants.VALUE_N_DP, Math.max(parent.drawHeight - (y - parent.drawY) - myComponent.drawHeight, 0)))
+    }
+  }
+
+  private fun clearAlignAttributes(attributes: AttributesTransaction)
+      = ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
+
+  override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    val parent = myComponent?.parent ?: return
+    // Need to call this to update the targetsProvider when moving from one layout to another during a drag
+    // but we should have a better scenario to recreate the targets
+    (parent.scene.sceneManager as LayoutlibSceneManager).addTargets(myComponent)
+    parent.updateTargets(true)
+
+    super.mouseDown(x, y)
+    myComponent.setModelUpdateAuthorized(false)
+  }
+
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
+    myComponent.isDragging = true
+    trySnap(x, y)
+    myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+    myTargetX?.myIsHighlight = false
+    myTargetX = targetNotchSnapper.snappedNotchX?.target as BaseRelativeTarget?
+    myTargetX?.myIsHighlight = true
+
+    myTargetY?.myIsHighlight = false
+    myTargetY = targetNotchSnapper.snappedNotchY?.target as BaseRelativeTarget?
+    myTargetY?.myIsHighlight = true
+  }
+
+  private fun trySnap(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    val sceneParent = myComponent?.parent ?: return
+
+    val dragX = x - myOffsetX
+    val dragY = y - myOffsetY
+    val nx = Math.max(sceneParent.drawX, Math.min(dragX, sceneParent.drawX + sceneParent.drawWidth - myComponent.drawWidth))
+    val ny = Math.max(sceneParent.drawY, Math.min(dragY, sceneParent.drawY + sceneParent.drawHeight - myComponent.drawHeight))
+    mySnappedPoint.x = targetNotchSnapper.trySnapX(nx)
+    mySnappedPoint.y = targetNotchSnapper.trySnapY(ny)
+  }
+
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
+    if (!myComponent.isDragging) return
+
+    myComponent.isDragging = false
+
+    if (myComponent.parent != null) {
+      val component = myComponent.authoritativeNlComponent
+      val attributes = component.startAttributeTransaction()
+      trySnap(x, y)
+      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+      updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+      attributes.apply()
+
+      if (!(Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1)) {
+        val commandName = "Dragged " + StringUtil.getShortName(component.tagName)
+        object : WriteCommandAction<Any>(component.model.project, commandName, component.model.file) {
+          @Throws(Throwable::class)
+          override fun run(result: Result<Any>) { attributes.commit() }
+        }.execute()
+      }
+    }
+
+    myTargetX?.myIsHighlight = false
+    myTargetY?.myIsHighlight = false
+
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+
+    myComponent.updateTargets(false)
+    myComponent.setModelUpdateAuthorized(true)
+  }
+
+  override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    if (myComponent?.parent == null) return
+
+    clearAlignAttributes(attributes)
+
+    targetNotchSnapper.snappedNotchX?.applyAction(attributes) ?: updateMarginOnX(attributes, x)
+    targetNotchSnapper.snappedNotchY?.applyAction(attributes) ?: updateMarginOnY(attributes, y)
+
+    if (attributes.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == "true"
+        && attributes.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == "true") {
+      attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
+      attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
+      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, "true")
+    }
+  }
+}
+
+private val ALIGNING_ATTRIBUTE_NAMES = arrayOf(
     SdkConstants.ATTR_LAYOUT_MARGIN,
     SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
     SdkConstants.ATTR_LAYOUT_MARGIN_START,
@@ -60,139 +197,4 @@ class RelativeDragTarget : DragBaseTarget() {
     SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF,
     SdkConstants.ATTR_LAYOUT_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_BELOW
-  )
-
-  override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    if (myComponent?.parent == null) return
-
-    // TODO: Update correct relationship to other components
-    clearAlignAttributes(attributes)
-
-    // Update the relationships to parent
-    when (myClosestX?.myType) {
-      RelativeParentTarget.Type.LEFT -> attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true")
-      RelativeParentTarget.Type.RIGHT -> attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END, "true")
-      RelativeParentTarget.Type.CENTER_HORIZONTAL -> attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL, "true")
-      null -> updateMarginOnX(attributes, x)
-      else -> assert(false) { "${myClosestX!!.myType} should not be the type of myClosestX" }
-    }
-
-    when (myClosestY?.myType) {
-      RelativeParentTarget.Type.TOP -> attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true")
-      RelativeParentTarget.Type.BOTTOM -> attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, "true")
-      RelativeParentTarget.Type.CENTER_VERTICAL -> {
-        if (myClosestX?.myType == RelativeParentTarget.Type.CENTER_HORIZONTAL) {
-          // CenterVertical and CenterHorizontal are true, use layout_center_in_parent instead.
-          attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
-          attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, "true")
-        }
-        else {
-          attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL, "true")
-        }
-      }
-      null -> updateMarginOnY(attributes, y)
-      else -> assert(false) { "${myClosestY!!.myType} should not be the type of myClosestY" }
-    }
-
-    myComponent.updateTargets(false)
-  }
-
-  /**
-   * Calculate the align and margin on x axis.
-   * Note that if the x already has Notch on X axis then don't need to call this function.
-   */
-  private fun updateMarginOnX(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int) {
-    val parent = myComponent.parent!!
-    if (myComponent.centerX < parent.drawX + parent.drawWidth / 2) {
-      // near to left side
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true")
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_START,
-          String.format(SdkConstants.VALUE_N_DP, Math.max(x - parent.drawX, 0)))
-    }
-    else {
-      // near to right side
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END, "true")
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_END,
-          String.format(SdkConstants.VALUE_N_DP, Math.max(parent.drawWidth - (x - parent.drawX) - myComponent.drawWidth, 0)))
-    }
-  }
-
-  /**
-   * Calculate the align and margin on y axis.
-   * Note that if the y already has Notch on Y axis then don't need to call this function
-   */
-  private fun updateMarginOnY(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int) {
-    val parent = myComponent.parent!!
-    if (myComponent.centerY < parent.drawY + parent.drawHeight / 2) {
-      // near to top side
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true")
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-          String.format(SdkConstants.VALUE_N_DP, Math.max(y - parent.drawY, 0)))
-    }
-    else {
-      // near to bottom side
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, "true")
-      attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-          String.format(SdkConstants.VALUE_N_DP, Math.max(parent.drawHeight - (y - parent.drawY) - myComponent.drawHeight, 0)))
-    }
-  }
-
-  private fun clearAlignAttributes(attributes: AttributesTransaction) {
-    for (name in ALIGNING_ATTRIBUTE_NAMES) {
-      attributes.removeAndroidAttribute(name)
-    }
-  }
-
-  override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    val parent = myComponent?.parent ?: return
-    // Need to call this to update the targetsProvider when moving from one layout to another during a drag
-    // but we should have a better scenario to recreate the targets
-    (parent.scene.sceneManager as LayoutlibSceneManager).addTargets(myComponent)
-    parent.updateTargets(true)
-
-    super.mouseDown(x, y)
-    myComponent.setModelUpdateAuthorized(false)
-  }
-
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
-    // In RelativeLayout we need to use the edges of component as conditionThe rather than current dragging point (the mouse point)
-    // So we ignore closestTargets here
-    val sceneParent = myComponent?.parent ?: return
-    val snapper = targetNotchSnapper
-    myComponent.isDragging = true
-
-    val dragX = x - myOffsetX
-    val dragY = y - myOffsetY
-    var nx = Math.max(sceneParent.drawX, Math.min(dragX, sceneParent.drawX + sceneParent.drawWidth - myComponent.drawWidth))
-    var ny = Math.max(sceneParent.drawY, Math.min(dragY, sceneParent.drawY + sceneParent.drawHeight - myComponent.drawHeight))
-    nx = snapper.trySnapX(nx)
-    ny = snapper.trySnapY(ny)
-    myComponent.setPosition(nx, ny, false)
-
-    val closestXTarget = snapper.snappedNotchX?.target
-    val closestYTarget = snapper.snappedNotchY?.target
-    if (myClosestX !== closestXTarget) {
-      myClosestX?.myIsHighlight = false
-
-      // TODO: Modify here when supporting relationship to other components
-      myClosestX = closestXTarget as RelativeParentTarget?
-      myClosestX?.myIsHighlight = true
-    }
-
-    if (myClosestY !== closestYTarget) {
-      myClosestY?.myIsHighlight = false
-      // TODO: Modify here when supporting relationship to other components
-      myClosestY = closestYTarget as RelativeParentTarget?
-      myClosestY?.myIsHighlight = true
-    }
-  }
-
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
-    super.mouseRelease(x, y, closestTarget)
-    myComponent.setModelUpdateAuthorized(true)
-    myComponent.isDragging = false
-
-    myClosestX?.myIsHighlight = false
-    myClosestY?.myIsHighlight = false
-  }
-}
+)
