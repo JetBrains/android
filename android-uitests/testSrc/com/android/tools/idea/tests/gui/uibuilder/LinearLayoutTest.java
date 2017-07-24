@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.GuiTestFileUtils;
@@ -24,6 +26,7 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
 import com.android.xml.XmlBuilder;
+import icons.AndroidIcons;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -167,5 +170,25 @@ public final class LinearLayoutTest {
     });
 
     return treeFixture;
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  public void changeOrientation() throws IOException {
+    // @formatter:off
+    String layout = new XmlBuilder()
+      .startTag("LinearLayout")
+        .attribute("xmlns", "android", "http://schemas.android.com/apk/res/android")
+        .androidAttribute("layout_width", "match_parent")
+        .androidAttribute("layout_height", "match_parent")
+      .endTag("LinearLayout")
+      .toString();
+    // @formatter:on
+
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), layout);
+    NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString()).getLayoutEditor(true);
+    assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
+    layoutEditor.getComponentToolbar().getButtonByIcon(AndroidIcons.Views.VerticalLinearLayout).click();
+    assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
   }
 }
