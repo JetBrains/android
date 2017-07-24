@@ -15,33 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.Ref;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
-public class SelectionModelTest extends LayoutTestCase {
-  public void test() throws Exception {
+public class SelectionModelTest {
+  @Test
+  public void testBasic() throws Exception {
     SelectionModel model = new SelectionModel();
     assertTrue(model.isEmpty());
     final Ref<Boolean> called = new Ref<Boolean>(false);
 
-    SelectionListener listener = new SelectionListener() {
-      @Override
-      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-        assertFalse(called.get());
-        called.set(true);
-      }
+    SelectionListener listener = (model1, selection) -> {
+      assertFalse(called.get());
+      called.set(true);
     };
     model.addListener(listener);
     assertFalse(model.getSelection().iterator().hasNext());
-    model.setSelection(Collections.<NlComponent>emptyList());
+    model.setSelection(Collections.emptyList());
     assertFalse(called.get()); // no change; shouldn't notify
 
     NlComponent component1 = mock(NlComponent.class);
@@ -71,7 +67,7 @@ public class SelectionModelTest extends LayoutTestCase {
     called.set(false);
     assertNull(model.getPrimary());
     assertTrue(model.isEmpty());
-    assertThat(model.getSelection()).isEmpty();
+    assertTrue(model.getSelection().isEmpty());
 
     model.toggle(component1);
     assertTrue(called.get());

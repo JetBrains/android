@@ -85,7 +85,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   };
   private final Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
-  private List<NlComponent> myComponents = Lists.newArrayList();
+  private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
@@ -230,12 +230,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
         checkUnique(myFile.getRootTag(), uniqueTags);
         uniqueTags.clear();
-        for (NlComponent component : myComponents) {
-          checkUnique(component.getTag(), uniqueTags);
-          checkUnique(component, unique);
-        }
-        for (NlComponent component : myComponents) {
-          checkStructure(component);
+        if (myRootComponent != null) {
+          checkUnique(myRootComponent.getTag(), uniqueTags);
+          checkUnique(myRootComponent, unique);
+          checkStructure(myRootComponent);
         }
       });
     }
@@ -386,13 +384,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  public List<NlComponent> getComponents() {
-    return Collections.unmodifiableList(myComponents);
+  public ImmutableList<NlComponent> getComponents() {
+    return myRootComponent != null ? ImmutableList.of(myRootComponent) : ImmutableList.of();
   }
 
   @NotNull
   public Stream<NlComponent> flattenComponents() {
-    return myComponents.stream().flatMap(NlComponent::flatten);
+    return myRootComponent != null ? Stream.of(myRootComponent).flatMap(NlComponent::flatten) : Stream.empty();
   }
 
   /**
@@ -462,13 +460,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     @VisibleForTesting
     public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
       if (newRoot == null) {
-        myModel.myComponents = Collections.emptyList();
+        myModel.myRootComponent = null;
         return;
       }
 
       boolean isValidRoot = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)newRoot::isValid);
       if (!isValidRoot) {
-        myModel.myComponents = Collections.emptyList();
+        myModel.myRootComponent = null;
         return;
       }
 
@@ -499,7 +497,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return createTree(newRoot);
       });
 
-      myModel.myComponents = Collections.singletonList(rootComponent);
+      myModel.myRootComponent = rootComponent;
 
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
@@ -745,23 +743,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  @Nullable
-  public List<NlComponent> findByOffset(int offset) {
+  @NotNull
+  public ImmutableList<NlComponent> findByOffset(int offset) {
     XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(myFile, offset, XmlTag.class, false);
-    return (tag != null) ? findViewsByTag(tag) : null;
+    return (tag != null) ? findViewsByTag(tag) : ImmutableList.of();
   }
 
   @Nullable
   public NlComponent findViewByTag(@NotNull XmlTag tag) {
-    // TODO: Consider using lookup map
-    for (NlComponent component : myComponents) {
-      NlComponent match = component.findViewByTag(tag);
-      if (match != null) {
-        return match;
-      }
-    }
-
-    return null;
+    return myRootComponent != null ? myRootComponent.findViewByTag(tag) : null;
   }
 
   @Nullable
@@ -769,22 +759,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return flattenComponents().filter(c -> id.equals(c.getId())).findFirst().orElse(null);
   }
 
-  @Nullable
-  private List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
-    List<NlComponent> result = null;
-    for (NlComponent view : myComponents) {
-      List<NlComponent> matches = view.findViewsByTag(tag);
-      if (matches != null) {
-        if (result != null) {
-          result.addAll(matches);
-        }
-        else {
-          result = matches;
-        }
-      }
+  @NotNull
+  private ImmutableList<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
+    if (myRootComponent == null) {
+      return ImmutableList.of();
     }
 
-    return result;
+    return myRootComponent.findViewsByTag(tag);
   }
 
   @Nullable

@@ -35,7 +35,7 @@ public class SelectAllAction extends AnAction {
     SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
-      selectionModel.selectAll(screenView.getModel());
+      selectionModel.setSelection(screenView.getModel().getComponents());
       mySurface.repaint();
     }
   }

@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -528,7 +529,7 @@ public class InteractionManager {
 
           // Make sure we start from root if we don't have anything selected
           if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
-            selectionModel.setSelection(Collections.singleton(model.getComponents().get(0).getRoot()));
+            selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
           }
 
           // See if you're dragging inside a selected parent; if so, drag the selection instead of any
@@ -828,7 +829,7 @@ public class InteractionManager {
         // TODO: support nav editor
         components = NlModelHelperKt.createComponents(model, sceneView, item, insertType);
 
-        if (components == null) {
+        if (components.isEmpty()) {
           return null;  // User cancelled
         }
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,29 +26,27 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 public class DnDTransferItem {
   private final boolean myFromPalette;
   private final long myModelId;
-  private final List<DnDTransferComponent> myComponents;
+  private final ImmutableList<DnDTransferComponent> myComponents;
 
   /**
    * Create a drag and drop item for a new component from the palette.
    */
-  public DnDTransferItem(DnDTransferComponent component) {
-    this(true, 0, Collections.singletonList(component));
+  public DnDTransferItem(@NotNull DnDTransferComponent component) {
+    this(true, 0, ImmutableList.of(component));
   }
 
   /**
    * Create a drag and drop item for existing designer components.
    */
-  public DnDTransferItem(long modelId, List<DnDTransferComponent> components) {
+  public DnDTransferItem(long modelId, @NotNull ImmutableList<DnDTransferComponent> components) {
     this(false, modelId, components);
   }
 
-  private DnDTransferItem(boolean fromPalette, long modelId, List<DnDTransferComponent> components) {
+  private DnDTransferItem(boolean fromPalette, long modelId, @NotNull ImmutableList<DnDTransferComponent> components) {
     myFromPalette = fromPalette;
     myModelId = modelId;
     myComponents = components;
@@ -88,7 +87,7 @@ public class DnDTransferItem {
     return myModelId;
   }
 
-  public List<DnDTransferComponent> getComponents() {
+  public ImmutableList<DnDTransferComponent> getComponents() {
     return myComponents;
   }
 }
