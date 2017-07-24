@@ -591,6 +591,7 @@ public class LayoutlibSceneManager extends SceneManager {
       ImmutableList<Runnable> callbacks;
       synchronized (myRenderCallbacks) {
         callbacks = ImmutableList.copyOf(myRenderCallbacks);
+        myRenderCallbacks.clear();
       }
       callbacks.forEach(Runnable::run);
     }
