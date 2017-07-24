@@ -90,7 +90,7 @@ public class ActionBarHandler extends ActionBarCallback {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourShowMenu = showMenu;
       if (surface != null && repaint) {
-        surface.requestRender();
+        surface.forceUserRequestedRefresh();
       }
       return true;
     }

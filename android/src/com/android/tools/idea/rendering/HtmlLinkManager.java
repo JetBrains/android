@@ -921,7 +921,7 @@ public class HtmlLinkManager {
       if (renderTask != null) {
         EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
-          surface.requestRender();
+          surface.forceUserRequestedRefresh();
         }
       }
     }

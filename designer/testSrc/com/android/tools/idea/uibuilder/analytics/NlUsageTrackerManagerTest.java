@@ -129,7 +129,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     when(result.getLogger()).thenReturn(logger);
     when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
 
-    tracker.logRenderResult(NlModel.ChangeType.EDIT, result, 230);
+    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, 230);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutEditorRenderResult loggedResult = studioEvent.getLayoutEditorEvent().getRenderResult();

@@ -1152,7 +1152,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     DND_END,
     DROP,
     RESIZE_END, RESIZE_COMMIT,
-    REQUEST_RENDER,
     UPDATE_HIERARCHY,
     BUILD,
     CONFIGURATION_CHANGE

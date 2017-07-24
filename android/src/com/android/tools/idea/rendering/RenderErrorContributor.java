@@ -736,7 +736,7 @@ public class RenderErrorContributor {
 
           EditorDesignSurface surface = task != null ? task.getDesignSurface() : null;
           if (surface != null) {
-            surface.requestRender(true);
+            surface.forceUserRequestedRefresh();
           }
         })).add(")");
 
@@ -975,7 +975,7 @@ public class RenderErrorContributor {
           RenderLogger.ignoreFidelityWarning(clientData);
           EditorDesignSurface surface = renderTask.getDesignSurface();
           if (surface != null) {
-            surface.requestRender();
+            surface.forceUserRequestedRefresh();
           }
         }));
       }
@@ -996,7 +996,7 @@ public class RenderErrorContributor {
       RenderLogger.ignoreAllFidelityWarnings();
       EditorDesignSurface surface = renderTask.getDesignSurface();
       if (surface != null) {
-        surface.requestRender();
+        surface.forceUserRequestedRefresh();
       }
     }));
     builder.newline();

@@ -19,7 +19,6 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 
 /**

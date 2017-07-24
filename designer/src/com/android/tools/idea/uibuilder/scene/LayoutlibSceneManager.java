@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
@@ -93,6 +94,39 @@ public class LayoutlibSceneManager extends SceneManager {
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
   private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
+
+  /**
+   * Logs a render action.
+   *
+   * @param trigger The event that triggered the render action or null if not known.
+   */
+  protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
+    if (changeType == null) {
+      return null;
+    }
+
+    switch (changeType) {
+      case RESOURCE_EDIT:
+      case RESOURCE_CHANGED:
+        return LayoutEditorRenderResult.Trigger.RESOURCE_CHANGE;
+      case EDIT:
+      case ADD_COMPONENTS:
+      case DELETE:
+      case DND_COMMIT:
+      case DND_END:
+      case DROP:
+      case RESIZE_END:
+      case RESIZE_COMMIT:
+        return LayoutEditorRenderResult.Trigger.EDIT;
+      case BUILD:
+        return LayoutEditorRenderResult.Trigger.BUILD;
+      case CONFIGURATION_CHANGE:
+      case UPDATE_HIERARCHY:
+        break;
+    }
+
+    return null;
+  }
 
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
     super(model, designSurface);
@@ -229,7 +263,7 @@ public class LayoutlibSceneManager extends SceneManager {
         layout(true);
       }
       else {
-        render();
+        render(getTriggerFromChangeType(model.getLastChangeType()));
       }
     }
 
@@ -313,7 +347,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  public void requestRender(@Nullable Runnable callback) {
+  private void requestRender(@Nullable Runnable callback, @Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (callback != null) {
       synchronized (myRenderCallbacks) {
         myRenderCallbacks.add(callback);
@@ -323,7 +357,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        render();
+        render(trigger);
       }
 
       @Override
@@ -335,13 +369,21 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   public void requestRender() {
-    requestRender(null);
+    requestRender(null, getTriggerFromChangeType(getModel().getLastChangeType()));
+  }
+
+  /**
+   * Similar to {@link #requestRender()} but it will be logged as a user initiated action. This is
+   * not exposed at SceneManager level since it only makes sense for the Layout editor.
+   */
+  public void requestUserInitatedRender() {
+    requestRender(null, LayoutEditorRenderResult.Trigger.USER);
   }
 
   public void requestLayoutAndRender(boolean animate) {
     requestRender(() -> {
       getModel().notifyListenersModelLayoutComplete(animate);
-    });
+    }, getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
@@ -579,9 +621,9 @@ public class LayoutlibSceneManager extends SceneManager {
    * <p/>
    * <b>Do not call this method from the dispatch thread!</b>
    */
-  protected void render() {
+  protected void render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     try {
-      renderImpl();
+      renderImpl(trigger);
     }
     catch (Throwable e) {
       if (!getModel().getFacet().isDisposed()) {
@@ -597,7 +639,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  private void renderImpl() {
+  private void renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     Configuration configuration = getModel().getConfiguration();
     DesignSurface surface = getDesignSurface();
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
@@ -646,7 +688,7 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderResultLock.writeLock().unlock();
         }
         try {
-          NlUsageTrackerManager.getInstance(surface).logRenderResult(changeType,
+          NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
                                                                      myRenderResult,
                                                                      System.currentTimeMillis() - renderStartTimeMs);
         }
