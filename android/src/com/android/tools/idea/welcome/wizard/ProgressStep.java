@@ -49,10 +49,6 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   private ProgressIndicator myProgressIndicator;
   private double myFraction = 0;
 
-  public ProgressStep(@NotNull Disposable parent) {
-    this(parent, "Downloading Components");
-  }
-
   public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
     super(name);
     setComponent(myRoot);
@@ -160,14 +156,10 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myProgressBar.setValue((int)(1000 * fraction));
   }
 
-  public void advance(double progress) {
-    getProgressIndicator().setFraction(myFraction + progress);
-  }
-
   /**
    * Progress indicator that scales task to only use a portion of the parent indicator.
    */
-  public static class ProgressPortionReporter extends DelegatingProgressIndicator {
+  private static class ProgressPortionReporter extends DelegatingProgressIndicator {
     private final double myStart;
     private final double myPortion;
 

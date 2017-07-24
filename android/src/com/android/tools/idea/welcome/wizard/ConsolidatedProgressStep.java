@@ -35,7 +35,7 @@ public class ConsolidatedProgressStep extends ProgressStep {
   private List<? extends AndroidStudioWizardPath> myPaths;
 
   public ConsolidatedProgressStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
-    super(disposable);
+    super(disposable, "Downloading Components");
     myHost = host;
   }
 
