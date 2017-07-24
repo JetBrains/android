@@ -29,7 +29,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.ui.properties.*;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.ObservableBool;

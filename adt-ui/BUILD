@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src/main/java"],
     resources = ["resources"],
     tags = ["managed"],
+    test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],

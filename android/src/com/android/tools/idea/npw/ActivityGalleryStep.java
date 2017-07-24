@@ -17,8 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.ui.ASGallery;
-import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
