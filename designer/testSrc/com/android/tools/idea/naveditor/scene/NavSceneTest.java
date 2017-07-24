@@ -384,4 +384,26 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenLabel,22,100,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment4\n\n" +
                  "UNClip\n", list.serialize());
   }
+
+  public void testNonexistentLayout() {
+    ComponentDescriptor root = rootComponent()
+      .unboundedChildren(
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_nonexistent")
+      );
+
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+
+    assertEquals("Clip,0,0,292,420\n" +
+                 "DrawComponentFrame,50,50,192,320,1,false\n" +
+                 "DrawActionHandle,24,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,22,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n\n" +
+                 "UNClip\n", list.serialize());
+  }
 }
