@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
+import com.android.tools.idea.util.ListenerCollection;
 import com.intellij.ui.ColorPickerListener;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +26,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -40,7 +39,7 @@ public class ColorPanel {
   private JButton mySetAsBackgroundButton;
   private JPanel myColorFrame;
   private JPanel myContentPane;
-  private List<ColorHoveredListener> myListeners;
+  private final ListenerCollection<ColorHoveredListener> myListeners = ListenerCollection.createWithDirectExecutor();
 
   public ColorPanel(ExtractedColor extractedColor) {
     Color color = new Color(extractedColor.getColor());
@@ -51,7 +50,6 @@ public class ColorPanel {
     initSaveButton();
     initBackgroundButton();
     myContentPane.setBackground(BACKGROUND);
-    myListeners = new ArrayList<>(1);
   }
 
   private String getColorHexString(int rgb) {
@@ -82,17 +80,12 @@ public class ColorPanel {
 
       @Override
       public void mouseEntered(MouseEvent e) {
-        System.out.println("ColorPanel.mouseEntered");
-        for (int i = 0; i < myListeners.size(); i++) {
-          myListeners.get(i).entered(myExtractedColor);
-        }
+        myListeners.forEach(l -> l.entered(myExtractedColor));
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
-        for (int i = 0; i < myListeners.size(); i++) {
-          myListeners.get(i).exited();
-        }
+        myListeners.forEach(ColorHoveredListener::exited);
       }
     });
   }
