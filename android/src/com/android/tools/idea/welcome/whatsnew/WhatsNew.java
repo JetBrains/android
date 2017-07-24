@@ -44,10 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
@@ -61,7 +62,7 @@ import java.nio.file.*;
  *
  */
 public class WhatsNew implements StartupActivity, DumbAware {
-  public static final String RESOURCE_DIR = "whatsNew";
+  private static final String RESOURCE_DIR = "whatsNew";
 
   @Override
   public void runActivity(@NotNull Project project) {
@@ -83,8 +84,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
       // The dir doesn't exist (there aren't any images).
       return;
     }
-    String messagePath = null;
-    messagePath = getMessageToShow(data, applicationRevision, resourceUrl);
+    String messagePath = getMessageToShow(data, applicationRevision, resourceUrl);
     if (messagePath != null) {
       try {
         // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
@@ -97,9 +97,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
         }
         try {
           ImageIcon image = new ImageIcon(ImageIO.read(stream));
-          ApplicationManager.getApplication().invokeLater(() -> {
-            new WhatsNewDialog(project, image, text).show();
-          });
+          ApplicationManager.getApplication().invokeLater(new WhatsNewDialog(project, image, text)::show);
         }
         finally {
           stream.close();
@@ -107,7 +105,6 @@ public class WhatsNew implements StartupActivity, DumbAware {
       }
       catch (IOException exception) {
         // shouldn't happen, but if it does just give up.
-        return;
       }
     }
   }
@@ -263,8 +260,8 @@ public class WhatsNew implements StartupActivity, DumbAware {
   }
 
   private static class WhatsNewDialog extends DialogWrapper {
-    private Icon myImage;
-    private String myText;
+    private final Icon myImage;
+    private final String myText;
 
     public WhatsNewDialog(@NotNull Project project, @NotNull Icon image, @Nullable String text) {
       super(project, false);
