@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.npw.deprecated.ImportModuleWizard;
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel;
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
@@ -37,16 +35,8 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      if (StudioFlags.NPW_IMPORT_MODULE.get()) {
-        new StudioWizardDialogBuilder(new SourceToGradleModuleStep(new SourceToGradleModuleModel(project)), "Import module from source").build()
-          .show();
-      }
-      else {
-        ImportModuleWizard wizard = new ImportModuleWizard(project);
-        if (wizard.showAndGet()) {
-          wizard.createModule(true);
-        }
-      }
+      new StudioWizardDialogBuilder(new SourceToGradleModuleStep(new SourceToGradleModuleModel(project)), "Import module from source")
+        .build().show();
     }
   }
 
