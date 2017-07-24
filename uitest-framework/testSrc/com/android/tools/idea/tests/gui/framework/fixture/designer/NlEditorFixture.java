@@ -124,6 +124,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
+  public NlViewActionToolbarFixture getComponentToolbar() {
+    return NlViewActionToolbarFixture.create(this);
+  }
+
+  @NotNull
   public CreateResourceDirectoryDialogFixture getSelectResourceDirectoryDialog() {
     return new CreateResourceDirectoryDialogFixture(robot());
   }
