@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.npw.ModuleTemplateProvider;
-import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;

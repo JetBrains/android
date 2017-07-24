@@ -21,7 +21,7 @@ import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureJavaLibraryStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.adtui.ASGallery;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
