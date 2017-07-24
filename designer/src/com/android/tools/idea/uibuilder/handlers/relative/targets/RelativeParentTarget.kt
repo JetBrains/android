@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
+import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
 import com.android.tools.idea.uibuilder.scene.SceneComponent
@@ -22,34 +23,39 @@ import com.android.tools.idea.uibuilder.scene.SceneContext
 import com.android.tools.idea.uibuilder.scene.ScenePicker
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget
 import com.android.tools.idea.uibuilder.scene.target.Notch
+import com.android.tools.idea.uibuilder.scene.target.Target
 import com.intellij.ui.JBColor
 import org.jetbrains.annotations.NotNull
 import java.awt.Graphics2D
 
 import java.util.ArrayList
 
+const private val DEBUG = false
+const private val NOTCH_GAP_SIZE = 10
+
 /**
  * The Target for providing Notches of RelativeLayout.
  */
 class RelativeParentTarget(
-    @param:NotNull val myType: Type,
-    @param:AndroidDpCoordinate private val myX1: Int, @param:AndroidDpCoordinate private val myY1: Int,
-    @param:AndroidDpCoordinate private val myX2: Int, @param:AndroidDpCoordinate private val myY2: Int) : BaseTarget(), Notch.Provider {
-
-  companion object {
-    const private val DEBUG = false
-    const private val NOTCH_GAP_SIZE = 10
-  }
+    @NotNull val myType: Type,
+    @AndroidDpCoordinate private val myX1: Int, @AndroidDpCoordinate private val myY1: Int,
+    @AndroidDpCoordinate private val myX2: Int, @AndroidDpCoordinate private val myY2: Int) : BaseRelativeTarget() {
 
   enum class Type {
     LEFT, TOP, RIGHT, BOTTOM, CENTER_HORIZONTAL, CENTER_VERTICAL
   }
 
-  var myIsHighlight: Boolean = false
+  val ACTION_MAP = mapOf(
+      Type.LEFT to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true") },
+      Type.TOP to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true") },
+      Type.RIGHT to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END, "true") },
+      Type.BOTTOM to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, "true") },
+      Type.CENTER_HORIZONTAL to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL, "true") },
+      Type.CENTER_VERTICAL to Notch.Action { it.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL, "true") }
+  )
 
-  override fun getPreferenceLevel() = GUIDELINE_ANCHOR_LEVEL
+  override fun getPreferenceLevel() = Target.GUIDELINE_ANCHOR_LEVEL
 
   override fun layout(context: SceneContext,
                       @AndroidDpCoordinate l: Int, @AndroidDpCoordinate t: Int,
@@ -83,7 +89,6 @@ class RelativeParentTarget(
 
   override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
                     horizontalNotches: ArrayList<Notch>, verticalNotches: ArrayList<Notch>) {
-    // TODO: set action for notch to update the attribute if needed
     val notch: Notch
     when (myType) {
       RelativeParentTarget.Type.LEFT -> {
@@ -114,6 +119,7 @@ class RelativeParentTarget(
       }
     }
 
+    notch.setAction(ACTION_MAP[myType])
     notch.setGap(NOTCH_GAP_SIZE)
     notch.target = this
   }
