@@ -59,12 +59,12 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DI
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
   /**
-   * Cut-off size for resizing, it should be bigger than any Android device. Resizing size needs to be capped
+   * Cut-off size (in dp) for resizing, it should be bigger than any Android device. Resizing size needs to be capped
    * because layoutlib will create an image of the size of the device, which will cause an OOM error when the
    * device is too large.
    */
   // TODO: Make it possible to resize to arbitrary large sizes without running out of memory
-  private static final int MAX_ANDROID_SIZE = 3000;
+  private static final int MAX_ANDROID_SIZE = 1500;
   /**
    * Specific subset of the phones/tablets to show when resizing; for tv and wear, this list
    * is not used; instead, all devices matching the tag (android-wear, android-tv) are used.
@@ -82,6 +82,7 @@ public class CanvasResizeInteraction extends Interaction {
   private final State myOriginalDeviceState;
   private final Map<Point, Device> myAndroidCoordinatesToDeviceMap = Maps.newHashMapWithExpectedSize(DEVICES_TO_SHOW.length);
   private final MergingUpdateQueue myUpdateQueue;
+  private final int myMaxSize;
   private final Update myLayerUpdate = new Update("CanvasResizeLayerUpdate") {
     @Override
     public void run() {
@@ -100,7 +101,7 @@ public class CanvasResizeInteraction extends Interaction {
 
       int androidX = Coordinates.getAndroidX(screenView, myCurrentX);
       int androidY = Coordinates.getAndroidY(screenView, myCurrentY);
-      if (androidX > 0 && androidY > 0 && androidX < MAX_ANDROID_SIZE && androidY < MAX_ANDROID_SIZE) {
+      if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
         NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
         if (isPreviewSurface) {
           updateUnavailableLayer(false);
@@ -168,6 +169,8 @@ public class CanvasResizeInteraction extends Interaction {
       myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / DEFAULT_DENSITY),
                                          (int)(320 * currentDpi / DEFAULT_DENSITY), "Small Screen"));
     }
+
+    myMaxSize = (int)(MAX_ANDROID_SIZE * currentDpi / DEFAULT_DENSITY);
   }
 
   @Override
@@ -349,9 +352,9 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentY = y;
 
     JComponent layeredPane = myDesignSurface.getLayeredPane();
-    int maxX = Coordinates.getSwingX(screenView, MAX_ANDROID_SIZE) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
-    int maxY = Coordinates.getSwingY(screenView, MAX_ANDROID_SIZE) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-    if ((x > layeredPane.getWidth() && x < maxX) || (y > layeredPane.getHeight() && y < maxY)) {
+    int maxX = Coordinates.getSwingX(screenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
+    int maxY = Coordinates.getSwingY(screenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+    if (x < maxX && y < maxY && (x > layeredPane.getWidth() || y > layeredPane.getHeight())) {
       Dimension d = layeredPane.getPreferredSize();
       layeredPane.setPreferredSize(new Dimension(Math.max(d.width, x), Math.max(d.height, y)));
       layeredPane.revalidate();
