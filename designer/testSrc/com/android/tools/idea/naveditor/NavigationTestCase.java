@@ -124,9 +124,10 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   }
 
   @NotNull
-  protected ComponentDescriptor fragmentComponent(@NotNull String id) {
-    ComponentDescriptor descriptor = new ComponentDescriptor(TAG_FRAGMENT);
-    return descriptor.id("@id/" + id);
+  protected FragmentComponentDescriptor fragmentComponent(@NotNull String id) {
+    FragmentComponentDescriptor descriptor = new FragmentComponentDescriptor();
+    descriptor.id("@id/" + id);
+    return descriptor;
   }
 
   @NotNull
@@ -134,6 +135,18 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     ActionComponentDescriptor descriptor = new ActionComponentDescriptor();
     descriptor.id("@id/" + id);
     return descriptor;
+  }
+
+  protected static class FragmentComponentDescriptor extends ComponentDescriptor {
+    public FragmentComponentDescriptor() {
+      super(TAG_FRAGMENT);
+    }
+
+    @NotNull
+    public FragmentComponentDescriptor withLayoutAttribute(@NotNull String layout) {
+      withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/" + layout);
+      return this;
+    }
   }
 
   protected static class ActionComponentDescriptor extends ComponentDescriptor {

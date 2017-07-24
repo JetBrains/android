@@ -60,6 +60,9 @@ public class NavScreenDecorator extends SceneDecorator {
       return;
     }
     ResourceValue value = configuration.getResourceResolver().findResValue(layout, false);
+    if (value == null) {
+      return;
+    }
     String fileName = value.getValue();
     if (fileName == null) {
       return;
