@@ -37,6 +37,8 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +81,33 @@ public class CanvasResizeInteraction extends Interaction {
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final Map<Point, Device> myAndroidCoordinatesToDeviceMap = Maps.newHashMapWithExpectedSize(DEVICES_TO_SHOW.length);
+  private final MergingUpdateQueue myUpdateQueue;
+  private final Update myLayerUpdate = new Update("CanvasResizeLayerUpdate") {
+    @Override
+    public void run() {
+      mySizeBucketLayer.reset();
+      myOrientationLayer.reset();
+      updateUnavailableLayer(true);
+    }
+  };
+  private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
+    @Override
+    public void run() {
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      if (screenView == null) {
+        return;
+      }
 
+      int androidX = Coordinates.getAndroidX(screenView, myCurrentX);
+      int androidY = Coordinates.getAndroidY(screenView, myCurrentY);
+      if (androidX > 0 && androidY > 0 && androidX < MAX_ANDROID_SIZE && androidY < MAX_ANDROID_SIZE) {
+        NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
+        if (isPreviewSurface) {
+          updateUnavailableLayer(false);
+        }
+      }
+    }
+  };
   private int myCurrentX;
   private int myCurrentY;
 
@@ -88,6 +116,8 @@ public class CanvasResizeInteraction extends Interaction {
     isPreviewSurface = designSurface.isPreviewSurface();
     myOrientationLayer = new OrientationLayer(myDesignSurface);
     mySizeBucketLayer = new SizeBucketLayer();
+    myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 25, true, null, myDesignSurface);
+    myUpdateQueue.setRestartTimerOnAdd(true);
 
     Configuration config = myDesignSurface.getConfiguration();
     assert config != null;
@@ -147,33 +177,22 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentY = y;
 
     myDesignSurface.setResizeMode(true);
-    updateUnavailableLayer(myDesignSurface.getCurrentSceneView(), false);
+    updateUnavailableLayer(false);
   }
 
-  public void updatePosition(int x, int y) {
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
-    if (screenView == null) {
-      return;
-    }
-
-    int androidX = Coordinates.getAndroidX(screenView, x);
-    int androidY = Coordinates.getAndroidY(screenView, y);
-    if (androidX > 0 && androidY > 0 && androidX < MAX_ANDROID_SIZE && androidY < MAX_ANDROID_SIZE) {
-      NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
-      if (isPreviewSurface) {
-        updateUnavailableLayer(screenView, false);
-      }
-    }
-  }
-
-  private void updateUnavailableLayer(@NotNull ScreenView screenView, boolean forceRecompute) {
-    Configuration config = screenView.getConfiguration();
+  private void updateUnavailableLayer(boolean forceRecompute) {
+    Configuration config = myDesignSurface.getConfiguration();
     //noinspection ConstantConditions
     FolderConfiguration currentFolderConfig =
       FolderConfiguration.getConfigForFolder(config.getFile().getParent().getNameWithoutExtension());
     assert currentFolderConfig != null;
 
     if (!forceRecompute && currentFolderConfig.equals(myUnavailableLayer.getCurrentFolderConfig())) {
+      return;
+    }
+
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
+    if (screenView == null) {
       return;
     }
 
@@ -336,20 +355,14 @@ public class CanvasResizeInteraction extends Interaction {
       Dimension d = layeredPane.getPreferredSize();
       layeredPane.setPreferredSize(new Dimension(Math.max(d.width, x), Math.max(d.height, y)));
       layeredPane.revalidate();
-      resetLayers();
-      updateUnavailableLayer(screenView, true);
+      myUpdateQueue.queue(myLayerUpdate);
     }
 
     // Only do full live updating of the file if we are in preview mode.
     // Otherwise, restrict it to the area associated with the current configuration of the layout.
     if (isPreviewSurface || myUnavailableLayer.isAvailable(x, y)) {
-      updatePosition(x, y);
+      myUpdateQueue.queue(myPositionUpdate);
     }
-  }
-
-  private void resetLayers() {
-    myOrientationLayer.reset();
-    mySizeBucketLayer.reset();
   }
 
   @Override
@@ -413,7 +426,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public List<Layer> createOverlays() {
+  public synchronized List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
 
     // Only show size buckets for mobile, not wear, tv, etc.
@@ -472,7 +485,7 @@ public class CanvasResizeInteraction extends Interaction {
     private FolderConfiguration myCurrentFolderConfig;
 
     @Override
-    public void paint(@NotNull Graphics2D g2d) {
+    public synchronized void paint(@NotNull Graphics2D g2d) {
       ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
@@ -507,7 +520,7 @@ public class CanvasResizeInteraction extends Interaction {
       return true;
     }
 
-    private void update(@NotNull List<Area> configAreas, @NotNull FolderConfiguration currentFolderConfig) {
+    private synchronized void update(@NotNull List<Area> configAreas, @NotNull FolderConfiguration currentFolderConfig) {
       myConfigAreas = configAreas;
       myCurrentFolderConfig = currentFolderConfig;
     }
@@ -575,7 +588,7 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NotNull Graphics2D g2d) {
+    public synchronized void paint(@NotNull Graphics2D g2d) {
       ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
@@ -642,7 +655,7 @@ public class CanvasResizeInteraction extends Interaction {
       UIUtil.drawImage(g2d, image, null, 0, 0);
     }
 
-    public void reset() {
+    public synchronized void reset() {
       myOrientationImage = null;
     }
   }
@@ -667,7 +680,7 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NotNull Graphics2D g2d) {
+    public synchronized void paint(@NotNull Graphics2D g2d) {
       ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
@@ -778,7 +791,7 @@ public class CanvasResizeInteraction extends Interaction {
       return normalArea;
     }
 
-    public void reset() {
+    public synchronized void reset() {
       JScrollPane scrollPane = myDesignSurface.getScrollPane();
       JComponent layeredPane = myDesignSurface.getLayeredPane();
       myTotalHeight = layeredPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
