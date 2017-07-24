@@ -45,10 +45,12 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
       .unboundedChildren(
         component(TAG_FRAGMENT)
           .id("@+id/fragment1")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+          .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
         component(TAG_FRAGMENT)
           .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
+          .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
     ).build();
     surface.setModel(model);
     surface.notifyComponentActivate(model.find("fragment1"));
@@ -57,6 +59,26 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     editorManager.closeFile(editorManager.getOpenFiles()[0]);
     surface.notifyComponentActivate(model.find("fragment2"));
     assertEquals("activity_main2.xml", editorManager.getOpenFiles()[0].getName());
+  }
+
+  public void testNoLayoutComponentActivated() throws Exception {
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
+      .unboundedChildren(
+        component(TAG_FRAGMENT)
+          .id("@+id/fragment1")
+          .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
+        component(TAG_FRAGMENT)
+          .id("@+id/fragment2")
+          .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
+    ).build();
+    surface.setModel(model);
+    surface.notifyComponentActivate(model.find("fragment1"));
+    FileEditorManager editorManager = FileEditorManager.getInstance(getProject());
+    assertEquals("MainActivity.java", editorManager.getOpenFiles()[0].getName());
+    editorManager.closeFile(editorManager.getOpenFiles()[0]);
+    surface.notifyComponentActivate(model.find("fragment2"));
+    assertEquals("BlankFragment.java", editorManager.getOpenFiles()[0].getName());
   }
 
   public void testSubflowActivated() throws Exception {
