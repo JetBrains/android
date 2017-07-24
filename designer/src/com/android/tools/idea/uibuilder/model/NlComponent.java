@@ -600,6 +600,10 @@ public class NlComponent implements NlAttributesHolder {
     return newId;
   }
 
+  public boolean isSelected() {
+    return getModel().getSelectionModel().isSelected(this);
+  }
+
   public abstract static class XmlModelComponentMixin {
     private final NlComponent myComponent;
 

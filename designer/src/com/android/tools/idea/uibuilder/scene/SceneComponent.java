@@ -111,6 +111,7 @@ public class SceneComponent {
     myDecorator = manager.getSceneDecoratorFactory().get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
     myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
+    setSelected(component.isSelected());
   }
 
   @Override

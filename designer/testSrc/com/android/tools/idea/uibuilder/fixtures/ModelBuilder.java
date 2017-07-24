@@ -172,7 +172,7 @@ public class ModelBuilder {
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       SceneView sceneView;
-      if(mySurfaceClass.equals(NlDesignSurface.class)) {
+      if (mySurfaceClass.equals(NlDesignSurface.class)) {
         sceneView = mockSceneView(model, surface);
         when(surface.getCurrentSceneView()).thenReturn(sceneView);
       }
