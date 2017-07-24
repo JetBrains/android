@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +37,9 @@ class NopTracker implements NlUsageTracker {
   }
 
   @Override
-  public void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
+  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
   }
+
 
   @Override
   public void logDropFromPalette(@NotNull String viewTagName,

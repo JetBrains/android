@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
@@ -1134,22 +1135,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  /**
-   * Requests a new render of the layout.
-   *
-   * @param invalidateModel if true, the model will be invalidated and re-inflated. When false, this will only repaint the current model.
-   */
   @Override
-  public void requestRender(boolean invalidateModel) {
+  public void forceUserRequestedRefresh() {
+    SceneView sceneView = getCurrentSceneView();
+    SceneManager sceneManager = sceneView != null ? sceneView.getSceneManager() : null;
+
+    if (sceneManager instanceof LayoutlibSceneManager) {
+      ((LayoutlibSceneManager)sceneManager).requestUserInitatedRender();
+    }
+  }
+
+  /**
+   * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
+   */
+  public void requestRender() {
     SceneView sceneView = getCurrentSceneView();
     if (sceneView != null) {
-      if (invalidateModel) {
-        // Invalidate the current model and request a render
-        sceneView.getModel().notifyModified(NlModel.ChangeType.REQUEST_RENDER);
-      }
-      else {
-        sceneView.getSceneManager().requestRender();
-      }
+      sceneView.getSceneManager().requestRender();
     }
   }
 
@@ -1163,14 +1165,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void setDesignToolTip(@Nullable String text) {
     myLayeredPane.setToolTipText(text);
-  }
-
-  /**
-   * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
-   */
-  @Override
-  public void requestRender() {
-    requestRender(true);
   }
 
   @Override

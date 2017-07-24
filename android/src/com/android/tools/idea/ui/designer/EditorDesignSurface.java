@@ -32,7 +32,8 @@ public abstract class EditorDesignSurface extends JPanel {
   @Nullable
   abstract public Configuration getConfiguration();
 
-  abstract public void requestRender();
-
-  abstract public void requestRender(boolean invalidateModel);
+  /**
+   * When called, this will trigger a refresh of the layout. Only call this method if the action is initiated by the user.
+   */
+  abstract public void forceUserRequestedRefresh();
 }

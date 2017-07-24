@@ -20,7 +20,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -69,6 +68,6 @@ public class RefreshRenderAction extends AnAction {
       configuration.updated(ConfigurationListener.MASK_RENDERING);
     }
 
-    surface.requestRender();
+    surface.forceUserRequestedRefresh();
   }
 }

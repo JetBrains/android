@@ -21,11 +21,15 @@ import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.uibuilder.model.NlModel.*;
+import static com.android.tools.idea.uibuilder.model.NlModel.ChangeType.*;
 
 /**
  * Interface for usage tracking in the layout editor. Not that implementations of these methods should aim to return immediately.
@@ -33,7 +37,7 @@ import java.util.List;
 public interface NlUsageTracker {
   /**
    * Logs a layout editor event in the usage tracker. Note that rendering actions should be logged through the
-   * {@link #logRenderResult(NlModel.ChangeType, RenderResult, long)} method so it contains additional information about the render result.
+   * {@link #logRenderResult(ChangeType, RenderResult, long)} method so it contains additional information about the render result.
    */
   void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType);
 
@@ -42,7 +46,7 @@ public interface NlUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs);
+  void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs);
 
   /**
    * Logs a component drop from the palette to either the design surface of the component tree.

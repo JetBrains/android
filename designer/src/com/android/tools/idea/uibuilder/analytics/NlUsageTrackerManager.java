@@ -257,7 +257,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   }
 
   @Override
-  public void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
+  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
     // Renders are a quite common event so we sample them
     if (!shouldLog(LOG_RENDER_PERCENT)) {
       return;
@@ -269,31 +269,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
         .setTotalRenderTimeMs(totalRenderTimeMs);
 
       if (trigger != null) {
-        switch (trigger) {
-          case RESOURCE_EDIT:
-          case RESOURCE_CHANGED:
-            builder.setTrigger(LayoutEditorRenderResult.Trigger.RESOURCE_CHANGE);
-            break;
-          case EDIT:
-          case ADD_COMPONENTS:
-          case DELETE:
-          case DND_COMMIT:
-          case DND_END:
-          case DROP:
-          case RESIZE_END:
-          case RESIZE_COMMIT:
-            builder.setTrigger(LayoutEditorRenderResult.Trigger.EDIT);
-            break;
-          case REQUEST_RENDER:
-            builder.setTrigger(LayoutEditorRenderResult.Trigger.USER);
-            break;
-          case BUILD:
-            builder.setTrigger(LayoutEditorRenderResult.Trigger.BUILD);
-            break;
-          case CONFIGURATION_CHANGE:
-          case UPDATE_HIERARCHY:
-            break;
-        }
+          builder.setTrigger(trigger);
       }
 
       builder.setComponentCount((int)result.getRootViews().stream()

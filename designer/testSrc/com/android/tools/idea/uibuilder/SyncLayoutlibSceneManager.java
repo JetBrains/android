@@ -34,12 +34,12 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   public void requestRender() {
-    runAfterCommandIfNecessary(() -> render());
+    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
   }
 
   @Override
   protected void requestModelUpdate() {
-    runAfterCommandIfNecessary(() -> updateModel());
+    runAfterCommandIfNecessary(this::updateModel);
   }
 
   private static void runAfterCommandIfNecessary(Runnable runnable) {
