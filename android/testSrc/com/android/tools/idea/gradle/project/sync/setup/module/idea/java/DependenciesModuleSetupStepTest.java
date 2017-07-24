@@ -54,14 +54,19 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
   }
 
   public void testSetUpModuleDependency() {
-    String moduleName = "lib";
+    String exportableModuleName = "exportableLib";
+    String nonExportableModuleName = "nonExportableLib";
 
-    // This is the module to add as dependency.
-    Module libModule = createModule(moduleName);
+    // These are the modules to add as dependency.
+    createModule(exportableModuleName);
+    createModule(nonExportableModuleName);
 
-    JavaModuleDependency moduleDependency = new JavaModuleDependency(moduleName, "compile", true);
+    JavaModuleDependency exportableModuleDependency = new JavaModuleDependency(exportableModuleName, "compile", true);
+    JavaModuleDependency nonExportableModuleDependency = new JavaModuleDependency(nonExportableModuleName, "compile", false);
+
     Collection<JavaModuleDependency> moduleDependencies = new ArrayList<>();
-    moduleDependencies.add(moduleDependency);
+    moduleDependencies.add(exportableModuleDependency);
+    moduleDependencies.add(nonExportableModuleDependency);
 
     when(myJavaModuleModel.getJavaModuleDependencies()).thenReturn(moduleDependencies); // We only want module dependencies
     when(myJavaModuleModel.getJarLibraryDependencies()).thenReturn(Collections.emptyList());
@@ -73,7 +78,8 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 
     // See https://code.google.com/p/android/issues/detail?id=225923
-    assertAbout(moduleDependencies()).that(mainModule).contains(libModule.getName(), COMPILE);
+    assertAbout(moduleDependencies()).that(mainModule).hasDependency(exportableModuleName, COMPILE, true /* exported */);
+    assertAbout(moduleDependencies()).that(mainModule).hasDependency(nonExportableModuleName, COMPILE, false /* not exported */);
   }
 
   public void testInvokeOnSkippedSync() {
