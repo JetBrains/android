@@ -24,13 +24,17 @@ import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.DocumentReference;
 import com.intellij.openapi.command.undo.DocumentReferenceManager;
 import com.intellij.openapi.command.undo.DocumentReferenceProvider;
@@ -39,6 +43,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -405,5 +410,37 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawActionHandle,24,242,210,0,0,ffc0c0c0,fafafa\n" +
                  "DrawScreenLabel,22,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n\n" +
                  "UNClip\n", list.serialize());
+  }
+
+  public void testSelectedNlComponentSelectedInScene() throws Exception {
+    ComponentDescriptor root = component(TAG_NAVIGATION)
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment1")
+      .unboundedChildren(
+        component(TAG_FRAGMENT)
+          .id("@+id/fragment1")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/subnav"),
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/activity")
+          ));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    DesignSurface surface = model.getSurface();
+    NlComponent rootComponent = model.getComponents().get(0);
+    new WriteCommandAction(getProject(), "Add") {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        XmlTag tag = rootComponent.getTag().createChildTag("fragment", null, null, true);
+        NlComponent newComponent = surface.getModel().createComponent(tag, rootComponent, null);
+        model.getSelectionModel().setSelection(ImmutableList.of(newComponent));
+        newComponent.assignId("myId");
+      }
+    }.execute();
+    NavSceneManager manager = new NavSceneManager(model, (NavDesignSurface)model.getSurface());
+    Scene scene = manager.build();
+
+    assertTrue(scene.getSceneComponent("myId").isSelected());
   }
 }

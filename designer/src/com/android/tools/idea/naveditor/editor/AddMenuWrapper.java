@@ -23,6 +23,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -129,6 +130,7 @@ public class AddMenuWrapper extends DropDownAction {
         NlComponent parent = surface.getCurrentNavigation();
         XmlTag tag = parent.getTag().createChildTag(tagName, null, null, true);
         NlComponent newComponent = surface.getModel().createComponent(tag, parent, null);
+        surface.getSelectionModel().setSelection(ImmutableList.of(newComponent));
         newComponent.assignId(idBase);
         newComponent.setAttribute(ANDROID_URI, ATTR_NAME, name);
         if (extraActions != null) {

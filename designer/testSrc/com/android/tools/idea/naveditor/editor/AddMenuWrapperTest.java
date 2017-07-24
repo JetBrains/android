@@ -92,7 +92,8 @@ public class AddMenuWrapperTest extends NavigationTestCase {
                  "        NlComponent{tag=<fragment>, instance=3}\n" +
                  "    NlComponent{tag=<myTag>, instance=4}",
                  new NlTreeDumper().toTree(myModel.getComponents()));
-    NlComponent newChild = myModel.getComponents().get(0).getChild(2);
+    NlComponent newChild = myModel.find("myId");
+    assertEquals(ImmutableList.of(newChild), mySurface.getSelectionModel().getSelection());
     assertEquals("myName", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME));
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID));
     assertEquals("value", newChild.getAttribute("ns", "attr"));
