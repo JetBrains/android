@@ -67,7 +67,13 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   }
 
   private AdbService() {
-    DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
+    // Synchronize ddmlib log level with the corresponding IDEA log level
+    String defaultLogLevel = AdbLogOutput.SystemLogRedirecter.getLogger().isTraceEnabled()
+                   ? Log.LogLevel.VERBOSE.getStringValue()
+                   : AdbLogOutput.SystemLogRedirecter.getLogger().isDebugEnabled()
+                     ? Log.LogLevel.DEBUG.getStringValue()
+                     : Log.LogLevel.INFO.getStringValue();
+    DdmPreferences.setLogLevel(defaultLogLevel);
     DdmPreferences.setTimeOut(TIMEOUT);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
@@ -241,22 +247,22 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     final SettableFuture<AndroidDebugBridge> future = SettableFuture.create();
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      try {
-        BridgeConnectionResult value = delegate.get(timeout, unit);
-        if (value.error != null) {
-          future.setException(new RuntimeException("Unable to create Debug Bridge: " + value.error));
+        try {
+          BridgeConnectionResult value = delegate.get(timeout, unit);
+          if (value.error != null) {
+            future.setException(new RuntimeException("Unable to create Debug Bridge: " + value.error));
+          }
+          else {
+            future.set(value.bridge);
+          }
         }
-        else {
-          future.set(value.bridge);
+        catch (ExecutionException e) {
+          future.setException(e.getCause());
         }
-      }
-      catch (ExecutionException e) {
-        future.setException(e.getCause());
-      }
       catch (InterruptedException | TimeoutException e) {
-        delegate.cancel(true);
-        future.setException(e);
-      }
+          delegate.cancel(true);
+          future.setException(e);
+        }
     });
 
     return future;
