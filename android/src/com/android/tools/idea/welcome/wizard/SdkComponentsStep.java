@@ -51,15 +51,11 @@ import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collection;
@@ -116,12 +112,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myTableModel = new ComponentsTableModel(rootNode);
     myComponentsTable.setModel(myTableModel);
     myComponentsTable.setTableHeader(null);
-    myComponentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        int row = myComponentsTable.getSelectedRow();
-        myComponentDescription.setText(row < 0 ? "" : myTableModel.getComponentDescription(row));
-      }
+    myComponentsTable.getSelectionModel().addListSelectionListener(e -> {
+      int row = myComponentsTable.getSelectedRow();
+      myComponentDescription.setText(row < 0 ? "" : myTableModel.getComponentDescription(row));
     });
     TableColumn column = myComponentsTable.getColumnModel().getColumn(0);
     column.setCellRenderer(new SdkComponentRenderer());
@@ -327,20 +320,17 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myPanel = new RendererPanel();
       myCheckBox = new RendererCheckBox();
       myCheckBox.setOpaque(false);
-      myCheckBox.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          if (myComponentsTable.isEditing()) {
-            // Stop cell editing as soon as the SPACE key is pressed. This allows the SPACE key
-            // to toggle the checkbox while allowing the other navigation keys to function as
-            // soon as the toggle action is finished.
-            // Note: This calls "setValueAt" on "myTableModel" automatically.
-            stopCellEditing();
-          } else {
-            // This happens when the "pressed" action is invoked programmatically through
-            // accessibility, so we need to call "setValueAt" manually.
-            myTableModel.setValueAt(myCheckBox.isSelected(), myCheckBox.getRow(), 0);
-          }
+      myCheckBox.addActionListener(e -> {
+        if (myComponentsTable.isEditing()) {
+          // Stop cell editing as soon as the SPACE key is pressed. This allows the SPACE key
+          // to toggle the checkbox while allowing the other navigation keys to function as
+          // soon as the toggle action is finished.
+          // Note: This calls "setValueAt" on "myTableModel" automatically.
+          stopCellEditing();
+        } else {
+          // This happens when the "pressed" action is invoked programmatically through
+          // accessibility, so we need to call "setValueAt" manually.
+          myTableModel.setValueAt(myCheckBox.isSelected(), myCheckBox.getRow(), 0);
         }
       });
     }
