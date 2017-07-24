@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -145,8 +146,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
-          List<NlComponent> views = screenView.getModel().findByOffset(offset);
-          if (views == null || views.isEmpty()) {
+          ImmutableList<NlComponent> views = screenView.getModel().findByOffset(offset);
+          if (views.isEmpty()) {
             views = screenView.getModel().getComponents();
           }
           try {

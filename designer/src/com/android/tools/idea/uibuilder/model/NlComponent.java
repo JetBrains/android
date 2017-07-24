@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
@@ -196,44 +197,36 @@ public class NlComponent implements NlAttributesHolder {
       return this;
     }
 
-    if (children != null) {
-      for (NlComponent child : children) {
-        NlComponent result = child.findViewByTag(tag);
-        if (result != null) {
-          return result;
-        }
+    for (NlComponent child : getChildren()) {
+      NlComponent result = child.findViewByTag(tag);
+      if (result != null) {
+        return result;
       }
     }
 
     return null;
   }
 
-  @Nullable
-  public List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
-    List<NlComponent> result = null;
+  private void findViewsByTag(@NotNull XmlTag tag, @NotNull ImmutableList.Builder<NlComponent> builder) {
+    if (children == null && myTag == tag) {
+      builder.add(this);
+      return;
+    }
 
-    if (children != null) {
-      for (NlComponent child : children) {
-        List<NlComponent> matches = child.findViewsByTag(tag);
-        if (matches != null) {
-          if (result != null) {
-            result.addAll(matches);
-          }
-          else {
-            result = matches;
-          }
-        }
-      }
+    for (NlComponent child : getChildren()) {
+      child.findViewsByTag(tag, builder);
     }
 
     if (myTag == tag) {
-      if (result == null) {
-        return Lists.newArrayList(this);
-      }
-      result.add(this);
+      builder.add(this);
     }
+  }
 
-    return result;
+  @NotNull
+  public ImmutableList<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
+    ImmutableList.Builder<NlComponent> builder = ImmutableList.builder();
+    findViewsByTag(tag, builder);
+    return builder.build();
   }
 
   public boolean isRoot() {

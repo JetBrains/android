@@ -291,11 +291,11 @@ fun NlModel.addDependencies(toAdd: List<NlComponent>?, insertType: InsertType): 
 
 fun NlModel.createComponents(sceneView: SceneView,
                              item: DnDTransferItem,
-                             insertType: InsertType): List<NlComponent>? {
+                             insertType: InsertType): List<NlComponent> {
   val components = ArrayList<NlComponent>(item.components.size)
   for (dndComponent in item.components) {
     val tag = createTag(sceneView.model.project, dndComponent.representation)
-    val component = createComponent(sceneView, tag, null, null, insertType) ?: return null  // User may have cancelled
+    val component = createComponent(sceneView, tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
     component.w = dndComponent.width
     component.h = dndComponent.height
     components.add(component)
