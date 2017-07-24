@@ -19,7 +19,6 @@ package com.android.tools.idea.npw;
 import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.npw.deprecated.ImportModuleWizard;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
@@ -45,9 +44,6 @@ import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultD
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
- * Value object which holds the current state of the wizard pages for the
- * {@link ImportModuleWizard}
- *
  * Deprecated. Use {@link ScopedStateStore} instead.
  */
 @Deprecated
