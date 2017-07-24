@@ -19,10 +19,6 @@ public class AndroidDesignerIcons {
   public static final Icon DistributeWeights = load("/icons/distribute.png"); // 16x16
   public static final Icon ClearWeights = load("/icons/clearweights.png"); // 16x16
 
-  // LinearLayout layout actions
-  public static final Icon SwitchHorizontalLinear = load("/icons/hlinear.png"); // 16x16
-  public static final Icon SwitchVerticalLinear = load("/icons/vlinear.png"); // 16x16
-
   // ScrollView/HorizontalScrollView layout actions
   public static final Icon NormalRender = load("/icons/normal-render.png"); // 16x16
   public static final Icon ViewportRender = load("/icons/viewport-render.png"); // 16x16
