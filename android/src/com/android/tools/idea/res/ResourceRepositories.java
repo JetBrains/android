@@ -46,8 +46,7 @@ public class ResourceRepositories implements Disposable {
   public static ResourceRepositories getOrCreateInstance(@NotNull AndroidFacet facet) {
     ResourceRepositories repositories = facet.getUserData(KEY);
     if (repositories == null) {
-      repositories = new ResourceRepositories(facet);
-      facet.putUserData(KEY, repositories);
+      repositories = facet.putUserDataIfAbsent(KEY, new ResourceRepositories(facet));
     }
     return repositories;
   }
@@ -121,7 +120,7 @@ public class ResourceRepositories implements Disposable {
 
   @Override
   public void dispose() {
-    myFacet.putUserData(KEY, this);
-    myFacet = null;
+    // There's nothing to dispose in this object, but the actual resource repositories may need to do clean-up and they are children
+    // of this object in the Disposer hierarchy.
   }
 }
