@@ -63,6 +63,15 @@ public class CpuUsageDataSeriesTest {
     // App usage shouldn't be greater than system usage. If that happens, we cap the value to
     // the system total usage.
     assertEquals(systemTime, (long)appUsageData.value);
+
+    appTime = (int) (-0.2 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    myService.setAppTimeMs(appTime);
+    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    assertEquals(1, seriesData.size());
+    appUsageData = seriesData.get(0);
+    assertNotNull(appUsageData);
+    // App usage shouldn't be less than 0%. If that happens, we cap the value to 0%.
+    assertEquals(0, (long)appUsageData.value);
   }
 
   @Test
@@ -84,6 +93,15 @@ public class CpuUsageDataSeriesTest {
     assertNotNull(systemUsageData);
     // System usage shouldn't be greater than 100%. If that happens, we cap the value to 100%.
     assertEquals(100, (long)systemUsageData.value);
+
+    systemTime = (int) (-0.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    myService.setSystemTimeMs(systemTime);
+    seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    assertEquals(1, seriesData.size());
+    systemUsageData = seriesData.get(0);
+    assertNotNull(systemUsageData);
+    // System usage shouldn't be less than 0%. If that happens, we cap the value to 0%.
+    assertEquals(0, (long)systemUsageData.value);
   }
 
   @Test
