@@ -327,11 +327,6 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
-  public BoolProperty useFastBoot() {
-    return new BoolValueProperty(!myColdBoot.get());
-  }
-
-  @NotNull
   public OptionalProperty<GpuMode> hostGpuMode() {
     return myHostGpuMode;
   }

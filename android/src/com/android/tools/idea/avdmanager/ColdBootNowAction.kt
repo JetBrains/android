@@ -29,18 +29,16 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
     AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.Menu_open) {
 
   override fun actionPerformed(actionEvent: ActionEvent) {
-    val origAvdInfo = avdInfo
-    if (origAvdInfo != null) {
-      val origSystemImage = origAvdInfo.systemImage
-      if (origSystemImage != null) {
-        val coldBootProperties = mutableMapOf<String, String>()
-        coldBootProperties.putAll(origAvdInfo.properties)
-        coldBootProperties.put(USE_COLD_BOOT, "yes")
-        val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath,
-            origSystemImage, coldBootProperties)
-        AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.project, coldBootAvdInfo)
-      }
-    }
+
+    val origAvdInfo = avdInfo ?: return
+    val origSystemImage = origAvdInfo.systemImage ?: return
+
+    val coldBootProperties = mutableMapOf<String, String>()
+    coldBootProperties.putAll(origAvdInfo.properties)
+    coldBootProperties.put(USE_COLD_BOOT, "yes")
+    val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath,
+        origSystemImage, coldBootProperties)
+    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.project, coldBootAvdInfo)
   }
 
   override fun isEnabled(): Boolean {
