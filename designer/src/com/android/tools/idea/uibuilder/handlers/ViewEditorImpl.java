@@ -280,7 +280,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayClassInput(@NotNull Set<String> superTypes,
-                                  @Nullable final Predicate<String> filter,
+                                  @Nullable final Predicate<PsiClass> filter,
                                   @Nullable String currentValue) {
     Module module = mySceneView.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
@@ -291,11 +291,7 @@ public class ViewEditorImpl extends ViewEditor {
         return false;
       }
       if (filter != null) {
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName == null) {
-          return false;
-        }
-        return filter.test(qualifiedName);
+        return filter.test(psiClass);
       }
       return true;
     };
