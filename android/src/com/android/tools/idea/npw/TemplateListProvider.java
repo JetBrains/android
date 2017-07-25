@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -88,7 +89,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
   @Nullable
   @Override
   public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-    return ImmutableSet.of(AddAndroidActivityPath.KEY_IS_LAUNCHER);
+    return ImmutableSet.of(NewFormFactorModulePath.KEY_IS_LAUNCHER);
   }
 
   @NotNull
@@ -111,7 +112,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
       }
     }
 
-    Boolean isLauncher = state.get(AddAndroidActivityPath.KEY_IS_LAUNCHER);
+    Boolean isLauncher = state.get(NewFormFactorModulePath.KEY_IS_LAUNCHER);
     if (!Boolean.TRUE.equals(isLauncher)) {
       return myTemplates;
     }

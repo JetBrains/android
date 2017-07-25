@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.*;
@@ -44,7 +45,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -52,6 +52,7 @@ import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirect
 import static com.android.tools.idea.wizard.WizardConstants.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
@@ -59,6 +60,11 @@ import static com.intellij.openapi.util.io.FileUtil.join;
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
+  public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
+  public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
+  public static final Key<AndroidVersion> KEY_TARGET_API = createKey(ATTR_TARGET_API, PATH, AndroidVersion.class);
+  public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
+  public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -140,7 +146,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     Map<String, Object> presetsMap = ImmutableMap
       .of(PACKAGE_NAME_KEY.name, packageName, ATTR_IS_LAUNCHER, true, ATTR_PARENT_ACTIVITY_CLASS, "");
     myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0],
-                                                 AddAndroidActivityPath.CUSTOMIZE_ACTIVITY_TITLE);
+                                                 CUSTOMIZE_ACTIVITY_TITLE);
     addStep(myParameterStep);
   }
 
