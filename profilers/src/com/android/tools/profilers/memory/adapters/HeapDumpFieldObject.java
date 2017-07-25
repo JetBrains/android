@@ -18,7 +18,6 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.HashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +43,7 @@ final class HeapDumpFieldObject implements FieldObject {
   @NotNull private final ValueObject.ValueType myValueType;
   @Nullable private final InstanceObject myInstanceObject;
   private final int myDepth;
+  private final long myNativeSize;
   private final int myShallowSize;
   private final long myRetainedSize;
 
@@ -57,6 +57,7 @@ final class HeapDumpFieldObject implements FieldObject {
       if (instance == null || myField.getValue() == null) {
         myValueType = NULL;
         myInstanceObject = null;
+        myNativeSize = 0;
         myShallowSize = 0;
         myRetainedSize = 0;
         myDepth = Integer.MAX_VALUE;
@@ -76,6 +77,7 @@ final class HeapDumpFieldObject implements FieldObject {
           myValueType = OBJECT;
         }
 
+        myNativeSize = instance.getNativeSize();
         myShallowSize = instance.getSize();
         myRetainedSize = instance.getTotalRetainedSize();
         myDepth = instance.getDistanceToGcRoot();
@@ -84,6 +86,7 @@ final class HeapDumpFieldObject implements FieldObject {
     else {
       myValueType = ourPrimitiveValueTypeMap.getOrDefault(type, NULL);
       myInstanceObject = null;
+      myNativeSize = 0;
       myShallowSize = type.getSize();
       myRetainedSize = type.getSize();
       myDepth = parentInstance.getDistanceToGcRoot();
@@ -114,6 +117,11 @@ final class HeapDumpFieldObject implements FieldObject {
   @Override
   public String getName() {
     return getFieldName();
+  }
+
+  @Override
+  public long getNativeSize() {
+    return myNativeSize;
   }
 
   @Override

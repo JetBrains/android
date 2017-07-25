@@ -127,6 +127,16 @@ final class MemoryClassifierView extends AspectObserver {
         createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeallocatedCount),
                                  Comparator.comparingInt(ClassSet::getDeallocatedCount))));
     myAttributeColumns.put(
+      ClassifierAttribute.NATIVE_SIZE,
+      new AttributeColumn<>(
+        "Native Size",
+        () -> new SimpleColumnRenderer<ClassifierSet>(
+          value -> Long.toString(value.getAdapter().getTotalNativeSize()),
+          value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalNativeSize))));
+    myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
       new AttributeColumn<>(
         "Shallow Size",

@@ -163,6 +163,16 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         DEFAULT_COLUMN_WIDTH,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
     myAttributeColumns.put(
+      InstanceAttribute.NATIVE_SIZE,
+      new AttributeColumn<ValueObject>(
+        "Native Size",
+        () -> new SimpleColumnRenderer<ValueObject>(
+          value -> value.getAdapter().getNativeSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getNativeSize()) : "",
+          value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        Comparator.comparingLong(o -> o.getAdapter().getNativeSize())));
+    myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn<ValueObject>(
         "Shallow Size",
@@ -177,14 +187,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getShallowSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getRetainedSize()) : "",
+          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getRetainedSize()) : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
-        (o1, o2) -> {
-          long diff = o1.getAdapter().getRetainedSize() - o2.getAdapter().getRetainedSize();
-          return diff > 0 ? 1 : (diff < 0 ? -1 : 0);
-        }));
+        Comparator.comparingLong(o -> o.getAdapter().getRetainedSize())));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
     instanceChanged();
