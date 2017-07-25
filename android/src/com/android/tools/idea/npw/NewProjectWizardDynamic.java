@@ -25,11 +25,13 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
-import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.KeystoreUtils;
+import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -99,9 +101,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    */
   private void addPaths() {
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
-    for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
-      addPath(path);
-    }
     addPath(new ConfigureCppSupportPath(getDisposable()));
   }
 

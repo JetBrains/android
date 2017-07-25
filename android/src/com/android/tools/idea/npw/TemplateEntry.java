@@ -58,7 +58,7 @@ public class TemplateEntry {
         }
       }
       catch (IOException e) {
-        Logger.getInstance(ActivityGalleryStep.class).warn(e);
+        Logger.getInstance(TemplateEntry.class).warn(e);
       }
     }
     return null;
