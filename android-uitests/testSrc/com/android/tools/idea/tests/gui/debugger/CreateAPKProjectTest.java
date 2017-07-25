@@ -88,7 +88,7 @@ public class CreateAPKProjectTest {
       }
     });
 
-    File apkFile = new File(projectRoot, "app/build/outputs/apk/app-x86-debug.apk");
+    File apkFile = new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk");
     apkFileChooser.select(VfsUtil.findFileByIoFile(apkFile, true));
     apkFileChooser.clickOk();
 
