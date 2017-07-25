@@ -288,6 +288,7 @@ public class ASGallery<E> extends JBList {
       }
     };
     CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
+    myCellRenderers.clear();
     myImagesCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
     repaint(getVisibleRect());
   }
