@@ -55,11 +55,6 @@ public final class StudioFlags {
     "Use the new wizard framework for the \"New > New Project...\" wizard flow.",
     true);
 
-  public static final Flag<Boolean> NPW_NEW_MODULE = Flag.create(
-    NPW, "new.module", "Migrate \"New Module\"",
-    "Use the new wizard framework for the \"New > New Module...\" wizard flow.",
-    true);
-
   public static final Flag<Boolean> NPW_KOTLIN = Flag.create(
     NPW, "kotlin", "Enable Kotlin projects",
     "Add an option in the new wizard flow to create a Kotlin project.",
