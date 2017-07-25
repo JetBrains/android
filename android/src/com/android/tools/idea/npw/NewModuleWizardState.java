@@ -50,18 +50,15 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   private static final Logger LOG = Logger.getInstance(NewModuleWizardState.class);
 
-  /*
-   * @deprecated Use {@link TemplateMetadata.ATTR_CREATE_ACTIVITY} instead.
-   */
-  @Deprecated
-  public static final String ATTR_CREATE_ACTIVITY = TemplateMetadata.ATTR_CREATE_ACTIVITY;
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String MODULE_IMPORT_NAME = "Import Existing Project";
   public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
+  private static final String APP_TEMPLATE_NAME = "Android Application";
+  private static final String LIB_TEMPLATE_NAME = "Android Library";
   /**
    * State for the template wizard, used to embed an activity template
    */
-  protected final TemplateWizardState myActivityTemplateState;
+  private final TemplateWizardState myActivityTemplateState;
   /**
    * Modules that will be imported.
    */
@@ -125,13 +122,13 @@ public class NewModuleWizardState extends TemplateWizardState {
   public void templateChanged(@Nullable Project project, String templateName) {
     setTemplateName(templateName);
 
-    if (templateName.equals(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME)) {
+    if (templateName.equals(LIB_TEMPLATE_NAME)) {
       put(ATTR_IS_LIBRARY_MODULE, true);
       put(ATTR_IS_LAUNCHER, false);
       put(ATTR_CREATE_ICONS, false);
       // Hide the create icons checkbox
       myHidden.add(ATTR_CREATE_ICONS);
-    } else if (templateName.equals(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME)) {
+    } else if (templateName.equals(APP_TEMPLATE_NAME)) {
       put(ATTR_IS_LIBRARY_MODULE, false);
       put(ATTR_IS_LAUNCHER, true);
       put(ATTR_CREATE_ICONS, true);
