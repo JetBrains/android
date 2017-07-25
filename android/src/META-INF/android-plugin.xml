@@ -1144,7 +1144,6 @@
   <extensionPoints>
     <extensionPoint qualifiedName="org.jetbrains.android.mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
-    <extensionPoint qualifiedName="org.jetbrains.android.newModuleDynamicPathFactory" interface="com.android.tools.idea.npw.NewModuleDynamicPathFactory"/>
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
     <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
@@ -1219,12 +1218,6 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="org.jetbrains.android">
-    <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.LegacyWizardPathProvider"/>
-    <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.JavaWizardPathProvider"/>
-    <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.InstantAppWizardPathProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
