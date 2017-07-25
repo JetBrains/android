@@ -25,6 +25,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.ComboBox;
@@ -35,6 +36,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.SearchTextField;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -44,11 +46,13 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.awt.image.ToolkitImage;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.ImageObserver;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -95,6 +99,10 @@ public class AddMenuWrapper extends DropDownAction {
   public JButton myCreateButton;
   @VisibleForTesting
   public ASGallery<NavActionManager.Destination> myDestinationsGallery;
+
+  private MediaTracker myMediaTracker;
+  @VisibleForTesting
+  JBLoadingPanel myLoadingPanel;
 
   AddMenuWrapper(@NotNull NavDesignSurface surface, @NotNull List<NavActionManager.Destination> destinations) {
     super("", "Add Destination", IconUtil.getAddIcon());
@@ -364,7 +372,7 @@ public class AddMenuWrapper extends DropDownAction {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
     myDestinationsGallery = new ASGallery<NavActionManager.Destination>(
-      listModel, NavActionManager.Destination::getThumbnail, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
+      listModel, d->null, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
       @Override
       @NotNull
       public Dimension getPreferredScrollableViewportSize() {
@@ -386,6 +394,7 @@ public class AddMenuWrapper extends DropDownAction {
         }
       }
     };
+
     myDestinationsGallery.setBackground(null);
     myDestinationsGallery.addMouseMotionListener(new MouseAdapter() {
       @Override
@@ -407,8 +416,34 @@ public class AddMenuWrapper extends DropDownAction {
 
     JBScrollPane scrollPane = new JBScrollPane(myDestinationsGallery);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
-    selectionPanel.add(scrollPane);
 
+    myMediaTracker = new MediaTracker(myDestinationsGallery);
+
+    myDestinations.forEach(destination -> myMediaTracker.addImage(destination.getThumbnail(), 0));
+    if (!myMediaTracker.checkAll()) {
+      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), mySurface);
+      myLoadingPanel.add(scrollPane, BorderLayout.CENTER);
+      myLoadingPanel.startLoading();
+
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          myMediaTracker.waitForAll();
+          ApplicationManager.getApplication().invokeLater(() -> {
+            myDestinationsGallery.setImageProvider(NavActionManager.Destination::getThumbnail);
+            myLoadingPanel.stopLoading();
+          });
+        }
+        catch (Exception e) {
+          myLoadingPanel.setLoadingText("Failed to load thumbnails");
+        }
+      });
+
+      selectionPanel.add(myLoadingPanel);
+    }
+    else {
+      myDestinationsGallery.setImageProvider(NavActionManager.Destination::getThumbnail);
+      selectionPanel.add(scrollPane);
+    }
     myNewDestinationButton = new JButton("New Destination");
     JPanel createButtonPanel = new JPanel();
     createButtonPanel.add(myNewDestinationButton);
