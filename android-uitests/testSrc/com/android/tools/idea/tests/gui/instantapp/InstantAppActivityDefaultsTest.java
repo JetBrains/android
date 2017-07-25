@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -42,6 +41,7 @@ public class InstantAppActivityDefaultsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String TEST_DOMAIN = "aia.example.com";
+  private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 
   @Before
   public void before() {

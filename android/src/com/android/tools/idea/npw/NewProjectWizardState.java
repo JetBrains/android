@@ -17,7 +17,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
 import org.jetbrains.annotations.NotNull;
@@ -29,13 +29,13 @@ import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
 
 /**
  * Value object which holds the current state of the wizard pages for the NewProjectWizard
- * Deprecated by {@link NewProjectWizardDynamic} and {@link ConfigureAndroidProjectPath}
+ * Deprecated by {@link TemplateValueInjector}
  */
 @Deprecated
 public class NewProjectWizardState extends NewModuleWizardState {
   private static final String APPLICATION_NAME = "My Application";
 
-  protected final Template myProjectTemplate;
+  private final Template myProjectTemplate;
 
   public NewProjectWizardState() {
     this(Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME));
