@@ -27,22 +27,18 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.google.common.collect.Iterables;
 
 import java.io.File;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_BUDDY_APKS;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
-
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -123,7 +119,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApksForTestBuddyApks() throws Exception {
-    loadProject(TEST_ARTIFACTS_BUDDY_APKS, "test");
+    loadProject(BUDDY_APKS, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(Iterables.transform(apks, apk -> apk.getApplicationId())).containsExactly("google.testapplication", "google.testapplication.test", "com.linkedin.android.testbutler");

@@ -27,6 +27,7 @@ import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.execution.process.NopProcessHandler;
 
@@ -34,9 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_INSTRUMENTATION_RUNNER;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -65,7 +63,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   public void testRunnerArgumentsSet() throws Exception {
-    loadProject(RUN_CONFIG_RUNNER_ARGUMENTS);
+    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
     Map<String, String> expectedArguments = new HashMap<>();
     expectedArguments.put("size", "medium");
     expectedArguments.put("foo", "bar");
@@ -75,7 +73,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   public void testRunnerComponentsEmptyForGradleProjects() throws Exception {
-    loadProject(TEST_ARTIFACTS_INSTRUMENTATION_RUNNER);
+    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
       createAndroidTestConfigurationFromClass(getProject(), "google.testapplication.ApplicationTest");
@@ -85,7 +83,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   public void testRunnerOdoNotUsed() throws Exception {
-    loadProject(TEST_ARTIFACTS_INSTRUMENTATION_RUNNER);
+    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask();
     IDevice device = mock(IDevice.class);
     IdeAndroidArtifact artifact = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact();
@@ -93,7 +91,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   public void testRunnerOdoUsed() throws Exception {
-    loadProject(TEST_ARTIFACTS_INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
+    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask();
     IDevice device = mock(IDevice.class);
     IdeAndroidArtifact artifact = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getAndroidTestArtifact();

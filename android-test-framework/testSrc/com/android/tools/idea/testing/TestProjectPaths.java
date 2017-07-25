@@ -6,12 +6,15 @@ package com.android.tools.idea.testing;
 public final class TestProjectPaths {
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String BASIC = "projects/basic";
+  public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String EXPERIMENTAL_PLUGIN = "projects/experimentalPlugin";
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String IMPORTING = "projects/importing";
   public static final String INSTANT_APP = "projects/instantApp";
+  public static final String INSTRUMENTATION_RUNNER = "projects/instrumentationRunner";
+  public static final String INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/instrumentationRunnerAndroidTestOrchestrator";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
@@ -57,9 +60,6 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
-  public static final String TEST_ARTIFACTS_BUDDY_APKS = "projects/testArtifacts/buddyApks";
-  public static final String TEST_ARTIFACTS_INSTRUMENTATION_RUNNER = "projects/testArtifacts/instrumentationRunner";
-  public static final String TEST_ARTIFACTS_INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/testArtifacts/instrumentationRunnerAndroidTestOrchestrator";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_OLD_TESTS = "projects/testArtifacts/oldTests";
