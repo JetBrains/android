@@ -25,7 +25,7 @@ public final class WizardUtils {
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
-    createNewProject(guiTest, null, activity);
+    createNewProject(guiTest, "google.com", activity);
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @Nullable String domain, @NotNull String activity) {

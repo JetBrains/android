@@ -17,7 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
@@ -52,12 +56,12 @@ public class WidgetConstraintPanel extends JPanel {
   private boolean mConfiguringUI = false;
   NlComponent mComponent;
   public static final int UNCONNECTED = -1;
-  WriteCommandAction myWriteAction;
+  private Runnable myWriteAction;
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
   ColorSet mColorSet = new InspectorColorSet();
   Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
     if (myWriteAction != null) {
-      ApplicationManager.getApplication().invokeLater(() -> myWriteAction.execute());
+      ApplicationManager.getApplication().invokeLater(myWriteAction);
     }
   });
 
@@ -388,15 +392,12 @@ public class WidgetConstraintPanel extends JPanel {
     Project project = model.getProject();
     XmlFile file = model.getFile();
 
-    String label = "Change Widget";
-    myWriteAction = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        AttributesTransaction transaction = component.startAttributeTransaction();
-        transaction.setAttribute(nameSpace, attribute, value);
-        transaction.commit();
-      }
-    };
+    myWriteAction = new NlWriteCommandAction(project, "Change Widget", file, () -> {
+      AttributesTransaction transaction2 = component.startAttributeTransaction();
+
+      transaction2.setAttribute(nameSpace, attribute, value);
+      transaction2.commit();
+    });
 
     myTimer.restart();
   }

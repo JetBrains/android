@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -81,6 +85,12 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
       myPanel.setAllPropertiesPanelVisible(true);
     }
     return NlPropertyTableFixture.create(robot());
+  }
+
+  @NotNull
+  public ConstraintLayoutViewInspectorFixture getConstraintLayoutViewInspector() {
+    Robot robot = robot();
+    return new ConstraintLayoutViewInspectorFixture(robot, robot.finder().findByType(WidgetConstraintPanel.class));
   }
 
   @Nullable
