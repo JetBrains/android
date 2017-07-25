@@ -60,7 +60,7 @@ public class StructurePaneComponentHandler extends PropertyComponentHandler {
     String name = component.getTagName();
     if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER)) {
       String direction = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION);
-      if (direction.equals(SdkConstants.VALUE_TOP) || direction.equals(SdkConstants.VALUE_BOTTOM)) {
+      if (SdkConstants.VALUE_TOP.equals(direction) || SdkConstants.VALUE_BOTTOM.equals(direction)) {
         name += "Horizontal";
       }
     }
