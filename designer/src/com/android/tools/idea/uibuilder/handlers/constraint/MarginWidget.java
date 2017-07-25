@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.ColorSet;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.plaf.basic.BasicArrowButton;
@@ -79,54 +79,78 @@ public class MarginWidget extends JPanel {
     label.setText((String)combo.getSelectedItem());
   }
 
-  public MarginWidget(int alignment, ColorSet colorSet) {
+  public MarginWidget(@NotNull ColorSet colorSet, int alignment, @NotNull String name) {
     super(new CardLayout());
     mColorSet = colorSet;
     layout = (CardLayout)getLayout();
-    combo.setEditable(true);
+
+    initLabel(alignment, name);
+    initComboBox(name);
+
+    setBackground(null);
+    setName(name);
     setOpaque(false);
     setPreferredSize(new Dimension(42, 23));
-    setBackground(null);
-    label.setBackground(null);
-    label.setOpaque(false);
-    label.setHorizontalAlignment(alignment);
-    combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
-    label.setForeground(mColorSet.getInspectorStrokeColor());
-    combo.setAlignmentX(LEFT_ALIGNMENT);
-    combo.addActionListener(e -> {
-      if (mInternal) {
-        return;
-      }
-      label.setText((String)combo.getSelectedItem());
-      for (ActionListener cb : mCallbacks) {
-        cb.actionPerformed(e);
-      }
-    });
 
     add(label, TEXT);
     add(combo, COMBO);
-    combo.setUI(ui);
+  }
+
+  private void initLabel(int alignment, @NotNull String name) {
+    label.setBackground(null);
+    label.setForeground(mColorSet.getInspectorStrokeColor());
+    label.setHorizontalAlignment(alignment);
+    label.setOpaque(false);
+  }
+
+  private void initComboBox(@NotNull String name) {
+    combo.setAlignmentX(LEFT_ALIGNMENT);
+    combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
+    combo.setEditable(true);
+
+    // TODO I don't think we need this
     combo.setEditor(new BasicComboBoxEditor() {
+      @NotNull
       @Override
       public Component getEditorComponent() {
         return super.getEditorComponent();
       }
     });
+
+    combo.setName(name + "ComboBox");
+
+    // noinspection GtkPreferredJComboBoxRenderer
+    combo.setRenderer(new DefaultListCellRenderer() {
+      @NotNull
+      @Override
+      public Component getListCellRendererComponent(@NotNull JList list,
+                                                    @NotNull Object value,
+                                                    int index,
+                                                    boolean selected,
+                                                    boolean focused) {
+        Component component = super.getListCellRendererComponent(list, value, index, selected, focused);
+        ((JComponent)component).setBorder(new LineBorder(mColorSet.getSubduedFrames(), 1));
+
+        return component;
+      }
+    });
+
+    combo.setUI(ui);
+
     combo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
       @Override
-      public void focusLost(FocusEvent e) {
+      public void focusLost(@NotNull FocusEvent event) {
         showUI(Show.OUT_PANEL);
       }
     });
 
-    //noinspection GtkPreferredJComboBoxRenderer
-    combo.setRenderer(new DefaultListCellRenderer() {
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        Component ret = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        ((JLabel)ret).setBorder(new LineBorder(mColorSet.getSubduedFrames(), 1));
-        return ret;
+    combo.addActionListener(event -> {
+      if (mInternal) {
+        return;
       }
+
+      label.setText((String)combo.getSelectedItem());
+      mCallbacks.forEach(listener -> listener.actionPerformed(event));
     });
   }
 
@@ -165,4 +189,3 @@ public class MarginWidget extends JPanel {
     mCallbacks.add(actionListener);
   }
 }
-

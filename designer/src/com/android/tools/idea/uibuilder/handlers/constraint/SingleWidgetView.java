@@ -102,10 +102,10 @@ public class SingleWidgetView extends JPanel {
     super(null);
     mColorSet = colorSet;
 
-    mTopMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mLeftMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mRightMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
-    mBottomMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mTopMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginTop");
+    mLeftMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginStart");
+    mRightMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginEnd");
+    mBottomMargin = new MarginWidget(mColorSet, SwingConstants.LEFT, "marginBottom");
     mTopMargin.setToolTipText("Top Margin");
     mLeftMargin.setToolTipText("Left Margin");
     mRightMargin.setToolTipText("Right Margin");

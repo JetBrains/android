@@ -30,10 +30,10 @@ import java.awt.event.MouseMotionAdapter;
  */
 public class CheckMargin extends JPanel {
   ColorSet mColorSet = new BlueprintColorSet();
-  MarginWidget top = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget left = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget right = new MarginWidget(JLabel.LEFT, mColorSet);
-  MarginWidget bottom = new MarginWidget(JLabel.LEFT, mColorSet);
+  private final MarginWidget top = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget left = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget right = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
+  private final MarginWidget bottom = new MarginWidget(mColorSet, SwingConstants.LEFT, "");
 
   public CheckMargin() {
     super(new GridBagLayout());
