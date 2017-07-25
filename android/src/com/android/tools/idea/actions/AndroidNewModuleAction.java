@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -50,27 +48,20 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      if (StudioFlags.NPW_NEW_MODULE.get()) {
-        if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
-          SdkQuickfixUtils.showSdkMissingDialog();
-          return;
-        }
-
-        ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
-        for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
-          moduleDescriptions.addAll(provider.getDescriptions());
-        }
-
-        ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions);
-        ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
-
-        new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();
+      if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+        SdkQuickfixUtils.showSdkMissingDialog();
+        return;
       }
-      else {
-        NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);
-        dialog.init();
-        dialog.show();
+
+      ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+      for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
+        moduleDescriptions.addAll(provider.getDescriptions());
       }
+
+      ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions);
+      ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
+
+      new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();
     }
   }
 }
