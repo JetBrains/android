@@ -128,7 +128,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myInternalStorageLabel;
   private JBLabel myMemoryAndStorageLabel;
-  private JLabel myMultiCoreExperimentalLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JComboBox myCoreCount;
   private JComboBox mySpeedCombo;
