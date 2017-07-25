@@ -79,7 +79,7 @@ public class JavaToKotlinConversionTest {
       return false;
     });
 
-    Wait.seconds(3).expecting("Wait for kt file is generated.").until(() -> {
+    Wait.seconds(10).expecting("Wait for kt file is generated.").until(() -> {
       try {
         ideFrameFixture.getEditor()
           .open("app/src/main/java/google/simpleapplication/MyActivity.kt")
