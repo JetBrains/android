@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -167,7 +168,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     super.init();
     TemplateListProvider templateListProvider = new TemplateListProvider(myFormFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
                                                                          TemplateManager.EXCLUDED_TEMPLATES);
-    TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
+    TemplateEntry[] list = templateListProvider.deriveValue(myState, NewFormFactorModulePath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
 

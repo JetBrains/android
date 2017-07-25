@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -81,7 +82,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
         }
       };
     addStep(parameterStep);
-    myState.put(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate.getRootPath(), myMetadata));
+    myState.put(NewFormFactorModulePath.KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate.getRootPath(), myMetadata));
     myState.put(SRC_DIR, "src/main/java");
 
     put(ATTR_RES_DIR, "src/main/res");
