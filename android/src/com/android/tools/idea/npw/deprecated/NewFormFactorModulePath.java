@@ -136,7 +136,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(IS_INSTANT_APP_KEY, false);
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
-    addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
     addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, null, myDisposable));
 
     Object packageName = myState.get(PACKAGE_NAME_KEY);
