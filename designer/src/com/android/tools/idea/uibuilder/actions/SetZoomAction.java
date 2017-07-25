@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * Action for performing a zooming operation according to the {@link ZoomType}
  */
 public class SetZoomAction extends AnAction {
-  @NotNull private final DesignSurface mySurface;
+  @NotNull protected final DesignSurface mySurface;
   @NotNull private final ZoomType myType;
 
   public SetZoomAction(@NotNull DesignSurface surface, @NotNull ZoomType type) {
