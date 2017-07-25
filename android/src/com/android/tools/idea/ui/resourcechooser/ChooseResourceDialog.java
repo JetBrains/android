@@ -64,6 +64,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -135,6 +136,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                                                                SimpleTextAttributes.STYLE_SEARCH_MATCH);
   private static final Action[] EMPTY_ACTIONS = new Action[0];
   private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;
@@ -2014,15 +2016,6 @@ public class ChooseResourceDialog extends DialogWrapper {
               }
             });
           }
-          else {
-            // Delegate, but mess with insets!
-            setBorder(new AbstractBorder() {
-              @Override
-              public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                getBorder().paintBorder(c, g, x, y, width, height);
-              }
-            });
-          }
           setIpad(LIST_PADDING);
 
           // TODO: show deprecated resources with a strikeout
@@ -2070,21 +2063,29 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-          DefaultListCellRenderer component =
-            (DefaultListCellRenderer)super.getListCellRendererComponent(list, value, index, isSelected, false);
+          super.getListCellRendererComponent(list, value, index, isSelected, false);
 
-          final Border border = component.getBorder();
-          component.setBorder(new AbstractBorder() {
-            @Override
-            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-              border.paintBorder(c, g, x, y, width, height);
+          if (!SystemInfo.isMac) {
+            // Bug 63478794
+            // On Linux and Windows, the backgrounds is paint on the whole row
+            // and covers everything on left of the icon.
+            // The workaround is to set the a transparent background and draw just a border instead
+            // The list used is probably not the correct one and we need to find the correct grid view to use
+            setBackground(UIUtil.TRANSPARENT_COLOR);
+            if (isSelected) {
+              setBorder(GRID_SELECTION_BORDER);
+              setForeground(JBColor.foreground());
             }
-          });
+          }
 
           // TODO show deprecated resources with a strikeout
           ResourceChooserItem rItem = (ResourceChooserItem)value;
           setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE, list::repaint));
+          highlightSearchResult(rItem);
+          return this;
+        }
 
+        private void highlightSearchResult(@NotNull ResourceChooserItem rItem) {
           String name = rItem.getName();
 
           String filter = mySearchField.getText();
@@ -2153,9 +2154,8 @@ public class ChooseResourceDialog extends DialogWrapper {
             }
             builder.endNoBr();
             builder.closeHtmlBody();
-            component.setText(builder.getHtml());
+            setText(builder.getHtml());
           }
-          return component;
         }
       };
       list.setFixedCellWidth(GRID_CELL_SIZE);
