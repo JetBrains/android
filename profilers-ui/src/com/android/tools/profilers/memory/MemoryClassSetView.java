@@ -18,7 +18,10 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.CloseButton;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -161,6 +164,17 @@ final class MemoryClassSetView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
+    myAttributeColumns.put(
+      InstanceAttribute.NATIVE_SIZE,
+      new AttributeColumn<>(
+        "Native Size",
+        () -> new SimpleColumnRenderer<>(value -> {
+          MemoryObject node = value.getAdapter();
+          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getNativeSize()) : "";
+        }, value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getNativeSize())));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn<>(

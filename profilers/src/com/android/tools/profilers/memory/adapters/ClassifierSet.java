@@ -39,6 +39,7 @@ public abstract class ClassifierSet implements MemoryObject {
 
   protected int myAllocatedCount = 0;
   protected int myDeallocatedCount = 0;
+  protected long myTotalNativeSize = 0L;
   protected long myTotalShallowSize = 0L;
   protected long myTotalRetainedSize = 0L;
   protected int myInstancesWithStackInfoCount = 0;
@@ -81,6 +82,10 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public long getTotalShallowSize() {
     return myTotalShallowSize;
+  }
+
+  public long getTotalNativeSize() {
+    return myTotalNativeSize;
   }
 
   // Add alloc information into the ClassifierSet
@@ -131,6 +136,8 @@ public abstract class ClassifierSet implements MemoryObject {
       myDeallocatedCount++;
     }
 
+    myTotalNativeSize +=
+      (isAllocation ? 1 : -1) * (instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize());
     myTotalShallowSize +=
       (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
     myTotalRetainedSize +=
@@ -162,6 +169,9 @@ public abstract class ClassifierSet implements MemoryObject {
     else {
       myDeallocatedCount--;
     }
+
+    myTotalNativeSize -=
+      (isAllocation ? 1 : -1) * (instanceObject.getNativeSize() == INVALID_VALUE ? 0 : instanceObject.getNativeSize());
     myTotalShallowSize -=
       (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
     myTotalRetainedSize -=

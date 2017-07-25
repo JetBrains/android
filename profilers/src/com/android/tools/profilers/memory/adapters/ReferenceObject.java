@@ -69,6 +69,11 @@ public class ReferenceObject implements ValueObject {
   }
 
   @Override
+  public long getNativeSize() {
+    return myReferencingInstance.getNativeSize();
+  }
+
+  @Override
   public int getShallowSize() {
     return myReferencingInstance.getShallowSize();
   }

@@ -51,6 +51,10 @@ public interface ValueObject extends MemoryObject {
     return Integer.MAX_VALUE;
   }
 
+  default long getNativeSize() {
+    return INVALID_VALUE;
+  }
+
   default int getShallowSize() {
     return INVALID_VALUE;
   }
