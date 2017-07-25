@@ -79,7 +79,6 @@ iml_module(
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model-builder:studio.java-lib-model-builder[module]",
         "//tools/base/layoutinspector:studio.layoutinspector[module]",
-        "//tools/base/instantapp-deploy:studio.instantapp-deploy[module]",
         "//tools/base/sdk-common:studio.sdk-common[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/platform/lang-api[module]",
