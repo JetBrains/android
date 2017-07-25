@@ -30,10 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -52,11 +50,6 @@ public class FormFactorUtils {
    */
   @Deprecated
   public static final String ATTR_MODULE_NAME = TemplateMetadata.ATTR_MODULE_NAME;
-
-  @NotNull
-  public static Key<AndroidTargetComboBoxItem> getTargetComboBoxKey(@NotNull FormFactor formFactor) {
-    return createKey(formFactor.id + ATTR_MIN_API + "combo", STEP, AndroidTargetComboBoxItem.class);
-  }
 
   @NotNull
   public static Key<Integer> getMinApiLevelKey(@NotNull FormFactor formFactor) {
@@ -113,10 +106,6 @@ public class FormFactorUtils {
       }
     }
     return toReturn;
-  }
-
-  static Predicate<AndroidTargetComboBoxItem> getMinSdkComboBoxFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return input -> input != null && doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, input.getApiLevel());
   }
 
   static Predicate<RepoPackage> getMinSdkPackageFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
