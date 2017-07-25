@@ -42,18 +42,16 @@ import static org.mockito.Mockito.when;
 public class ScreenDragTargetTest extends NavigationTestCase {
 
   public void testMove() throws Exception {
-    ComponentDescriptor root = component(TAG_NAVIGATION)
-      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+    ComponentDescriptor root = rootComponent()
+      .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_main")
           .unboundedChildren(
-            component(NavigationSchema.TAG_ACTION)
-              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")),
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
+            actionComponent("action1")
+              .withDestinationAttribute("fragment2")),
+        fragmentComponent("fragment2")
+          .withLayoutAttribute("activity_main2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
@@ -81,6 +79,5 @@ public class ScreenDragTargetTest extends NavigationTestCase {
     assertEquals(x + 20, component.getDrawX());
     assertEquals(y + 30, component.getDrawY());
     interactionManager.unregisterListeners();
-
   }
 }

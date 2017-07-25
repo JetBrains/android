@@ -33,9 +33,9 @@ public class NavNlModelTest extends NavigationTestCase {
   public void testAddChild() throws Exception {
     NlTreeDumper treeDumper = new NlTreeDumper();
     ModelBuilder modelBuilder = model("nav.xml",
-                                component(TAG_NAVIGATION).unboundedChildren(
-                                  component(TAG_FRAGMENT).id("@id/fragment1"),
-                                  component(TAG_FRAGMENT).id("@id/fragment2")));
+                                      rootComponent().unboundedChildren(
+                                        fragmentComponent("fragment1"),
+                                        fragmentComponent("fragment2")));
     SyncNlModel model = modelBuilder.build();
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
@@ -46,7 +46,7 @@ public class NavNlModelTest extends NavigationTestCase {
     // Add child
     ComponentDescriptor parent = modelBuilder.findByPath(TAG_NAVIGATION);
     assertThat(parent).isNotNull();
-    parent.addChild(component(NavigationSchema.TAG_ACTION).id("@id/action"), null);
+    parent.addChild(actionComponent("action"), null);
     modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
@@ -55,5 +55,4 @@ public class NavNlModelTest extends NavigationTestCase {
                  "    NlComponent{tag=<action>, instance=3}",
                  treeDumper.toTree(model.getComponents()));
   }
-
 }

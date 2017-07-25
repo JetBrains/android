@@ -46,11 +46,11 @@ public class DestinationListTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    component(TAG_NAVIGATION).unboundedChildren(
-                      component(TAG_FRAGMENT).id("@id/fragment1"),
-                      component(TAG_FRAGMENT).id("@id/fragment2"),
-                      component(TAG_NAVIGATION).id("@id/subnav")
-                                             .unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment3"))))
+                    rootComponent().unboundedChildren(
+                      fragmentComponent("fragment1"),
+                      fragmentComponent("fragment2"),
+                      navigationComponent("subnav")
+                        .unboundedChildren(fragmentComponent("fragment3"))))
       .build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     myList = (DestinationList)def.getFactory().create();
@@ -125,9 +125,9 @@ public class DestinationListTest extends NavigationTestCase {
   }
 
   public void testModifyModel() throws Exception {
-    ComponentDescriptor root = component(TAG_NAVIGATION).unboundedChildren(
-      component(TAG_FRAGMENT).id("@id/fragment1"),
-      component(TAG_FRAGMENT).id("@id/fragment2"));
+    ComponentDescriptor root = rootComponent().unboundedChildren(
+      fragmentComponent("fragment1"),
+      fragmentComponent("fragment2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
@@ -144,14 +144,13 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), Collections.list(list.myListModel.elements()));
 
 
-    root.addChild(component(TAG_FRAGMENT).id("@id/fragment3"), null);
+    root.addChild(fragmentComponent("fragment3"), null);
     modelBuilder.updateModel(model);
     model.notifyModified(NlModel.ChangeType.EDIT);
 
     //noinspection AssertEqualsBetweenInconvertibleTypes
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")),
                  Collections.list(list.myListModel.elements()));
-
   }
 
   public void testDoubleClickActivity() throws Exception {
@@ -163,13 +162,11 @@ public class DestinationListTest extends NavigationTestCase {
 
   public void testBack() throws Exception {
     SyncNlModel model = model("nav.xml",
-                    component(TAG_NAVIGATION).unboundedChildren(
-                      component(TAG_NAVIGATION)
-                        .id("@id/subnav")
-                        .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "sub nav")
-                        .unboundedChildren(component(TAG_NAVIGATION)
-                                             .id("@id/subsubnav")
-                                             .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "sub sub nav"))))
+                              rootComponent().unboundedChildren(
+                                navigationComponent("subnav")
+                                  .withLabelAttribute("sub nav")
+                                  .unboundedChildren(navigationComponent("subsubnav")
+                                                       .withLabelAttribute("sub sub nav"))))
       .build();
 
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();

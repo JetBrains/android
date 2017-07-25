@@ -27,12 +27,12 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 public class DummyAlgorithmTest extends NavigationTestCase {
   public void testSimple() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                   component(TAG_FRAGMENT).id("@id/fragment1"),
-                                   component(TAG_FRAGMENT).id("@id/fragment2"),
-                                   component(TAG_FRAGMENT).id("@id/fragment3")
-                                     .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
-                                   component(TAG_FRAGMENT).id("@id/fragment4"))).build();
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"),
+                                fragmentComponent("fragment3")
+                                  .unboundedChildren(actionComponent("action1")),
+                                fragmentComponent("fragment4"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(1000, 1000, false);
@@ -52,15 +52,15 @@ public class DummyAlgorithmTest extends NavigationTestCase {
 
   public void testSkipOther() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                   component(TAG_FRAGMENT).id("@id/fragment1"),
-                                   component(TAG_FRAGMENT).id("@id/fragment2"),
-                                   component(TAG_FRAGMENT).id("@id/fragment3")
-                                     .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
-                                   component(TAG_FRAGMENT).id("@id/fragment4"),
-                                   component(TAG_FRAGMENT).id("@id/fragment5"),
-                                   component(TAG_FRAGMENT).id("@id/fragment6"),
-                                   component(TAG_FRAGMENT).id("@id/fragment7"))).build();
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"),
+                                fragmentComponent("fragment3")
+                                  .unboundedChildren(actionComponent("action2")),
+                                fragmentComponent("fragment4"),
+                                fragmentComponent("fragment5"),
+                                fragmentComponent("fragment6"),
+                                fragmentComponent("fragment7"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(1000, 1000, false);

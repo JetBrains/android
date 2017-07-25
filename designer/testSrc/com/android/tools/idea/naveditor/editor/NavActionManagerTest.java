@@ -42,9 +42,9 @@ import static org.mockito.Mockito.when;
 public class NavActionManagerTest extends NavigationTestCase {
   public void testAddElement() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                component(TAG_FRAGMENT).id("@id/fragment1"),
-                                component(TAG_FRAGMENT).id("@id/fragment2"))).build();
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"))).build();
 
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
 
@@ -62,10 +62,10 @@ public class NavActionManagerTest extends NavigationTestCase {
 
   public void testAddElementInSubflow() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                component(TAG_NAVIGATION).id("@id/subflow").
-                                  unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment2")),
-                                component(TAG_FRAGMENT).id("@id/fragment1"))).build();
+                              rootComponent().unboundedChildren(
+                                navigationComponent("subflow").
+                                  unboundedChildren(fragmentComponent("fragment2")),
+                                fragmentComponent("fragment1"))).build();
 
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
     when(surface.getCurrentNavigation()).thenReturn(model.find("subflow"));
@@ -83,10 +83,10 @@ public class NavActionManagerTest extends NavigationTestCase {
 
   public void testGetDestinations() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                component(TAG_NAVIGATION).id("@id/subflow").
-                                  unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment2")),
-                                component(TAG_FRAGMENT).id("@id/fragment1"))).build();
+                              rootComponent().unboundedChildren(
+                                navigationComponent("subflow").
+                                  unboundedChildren(fragmentComponent("fragment2")),
+                                fragmentComponent("fragment1"))).build();
     invokeGradleTasks(getProject(), "assembleDebug");
     // TODO: why is this needed?
     myFixture.getTempDirFixture().getFile("../testGetDestinations/app/build/generated/source/r/debug/mytest/navtest/R.java");

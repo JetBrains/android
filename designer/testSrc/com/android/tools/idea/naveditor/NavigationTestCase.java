@@ -114,13 +114,15 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   }
 
   @NotNull
-  protected ComponentDescriptor component(@NotNull String tag) {
-    return new ComponentDescriptor(tag);
+  protected NavigationComponentDescriptor rootComponent() {
+    return new NavigationComponentDescriptor();
   }
 
   @NotNull
-  protected ComponentDescriptor rootComponent() {
-    return new ComponentDescriptor(TAG_NAVIGATION);
+  protected NavigationComponentDescriptor navigationComponent(@NotNull String id) {
+    NavigationComponentDescriptor descriptor = new NavigationComponentDescriptor();
+    descriptor.id("@id/" + id);
+    return descriptor;
   }
 
   @NotNull
@@ -135,6 +137,31 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     ActionComponentDescriptor descriptor = new ActionComponentDescriptor();
     descriptor.id("@id/" + id);
     return descriptor;
+  }
+
+  @NotNull
+  protected ActivityComponentDescriptor activityComponent(@NotNull String id) {
+    ActivityComponentDescriptor descriptor = new ActivityComponentDescriptor();
+    descriptor.id("@id/" + id);
+    return descriptor;
+  }
+
+  protected static class NavigationComponentDescriptor extends ComponentDescriptor {
+    public NavigationComponentDescriptor() {
+      super(TAG_NAVIGATION);
+    }
+
+    @NotNull
+    public NavigationComponentDescriptor withStartDestinationAttribute(@NotNull String startDestination) {
+      withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/" + startDestination);
+      return this;
+    }
+
+    @NotNull
+    public NavigationComponentDescriptor withLabelAttribute(@NotNull String label) {
+      withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, label);
+      return this;
+    }
   }
 
   protected static class FragmentComponentDescriptor extends ComponentDescriptor {
@@ -158,6 +185,12 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     public ActionComponentDescriptor withDestinationAttribute(@NotNull String destination) {
       withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/" + destination);
       return this;
+    }
+  }
+
+  protected static class ActivityComponentDescriptor extends ComponentDescriptor {
+    public ActivityComponentDescriptor() {
+      super("activity");
     }
   }
 }

@@ -29,9 +29,9 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testSimple() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                   component(TAG_FRAGMENT).id("@id/fragment1"),
-                                   component(TAG_FRAGMENT).id("@id/fragment2"))).build();
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"))).build();
     ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
     positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(123, 456));
     positions.myPositions.put("fragment2", new ManualLayoutAlgorithm.Point(456, 789));
@@ -49,10 +49,10 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testFallback() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              component(TAG_NAVIGATION).unboundedChildren(
-                                   component(TAG_FRAGMENT).id("@id/fragment1"),
-                                   component(TAG_FRAGMENT).id("@id/fragment2"),
-                                   component(TAG_FRAGMENT).id("@id/fragment3"))).build();
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"),
+                                fragmentComponent("fragment3"))).build();
     ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
     positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(60, 60));
     positions.myPositions.put("fragment3", new ManualLayoutAlgorithm.Point(200, 200));

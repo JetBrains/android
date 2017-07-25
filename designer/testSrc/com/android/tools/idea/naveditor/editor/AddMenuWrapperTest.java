@@ -44,10 +44,10 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    component(TAG_NAVIGATION).unboundedChildren(
-                      component(TAG_FRAGMENT).id("@id/fragment1"),
-                      component(TAG_NAVIGATION).id("@id/subnav")
-                        .unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment2"))))
+                    rootComponent().unboundedChildren(
+                      fragmentComponent("fragment1"),
+                      navigationComponent("subnav")
+                        .unboundedChildren(fragmentComponent("fragment2"))))
       .build();
     mySurface = new NavDesignSurface(getProject(), getTestRootDisposable());
     mySurface.setSize(1000, 1000);
