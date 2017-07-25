@@ -29,7 +29,6 @@ iml_module(
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/base/instantapp-deploy:studio.instantapp-deploy[module, test]",  # added manually for SdkReplacer which should be deleted according to ag/2034355
         "//tools/adt/idea/adt-ui[module, test]",
     ],
 )
