@@ -19,14 +19,15 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
@@ -291,6 +292,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
+    populateGlobalLibraryMap(gradleProject);
     projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     super.populateProjectExtraModels(gradleProject, projectDataNode);
   }
@@ -308,12 +310,35 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
+  /**
+   * Find and set global library map.
+   */
+  private void populateGlobalLibraryMap(@NotNull IdeaProject ideaProject) {
+    GlobalLibraryMap globalLibraryMap = null;
+    // Since GlobalLibraryMap is requested on each module, we need to find the map that was
+    // requested at the last, which is the one that contains the most of items.
+    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+      GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
+      if (globalLibraryMap == null ||
+          (moduleMap != null && moduleMap.getLibraries().size() > globalLibraryMap.getLibraries().size())) {
+        globalLibraryMap = moduleMap;
+      }
+    }
+    // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
+    if (globalLibraryMap != null) {
+      myDependenciesFactory.setupGlobalLibraryMap(globalLibraryMap);
+    }
+  }
+
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    Set<Class> modelClasses = new HashSet<>();
+    // Use LinkedHashSet to maintain insertion order.
+    // GlobalLibraryMap should be requested after AndroidProject.
+    Set<Class> modelClasses = new LinkedHashSet<>();
     modelClasses.add(AndroidProject.class);
     modelClasses.add(NativeAndroidProject.class);
+    modelClasses.add(GlobalLibraryMap.class);
     return modelClasses;
   }
 
