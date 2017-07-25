@@ -72,12 +72,11 @@ public class NewModuleTest {
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
-    boolean isNewWizard = StudioFlags.NPW_NEW_MODULE.get();
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep(isNewWizard ? "Import Module from Library" : "") // Legacy code, doesn't have a step title
+      .clickNextToStep("Import Module from Library")
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
       .clickFinish()

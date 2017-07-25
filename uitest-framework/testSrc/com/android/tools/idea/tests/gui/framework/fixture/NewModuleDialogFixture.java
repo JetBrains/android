@@ -53,12 +53,7 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public NewModuleDialogFixture chooseModuleType(String name) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    if (StudioFlags.NPW_NEW_MODULE.get()) {
-      listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
-    }
-    else {
-      listFixture.replaceCellReader((list, index) -> ((ModuleTemplate)list.getModel().getElementAt(index)).getName());
-    }
+    listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(name);
     return this;
   }
