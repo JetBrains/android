@@ -44,7 +44,7 @@ import javax.swing.Icon
  * Action that shows a dialog to change the tag name of a component
  */
 class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
-  : AnAction("Morph View...") {
+  : AnAction("Convert view...") {
 
   private val myFacet: AndroidFacet = component.model.facet
   private val mySurface = designSurface
@@ -105,9 +105,6 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     }
 
     myTagNameRange = addMarkerForTagName(editor)
-    myAttributes.forEach {
-      it.addMarker(editor)
-    }
 
     with(editor) {
       setCaretEnabled(false)
@@ -140,7 +137,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
    * Apply the provided tag name to the component in the model
    */
   private fun applyTagEdit(newTagName: String) {
-    NlWriteCommandAction.run(myNlComponent, "Morph " + myNlComponent.tagName + " to $newTagName", {
+    NlWriteCommandAction.run(myNlComponent, "Convert " + myNlComponent.tagName + " to $newTagName", {
       myNlComponent.tag.name = newTagName
       TransactionGuard.getInstance().submitTransactionAndWait {
         myAttributes
@@ -153,13 +150,13 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     })
   }
 
-  private fun createMorphPopup(morphDialog: MorphDialog, editorEx: EditorEx): JBPopup {
+  private fun createMorphPopup(morphPanel: MorphPanel, editorEx: EditorEx): JBPopup {
     val popup = JBPopupFactory.getInstance()
-        .createComponentPopupBuilder(morphDialog, null)
-        .setMinSize(morphDialog.preferredSize)
+        .createComponentPopupBuilder(morphPanel, null)
         .setMovable(true)
         .setFocusable(true)
         .setRequestFocus(true)
+        .setShowShadow(true)
         .setCancelOnClickOutside(true)
         .setAdText("Set the new type for the selected View")
         .setCancelCallback {
@@ -170,7 +167,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
         }
         .createPopup()
 
-    morphDialog.setOkAction {
+    morphPanel.setOkAction {
       applyTagEdit(myNewName)
       popup.closeOk(null)
     }
@@ -179,9 +176,9 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
 
   private fun showMorphPopup() {
     val oldTagName = myNlComponent.tagName
+    val morphSuggestion = MorphManager.getMorphSuggestion(myNlComponent)
     val editor = createEditor()
-    val morphDialog = MorphDialog(myFacet, myProject, editor.component, oldTagName)
-
+    val morphDialog = MorphPanel(myFacet, myProject, editor.component, oldTagName, morphSuggestion)
     morphDialog.setTagNameChangeConsumer(updateDocumentWithNewName(editor.document))
     createMorphPopup(morphDialog, editor).showInFocusCenter()
     IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)

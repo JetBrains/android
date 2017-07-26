@@ -108,7 +108,7 @@ fun NlComponent.needsDefaultId(): Boolean {
     return false
   }
 
-  // Handle <Space> in the compatibility library package
+  // Handle <Space> in the compatibility library b
   if (tagName.endsWith(SPACE) && tagName.length > SPACE.length && tagName[tagName.length - SPACE.length] == '.') {
     return false
   }
