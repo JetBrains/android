@@ -121,7 +121,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
 
   public static class LayoutPositions {
     // Map of id to layout position
-    public Map<String, Point> myPositions = new HashMap<>();
+    public final Map<String, Point> myPositions = new HashMap<>();
 
     public Map<String, Point> getPositions() {
       return myPositions;

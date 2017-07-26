@@ -89,7 +89,7 @@ public class AddMenuWrapper extends DropDownAction {
   ComboBox<PsiFile> mySourcePopup;
   @VisibleForTesting
   JLabel myValidationLabel;
-  private NavigationSchema mySchema;
+  private final NavigationSchema mySchema;
   private JPanel myMainPanel;
   @VisibleForTesting
   public JButton myNewDestinationButton;

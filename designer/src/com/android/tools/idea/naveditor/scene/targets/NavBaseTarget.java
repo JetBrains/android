@@ -29,7 +29,7 @@ import java.awt.*;
  * {@linkplain NavBaseTarget} Contains helper functions common to navigation editor targets.
  */
 public abstract class NavBaseTarget extends BaseTarget {
-  public NavBaseTarget(@NotNull SceneComponent component) {
+  protected NavBaseTarget(@NotNull SceneComponent component) {
     setComponent(component);
   }
 

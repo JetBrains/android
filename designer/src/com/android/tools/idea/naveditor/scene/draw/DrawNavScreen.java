@@ -29,26 +29,24 @@ import java.util.Map;
  * {@link DrawCommand} that draws a screen in the navigation editor.
  */
 public class DrawNavScreen extends NavBaseDrawCommand {
-  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
   );
 
-  @SwingCoordinate private int myX;
-  @SwingCoordinate private int myY;
-  @SwingCoordinate private int myWidth;
-  @SwingCoordinate private int myHeight;
-  @NotNull private ImagePool.Image myImage;
-  boolean mySelected;
+  @SwingCoordinate private final int myX;
+  @SwingCoordinate private final int myY;
+  @SwingCoordinate private final int myWidth;
+  @SwingCoordinate private final int myHeight;
+  @NotNull private final ImagePool.Image myImage;
 
   public DrawNavScreen(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height,
-                       @NotNull ImagePool.Image image, boolean selected) {
+                       @NotNull ImagePool.Image image) {
     myX = x;
     myY = y;
     myWidth = width;
     myHeight = height;
-    mySelected = selected;
     myImage = image;
   }
 
