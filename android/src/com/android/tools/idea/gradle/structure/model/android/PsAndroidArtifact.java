@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -46,9 +46,9 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myResolvedName;
   @NotNull private final Icon myIcon;
 
-  @Nullable private final BaseArtifact myResolvedModel;
+  @Nullable private final IdeBaseArtifact myResolvedModel;
 
-  public PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
+  public PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable IdeBaseArtifact resolvedModel) {
     super(parent);
     myResolvedName = resolvedName;
 
@@ -85,7 +85,7 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
 
   @Override
   @Nullable
-  public BaseArtifact getResolvedModel() {
+  public IdeBaseArtifact getResolvedModel() {
     return myResolvedModel;
   }
 
