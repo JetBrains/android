@@ -275,12 +275,6 @@ public class NavSceneManager extends SceneManager {
     }
 
     @Override
-    public void modelRendered(@NotNull NlModel model) {
-      // updateFrom needs to be called in the dispatch thread
-      UIUtil.invokeLaterIfNeeded(NavSceneManager.this::update);
-    }
-
-    @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
       boolean previous = getScene().isAnimated();
       UIUtil.invokeLaterIfNeeded(() -> {

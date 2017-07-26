@@ -476,10 +476,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   @Override
-  public void modelRendered(@NotNull NlModel model) {
-  }
-
-  @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
     // Do nothing
   }
@@ -493,13 +489,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     setScreenView((ScreenView)sceneView);
-  }
-
-  @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-    if (model != null) {
-      modelRendered(model);
-    }
   }
 
   @Override

@@ -770,11 +770,11 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected void modelRendered(@NotNull NlModel model) {
+  protected void modelRendered() {
     if (getCurrentSceneView() != null) {
       updateErrorDisplay();
     }
-    super.modelRendered(model);
+    super.modelRendered();
   }
 
   @Override

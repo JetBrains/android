@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
@@ -62,7 +63,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
-public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
+public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener, RenderListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -229,11 +230,13 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     }
 
     if (mySceneView != null) {
+      mySceneView.getSceneManager().removeRenderListener(this);
       mySceneView.getModel().removeListener(this);
     }
 
     mySceneView = sceneView;
     if (mySceneView != null) {
+      mySceneView.getSceneManager().addRenderListener(this);
       mySceneView.getModel().addListener(this);
     }
   }
@@ -465,12 +468,12 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Override
-  public void modelRendered(@NotNull NlModel model) {
+  public void modelChanged(@NotNull NlModel model) {
     getPropertiesPanel().modelRendered(this);
   }
 
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void onRenderCompleted() {
     getPropertiesPanel().modelRendered(this);
   }
 

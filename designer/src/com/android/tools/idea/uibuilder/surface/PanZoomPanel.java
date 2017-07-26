@@ -228,10 +228,6 @@ public class PanZoomPanel extends JPanel
     }
   }
 
-  @Override
-  public void modelRendered(@NotNull NlModel model) {
-  }
-
   /* Implements PanZoomListener */
   @Override
   public void zoomChanged(DesignSurface designSurface) {

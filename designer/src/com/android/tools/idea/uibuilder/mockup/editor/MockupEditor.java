@@ -17,17 +17,19 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.actions.MockupEditAction;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.SelectionEditors;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -58,7 +60,7 @@ import java.util.List;
  * The behavior of the the editor can be changed by implementing {@link Tool}.
  * </p>
  */
-public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
+public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, RenderListener {
 
   private static final String TITLE = "Mockup Editor";
   private static final String NO_MOCKUP_TEXT = "<html>No mockup available for this View.<br/>Click to add mockup</html>";
@@ -377,6 +379,10 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
   public void setToolContext(@Nullable DesignSurface newDesignSurface) {
     assert newDesignSurface == null || newDesignSurface instanceof NlDesignSurface;
     if (mySurface != null) {
+      SceneManager manager = mySurface.getSceneManager();
+      if (manager != null) {
+        manager.removeRenderListener(this);
+      }
       mySurface.removeListener(myDesignSurfaceListener);
       mySurface = null;
       myExtractWidgetTool.setDesignSurface(null);
@@ -384,6 +390,10 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
     SceneView sceneView = newDesignSurface != null ? newDesignSurface.getCurrentSceneView() : null;
     if (sceneView != null) {
       mySurface = (NlDesignSurface)newDesignSurface;
+      SceneManager manager = mySurface.getSceneManager();
+      if (manager != null) {
+        manager.addRenderListener(this);
+      }
       mySurface.addListener(myDesignSurfaceListener);
       setModel(sceneView.getModel());
       myExtractWidgetTool.setDesignSurface(mySurface);
@@ -395,6 +405,15 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
   public JComponent getComponent() {
     return this;
   }
+
+  @Override
+  public void onRenderCompleted() {
+    UIUtil.invokeLaterIfNeeded(
+      () -> {
+        if (myModel != null) {
+          selectionUpdated(myModel, myModel.getSelectionModel().getSelection());
+        }
+      });  }
 
   /**
    * A tool is an extension to the {@link MockupEditor}. Each tool is responsible to set
@@ -520,11 +539,6 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
-      processModelChange(model);
-    }
-
-    @Override
-    public void modelRendered(@NotNull NlModel model) {
       processModelChange(model);
     }
 

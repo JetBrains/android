@@ -386,19 +386,6 @@ public class CanvasResizeInteraction extends Interaction {
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
 
-    // When disabling the resize mode, add a render handler to call zoomToFit
-    screenView.getModel().addListener(new ModelListener() {
-      @Override
-      public void modelRendered(@NotNull NlModel model) {
-        model.removeListener(this);
-      }
-
-      @Override
-      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-        // Do nothing
-      }
-    });
-
     int androidX = Coordinates.getAndroidX(screenView, x);
     int androidY = Coordinates.getAndroidY(screenView, y);
 

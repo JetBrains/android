@@ -713,7 +713,6 @@ public class NlModelTest extends LayoutTestCase {
     NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
 
     notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
-    notifyAndCheckListeners(model, NlModel::notifyListenersRenderComplete, listener -> listener.modelRendered(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 

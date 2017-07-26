@@ -22,13 +22,17 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.ActionsToolbar;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
@@ -206,29 +210,27 @@ public class NlPreviewForm implements Disposable, CaretListener {
     this.myUseInteractiveSelector = useInteractiveSelector;
   }
 
-  private class Pending implements ModelListener, Runnable {
+  private class Pending implements RenderListener, Runnable {
     public final XmlFile file;
     public final NlModel model;
+    public final ScreenView screenView;
     public boolean valid = true;
 
     public Pending(XmlFile file, NlModel model) {
       this.file = file;
       this.model = model;
-      model.addListener(this);
-      ScreenView view = mySurface.getCurrentSceneView();
-      if (view != null) {
-        view.getSceneManager().requestRender();
+      screenView = mySurface.getCurrentSceneView();
+      if (screenView != null) {
+        screenView.getSceneManager().addRenderListener(this);
+        screenView.getSceneManager().requestRender();
       }
     }
 
     @Override
-    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      // do nothing
-    }
-
-    @Override
-    public void modelRendered(@NotNull NlModel model) {
-      model.removeListener(this);
+    public void onRenderCompleted() {
+      if (screenView != null) {
+        screenView.getSceneManager().removeRenderListener(this);
+      }
       if (valid) {
         valid = false;
         ApplicationManager.getApplication().invokeLater(this, model.getProject().getDisposed());
