@@ -29,8 +29,8 @@ import java.util.List;
  * Creates the {@link InspectorProvider}s for navigation editor elements.
  */
 public class NavInspectorProviders extends InspectorProviders {
-  protected List<InspectorProvider> myProviders;
-  protected InspectorProvider myNullProvider;
+  private final List<InspectorProvider> myProviders;
+  private final InspectorProvider myNullProvider;
 
   public NavInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(propertiesManager, parentDisposable);

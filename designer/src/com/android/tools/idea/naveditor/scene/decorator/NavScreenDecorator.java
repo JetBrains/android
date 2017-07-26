@@ -84,7 +84,7 @@ public class NavScreenDecorator extends SceneDecorator {
     if (thumbnail == null) {
       return;
     }
-    ImagePool.Image image = null;
+    ImagePool.Image image;
     try {
       // TODO: show progress icon during image creation
       image = thumbnail.get();
@@ -97,7 +97,7 @@ public class NavScreenDecorator extends SceneDecorator {
                                sceneContext.getSwingY(component.getDrawY()) + 1,
                                sceneContext.getSwingDimension(component.getDrawWidth()) - 1,
                                sceneContext.getSwingDimension(component.getDrawHeight()) - 1,
-                               image, component.isSelected()));
+                               image));
   }
 
   @Override
