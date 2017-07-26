@@ -24,20 +24,15 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
@@ -53,25 +48,10 @@ public class NewModuleWizardState extends TemplateWizardState {
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String MODULE_IMPORT_NAME = "Import Existing Project";
   public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
-  private static final String APP_TEMPLATE_NAME = "Android Application";
-  private static final String LIB_TEMPLATE_NAME = "Android Library";
   /**
    * State for the template wizard, used to embed an activity template
    */
   private final TemplateWizardState myActivityTemplateState;
-  /**
-   * Modules that will be imported.
-   */
-  private Map<String, VirtualFile> myModulesToImport;
-  /**
-   * Map from a template name to the wizard path that has provided this template.
-   */
-  private Map<String, WizardPath> myTemplateToPathMap = new HashMap<>();
-  /**
-   * The active wizard path.
-   */
-  private WizardPath myActiveWizardPath;
-  private WizardPath myDefaultPath;
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
@@ -111,48 +91,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     updateParameters();
   }
 
-  public static boolean isAndroidTemplate(@Nullable TemplateMetadata templateMetadata) {
-    return templateMetadata != null && templateMetadata.getParameter(ATTR_MIN_API) != null;
-  }
-
-  public void setDefaultWizardPath(WizardPath defaultPath) {
-    myDefaultPath = defaultPath;
-  }
-
-  public void templateChanged(@Nullable Project project, String templateName) {
-    setTemplateName(templateName);
-
-    if (templateName.equals(LIB_TEMPLATE_NAME)) {
-      put(ATTR_IS_LIBRARY_MODULE, true);
-      put(ATTR_IS_LAUNCHER, false);
-      put(ATTR_CREATE_ICONS, false);
-      // Hide the create icons checkbox
-      myHidden.add(ATTR_CREATE_ICONS);
-    } else if (templateName.equals(APP_TEMPLATE_NAME)) {
-      put(ATTR_IS_LIBRARY_MODULE, false);
-      put(ATTR_IS_LAUNCHER, true);
-      put(ATTR_CREATE_ICONS, true);
-      // Show the create icons checkbox
-      myHidden.remove(ATTR_CREATE_ICONS);
-    }
-
-    if (myHidden.contains(ATTR_APP_TITLE)) {
-      // If the app title is hidden, set it to the existing app title
-      assert project != null : "Cannot be adding a module to a unknown project";
-      put(ATTR_APP_TITLE, project.getName());
-    }
-  }
-
-  private void setTemplateName(@Nullable String templateName) {
-    myActiveWizardPath = myTemplateToPathMap.get(templateName);
-  }
-
-  @NotNull
-  public WizardPath getActiveWizardPath() {
-    return myActiveWizardPath != null ? myActiveWizardPath : myDefaultPath;
-  }
-
-  public void putSdkDependentParams() {
+  private void putSdkDependentParams() {
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), false);
     if (buildTool != null) {
@@ -221,30 +160,9 @@ public class NewModuleWizardState extends TemplateWizardState {
                    ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_TEST_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
   }
 
-  protected void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
+  private static void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
     for (String key : keys) {
       to.put(key, from.get(key));
     }
-  }
-
-  @Nullable
-  public Map<String, VirtualFile> getModulesToImport() {
-    return myModulesToImport;
-  }
-
-  public void setModulesToImport(@Nullable Map<String, VirtualFile> modulesToImport) {
-    myModulesToImport = modulesToImport;
-  }
-
-  public void associateTemplateWithPath(String templateName, WizardPath path) {
-    myTemplateToPathMap.put(templateName, path);
-    // Initialize to the first existing wizard path by default.
-    if (myActiveWizardPath == null) {
-      myActiveWizardPath = path;
-    }
-  }
-
-  public boolean isOnDefaultWizardPath() {
-    return myActiveWizardPath == myDefaultPath;
   }
 }
