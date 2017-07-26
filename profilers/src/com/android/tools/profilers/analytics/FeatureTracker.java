@@ -18,7 +18,6 @@ package com.android.tools.profilers.analytics;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,13 +100,6 @@ public interface FeatureTracker {
    * Track anytime the user creates a range selection in any of our charts.
    */
   void trackSelectRange();
-
-  /**
-   * Track the user taking a method trace using some configuration.
-   * TODO: remove it when {@link #trackCaptureTrace(CpuCaptureMetadata)} is fully operational.
-   */
-  @Deprecated
-  void trackTraceCpu(@NotNull ProfilingConfiguration config);
 
   /**
    * Track the user capturing a method trace.

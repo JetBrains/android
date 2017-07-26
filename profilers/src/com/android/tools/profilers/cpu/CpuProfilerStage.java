@@ -404,8 +404,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       captureMetadata.setTraceFileSizeBytes(traceBytes.size());
       handleCaptureParsing(response.getTraceId(), traceBytes, captureMetadata);
     }
-
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackTraceCpu(myActiveConfig);
   }
 
   /**
