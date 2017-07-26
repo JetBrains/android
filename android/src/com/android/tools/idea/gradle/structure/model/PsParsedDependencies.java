@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 
-import com.android.builder.model.MavenCoordinates;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
@@ -94,7 +94,7 @@ public class PsParsedDependencies {
   }
 
   @Nullable
-  public ArtifactDependencyModel findLibraryDependency(@NotNull MavenCoordinates coordinates,
+  public ArtifactDependencyModel findLibraryDependency(@NotNull GradleCoordinate coordinates,
                                                        @NotNull Predicate<ArtifactDependencyModel> predicate) {
     Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(createIdFrom(coordinates));
     for (ArtifactDependencyModel dependency : potentialMatches) {
@@ -106,7 +106,7 @@ public class PsParsedDependencies {
   }
 
   @NotNull
-  private static String createIdFrom(@NotNull MavenCoordinates coordinates) {
+  private static String createIdFrom(@NotNull GradleCoordinate coordinates) {
     List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
     return joinAsGradlePath(segments);
   }

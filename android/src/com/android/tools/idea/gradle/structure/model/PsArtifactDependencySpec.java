@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.builder.model.MavenCoordinates;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.google.common.base.Joiner;
@@ -69,8 +69,8 @@ public final class PsArtifactDependencySpec {
   }
 
   @NotNull
-  public static PsArtifactDependencySpec create(@NotNull MavenCoordinates coordinates) {
-    return new PsArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+  public static PsArtifactDependencySpec create(@NotNull GradleCoordinate coordinates) {
+    return new PsArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getRevision());
   }
 
   @NotNull
