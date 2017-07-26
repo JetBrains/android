@@ -239,6 +239,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<NlComponent> selectionBefore = Collections.emptyList();
     List<NlComponent> selectionAfter = Collections.emptyList();
 
+    if (mySceneManager != null) {
+      mySceneManager.removeRenderListener(this::modelRendered);
+    }
+
     if (sceneView != null) {
       sceneView.getModel().removeListener(myModelListener);
 
@@ -250,6 +254,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (model != null) {
       model.addListener(myModelListener);
       mySceneManager = createSceneManager(model);
+      mySceneManager.addRenderListener(this::modelRendered);
       myScene = mySceneManager.build();
     }
     else {
@@ -706,24 +711,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   };
 
-  protected void modelRendered(@NotNull NlModel model) {
+  protected void modelRendered() {
     if (getCurrentSceneView() != null) {
       repaint();
       layoutContent();
     }
   }
 
-  private final ModelListener myModelListener = new ModelListener() {
-    @Override
-    public void modelRendered(@NotNull NlModel model) {
-      DesignSurface.this.modelRendered(model);
-    }
-
-    @Override
-    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      repaint();
-    }
-  };
+  private final ModelListener myModelListener = (model, animate) -> repaint();
 
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {

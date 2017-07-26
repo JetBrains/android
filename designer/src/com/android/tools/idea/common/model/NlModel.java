@@ -341,15 +341,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Calls all the listeners {@link ModelListener#modelRendered(NlModel)} method.
-   *
-   * TODO: move these listeners out of NlModel, since the model shouldn't care about being rendered.
-   */
-  public void notifyListenersRenderComplete() {
-    myListeners.forEach(listener -> listener.modelRendered(this));
-  }
-
-  /**
    * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
    *
    * TODO: move these listeners out of NlModel, since the model shouldn't care about being laid out.

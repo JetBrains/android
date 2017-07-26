@@ -200,10 +200,6 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       myList.addListSelectionListener(myListSelectionListener);
       myModelListener = new ModelListener() {
         @Override
-        public void modelRendered(@NotNull NlModel model) {
-        }
-
-        @Override
         public void modelChanged(@NotNull NlModel model) {
           updateComponentList(toolContext);
         }

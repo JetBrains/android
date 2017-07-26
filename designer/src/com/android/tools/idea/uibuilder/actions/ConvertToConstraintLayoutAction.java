@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -274,9 +276,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       if (DIRECT_INFERENCE) { // Let's run Scout after the flattening. Ideally we should run this after the model got a chance to update.
         final String id = myLayout.getId();
-        myScreenView.getModel().addListener(new ModelListener() {
+        manager.addRenderListener(new RenderListener() {
           @Override
-          public void modelRendered(@NotNull NlModel model) {
+          public void onRenderCompleted() {
             assert id != null;
             NlComponent layout = myScreenView.getModel().find(id);
 
@@ -292,19 +294,13 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                 }
 
                 inferConstraints(layout);
-                myScreenView.getModel().removeListener(this);
+                manager.removeRenderListener(this);
               }
             });
 
             ApplicationManager.getApplication().invokeLater(action);
           }
-
-          @Override
-          public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-
-          }
         });
-
 
         //});
         //t.setRepeats(false);

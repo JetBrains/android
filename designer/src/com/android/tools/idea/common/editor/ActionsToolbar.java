@@ -19,10 +19,12 @@ import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -43,7 +45,8 @@ import java.util.List;
  * The actions toolbar updates dynamically based on the component selection, their
  * parents (and if no selection, the root layout)
  */
-public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener {
+public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener,
+                                             RenderListener {
   private final DesignSurface mySurface;
   private NlModel myModel;
   private JComponent myToolbarComponent;
@@ -139,7 +142,10 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         }
         else {
           // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
-          myModel.addListener(this);
+          SceneManager manager = mySurface.getSceneManager();
+          if (manager != null) {
+            manager.addRenderListener(this);
+          }
           return;
         }
       }
@@ -218,14 +224,18 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return false;
   }
 
-  // ---- Implements ModelListener ----
-
+  // ---- Implements RenderListener ----
   @Override
-  public void modelRendered(@NotNull NlModel model) {
+  public void onRenderCompleted() {
     // Ensure that the toolbar is populated initially
     updateActions();
-    model.removeListener(this);
+    SceneManager manager = mySurface.getSceneManager();
+    if (manager != null) {
+      manager.removeRenderListener(this);
+    }
   }
+
+  // ---- Implements ModelListener ----
 
   @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {

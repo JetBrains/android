@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -276,12 +277,6 @@ public class LayoutlibSceneManager extends SceneManager {
       requestModelUpdate();
       ApplicationManager.getApplication().invokeLater(() -> mySelectionChangeListener
         .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection()));
-    }
-
-    @Override
-    public void modelRendered(@NotNull NlModel model) {
-      // updateFrom needs to be called in the dispatch thread
-      UIUtil.invokeLaterIfNeeded(LayoutlibSceneManager.this::update);
     }
 
     @Override
@@ -702,7 +697,8 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
-    getModel().notifyListenersRenderComplete();
+    UIUtil.invokeLaterIfNeeded(this::update);
+    fireRenderListeners();
   }
 
   public void setElapsedFrameTimeMs(long ms) {

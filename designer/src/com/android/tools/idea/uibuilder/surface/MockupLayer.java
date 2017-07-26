@@ -56,10 +56,6 @@ public class MockupLayer extends Layer {
         }
 
         @Override
-        public void modelRendered(@NotNull NlModel model) {
-        }
-
-        @Override
         public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
           // Do nothing
         }

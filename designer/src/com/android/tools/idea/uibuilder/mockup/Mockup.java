@@ -537,10 +537,6 @@ public class Mockup implements ModelListener {
   }
 
   @Override
-  public void modelRendered(@NotNull NlModel model) {
-  }
-
-  @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
     // Do nothing
   }

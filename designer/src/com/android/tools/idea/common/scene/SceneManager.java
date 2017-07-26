@@ -16,11 +16,13 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -42,6 +44,8 @@ abstract public class SceneManager implements Disposable {
   private final NlModel myModel;
   final private DesignSurface myDesignSurface;
   private Scene myScene;
+  private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
+
 
   public SceneManager(NlModel model, DesignSurface surface) {
     myModel = model;
@@ -51,6 +55,7 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
+    myRenderListeners.clear();
   }
 
   /**
@@ -209,6 +214,18 @@ abstract public class SceneManager implements Disposable {
   protected Scene getScene() {
     assert myScene != null;
     return myScene;
+  }
+
+  public void addRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.add(listener);
+  }
+
+  public void removeRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.remove(listener);
+  }
+
+  protected void fireRenderListeners() {
+    myRenderListeners.forEach(RenderListener::onRenderCompleted);
   }
 
   public abstract void requestRender();
