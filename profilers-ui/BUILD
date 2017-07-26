@@ -24,5 +24,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
+        "//tools/adt/idea/artwork[module]",
     ],
 )
