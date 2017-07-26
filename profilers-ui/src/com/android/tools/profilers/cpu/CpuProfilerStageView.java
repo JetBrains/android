@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.icons.StudioIcons;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -450,17 +451,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(true);
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Record a method trace");
-        myCaptureButton.setIcon(ProfilerIcons.RECORD);
+        myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
         // TODO: replace with loading icon
-        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
+        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
         break;
       case CAPTURING:
         myCaptureButton.setEnabled(true);
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
-        myCaptureButton.setIcon(ProfilerIcons.STOP_RECORDING);
+        myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
         // TODO: replace with loading icon
-        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
+        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
         break;
       case PARSING:
         myCaptureViewLoading.startLoading();

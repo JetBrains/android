@@ -17,9 +17,9 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.icons.StudioIcons;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerIcons;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -486,7 +486,7 @@ final class MemoryClassifierView extends AspectObserver {
         if (node.getAdapter() instanceof ClassSet) {
           ClassSet classSet = (ClassSet)node.getAdapter();
 
-          setIcon(((ClassSet)node.getAdapter()).hasStackInfo() ? ProfilerIcons.CLASS_STACK : PlatformIcons.CLASS_ICON);
+          setIcon(((ClassSet)node.getAdapter()).hasStackInfo() ? StudioIcons.Profiler.Overlays.CLASS_STACK : PlatformIcons.CLASS_ICON);
 
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
@@ -500,7 +500,7 @@ final class MemoryClassifierView extends AspectObserver {
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? ProfilerIcons.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
@@ -530,7 +530,7 @@ final class MemoryClassifierView extends AspectObserver {
         }
         else if (node.getAdapter() instanceof HeapSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? ProfilerIcons.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
