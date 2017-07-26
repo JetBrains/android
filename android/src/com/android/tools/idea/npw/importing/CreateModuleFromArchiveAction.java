@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.npw.deprecated.WrapArchiveWizardPath;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
@@ -152,7 +151,7 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
       }
     }
     catch (IOException e) {
-      Logger.getInstance(WrapArchiveWizardPath.class).error(e);
+      Logger.getInstance(CreateModuleFromArchiveAction.class).error(e);
     }
   }
 
