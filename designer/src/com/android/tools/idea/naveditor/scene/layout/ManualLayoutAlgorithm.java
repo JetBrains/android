@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -32,20 +31,13 @@ import java.util.Map;
  * {@link NavSceneLayoutAlgorithm} that puts screens in locations specified in the model, falling back to some other method if no location
  * is specified.
  */
-@State(name = "navEditor-manualLayoutAlgorithm", storages = @Storage(file = "navEditor.xml"))
-public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
+public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   private NavSceneLayoutAlgorithm myFallback;
   private NavigationSchema mySchema;
-  private LayoutPositions myState;
   private Module myModule;
+  private Storage myStorage;
 
-  @NotNull
-  public static ManualLayoutAlgorithm getInstance(@NotNull AndroidFacet facet) {
-    return facet.getModule().getComponent(ManualLayoutAlgorithm.class);
-  }
-
-  @SuppressWarnings("unused")  // invoked by reflection
-  private ManualLayoutAlgorithm(@NotNull Module module) {
+  public ManualLayoutAlgorithm(@NotNull Module module) {
     myModule = module;
   }
 
@@ -55,9 +47,11 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
                         @NotNull LayoutPositions state) {
     myFallback = fallback;
     mySchema = schema;
-    myState = state;
+    myStorage = new Storage();
+    myStorage.myState = state;
   }
 
+  @NotNull
   private NavigationSchema getSchema() {
     if (mySchema == null) {
       AndroidFacet instance = AndroidFacet.getInstance(myModule);
@@ -80,7 +74,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
     if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
       return;
     }
-    Point location = getState().getPositions().get(component.getId());
+    Point location = getStorage().getState().getPositions().get(component.getId());
     if (location != null) {
       component.setPosition(location.x, location.y);
     }
@@ -90,27 +84,23 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
   }
 
   public void save(@NotNull SceneComponent component) {
-    getState().getPositions().put(component.getId(), new Point(component.getDrawX(), component.getDrawY()));
+    getStorage().getState().getPositions().put(component.getId(), new Point(component.getDrawX(), component.getDrawY()));
   }
 
   @NotNull
-  @Override
-  public LayoutPositions getState() {
-    if (myState == null) {
-      myState = new LayoutPositions();
+  private Storage getStorage() {
+    if (myStorage == null) {
+      myStorage = myModule.getProject().getComponent(Storage.class);
     }
-    return myState;
+    return myStorage;
   }
 
-  @Override
-  public void loadState(LayoutPositions state) {
-    myState = state;
-  }
-
-  public static class Point {
+  @VisibleForTesting
+  static class Point {
     public int x;
     public int y;
 
+    @SuppressWarnings("unused")  // Invoked by reflection
     public Point() {}
 
     public Point(int x, int y) {
@@ -119,12 +109,35 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
     }
   }
 
-  public static class LayoutPositions {
+  @VisibleForTesting
+  static class LayoutPositions {
     // Map of id to layout position
-    public final Map<String, Point> myPositions = new HashMap<>();
+
+    @SuppressWarnings("CanBeFinal")  // Somehow making it final breaks persistence
+    public Map<String, Point> myPositions = new HashMap<>();
 
     public Map<String, Point> getPositions() {
       return myPositions;
     }
+  }
+
+  @State(name = "navEditor-manualLayoutAlgorithm", storages = @com.intellij.openapi.components.Storage(file = "navEditor.xml"))
+  private static class Storage implements PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
+    private LayoutPositions myState;
+
+    @NotNull
+    @Override
+    public LayoutPositions getState() {
+      if (myState == null) {
+        myState = new LayoutPositions();
+      }
+      return myState;
+    }
+
+    @Override
+    public void loadState(@NotNull LayoutPositions state) {
+      myState = state;
+    }
+
   }
 }

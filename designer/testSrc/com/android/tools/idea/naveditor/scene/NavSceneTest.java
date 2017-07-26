@@ -114,7 +114,7 @@ public class NavSceneTest extends NavigationTestCase {
     SyncNlModel model = modelBuilder.build();
 
     Scene scene = model.getSurface().getScene();
-    ManualLayoutAlgorithm algorithm = ManualLayoutAlgorithm.getInstance(model.getFacet());
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(model.getModule());
     SceneComponent component = scene.getSceneComponent("fragment1");
     component.setPosition(-100, -200);
     algorithm.save(component);
@@ -160,7 +160,7 @@ public class NavSceneTest extends NavigationTestCase {
     SyncNlModel model = modelBuilder.build();
 
     Scene scene = model.getSurface().getScene();
-    ManualLayoutAlgorithm algorithm = ManualLayoutAlgorithm.getInstance(model.getFacet());
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(model.getModule());
     SceneComponent component = scene.getSceneComponent("fragment1");
     component.setPosition(1900, 1800);
     algorithm.save(component);
