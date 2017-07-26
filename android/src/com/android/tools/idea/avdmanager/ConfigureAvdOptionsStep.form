@@ -430,7 +430,7 @@
                                 </constraints>
                                 <properties>
                                   <selected value="true"/>
-                                  <text value="Fast boot"/>
+                                  <text value="Quick boot"/>
                                   <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Fast boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
                                 </properties>
                               </component>
