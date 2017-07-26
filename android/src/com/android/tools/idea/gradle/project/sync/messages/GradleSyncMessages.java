@@ -23,6 +23,7 @@ import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNo
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
@@ -46,7 +47,7 @@ public class GradleSyncMessages extends AbstractSyncMessages {
   }
 
   public void removeProjectMessages() {
-    removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES,
-                   VARIANT_SELECTION_CONFLICTS, GENERATED_SOURCES, SyncMessage.DEFAULT_GROUP);
+    removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES, VARIANT_SELECTION_CONFLICTS, GENERATED_SOURCES,
+                   VERSION_COMPATIBILITY_ISSUE_GROUP, SyncMessage.DEFAULT_GROUP);
   }
 }
