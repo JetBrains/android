@@ -276,7 +276,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
-    componentFixture.invokeContextMenuAction("Morph View...");
+    componentFixture.invokeContextMenuAction("Convert view...");
     return new MorphDialogFixture(robot());
   }
 }

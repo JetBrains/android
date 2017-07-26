@@ -197,6 +197,7 @@ public class NlEditorTest {
         .dragComponentToSurface("Widgets", "Button")
         .waitForRenderToFinish();
 
+      // Test enter text manually
       NlComponentFixture button = layout.findView("Button", 0);
       MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
@@ -206,6 +207,17 @@ public class NlEditorTest {
       assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
       fixture.getOkButton().click();
       assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+
+      // Test click on a suggestion
+      NlComponentFixture textView = layout.findView("TextView", 0);
+      fixture = layout.openMorphDialogForComponent(textView);
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      fixture.getSuggestionList().clickItem("Button");
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
+      fixture.getOkButton().click();
+      layout.waitForRenderToFinish();
+      assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
     }
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
