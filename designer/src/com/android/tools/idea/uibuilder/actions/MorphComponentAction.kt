@@ -54,7 +54,6 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
   private lateinit var myTagNameTextRange: TextRange
   private lateinit var myTagNameRange: RangeHighlighterEx
   private var myNewName = component.tagName
-  private val myEditor = createEditor()
 
   init {
     templatePresentation.isEnabled = true
@@ -158,7 +157,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
 
   }
 
-  private fun createMorphPopup(morphDialog: MorphDialog): JBPopup {
+  private fun createMorphPopup(morphDialog: MorphDialog, editorEx: EditorEx): JBPopup {
     val popup = JBPopupFactory.getInstance()
         .createComponentPopupBuilder(morphDialog, null)
         .setMinSize(morphDialog.preferredSize)
@@ -168,8 +167,8 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
         .setCancelOnClickOutside(true)
         .setAdText("Set the new type for the selected View")
         .setCancelCallback {
-          if (!myEditor.isDisposed) {
-            EditorFactory.getInstance().releaseEditor(myEditor)
+          if (!editorEx.isDisposed) {
+            EditorFactory.getInstance().releaseEditor(editorEx)
           }
           true
         }
@@ -184,10 +183,11 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
 
   private fun showMorphPopup() {
     val oldTagName = myNlComponent.tagName
-    val morphDialog = MorphDialog(myFacet, myProject, myEditor.component, oldTagName)
+    val editor = createEditor()
+    val morphDialog = MorphDialog(myFacet, myProject, editor.component, oldTagName)
 
-    morphDialog.setTagNameChangeConsumer(updateDocumentWithNewName(myEditor.document))
-    createMorphPopup(morphDialog).showInFocusCenter()
+    morphDialog.setTagNameChangeConsumer(updateDocumentWithNewName(editor.document))
+    createMorphPopup(morphDialog, editor).showInFocusCenter()
     IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)
   }
 
