@@ -16,8 +16,13 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 import static org.mockito.Mockito.*;
@@ -67,5 +72,34 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     assertEquals(60, scene.getSceneComponent("fragment1").getDrawY());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawY());
+  }
+
+  public void testSave() throws Exception {
+    SyncNlModel model = model("nav.xml",
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"))).build();
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface.setModel(model);
+    SceneComponent component = surface.getScene().getSceneComponent("fragment1");
+    component.setPosition(100, 200);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(model.getModule());
+    algorithm.save(component);
+    PlatformTestUtil.saveProject(getProject());
+
+    // Tests always use file-based storage, not directory-based
+    assertTrue(FileUtil.loadFile(VfsUtilCore.virtualToIoFile(getProject().getProjectFile())).contains("fragment1"));
+
+    // Now create everything anew and  verify the old position is restored
+    model = model("nav.xml", rootComponent().unboundedChildren(
+      fragmentComponent("fragment1"),
+      fragmentComponent("fragment2"))).build();
+    surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface.setModel(model);
+    component = surface.getScene().getSceneComponent("fragment1");
+    algorithm = new ManualLayoutAlgorithm(model.getModule());
+    algorithm.layout(component);
+    assertEquals(100, component.getDrawX());
+    assertEquals(200, component.getDrawY());
   }
 }
