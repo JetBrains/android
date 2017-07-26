@@ -100,15 +100,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceCpu(@NotNull ProfilingConfiguration config) {
-    myLastTrackedConfig = config;
-  }
-
-  public ProfilingConfiguration getLastTrackedConfig() {
-    return myLastTrackedConfig;
-  }
-
-  @Override
   public void trackCaptureTrace(@NotNull CpuCaptureMetadata cpuCaptureMetadata) {
     myLastCpuCaptureMetadata = cpuCaptureMetadata;
   }
