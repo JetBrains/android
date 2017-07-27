@@ -75,7 +75,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public void trackChangeDevice(@Nullable Profiler.Device device) {
     if (myActiveDevice != device) {
       myActiveDevice = device;
-      newTracker(AndroidProfilerEvent.Type.CHANGE_DEVICE).setDevice(myActiveDevice);
+      newTracker(AndroidProfilerEvent.Type.CHANGE_DEVICE).setDevice(myActiveDevice).track();
     }
   }
 
@@ -83,7 +83,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public void trackChangeProcess(@Nullable Profiler.Process process) {
     if (myActiveProcess != process) {
       myActiveProcess = process;
-      newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice);
+      newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice).track();
     }
   }
 
