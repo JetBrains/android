@@ -16,19 +16,14 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
 import com.android.tools.idea.uibuilder.model.NlComponent
 import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.SceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneContext
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.scene.target.Notch
 import com.android.tools.idea.uibuilder.scene.target.Target
 import com.intellij.ui.JBColor
-import org.jetbrains.annotations.NotNull
-import java.awt.Graphics2D
 import java.util.ArrayList
 
 const private val DEBUG = false
@@ -37,62 +32,119 @@ const private val NOTCH_GAP_SIZE = 6
 /**
  * The target provided for creating relationship.
  */
-class RelativeWidgetTarget(
-    @param:NotNull val myType: Type,
-    @param:AndroidDpCoordinate private val myX1: Int, @param:AndroidDpCoordinate private val myY1: Int,
-    @param:AndroidDpCoordinate private val myX2: Int, @param:AndroidDpCoordinate private val myY2: Int) : BaseRelativeTarget() {
+class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
 
   enum class Type { LEFT, TOP, RIGHT, BOTTOM, BASELINE }
 
+  private var x1 = Int.MIN_VALUE
+  private var y1 = Int.MIN_VALUE
+  private var x2 = Int.MIN_VALUE
+  private var y2 = Int.MIN_VALUE
+
   override fun getPreferenceLevel() = Target.GUIDELINE_ANCHOR_LEVEL
+
+  override fun layout(context: SceneContext, l: Int, t: Int, r: Int, b: Int): Boolean {
+    val parent = myComponent.parent ?: return false
+    when (type) {
+      Type.LEFT -> {
+        x1 = myComponent.drawX
+        y1 = parent.drawY
+        x2 = x1
+        y2 = y1 + parent.drawHeight
+      }
+      Type.TOP -> {
+        x1 = parent.drawX
+        y1 = myComponent.drawY
+        x2 = x1 + parent.drawHeight
+        y2 = y1
+      }
+      Type.RIGHT -> {
+        x1 = myComponent.drawX + myComponent.drawWidth
+        y1 = parent.drawY
+        x2 = x1
+        y2 = y1 + parent.drawHeight
+      }
+      Type.BOTTOM -> {
+        x1 = parent.drawX
+        y1 = myComponent.drawY + myComponent.drawHeight
+        x2 = x1 + parent.drawHeight
+        y2 = y1
+      }
+      Type.BASELINE -> {
+        x1 = parent.drawX
+        y1 = myComponent.drawY + myComponent.baseline
+        x2 = x1 + parent.drawHeight
+        y2 = y1
+      }
+    }
+    return false
+  }
+
+  override fun render(list: DisplayList, sceneContext: SceneContext) {
+    if (myIsHighlight) {
+      list.addLine(sceneContext, x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), sceneContext.colorSet.dragReceiverFrames)
+    }
+    if (DEBUG) {
+      drawDebug(list, sceneContext)
+    }
+  }
+
+  /**
+   * Draw the debug graphics
+   */
+  private fun drawDebug(list: DisplayList, sceneContext: SceneContext) =
+      list.addRect(sceneContext, x1.toFloat(), x1.toFloat(), x2.toFloat(), y2.toFloat(),
+          if (myIsHighlight) JBColor.GREEN else if (type == Type.BASELINE) JBColor.YELLOW else JBColor.RED)
 
   override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
                     horizontalNotches: ArrayList<Notch>, verticalNotches: ArrayList<Notch>) {
     // TODO: if the owner doesn't have ID, added it.
+    // FIXME: if owner already align to the edges of parent, snappableComponent cannot "insert" into owner and the edge of parent.
 
     if (hasDependency(owner, snappableComponent)) {
       // avoid cycling depedency
       return
     }
 
-    when (myType) {
+    when (type) {
       Type.LEFT -> {
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, (myX1 + myX2) / 2, (myX1 + myX2) / 2,
-            SdkConstants.ATTR_LAYOUT_ALIGN_START))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, (myX1 + myX2) / 2 - snappableComponent.drawWidth, (myX1 + myX2) / 2,
-            SdkConstants.ATTR_LAYOUT_TO_START_OF))
-      }
-      Type.RIGHT -> {
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, (myX1 + myX2) / 2, (myX1 + myX2) / 2,
-            SdkConstants.ATTR_LAYOUT_TO_END_OF))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, (myX1 + myX2) / 2 - snappableComponent.drawWidth, (myX1 + myX2) / 2,
-            SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT))
+        val value = myComponent.drawX
+        val shift = snappableComponent.drawWidth
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, SdkConstants.ATTR_LAYOUT_ALIGN_START))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_TO_START_OF))
       }
       Type.TOP -> {
-        verticalNotches.add(createNotch(Notch::Vertical, owner, (myY1 + myY2) / 2, (myY1 + myY2) / 2,
-            SdkConstants.ATTR_LAYOUT_ALIGN_TOP))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, (myY1 + myY2) / 2 - snappableComponent.drawHeight, (myY1 + myY2) / 2,
-            SdkConstants.ATTR_LAYOUT_ABOVE))
+        val value = myComponent.drawY
+        val shift = snappableComponent.drawHeight
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, SdkConstants.ATTR_LAYOUT_ALIGN_TOP))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ABOVE))
+      }
+      Type.RIGHT -> {
+        val value = myComponent.drawX + myComponent.drawWidth
+        val shift = snappableComponent.drawWidth
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, SdkConstants.ATTR_LAYOUT_TO_END_OF))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_END))
       }
       Type.BOTTOM -> {
-        verticalNotches.add(createNotch(Notch::Vertical, owner, (myY1 + myY2) / 2, (myY1 + myY2) / 2,
-            SdkConstants.ATTR_LAYOUT_BELOW))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, (myY1 + myY2) / 2 - snappableComponent.drawHeight, (myY1 + myY2) / 2,
-            SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM))
+        val value = myComponent.drawY + myComponent.drawHeight
+        val shift = snappableComponent.drawHeight
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, SdkConstants.ATTR_LAYOUT_BELOW))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM))
       }
       Type.BASELINE -> {
         if (snappableComponent.nlComponent.getBaseline() != -1) {
-          verticalNotches.add(createNotch(Notch::Vertical, owner, (myY1 + myY2) / 2 - snappableComponent.baseline, (myY1 + myY2) / 2,
-              SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE))
+          val value = owner.drawY + owner.baseline
+          val shift = snappableComponent.baseline
+          verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE))
         }
       }
     }
   }
 
-  private fun createNotch(constructor: (SceneComponent, Int, Int, Notch.Action) -> Notch,
-                          component: SceneComponent, value: Int, display: Int, attribute: String): Notch {
-    return constructor(component, value, display, Notch.Action {
-      it.setAndroidAttribute(attribute, SdkConstants.NEW_ID_PREFIX + component.nlComponent.id)
+  private fun createNotch(notchConstructor: (SceneComponent, Int, Int, Notch.Action) -> Notch,
+                          component: SceneComponent, value: Int, display: Int, alignAttributeName: String): Notch {
+    return notchConstructor(component, value, display, Notch.Action {
+      it.setAndroidAttribute(alignAttributeName, SdkConstants.NEW_ID_PREFIX + component.nlComponent.id)
     }).apply {
       this.setGap(NOTCH_GAP_SIZE)
       this.target = this@RelativeWidgetTarget
@@ -107,35 +159,6 @@ class RelativeWidgetTarget(
     return DEPENDENT_ATTRIBUTES
         .map { owner.nlComponent.getAndroidAttribute(it) }
         .any { NlComponent.extractId(it) == id }
-  }
-
-  override fun layout(context: SceneContext,
-                      @AndroidDpCoordinate l: Int, @AndroidDpCoordinate t: Int,
-                      @AndroidDpCoordinate r: Int, @AndroidDpCoordinate b: Int) = false
-
-  override fun render(list: DisplayList, sceneContext: SceneContext) {
-    if (myIsHighlight) {
-      list.add(TargetRegion(sceneContext.getSwingX(myX1.toFloat()), sceneContext.getSwingY(myY1.toFloat()),
-          sceneContext.getSwingDimension((myX2 - myX1).toFloat()), sceneContext.getSwingDimension((myY2 - myY1).toFloat())))
-    }
-    if (DEBUG) {
-      drawDebug(list, sceneContext)
-    }
-  }
-
-  /**
-   * Draw the debug graphics
-   */
-  private fun drawDebug(list: DisplayList, sceneContext: SceneContext) =
-      list.addRect(sceneContext, myX1.toFloat(), myY1.toFloat(), myX2.toFloat(), myY2.toFloat(),
-          if (myIsHighlight) JBColor.GREEN else if (myType == Type.BASELINE) JBColor.YELLOW else JBColor.RED)
-
-  private class TargetRegion(@SwingCoordinate x: Int, @SwingCoordinate y: Int,
-                             @SwingCoordinate width: Int, @SwingCoordinate height: Int) : DrawRegion(x, y, width, height) {
-    override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-      g.color = sceneContext.colorSet.dragReceiverFrames
-      g.fillRect(x, y, width, height)
-    }
   }
 }
 

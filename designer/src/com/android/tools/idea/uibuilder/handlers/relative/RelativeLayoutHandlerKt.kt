@@ -33,16 +33,6 @@ import com.google.common.collect.ImmutableList
 import java.awt.Graphics2D
 
 /**
- * The width of every edges which provide by RelativeLayout
- */
-const private val PARENT_EDGE_WIDTH = 3
-
-/**
- * The width of every edges which provide by Widgets in RelativeLayout
- */
-const private val WIDGET_EDGE_WIDTH = 2
-
-/**
  * Handler of New Target Architecture for the `<RelativeLayout>` layout
  * Current progress:
  * 1. Delegate all non target related functions to RelativeLayoutHandler.java
@@ -51,8 +41,8 @@ const private val WIDGET_EDGE_WIDTH = 2
  * 4. Drag to other widgets
  *
  * TODO:
- * - Improve the decoration of relationships between widgets.
- * - Handle the case of multiple dragging component.
+ * - Don't allow selecting multiple widgets.
+ * - Render the decoration by SceneManager
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
@@ -73,7 +63,7 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
     val listBuilder = ImmutableList.Builder<Target>()
     if (isParent) {
       // RelativeLayout cases, create the target related to attributes of parent
-      createParentTargets(listBuilder, sceneComponent)
+      createParentTargets(listBuilder)
     }
     else {
       // children components cases
@@ -86,60 +76,15 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
     return listBuilder.build()
   }
 
-  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>, relativeSceneComponent: SceneComponent) {
-    val x1 = relativeSceneComponent.drawX
-    val y1 = relativeSceneComponent.drawY
-    val x2 = x1 + relativeSceneComponent.drawWidth
-    val y2 = y1 + relativeSceneComponent.drawHeight
+  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>) =
+      RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
 
-    listBuilder
-        .add(RelativeParentTarget(RelativeParentTarget.Type.LEFT, x1, y1, x1 + PARENT_EDGE_WIDTH, y2))
-        .add(RelativeParentTarget(RelativeParentTarget.Type.TOP, x1, y1, x2, y1 + PARENT_EDGE_WIDTH))
-        .add(RelativeParentTarget(RelativeParentTarget.Type.RIGHT, x2 - PARENT_EDGE_WIDTH, y1, x2, y2))
-        .add(RelativeParentTarget(RelativeParentTarget.Type.BOTTOM, x1, y2 - PARENT_EDGE_WIDTH, x2, y2))
-        .add(RelativeParentTarget(RelativeParentTarget.Type.CENTER_HORIZONTAL,
-            (x1 + x2 - PARENT_EDGE_WIDTH) / 2, y1, (x1 + x2 + PARENT_EDGE_WIDTH) / 2, y2))
-        .add(RelativeParentTarget(RelativeParentTarget.Type.CENTER_VERTICAL, x1,
-            (y1 + y2 - PARENT_EDGE_WIDTH) / 2, x2, (y1 + y2 + PARENT_EDGE_WIDTH) / 2))
-  }
+  // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
+  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
+      ResizeBaseTarget.Type.values().forEach { listBuilder.add(RelativeResizeTarget(it)) }
 
-  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) {
-    // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
-    listBuilder
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT_TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.BOTTOM))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
-  }
-
-  private fun createWidgetTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) {
-    val parent = sceneComponent.parent ?: return
-
-    val x1 = sceneComponent.drawX
-    val y1 = sceneComponent.drawY
-    val x2 = x1 + sceneComponent.drawWidth
-    val y2 = y1 + sceneComponent.drawHeight
-
-    val parentX1 = parent.drawX
-    val parentY1 = parent.drawY
-    val parentX2 = parentX1 + parent.drawWidth
-    val parentY2 = parentY1 + parent.drawHeight
-
-    val halfWidth = WIDGET_EDGE_WIDTH / 2
-
-    listBuilder
-        .add(RelativeWidgetTarget(RelativeWidgetTarget.Type.LEFT, x1 - halfWidth, parentY1, x1 + halfWidth, parentY2))
-        .add(RelativeWidgetTarget(RelativeWidgetTarget.Type.TOP, parentX1, y1 - halfWidth, parentX2, y1 + halfWidth))
-        .add(RelativeWidgetTarget(RelativeWidgetTarget.Type.RIGHT, x2 - halfWidth, parentY1, x2 + halfWidth, parentY2))
-        .add(RelativeWidgetTarget(RelativeWidgetTarget.Type.BOTTOM, parentX1, y2 - halfWidth, parentX2, y2 + halfWidth))
-
-    if (sceneComponent.nlComponent.getBaseline() != -1) {
-      val bl = y1 + sceneComponent.baseline
-      listBuilder.add(RelativeWidgetTarget(RelativeWidgetTarget.Type.BASELINE, parentX1, bl - halfWidth, parentX2, bl + halfWidth))
-    }
-  }
+  private fun createWidgetTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) =
+      RelativeWidgetTarget.Type.values()
+          .filter { it !== RelativeWidgetTarget.Type.BASELINE || sceneComponent.nlComponent.getBaseline() != -1 }
+          .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
 }
