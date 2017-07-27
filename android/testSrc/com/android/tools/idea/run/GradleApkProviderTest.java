@@ -122,7 +122,11 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     loadProject(BUDDY_APKS, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
-    assertThat(Iterables.transform(apks, apk -> apk.getApplicationId())).containsExactly("google.testapplication", "google.testapplication.test", "com.linkedin.android.testbutler");
+    assertThat(Iterables.transform(apks, ApkInfo::getApplicationId))
+      .containsExactly("google.testapplication", "google.testapplication.test", "com.linkedin.android.testbutler");
+
+    // Check that we don't leak the NIO filesystem, which would prevent us from doing this twice in a row:
+    provider.getApks(mock(IDevice.class));
   }
 
   public void testOutputModel() throws Exception {
