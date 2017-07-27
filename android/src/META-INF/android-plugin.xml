@@ -78,7 +78,7 @@
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Call Graph" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
-    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.InterproceduralThreadAnnotationChecker"/>
+    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
       <separator/>
       <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>
@@ -891,6 +891,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongFolder" displayName="Resource file in the wrong res folder" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongFolderInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongRegion" displayName="Suspicious Language/Region Combination" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintWrongRegionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThread" displayName="Wrong Thread" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongViewCast" displayName="Mismatched view type" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongViewCastInspection"/>
 
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>

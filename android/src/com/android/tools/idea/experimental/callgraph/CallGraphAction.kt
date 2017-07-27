@@ -15,12 +15,33 @@
  */
 package com.android.tools.idea.experimental.callgraph
 
+import com.android.tools.lint.detector.api.interprocedural.buildCallGraph
+import com.android.tools.lint.detector.api.interprocedural.buildClassHierarchy
+import com.android.tools.lint.detector.api.interprocedural.buildIntraproceduralReceiverEval
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisAction
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiManager
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UastContext
+import org.jetbrains.uast.convertWithParent
 
-/** Builds a call graph and prints a description, optionally to a dot file. */
+/** Creates a collection of UFiles from a project and scope. */
+fun buildUFiles(project: Project, scope: AnalysisScope): Collection<UFile> {
+  val res = ArrayList<UFile>()
+  val uastContext = ServiceManager.getService(project, UastContext::class.java)
+  scope.accept { virtualFile ->
+    if (!uastContext.isFileSupported(virtualFile.name)) return@accept true
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@accept true
+    val file = uastContext.convertWithParent<UFile>(psiFile) ?: return@accept true
+    res.add(file)
+  }
+  return res
+}
+
+/** Builds a call graph and prints a description. */
 class CallGraphAction : BaseAnalysisAction("Call Graph", "Call Graph") {
   private val LOG = Logger.getInstance(CallGraphAction::class.java)
 
