@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
@@ -157,6 +158,10 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     when(myAndroidModel.getSelectedVariant()).thenReturn(myIdeVariant);
 
     when(myTestCompileType.getArtifacts(myIdeVariant)).thenReturn(Collections.singleton(myArtifact));
+
+    AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
+    when(androidModelFeatures.isTestedTargetVariantsSupported()).thenReturn(false);
+    when(myAndroidModel.getFeatures()).thenReturn(androidModelFeatures);
 
     when(myArtifact.getAssembleTaskName()).thenReturn("assembleTask1");
     when(myArtifact.getCompileTaskName()).thenReturn("compileTask1");
