@@ -72,6 +72,21 @@ public class ApkFacetConfiguration implements FacetConfiguration {
     return paths;
   }
 
+  public Map<String, File> getExplicitModuleSymbolMap(@NotNull Abi abi) {
+    Map<String, File> moduleToSymbols = new HashMap<>();
+    for (NativeLibrary library : NATIVE_LIBRARIES) {
+      DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi);
+      if (sharedObjectFile != null) {
+        File sym_path = toSystemDependentPath(sharedObjectFile.path);
+        if (sym_path.exists()) {
+          moduleToSymbols.put(library.name, sym_path);
+        }
+      }
+    }
+
+    return moduleToSymbols;
+  }
+
   @NotNull
   public Map<String, String> getSymbolFolderPathMappings() {
     if (NATIVE_LIBRARIES.isEmpty()) {
