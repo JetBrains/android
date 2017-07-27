@@ -147,9 +147,9 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action[] createActions() {
     if (SystemInfo.isMac) {
-      return new Action[]{new DoNotAskAction(), getCancelAction(), getOKAction()};
+      return new Action[]{new DoNotAskAction(), new RemindMeTomorrowAction(), getOKAction()};
     }
-    return new Action[]{getOKAction(), getCancelAction(), new DoNotAskAction()};
+    return new Action[]{getOKAction(), new RemindMeTomorrowAction(), new DoNotAskAction()};
   }
 
   @Override
@@ -162,19 +162,9 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
 
   @Override
   public void doCancelAction() {
-    if (getCancelAction().isEnabled()) {
-      // This is the "Remind me tomorrow" button.
-      myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
-      close(CANCEL_EXIT_CODE);
-    }
-  }
-
-  @Override
-  @NotNull
-  protected Action getCancelAction() {
-    Action action = super.getCancelAction();
-    action.putValue(NAME, "Remind me tomorrow");
-    return action;
+    // User closed dialog without making a selection, don't do anything.
+    // Show dialog again when the project is opened next time.
+    close(CANCEL_EXIT_CODE);
   }
 
   @NotNull
@@ -240,6 +230,23 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     protected void doAction(ActionEvent e) {
       myDoNotAskOption.setToBeShown(false, CANCEL_EXIT_CODE);
       doCancelAction();
+    }
+  }
+
+  /**
+   * The action when user select "Remind me tomorrow" button. User will be reminded about the upgrade one day later.
+   */
+  @VisibleForTesting
+  class RemindMeTomorrowAction extends DialogWrapperAction {
+    RemindMeTomorrowAction() {
+      super("Remind me tomorrow");
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      // This is the "Remind me tomorrow" button.
+      myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
+      close(CANCEL_EXIT_CODE);
     }
   }
 }
