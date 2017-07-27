@@ -96,8 +96,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   private final JMenuItem myDumpDisplayListMenuItem;
 
   public LayoutInspectorContext(@NotNull LayoutFileData layoutParser) {
-    myRoot = layoutParser.myNode;
-    myBufferedImage = layoutParser.myBufferedImage;
+    myRoot = layoutParser.getNode();
+    myBufferedImage = layoutParser.getBufferedImage();
 
     myNodeTree = new RollOverTree(getRoot());
     myNodeTree.setCellRenderer(new ViewNodeTreeRenderer());

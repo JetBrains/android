@@ -30,7 +30,9 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
- * A component to display the a ViewNode.
+ * A component to display a {@link ViewNode} with display boxes.
+ * Renders the image scaled with a zoom factor and draws display boxes over the
+ * image that listens to hover/click and fires events for listeners to respond.
  */
 public class ViewNodeActiveDisplay extends JComponent {
 
@@ -43,15 +45,18 @@ public class ViewNodeActiveDisplay extends JComponent {
 
   @NotNull
   private final ViewNode mRoot;
+
   @Nullable
   private final Image mPreview;
 
   private final List<ViewNodeActiveDisplayListener> mListeners = Lists.newArrayList();
 
+  private float mZoomFactor = 1;
+
+  // tracks size, recalculate node boundaries when size changes.
   private int mLastWidth;
   private int mLastHeight;
-
-  // Values after calculation
+  // offset to center the image and boxes
   private int mDrawShiftX;
   private int mDrawShiftY;
 
@@ -103,34 +108,46 @@ public class ViewNodeActiveDisplay extends JComponent {
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
 
+    // if size has changed, recalculate the the view node display boxes sizes/locations.
     if (mLastWidth != getWidth() || mLastHeight != getHeight()) {
-      mLastWidth = getWidth();
+      float rootHeight = mRoot.displayInfo.height;
+      float rootWidth = mRoot.displayInfo.width;
+
+      // on first draw, calculate scale to fit image into panel
+      if (mLastHeight == 0 && mLastWidth == 0) {
+        mZoomFactor = calcDrawScale(rootWidth, rootHeight);
+      }
+
       mLastHeight = getHeight();
-      recalculateNodeBounds();
+      mLastWidth = getWidth();
+
+      mDrawShiftX = (int) (getWidth() - mZoomFactor * rootWidth) / 2;
+      mDrawShiftY = (int) (getHeight() - mZoomFactor * rootHeight) / 2;
+
+      calculateNodeBounds(mRoot, 0, 0, 1, 1, mZoomFactor);
     }
 
-    paintPreview((Graphics2D) g);
+    paintPreview((Graphics2D)g);
   }
 
-  /**
-   * Recursively initializes the previewBounds of all nodes.
-   */
-  private void recalculateNodeBounds() {
+  private float calcDrawScale(float rootWidth, float rootHeight) {
     float width = getWidth() - 20;
     float height = getHeight() - 20;
 
-    float rootHeight = mRoot.displayInfo.height;
-    float rootWidth = mRoot.displayInfo.width;
+    return Math.min(width / rootWidth, height / rootHeight);
+  }
 
-    float drawScale = Math.min(width / rootWidth, height / rootHeight);
-    mDrawShiftX = (int) (getWidth() - drawScale * rootWidth) / 2;
-    mDrawShiftY = (int) (getHeight() - drawScale * rootHeight) / 2;
+  public float getZoomFactor() {
+    return mZoomFactor;
+  }
 
-    calculateNodeBounds(mRoot, 0, 0, 1, 1, drawScale);
+  @Nullable
+  public Image getPreview() {
+    return mPreview;
   }
 
   private void calculateNodeBounds(
-    @NotNull  ViewNode node, float leftShift, float topshift,
+    @NotNull ViewNode node, float leftShift, float topshift,
     float scaleX, float scaleY, float drawScale) {
 
     DisplayInfo info = node.displayInfo;
@@ -143,10 +160,10 @@ public class ViewNodeActiveDisplay extends JComponent {
       topshift + (info.top + info.translateY) * scaleY + info.height * (scaleY - newScaleY) / 2;
 
     node.previewBox.setBounds(
-      (int) (l * drawScale),
-      (int) (t * drawScale),
-      (int) (info.width * newScaleX * drawScale),
-      (int) (info.height * newScaleY * drawScale)
+      (int)(l * drawScale),
+      (int)(t * drawScale),
+      (int)(info.width * newScaleX * drawScale),
+      (int)(info.height * newScaleY * drawScale)
     );
 
     if (!node.isLeaf()) {
@@ -159,9 +176,15 @@ public class ViewNodeActiveDisplay extends JComponent {
   }
 
   private void paintPreview(Graphics2D g) {
+    // move the coordinate so we draw in the center of the canvas instead of top left.
     g.translate(mDrawShiftX, mDrawShiftY);
 
     if (mPreview != null) {
+      if (Float.compare(mZoomFactor, 1.0f) != 0) {
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      }
       g.drawImage(mPreview, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
                   0, 0, mPreview.getWidth(null), mPreview.getHeight(null), null);
     }
@@ -224,16 +247,20 @@ public class ViewNodeActiveDisplay extends JComponent {
 
     int boxRight = boxpos.x + boxpos.width;
     int boxBottom = boxpos.y + boxpos.height;
+    int newClipX1 = clipX1;
+    int newClipY1 = clipY1;
+    int newClipX2 = clipX2;
+    int newClipY2 = clipY2;
     if (node.displayInfo.clipChildren) {
-      clipX1 = Math.max(clipX1, boxpos.x);
-      clipY1 = Math.max(clipY1, boxpos.y);
-      clipX2 = Math.min(clipX2, boxRight);
-      clipY2 = Math.min(clipY2, boxBottom);
+      newClipX1 = Math.max(clipX1, boxpos.x);
+      newClipY1 = Math.max(clipY1, boxpos.y);
+      newClipX2 = Math.min(clipX2, boxRight);
+      newClipY2 = Math.min(clipY2, boxBottom);
     }
-    if (clipX1 < x && clipX2 > x && clipY1 < y && clipY2 > y) {
+    if (newClipX1 < x && newClipX2 > x && newClipY1 < y && newClipY2 > y) {
       for (int i = node.children.size() - 1; i >= 0; i--) {
         ViewNode child = node.children.get(i);
-        ViewNode ret = updateSelection(child, x, y, firstNoDrawChild, clipX1, clipY1, clipX2, clipY2);
+        ViewNode ret = updateSelection(child, x, y, firstNoDrawChild, newClipX1, newClipY1, newClipX2, newClipY2);
         if (ret != null) {
           return ret;
         }
@@ -245,7 +272,8 @@ public class ViewNodeActiveDisplay extends JComponent {
           firstNoDrawChild[0] = node;
         }
         return null;
-      } else {
+      }
+      else {
         if (wasFirstNoDrawChildNull && firstNoDrawChild[0] != null) {
           return firstNoDrawChild[0];
         }
@@ -253,6 +281,15 @@ public class ViewNodeActiveDisplay extends JComponent {
       }
     }
     return null;
+  }
+
+  public void setZoomFactor(float zoomFactor) {
+    mZoomFactor = zoomFactor;
+    float rootHeight = mRoot.displayInfo.height;
+    float rootWidth = mRoot.displayInfo.width;
+    // when zoom factor changes, change the size. more zoomed in = bigger size and vice versa.
+    setPreferredSize(new Dimension((int)(rootWidth * mZoomFactor), (int)(rootHeight * mZoomFactor)));
+    revalidate();
   }
 
   private class MyMouseAdapter extends MouseAdapter {
