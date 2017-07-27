@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
@@ -41,10 +40,6 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      return;
-    }
-
     // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
     // in code as well (instead of xml).
     ActionManager actionManager = ActionManager.getInstance();
