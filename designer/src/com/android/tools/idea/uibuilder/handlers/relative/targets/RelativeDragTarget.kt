@@ -76,8 +76,8 @@ class RelativeDragTarget : DragBaseTarget() {
     }
   }
 
-  private fun clearAlignAttributes(attributes: AttributesTransaction)
-      = ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
+  private fun clearAlignAttributes(attributes: AttributesTransaction) =
+      ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     val parent = myComponent?.parent ?: return
@@ -138,15 +138,15 @@ class RelativeDragTarget : DragBaseTarget() {
       }
     }
 
+    myComponent.setModelUpdateAuthorized(true)
+    myComponent.updateTargets(false)
+
     myTargetX?.myIsHighlight = false
     myTargetY?.myIsHighlight = false
 
     if (myChangedComponent) {
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     }
-
-    myComponent.updateTargets(false)
-    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
