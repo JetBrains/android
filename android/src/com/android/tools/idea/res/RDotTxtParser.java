@@ -15,57 +15,36 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.SdkConstants;
+import com.android.builder.symbols.Symbol;
+import com.android.builder.symbols.SymbolIo;
+import com.android.builder.symbols.SymbolTable;
 import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.google.common.base.Charsets;
+import com.android.ide.common.resources.ResourceNameKeyedMap;
+import com.android.resources.ResourceType;
 import com.google.common.base.Splitter;
-import com.google.common.io.Files;
-import com.google.common.io.LineProcessor;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Utility methods to extract information from R.txt files.
  */
 class RDotTxtParser {
 
-  private static final String INT_ID = "int id ";
-  private static final int INT_ID_LEN = INT_ID.length();
   private static Logger ourLog;
   private static final Splitter COMMA_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
 
   @NotNull
-  static Collection<String> getIdNames(final File rFile) {
+  static Collection<String> getIdNames(@NotNull final File rFile) {
     try {
-      return Files.readLines(rFile, Charsets.UTF_8, new LineProcessor<Collection<String>>() {
-        Collection<String> idNames = new ArrayList<String>(32);
-
-        @Override
-        public boolean processLine(@NotNull String line) throws IOException {
-          if (!line.startsWith(INT_ID)) {
-            return true;
-          }
-          int i = line.indexOf(' ', INT_ID_LEN);
-          assert i != -1 : "File not in expected format: " + rFile.getPath() + "\n" +
-                           "Expected the ids to be in the format int id <name> <number>";
-          idNames.add(line.substring(INT_ID_LEN, i));
-          return true;
-        }
-
-        @Override
-        public Collection<String> getResult() {
-          return idNames;
-        }
-      });
+      SymbolTable symbolTable = SymbolIo.readFromAapt(rFile, null);
+      return symbolTable.getSymbols().row(ResourceType.ID).keySet();
     }
     catch (IOException e) {
       getLog().warn("Unable to read file: " + rFile.getPath(), e);
@@ -76,85 +55,66 @@ class RDotTxtParser {
   /**
    * For styleable array entries.
    * <p>
-   * Search R.txt file, {@code r}, for the styleable with {@code styleableName} and return the
+   * Search R.txt file, {@code rFile}, for the styleable with {@code styleableName} and return the
    * array of attribute ids, in the order specified by the list {@code attrs}. Returns null if the
    * styleable is not found.
    */
   @Nullable
-  static Integer[] getDeclareStyleableArray(File r, final List<AttrResourceValue> attrs, final String styleableName) {
+  static Integer[] getDeclareStyleableArray(@NotNull final File rFile, final List<AttrResourceValue> attrs, final String styleableName) {
     try {
-      return Files.readLines(r, Charsets.UTF_8, new LineProcessor<Integer[]>() {
-        private static final String ARRAY_STYLEABLE = "int[] styleable ";
-        private static final String INT_STYLEABLE = "int styleable ";
+      SymbolTable symbolTable = SymbolIo.readFromAapt(rFile, null);
+      Symbol styleable = symbolTable.getSymbols().row(ResourceType.STYLEABLE).get(styleableName);
 
-        private final String myArrayStart = ARRAY_STYLEABLE + styleableName + " { ";
-        private final String myEntryStart = INT_STYLEABLE + styleableName + "_";
+      if (styleable == null) {
+        getLog().warn("Unable to find styleable: " + styleableName);
+        return null;
+      }
 
-        private Integer[] myValuesList;
-        private String[] myDeclaredAttrs;
-        private int myAttrsFound;
+      ImmutableList<String> values = styleable.getChildren();
+      if (values.size() != attrs.size()) {
+        getLog().warn(String.format("Styleable does not match attributes size (%d styleable != %d attributes)",
+                                    values.size(), attrs.size()));
+        return null;
+      }
 
-        @Override
-        public boolean processLine(@NotNull String line) throws IOException {
-          if (line.startsWith(myArrayStart)) {
-            // line must be of the form "int[] styleable name { value1, value2, ..., valueN }"
-            // extract " value1, value2, ..., valueN "
-            String valuesList = line.substring(myArrayStart.length(), line.length() - 1);
-            int valuesCount = StringUtil.countChars(valuesList, ',') + 1;
+      String arrayValues = styleable.getValue().trim();
+      if (arrayValues.length() < 2) {
+        getLog().warn("Incorrect styleable array definition for: " + styleableName);
+        return null;
+      }
 
-            // The declared styleable doesn't match the size of this list of values so ignore this styleable declaration
-            if (valuesCount != attrs.size()) {
-              // Do not keep looking for the attr indexes
-              return false;
-            }
-            myValuesList = new Integer[valuesCount];
-            myDeclaredAttrs = new String[valuesCount];
-            int idx = 0;
+      // Remove array brackets
+      arrayValues = arrayValues.substring(1, arrayValues.length() - 1);
 
-            for (String s : COMMA_SPLITTER.split(valuesList)) {
-              myValuesList[idx++] = Integer.decode(s);
-            }
-            return true;
-          } else if (myValuesList != null && line.startsWith(myEntryStart)) {
-            int lastSpace = line.lastIndexOf(' ');
-            String name = line.substring(INT_STYLEABLE.length(), lastSpace);
-            int index = Integer.parseInt(line.substring(lastSpace + 1));
-            myDeclaredAttrs[index] = name;
-            myAttrsFound++;
-            // return false if all entries have been found.
-            return myAttrsFound != myDeclaredAttrs.length;
-          }
+      Map<String, ResourceNameKeyedMap<Integer>> namespacesMap = new HashMap<>();
+      int idx = 0;
+      for (String intValue : COMMA_SPLITTER.split(arrayValues)) {
+        String attributeKey = values.get(idx++);
 
-          // Not a line we care about, continue processing.
-          return true;
+        // Split namespace and resource value
+        int nsSeparatorIdx = attributeKey.indexOf(':');
+        String namespace = nsSeparatorIdx != -1 ? attributeKey.substring(0, nsSeparatorIdx) : null;
+        String name = nsSeparatorIdx != -1 ? attributeKey.substring(nsSeparatorIdx + 1) : attributeKey;
+
+        ResourceNameKeyedMap<Integer> styleableValuesMap = namespacesMap.get(namespace);
+        if (styleableValuesMap == null) {
+          styleableValuesMap = new ResourceNameKeyedMap<>();
+          namespacesMap.put(namespace, styleableValuesMap);
         }
+        styleableValuesMap.put(name, Integer.decode(intValue));
+      }
 
-        @Override
-        public Integer[] getResult() {
-          if (myValuesList == null || myDeclaredAttrs == null) {
-            return null;
-          }
-          // The order of entries in a declare-styleable in the source xml and in R.txt may be different.
-          // It's essential that the order of entries match the order of attrs. So, we reorder the entries.
-          int index = 0;
-          for (AttrResourceValue attr : attrs) {
-            String name = ResourceClassGenerator.getResourceName(styleableName, attr);
-            for (int i = index; i < myDeclaredAttrs.length; i++) {
-              String declaredAttr = myDeclaredAttrs[i];
-              if (declaredAttr.equals(name)) {
-                ArrayUtil.swap(myDeclaredAttrs, i, index);
-                ArrayUtil.swap(myValuesList, i, index);
-                break;
-              }
-            }
-            assert myDeclaredAttrs[index].equals(name) : name + " does not equal " + myDeclaredAttrs[index];
-            index++;
-          }
-          return myValuesList;
-        }
-      });
+      Integer[] results = new Integer[values.size()];
+      idx = 0;
+      for (AttrResourceValue attr : attrs) {
+        // TODO: Add support for arbitrary namespaces when it's properly implemented in AttrResourceValue
+        ResourceNameKeyedMap<Integer> styleableValuesMap = namespacesMap.get(attr.isFramework() ? SdkConstants.ANDROID_NS_NAME : null);
+        results[idx++] = styleableValuesMap != null ? styleableValuesMap.get(attr.getName()) : null;
+      }
+      return results;
     }
     catch (IOException e) {
+      getLog().warn("Unable to read file: " + rFile.getPath(), e);
       return null;
     }
   }
