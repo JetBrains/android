@@ -193,8 +193,18 @@ public class LintIdeClient extends LintClient implements Disposable {
                   }
                 }
 
-                if (!getIssues().contains(issue)) {
-                  return Severity.IGNORE;
+                Set<Issue> issues = getIssues();
+                boolean known = issues.contains(issue);
+                if (!known) {
+                  if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
+                    return Severity.IGNORE;
+                  }
+
+                  // Allow third-party checks
+                  LintIdeIssueRegistry builtin = new LintIdeIssueRegistry();
+                  if (builtin.isIssueId(issue.getId())) {
+                    return Severity.IGNORE;
+                  }
                 }
 
                 return super.getSeverity(issue);
