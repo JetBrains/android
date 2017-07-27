@@ -65,6 +65,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.WaitFor;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -1338,6 +1339,19 @@ public class TemplateTest extends AndroidGradleTestCase {
       //}
       finally {
         connection.close();
+
+        // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
+        // for a bit of time. It is also possible that there are Virtual Files that are still syncronizing to the File System, this will
+        // break tear-down, when it tries to delete the project.
+        if (SystemInfo.isWindows) {
+          new WaitFor(30000) {
+            @Override
+            protected boolean condition() {
+              FileUtil.delete(projectRoot);
+              return projectRoot.mkdir();
+            }
+          };
+        }
       }
 
       if (CHECK_LINT) {
