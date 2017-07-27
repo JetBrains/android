@@ -19,6 +19,7 @@ import com.android.builder.model.SyncIssue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 public final class SyncIssueStub extends BaseStub implements SyncIssue {
@@ -58,6 +59,12 @@ public final class SyncIssueStub extends BaseStub implements SyncIssue {
   @Override
   public int getType() {
     return myType;
+  }
+
+  @Nullable
+  @Override
+  public List<String> getMultiLineMessage() {
+    return null;
   }
 
   @Override
