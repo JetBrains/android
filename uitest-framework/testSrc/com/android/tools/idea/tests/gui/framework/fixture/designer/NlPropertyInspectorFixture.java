@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
@@ -27,7 +26,6 @@ import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -147,7 +145,8 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     assertThat(component).isNotNull();
     assertThat(SwingUtilities.isDescendingFrom(component, myPanel)).isTrue();
     driver().pressAndReleaseKey(component, keyCode, modifiers);
-    IdeFocusManager.findInstance().doWhenFocusSettlesDown(() -> {});
+    IdeFocusManager.findInstance().doWhenFocusSettlesDown(() -> {
+    });
     return this;
   }
 
@@ -172,7 +171,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     return this;
   }
 
-  public boolean isPropertyShowing(@NotNull String name, @Nullable Icon icon) {
+  private boolean isPropertyShowing(@NotNull String name, @Nullable Icon icon) {
     Component component = findPropertyComponent(name, icon);
     if (component == null) {
       return false;
@@ -195,7 +194,8 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @Nullable
   private Component findPropertyComponent(@NotNull String name, @Nullable Icon icon) {
     try {
-      JBLabel label = waitUntilFound(robot(), myPanel, Matchers.byText(JBLabel.class, "<html>" + name + "</html>").and(Matchers.byIcon(JBLabel.class, icon)));
+      JBLabel label = waitUntilFound(robot(), myPanel,
+                                     Matchers.byText(JBLabel.class, "<html>" + name + "</html>").and(Matchers.byIcon(JBLabel.class, icon)));
 
       Container parent = label.getParent();
       Component[] components = parent.getComponents();

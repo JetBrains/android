@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -34,24 +35,24 @@ import java.util.ArrayList;
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JPanel {
-  String[] str = new String[]{"0", "8", "16", "24", "32"};
-  boolean mInternal;
+  private String[] str = new String[]{"0", "8", "16", "24", "32"};
+  private boolean mInternal;
   @SuppressWarnings("UndesirableClassUsage")
-  JComboBox<String> combo = new JComboBox<>(str);
+  private JComboBox<String> combo = new JComboBox<>(str);
   private static final String COMBO = "combo";
   private static final String TEXT = "text";
+
   public enum Show {
     IN_WIDGET,
     OUT_WIDGET,
     OUT_PANEL
   }
 
-  ColorSet mColorSet ;
-  ArrayList<ActionListener> mCallbacks = new ArrayList<>();
+  private ColorSet mColorSet;
+  private ArrayList<ActionListener> mCallbacks = new ArrayList<>();
 
-  JLabel label = new JLabel("0");
-  CardLayout layout;
-  JButton button;
+  private JLabel label = new JLabel("0");
+  private CardLayout layout;
 
   @Override
   public void setToolTipText(String text) {
@@ -64,16 +65,16 @@ public class MarginWidget extends JPanel {
     }
     switch (show) {
       case IN_WIDGET:
-        layout.show(this, COMBO );
+        layout.show(this, COMBO);
         label.setText((String)combo.getSelectedItem());
         break;
       case OUT_WIDGET:
         if (!combo.isPopupVisible()) {
-          layout.show(this, TEXT );
+          layout.show(this, TEXT);
         }
         break;
       case OUT_PANEL:
-        layout.show(this, TEXT );
+        layout.show(this, TEXT);
         break;
     }
     label.setText((String)combo.getSelectedItem());
@@ -84,7 +85,7 @@ public class MarginWidget extends JPanel {
     mColorSet = colorSet;
     layout = (CardLayout)getLayout();
 
-    initLabel(alignment, name);
+    initLabel(alignment);
     initComboBox(name);
 
     setBackground(null);
@@ -96,7 +97,7 @@ public class MarginWidget extends JPanel {
     add(combo, COMBO);
   }
 
-  private void initLabel(int alignment, @NotNull String name) {
+  private void initLabel(int alignment) {
     label.setBackground(null);
     label.setForeground(mColorSet.getInspectorStrokeColor());
     label.setHorizontalAlignment(alignment);
@@ -154,7 +155,7 @@ public class MarginWidget extends JPanel {
     });
   }
 
-  BasicComboBoxUI ui = new BasicComboBoxUI() {
+  private BasicComboBoxUI ui = new BasicComboBoxUI() {
 
     @Override
     protected JButton createArrowButton() {
@@ -162,8 +163,8 @@ public class MarginWidget extends JPanel {
       Color shadow = mColorSet.getInspectorStrokeColor();
       Color darkShadow = mColorSet.getInspectorStrokeColor();
       Color highlight = mColorSet.getSubduedFrames();
-      button = new BasicArrowButton(SwingConstants.SOUTH, background, shadow, darkShadow, highlight);
-      button.setForeground(Color.RED);
+      JButton button = new BasicArrowButton(SwingConstants.SOUTH, background, shadow, darkShadow, highlight);
+      button.setForeground(JBColor.RED);
       button.setBorder(new MatteBorder(0, 1, 0, 0, mColorSet.getInspectorStrokeColor()));
       return button;
     }
@@ -180,7 +181,8 @@ public class MarginWidget extends JPanel {
   public int getMargin() {
     try {
       return Integer.parseInt(label.getText());
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       return 0;
     }
   }

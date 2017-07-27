@@ -205,7 +205,7 @@ public class ConstraintLayoutTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.EDITOR)
       .getCurrentFileContents();
-    for (String widget: widgets) {
+    for (String widget : widgets) {
       assertThat(layoutXml).containsMatch("<" + widget);
     }
   }
@@ -351,6 +351,7 @@ public class ConstraintLayoutTest {
     colorCell.startEditing();
     resourceComponent.getSwatchButton().click();
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    @SuppressWarnings("UseJBColor")
     Color color = new Color(255, 235, 59, 255);
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
