@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2009 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,29 @@
  */
 package com.example.hellojni;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.app.Activity;
 import android.widget.TextView;
+import android.os.Bundle;
 
-public class HelloJni extends AppCompatActivity {
 
+public class HelloJni extends Activity
+{
+    /** Called when the activity is first created. */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
-        /* Retrieve our TextView and set its content.
+
+        /* Create a TextView and set its content.
          * the text is retrieved by calling a native
          * function.
          */
-        setContentView(R.layout.activity_hello_jni);
-        TextView tv = (TextView)findViewById(R.id.hello_textview);
+        TextView  tv = new TextView(this);
         String s = stringFromJNI();
         tv.setText(s);
         setContentView(tv);
     }
+
     /* A native method that is implemented by the
      * 'hello-jni' native library, which is packaged
      * with this application.
