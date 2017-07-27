@@ -18,7 +18,6 @@ package com.android.tools.swing.ui;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -64,7 +63,7 @@ public class SwatchComponent extends JPanel {
   /** Padding around the text in the text field */
   private static final int TEXT_PADDING = JBUI.scale(8);
   /** Size of rounded corners for the icon and the text field */
-  private static final int ARC_SIZE = ThemeEditorConstants.ROUNDED_BORDER_ARC_SIZE;
+  private static final int ARC_SIZE = JBUI.scale(2);
   private static final Color DEFAULT_BORDER_COLOR = Gray._170;
   private static final Color WARNING_BORDER_COLOR = JBColor.ORANGE;
 
