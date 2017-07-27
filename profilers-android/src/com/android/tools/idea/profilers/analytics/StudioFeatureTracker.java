@@ -22,6 +22,7 @@ import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -30,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
-import com.google.wireless.android.sdk.stats.CpuCaptureMetadata;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,8 +128,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackCaptureTrace(@NotNull com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
-    newTracker(AndroidProfilerEvent.Type.CAPTURE_TRACE).setDevice(myActiveDevice).setCpuCaptureMetadata(cpuCaptureMetadata).track();
+  public void trackTraceCpu(@NotNull ProfilingConfiguration cpuConfig) {
+    newTracker(AndroidProfilerEvent.Type.TRACE_CPU).setCpuConfig(cpuConfig).track();
+  }
+
+  @Override
+  public void trackCaptureTrace(@NotNull CpuCaptureMetadata cpuCaptureMetadata) {
+    newTracker(AndroidProfilerEvent.Type.TRACE_CPU).setDevice(myActiveDevice).setCpuCaptureMetadata(cpuCaptureMetadata);
   }
 
   @Override
@@ -248,7 +253,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull private final AndroidProfilerEvent.Type myEventType;
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
     @Nullable private Profiler.Device myDevice;
-    @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
+    @Nullable private ProfilingConfiguration myCpuConfig;
+    @Nullable private CpuCaptureMetadata myCpuCaptureMetadata;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
@@ -261,41 +267,22 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
-    public Tracker setCpuCaptureMetadata(@Nullable com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
-      myCpuCaptureMetadata = cpuCaptureMetadata;
+    @NotNull Tracker setCpuConfig(@Nullable ProfilingConfiguration cpuConfig) {
+      this.myCpuConfig = cpuConfig;
       return this;
+    }
+
+    public void setCpuCaptureMetadata(@Nullable CpuCaptureMetadata cpuCaptureMetadata) {
+      myCpuCaptureMetadata = cpuCaptureMetadata;
     }
 
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
-      if (myCpuCaptureMetadata != null) {
-        CpuCaptureMetadata.Builder captureMetadata = CpuCaptureMetadata.newBuilder()
-          .setCaptureDurationMs(myCpuCaptureMetadata.getCaptureDurationMs())
-          .setRecordDurationMs(myCpuCaptureMetadata.getRecordDurationMs())
-          .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
-          .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs());
-
-        switch (myCpuCaptureMetadata.getStatus()) {
-          case SUCCESS:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
-            break;
-          case PARSING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-            break;
-          case STOP_CAPTURING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
-            break;
-          case USER_ABORTED_PARSING:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
-            break;
-        }
-
-        ProfilingConfiguration config = myCpuCaptureMetadata.getProfilingConfiguration();
+      if (myCpuConfig != null) {
         CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-          .setSampleInterval(config.getProfilingSamplingIntervalUs())
-          .setSizeLimit(config.getProfilingBufferSizeInMb());
-
-        switch (config.getProfilerType()) {
+          .setSampleInterval(myCpuConfig.getProfilingSamplingIntervalUs())
+          .setSizeLimit(myCpuConfig.getProfilingBufferSizeInMb());
+        switch (myCpuConfig.getProfilerType()) {
           case ART:
             cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
             break;
@@ -307,7 +294,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             break;
         }
 
-        switch (config.getMode()) {
+        switch (myCpuConfig.getMode()) {
           case SAMPLED:
             cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
             break;
@@ -318,9 +305,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
           case UNRECOGNIZED:
             break;
         }
-        captureMetadata.setProfilingConfig(cpuConfigInfo.build());
 
-        profilerEvent.setCpuCaptureMetadata(captureMetadata);
+        profilerEvent.setCpuConfig(cpuConfigInfo.build());
       }
 
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
@@ -336,6 +322,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
             .build());
+      }
+
+      if (myCpuCaptureMetadata != null) {
+        // TODO: send metadata information to tracker
       }
 
       UsageTracker.getInstance().log(event);

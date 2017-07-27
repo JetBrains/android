@@ -704,8 +704,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
 
     // Make sure we tracked the correct configuration
-    ProfilingConfiguration trackedConfig =
-      ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
+    ProfilingConfiguration trackedConfig = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastTrackedConfig();
     assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
   }
