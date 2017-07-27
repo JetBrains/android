@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.tools.idea.experimental.callgraph.*
+import com.android.tools.lint.detector.api.interprocedural.*
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.psi.PsiManager

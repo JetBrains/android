@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.tools.idea.experimental.callgraph.*
+import com.android.tools.lint.checks.searchForInterproceduralThreadAnnotationViolations
+import com.android.tools.lint.detector.api.interprocedural.buildCallGraph
+import com.android.tools.lint.detector.api.interprocedural.buildClassHierarchy
+import com.android.tools.lint.detector.api.interprocedural.buildIntraproceduralReceiverEval
+import com.android.tools.lint.detector.api.interprocedural.shortName
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.psi.PsiManager
@@ -25,7 +29,7 @@ import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
 
-class InterproceduralThreadAnnotationTest : AndroidTestCase() {
+class WrongThreadInterproceduralTest : AndroidTestCase() {
 
   fun testJavaThreadAnnotations() = doTest(".java")
 
