@@ -39,10 +39,20 @@ public class MemoryProfiler extends StudioProfiler {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setProcessId(process.getPid())
                                                                    .setSession(session).build());
+    if (myProfilers.isLiveAllocationEnabled()) {
+      myProfilers.getClient().getMemoryClient().resumeTrackAllocations(ResumeTrackAllocationsRequest.newBuilder()
+                                                                         .setProcessId(process.getPid())
+                                                                         .setSession(session).build());
+    }
   }
 
   @Override
   public void stopProfiling(Common.Session session, Profiler.Process process) {
+    if (myProfilers.isLiveAllocationEnabled()) {
+      myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
+                                                                          .setProcessId(process.getPid())
+                                                                          .setSession(session).build());
+    }
     myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
                                                                   .setProcessId(process.getPid())
                                                                   .setSession(session).build());

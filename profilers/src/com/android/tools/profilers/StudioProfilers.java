@@ -486,6 +486,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null && myProcess.getState() == Profiler.Process.State.ALIVE;
   }
 
+  public boolean isLiveAllocationEnabled() {
+    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+           getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O && isAgentAttached();
+  }
+
   public boolean isAgentAttached() {
     return myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED;
   }

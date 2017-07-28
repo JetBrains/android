@@ -24,6 +24,7 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -169,6 +170,30 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceAllocationsInfo(request.getProcessId(), request.getSession(), response.getInfo());
       }
+    }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void suspendTrackAllocations(SuspendTrackAllocationsRequest request,
+                                      StreamObserver<SuspendTrackAllocationsResponse> responseObserver) {
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    SuspendTrackAllocationsResponse response = SuspendTrackAllocationsResponse.getDefaultInstance();
+    if (client != null) {
+      response = client.suspendTrackAllocations(request);
+    }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void resumeTrackAllocations(ResumeTrackAllocationsRequest request,
+                                     StreamObserver<ResumeTrackAllocationsResponse> responseObserver) {
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    ResumeTrackAllocationsResponse response = ResumeTrackAllocationsResponse.getDefaultInstance();
+    if (client != null) {
+      response = client.resumeTrackAllocations(request);
     }
     responseObserver.onNext(response);
     responseObserver.onCompleted();
