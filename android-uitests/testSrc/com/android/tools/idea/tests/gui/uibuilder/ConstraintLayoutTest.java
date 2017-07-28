@@ -374,6 +374,7 @@ public class ConstraintLayoutTest {
     colorCell.stopEditing();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void fileIsFormattedAfterSelectingMarginStart() {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
