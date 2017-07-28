@@ -39,6 +39,7 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64151364
   @Test
   public void testNewModuleOldGradle() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
