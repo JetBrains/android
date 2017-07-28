@@ -18,24 +18,19 @@ package com.android.tools.idea.tests.util;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class WizardUtils {
   private WizardUtils() {
   }
 
-  public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
-    createNewProject(guiTest, "google.com", activity);
+  public static void createNewProject(@NotNull GuiTestRule guiTest) {
+    createNewProject(guiTest, "Empty Activity");
   }
 
-  public static void createNewProject(@NotNull GuiTestRule guiTest, @Nullable String domain, @NotNull String activity) {
+  public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
     NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
 
-    if (domain != null) {
-      wizard.getConfigureAndroidProjectStep()
-        .enterCompanyDomain(domain);
-    }
-
+    wizard.getConfigureAndroidProjectStep().enterCompanyDomain("google.com");
     wizard.clickNext();
 
     wizard.clickNext();
