@@ -103,5 +103,6 @@
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="observable-ui" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>

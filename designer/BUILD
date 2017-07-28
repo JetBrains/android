@@ -34,6 +34,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard[module]",
         "//tools/base/flags:studio.flags[module]",
+        "//tools/adt/idea/artwork[module]",
     ],
 )
 
@@ -95,5 +96,6 @@ iml_module(
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:Gradle[test]",
         "//tools/base/flags:studio.flags[module]",
+        "//tools/adt/idea/artwork[module, test]",
     ],
 )

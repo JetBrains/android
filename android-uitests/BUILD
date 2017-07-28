@@ -30,5 +30,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/adt-ui[module, test]",
+        "//tools/adt/idea/artwork[module, test]",
     ],
 )

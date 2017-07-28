@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>
