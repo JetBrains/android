@@ -29,6 +29,7 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -677,6 +678,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  @Ignore("b/64139004")
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
