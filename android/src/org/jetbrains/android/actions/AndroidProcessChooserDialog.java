@@ -25,6 +25,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -238,6 +239,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myProcessTree;
+  }
+
+  @Override
+  protected void doHelpAction() {
+    BrowserUtil.browse("https://developer.android.com/studio/debug/index.html");
   }
 
   @Override
