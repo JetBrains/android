@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion <warning>"19.0.0"</warning>
+    compileSdkVersion 25
+    buildToolsVersion <warning>"25.0.0"</warning>
 
     defaultConfig {
         minSdkVersion 7

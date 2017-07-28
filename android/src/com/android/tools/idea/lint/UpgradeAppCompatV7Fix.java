@@ -56,7 +56,7 @@ public class UpgradeAppCompatV7Fix implements AndroidLintQuickFix {
       StudioLoggerProgressIndicator
         progress = new StudioLoggerProgressIndicator(AndroidLintFontValidationErrorInspection.class);
 
-      RepoPackage p = SdkMavenRepository.findLatestVersion(MIN_APPSUPPORT_VERSION, sdkHandler, progress);
+      RepoPackage p = SdkMavenRepository.findLatestVersion(MIN_APPSUPPORT_VERSION, sdkHandler, null, progress);
       if (p != null) {
         GradleCoordinate gc = SdkMavenRepository.getCoordinateFromSdkPath(p.getPath());
         if (gc != null) { // should always be the case unless the version suffix is somehow wrong

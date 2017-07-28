@@ -43,6 +43,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
 import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
@@ -69,13 +70,14 @@ public class LintIdeGradleDetector extends GradleDetector {
 
   @Override
   @Nullable
-  protected GradleVersion getHighestKnownVersion(@NonNull LintClient client, @NonNull GradleCoordinate coordinate) {
+  protected GradleVersion getHighestKnownVersion(@NonNull LintClient client, @NonNull GradleCoordinate coordinate,
+                                                 @Nullable Predicate<GradleVersion> filter) {
     AndroidSdkHandler sdkHandler = client.getSdk();
     if (sdkHandler == null) {
       return null;
     }
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, logger);
+    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, logger);
     if (sdkPackage != null) {
       GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
       if (found != null) {
