@@ -132,7 +132,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   /**
    * Represents the current state of the capture.
    */
-  @NotNull
   private CaptureState myCaptureState;
 
   /**
@@ -413,7 +412,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * corresponding to the capture after parsing is finished (successfully or not).
    */
   private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
-      long beforeParsingTime = System.currentTimeMillis();
+    long beforeParsingTime = System.currentTimeMillis();
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
     if (capture == null) {
       // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.

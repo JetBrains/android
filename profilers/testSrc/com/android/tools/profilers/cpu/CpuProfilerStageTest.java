@@ -29,7 +29,6 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -678,7 +677,6 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/64139004")
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
@@ -687,7 +685,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.setProfilingConfiguration(config1);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    startCapturing();
+    myStage.startCapturing();
 
     // Go back to monitor stage and go back to a new Cpu profiler stage
     myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
@@ -700,7 +698,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
-    stopCapturing(stage);
+    stage.stopCapturing();
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Stop profiler should be the same as the one passed in the start request
