@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;

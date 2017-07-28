@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SelectionHandle.Position;
 

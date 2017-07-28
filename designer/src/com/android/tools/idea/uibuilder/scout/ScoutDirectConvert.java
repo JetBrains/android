@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 

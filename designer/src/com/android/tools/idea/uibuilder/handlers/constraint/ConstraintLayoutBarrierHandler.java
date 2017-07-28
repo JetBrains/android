@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.VALUE_VERTICAL;
 
 /**
  * Handler for Barrier Helper

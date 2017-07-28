@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;

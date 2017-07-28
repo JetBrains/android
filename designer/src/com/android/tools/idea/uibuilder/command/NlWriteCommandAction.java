@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.command;
 
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.intellij.openapi.application.BaseActionRunnable;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;

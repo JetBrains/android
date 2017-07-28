@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

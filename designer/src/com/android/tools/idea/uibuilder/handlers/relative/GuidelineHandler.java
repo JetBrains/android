@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.Constraint;

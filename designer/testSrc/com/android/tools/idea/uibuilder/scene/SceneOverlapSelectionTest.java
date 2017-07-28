@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.InputEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Test selecting overlapping widgets

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.resources.Density;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.google.common.collect.Iterators;

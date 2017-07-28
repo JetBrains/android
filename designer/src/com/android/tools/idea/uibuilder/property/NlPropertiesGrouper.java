@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.google.common.collect.ImmutableList;

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

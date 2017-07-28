@@ -16,18 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
-import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

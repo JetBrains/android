@@ -16,12 +16,12 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

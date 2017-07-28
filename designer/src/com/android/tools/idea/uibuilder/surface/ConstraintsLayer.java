@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.adtui.common.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 

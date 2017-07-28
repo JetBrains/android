@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;

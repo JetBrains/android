@@ -22,7 +22,7 @@ import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,13 +46,11 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.awt.image.ToolkitImage;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.ImageObserver;
 import java.util.List;
 import java.util.function.Consumer;
 

@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 
 import java.awt.*;

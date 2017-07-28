@@ -17,8 +17,8 @@ package com.android.tools.idea.naveditor.editor;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;

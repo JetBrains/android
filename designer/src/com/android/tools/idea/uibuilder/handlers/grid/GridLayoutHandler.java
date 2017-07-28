@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

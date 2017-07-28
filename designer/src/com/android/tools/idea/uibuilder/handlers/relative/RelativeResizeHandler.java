@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.relative;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.Segment;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 

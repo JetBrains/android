@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
@@ -45,6 +47,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(mySurface);
+      mySurface = null;
     }
     finally {
       super.tearDown();

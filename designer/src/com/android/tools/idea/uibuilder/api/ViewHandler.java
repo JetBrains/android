@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import icons.AndroidIcons;

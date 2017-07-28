@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -320,9 +322,9 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
  * @param insertType The type of insertion
  */
 fun NlComponent.createChild(editor: ViewEditor,
-                            fqcn: String,
-                            before: NlComponent?,
-                            insertType: InsertType): NlComponent? {
+                                                                fqcn: String,
+                                                                before: NlComponent?,
+                                                                insertType: InsertType): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 

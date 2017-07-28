@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.common.surface.SceneView;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

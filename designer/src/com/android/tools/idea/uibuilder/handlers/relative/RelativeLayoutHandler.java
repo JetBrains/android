@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;

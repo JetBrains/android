@@ -20,8 +20,8 @@ import com.android.annotations.VisibleForTesting
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.uibuilder.editor.ActionManager
-import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.model.NlComponent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction

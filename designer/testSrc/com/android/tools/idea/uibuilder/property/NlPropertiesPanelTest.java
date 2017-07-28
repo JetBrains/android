@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
@@ -47,7 +47,6 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   @Mock
   private RowFilter.Entry<? extends PTableModel, Integer> myEntry;
   private InspectorPanel myInspector;
-  private Disposable myDisposable;
   private NlPropertiesPanel myPanel;
   private MyTable myTable;
   private PTableModel myModel;
@@ -57,18 +56,23 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     super.setUp();
     MockitoAnnotations.initMocks(this);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    myDisposable = Disposer.newDisposable();
     myModel = new PTableModel();
     myTable = new MyTable(myModel);
-    myInspector = spy(new InspectorPanel(myPropertiesManager, myDisposable, new JPanel()));
-    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
+    myInspector = spy(new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JPanel()));
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
       myTable.removeEditor();
-      Disposer.dispose(myDisposable);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myEntry = null;
+      myInspector = null;
+      myPanel = null;
+      myTable = null;
+      myModel = null;
     }
     finally {
       super.tearDown();
@@ -296,14 +300,14 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void testInitialModeIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
   }
 
   public void testInitialModeFromMalformedOptionValueIsIgnored() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
   }
 

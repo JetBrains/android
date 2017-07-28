@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import org.jetbrains.annotations.NotNull;
 

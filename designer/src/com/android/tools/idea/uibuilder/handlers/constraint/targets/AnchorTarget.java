@@ -16,15 +16,19 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;

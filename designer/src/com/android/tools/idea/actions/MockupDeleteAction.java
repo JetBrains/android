@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;

@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.model.MergedManifest;
@@ -24,11 +28,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;

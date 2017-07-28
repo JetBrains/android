@@ -16,15 +16,18 @@
 package com.android.tools.idea.naveditor.scene.decorator;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.scene.draw.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

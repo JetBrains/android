@@ -17,10 +17,14 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;

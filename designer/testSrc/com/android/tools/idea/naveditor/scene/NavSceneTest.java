@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -45,7 +44,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

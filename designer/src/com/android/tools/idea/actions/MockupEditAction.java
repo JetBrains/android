@@ -18,7 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.base.Strings;

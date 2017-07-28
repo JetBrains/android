@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 

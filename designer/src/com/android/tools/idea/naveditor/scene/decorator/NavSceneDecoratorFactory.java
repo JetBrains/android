@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 

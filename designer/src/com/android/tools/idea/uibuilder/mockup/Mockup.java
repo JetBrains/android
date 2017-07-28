@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;

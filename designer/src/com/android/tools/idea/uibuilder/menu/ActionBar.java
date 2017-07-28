@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.ide.common.rendering.api.ViewType.ACTION_BAR_MENU;
-import static com.android.ide.common.rendering.api.ViewType.ACTION_BAR_OVERFLOW_MENU;
 
 final class ActionBar {
   private final List<SceneComponent> myItems;

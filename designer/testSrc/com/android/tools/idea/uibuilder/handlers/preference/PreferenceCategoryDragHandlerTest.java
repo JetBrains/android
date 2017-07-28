@@ -16,18 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 

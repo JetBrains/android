@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;

@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;

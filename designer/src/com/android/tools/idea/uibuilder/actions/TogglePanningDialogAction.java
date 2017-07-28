@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.ui.popup.JBPopup;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
 
-import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 /**

@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
