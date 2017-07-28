@@ -16,9 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.ProjectBuildOutput;
-import com.android.builder.model.TestedTargetVariant;
-import com.android.builder.model.VariantBuildOutput;
+import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -118,6 +116,17 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     }
   }
 
+  public void testOutputModelForInstantApp() throws Exception {
+    loadProject(INSTANT_APP);
+    File apk = mock(File.class);
+    PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
+    outputProvider.setInstantAppProjectBuildOutput(myAndroidFacet, createInstantAppProjectBuildOutputMock("debug", apk));
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertSize(1, apks);
+    assertEquals(apk, apks.iterator().next().getFile());
+  }
+
   public void testGetApksForTestBuddyApks() throws Exception {
     loadProject(BUDDY_APKS, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
@@ -134,7 +143,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     File apk = mock(File.class);
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
-    outputProvider.setProjectBuildOutput(myAndroidFacet, createMock("debug", apk));
+    outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", apk));
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertSize(1, apks);
     assertEquals(apk, apks.iterator().next().getFile());
@@ -155,16 +164,16 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
       assertNotNull(targetModule);
       AndroidFacet facet = AndroidFacet.getInstance(targetModule);
       assertNotNull(facet);
-      outputProvider.setProjectBuildOutput(facet, createMock(testedTargetVariant.getTargetVariant(), testedApk));
+      outputProvider.setProjectBuildOutput(facet, createProjectBuildOutputMock(testedTargetVariant.getTargetVariant(), testedApk));
     }
 
-    outputProvider.setProjectBuildOutput(myAndroidFacet, createMock("debug", apk));
+    outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", apk));
     Collection<ApkInfo> apkInfos = provider.getApks(mock(IDevice.class));
     Collection<File> apks = Collections2.transform(apkInfos, ApkInfo::getFile);
     assertThat(apks).containsExactly(apk, testedApk);
   }
 
-  private static ProjectBuildOutput createMock(@NotNull String variant, @NotNull File file) {
+  private static ProjectBuildOutput createProjectBuildOutputMock(@NotNull String variant, @NotNull File file) {
     ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
     VariantBuildOutput variantBuildOutput = mock(VariantBuildOutput.class);
     OutputFile outputFile = mock(OutputFile.class);
@@ -175,11 +184,26 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     return projectBuildOutput;
   }
 
+  private static InstantAppProjectBuildOutput createInstantAppProjectBuildOutputMock(@NotNull String variant, @NotNull File file) {
+    InstantAppProjectBuildOutput projectBuildOutput = mock(InstantAppProjectBuildOutput.class);
+    InstantAppVariantBuildOutput variantBuildOutput = mock(InstantAppVariantBuildOutput.class);
+    OutputFile outputFile = mock(OutputFile.class);
+    when(projectBuildOutput.getInstantAppVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
+    when(variantBuildOutput.getName()).thenReturn(variant);
+    when(variantBuildOutput.getOutput()).thenReturn(outputFile);
+    when(outputFile.getOutputFile()).thenReturn(file);
+    return projectBuildOutput;
+  }
+
   private static class PostBuildModelProviderStub implements PostBuildModelProvider {
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
     void setProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull ProjectBuildOutput projectBuildOutput) {
-      when(myPostBuildModel.findOutputModel(facet)).thenReturn(projectBuildOutput);
+      when(myPostBuildModel.findProjectBuildOutput(facet)).thenReturn(projectBuildOutput);
+    }
+
+    void setInstantAppProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull InstantAppProjectBuildOutput instantAppProjectBuildOutput) {
+      when(myPostBuildModel.findInstantAppProjectBuildOutput(facet)).thenReturn(instantAppProjectBuildOutput);
     }
 
     @Override

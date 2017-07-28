@@ -15,28 +15,30 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * {@link BuildAction} to be run when building project pre deploy. It returns the {@link ProjectBuildOutput}
- * model for each one of the needed modules.
+ * {@link BuildAction} to be run when building project pre run. It returns a class containing all the needed
+ * post build models. e.g. {@link ProjectBuildOutput} and {@link InstantAppProjectBuildOutput}.
  *
- * <p> These models are used for obtaining information not known in sync time. e.g. built apks when using config splits.
+ * <p> These models are used for obtaining information not known in sync time. e.g. built apks when using
+ * config splits and package name for instant apps.
  */
-public class OutputBuildAction implements BuildAction<List<OutputBuildAction.ModuleBuildOutput>>, Serializable {
+public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuildProjectModels>, Serializable {
   @NotNull private final ImmutableCollection<String> myGradlePaths;
 
   public OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
@@ -44,43 +46,99 @@ public class OutputBuildAction implements BuildAction<List<OutputBuildAction.Mod
   }
 
   @Override
-  public List<OutputBuildAction.ModuleBuildOutput> execute(BuildController controller) {
-    ImmutableList.Builder<OutputBuildAction.ModuleBuildOutput> outputsBuilder = ImmutableList.builder();
+  public OutputBuildAction.PostBuildProjectModels execute(@NotNull BuildController controller) {
+    PostBuildProjectModels postBuildProjectModels = new PostBuildProjectModels();
 
     if (!myGradlePaths.isEmpty()) {
       BasicGradleProject rootProject = controller.getBuildModel().getRootProject();
       GradleProject root = controller.findModel(rootProject, GradleProject.class);
 
-      for (String path : myGradlePaths) {
-        GradleProject module = root.findByPath(path);
-        ProjectBuildOutput output = controller.findModel(module, ProjectBuildOutput.class);
-        if (output != null) {
-          outputsBuilder.add(new ModuleBuildOutput(path, output));
-        }
+      postBuildProjectModels.populate(root, myGradlePaths, controller);
+    }
+
+    return postBuildProjectModels;
+  }
+
+  public static class PostBuildProjectModels implements Serializable {
+    // Key: module's Gradle path.
+    @NotNull private final Map<String, PostBuildModuleModels> myModelsByModule = new HashMap<>();
+
+    private PostBuildProjectModels() {}
+
+    public void populate(@NotNull GradleProject rootProject, @NotNull Collection<String> gradleModulePaths, @NotNull BuildController controller) {
+      for (String gradleModulePath : gradleModulePaths) {
+        populateModule(rootProject, gradleModulePath, controller);
       }
     }
 
-    return outputsBuilder.build();
+    private void populateModule(@NotNull GradleProject rootProject, @NotNull String moduleProjectPath, @NotNull BuildController controller) {
+      if (myModelsByModule.containsKey(moduleProjectPath)) {
+        // Module models already found
+        return;
+      }
+
+      GradleProject moduleProject = rootProject.findByPath(moduleProjectPath);
+      if (moduleProject != null) {
+        PostBuildModuleModels models = new PostBuildModuleModels(moduleProject);
+        models.populate(controller);
+        myModelsByModule.put(moduleProject.getPath(), models);
+      }
+    }
+
+    @Nullable
+    public PostBuildModuleModels getModels(@NotNull String gradlePath) {
+      return myModelsByModule.get(gradlePath);
+    }
   }
 
-  public static class ModuleBuildOutput implements Serializable {
-    @NotNull private final String myModulePath;
-    @NotNull private final ProjectBuildOutput myOutput;
+  public static class PostBuildModuleModels implements Serializable {
+    @NotNull private final GradleProject myGradleProject;
+    @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
 
-    @VisibleForTesting
-    public ModuleBuildOutput(@NotNull String modulePath, @NotNull ProjectBuildOutput output) {
-      myModulePath = modulePath;
-      myOutput = output;
+    private PostBuildModuleModels(@NotNull GradleProject gradleProject) {
+      myGradleProject = gradleProject;
+    }
+
+    private void populate(@NotNull BuildController controller) {
+      ProjectBuildOutput projectBuildOutput = findAndAddModel(controller, ProjectBuildOutput.class);
+      if (projectBuildOutput != null) {
+        return;
+      }
+
+      findAndAddModel(controller, InstantAppProjectBuildOutput.class);
     }
 
     @NotNull
-    public String getModulePath() {
-      return myModulePath;
+    public String getGradlePath() {
+      return myGradleProject.getPath();
     }
 
     @NotNull
-    public ProjectBuildOutput getOutput() {
-      return myOutput;
+    public String getModuleName() {
+      return myGradleProject.getName();
+    }
+
+    @Nullable
+    private <T> T findAndAddModel(@NotNull BuildController controller, @NotNull Class<T> modelType) {
+      T model = controller.findModel(myGradleProject, modelType);
+      if (model != null) {
+        myModelsByType.put(modelType, model);
+      }
+      return model;
+    }
+
+    public <T> boolean hasModel(@NotNull Class<T> modelType) {
+      return findModel(modelType) != null;
+    }
+
+    @Nullable
+    public <T> T findModel(@NotNull Class<T> modelType) {
+      Object model = myModelsByType.get(modelType);
+      if (model != null) {
+        assert modelType.isInstance(model);
+        return modelType.cast(model);
+      }
+      return null;
     }
   }
 }
