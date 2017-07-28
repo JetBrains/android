@@ -557,6 +557,7 @@ public class ConstraintLayoutTest {
     assertThat(layoutContents).doesNotContainMatch("<Button.*app:layout_constraintBottom_toBottomOf=\"parent\"");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void fileIsFormattedAfterSelectingMarginStart() {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
@@ -596,6 +597,7 @@ public class ConstraintLayoutTest {
     assertEquals(expected, editor.getCurrentFileContents());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void cleanUpAttributes() throws IOException {
     WizardUtils.createNewProject(guiTest);
