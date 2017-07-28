@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
 import com.android.SdkConstants.*
-import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.android.tools.idea.uibuilder.property.EmptyProperty
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager

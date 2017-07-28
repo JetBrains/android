@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;

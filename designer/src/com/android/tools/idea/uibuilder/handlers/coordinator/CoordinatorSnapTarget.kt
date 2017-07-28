@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.model.AttributesTransaction
+import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.uibuilder.model.ensureLiveId
-import com.android.tools.idea.uibuilder.scene.SceneContext
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget
-import com.android.tools.idea.uibuilder.scene.target.Target
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.target.BaseTarget
+import com.android.tools.idea.common.scene.target.Target
 import java.awt.Color
 import java.util.Arrays.asList
 

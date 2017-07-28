@@ -60,6 +60,11 @@ public class ScreenViewLayerTest {
   public void tearDown() {
     // myScreenView registers its design surface in the disposer tree as a root.
     Disposer.dispose(myScreenView.getSurface());
+
+    // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+    // tests through IJ)
+    myScreenView = null;
+    myRenderResult = null;
   }
 
   @Test

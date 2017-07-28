@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget
+import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.uibuilder.scene.target.Notch
 
 abstract class BaseRelativeTarget: BaseTarget(), Notch.Provider {

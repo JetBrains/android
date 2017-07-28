@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;

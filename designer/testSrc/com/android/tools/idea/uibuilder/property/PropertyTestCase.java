@@ -17,13 +17,13 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
@@ -132,6 +132,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
       Disposer.dispose(myDesignSurface);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
       myTextView = null;
       myProgressBar = null;
       myCheckBox1 = null;

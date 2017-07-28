@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintDragHandler;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

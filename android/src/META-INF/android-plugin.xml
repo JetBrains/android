@@ -265,8 +265,8 @@
         overrides="true"
         text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
-    <action id="StoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
-    <action id="RestoreDefaultLayout" class="com.android.tools.idea.uibuilder.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>

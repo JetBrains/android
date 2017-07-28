@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
 
 /**
  * Logic to infer and create Chains

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.adaptiveicon;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

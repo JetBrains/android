@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.ComponentProvider;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;

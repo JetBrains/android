@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;

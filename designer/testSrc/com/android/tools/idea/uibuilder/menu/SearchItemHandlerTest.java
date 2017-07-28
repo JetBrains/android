@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 
 import javax.swing.*;
 

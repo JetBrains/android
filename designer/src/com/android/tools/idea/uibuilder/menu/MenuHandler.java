@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;

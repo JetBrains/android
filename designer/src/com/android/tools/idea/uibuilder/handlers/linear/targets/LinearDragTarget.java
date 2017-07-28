@@ -16,14 +16,14 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

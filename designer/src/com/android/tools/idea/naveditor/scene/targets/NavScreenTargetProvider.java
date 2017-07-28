@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.TargetProvider;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

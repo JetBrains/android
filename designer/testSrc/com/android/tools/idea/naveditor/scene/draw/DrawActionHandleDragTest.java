@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneContext;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
 

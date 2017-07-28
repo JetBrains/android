@@ -27,7 +27,7 @@
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.common.editor.NlEditorProvider"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
   </extensions>
 

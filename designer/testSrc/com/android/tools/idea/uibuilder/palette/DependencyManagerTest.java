@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -63,6 +63,12 @@ public class DependencyManagerTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myDisposable);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myPalette = null;
+      myPanel = null;
+      myManager = null;
+      myDisposable = null;
     }
     finally {
       super.tearDown();

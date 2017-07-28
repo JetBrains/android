@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;

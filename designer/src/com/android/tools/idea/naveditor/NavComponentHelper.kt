@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.common.model.NlComponent
 
 /*
  * Extensions to NlComponent used by the navigation editor

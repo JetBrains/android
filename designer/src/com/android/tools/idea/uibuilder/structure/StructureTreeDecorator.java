@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.ide.util.PropertiesComponent;

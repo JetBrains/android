@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;

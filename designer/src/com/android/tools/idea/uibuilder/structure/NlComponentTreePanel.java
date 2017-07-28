@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
