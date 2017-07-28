@@ -42,15 +42,6 @@ import java.util.stream.Collectors;
  */
 public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    NlGraphics g = new NlGraphics(graphics, screenView);
-    Iterable<NlComponent> iterable = component.getChildren();
-    List<NlComponent> children = Lists.newArrayList(iterable);
-    ConstraintPainter.paintSelectionFeedback(g, component, children, true, TextDirection.LEFT_TO_RIGHT);
-    return false;
-  }
-
-  @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
