@@ -86,13 +86,17 @@ class RelativeDragTarget : DragBaseTarget() {
     parent.updateTargets(true)
 
     super.mouseDown(x, y)
-    myComponent.setModelUpdateAuthorized(false)
+    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
     myComponent.isDragging = true
     trySnap(x, y)
     myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+    val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
+    updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+    attributes.apply()
 
     myTargetX?.myIsHighlight = false
     myTargetX = targetNotchSnapper.snappedNotchX?.target as BaseRelativeTarget?
@@ -116,7 +120,6 @@ class RelativeDragTarget : DragBaseTarget() {
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
     if (!myComponent.isDragging) return
-
     myComponent.isDragging = false
 
     if (myComponent.parent != null) {
@@ -133,7 +136,6 @@ class RelativeDragTarget : DragBaseTarget() {
       }
     }
 
-    myComponent.setModelUpdateAuthorized(true)
     myComponent.updateTargets(false)
 
     myTargetX?.myIsHighlight = false
