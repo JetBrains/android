@@ -793,6 +793,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
+  /**
+   * Returns the {@link IdeAndroidArtifact} that should be used for instrumented testing.
+   *
+   * <p>For test-only modules this is the main artifact.
+   */
+  @Nullable
+  public IdeAndroidArtifact getArtifactForAndroidTest() {
+    return getAndroidProject().getProjectType() == PROJECT_TYPE_TEST ?
+           getSelectedVariant().getMainArtifact() :
+           getSelectedVariant().getAndroidTestArtifact();
+  }
+
   public static class SourceFileContainerInfo {
     @Nullable public final Variant variant;
     @Nullable public final BaseArtifact artifact;

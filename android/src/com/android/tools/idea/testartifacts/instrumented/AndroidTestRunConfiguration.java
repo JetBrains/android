@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
@@ -62,10 +63,9 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
+
 import java.util.*;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
 /**
@@ -326,9 +326,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     AndroidModuleModel moduleModel = AndroidModuleModel.get(facet);
     IdeAndroidArtifact testArtifact = null;
     if (moduleModel != null) {
-      testArtifact = moduleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_TEST ?
-                     moduleModel.getSelectedVariant().getMainArtifact() :
-                     moduleModel.getSelectedVariant().getAndroidTestArtifact();
+      testArtifact = moduleModel.getArtifactForAndroidTest();
     }
     return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments, testArtifact);
   }
