@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
-import com.google.common.truth.Truth;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
@@ -26,11 +26,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
@@ -54,7 +51,7 @@ public class OutputBuildActionTest {
     when(myBuildController.getBuildModel()).thenReturn(myGradleBuild);
     when(myGradleBuild.getRootProject()).thenReturn(myRootProject);
 
-    myAction = new OutputBuildAction(Arrays.asList("a", "b", "c"));
+    myAction = new OutputBuildAction(Arrays.asList("a", "b", "c", "d"));
   }
 
   @Test
@@ -64,26 +61,43 @@ public class OutputBuildActionTest {
 
     GradleProject moduleA = mock(GradleProject.class);
     when(root.findByPath("a")).thenReturn(moduleA);
+    when(moduleA.getPath()).thenReturn("a");
 
     ProjectBuildOutput buildOutputA = mock(ProjectBuildOutput.class);
     when(myBuildController.findModel(moduleA, ProjectBuildOutput.class)).thenReturn(buildOutputA);
 
     GradleProject moduleB = mock(GradleProject.class);
     when(root.findByPath("b")).thenReturn(moduleB);
+    when(moduleB.getPath()).thenReturn("b");
 
     ProjectBuildOutput buildOutputB = mock(ProjectBuildOutput.class);
     when(myBuildController.findModel(moduleB, ProjectBuildOutput.class)).thenReturn(buildOutputB);
 
-    List<OutputBuildAction.ModuleBuildOutput> outputs = myAction.execute(myBuildController);
-    assertThat(outputs).hasSize(2); // Outputs only for 'a' and 'b'
+    GradleProject moduleD = mock(GradleProject.class);
+    when(root.findByPath("d")).thenReturn(moduleD);
+    when(moduleD.getPath()).thenReturn("d");
 
-    Map<String, ProjectBuildOutput> outputsByGradlePath = new HashMap<>();
-    for (OutputBuildAction.ModuleBuildOutput output : outputs) {
-      outputsByGradlePath.put(output.getModulePath(), output.getOutput());
-    }
+    InstantAppProjectBuildOutput buildOutputD = mock(InstantAppProjectBuildOutput.class);
+    when(myBuildController.findModel(moduleD, InstantAppProjectBuildOutput.class)).thenReturn(buildOutputD);
 
-    assertSame(buildOutputA, outputsByGradlePath.get("a"));
-    assertSame(buildOutputB, outputsByGradlePath.get("b"));
-    assertNull(outputsByGradlePath.get("c"));
+    OutputBuildAction.PostBuildProjectModels outputs = myAction.execute(myBuildController);
+
+    OutputBuildAction.PostBuildModuleModels moduleModelsA = outputs.getModels("a");
+    assertNotNull(moduleModelsA);
+    assertSame(buildOutputA, moduleModelsA.findModel(ProjectBuildOutput.class));
+    assertNull(moduleModelsA.findModel(InstantAppProjectBuildOutput.class));
+
+    OutputBuildAction.PostBuildModuleModels moduleModelsB = outputs.getModels("b");
+    assertNotNull(moduleModelsB);
+    assertSame(buildOutputB, moduleModelsB.findModel(ProjectBuildOutput.class));
+    assertNull(moduleModelsB.findModel(InstantAppProjectBuildOutput.class));
+
+    OutputBuildAction.PostBuildModuleModels moduleModelsC = outputs.getModels("c");
+    assertNull(moduleModelsC);
+
+    OutputBuildAction.PostBuildModuleModels moduleModelsD = outputs.getModels("d");
+    assertNotNull(moduleModelsD);
+    assertNull(moduleModelsD.findModel(ProjectBuildOutput.class));
+    assertSame(buildOutputD, moduleModelsD.findModel(InstantAppProjectBuildOutput.class));
   }
 }

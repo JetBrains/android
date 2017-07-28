@@ -138,7 +138,7 @@ public class GradleApkProvider implements ApkProvider {
    * @return a list of ApkInfo objects for each additional runtime Apk
    */
   @NotNull
-  private static List<ApkInfo> getAdditionalApks(AndroidArtifact testArtifactInfo) {
+  private static List<ApkInfo> getAdditionalApks(@NotNull AndroidArtifact testArtifactInfo) {
     List<ApkInfo> result = new ArrayList<>();
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {
@@ -152,7 +152,7 @@ public class GradleApkProvider implements ApkProvider {
     return result;
   }
 
-  private static String getPackageId(File fileApk) throws ApkProvisionException {
+  private static String getPackageId(@NotNull File fileApk) throws ApkProvisionException {
     try (Archive archive = Archives.open(fileApk.toPath())) {
       AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(archive);
       if(applicationInfo == AndroidApplicationInfo.UNKNOWN) {
@@ -204,28 +204,41 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
 
-    ProjectBuildOutput outputModel = outputModels.findOutputModel(facet);
-    if (outputModel == null) {
-      return getApkFromPreBuildSync(variant, device, fromTestArtifact);
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
+      if (outputModel == null) {
+        throw new ApkProvisionException("Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
+      }
+
+      for (InstantAppVariantBuildOutput instantAppVariantBuildOutput : outputModel.getInstantAppVariantsBuildOutput()) {
+        if (instantAppVariantBuildOutput.getName().equals(variant.getName())) {
+          outputs.add(instantAppVariantBuildOutput.getOutput());
+        }
+      }
     }
+    else {
+      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(facet);
+      if (outputModel == null) {
+        return getApkFromPreBuildSync(variant, device, fromTestArtifact);
+      }
 
-    // Loop through the variants in the model and get the one that matches
-    for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
-      if (variantBuildOutput.getName().equals(variant.getName())) {
+      // Loop through the variants in the model and get the one that matches
+      for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
+        if (variantBuildOutput.getName().equals(variant.getName())) {
 
-        if (fromTestArtifact) {
-          // Get the output from the test artifact
-          for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
-            if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
-              outputs.addAll(testVariantBuildOutput.getOutputs());
+          if (fromTestArtifact) {
+            // Get the output from the test artifact
+            for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
+              if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
+                outputs.addAll(testVariantBuildOutput.getOutputs());
+              }
             }
           }
+          else {
+            // Get the output from the main artifact
+            outputs.addAll(variantBuildOutput.getOutputs());
+          }
         }
-        else {
-          // Get the output from the main artifact
-          outputs.addAll(variantBuildOutput.getOutputs());
-        }
-
       }
     }
 
