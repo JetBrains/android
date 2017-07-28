@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -98,9 +97,7 @@ public class MemoryMonitor extends ProfilerMonitor {
    * no-op in perfd+agent, we should have a way to get the current tracking status first.
    */
   private void startLiveAllocationTracking() {
-    if (!(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
-          myProfilers.getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O)) {
-      // no-op for pre-O device or if live allocation tracking flag is not on.
+    if (!myProfilers.isLiveAllocationEnabled()) {
       return;
     }
 
