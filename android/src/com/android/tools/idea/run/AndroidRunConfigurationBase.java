@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.run;
 
-import com.android.builder.model.TestOptions;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -26,7 +25,6 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -268,17 +266,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         throw new ExecutionException("Unable to obtain debug bridge. Please check if there is a different tool using adb that is active.");
       }
       debug = true;
-
-      // b/64135490
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
-        if (testArtifact != null &&
-            testArtifact.getTestOptions() != null &&
-            testArtifact.getTestOptions().getExecution() == TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR) {
-          throw new ExecutionException("Debugging is not yet supported when using Android Tech Orchestrator.");
-        }
-      }
     }
 
     DeviceFutures deviceFutures = null;

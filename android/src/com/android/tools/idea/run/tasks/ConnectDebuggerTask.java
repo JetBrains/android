@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -27,20 +26,13 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.xdebugger.XDebuggerManager;
-import com.intellij.xdebugger.breakpoints.XBreakpointManager;
-import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +41,7 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   private static final int POLL_TIMEOUT = 15;
   private static final TimeUnit POLL_TIMEUNIT = TimeUnit.SECONDS;
 
-  @NotNull private final Set<String> myApplicationIds;
+  @NotNull protected final Set<String> myApplicationIds;
   @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
   protected final boolean myMonitorRemoteProcess;
