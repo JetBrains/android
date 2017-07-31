@@ -32,7 +32,7 @@ public class AspectModelTest {
     ANOTHER_ASPECT,
   }
 
-  static class Observer extends AspectObserver {
+  private static class Observer extends AspectObserver {
 
     private final Collection<Aspect> myObserved;
     public int changes;
@@ -65,6 +65,25 @@ public class AspectModelTest {
       }
     }
   }
+
+  @Test
+  public void removeDependenciesShouldRemoveOnlyIntersectionBetweenObserverAndModel() {
+    AspectObserver observer1 = new AspectObserver();
+    AspectModel<Aspect> aspectModel1 = new AspectModel<>();
+    AspectModel<Aspect> aspectModel2 = new AspectModel<>();
+    aspectModel1.addDependency(observer1).onChange(Aspect.ASPECT, () -> {});
+    aspectModel2.addDependency(observer1).onChange(Aspect.ANOTHER_ASPECT, () -> {});
+
+    assertEquals(1, aspectModel1.getDependenciesSize());
+    assertEquals(1, aspectModel2.getDependenciesSize());
+
+    aspectModel1.removeDependencies(observer1);
+    aspectModel2.removeDependencies(observer1);
+
+    assertEquals(0, aspectModel1.getDependenciesSize());
+    assertEquals(0, aspectModel2.getDependenciesSize());
+  }
+
 
   @Test
   public void testAspectFired() {
