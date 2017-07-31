@@ -25,7 +25,10 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.ui.properties.*;
+import com.android.tools.idea.ui.properties.AbstractProperty;
+import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.ListenerManager;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
@@ -37,10 +40,10 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -192,7 +195,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     myShapeComboBox.setSelectedItem(GraphicGenerator.Shape.SQUARE);
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myScrollPane.setBorder(JBUI.Borders.empty());
 
     myOutputName = new TextProperty(myOutputNameTextField);
 

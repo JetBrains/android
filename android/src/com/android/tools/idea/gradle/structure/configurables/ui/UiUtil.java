@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
-import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,7 +56,7 @@ public final class UiUtil {
     TreeBuilderSpeedSearch.installTo(treeBuilder);
 
     JScrollPane scrollPane = createScrollPane(tree);
-    scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    scrollPane.setBorder(JBUI.Borders.empty());
     return scrollPane;
   }
 

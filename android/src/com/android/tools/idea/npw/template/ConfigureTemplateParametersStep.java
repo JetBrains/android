@@ -56,7 +56,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
@@ -143,7 +142,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
 
     myParameterDescriptionLabel.setScope(myParametersPanel);
-    myParametersScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myParametersScrollPane.setBorder(JBUI.Borders.empty());
 
     // Add an extra blank line under the template description to separate it from the main body
     myTemplateDescriptionLabel.setBorder(JBUI.Borders.emptyBottom(myTemplateDescriptionLabel.getFont().getSize()));
