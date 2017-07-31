@@ -52,9 +52,9 @@ class DrawSnapTarget : DrawRegion {
 
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val colorSet = sceneContext.colorSet
-    var progress = (sceneContext.time % 2000).toInt() / 2000f
+    val progress = (sceneContext.time % 2000).toInt() / 2000f
     val alpha = (Animation.getPulsatingAlpha(progress.toDouble()) * 0.7).toInt()
-    var arc = 12
+    val arc = 12
     if (myMode == OVER) {
       g.color = colorSet.highlightedSnapGuides
     } else {

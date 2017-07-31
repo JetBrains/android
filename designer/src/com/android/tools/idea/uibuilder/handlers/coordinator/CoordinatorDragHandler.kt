@@ -38,12 +38,11 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
   init {
     assert(components.size == 1)
     myDragged = components[0]
-    myComponent = TemporarySceneComponent(layout.getScene(), myDragged)
+    myComponent = TemporarySceneComponent(layout.scene, myDragged)
     myComponent.setSize(editor.pxToDp(myDragged.w), editor.pxToDp(myDragged.h), false)
     myComponent.setTargetProvider({ sceneComponent, isParent -> ImmutableList.of<Target>(ConstraintDragDndTarget()) }, false)
-    myComponent.setDrawState(SceneComponent.DrawState.DRAG)
+    myComponent.drawState = SceneComponent.DrawState.DRAG
     layout.addChild(myComponent)
-    assert(myDragged != null)
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {

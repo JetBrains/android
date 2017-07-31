@@ -694,8 +694,8 @@ public class PanZoomPanel extends JPanel
       // Rectangle of the drawing surface
       gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
 
-      int x = (int)Math.round(myCenterOffset.x + myDesignSurfaceOffset.x - (currentSceneView.getX() / 2) * mySceneViewScale);
-      int y = (int)Math.round(myCenterOffset.y + myDesignSurfaceOffset.y - (currentSceneView.getY() / 2) * mySceneViewScale);
+      int x = (int)Math.round(myCenterOffset.x + myDesignSurfaceOffset.x - (currentSceneView.getX() / 2.) * mySceneViewScale);
+      int y = (int)Math.round(myCenterOffset.y + myDesignSurfaceOffset.y - (currentSceneView.getY() / 2.) * mySceneViewScale);
       int width = (int)Math.round((myDesignSurfaceSize.getWidth() - currentSceneView.getX() / 2.) * mySceneViewScale);
       int height = (int)Math.round((myDesignSurfaceSize.getHeight() - currentSceneView.getY() / 2.) * mySceneViewScale);
 

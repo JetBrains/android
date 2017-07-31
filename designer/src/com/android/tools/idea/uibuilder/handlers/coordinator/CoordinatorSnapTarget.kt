@@ -48,7 +48,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     var t = top
     var r = right
     var b = bottom
-    var d = Math.min(Math.min(b- t, r- l) / 4, mySize)
+    val d = Math.min(Math.min(b- t, r- l) / 4, mySize)
     if (myType == Type.RIGHT_TOP || myType == Type.RIGHT || myType == Type.RIGHT_BOTTOM) {
       l = r - d
     } else if (myType == Type.TOP || myType == Type.CENTER || myType == Type.BOTTOM) {
