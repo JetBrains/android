@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NonNls;
@@ -68,7 +69,7 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
   private JXLabel myScopesLabel;
 
   public AndroidDependencyScopesPanel(@NotNull PsAndroidModule module) {
-    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
+    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
 

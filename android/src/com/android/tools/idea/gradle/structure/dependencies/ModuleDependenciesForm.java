@@ -22,8 +22,12 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.ui.*;
+import com.intellij.ui.CheckboxTree;
+import com.intellij.ui.CheckboxTreeAdapter;
+import com.intellij.ui.CheckedTreeNode;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +51,7 @@ class ModuleDependenciesForm {
   private JXLabel myModulesLabel;
 
   ModuleDependenciesForm(@NotNull PsModule module) {
-    myModulesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
+    myModulesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), JBUI.Borders.empty(2)));
     myModulesLabel.setBackground(getTextFieldBackground());
     myModulesLabel.setText(" ");
 

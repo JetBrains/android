@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderResult;
@@ -43,7 +44,10 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiEditorUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.Gray;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -53,7 +57,6 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +117,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
     myIssueList.setModel(new CollectionListModel<>(issues));
     configureCellRenderer();
 
-    myPanel.setBorder(IdeBorderFactory.createEmptyBorder(JBUI.scale(8)));
+    myPanel.setBorder(JBUI.Borders.empty(JBUI.scale(8)));
     myExplanationPane.setMargin(JBUI.insets(3, 3, 3, 3));
     myExplanationPane.setContentType(UIUtil.HTML_MIME);
     myExplanationPane.addHyperlinkListener(this);
