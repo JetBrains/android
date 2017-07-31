@@ -61,6 +61,7 @@ import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -145,7 +146,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myParametersScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
 
     // Add an extra blank line under the template description to separate it from the main body
-    myTemplateDescriptionLabel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, myTemplateDescriptionLabel.getFont().getSize(), 0));
+    myTemplateDescriptionLabel.setBorder(JBUI.Borders.emptyBottom(myTemplateDescriptionLabel.getFont().getSize()));
   }
 
   private static Logger getLog() {

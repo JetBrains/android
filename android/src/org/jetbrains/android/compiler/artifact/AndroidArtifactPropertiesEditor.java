@@ -9,8 +9,8 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUiUtil;
@@ -52,8 +52,8 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myArtifact = artifact;
     myProject = project;
 
-    myKeyStoreButtonsPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 5, 0));
-    myProGuardPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
+    myKeyStoreButtonsPanel.setBorder(JBUI.Borders.emptyBottom(5));
+    myProGuardPanel.setBorder(JBUI.Borders.emptyTop(10));
 
     myTypeCombo.setRenderer(new ListCellRendererWrapper() {
       @Override

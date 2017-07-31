@@ -206,7 +206,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
           }
 
           JBLabel label = new JBLabel(text);
-          label.setBorder(IdeBorderFactory.createEmptyBorder(0, JBUI.scale(indent * 12), 0, 0));
+          label.setBorder(JBUI.Borders.empty(0, JBUI.scale(indent * 12), 0, 0));
           myResolvedPanel.add(label);
           indent++;
 
