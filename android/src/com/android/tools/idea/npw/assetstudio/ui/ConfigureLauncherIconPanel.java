@@ -46,11 +46,11 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -325,13 +325,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myWebIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 
     myForegroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myForegroundScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myForegroundScrollPane.setBorder(JBUI.Borders.empty());
 
     myBackgroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myBackgroundScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myBackgroundScrollPane.setBorder(JBUI.Borders.empty());
 
     myOtherIconsScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myOtherIconsScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myOtherIconsScrollPane.setBorder(JBUI.Borders.empty());
 
     myOutputName = new TextProperty(myOutputNameTextField);
     myForegroundLayerName = new TextProperty(myForegroundLayerNameTextField);

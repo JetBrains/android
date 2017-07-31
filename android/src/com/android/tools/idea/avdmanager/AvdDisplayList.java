@@ -30,7 +30,6 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -822,7 +821,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * Renders a cell with borders.
    */
   private static class MyRenderer implements TableCellRenderer {
-    private static final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
+    private static final Border myBorder = JBUI.Borders.empty(10);
     TableCellRenderer myDefaultRenderer;
 
     MyRenderer(TableCellRenderer defaultRenderer) {

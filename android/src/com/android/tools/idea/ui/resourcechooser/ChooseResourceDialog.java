@@ -338,7 +338,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     if (myTabbedPane == null) {
       myAltPane = new JPanel(new BorderLayout());
       myAltPane.setPreferredSize(PANEL_PREFERRED_SIZE);
-      myAltPane.setBorder(IdeBorderFactory.createEmptyBorder(0, JBUI.scale(12), 0, 0));
+      myAltPane.setBorder(JBUI.Borders.emptyLeft(12));
     }
     else {
       myAltPane = null;

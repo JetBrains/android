@@ -39,10 +39,10 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -218,7 +218,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myShapeComboBox.setSelectedItem(Shape.SQUARE);
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myScrollPane.setBorder(JBUI.Borders.empty());
 
     myOutputName = new TextProperty(myOutputNameTextField);
 

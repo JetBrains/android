@@ -318,7 +318,7 @@ class AttachedToolWindow<T> implements Disposable {
     CardLayout layout = new CardLayout();
     JPanel titlePanel = new JPanel(layout);
     JLabel titleLabel = new JBLabel(title);
-    titleLabel.setBorder(IdeBorderFactory.createEmptyBorder(2, 5, 2, 10));
+    titleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
     titleLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     titlePanel.add(titleLabel, LABEL_HEADER);
     if (includeSearchField) {
@@ -357,7 +357,7 @@ class AttachedToolWindow<T> implements Disposable {
     int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 2 : 0;
     JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     actionPanel.setOpaque(false);
-    actionPanel.setBorder(IdeBorderFactory.createEmptyBorder(border, 0, border, 0));
+    actionPanel.setBorder(JBUI.Borders.empty(border, 0));
     if (includeSearchButton) {
       actionPanel.add(mySearchActionButton);
       mySearchActionButton.setVisible(true);
