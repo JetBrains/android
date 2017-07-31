@@ -45,8 +45,9 @@ public class IssueView extends JPanel {
 
   private static final Dimension COLLAPSED_ROW_SIZE = JBUI.size(Integer.MAX_VALUE, 30);
   private static final String SUGGESTED_FIXES = "Suggested Fixes";
-  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(1);
-  private static final Border UNSELECTED_BORDER = IdeBorderFactory.createEmptyBorder(SELECTED_BORDER.getThickness());
+  private static final int BORDER_THICKNESS = 1;
+  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(BORDER_THICKNESS);
+  private static final Border UNSELECTED_BORDER = JBUI.Borders.empty(BORDER_THICKNESS);
 
   static {
     SELECTED_BORDER.setColor(UIUtil.getTreeSelectionBorderColor());

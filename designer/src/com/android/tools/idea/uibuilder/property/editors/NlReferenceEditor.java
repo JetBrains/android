@@ -133,7 +133,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
 
     myProject = project;
 
-    //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
                                                                                               verticalSpacing,
