@@ -18,10 +18,12 @@ package com.android.tools.adtui.model;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
 public class AspectModel<T extends Enum<T>> extends AspectObserver {
+
   private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
 
   public void changed(T aspect) {
@@ -42,10 +44,23 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
     return dependency;
   }
 
+  @TestOnly
+  int getDependenciesSize() {
+    return myDependencies.size();
+  }
+
+  /**
+   * Reverse the operations in addDependency. This makes sure we don't leave any dependencies
+   * behind in the target {@link AspectObserver} that we had added in the first place.
+   *
+   * @param observer target {@link AspectObserver}
+   */
   public void removeDependencies(AspectObserver observer) {
-    List<Dependency<?>> dependencies = observer.getDependencies();
-    myDependencies.removeAll(dependencies);
-    dependencies.clear();
+    List<Dependency<?>> observerDependencies = new ArrayList<>(observer.getDependencies());
+    observer.getDependencies().removeAll(myDependencies);
+    // Safe to call removeAll after type erasure, since we only care about removing by instance equality.
+    //noinspection SuspiciousMethodCalls
+    myDependencies.removeAll(observerDependencies);
   }
 
   public static class Dependency<U extends Enum<U>> {

@@ -543,8 +543,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureElapsedTimeUs()).isLessThan((long)0);
 
     // Start capturing
-    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    myStage.startCapturing();
+    startCapturingSuccess();
     // Increment 3 seconds on data range
     Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
     dataRange.setMax(dataRange.getMax() + TimeUnit.SECONDS.toMicros(3));
@@ -677,15 +676,13 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException {
+  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException, InterruptedException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLE_PERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.setProfilingConfiguration(config1);
-    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    myStage.startCapturing();
+    startCapturingSuccess();
 
     // Go back to monitor stage and go back to a new Cpu profiler stage
     myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
@@ -698,7 +695,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
-    stage.stopCapturing();
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    stopCapturing(stage);
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Stop profiler should be the same as the one passed in the start request
@@ -795,7 +793,6 @@ public class CpuProfilerStageTest extends AspectObserver {
    */
   @Test
   public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws InterruptedException, IOException, ExecutionException {
-
     assertThat(myStage.getCapture()).isNull();
     // stopCapturing() should create a capture with FAKE_TRACE_ID
     captureSuccessfully();
@@ -805,7 +802,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture should be the same as the one created by stopCapturing(),
     // because we should not parse the trace into another CpuCapture object.
     assertThat(myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID).get()).isEqualTo(capture);
-
   }
 
   @Test
@@ -979,19 +975,31 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
   }
 
+  /**
+   * This is a convenience method to start a capture successfully.
+   * It sets all the necessary states in the service and call {@link CpuProfilerStage#startCapturing}.
+   */
   private void startCapturingSuccess() throws InterruptedException {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    myServices.setPrePoolExecutor(() -> assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STARTING));
     startCapturing();
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
   }
 
+  /**
+   * This is a convenience method to start a capture.
+   * It makes sure to check the intermediate state (STARTING) between pressing the "Start" button and effectively start capturing.
+   */
   private void startCapturing() {
     myServices.setPrePoolExecutor(() -> assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STARTING));
     myStage.startCapturing();
   }
 
+  /**
+   * This is a convenience method to stop a capture.
+   * It makes sure to check the intermidiate state (STOPPING) between pressing the "Stop" button and effectively stop capturing,
+   * and the PARSING state which happens after a capture is stopped.
+   */
   private void stopCapturing(CpuProfilerStage stage) {
     // The pre executor will pass through STOPPING and then PARSING
     myServices.setPrePoolExecutor(() -> {
