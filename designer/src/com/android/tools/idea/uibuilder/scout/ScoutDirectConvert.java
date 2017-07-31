@@ -87,7 +87,7 @@ public class ScoutDirectConvert {
 
   public static boolean directProcess(NlComponent layout) {
     if (!layout.getTag().getName().equals(RELATIVE_LAYOUT)) {
-      return true;
+      return false;
     }
     layout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
     convert(layout);
