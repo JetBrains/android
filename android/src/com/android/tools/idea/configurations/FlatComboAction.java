@@ -26,7 +26,6 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
@@ -144,7 +143,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
 
   protected class FlatComboButton extends JButton {
     private final Presentation myPresentation;
-    private final Border myBorder = IdeBorderFactory.createEmptyBorder(0, 2, 0, 2);
+    private final Border myBorder = JBUI.Borders.empty(0, 2);
     private boolean myForcePressed = false;
     private PropertyChangeListener myButtonSynchronizer;
     private boolean myMouseInside = false;
@@ -156,7 +155,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       setHorizontalAlignment(LEFT);
       setFocusable(ScreenReader.isActive());
       Insets margins = getMargin();
-      setMargin(new Insets(margins.top, 2, margins.bottom, 2));
+      setMargin(JBUI.insets(margins.top, 2, margins.bottom, 2));
       setBorder(myBorder);
       if (!UIUtil.isUnderGTKLookAndFeel()) {
         setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));

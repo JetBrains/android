@@ -19,6 +19,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil.FontSize;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ public class Header extends JPanel {
   public Header(@NotNull String title) {
     super(new BorderLayout());
     myTitleLabel = new JLabel(title);
-    myTitleLabel.setBorder(IdeBorderFactory.createEmptyBorder(2, 5, 2, 10));
+    myTitleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
     myTitleLabel.setFont(getLabelFont(FontSize.SMALL));
     add(myTitleLabel, BorderLayout.CENTER);
 

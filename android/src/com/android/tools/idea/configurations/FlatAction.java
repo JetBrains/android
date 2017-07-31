@@ -22,7 +22,6 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -73,7 +72,7 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
 
   protected class FlatButton extends JButton {
     private final Presentation myPresentation;
-    private final Border myBorder = IdeBorderFactory.createEmptyBorder(0, 2, 0, 2);
+    private final Border myBorder = JBUI.Borders.empty(0, 2);
     private PropertyChangeListener myButtonSynchronizer;
     private boolean myMouseInside = false;
 

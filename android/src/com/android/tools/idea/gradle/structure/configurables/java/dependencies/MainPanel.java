@@ -32,6 +32,7 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
@@ -97,7 +97,7 @@ class MainPanel extends AbstractDependenciesPanel {
     myDependenciesTable.selectFirstRow();
 
     JScrollPane scrollPane = createScrollPane(myDependenciesTable);
-    scrollPane.setBorder(createEmptyBorder());
+    scrollPane.setBorder(JBUI.Borders.empty());
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     myDependenciesTable.updateColumnSizes();
