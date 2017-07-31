@@ -107,23 +107,24 @@ public class NewAndroidComponentAction extends AnAction {
     if (facet == null || facet.getAndroidModel() == null) {
       return;
     }
-    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
-
-    assert targetFile != null;
-    VirtualFile targetDirectory = targetFile;
-    if (!targetDirectory.isDirectory()) {
-      targetDirectory = targetFile.getParent();
+    VirtualFile targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    // If the user selected a simulated folder entry (eg "Manifests"), there will be no target directory
+    if (targetDirectory != null && !targetDirectory.isDirectory()) {
+      targetDirectory = targetDirectory.getParent();
       assert targetDirectory != null;
     }
+
+    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
     List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
     assert !sourceSets.isEmpty();
 
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+    String initialPackageSuggestion = targetDirectory == null
+                                      ? AndroidPackageUtils.getPackageForApplication(facet)
+                                      : AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
