@@ -52,6 +52,33 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     super(applicationIds, debugger, project, monitorRemoteProcess, attachToRunningProcess);
   }
 
+
+  @NotNull
+  protected ProcessHandler createDebugProcessHandler(@NotNull ProcessHandlerLaunchStatus launchStatus) {
+    return new AndroidRemoteDebugProcessHandler(myProject, myMonitorRemoteProcess);
+  }
+
+  @NotNull
+  protected RunContentDescriptor getDescriptor(@NotNull LaunchInfo currentLaunchInfo,
+                                            @NotNull ProcessHandlerLaunchStatus launchStatus) {
+    RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
+
+    // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
+    // a pooled thread to do all the launch tasks, which finally ends up in the connect debugger task. Is it possible that we
+    // reach here before the EDT gets around to creating the descriptor?
+    assert descriptor != null : "Expecting an existing descriptor that will be reused";
+
+    return descriptor;
+  }
+
+  @NotNull
+  protected ProcessHandler getOldProcessHandler(@NotNull LaunchInfo currentLaunchInfo,
+                                             @NotNull ProcessHandlerLaunchStatus launchStatus) {
+    ProcessHandler processHandler = getDescriptor(currentLaunchInfo, launchStatus).getProcessHandler();
+    assert processHandler != null;
+    return processHandler;
+  }
+
   @Override
   public ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
                                        @NotNull final Client client,
@@ -62,20 +89,12 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     Logger.getInstance(ConnectJavaDebuggerTask.class)
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
-    // detach old process handler
-    RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
-
-    // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
-    // a pooled thread to do all the launch tasks, which finally ends up in the connect debugger task. Is it possible that we
-    // reach here before the EDT gets around to creating the descriptor?
-    assert descriptor != null : "ConnectJavaDebuggerTask expects an existing descriptor that will be reused";
-
-    final ProcessHandler processHandler = descriptor.getProcessHandler();
-    assert processHandler != null;
+    ProcessHandler processHandler = getOldProcessHandler(currentLaunchInfo, launchStatus);
+    RunContentDescriptor descriptor = getDescriptor(currentLaunchInfo, launchStatus);
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    final AndroidRemoteDebugProcessHandler debugProcessHandler = new AndroidRemoteDebugProcessHandler(myProject, myMonitorRemoteProcess);
+    ProcessHandler debugProcessHandler = createDebugProcessHandler(launchStatus);
 
     // switch the launch status and console printers to point to the new process handler
     // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should

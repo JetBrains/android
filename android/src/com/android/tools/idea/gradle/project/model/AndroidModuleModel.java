@@ -805,6 +805,19 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
            getSelectedVariant().getAndroidTestArtifact();
   }
 
+  @Nullable
+  public TestOptions.Execution getTestExecutionStrategy() {
+    IdeAndroidArtifact artifact = getArtifactForAndroidTest();
+    if (artifact != null) {
+      TestOptions testOptions = artifact.getTestOptions();
+      if (testOptions != null) {
+        return testOptions.getExecution();
+      }
+    }
+
+    return null;
+  }
+
   public static class SourceFileContainerInfo {
     @Nullable public final Variant variant;
     @Nullable public final BaseArtifact artifact;
