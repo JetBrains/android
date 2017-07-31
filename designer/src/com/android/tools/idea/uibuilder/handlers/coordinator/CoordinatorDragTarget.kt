@@ -81,7 +81,7 @@ class CoordinatorDragTarget : BaseTarget() {
   private fun rememberAttributes() {
     myOriginalAttributes.clear()
     for (attribute in myAttributes) {
-      var value = myComponent.nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, attribute)
+      val value = myComponent.nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, attribute)
       if (value != null) {
         myOriginalAttributes.put(attribute, value)
       }
@@ -89,16 +89,16 @@ class CoordinatorDragTarget : BaseTarget() {
   }
 
   private fun restoreAttributes() {
-    var transaction = myComponent.nlComponent.startAttributeTransaction()
+    val transaction = myComponent.nlComponent.startAttributeTransaction()
     for (attribute in myAttributes) {
-      var value = myOriginalAttributes[attribute]
+      val value = myOriginalAttributes[attribute]
       transaction.setAttribute(SdkConstants.AUTO_URI, attribute, value)
     }
     transaction.apply()
   }
 
   private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
-    var provider = myComponent.parent?.getTargetProvider()
+    val provider = myComponent.parent?.targetProvider
     if (provider is CoordinatorLayoutHandler) {
       provider.interactionState = interactionState
       myComponent.parent?.updateTargets(true)
@@ -123,29 +123,29 @@ class CoordinatorDragTarget : BaseTarget() {
       return
     }
     mySnapTarget = null
-    var snapTarget : Target? = closestTarget?.filter { it is CoordinatorSnapTarget }?.firstOrNull()
+    val snapTarget : Target? = closestTarget?.filter { it is CoordinatorSnapTarget }?.firstOrNull()
     snapTarget?.setOver(true)
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
     }
-    myComponent.setDragging(true)
+    myComponent.isDragging = true
     myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
     myComponent.scene.repaint()
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
-    if (!myComponent.isDragging()) {
+    if (!myComponent.isDragging) {
       return
     }
-    myComponent.setDragging(false)
+    myComponent.isDragging = false
     if (myComponent.parent == null) {
       return
     }
     if (mySnapTarget == null) {
       restoreAttributes()
     } else {
-      var attributes = myComponent.nlComponent.startAttributeTransaction()
+      val attributes = myComponent.nlComponent.startAttributeTransaction()
       mySnapTarget!!.snap(attributes)
     }
     myComponent.scene.needsLayout(ANIMATED_LAYOUT)

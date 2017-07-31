@@ -635,10 +635,10 @@ public class DrawConnection implements DrawCommand {
                                    @SwingCoordinate Rectangle dest, Color color) {
     g.setColor(color);
     ourPath.reset();
-    ourPath.moveTo(source.x + source.width / 2, source.y);
-    ourPath.curveTo(source.x + source.width / 2, source.y - 40,
-                    dest.x + dest.width / 2, dest.y + 40,
-                    dest.x + dest.width / 2, dest.y);
+    ourPath.moveTo(source.x + source.width / 2., source.y);
+    ourPath.curveTo(source.x + source.width / 2., source.y - 40,
+                    dest.x + dest.width / 2., dest.y + 40,
+                    dest.x + dest.width / 2., dest.y);
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
     DrawConnectionUtils.getArrow(DIR_BOTTOM, dest.x + dest.width / 2, dest.y, xPoints, yPoints);
