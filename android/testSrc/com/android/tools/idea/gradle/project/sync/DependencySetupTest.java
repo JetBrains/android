@@ -84,7 +84,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     // TODO verify that a message and "quick fix" has been displayed.
   }
 
-  // Fails in Bazel PSQ because of missing dependencies in the prebuilt Android SDK.
   public void testWithUnresolvedDependencies() throws Exception {
     loadSimpleApplication();
 
@@ -114,7 +113,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
       fail("Expecting sync failure");
     }
     catch (Throwable expected) {
-      assertThat(expected.getMessage()).contains("Unable to resolve dependency 'com.android.support:appcompat-v7:100.0.0'");
+      assertThat(expected.getMessage()).contains("Unable to resolve dependency for ':app@debug/compileClasspath': Could not find com.android.support:appcompat-v7:100.0.0.");
     }
   }
 
