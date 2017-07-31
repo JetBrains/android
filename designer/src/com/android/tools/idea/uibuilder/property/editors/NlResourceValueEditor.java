@@ -49,7 +49,6 @@ public class NlResourceValueEditor extends PTableCellEditor {
   }
 
   private NlResourceValueEditor(@NotNull Project project) {
-    //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
                                                                                               HORIZONTAL_PADDING,
                                                                                               VERTICAL_SPACING + VERTICAL_PADDING,
