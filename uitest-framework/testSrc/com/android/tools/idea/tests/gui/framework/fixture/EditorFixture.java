@@ -717,8 +717,7 @@ public class EditorFixture {
   }
 
   @NotNull
-  public LibraryEditorFixture getLibrarySymbolsFixture(@NotNull String libraryName) {
-    switchToTab(libraryName);
+  public LibraryEditorFixture getLibrarySymbolsFixture() {
     return LibraryEditorFixture.find(getIdeFrame());
   }
 }

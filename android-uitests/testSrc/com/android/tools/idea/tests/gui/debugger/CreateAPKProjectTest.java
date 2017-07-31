@@ -22,9 +22,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.LibraryEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
@@ -84,67 +87,87 @@ public class CreateAPKProjectTest {
     // so we don't have to manage two windows.
     ideFrame.closeProject();
 
-    guiTest.welcomeFrame().profileDebugApk();
-
-    // This step generates the ~/ApkProjects/app-x86-debug directory. This
-    // directory will be removed as a part of our test's cleanup methods.
-    File apkFile = new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk");
-    FileChooserDialogFixture.findDialog(guiTest.robot(), "Select APK File")
-      .select(VfsUtil.findFileByIoFile(apkFile, true))
-      .clickOk();
+    profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"));
 
     guiTest.waitForBackgroundTasks();
 
     ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
-    editor
-      .open("smali/out/com/example/SanAngeles/DemoActivity.smali")
-      .awaitNotification(
-        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Java source files.")
-      .performActionWithoutWaitingForDisappearance("Attach Java Sources...");
-
-    File sourceDir = new File(projectRoot, "app/src/main/java");
-    FileChooserDialogFixture.findDialog(guiTest.robot(), "Attach Sources")
-      .select(VfsUtil.findFileByIoFile(sourceDir, true))
-      .clickOk();
+    attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
 
     // need to wait since the editor doesn't open the java file immediately
-    Wait.seconds(5)
-      .expecting("DemoActivity.java file to open after attaching sources")
-      .until(() -> "DemoActivity.java".equals(editor.getCurrentFileName()));
+    waitForJavaFileToShow(editor);
 
     File debugSymbols =
       new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
-    editor
-      .open("lib/x86/libsanangeles.so")
-      .getLibrarySymbolsFixture("libsanangeles.so")
+    editor.open("lib/x86/libsanangeles.so")
+      .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);
 
     guiTest.waitForBackgroundTasks();
 
-    ProjectViewFixture projView = ideFrame.getProjectView();
-    ProjectViewFixture.PaneFixture androidPane = projView.selectAndroidPane();
+    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
+    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
+    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
+    Assert.assertEquals(1, numCppFolders);
+    Assert.assertEquals(2, numIncludeFolders);
+  }
 
-    ProjectViewFixture.NodeFixture libNode =
-      ideFrame.getProjectView().selectAndroidPane().findNativeLibraryNodeFor("libsanangeles");
-    List<ProjectViewFixture.NodeFixture> srcNodes =
-      filterSourceFolderChildren(libNode.getChildren());
+  /**
+   * Verifies source code directories are set for APKs built in a separate environment
+   *
+   * <p>TT ID: d8188bb9-6b06-4133-afcd-f28db8ebb043
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Copy ApkDebug project to temporary directory (do not import)
+   *   2. Open the prebuilt APK file to create an APK profiling and debugging project.
+   *   3. Open the native library editor and attach C and C++ source code.
+   *   4. Open the DemoActivity smali file to attach the Java source code.
+   *   Verify:
+   *   1. C and C++ code directories are attached to the native library.
+   *   2. Java source code files are added to the project tree.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void createFromPreexistingApk() throws Exception {
+    File projectRoot = guiTest.copyProjectBeforeOpening("ApkDebug");
 
-    int numCppFolders = 0;
-    int numIncludeFolders = 0;
-    for (ProjectViewFixture.NodeFixture node : srcNodes) {
-      String folderText = node.getSourceFolderName();
-      switch (folderText) {
-        case "cpp":
-          numCppFolders++;
-          break;
-        case "include":
-          numIncludeFolders++;
-          break;
-        default:
-          // Do nothing. The node is not a node we are counting.
-      }
-    }
+    profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "prebuilt/app-x86-debug.apk"));
+
+    guiTest.waitForBackgroundTasks();
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor();
+
+    File debugSymbols = new File(projectRoot, "prebuilt/libsanangeles.so");
+
+    String packagedLibraryPath = "lib/x86/libsanangeles.so";
+    Wait.seconds(5)
+      .expecting("libsanangeles.so to be available")
+      .until(() -> ideFrame.findFileByRelativePath(packagedLibraryPath, true) != null);
+    LibraryEditorFixture libraryEditor = editor.open(packagedLibraryPath)
+      .getLibrarySymbolsFixture()
+      .addDebugSymbols(debugSymbols);
+
+    guiTest.waitForBackgroundTasks();
+    File cppSources = new File(projectRoot, "app/src/main/cpp");
+    libraryEditor.getPathMappings()
+      .mapRemotePathToLocalPath(cppSources);
+    libraryEditor.applyChanges();
+    guiTest.waitForBackgroundTasks();
+
+    ideFrame.getProjectView()
+      .selectAndroidPane();
+    attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
+    waitForJavaFileToShow(editor);
+
+    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
+    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
+    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
 
     Assert.assertEquals(1, numCppFolders);
     Assert.assertEquals(2, numIncludeFolders);
@@ -182,5 +205,65 @@ public class CreateAPKProjectTest {
       }
     }
     return filteredChildren;
+  }
+
+  @NotNull
+  private IdeFrameFixture attachJavaSources(@NotNull IdeFrameFixture ideFrame, @NotNull File sourceDir) {
+    String smaliFile = "smali/out/com/example/SanAngeles/DemoActivity.smali";
+
+    Wait.seconds(5)
+      .expecting("DemoActivity.smali file to be indexed and shown")
+      .until(() -> ideFrame.findFileByRelativePath(smaliFile, false) != null);
+
+    ideFrame.getEditor()
+      .open(smaliFile)
+      .awaitNotification(
+        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Java source files.")
+      .performActionWithoutWaitingForDisappearance("Attach Java Sources...");
+
+    FileChooserDialogFixture.findDialog(guiTest.robot(), "Attach Sources")
+      .select(VfsUtil.findFileByIoFile(sourceDir, true))
+      .clickOk();
+    return ideFrame;
+  }
+
+  private void waitForJavaFileToShow(@NotNull EditorFixture editor) {
+    Wait.seconds(5)
+      .expecting("DemoActivity.java file to open after attaching sources")
+      .until(() -> "DemoActivity.java".equals(editor.getCurrentFileName()));
+  }
+
+  @NotNull
+  private List<ProjectViewFixture.NodeFixture> getNativeLibChildren(@NotNull IdeFrameFixture ideFrame, @NotNull String libraryName) {
+    ProjectViewFixture.NodeFixture libNode = ideFrame
+      .getProjectView()
+      .selectAndroidPane()
+      .findNativeLibraryNodeFor(libraryName);
+    return filterSourceFolderChildren(libNode.getChildren());
+  }
+
+  private int countOccurrencesOfFolderNameIn(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes, @NotNull String folderName) {
+    int numFolders = 0;
+    for (ProjectViewFixture.NodeFixture node : nodes) {
+      String folderText = node.getSourceFolderName();
+      if(folderName.equals(folderText)) {
+        numFolders++;
+      }
+    }
+    return numFolders;
+  }
+
+  private void profileOrDebugApk(@NotNull WelcomeFrameFixture welcomeFrame, @NotNull File apk) {
+    // Opening the APK profiling/debugging dialog can set the Modality to a state where
+    // VfsUtil.findFileByIoFile blocks us indefinitely. Retrieve
+    // VirtualFile before we open the dialog:
+    VirtualFile apkFile = VfsUtil.findFileByIoFile(apk, true);
+    welcomeFrame.profileDebugApk();
+
+    // This step generates the ~/ApkProjects/app-x86-debug directory. This
+    // directory will be removed as a part of our tests' cleanup methods.
+    FileChooserDialogFixture.findDialog(guiTest.robot(), "Select APK File")
+      .select(apkFile)
+      .clickOk();
   }
 }
