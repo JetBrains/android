@@ -22,6 +22,7 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       myTextRenderer.getListCellRendererComponent(list, item, index, selected, hasFocus);
       myPanel.setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       myPanel.setForeground(UIUtil.getTreeForeground(selected, hasFocus));
-      myPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 3, 0, 3));
+      myPanel.setBorder(JBUI.Borders.empty(0, 3));
 
       ItemList itemList = (ItemList)list;
       myDownloadIcon.setVisible(itemList.displayDownloadIcon(item, index));

@@ -29,12 +29,12 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
@@ -550,7 +550,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     refreshDeviceProfiles();
   }
 
-  private final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
+  private final Border myBorder = JBUI.Borders.empty(10);
 
   /**
    * Renders a simple text field.

@@ -26,7 +26,6 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
@@ -66,7 +65,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     setViewportView(myPanel);
     myQualifierCombo.addActionListener(this);
     myResolvedPanel.setLayout(new VerticalFlowLayout());
-    myResolvedScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myResolvedScrollPane.setBorder(JBUI.Borders.empty());
     myResolvedScrollPane.setViewportBorder(null);
   }
 
@@ -208,7 +207,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
           }
 
           JBLabel label = new JBLabel(text);
-          label.setBorder(IdeBorderFactory.createEmptyBorder(0, JBUI.scale(indent * 12), 0, 0));
+          label.setBorder(JBUI.Borders.empty(0, JBUI.scale(indent * 12), 0, 0));
           myResolvedPanel.add(label);
           indent++;
 

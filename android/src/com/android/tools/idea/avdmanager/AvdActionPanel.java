@@ -23,9 +23,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +51,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   private final AvdRefreshProvider myRefreshProvider;
   private final JBPopupMenu myOverflowMenu = new JBPopupMenu();
   private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.ToolbarDecorator.Mac.MoveDown);
-  private final Border myMargins = IdeBorderFactory.createEmptyBorder(5, 3, 5, 3);
+  private final Border myMargins = JBUI.Borders.empty(5, 3, 5, 3);
 
   public List<FocusableHyperlinkLabel> myVisibleComponents = Lists.newArrayList();
 
@@ -69,7 +69,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
     myRefreshProvider = refreshProvider;
     setOpaque(true);
-    setBorder(IdeBorderFactory.createEmptyBorder(10, 10, 10, 10));
+    setBorder(JBUI.Borders.empty(10));
     myAvdInfo = avdInfo;
     List<AvdUiAction> actions = getActions();
     setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 0));
