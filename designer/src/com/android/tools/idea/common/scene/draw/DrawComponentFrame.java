@@ -70,7 +70,7 @@ public class DrawComponentFrame extends DrawRegion {
     g.setStroke(myNormalStroke);
     g.setColor(colorFrame[myMode]);
     if (myRounded) {
-      g.drawRoundRect(x, y, width, height, 20, 20);
+      g.drawRoundRect(x, y, width, height, DrawComponentBackground.ARC_SIZE, DrawComponentBackground.ARC_SIZE);
     }
     else {
       g.drawRect(x, y, width, height);
