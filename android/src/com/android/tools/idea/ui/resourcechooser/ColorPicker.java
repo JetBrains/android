@@ -27,13 +27,15 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.*;
+import com.intellij.ui.ColorPickerListener;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.HintHint;
+import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
@@ -497,7 +499,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       pipette.setUI(new BasicButtonUI());
       pipette.setRolloverEnabled(true);
       pipette.setIcon(AllIcons.Ide.Pipette);
-      pipette.setBorder(IdeBorderFactory.createEmptyBorder());
+      pipette.setBorder(JBUI.Borders.empty());
       pipette.setRolloverIcon(AllIcons.Ide.Pipette_rollover);
       pipette.setFocusable(false);
       pipette.addActionListener(e -> {

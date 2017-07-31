@@ -25,7 +25,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
@@ -64,7 +63,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     setViewportView(myPanel);
     myQualifierCombo.addActionListener(this);
     myResolvedPanel.setLayout(new VerticalFlowLayout());
-    myResolvedScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    myResolvedScrollPane.setBorder(JBUI.Borders.empty());
     myResolvedScrollPane.setViewportBorder(null);
   }
 
