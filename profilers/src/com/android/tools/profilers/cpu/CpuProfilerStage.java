@@ -131,8 +131,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Represents the current state of the capture.
+   * It is initialized here but updated indirectly in the constructor, which calls {@link #updateProfilingState()}.
    */
-  private CaptureState myCaptureState;
+  @NotNull
+  private CaptureState myCaptureState = CaptureState.IDLE;
 
   /**
    * If there is a capture in progress, stores its start time.
