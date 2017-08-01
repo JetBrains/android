@@ -34,6 +34,10 @@ public final class NlWriteCommandAction implements Runnable {
     myRunnable = runnable;
   }
 
+  public static void run(@NotNull NlComponent component, @NotNull String name, @NotNull Runnable runnable) {
+    new NlWriteCommandAction(component, name, runnable).run();
+  }
+
   @Override
   public void run() {
     NlModel model = myComponent.getModel();
