@@ -42,7 +42,6 @@ import java.util.Map;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
 
 /**
  * Value object which holds the current state of the wizard pages for the NewProjectWizard
@@ -60,11 +59,9 @@ public class NewProjectWizardState extends TemplateWizardState {
   private final TemplateWizardState myActivityState;
   private final Template myProjectTemplate;
 
-  public NewProjectWizardState() {
-    this(Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME));
-  }
-
   public NewProjectWizardState(@NotNull Template moduleTemplate) {
+    super(moduleTemplate);
+
     myActivityState = new TemplateWizardState();
 
     myHidden.add(ATTR_PROJECT_LOCATION);
@@ -113,7 +110,6 @@ public class NewProjectWizardState extends TemplateWizardState {
     put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
     put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-    myTemplate = moduleTemplate;
     setParameterDefaults();
 
     updateParameters();
@@ -171,7 +167,7 @@ public class NewProjectWizardState extends TemplateWizardState {
    */
   public void updateParameters() {
     put(ATTR_COPY_ICONS, !Boolean.parseBoolean(get(ATTR_CREATE_ICONS).toString()));
-    copyParameters(myParameters, myActivityState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
+    copyParameters(getParameters(), myActivityState.getParameters(), ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_TARGET_API_STRING, ATTR_BUILD_API_STRING,
                    ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
                    ATTR_CREATE_ICONS, ATTR_IS_GRADLE,
