@@ -148,6 +148,12 @@ public final class StudioFlags {
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
     false);
 
+  private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
+  public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
+    SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
+    "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
+    false);
+
   private StudioFlags() {
   }
 }

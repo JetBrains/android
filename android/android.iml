@@ -98,5 +98,6 @@
     <orderEntry type="module" module-name="project-system" />
     <orderEntry type="module" module-name="apkanalyzer" />
     <orderEntry type="module" module-name="android-lang" />
+    <orderEntry type="library" name="sqlite" level="project" />
   </component>
 </module>

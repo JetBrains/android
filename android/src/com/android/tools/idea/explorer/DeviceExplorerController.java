@@ -432,7 +432,7 @@ public class DeviceExplorerController {
           @Override
           public void onSuccess(@Nullable Path localPath) {
             assert localPath != null;
-            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(localPath, true);
+            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(treeNode.getEntry(), localPath, true);
             myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
               @Override
               public void onSuccess(@Nullable Void result) {

@@ -460,6 +460,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.fonts.FontEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.editors.sqlite.SqliteEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer" order="first"/>
@@ -1338,12 +1339,17 @@
   <extensions defaultExtensionNs="com.intellij">
     <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
   </extensions>
-  
+
   <!-- Connection Assistant -->
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
+  </extensions>
+
+  <!-- SQLite database viewer -->
+  <extensions defaultExtensionNs="com.intellij">
+    <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
   </extensions>
 
   <!-- Room SQL support. -->
