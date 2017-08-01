@@ -154,6 +154,10 @@ public class CreateAPKProjectTest {
   public void removeApkProjectsGeneratedDuringTest() {
     // An ~/ApkProjects directory will show us a dialog in a subsequent
     // test run. Clean up after ourselves by deleting the directory here.
+
+    // Close before deleting, because IDE will write to some files that will be deleted
+    // Prevents FileNotFoundException from occurring
+    guiTest.ideFrame().closeProject();
     removeApkProjectsDirectory();
   }
 
