@@ -16,32 +16,34 @@
 package com.android.tools.idea.uibuilder.command;
 
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.application.BaseActionRunnable;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public final class NlWriteCommandAction implements Runnable {
-  private final Project myProject;
+  private final NlComponent myComponent;
   private final String myName;
-  private final PsiFile myFile;
   private final Runnable myRunnable;
 
-  public NlWriteCommandAction(@NotNull Project project, @NotNull String name, @NotNull PsiFile file, @NotNull Runnable runnable) {
-    myProject = project;
+  public NlWriteCommandAction(@NotNull NlComponent component, @NotNull String name, @NotNull Runnable runnable) {
+    myComponent = component;
     myName = name;
-    myFile = file;
     myRunnable = runnable;
   }
 
   @Override
   public void run() {
-    BaseActionRunnable<Void> action = new WriteCommandAction.Simple<Void>(myProject, myName, myFile) {
+    NlModel model = myComponent.getModel();
+    Project project = model.getProject();
+
+    BaseActionRunnable<Void> action = new WriteCommandAction.Simple<Void>(project, myName, model.getFile()) {
       @Override
       protected void run() throws Throwable {
         myRunnable.run();
-        TemplateUtils.reformatAndRearrange(myProject, myFile);
+        TemplateUtils.reformatAndRearrange(project, myComponent.getTag());
       }
     };
 
