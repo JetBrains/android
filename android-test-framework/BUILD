@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "android-test-framework",
+    iml_files = ["android-test-framework.iml"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

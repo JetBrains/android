@@ -7,6 +7,7 @@ iml_module(
         "src",
         "gen",
     ],
+    iml_files = ["smali.iml"],
     resources = ["resources"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",

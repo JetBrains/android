@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "profilers-android",
     srcs = ["src"],
+    iml_files = ["profilers-android.iml"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

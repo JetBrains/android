@@ -2,16 +2,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "artwork",
+    # do not sort: must match IML order
     srcs = [
-        "gen",
         "resources",
         "src",
+        "gen",
     ],
-    resources = ["resources"],
+    iml_files = ["artwork.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "//tools/idea/platform/util[module]",
-    ],
+    deps = ["//tools/idea/platform/util[module]"],
 )
