@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
@@ -133,7 +133,8 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, myFacet).getAttributeName()).isEqualTo(ATTR_TEXT);
     assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, myFacet).getAttributeNamespace()).isEqualTo(TOOLS);
 
-    assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_LAYOUT_COLLAPSE_MODE, myFacet).getAttributeName()).isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
+    assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_LAYOUT_COLLAPSE_MODE, myFacet).getAttributeName())
+      .isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
     assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_LAYOUT_COLLAPSE_MODE, myFacet).getAttributeNamespace()).isEqualTo(TOOLS);
 
     assertThat(convertAttribute(TOOLS_NS_NAME_PREFIX + ATTR_ACME_LAYOUT_MARGIN, myFacet).getAttributeName()).isEqualTo(CUSTOM_NAME);
@@ -256,7 +257,8 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
     assertThat(convertAttributeName(ATTR_TEXT, ANDROID, null, myFacet)).isEqualTo(ATTR_TEXT);
 
-    assertThat(convertAttributeName(ATTR_LAYOUT_COLLAPSE_MODE, APPLICATION, DESIGN_COORDINATE, myFacet)).isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
+    assertThat(convertAttributeName(ATTR_LAYOUT_COLLAPSE_MODE, APPLICATION, DESIGN_COORDINATE, myFacet))
+      .isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
     assertThat(convertAttributeName(ATTR_TEXT, APPLICATION, null, myFacet)).isEqualTo(CUSTOM_NAME);
     assertThat(convertAttributeName(ATTR_ACME_LAYOUT_MARGIN, APPLICATION, ACME_LIB_COORDINATE, myFacet)).isEqualTo(CUSTOM_NAME);
 
@@ -325,7 +327,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     NlComponent component = mock(NlComponent.class);
     when(component.getModel()).thenReturn(myModel);
 
-    NlPropertiesManager propertiesManager = mock(NlPropertiesManager.class);
+    PropertiesManager propertiesManager = mock(PropertiesManager.class);
     return NlPropertyItem.create(new XmlName(propertyName, namespace),
                                  new AttributeDefinition(propertyName, libraryName, null, emptyList()),
                                  Collections.singletonList(component),

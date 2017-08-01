@@ -18,29 +18,31 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.common.property.inspector.InspectorComponent
+import com.android.tools.idea.common.property.inspector.InspectorPanel
+import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.android.tools.idea.uibuilder.property.EmptyProperty
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager
-import com.android.tools.idea.uibuilder.property.NlProperty
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
-import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider
 import java.awt.BorderLayout
 import java.util.*
 import java.util.Arrays.asList
-import javax.swing.*
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 
 /**
  * Implements an inspector provider for the ConstraintSet in ConstraintLayout.
  */
-class ConstraintSetInspectorProvider : InspectorProvider {
-  private var inspectorComponent: InspectorComponent = ConstraintLayoutInspectorComponent()
+class ConstraintSetInspectorProvider : InspectorProvider<NlPropertiesManager> {
+  private var inspectorComponent: InspectorComponent<NlPropertiesManager> = ConstraintLayoutInspectorComponent()
 
   /**
    * Returns true if this {@link InspectorProvider} should be used for the given
@@ -50,7 +52,7 @@ class ConstraintSetInspectorProvider : InspectorProvider {
                             properties: MutableMap<String, NlProperty>,
                             propertiesManager: NlPropertiesManager): Boolean {
     if (components.size != 1) {
-      return false;
+      return false
     }
     val component = components[0]
     if (!component.isOrHasSuperclass(SdkConstants.CLASS_CONSTRAINT_LAYOUT)) {
@@ -70,7 +72,7 @@ class ConstraintSetInspectorProvider : InspectorProvider {
    */
   override fun createCustomInspector(components: MutableList<NlComponent>,
                                      properties: MutableMap<String, NlProperty>,
-                                     propertiesManager: NlPropertiesManager): InspectorComponent {
+                                     propertiesManager: NlPropertiesManager): InspectorComponent<NlPropertiesManager> {
     inspectorComponent.updateProperties(components, properties, propertiesManager)
     return inspectorComponent
   }
@@ -85,16 +87,14 @@ class ConstraintSetInspectorProvider : InspectorProvider {
   /**
    * Combobox editor for the constraint set attribute
    */
-  private class ConstraintSetEditor(listener: NlEditingListener, inspector: ConstraintLayoutInspectorComponent) : NlBaseComponentEditor(listener), PopupMenuListener {
+  private class ConstraintSetEditor(listener: NlEditingListener) : NlBaseComponentEditor(listener), PopupMenuListener {
     var myPanel: JPanel = JPanel(BorderLayout())
     var myProperty: NlProperty = EmptyProperty.INSTANCE
-    var myComboBox: JComboBox<String> = JComboBox<String>()
+    var myComboBox: JComboBox<String> = JComboBox()
     private var myList: ArrayList<String> = ArrayList()
-    private var myInspector: ConstraintLayoutInspectorComponent
     private var myPopupChanged = false
 
     init {
-      myInspector = inspector
       myPanel.add(myComboBox)
       myComboBox.addPopupMenuListener(this)
       myComboBox.addActionListener { myPopupChanged = true }
@@ -103,7 +103,7 @@ class ConstraintSetInspectorProvider : InspectorProvider {
     override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent?) {
       if (myPopupChanged) {
         myPopupChanged = false
-        var value: String = (myComboBox.selectedItem as String)
+        val value: String = (myComboBox.selectedItem as String)
         stopEditing(value)
       }
     }
@@ -144,15 +144,11 @@ class ConstraintSetInspectorProvider : InspectorProvider {
   /**
    * Inspector for the constraint set attribute.
    */
-  private class ConstraintLayoutInspectorComponent() : InspectorComponent {
+  private class ConstraintLayoutInspectorComponent : InspectorComponent<NlPropertiesManager> {
 
-    private val myConstraintSetEditor: ConstraintSetEditor
+    private val myConstraintSetEditor: ConstraintSetEditor = ConstraintSetEditor(DEFAULT_LISTENER)
     private var myConstraintSet: NlProperty? = null
     private var myComponent: NlComponent? = null
-
-    init {
-      myConstraintSetEditor = ConstraintSetEditor(DEFAULT_LISTENER, this)
-    }
 
     override fun refresh() {
       // do nothing
@@ -171,10 +167,10 @@ class ConstraintSetInspectorProvider : InspectorProvider {
       return 2
     }
 
-    override fun attachToInspector(inspector: InspectorPanel) {
+    override fun attachToInspector(inspector: InspectorPanel<NlPropertiesManager>) {
       inspector.addTitle("ConstraintSet")
       refresh()
-      myConstraintSetEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_CONSTRAINTSET, myConstraintSet?.getTooltipText(), myConstraintSetEditor.getComponent()))
+      myConstraintSetEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_CONSTRAINTSET, myConstraintSet?.tooltipText, myConstraintSetEditor.component))
     }
 
     override fun getEditors(): MutableList<NlComponentEditor> {
@@ -189,16 +185,10 @@ class ConstraintSetInspectorProvider : InspectorProvider {
         return
       }
 
-      var list: ArrayList<String> = ArrayList()
-      for (child in myComponent!!.getChildren()) {
-        if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
-          var attribute = child.getLiveAttribute(ANDROID_URI, ATTR_ID)
-          if (attribute != null) {
-            list.add(attribute)
-          }
-        }
-      }
-      var constraintSet = myComponent!!.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET)
+      val list: ArrayList<String> = myComponent!!.getChildren()
+          .filter { it.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS) }
+          .mapNotNullTo(ArrayList()) { it.getLiveAttribute(ANDROID_URI, ATTR_ID) }
+      val constraintSet = myComponent!!.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET)
       myConstraintSetEditor.setList(list, constraintSet)
     }
   }

@@ -17,12 +17,12 @@ package com.android.tools.idea.naveditor.property.inspector;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.naveditor.property.NavPropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -38,17 +38,17 @@ import java.util.Map;
  *
  * TODO: merge with ActionInspectorProvider?
  */
-public class NavigationInspectorProvider implements InspectorProvider {
+public class NavigationInspectorProvider implements InspectorProvider<NavPropertiesManager> {
   private static final String[] NAVIGATION_PROPERTIES = {
     SdkConstants.ATTR_NAME, SdkConstants.ATTR_ID, SdkConstants.ATTR_LABEL
   };
 
-  private final Map<String, InspectorComponent> myInspectors = new HashMap<>();
+  private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
-                              @NotNull NlPropertiesManager propertiesManager) {
+                              @NotNull NavPropertiesManager propertiesManager) {
     if (components.size() != 1) {
       return false;
     }
@@ -67,11 +67,11 @@ public class NavigationInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NavPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                        @NotNull Map<String, NlProperty> properties,
+                                                                        @NotNull NavPropertiesManager propertiesManager) {
     String tagName = components.get(0).getTagName();
-    InspectorComponent inspector = myInspectors.get(tagName);
+    InspectorComponent<NavPropertiesManager> inspector = myInspectors.get(tagName);
     assert inspector != null;
     inspector.updateProperties(components, properties, propertiesManager);
     return inspector;
@@ -82,19 +82,19 @@ public class NavigationInspectorProvider implements InspectorProvider {
     myInspectors.clear();
   }
 
-  private static class NavigationInspectorComponent implements InspectorComponent {
+  private static class NavigationInspectorComponent implements InspectorComponent<NavPropertiesManager> {
     private final String myComponentName;
     private final List<NlComponentEditor> myEditors;
 
     public NavigationInspectorComponent(@NotNull String tagName,
                                         @NotNull Map<String, NlProperty> properties,
-                                        @NotNull NlPropertiesManager propertiesManager) {
+                                        @NotNull NavPropertiesManager propertiesManager) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myEditors = new ArrayList<>(NAVIGATION_PROPERTIES.length);
       createEditors(properties, propertiesManager);
     }
 
-    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NlPropertiesManager propertiesManager) {
+    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NavPropertiesManager propertiesManager) {
       for (String propertyName : NAVIGATION_PROPERTIES) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
@@ -108,7 +108,7 @@ public class NavigationInspectorProvider implements InspectorProvider {
     @Override
     public void updateProperties(@NotNull List<NlComponent> components,
                                  @NotNull Map<String, NlProperty> properties,
-                                 @NotNull NlPropertiesManager propertiesManager) {
+                                 @NotNull NavPropertiesManager propertiesManager) {
       myEditors.clear();
       createEditors(properties, propertiesManager);
     }

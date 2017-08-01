@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;

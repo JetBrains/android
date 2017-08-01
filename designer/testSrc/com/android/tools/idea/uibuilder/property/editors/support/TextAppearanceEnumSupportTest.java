@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

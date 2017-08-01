@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.ptable.*;
+import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.Table;
 
 import javax.swing.*;

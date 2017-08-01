@@ -17,12 +17,12 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
@@ -107,9 +107,9 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel.add(mySurface);
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-    tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
     // TODO: factor out tool creation
     if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+      tools.add(new NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
@@ -119,6 +119,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
       else {
         tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
       }
+      tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));

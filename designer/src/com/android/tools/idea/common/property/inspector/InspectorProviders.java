@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.inspector;
+package com.android.tools.idea.common.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
@@ -29,27 +29,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class InspectorProviders implements LafManagerListener, Disposable {
-  protected final NlPropertiesManager myPropertiesManager;
+public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropMgr>> implements LafManagerListener, Disposable {
+  protected final PropMgr myPropertiesManager;
 
-  public InspectorProviders(NlPropertiesManager propertiesManager, Disposable parentDisposable) {
+  public InspectorProviders(PropMgr propertiesManager, Disposable parentDisposable) {
     myPropertiesManager = propertiesManager;
     Disposer.register(parentDisposable, this);
     LafManager.getInstance().addLafManagerListener(this);
   }
 
   @NotNull
-  public List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
-                                                            @NotNull Map<String, NlProperty> properties,
-                                                            @NotNull NlPropertiesManager propertiesManager) {
-    List<InspectorProvider> providers = getProviders();
-    List<InspectorComponent> inspectors = new ArrayList<>(providers.size());
+  public List<InspectorComponent<PropMgr>> createInspectorComponents(@NotNull List<NlComponent> components,
+                                                                     @NotNull Map<String, NlProperty> properties,
+                                                                     @NotNull PropMgr propertiesManager) {
+    List<InspectorProvider<PropMgr>> providers = getProviders();
+    List<InspectorComponent<PropMgr>> inspectors = new ArrayList<>(providers.size());
 
     if (components.isEmpty()) {
       return ImmutableList.of(getNullProvider().createCustomInspector(components, properties, propertiesManager));
     }
 
-    for (InspectorProvider provider : providers) {
+    for (InspectorProvider<PropMgr> provider : providers) {
       if (provider.isApplicable(components, properties, propertiesManager)) {
         inspectors.add(provider.createCustomInspector(components, properties, propertiesManager));
       }
@@ -72,10 +72,10 @@ public abstract class InspectorProviders implements LafManagerListener, Disposab
     LafManager.getInstance().removeLafManagerListener(this);
   }
 
-  protected abstract List<InspectorProvider> getProviders();
+  protected abstract List<InspectorProvider<PropMgr>> getProviders();
 
   /**
    * @return A provider known to be able to handle null components.
    */
-  protected abstract InspectorProvider getNullProvider();
+  protected abstract InspectorProvider<PropMgr> getNullProvider();
 }

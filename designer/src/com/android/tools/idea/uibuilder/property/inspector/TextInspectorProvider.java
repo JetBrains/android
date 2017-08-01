@@ -16,13 +16,16 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
-import com.google.common.base.Objects;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
@@ -39,7 +42,7 @@ import java.util.Map;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class TextInspectorProvider implements InspectorProvider {
+public class TextInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   @VisibleForTesting
   static final List<String> TEXT_PROPERTIES = ImmutableList.of(
     ATTR_TEXT,
@@ -92,7 +95,7 @@ public class TextInspectorProvider implements InspectorProvider {
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
-  static class TextInspectorComponent implements InspectorComponent {
+  static class TextInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final NlReferenceEditor myTextEditor;
     private final NlReferenceEditor myDesignTextEditor;
     private final NlReferenceEditor myDescriptionEditor;
@@ -194,7 +197,8 @@ public class TextInspectorProvider implements InspectorProvider {
       designText.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
-      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(), myStyleEditor.getKeySource());
+      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(),
+                                       myStyleEditor.getKeySource());
       inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
       inspector.addComponent(ATTR_TYPEFACE, myTypeface.getTooltipText(), myTypefaceEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_SIZE, myFontSize.getTooltipText(), myFontSizeEditor.getComponent());

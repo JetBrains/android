@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableCellEditor;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.inspector;
+package com.android.tools.idea.common.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlDesignProperties;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
@@ -57,13 +56,11 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
-public class InspectorPanel extends JPanel implements KeyEventDispatcher {
+public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>> extends JPanel implements KeyEventDispatcher {
   private static final int HORIZONTAL_SPACING = 6;
   private static final int COLUMN_COUNT = 2;
 
-  private final JComponent myAllPropertiesLink;
-  private final NlPropertiesManager myPropertiesManager;
-  private final NlDesignProperties myDesignProperties;
+  @Nullable private final JComponent myBottomLink;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final GridInspectorPanel myInspector;
   private final SpeedSearchComparator myComparator;
@@ -75,7 +72,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private final Disposable myParentDisposable;
 
   private InspectorProviders myInspectorProviders;
-  private List<InspectorComponent> myInspectors = Collections.emptyList();
+  private List<InspectorComponent<PropMgr>> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
@@ -83,15 +80,14 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private String myPropertyNameForActivation;
   private String myFilter;
 
-  public InspectorPanel(@NotNull NlPropertiesManager propertiesManager,
-                        @NotNull Disposable parentDisposable,
-                        @NotNull JComponent allPropertiesLink) {
+  public InspectorPanel(@NotNull Disposable parentDisposable,
+                        @Nullable JComponent bottomLink) {
     super(new BorderLayout());
-    myAllPropertiesLink = allPropertiesLink;
-    myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myPropertiesManager = propertiesManager;
+    myBottomLink = bottomLink;
+    if (myBottomLink != null) {
+      myBottomLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
+    }
     myParentDisposable = parentDisposable;
-    myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     myComparator = new SpeedSearchComparator(false);
@@ -224,7 +220,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
 
   public void setComponent(@NotNull List<NlComponent> components,
                            @NotNull Table<String, String, ? extends NlProperty> properties,
-                           @NotNull NlPropertiesManager propertiesManager) {
+                           @NotNull PropMgr propertiesManager) {
     myInspector.setLayout(null);
     myInspector.removeAll();
     mySource2GroupMap.clear();
@@ -243,15 +239,13 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       for (NlProperty property : properties.row("").values()) {
         propertiesByName.put(property.getName(), property);
       }
-      // Add access to known design properties
-      for (NlProperty property : myDesignProperties.getKnownProperties(components, propertiesManager)) {
-        propertiesByName.putIfAbsent(property.getName(), property);
-      }
+
+      collectExtraProperties(components, propertiesManager, propertiesByName);
 
       if (myInspectorProviders != null) {
         Disposer.dispose(myInspectorProviders);
       }
-      myInspectorProviders = myPropertiesManager.getDesignSurface().getInspectorProviders(myPropertiesManager, myParentDisposable);
+      myInspectorProviders = propertiesManager.getInspectorProviders(myParentDisposable);
       myInspectors = myInspectorProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
 
       int rows = 0;
@@ -262,7 +256,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
       myInspector.setLayout(createLayoutManager(rows));
-      for (InspectorComponent inspector : myInspectors) {
+      for (InspectorComponent<PropMgr> inspector : myInspectors) {
         addSeparator();
         inspector.attachToInspector(this);
       }
@@ -274,7 +268,9 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
                                                         SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
       // Add link to all properties table
-      addLineComponent(myAllPropertiesLink, myRow++);
+      if (myBottomLink != null) {
+        addLineComponent(myBottomLink, myRow++);
+      }
     }
 
     // Update the grid constraints after all components are added.
@@ -291,6 +287,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       }
       repaint();
     });
+  }
+
+  protected void collectExtraProperties(@NotNull List<NlComponent> components,
+                                      @NotNull PropMgr propertiesManager,
+                                      Map<String, NlProperty> propertiesByName) {
   }
 
   public void refresh() {
@@ -312,7 +313,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     myPropertyNameForActivation = null;
     boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
     propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);
-    for (InspectorComponent component : myInspectors) {
+    for (InspectorComponent<?> component : myInspectors) {
       for (NlComponentEditor editor : component.getEditors()) {
         NlProperty property = editor.getProperty();
         if (propertyName.equals(property.getName()) &&
@@ -344,8 +345,9 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
 
   /**
    * Add a component that also serves as a group node in the inspector.
+   *
    * @param labelText the label for the component
-   * @param tooltip the tooltip for the attribute being edited by the component
+   * @param tooltip   the tooltip for the attribute being edited by the component
    * @param component the editor component
    * @param keySource the component that will have focus for this component
    * @return a JLabel for the label of the component

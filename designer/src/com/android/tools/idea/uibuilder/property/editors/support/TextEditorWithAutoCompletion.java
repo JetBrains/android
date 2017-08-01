@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;

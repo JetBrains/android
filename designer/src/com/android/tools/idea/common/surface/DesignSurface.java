@@ -17,24 +17,22 @@ package com.android.tools.idea.common.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -76,7 +74,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.annotations.VisibleForTesting.*;
+import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
 /**
@@ -813,11 +811,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public SceneManager getSceneManager() {
     return mySceneManager;
   }
-
-  @NotNull
-  public abstract InspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager,
-                                                           @NotNull Disposable parentDisposable);
-
 
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
