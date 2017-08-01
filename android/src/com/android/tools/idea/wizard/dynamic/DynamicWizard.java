@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.wizard.Step;
@@ -44,7 +43,7 @@ import java.util.Set;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
- * DynamicWizard is an evolution of {@link TemplateWizard} that seeks to provide a flexible base for
+ * DynamicWizard seeks to provide a flexible base for
  * implemented GUI wizards that may involve multiple steps and branches.
  *
  * A DynamicWizard contains a series of {@link DynamicWizardPath}s, in the order that the user is expected
