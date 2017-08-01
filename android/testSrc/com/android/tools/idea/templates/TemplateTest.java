@@ -27,7 +27,6 @@ import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
@@ -1407,35 +1406,33 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
+  private static void createProject(@NotNull final NewProjectWizardState projectState, @NotNull Project project,
                                     @Nullable AssetStudioAssetGenerator assetGenerator) {
     List<String> errors = Lists.newArrayList();
     try {
-      wizardState.populateDirectoryParameters();
-      String moduleName = wizardState.getString(ATTR_MODULE_NAME);
-      File projectRoot = new File(wizardState.getString(ATTR_PROJECT_LOCATION));
+      projectState.populateDirectoryParameters();
+      String moduleName = projectState.getString(ATTR_MODULE_NAME);
+      File projectRoot = new File(projectState.getString(ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (wizardState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
+        if (projectState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
           assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
         }
-        wizardState.updateParameters();
-        wizardState.updateDependencies();
+        projectState.updateParameters();
+        projectState.updateDependencies();
 
         // If this is a new project, instantiate the project-level files
-        if (wizardState instanceof NewProjectWizardState) {
-          Template projectTemplate = ((NewProjectWizardState)wizardState).getProjectTemplate();
-          final RenderingContext projectContext =
-            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
-          projectTemplate.render(projectContext);
-          AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
-        }
+        Template projectTemplate = projectState.getProjectTemplate();
+        final RenderingContext projectContext =
+          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, projectState.myParameters);
+        projectTemplate.render(projectContext);
+        AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
 
         final RenderingContext context =
-          createRenderingContext(wizardState.myTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
-        wizardState.myTemplate.render(context);
-        if (wizardState.getBoolean(ATTR_CREATE_ACTIVITY)) {
-          TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          createRenderingContext(projectState.myTemplate, project, projectRoot, moduleRoot, projectState.myParameters);
+        projectState.myTemplate.render(context);
+        if (projectState.getBoolean(ATTR_CREATE_ACTIVITY)) {
+          TemplateWizardState activityTemplateState = projectState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
