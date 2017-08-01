@@ -21,10 +21,13 @@ import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
+import java.io.File;
+
+import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.google.common.truth.Truth.assertThat;
 
-public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
+public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
 
   public void testRemoveAndroidTestClasspath() throws Exception {
     loadProject(SYNC_MULTIPROJECT);
@@ -45,5 +48,28 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCa
     assertThat(classpath).doesNotContain("gson-2.2.4.jar");
     assertThat(classpath).doesNotContain("guava-18.0.jar");
     assertThat(classpath).doesNotContain("module3");
+  }
+
+  public void testJavaLibResourcesInClasspath() throws Exception {
+    loadProject(JAVA_LIB);
+    JUnitPatcher myPatcher = new AndroidJunitPatcher();
+
+    Module app = ModuleManager.getInstance(getProject()).findModuleByName("app");
+    JavaParameters parameters = new JavaParameters();
+    parameters.configureByModule(app, JavaParameters.CLASSES_AND_TESTS);
+
+    File projectPath = getProjectFolderPath();
+    String javaTestResources = projectPath.getPath() + "/lib/build/resources/test";
+    String javaMainResources = projectPath.getPath() + "/lib/build/resources/main";
+
+    String classpath = parameters.getClassPath().getPathsString();
+    assertThat(classpath).doesNotContain(javaTestResources);
+    assertThat(classpath).doesNotContain(javaMainResources);
+
+    myPatcher.patchJavaParameters(app, parameters);
+    classpath = parameters.getClassPath().getPathsString();
+
+    assertThat(classpath).contains(javaTestResources);
+    assertThat(classpath).contains(javaMainResources);
   }
 }
