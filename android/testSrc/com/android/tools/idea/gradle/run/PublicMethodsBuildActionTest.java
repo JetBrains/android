@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
-import com.intellij.openapi.application.PathManager;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static org.junit.Assert.fail;
 
 public class PublicMethodsBuildActionTest {
@@ -43,6 +43,17 @@ public class PublicMethodsBuildActionTest {
   @Test
   public void testSyncActionAgainstGuava() throws IOException, ClassNotFoundException {
     testActionAgainstJar(SyncAction.class, getGuavaJar());
+  }
+
+  @Test
+  public void testBadActionAgainstGuavaFails() throws IOException, ClassNotFoundException {
+    try {
+      testActionAgainstJar(BadAction.class, getGuavaJar());
+    }
+    catch (AssertionError e) {
+      return;
+    }
+    fail();
   }
 
   private static void testActionAgainstJar(@NotNull Class<? extends BuildAction<?>> clazz, @NotNull JarFile jarFile)
@@ -100,18 +111,24 @@ public class PublicMethodsBuildActionTest {
 
   @NotNull
   private static JarFile getGuavaJar() throws IOException {
-    String path = "prebuilts/tools/common/m2/repository";
-
-    File prebuiltsRepoDir;
-    if (TestUtils.runningFromBazel()) {
-      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
-      File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
-      prebuiltsRepoDir = new File(tmp, path);
+    URL urlToJar = ImmutableMap.class.getProtectionDomain().getCodeSource().getLocation();
+    if (urlToJar != null) {
+      // Code source inside a jar (e.g. Bazel)
+      return new JarFile(urlToJar.getFile());
     }
     else {
-      prebuiltsRepoDir = getWorkspaceFile(path);
+      // Running from classes (jar can be obtained by getting resources) e.g. running in IDEA
+      String pathToJar = ImmutableMap.class.getResource("").getFile().
+        replaceFirst("file:", "").
+        replaceAll("!/.*", "");
+      return new JarFile(pathToJar);
     }
+  }
 
-    return new JarFile(new File(prebuiltsRepoDir, "/com/google/guava/guava/19.0/guava-19.0.jar"));
+  private static class BadAction implements BuildAction<ImmutableMap<String, String>>, Serializable {
+    @Override
+    public ImmutableMap<String, String> execute(BuildController controller) {
+      return ImmutableMap.of();
+    }
   }
 }
