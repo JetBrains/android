@@ -21,6 +21,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.AndroidIcons;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +61,11 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
   @Override
   public Icon getNodeIcon() {
     return AndroidIcons.Android;
+  }
+
+  @Override
+  public String getDescription() {
+    return AndroidBundle.message("android.module.type.description");
   }
 
   @Override
