@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/jps/jps-builders[module]",
