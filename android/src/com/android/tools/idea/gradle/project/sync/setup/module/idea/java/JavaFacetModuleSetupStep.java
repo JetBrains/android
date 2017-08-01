@@ -70,4 +70,9 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
     model.addFacet(facet);
     return facet;
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
