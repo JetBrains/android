@@ -18,7 +18,7 @@ package com.android.tools.idea.wizard.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -140,7 +140,7 @@ public class TemplateWizardState implements Function<String, Object> {
    * structure and new-style Gradle builds with the new structure.
    */
   public void populateDirectoryParameters() {
-    File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+    File projectRoot = new File(getString(NewProjectWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
     File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
