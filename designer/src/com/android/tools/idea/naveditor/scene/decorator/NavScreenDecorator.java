@@ -104,7 +104,6 @@ public class NavScreenDecorator extends SceneDecorator {
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     DisplayList displayList = new DisplayList();
     super.buildList(displayList, time, sceneContext, component);
-
-    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
+    list.add(NavigationDecorator.createDrawCommand(displayList, component));
   }
 }
