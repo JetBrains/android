@@ -83,17 +83,18 @@ public class TemplateWizardState implements Function<String, Object> {
    */
   public static final String LAYOUT_NAME_PREFIX = "activity_";
 
+  private static final String MAIN_FLAVOR_SOURCE_PATH = "src" + File.separator + "main";
+  private static final String TEST_SOURCE_PATH = "src" + File.separator + "androidTest";
+  private static final String JAVA_SOURCE_PATH = "java";
+  private static final String RESOURCE_SOURCE_PATH = "res";
+  private static final String AIDL_SOURCE_PATH = "aidl";
+
   private static final Logger logger = Logger.getInstance(TemplateWizardState.class);
 
   /**
    * Template handler responsible for instantiating templates and reading resources
    */
   private Template myTemplate;
-
-  /**
-   * Targeted source set
-   */
-  private SourceProvider mySourceProvider;
 
   /**
    * Configured parameters, by id
@@ -144,19 +145,19 @@ public class TemplateWizardState implements Function<String, Object> {
   public void populateDirectoryParameters() {
     File projectRoot = new File(getString(NewProjectWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(ATTR_MODULE_NAME));
-    File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
-    File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
+    File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
+    File testSourceRoot = new File(moduleRoot, TEST_SOURCE_PATH);
 
     // Set Res directory if we don't have one
     if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
-      File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
+      File resourceSourceRoot = new File(mainFlavorSourceRoot, RESOURCE_SOURCE_PATH);
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
 
     String javaPackageDir = getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar);
     // Set Src directory if we don't have one
     if (!myParameters.containsKey(ATTR_SRC_OUT) || myParameters.get(ATTR_SRC_OUT) == null) {
-      File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
+      File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
       File javaSourcePackageRoot;
       if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
         javaSourcePackageRoot = new File(getString(ATTR_PACKAGE_ROOT));
@@ -172,7 +173,7 @@ public class TemplateWizardState implements Function<String, Object> {
 
     // Set AIDL directory if we don't have one
     if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
-      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
+      File aidlRoot = new File(mainFlavorSourceRoot, AIDL_SOURCE_PATH);
       File aidlOut = new File(aidlRoot, javaPackageDir);
       put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlOut.getPath()));
     }
@@ -184,7 +185,7 @@ public class TemplateWizardState implements Function<String, Object> {
 
     // Set Test directory if we don't have one
     if (!myParameters.containsKey(ATTR_TEST_OUT) || myParameters.get(ATTR_TEST_OUT) == null) {
-      String relativeTestOut = FileUtil.join(TemplateWizard.JAVA_SOURCE_PATH, javaPackageDir);
+      String relativeTestOut = FileUtil.join(JAVA_SOURCE_PATH, javaPackageDir);
       File testOut = new File(testSourceRoot, relativeTestOut);
       put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getPath()));
     }
@@ -225,15 +226,6 @@ public class TemplateWizardState implements Function<String, Object> {
   @Nullable
   public Template getTemplate() {
     return myTemplate;
-  }
-
-  @Nullable
-  public SourceProvider getSourceProvider() {
-    return mySourceProvider;
-  }
-
-  public void setSourceProvider(@Nullable SourceProvider provider) {
-    mySourceProvider = provider;
   }
 
   @Nullable
