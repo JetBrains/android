@@ -61,19 +61,6 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   }
 
   @Override
-  protected void init() {
-    super.init();
-    int currentStep = getCurrentStep();
-    if (currentStep >= mySteps.size()) {
-      return;
-    }
-    ModuleWizardStep step = mySteps.get(currentStep);
-    if (step instanceof TemplateWizardStep) {
-      ((TemplateWizardStep) step).update();
-    }
-  }
-
-  @Override
   protected boolean canGoNext() {
     if (mySteps.isEmpty()) {
       return false;
