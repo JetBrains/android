@@ -94,6 +94,13 @@ public interface IdeProfilerServices {
                                             Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
+   * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
+   * @param yesCallback callback to be run if user clicks "Yes"
+   * @param noCallback callback to be run if user clicks "No"
+   */
+  void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
+
+  /**
    * Returns the profiling configurations saved for a project.
    */
   List<ProfilingConfiguration> getCpuProfilingConfigurations();

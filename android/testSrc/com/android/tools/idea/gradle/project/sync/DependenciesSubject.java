@@ -88,4 +88,17 @@ public abstract class DependenciesSubject<T  extends ExportableOrderEntry> exten
     }
     return names;
   }
+
+  public final void hasDependency(@NotNull String dependencyName, @NotNull DependencyScope scope, boolean isExported) {
+    Map<String, T> dependenciesByName = myDependenciesByNameAndScope.get(scope);
+    T dependency = dependenciesByName.get(dependencyName);
+    if (dependency == null) {
+      fail("has a dependency with name '" + dependencyName + "' in scope(s): " + scope.toString());
+    }
+    else {
+      if (dependency.isExported() != isExported) {
+        failureStrategy.fail("Not true that " + dependencyName + " has exported set to " + isExported);
+      }
+    }
+  }
 }

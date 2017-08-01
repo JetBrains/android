@@ -196,7 +196,6 @@ public class AndroidIcons {
     public static final Icon ExpandToFit = load("/icons/nele/expand-to-fit.png");
     public static final Icon Blueprint = load("/icons/nele/blueprint-mode.png"); // 16x16
     public static final Icon BlueprintInactive = load("/icons/nele/blueprint-mode-inactive.png"); // 16x16
-    public static final Icon BothMode = load("/icons/nele/both-mode.png"); // 16x16
     public static final Icon DesignView = load("/icons/nele/design-mode.png"); // 16x16
     public static final Icon Elevation = load("/icons/nele/elevation.png"); // 16x16
     public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16

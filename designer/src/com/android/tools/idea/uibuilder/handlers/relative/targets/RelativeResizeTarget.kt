@@ -29,15 +29,13 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
  */
 class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarget(type) {
 
-  private fun updateWidth(attributes: AttributesTransaction, width: String) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width)
-  }
+  private fun updateWidth(attributes: AttributesTransaction, width: String) =
+      attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width)
 
-  private fun updateHeight(attributes: AttributesTransaction, height: String) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height)
-  }
+  private fun updateHeight(attributes: AttributesTransaction, height: String) =
+      attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height)
 
-  override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
 
     if (TOP == type || LEFT_TOP == type || RIGHT_TOP == type) {
       updateHeight(attributes, getNewHeight(y))

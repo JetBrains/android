@@ -93,7 +93,7 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
       getContainingModule(new File(myArchive.get()), myProject)).execute();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 

@@ -52,7 +52,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      mySyncInvoker.requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST);
+      mySyncInvoker.requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null);
     }
     finally {
       presentation.setEnabled(true);

@@ -284,6 +284,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       if (myActivateEditorAfterLoad) {
         activatePreferredEditor(myPropertyNameForActivation);
       }
+      repaint();
     });
   }
 

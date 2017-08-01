@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 
 /**
  * Factory class to create JavaModuleModel instance from IdeaModule and ModuleExtendedModel.
@@ -107,6 +108,14 @@ public class IdeaJavaModuleModelFactory {
           }
         }
         else if (dependency instanceof IdeaModuleDependency) {
+          // Don't include runtime module dependencies. b/63819274.
+          // Consider example,
+          // libA implementaion depends on libB, libB api dependes on libAPI, libB implementation depends on LibImpl.
+          // libA should have implementaion dependency on libB and libAPI, but not on LibImpl, libA however still have runtime dependency on LibImpl.
+          // So we need to exclude runtime module dependencies.
+          if (equalsIgnoreCase(dependency.getScope().getScope(), "RUNTIME")) {
+            continue;
+          }
           JavaModuleDependency moduleDependency = JavaModuleDependency.copy((IdeaModuleDependency)dependency);
           if (moduleDependency != null) {
             javaModuleDependencies.add(moduleDependency);

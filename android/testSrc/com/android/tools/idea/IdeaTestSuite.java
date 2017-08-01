@@ -54,13 +54,6 @@ import java.nio.file.Paths;
   // Empty test in gradle-feature - http://b.android.com/230792
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
 
-  // Failing in gradle-feature branch
-  // http://b/35788105
-  com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest.class,
-  com.android.tools.idea.gradle.project.model.AndroidModuleModelTest.class,
-  com.android.tools.idea.model.AndroidModuleInfoTest.class,
-  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
-
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
 })

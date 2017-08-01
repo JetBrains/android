@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -153,6 +153,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     InstallRepositoryHyperlink hyperlink = (InstallRepositoryHyperlink)quickFix;
     assertSame(ANDROID, hyperlink.getRepository());
+    assertEquals("com.android.support:appcompat-v7:24.1.1", hyperlink.getDependency());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
@@ -187,6 +188,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     InstallRepositoryHyperlink hyperlink = (InstallRepositoryHyperlink)quickFix;
     assertSame(GOOGLE, hyperlink.getRepository());
+    assertEquals("com.google.android.gms:play-services:9.4.0", hyperlink.getDependency());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);

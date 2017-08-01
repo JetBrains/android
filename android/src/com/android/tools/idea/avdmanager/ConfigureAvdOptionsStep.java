@@ -30,6 +30,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.properties.*;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -128,7 +129,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myInternalStorageLabel;
   private JBLabel myMemoryAndStorageLabel;
-  private JLabel myMultiCoreExperimentalLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private JComboBox myCoreCount;
   private JComboBox mySpeedCombo;
@@ -754,7 +754,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
     // Separately handle the Boot Option. It is only
     // shown if the Emulator supports it.
-    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot());
+    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler()));
 
     toggleSystemOptionals(false);
 

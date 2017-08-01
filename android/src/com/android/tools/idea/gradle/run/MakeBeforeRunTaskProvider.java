@@ -277,13 +277,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       boolean success = builder.build(runner, cmdLineArgs);
 
       if (configuration instanceof AndroidRunConfigurationBase) {
-        //noinspection unchecked
-        List<OutputBuildAction.ModuleBuildOutput> model = (List<OutputBuildAction.ModuleBuildOutput>)runner.getModel();
-        if (model != null) {
-          ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel(model));
+        Object model = runner.getModel();
+        if (model != null && model instanceof OutputBuildAction.PostBuildProjectModels) {
+          ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
         }
         else {
-          getLog().info("Couldn't get ProjectBuildOutput.");
+          getLog().info("Couldn't get post build models.");
         }
       }
 

@@ -131,9 +131,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Represents the current state of the capture.
+   * It is initialized here but updated indirectly in the constructor, which calls {@link #updateProfilingState()}.
    */
   @NotNull
-  private CaptureState myCaptureState;
+  private CaptureState myCaptureState = CaptureState.IDLE;
 
   /**
    * If there is a capture in progress, stores its start time.
@@ -212,7 +213,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
-    myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices().getPoolExecutor());
+    myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices());
   }
 
   private static Logger getLogger() {
@@ -390,29 +391,37 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void stopCapturingCallback(CpuProfiler.CpuProfilingAppStopResponse response) {
+    CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myActiveConfig);
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
       setCaptureState(CaptureState.IDLE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
       setCaptureState(CaptureState.PARSING);
-      handleCaptureParsing(response.getTraceId(), response.getTrace());
+      ByteString traceBytes = response.getTrace();
+      captureMetadata.setTraceFileSizeBytes(traceBytes.size());
+      handleCaptureParsing(response.getTraceId(), traceBytes, captureMetadata);
     }
-
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackTraceCpu(myActiveConfig);
   }
 
   /**
    * Handles capture parsing after stopping a capture. Basically, this method checks if {@link CpuCaptureParser} has already parsed the
    * capture and delegates the parsing to such class if it hasn't yet. After that, it waits asynchronously for the parsing to happen
-   * and sets the capture in the main executor after it's done.
+   * and sets the capture in the main executor after it's done. This method also takes care of updating the {@link CpuCaptureMetadata}
+   * corresponding to the capture after parsing is finished (successfully or not).
    */
-  private void handleCaptureParsing(int traceId, ByteString traceBytes) {
-    CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
+  private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
+    long beforeParsingTime = System.currentTimeMillis();
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
     if (capture == null) {
-      // Parser doesn't have any information regarding the capture. It needs to be parsed.
-      capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
+      // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
+      setCaptureState(CaptureState.IDLE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
+      return;
     }
 
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
@@ -422,10 +431,18 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         saveTraceInfo(traceId, parsedCapture);
+
+        // Update capture metadata
+        captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
+        captureMetadata.setParsingTimeMs(System.currentTimeMillis() - beforeParsingTime);
+        captureMetadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(parsedCapture.getDuration()));
+        captureMetadata.setRecordDurationMs(calculateRecordDurationMs(parsedCapture));
       }
       else {
+        captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
         setCapture(null);
       }
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     };
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
@@ -437,6 +454,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       parsingCallback.accept(parsedCapture);
       return parsedCapture;
     }, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
+
+  /**
+   * Iterates the threads of the capture to find the node with the minimum start time and the one with the maximum end time.
+   * Maximum end - minimum start result in the record duration.
+   */
+  private static long calculateRecordDurationMs(CpuCapture capture) {
+    Range maxDataRange = new Range();
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      CaptureNode threadMainNode = capture.getCaptureNode(thread.getId());
+      assert threadMainNode != null;
+      maxDataRange.expand(threadMainNode.getStartGlobal(), threadMainNode.getEndGlobal());
+    }
+    return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
   private void saveTraceInfo(int traceId, @NotNull CpuCapture capture) {

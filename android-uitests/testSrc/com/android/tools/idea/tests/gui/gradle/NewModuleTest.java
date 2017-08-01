@@ -39,6 +39,7 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64151364
   @Test
   public void testNewModuleOldGradle() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
@@ -72,12 +73,11 @@ public class NewModuleTest {
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
-    boolean isNewWizard = StudioFlags.NPW_NEW_MODULE.get();
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep(isNewWizard ? "Import Module from Library" : "") // Legacy code, doesn't have a step title
+      .clickNextToStep("Import Module from Library")
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
       .clickFinish()

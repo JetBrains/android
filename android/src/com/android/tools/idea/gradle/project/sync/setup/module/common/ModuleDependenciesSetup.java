@@ -47,8 +47,7 @@ public abstract class ModuleDependenciesSetup {
                                         @NotNull String libraryName,
                                         @NotNull DependencyScope scope,
                                         @NotNull Module module,
-                                        @NotNull IdeModifiableModelsProvider modelsProvider,
-                                        boolean isExported) {
+                                        @NotNull IdeModifiableModelsProvider modelsProvider) {
     for (OrderEntry orderEntry : modelsProvider.getModifiableRootModel(module).getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         Library entryLibrary = ((LibraryOrderEntry)orderEntry).getLibrary();
@@ -60,7 +59,8 @@ public abstract class ModuleDependenciesSetup {
     }
 
     LibraryOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addLibraryEntry(library);
+    // Each module manages their own list of dependencies, there is no need to export.
     orderEntry.setScope(scope);
-    orderEntry.setExported(isExported);
+    orderEntry.setExported(false);
   }
 }

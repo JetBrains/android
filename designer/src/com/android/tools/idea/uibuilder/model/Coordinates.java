@@ -132,9 +132,19 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static Rectangle getSwingRectDip(@NotNull SceneContext context, @AndroidDpCoordinate Rectangle rect) {
+  public static Rectangle getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle rect) {
     return new Rectangle(context.getSwingX(rect.x), context.getSwingY(rect.y),
                          context.getSwingDimension(rect.width), context.getSwingDimension(rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link NlDesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle rect) {
+    return new Rectangle(getSwingX(view, rect.x), getSwingY(view, rect.y),
+                         getSwingDimension(view, rect.width), getSwingDimension(view, rect.height));
   }
 
   /**

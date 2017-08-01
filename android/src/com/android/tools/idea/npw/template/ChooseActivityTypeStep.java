@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.template;
 
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.npw.ActivityGalleryStep;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -334,7 +333,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
           return file.isFile() ? ImageIO.read(file) : null;
         }
         catch (IOException e) {
-          Logger.getInstance(ActivityGalleryStep.class).warn(e);
+          Logger.getInstance(ChooseActivityTypeStep.class).warn(e);
         }
       }
       return null;

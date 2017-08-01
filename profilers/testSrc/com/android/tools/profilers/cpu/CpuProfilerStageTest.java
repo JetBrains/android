@@ -27,6 +27,7 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -681,9 +682,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLE_PERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myStage.setProfilingConfiguration(config1);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
-    startCapturing();
+    myStage.startCapturing();
 
     // Go back to monitor stage and go back to a new Cpu profiler stage
     myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
@@ -696,14 +698,15 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     myCpuService.setValidTrace(true);
-    stopCapturing(stage);
+    stage.stopCapturing();
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Stop profiler should be the same as the one passed in the start request
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
 
     // Make sure we tracked the correct configuration
-    ProfilingConfiguration trackedConfig = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastTrackedConfig();
+    ProfilingConfiguration trackedConfig =
+      ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
     assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
   }
@@ -814,6 +817,122 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Open the profiling configurations dialog with null device shouldn't crash CpuProfilerStage.
     // Dialog is expected to be open so the user can edit configurations to be used by other devices later.
     myStage.openProfilingConfigurationsDialog();
+  }
+
+  @Test
+  public void cpuMetadataSuccessfulCapture() throws InterruptedException, IOException {
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myStage.setProfilingConfiguration(config);
+    captureSuccessfully();
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.SUCCESS);
+    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
+    assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
+    assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
+    assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
+    assertThat(metadata.getCaptureDurationMs()).isGreaterThan(0L);
+    assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
+  }
+
+  @Test
+  public void cpuMetadataFailureStopCapture() throws InterruptedException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myStage.setProfilingConfiguration(config);
+
+    startCapturingSuccess();
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+    stopCapturing();
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+    // Profiling Configurations should remain the same
+    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
+    assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
+    assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    // Trace was not generated, so trace size, parsing time, recording duration and capture duration should be -1
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+    assertThat(metadata.getTraceFileSizeBytes()).isEqualTo(-1);
+  }
+
+  @Test
+  public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                                CpuProfiler.CpuProfilerType.ART,
+                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myCpuService.setValidTrace(true);
+    myStage.setProfilingConfiguration(config);
+
+    startCapturingSuccess();
+    stopCapturing();
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
+    // Profiling Configurations should remain the same.
+    // However, the config object itself is expected to be different, as we copy it when start capturing.
+    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    assertThat(metadataConfig).isNotEqualTo(config);
+    assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
+    assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
+    assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    // Trace was generated, so trace size should be greater than 0
+    assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
+    // Trace was not parsed correctly, so parsing time, recording duration and capture duration should be -1
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+  }
+
+  @Test
+  public void cpuMetadataFailureUserAbort() throws InterruptedException, IOException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
+    myCpuService.setTrace(largeTraceFile);
+    myCpuService.setValidTrace(true);
+    myStage.setProfilingConfiguration(config);
+    myServices.setShouldParseLongTraces(false);
+
+    startCapturingSuccess();
+    stopCapturing();
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+    // Profiling Configurations should remain the same.
+    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
+    assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
+    assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    // Trace was generated, so trace size should be greater than 0
+    assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
+    // Trace was not parsed at all, so parsing time, recording duration and capture duration should be -1
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

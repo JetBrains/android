@@ -37,6 +37,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SplitApkDeployTask implements LaunchTask {
 
@@ -44,10 +45,16 @@ public class SplitApkDeployTask implements LaunchTask {
 
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
+  private final boolean myDontKill;
 
   public SplitApkDeployTask(Project project, InstantRunContext context) {
+    this(project, context, false);
+  }
+
+  public SplitApkDeployTask(Project project, InstantRunContext context, boolean dontKill) {
     myProject = project;
     myInstantRunContext = context;
+    myDontKill = dontKill;
   }
 
   @NotNull
@@ -66,8 +73,6 @@ public class SplitApkDeployTask implements LaunchTask {
     InstantRunBuildInfo buildInfo = myInstantRunContext.getInstantRunBuildInfo();
     assert buildInfo != null;
 
-    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
-
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
     installOptions.add("-t");
 
@@ -76,6 +81,11 @@ public class SplitApkDeployTask implements LaunchTask {
       installOptions.add(myInstantRunContext.getApplicationId());
     }
 
+    if (myDontKill) {
+      installOptions.add("--dont-kill");
+    }
+
+    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
     for (InstantRunArtifact artifact : artifacts) {
       if (artifact.type == InstantRunArtifactType.SPLIT_MAIN || artifact.type == InstantRunArtifactType.SPLIT) {

@@ -47,7 +47,7 @@ public final class MenuTest {
 
   @Before
   public void setUp() {
-    WizardUtils.createNewProject(myGuiTest, "google.com", "Basic Activity");
+    WizardUtils.createNewProject(myGuiTest, "Basic Activity");
 
     myEditor = myGuiTest.ideFrame().getEditor();
     myMenuPath = FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "menu_main.xml");

@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
-import static org.mockito.Mockito.verify;
+import java.awt.event.ActionEvent;
+
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -29,6 +32,7 @@ public class RecommendedPluginVersionUpgradeDialogTest extends IdeaTestCase {
   @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
 
   private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
+  private RemindMeTomorrowAction myRemindMeTomorrowAction;
 
   @Override
   protected void setUp() throws Exception {
@@ -37,13 +41,18 @@ public class RecommendedPluginVersionUpgradeDialogTest extends IdeaTestCase {
 
     myUpgradeDialog = new RecommendedPluginVersionUpgradeDialog(getProject(), GradleVersion.parse("2.2.0"), GradleVersion.parse("2.3.0"),
                                                                 myUpgradeReminder);
+    myRemindMeTomorrowAction = myUpgradeDialog.new RemindMeTomorrowAction();
   }
 
   public void testRemindMeLater() {
-    myUpgradeDialog.getCancelAction().setEnabled(true);
-    myUpgradeDialog.doCancelAction();
-
+    myRemindMeTomorrowAction.doAction(mock(ActionEvent.class));
     // Verify that the timestamp was recorded, so a day later the user will be reminded about the upgrade.
     verify(myUpgradeReminder).storeLastUpgradeRecommendation(getProject());
+  }
+
+  public void testCloseDialog() {
+    myUpgradeDialog.doCancelAction();
+    // Verify that when user close the upgrade dialog, timestamp is not recorded.
+    verify(myUpgradeReminder, never()).storeLastUpgradeRecommendation(getProject());
   }
 }

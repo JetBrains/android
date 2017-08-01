@@ -18,15 +18,13 @@ package com.android.tools.idea.uibuilder.error;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Model to centralize every issue that should be used in the Layout Editor
@@ -36,7 +34,8 @@ public class IssueModel {
   @Nullable private RenderErrorModel myRenderErrorModel;
   @Nullable private LintAnnotationsModel myLintAnnotationsModel;
   private ImmutableList<NlIssue> myIssues = ImmutableList.of();
-  private final List<IssueModelListener> myListeners = new ArrayList<>(1);
+  private final ListenerCollection<IssueModelListener> myListeners = ListenerCollection.createWithExecutor(
+    command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
   private int myWarningCount;
   private int myErrorCount;
 
@@ -65,8 +64,8 @@ public class IssueModel {
     }
     myIssues = issueListBuilder.build();
 
-    GuiUtils.invokeLaterIfNeeded(() -> myListeners.forEach(IssueModelListener::errorModelChanged),
-                                 ModalityState.defaultModalityState());
+    // Run listeners on the UI thread
+    myListeners.forEach(IssueModelListener::errorModelChanged);
   }
 
   private void updateIssuesCounts(@NotNull NlIssue issue) {
@@ -97,11 +96,11 @@ public class IssueModel {
   }
 
   public void addErrorModelListener(@NotNull IssueModelListener listener) {
-    GuiUtils.invokeLaterIfNeeded(() -> myListeners.add(listener), ModalityState.defaultModalityState());
+    myListeners.add(listener);
   }
 
   public void removeErrorModelListener(@NotNull IssueModelListener listener) {
-    GuiUtils.invokeLaterIfNeeded(() -> myListeners.remove(listener), ModalityState.defaultModalityState());
+    myListeners.remove(listener);
   }
 
   public int getWarningCount() {

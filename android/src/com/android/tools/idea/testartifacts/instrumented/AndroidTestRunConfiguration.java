@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
@@ -62,7 +63,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
+
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
@@ -322,7 +323,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    IdeAndroidArtifact testArtifact = AndroidModuleModel.get(facet).getSelectedVariant().getAndroidTestArtifact();
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(facet);
+    IdeAndroidArtifact testArtifact = null;
+    if (moduleModel != null) {
+      testArtifact = moduleModel.getArtifactForAndroidTest();
+    }
     return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments, testArtifact);
   }
 
@@ -479,13 +484,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     @NotNull private final String myTestApplicationId;
     private final boolean myWaitForDebugger;
     @NotNull private final Map<String, String> myInstrumentationTestRunnerArguments;
-    @NotNull private final IdeAndroidArtifact myArtifact;
+    @Nullable private final IdeAndroidArtifact myArtifact;
 
     public MyApplicationLaunchTask(@Nullable String runner,
                                    @NotNull String testPackage,
                                    boolean waitForDebugger,
                                    @NotNull Map<String, String> arguments,
-                                   @NotNull IdeAndroidArtifact artifact) {
+                                   @Nullable IdeAndroidArtifact artifact) {
       myInstrumentationTestRunner = runner;
       myWaitForDebugger = waitForDebugger;
       myTestApplicationId = testPackage;
@@ -505,10 +510,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     @NotNull
-    public RemoteAndroidTestRunner getRemoteAndroidTestRunner(IdeAndroidArtifact arifact, IDevice device) {
-      return arifact.getTestOptions() != null && Execution.ANDROID_TEST_ORCHESTRATOR.equals(arifact.getTestOptions().getExecutionEnum()) ?
-        new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
-        new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
+    public RemoteAndroidTestRunner getRemoteAndroidTestRunner(@Nullable IdeAndroidArtifact artifact, @NotNull IDevice device) {
+      return artifact != null &&
+             artifact.getTestOptions() != null &&
+             Execution.ANDROID_TEST_ORCHESTRATOR.equals(artifact.getTestOptions().getExecutionEnum()) ?
+             new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
+             new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
     }
 
     @Override

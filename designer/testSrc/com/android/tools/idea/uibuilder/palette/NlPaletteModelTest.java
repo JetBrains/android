@@ -22,10 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.google.common.collect.ImmutableList;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
@@ -40,11 +37,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class NlPaletteModelTest extends PaletteTestCase {
@@ -286,35 +279,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
   }
 
   private void registerJavaClasses() {
-    // Workaround: Adding the following classes should make the PsiClasses available to JavaPsiFacade.
-    // That does not work for some reason. For now: install a fake JavaPsiFacade.
-    PsiClass fakeView = myFixture.addClass(getFakeView());
-    PsiClass fakeCustomView = spy(myFixture.addClass(getFakeCustomViewView()));
-    JavaPsiFacade facade = mock(JavaPsiFacade.class);
-    registerProjectComponent(JavaPsiFacade.class, facade);
-    when(facade.findClasses(anyString(), any(GlobalSearchScope.class))).thenReturn(PsiClass.EMPTY_ARRAY);
-    when(facade.findClass(eq("android.view.View"), any(GlobalSearchScope.class))).thenReturn(fakeView);
-    when(facade.findClasses(eq("android.view.View"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeView});
-    when(facade.findClass(eq("com.example.FakeCustomView"), any(GlobalSearchScope.class))).thenReturn(fakeCustomView);
-    when(facade.findClasses(eq("com.example.FakeCustomView"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeCustomView});
-    when(facade.getElementFactory()).thenReturn(PsiElementFactory.SERVICE.getInstance(getProject()));
-    when(fakeCustomView.getSuperClass()).thenReturn(fakeView);
-  }
-
-  @Language("JAVA")
-  @NotNull
-  private static String getFakeView() {
-    return "package android.view;\n" +
-           "public class View {\n" +
-           "}\n";
-  }
-
-  @Language("JAVA")
-  @NotNull
-  private static String getFakeCustomViewView() {
-    return "package com.example;\n" +
-           "public class FakeCustomView extends android.view.View {\n" +
-           "}\n";
+    myFixture.addClass("package android.view; public class View {}");
+    myFixture.addClass("package com.example; public class FakeCustomView extends android.view.View {}");
   }
 
   @Language("XML")

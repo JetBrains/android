@@ -30,7 +30,7 @@ import java.awt.*;
  */
 public class ScreenLabelTarget extends NavBaseTarget {
   // TODO: finalize values for the following constants
-  static final int SPACING = 6;
+  private static final int SPACING = 6;
   static final String FONT_NAME = null;
   static final int FONT_STYLE = Font.PLAIN;
   static final int FONT_SIZE = 24;

@@ -18,9 +18,11 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,8 +41,24 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     group.add(new SetZoomAction(mySurface, ZoomType.OUT));
     group.add(new ZoomLabelAction(mySurface));
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
-    group.add(new SetZoomAction(mySurface, ZoomType.FIT));
+    group.add(new ZoomToFitAction(mySurface));
     // TODO group.add(new TogglePanningDialogAction(mySurface));
     return group;
+  }
+
+  static class ZoomToFitAction extends SetZoomAction {
+    public ZoomToFitAction(@NotNull DesignSurface surface) {
+      super(surface, ZoomType.FIT);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      super.actionPerformed(e);
+      //noinspection ConstantConditions  In practice we'll always have a view at this point
+      mySurface.getCurrentSceneView().setLocation(0, 0);
+      //noinspection ConstantConditions  And we'll also always have a scene with a root.
+      mySurface.scrollRectToVisible(Coordinates.getSwingRectDip(mySurface.getCurrentSceneView(),
+                                                                mySurface.getScene().getRoot().fillRect(null)));
+    }
   }
 }

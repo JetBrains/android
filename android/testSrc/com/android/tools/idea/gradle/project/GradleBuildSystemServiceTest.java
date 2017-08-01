@@ -77,7 +77,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
 
   public void testSyncProject() {
     myService.syncProject(myProject);
-    verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+    verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
   }
 
   public void testSyncProjectWithUninitializedProject() {

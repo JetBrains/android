@@ -67,7 +67,7 @@ public class NavSceneManager extends SceneManager {
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
     NavigationSchema schema = surface.getSchema();
-    myLayoutAlgorithm = ManualLayoutAlgorithm.getInstance(model.getFacet());
+    myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
     surface.zoomActual();
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
   }

@@ -35,7 +35,7 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
 public class DrawAction extends NavBaseDrawCommand {
-  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+  private final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
@@ -47,7 +47,7 @@ public class DrawAction extends NavBaseDrawCommand {
   @SwingCoordinate private Rectangle myDest = new Rectangle();
   private static final Stroke BACKGROUND_STROKE = new BasicStroke(8);
 
-  private DrawMode myMode;
+  private final DrawMode myMode;
 
   public enum DrawMode {NORMAL, SELECTED}
 
@@ -96,7 +96,7 @@ public class DrawAction extends NavBaseDrawCommand {
     g.setColor(previousColor);
   }
 
-  public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
+  private DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
                     @SwingCoordinate Rectangle source,
                     @SwingCoordinate Rectangle dest,
                     @NotNull DrawMode mode) {
@@ -116,7 +116,7 @@ public class DrawAction extends NavBaseDrawCommand {
     list.add(new DrawAction(connectionType, source, dest, mode));
   }
 
-  public static void draw(@NotNull Graphics2D g,
+  private static void draw(@NotNull Graphics2D g,
                           @NotNull ColorSet color,
                           @NotNull ActionTarget.ConnectionType connectionType,
                           @SwingCoordinate Rectangle source,

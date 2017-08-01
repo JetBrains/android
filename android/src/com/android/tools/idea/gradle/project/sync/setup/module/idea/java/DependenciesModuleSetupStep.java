@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -93,7 +93,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
         ModuleOrderEntry entry = moduleModel.addModuleOrderEntry(found);
-        entry.setExported(true);
+        entry.setExported(dependency.isExported());
       }
       else {
         // If it depends on an android module, we should skip that.

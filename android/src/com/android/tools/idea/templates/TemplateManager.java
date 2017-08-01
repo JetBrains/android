@@ -18,9 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -472,47 +470,37 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-          if (StudioFlags.NPW_GALLERY.get()) {
-            DataContext dataContext = e.getDataContext();
-            Module module = LangDataKeys.MODULE.getData(dataContext);
-            assert module != null;
+          DataContext dataContext = e.getDataContext();
+          Module module = LangDataKeys.MODULE.getData(dataContext);
+          assert module != null;
 
-            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-            assert targetFile != null;
+          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+          assert targetFile != null;
 
-            VirtualFile targetDirectory = targetFile;
-            if (!targetDirectory.isDirectory()) {
-              targetDirectory = targetFile.getParent();
-              assert targetDirectory != null;
-            }
-
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            assert facet != null && facet.getAndroidModel() != null;
-
-            List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-            assert (!sourceSets.isEmpty());
-
-            String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
-            Project project = facet.getModule().getProject();
-
-            RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
-              AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
-
-            NewModuleModel moduleModel = new NewModuleModel(project);
-            ChooseActivityTypeStep chooseActivityTypeStep =
-              new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
-            ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
-
-            new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          VirtualFile targetDirectory = targetFile;
+          if (!targetDirectory.isDirectory()) {
+            targetDirectory = targetFile.getParent();
+            assert targetDirectory != null;
           }
-          else {
-            DataContext dataContext = e.getDataContext();
-            final Module module = LangDataKeys.MODULE.getData(dataContext);
-            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-            NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, null);
-            wizard.init();
-            wizard.show();
-          }
+
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          assert facet != null && facet.getAndroidModel() != null;
+
+          List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+          assert (!sourceSets.isEmpty());
+
+          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+          Project project = facet.getModule().getProject();
+
+          RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
+            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
+
+          NewModuleModel moduleModel = new NewModuleModel(project);
+          ChooseActivityTypeStep chooseActivityTypeStep =
+            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
+          ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
+
+          new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
         }
       };
       categoryGroup.add(galleryAction);

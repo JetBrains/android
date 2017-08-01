@@ -49,6 +49,7 @@
         <exec executable="${gradle.wrapper.executable}" dir="${workspace}/tools" failonerror="true">
             <env key="JAVA_HOME" value="${java.home}" />
             <arg line="--no-daemon" />
+            <arg line="-Dorg.gradle.parallel=false" />  <!-- youtrack.jetbrains.com/issue/KT-15562 -->
             <arg line="${select.release.args}" />
             <arg value="init" />
             <arg value="zipOfflineRepo" />

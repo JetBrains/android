@@ -62,14 +62,15 @@
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
       <skipForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
 
   <module-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm</implementation-class>
     </component>
   </module-components>
 

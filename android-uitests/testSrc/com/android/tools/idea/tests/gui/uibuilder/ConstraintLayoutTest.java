@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.NewThemeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ResourceComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
-import com.android.tools.adtui.TextAccessors;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +42,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,7 +81,7 @@ public class ConstraintLayoutTest {
   public void testSideConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
-      .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
@@ -86,7 +93,7 @@ public class ConstraintLayoutTest {
       .createConstraintFromLeftToLeftOfLayout()
       .createConstraintFromRightToRightOfLayout();
 
-    String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
     assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
     assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
@@ -105,7 +112,7 @@ public class ConstraintLayoutTest {
       .createConstraintFromLeftToLeftOfLayout()
       .createConstraintFromRightToRightOfLayout();
 
-    layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).contains("app:layout_constraintBottom_toTopOf=\"@+id/textView\"");
     assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
     assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
@@ -136,7 +143,7 @@ public class ConstraintLayoutTest {
   public void testBaselineConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
-      .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
@@ -145,7 +152,7 @@ public class ConstraintLayoutTest {
       .dragComponentToSurface("Widgets", "Button")
       .findView("Button", 0)
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
-    String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
 
     layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
@@ -157,7 +164,7 @@ public class ConstraintLayoutTest {
       .dragComponentToSurface("Widgets", "Button")
       .findView("Button", 0)
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
-    layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
   }
 
@@ -185,7 +192,7 @@ public class ConstraintLayoutTest {
     String group = "Widgets";
 
     NlEditorFixture design = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
       .getLayoutEditor(false);
 
     List<String> widgets =
@@ -196,9 +203,9 @@ public class ConstraintLayoutTest {
     }
     String layoutXml = ideFrameFixture
       .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", Tab.EDITOR)
       .getCurrentFileContents();
-    for (String widget: widgets) {
+    for (String widget : widgets) {
       assertThat(layoutXml).containsMatch("<" + widget);
     }
   }
@@ -232,7 +239,7 @@ public class ConstraintLayoutTest {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editorFixture = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.DESIGN);
+      .open("app/src/main/res/layout/layout2.xml", Tab.DESIGN);
 
     NlPreviewFixture preview = editorFixture
       .getLayoutPreview(true)
@@ -280,7 +287,7 @@ public class ConstraintLayoutTest {
       .requireTheme("Material");
 
     editorFixture = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.DESIGN);
+      .open("app/src/main/res/layout/layout1.xml", Tab.DESIGN);
 
     preview = editorFixture
       .getLayoutPreview(true)
@@ -344,6 +351,7 @@ public class ConstraintLayoutTest {
     colorCell.startEditing();
     resourceComponent.getSwatchButton().click();
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    @SuppressWarnings("UseJBColor")
     Color color = new Color(255, 235, 59, 255);
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
@@ -365,5 +373,47 @@ public class ConstraintLayoutTest {
     });
     newThemeDialog.clickCancel();
     colorCell.stopEditing();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
+  @Test
+  public void fileIsFormattedAfterSelectingMarginStart() {
+    WizardUtils.createNewProject(guiTest, "Empty Activity");
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml"));
+
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+
+    layoutEditor.waitForRenderToFinish();
+    layoutEditor.findView("TextView", 0).click();
+    layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().selectMarginStart(8);
+
+    editor.selectEditorTab(Tab.EDITOR);
+
+    Object expected =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+      "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+      "    android:layout_width=\"match_parent\"\n" +
+      "    android:layout_height=\"match_parent\"\n" +
+      "    tools:context=\"com.google.myapplication.MainActivity\">\n" +
+      "\n" +
+      "    <TextView\n" +
+      "        android:layout_width=\"wrap_content\"\n" +
+      "        android:layout_height=\"wrap_content\"\n" +
+      "        android:layout_marginStart=\"8dp\"\n" +
+      "        android:text=\"Hello World!\"\n" +
+      "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+      "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+      "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+      "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+      "\n" +
+      "</android.support.constraint.ConstraintLayout>\n";
+
+    Wait.seconds(2)
+      .expecting("editor current file contents to equal expected contents")
+      .until(() -> editor.getCurrentFileContents().equals(expected));
   }
 }

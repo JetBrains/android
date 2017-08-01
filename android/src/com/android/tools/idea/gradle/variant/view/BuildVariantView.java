@@ -490,8 +490,8 @@ public class BuildVariantView {
         editor.setBorder(BorderFactory.createEmptyBorder());
         editor.addItemListener(e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
-            BuildVariantItem selected1 = (BuildVariantItem)e.getItem();
-            buildVariantSelected(selected1.myModuleName, selected1.myBuildVariantName);
+            BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
+            buildVariantSelected(selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
           }
         });
         DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);

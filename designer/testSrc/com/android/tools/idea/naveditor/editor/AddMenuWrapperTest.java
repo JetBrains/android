@@ -25,9 +25,17 @@ import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.ResourceUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.mockito.Mockito;
+import sun.awt.image.ToolkitImage;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,10 +52,10 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    component(TAG_NAVIGATION).unboundedChildren(
-                      component(TAG_FRAGMENT).id("@id/fragment1"),
-                      component(TAG_NAVIGATION).id("@id/subnav")
-                        .unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment2"))))
+                    rootComponent().unboundedChildren(
+                      fragmentComponent("fragment1"),
+                      navigationComponent("subnav")
+                        .unboundedChildren(fragmentComponent("fragment2"))))
       .build();
     mySurface = new NavDesignSurface(getProject(), getTestRootDisposable());
     mySurface.setSize(1000, 1000);
@@ -84,7 +92,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
                  newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID));
   }
 
-  public void testAdd() throws Exception {
+  public void testAddDirectly() throws Exception {
     myMenu.addElement(mySurface, "myTag", "myId", "myName", component -> component.setAttribute("ns", "attr", "value"));
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +
@@ -279,5 +287,36 @@ public class AddMenuWrapperTest extends NavigationTestCase {
 
     Mockito.verify(menu)
       .addElement(eq(mySurface), eq("include"), eq("myId"), eq("myLabel"), any(Consumer.class));
+  }
+
+  public void testImageLoading() throws Exception {
+    Lock lock = new ReentrantLock();
+    lock.lock();
+
+    // use createImage so the instances are different
+    ToolkitImage image = (ToolkitImage)Toolkit.getDefaultToolkit().createImage(
+      ResourceUtil.getResource(AndroidIcons.class, "/icons/naveditor", "basic-activity.png"));
+    image.preload((img, infoflags, x, y, width, height) -> {
+      lock.lock();
+      return false;
+    });
+
+    MediaTracker tracker = new MediaTracker(new JPanel());
+    tracker.addImage(image, 0);
+
+    NavActionManager.Destination dest = new NavActionManager.Destination(null, "foo", "foo", "fragment", image);
+
+    AddMenuWrapper menu = new AddMenuWrapper(mySurface, ImmutableList.of(dest));
+    menu.createCustomComponentPopup();
+    assertTrue(menu.myLoadingPanel.isLoading());
+    lock.unlock();
+    tracker.waitForAll();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertFalse(menu.myLoadingPanel.isLoading());
+
+    // Now images are loaded, make sure a new menu doesn't even have the loading panel
+    menu = new AddMenuWrapper(mySurface, ImmutableList.of(dest));
+    menu.createCustomComponentPopup();
+    assertNull(menu.myLoadingPanel);
   }
 }

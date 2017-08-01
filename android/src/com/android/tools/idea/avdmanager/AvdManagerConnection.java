@@ -466,7 +466,7 @@ public class AvdManagerConnection {
     }
 
     // Control fast boot
-    if (AvdWizardUtils.emulatorSupportsFastBoot()) {
+    if (AvdWizardUtils.emulatorSupportsFastBoot(mySdkHandler)) {
       if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
         commandLine.addParameter("-no-snapstorage");
       }
@@ -484,6 +484,7 @@ public class AvdManagerConnection {
    */
   @VisibleForTesting
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
+    if (mySdkHandler == null) return false; // Don't know, so guess
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
     if (sdkPackage == null) {

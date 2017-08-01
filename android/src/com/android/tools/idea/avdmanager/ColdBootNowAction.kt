@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.avdmanager.AvdWizardUtils.USE_COLD_BOOT
+import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.icons.AllIcons
 
 import java.awt.event.ActionEvent
@@ -42,6 +43,7 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
   }
 
   override fun isEnabled(): Boolean {
-    return avdInfo != null && AvdWizardUtils.emulatorSupportsFastBoot()
+    return avdInfo != null
+        && AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())
   }
 }

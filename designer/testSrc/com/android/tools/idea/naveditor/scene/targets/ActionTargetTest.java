@@ -42,19 +42,16 @@ import static org.mockito.Mockito.when;
  */
 public class ActionTargetTest extends NavigationTestCase {
   public void testSelect() throws Exception {
-    ComponentDescriptor root = component(TAG_NAVIGATION)
-      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+    ComponentDescriptor root = rootComponent()
+      .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"),
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+        fragmentComponent("fragment2")
+          .withLayoutAttribute("activity_main2"),
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_main")
           .unboundedChildren(
-            component(NavigationSchema.TAG_ACTION)
-              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
-              .id("@+id/action1")));
+            actionComponent("action1")
+              .withDestinationAttribute("fragment2")));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();

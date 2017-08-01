@@ -161,5 +161,5 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
 // TODO: replace with an appropriate dynamically-determined icon
 @VisibleForTesting
 @JvmField
-val ACTIVITY_IMAGE: Image = Toolkit.getDefaultToolkit().createImage(
+val ACTIVITY_IMAGE: Image = Toolkit.getDefaultToolkit().getImage(
     ResourceUtil.getResource(AndroidIcons::class.java, "/icons/naveditor", "basic-activity.png"))

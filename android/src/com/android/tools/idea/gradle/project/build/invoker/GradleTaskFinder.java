@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
-import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -41,6 +41,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -119,7 +120,7 @@ public class GradleTaskFinder {
           break;
         case ASSEMBLE:
         case REBUILD:
-          tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
+          addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TASK_NAME);
 
           // Add assemble tasks for tests.
           if (testCompileType != TestCompileType.NONE) {
@@ -129,6 +130,10 @@ public class GradleTaskFinder {
               }
             }
           }
+
+          // Add assemble tasks for tested variants in test-only modules
+          addAssembleTasksForTargetVariants(tasks, module);
+
           break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
@@ -158,6 +163,36 @@ public class GradleTaskFinder {
         }
         if (TestCompileType.UNIT_TESTS.equals(testCompileType)) {
           tasks.add(createBuildTask(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
+        }
+      }
+    }
+  }
+
+  private void addAssembleTasksForTargetVariants(@NotNull List<String> tasks, @NotNull Module testOnlyModule) {
+    AndroidModuleModel testAndroidModel = AndroidModuleModel.get(testOnlyModule);
+
+    if (testAndroidModel == null ||
+        !testAndroidModel.getFeatures().isTestedTargetVariantsSupported() ||
+        testAndroidModel.getAndroidProject().getProjectType() != AndroidProject.PROJECT_TYPE_TEST) {
+      // If we don't have the target module and variant to be tested, no task should be added.
+      return;
+    }
+
+    for (TestedTargetVariant testedTargetVariant : testAndroidModel.getSelectedVariant().getTestedTargetVariants()) {
+      String targetProjectGradlePath = testedTargetVariant.getTargetProjectPath();
+      Module targetModule = findModuleByGradlePath(testOnlyModule.getProject(), targetProjectGradlePath);
+
+      // Adds the assemble task for the tested variants
+      if (targetModule != null) {
+        AndroidModuleModel targetAndroidModel = AndroidModuleModel.get(targetModule);
+
+        if (targetAndroidModel != null) {
+          String targetVariantName = testedTargetVariant.getTargetVariant();
+          Variant targetVariant = targetAndroidModel.findVariantByName(targetVariantName);
+
+          if (targetVariant != null) {
+            addTaskIfSpecified(tasks, targetProjectGradlePath, targetVariant.getMainArtifact().getAssembleTaskName());
+          }
         }
       }
     }

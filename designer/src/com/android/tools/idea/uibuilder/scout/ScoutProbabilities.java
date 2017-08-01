@@ -152,6 +152,7 @@ public class ScoutProbabilities {
 
         // this provides the sequence of connections
         //pickColumnWidgets(list);
+        ScoutChains.pick(list);
         pickCenterOverlap(list);
         pickBaseLineConnections(list); // baseline first
         pickCenteredConnections(list, true); // centered connections that stretch
@@ -439,7 +440,7 @@ public class ScoutProbabilities {
         }
         ScoutWidget[] centeredMax =
                 { centeredVertical, centeredVertical, centeredHorizontal, centeredHorizontal };
-        // build table of widgets open from each direction
+        // build ourConverts of widgets open from each direction
         for (int j = 0; j < directions.length; j++) {
             Direction direction = directions[j];
             ArrayList<ScoutWidget> tmp = new ArrayList<ScoutWidget>();

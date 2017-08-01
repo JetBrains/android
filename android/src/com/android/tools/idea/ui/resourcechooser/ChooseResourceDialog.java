@@ -23,6 +23,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.SearchField;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
@@ -35,10 +36,9 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.android.utils.HtmlBuilder;
@@ -64,6 +64,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -120,7 +121,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
-  public static final String APP_NAMESPACE_LABEL = "Project";
+  private static final String APP_NAMESPACE_LABEL = "Project";
   private static final int GRID_ICON_SIZE = JBUI.scale(50);
   private static final int GRID_CHECK_SIZE = JBUI.scale(8);
   private static final int GRID_CELL_SIZE = JBUI.scale(120);
@@ -130,9 +131,12 @@ public class ChooseResourceDialog extends DialogWrapper {
   static final int TABLE_CELL_HEIGHT = JBUI.scale(30);
   private static final JBColor LIST_DIVIDER_COLOR = new JBColor(Gray._245, Gray._80);
   private static final JBInsets LIST_PADDING = JBUI.insets(7, 6);
-  public static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
-  static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
-                                                                                       SimpleTextAttributes.STYLE_SEARCH_MATCH);
+  private static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
+  private static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
+                                                                                               SimpleTextAttributes.STYLE_SEARCH_MATCH);
+  private static final Action[] EMPTY_ACTIONS = new Action[0];
+  private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;
@@ -306,18 +310,16 @@ public class ChooseResourceDialog extends DialogWrapper {
     myResourceNameVisibility = resourceNameVisibility;
 
     // Treat mipmaps as a type of drawable
-    types = types.clone();
-    if (types.contains(ResourceType.MIPMAP)) {
-      types.add(ResourceType.DRAWABLE);
-      types.remove(ResourceType.MIPMAP);
+    myTypes = types.clone();
+    if (myTypes.contains(ResourceType.MIPMAP)) {
+      myTypes.add(ResourceType.DRAWABLE);
+      myTypes.remove(ResourceType.MIPMAP);
     }
 
     // You can specify a color in place of a drawable
-    if (types.contains(ResourceType.DRAWABLE) || types.contains(ResourceType.MIPMAP) && !types.contains(ResourceType.COLOR)) {
-      types.add(ResourceType.COLOR);
+    if (myTypes.contains(ResourceType.DRAWABLE) || types.contains(ResourceType.MIPMAP) && !types.contains(ResourceType.COLOR)) {
+      myTypes.add(ResourceType.COLOR);
     }
-
-    myTypes = types;
 
     myHideLeftSideActions = hideLeftSideActions;
     myResourceNameSuggestion = resourceNameSuggestion;
@@ -452,7 +454,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     ToggleAction listView = createListViewAction();
     ToggleAction gridView = createGridViewAction();
     DefaultActionGroup group = new DefaultActionGroup(listView, gridView);
-    JComponent component = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+    JComponent component = ActionManager.getInstance().createActionToolbar("ResourceViewOptionToolbar", group, true).getComponent();
     component.setBorder(null);
     component.setMaximumSize(new Dimension(JBUI.scale(100), component.getMaximumSize().height));
     return component;
@@ -474,7 +476,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     List<ResourceType> sorted = Lists.newArrayList(myTypes);
     // Sort drawables above colors
-    Collections.sort(sorted, Comparator.comparingInt(ChooseResourceDialog::typeRank));
+    sorted.sort(Comparator.comparingInt(ChooseResourceDialog::typeRank));
 
     int defaultTypesIndex = 0;
     int currentTypeIndex = 0;
@@ -529,8 +531,9 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   private final Map<ResourceType, ResourcePanel> myTypeToPanels = Maps.newEnumMap(ResourceType.class);
 
-  private ResourcePanel getPanel(@Nullable JTabbedPane tabbedPane, @NotNull ResourceType type) {
+  private ResourcePanel getPanel(@Nullable JTabbedPane tabbedPane, @NotNull ResourceType resourceType) {
     // All ResourceType requests for MIPMAP should be converted into a drawable instead
+    ResourceType type = resourceType;
     if (type == ResourceType.MIPMAP) { // mipmaps are treated as drawables
       type = ResourceType.DRAWABLE;
     }
@@ -711,7 +714,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
 
       // If the search ends with a space, use the exact text value
-      if(text.endsWith(" ")) {
+      if (text.endsWith(" ")) {
         return StringUtil.equalsIgnoreCase(item.getName(), text.trim()); // Text needs to be trimmed to match the item name
       }
       return StringUtil.containsIgnoreCase(item.getName(), text);
@@ -1063,7 +1066,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   // actions (by overriding createLeftSideActions() with the below method body) such that they're not listed redundantly.
   @NotNull
   protected Action[] getCreateActions() {
-    return !myHideLeftSideActions ? new Action[]{createNewResourceAction()} : new Action[0];
+    return !myHideLeftSideActions ? new Action[]{createNewResourceAction()} : EMPTY_ACTIONS;
   }
 
   /**
@@ -1115,7 +1118,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @Nullable
-  Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize, @Nullable Runnable onLoadComplete) {
+  private Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize, @Nullable Runnable onLoadComplete) {
     Icon cachedIcon = item.getIcon(size);
     if (cachedIcon != null) {
       return cachedIcon;
@@ -1305,7 +1308,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (!themeItems.isEmpty()) {
         groups.add(themeItems);
       }
-      myGroups = groups.toArray(new ResourceChooserGroup[0]);
+      myGroups = groups.toArray(EMPTY_RESOURCE_CHOOSER_GROUPS);
 
       myComponent = new JBSplitter(false, 0.5f);
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
@@ -1420,6 +1423,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           }
         });
         columnModel.getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+          @SuppressWarnings("AssignmentToMethodParameter") // for value
           @Override
           public Component getTableCellRendererComponent(JTable table,
                                                          Object value,
@@ -1988,172 +1992,177 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
       if (gridView && supportsGridMode()) {
-        // Using a DefaultListCellRenderer instead of a SimpleColoredComponent here because we want
-        // to use HTML labels in order to handle line breaking with <nobr> and <br> tags
-        ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
-          {
-            setHorizontalTextPosition(SwingConstants.CENTER);
-            setVerticalTextPosition(SwingConstants.BOTTOM);
-            setHorizontalAlignment(SwingConstants.CENTER);
-          }
-
-          private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
-          private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
-
-          @Override
-          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            DefaultListCellRenderer component =
-              (DefaultListCellRenderer)super.getListCellRendererComponent(list, value, index, isSelected, false);
-
-            final Border border = component.getBorder();
-            component.setBorder(new AbstractBorder() {
-              @Override
-              public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                border.paintBorder(c, g, x, y, width, height);
-              }
-            });
-
-            // TODO show deprecated resources with a strikeout
-            ResourceChooserItem rItem = (ResourceChooserItem)value;
-            setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE, myList::repaint));
-
-            String name = rItem.getName();
-
-            String filter = mySearchField.getText();
-            int match = -1;
-            if (!filter.isEmpty()) {
-              match = StringUtil.indexOfIgnoreCase(name, filter, 0);
-            }
-
-            int breakPoint = -1;
-            if (name.length() > CHARS_PER_CELL) {
-              breakPoint = name.indexOf('_', CHARS_PER_CELL / 2);
-              if (breakPoint == -1 || breakPoint >= CHARS_PER_CELL || name.length() - breakPoint >= CHARS_PER_CELL) {
-                breakPoint = CHARS_PER_CELL;
-              }
-              else {
-                breakPoint++;
-              }
-            }
-
-            if (match != -1 || breakPoint != -1) {
-              HtmlBuilder builder = new HtmlBuilder();
-              builder.openHtmlBody();
-              builder.beginNoBr();
-              if (match == -1) {
-                // Just a breakpoint:
-                builder.add(name, 0, breakPoint);
-                builder.newline();
-                builder.add(name, breakPoint, name.length());
-              }
-              else if (breakPoint == -1) {
-                // Just a match
-                builder.add(name, 0, match);
-                builder.beginColor(JBColor.BLUE);
-                builder.beginBold();
-                builder.add(name, match, match + filter.length());
-                builder.endBold();
-                builder.endColor();
-                builder.add(name, match + filter.length(), name.length());
-              }
-              else {
-                // Both:
-                if (breakPoint < match) {
-                  builder.add(name, 0, breakPoint);
-                  builder.newline();
-                  builder.add(name, breakPoint, match);
-                }
-                else {
-                  builder.add(name, 0, match);
-                }
-                builder.beginColor(JBColor.BLUE);
-                builder.beginBold();
-                builder.add(name, match, match + filter.length());
-                builder.endBold();
-                builder.endColor();
-                // We don't show a breakpoint inside the matched region, we'll
-                // put it right after if that's where it appeared
-                if (breakPoint >= match && breakPoint < match + filter.length()) {
-                  builder.newline();
-                  builder.add(name, match + filter.length(), name.length());
-                }
-                else if (match < breakPoint) {
-                  builder.add(name, match + filter.length(), breakPoint);
-                  builder.newline();
-                  builder.add(name, breakPoint, name.length());
-                }
-              }
-              builder.endNoBr();
-              builder.closeHtmlBody();
-              component.setText(builder.getHtml());
-            }
-            return component;
-          }
-        };
-        myList.setFixedCellWidth(GRID_CELL_SIZE);
-        myList.setFixedCellHeight(GRID_CELL_SIZE);
-        //noinspection unchecked
-        myList.setCellRenderer(gridRenderer);
-        myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        configureGridList(myList);
       }
       else {
-        ColoredListCellRenderer<ResourceChooserItem> listRenderer = new ColoredListCellRenderer<ResourceChooserItem>() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, ResourceChooserItem value, int index, boolean selected,
-                                               boolean hasFocus) {
-            if (!hasFocus) {
-              setBorder(new AbstractBorder() {
-                @Override
-                public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                  Color oldColor = g.getColor();
-                  g.setColor(LIST_DIVIDER_COLOR);
-                  int thickness = 1;
-                  g.fillRect(x, y + height - thickness, width, thickness);
-                  g.setColor(oldColor);
-                }
-              });
-            }
-            else {
-              // Delegate, but mess with insets!
-              final Border border = getBorder();
-              setBorder(new AbstractBorder() {
-                @Override
-                public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                  border.paintBorder(c, g, x, y, width, height);
-                }
-              });
-            }
-            setIpad(LIST_PADDING);
+        configureVerticalList(myList);
+      }
+    }
 
-            // TODO: show deprecated resources with a strikeout
-            // TODO: show private resources in a different way (and offer copy to project)
-            setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE, myList::repaint));
+    private void configureVerticalList(@NotNull TreeGrid<ResourceChooserItem> list) {
+      ColoredListCellRenderer<ResourceChooserItem> listRenderer = new ColoredListCellRenderer<ResourceChooserItem>() {
+        @Override
+        protected void customizeCellRenderer(@NotNull JList list, ResourceChooserItem value, int index, boolean selected,
+                                             boolean hasFocus) {
+          if (!hasFocus) {
+            setBorder(new AbstractBorder() {
+              @Override
+              public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Color oldColor = g.getColor();
+                g.setColor(LIST_DIVIDER_COLOR);
+                int thickness = 1;
+                g.fillRect(x, y + height - thickness, width, thickness);
+                g.setColor(oldColor);
+              }
+            });
+          }
+          setIpad(LIST_PADDING);
 
-            String string = value.toString();
-            String filter = mySearchField.getText();
-            if (!filter.isEmpty()) {
-              int match = StringUtil.indexOfIgnoreCase(string, filter, 0);
-              if (match != -1) {
-                append(string.substring(0, match));
-                append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
-                append(string.substring(match + filter.length()));
-              }
-              else {
-                append(string);
-              }
+          // TODO: show deprecated resources with a strikeout
+          // TODO: show private resources in a different way (and offer copy to project)
+          setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE, list::repaint));
+
+          String string = value.toString();
+          String filter = mySearchField.getText();
+          if (!filter.isEmpty()) {
+            int match = StringUtil.indexOfIgnoreCase(string, filter, 0);
+            if (match != -1) {
+              append(string.substring(0, match));
+              append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
+              append(string.substring(match + filter.length()));
             }
             else {
               append(string);
             }
           }
-        };
-        // we use ANY fixed value here, as the width will stretch anyway, but we don't want the list to have to calculate it.
-        myList.setFixedCellWidth(10);
-        myList.setFixedCellHeight(LIST_CELL_HEIGHT);
-        //noinspection unchecked
-        myList.setCellRenderer(listRenderer);
-        myList.setLayoutOrientation(JList.VERTICAL);
-      }
+          else {
+            append(string);
+          }
+        }
+      };
+      // we use ANY fixed value here, as the width will stretch anyway, but we don't want the list to have to calculate it.
+      list.setFixedCellWidth(10);
+      list.setFixedCellHeight(LIST_CELL_HEIGHT);
+      //noinspection unchecked
+      list.setCellRenderer(listRenderer);
+      list.setLayoutOrientation(JList.VERTICAL);
+    }
+
+    private void configureGridList(@NotNull TreeGrid<ResourceChooserItem> list) {
+      // Using a DefaultListCellRenderer instead of a SimpleColoredComponent here because we want
+      // to use HTML labels in order to handle line breaking with <nobr> and <br> tags
+      ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
+        {
+          setHorizontalTextPosition(SwingConstants.CENTER);
+          setVerticalTextPosition(SwingConstants.BOTTOM);
+          setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
+        private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+          super.getListCellRendererComponent(list, value, index, isSelected, false);
+
+          if (!SystemInfo.isMac) {
+            // Bug 63478794
+            // On Linux and Windows, the backgrounds is paint on the whole row
+            // and covers everything on left of the icon.
+            // The workaround is to set the a transparent background and draw just a border instead
+            // The list used is probably not the correct one and we need to find the correct grid view to use
+            setBackground(UIUtil.TRANSPARENT_COLOR);
+            if (isSelected) {
+              setBorder(GRID_SELECTION_BORDER);
+              setForeground(JBColor.foreground());
+            }
+          }
+
+          // TODO show deprecated resources with a strikeout
+          ResourceChooserItem rItem = (ResourceChooserItem)value;
+          setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE, list::repaint));
+          highlightSearchResult(rItem);
+          return this;
+        }
+
+        private void highlightSearchResult(@NotNull ResourceChooserItem rItem) {
+          String name = rItem.getName();
+
+          String filter = mySearchField.getText();
+          int match = -1;
+          if (!filter.isEmpty()) {
+            match = StringUtil.indexOfIgnoreCase(name, filter, 0);
+          }
+
+          int breakPoint = -1;
+          if (name.length() > CHARS_PER_CELL) {
+            breakPoint = name.indexOf('_', CHARS_PER_CELL / 2);
+            if (breakPoint == -1 || breakPoint >= CHARS_PER_CELL || name.length() - breakPoint >= CHARS_PER_CELL) {
+              breakPoint = CHARS_PER_CELL;
+            }
+            else {
+              breakPoint++;
+            }
+          }
+
+          if (match != -1 || breakPoint != -1) {
+            HtmlBuilder builder = new HtmlBuilder();
+            builder.openHtmlBody();
+            builder.beginNoBr();
+            if (match == -1) {
+              // Just a breakpoint:
+              builder.add(name, 0, breakPoint);
+              builder.newline();
+              builder.add(name, breakPoint, name.length());
+            }
+            else if (breakPoint == -1) {
+              // Just a match
+              builder.add(name, 0, match);
+              builder.beginColor(JBColor.BLUE);
+              builder.beginBold();
+              builder.add(name, match, match + filter.length());
+              builder.endBold();
+              builder.endColor();
+              builder.add(name, match + filter.length(), name.length());
+            }
+            else {
+              // Both:
+              if (breakPoint < match) {
+                builder.add(name, 0, breakPoint);
+                builder.newline();
+                builder.add(name, breakPoint, match);
+              }
+              else {
+                builder.add(name, 0, match);
+              }
+              builder.beginColor(JBColor.BLUE);
+              builder.beginBold();
+              builder.add(name, match, match + filter.length());
+              builder.endBold();
+              builder.endColor();
+              // We don't show a breakpoint inside the matched region, we'll
+              // put it right after if that's where it appeared
+              if (breakPoint >= match && breakPoint < match + filter.length()) {
+                builder.newline();
+                builder.add(name, match + filter.length(), name.length());
+              }
+              else if (match < breakPoint) {
+                builder.add(name, match + filter.length(), breakPoint);
+                builder.newline();
+                builder.add(name, breakPoint, name.length());
+              }
+            }
+            builder.endNoBr();
+            builder.closeHtmlBody();
+            setText(builder.getHtml());
+          }
+        }
+      };
+      list.setFixedCellWidth(GRID_CELL_SIZE);
+      list.setFixedCellHeight(GRID_CELL_SIZE);
+      //noinspection unchecked
+      list.setCellRenderer(gridRenderer);
+      list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     }
 
     private void showNewResource(@NotNull ResourceEditorTab tab) {

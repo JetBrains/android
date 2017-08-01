@@ -41,7 +41,7 @@ public class InstallSdkPackageHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, Collections.singletonList(myPackageId));
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 }

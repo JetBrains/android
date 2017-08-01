@@ -19,6 +19,7 @@ import com.android.builder.model.SyncIssue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -26,10 +27,11 @@ import java.util.Objects;
  */
 public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myMessage;
   @Nullable private final String myData;
+  @Nullable private final List<String> myMultiLineMessage;
   private final int mySeverity;
   private final int myType;
   private final int myHashCode;
@@ -37,6 +39,7 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   public IdeSyncIssue(@NotNull SyncIssue issue, @NotNull ModelCache modelCache) {
     super(issue, modelCache);
     myMessage = issue.getMessage();
+    myMultiLineMessage = IdeModel.copyNewProperty(issue::getMultiLineMessage, null);
     myData = issue.getData();
     mySeverity = issue.getSeverity();
     myType = issue.getType();
@@ -67,6 +70,12 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   }
 
   @Override
+  @Nullable
+  public List<String> getMultiLineMessage() {
+    return myMultiLineMessage;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -78,6 +87,7 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
     return mySeverity == issue.mySeverity &&
            myType == issue.myType &&
            Objects.equals(myMessage, issue.myMessage) &&
+           Objects.equals(myMultiLineMessage, issue.myMultiLineMessage) &&
            Objects.equals(myData, issue.myData);
   }
 
@@ -87,7 +97,7 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myMessage, myData, mySeverity, myType);
+    return Objects.hash(myMessage, myMultiLineMessage, myData, mySeverity, myType);
   }
 
   @Override

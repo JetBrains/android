@@ -16,14 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
-import static com.google.common.truth.Truth.assertThat;
-
+/**
+ * Tests for {@link ViewEditorImpl}.
+ */
 public class ViewEditorImplTest extends AndroidTestCase {
 
   public void testIsDisplayable() {
@@ -86,20 +84,10 @@ public class ViewEditorImplTest extends AndroidTestCase {
       "    }\n" +
       "}";
 
-    myFixture.addFileToProject("src/android/support/annotation/RestrictTo.java", restrictText);
-    PsiFile hiddenFile = myFixture.addFileToProject("src/p1/p2/HiddenImageView.java", hiddenText);
-    PsiFile visibleFile = myFixture.addFileToProject("src/p1/p2/VisibleImageView.java", visibleText);
-    assertThat(ViewEditorImpl.isRestricted(getTopLevelClass(hiddenFile))).isTrue();
-    assertThat(ViewEditorImpl.isRestricted(getTopLevelClass(visibleFile))).isFalse();
-  }
-
-  @NotNull
-  private static PsiClass getTopLevelClass(@NotNull PsiFile file) {
-    for (PsiElement element : file.getChildren()) {
-      if (element instanceof PsiClass) {
-        return (PsiClass)element;
-      }
-    }
-    throw new IllegalArgumentException("No top level class found in file: " + file);
+    myFixture.addClass(restrictText);
+    PsiClass hiddenClass = myFixture.addClass(hiddenText);
+    PsiClass visibleClass = myFixture.addClass(visibleText);
+    assertTrue(ViewEditorImpl.isRestricted(hiddenClass));
+    assertFalse(ViewEditorImpl.isRestricted(visibleClass));
   }
 }

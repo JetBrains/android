@@ -238,7 +238,6 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Override
   protected void doHelpAction() {
     myDevicePicker.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE);
-    super.doHelpAction();
   }
 
   /**

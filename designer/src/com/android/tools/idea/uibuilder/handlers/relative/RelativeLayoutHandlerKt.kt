@@ -21,7 +21,9 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeWidgetTarget
 import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.SceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneInteraction
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
@@ -30,28 +32,19 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
 import java.awt.Graphics2D
 
-
 /**
  * Handler of New Target Architecture for the `<RelativeLayout>` layout
  * Current progress:
  * 1. Delegate all non target related functions to RelativeLayoutHandler.java
  * 2. Resizing target for widgets
  * 3. Dragging a widget inside RelativeLayout
+ * 4. Drag to other widgets
  *
- * TBD
- * - Drag to other widgets
- * - Decoration of relationships between widgets.
- * - Handle the case of multiple dragging component.
- * - Handle the case of dragging from palette?
+ * TODO:
+ * - Don't allow selecting multiple widgets.
+ * - Render the decoration by SceneManager
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
-
-  companion object {
-    /**
-     * The width of every edges which provide by RelativeLayout
-     */
-    const private val EDGE_WIDTH = 3
-  }
 
   // TODO: Remove this and migrate all delegated functions when this class is ready.
   private val myLegacyHandler = RelativeLayoutHandler()
@@ -70,7 +63,7 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
     val listBuilder = ImmutableList.Builder<Target>()
     if (isParent) {
       // RelativeLayout cases, create the target related to attributes of parent
-      createParentTargets(listBuilder, sceneComponent)
+      createParentTargets(listBuilder)
     }
     else {
       // children components cases
@@ -78,44 +71,20 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
       createResizeTarget(listBuilder)
 
       // create related target of this component.
-      createRelativeTargets(listBuilder, sceneComponent)
+      createWidgetTargets(listBuilder, sceneComponent)
     }
     return listBuilder.build()
   }
 
-  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>, relativeSceneComponent: SceneComponent) {
-    val x1 = relativeSceneComponent.drawX
-    val y1 = relativeSceneComponent.drawY
-    val x2 = x1 + relativeSceneComponent.drawWidth
-    val y2 = y1 + relativeSceneComponent.drawHeight
+  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>) =
+      RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
 
-    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.LEFT, x1, y1, x1 + EDGE_WIDTH, y2))
-    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.TOP, x1, y1, x2, y1 + EDGE_WIDTH))
-    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.RIGHT, x2 - EDGE_WIDTH, y1, x2, y2))
-    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.BOTTOM, x1, y2 - EDGE_WIDTH, x2, y2))
+  // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
+  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
+      ResizeBaseTarget.Type.values().forEach { listBuilder.add(RelativeResizeTarget(it)) }
 
-    // center horizontal create vertical line
-    listBuilder.add(
-        RelativeParentTarget(RelativeParentTarget.Type.CENTER_HORIZONTAL,(x1 + x2 - EDGE_WIDTH) / 2, y1, (x1 + x2 + EDGE_WIDTH) / 2, y2))
-    // center vertical create horizontal line
-    listBuilder.add(
-        RelativeParentTarget(RelativeParentTarget.Type.CENTER_VERTICAL, x1, (y1 + y2 - EDGE_WIDTH) / 2, x2, (y1 + y2 + EDGE_WIDTH) / 2))
-  }
-
-  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) {
-    // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
-    listBuilder
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT_TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.BOTTOM))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT))
-        .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
-  }
-
-  private fun createRelativeTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) {
-    // TODO: create target related to the component. (aboveTo, belowTo, ... etc)
-  }
+  private fun createWidgetTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) =
+      RelativeWidgetTarget.Type.values()
+          .filter { it !== RelativeWidgetTarget.Type.BASELINE || sceneComponent.nlComponent.getBaseline() != -1 }
+          .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
 }

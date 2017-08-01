@@ -302,7 +302,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 
@@ -794,7 +794,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       myConfigurables.remove(configurable);
       mySidePanel.reset();
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
 
     @NotNull

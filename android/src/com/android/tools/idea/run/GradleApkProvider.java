@@ -19,6 +19,8 @@ import com.android.build.OutputFile;
 import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
 import com.android.tools.apk.analyzer.AndroidApplicationInfo;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
@@ -26,36 +28,28 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
@@ -144,7 +138,7 @@ public class GradleApkProvider implements ApkProvider {
    * @return a list of ApkInfo objects for each additional runtime Apk
    */
   @NotNull
-  private static List<ApkInfo> getAdditionalApks(AndroidArtifact testArtifactInfo) {
+  private static List<ApkInfo> getAdditionalApks(@NotNull AndroidArtifact testArtifactInfo) {
     List<ApkInfo> result = new ArrayList<>();
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {
@@ -158,9 +152,9 @@ public class GradleApkProvider implements ApkProvider {
     return result;
   }
 
-  private static String getPackageId(File fileApk) throws ApkProvisionException {
-    try {
-      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(Archives.open(fileApk.toPath()));
+  private static String getPackageId(@NotNull File fileApk) throws ApkProvisionException {
+    try (Archive archive = Archives.open(fileApk.toPath())) {
+      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(archive);
       if(applicationInfo == AndroidApplicationInfo.UNKNOWN) {
         throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName());
       } else {
@@ -210,28 +204,41 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
 
-    ProjectBuildOutput outputModel = outputModels.findOutputModel(facet);
-    if (outputModel == null) {
-      return getApkFromPreBuildSync(variant, device, fromTestArtifact);
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
+      if (outputModel == null) {
+        throw new ApkProvisionException("Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
+      }
+
+      for (InstantAppVariantBuildOutput instantAppVariantBuildOutput : outputModel.getInstantAppVariantsBuildOutput()) {
+        if (instantAppVariantBuildOutput.getName().equals(variant.getName())) {
+          outputs.add(instantAppVariantBuildOutput.getOutput());
+        }
+      }
     }
+    else {
+      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(facet);
+      if (outputModel == null) {
+        return getApkFromPreBuildSync(variant, device, fromTestArtifact);
+      }
 
-    // Loop through the variants in the model and get the one that matches
-    for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
-      if (variantBuildOutput.getName().equals(variant.getName())) {
+      // Loop through the variants in the model and get the one that matches
+      for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
+        if (variantBuildOutput.getName().equals(variant.getName())) {
 
-        if (fromTestArtifact) {
-          // Get the output from the test artifact
-          for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
-            if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
-              outputs.addAll(testVariantBuildOutput.getOutputs());
+          if (fromTestArtifact) {
+            // Get the output from the test artifact
+            for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
+              if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
+                outputs.addAll(testVariantBuildOutput.getOutputs());
+              }
             }
           }
+          else {
+            // Get the output from the main artifact
+            outputs.addAll(variantBuildOutput.getOutputs());
+          }
         }
-        else {
-          // Get the output from the main artifact
-          outputs.addAll(variantBuildOutput.getOutputs());
-        }
-
       }
     }
 

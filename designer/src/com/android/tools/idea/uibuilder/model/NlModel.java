@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
@@ -84,7 +85,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   };
   private final Configuration myConfiguration;
-  private final List<ModelListener> myListeners = Lists.newArrayList();
+  private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -145,7 +146,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
       manager.addListener(this, myFacet, myFile, myConfiguration);
-      listenersCopy().forEach(listener -> listener.modelActivated(this));
+      myListeners.forEach(listener -> listener.modelActivated(this));
     }
   }
 
@@ -162,7 +163,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   private void deactivate() {
-    listenersCopy().forEach(listener -> listener.modelDeactivated(this));
+    myListeners.forEach(listener -> listener.modelDeactivated(this));
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
     manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
@@ -321,16 +322,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * added once.
    */
   public void addListener(@NotNull ModelListener listener) {
-    synchronized (myListeners) {
-      myListeners.remove(listener); // prevent duplicate registration
-      myListeners.add(listener);
-    }
+    myListeners.add(listener);
   }
 
   public void removeListener(@Nullable ModelListener listener) {
-    synchronized (myListeners) {
-      myListeners.remove(listener);
-    }
+    myListeners.remove(listener);
   }
 
   /**
@@ -340,7 +336,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * // moving all the derived data into the Scene.
    */
   public void notifyListenersModelUpdateComplete() {
-    listenersCopy().forEach(listener -> listener.modelDerivedDataChanged(this));
+    myListeners.forEach(listener -> listener.modelDerivedDataChanged(this));
   }
 
   /**
@@ -349,7 +345,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * TODO: move these listeners out of NlModel, since the model shouldn't care about being rendered.
    */
   public void notifyListenersRenderComplete() {
-    listenersCopy().forEach(listener -> listener.modelRendered(this));
+    myListeners.forEach(listener -> listener.modelRendered(this));
   }
 
   /**
@@ -360,7 +356,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param animate if true, warns the listeners to animate the layout update
    */
   public void notifyListenersModelLayoutComplete(boolean animate) {
-    listenersCopy().forEach(listener -> listener.modelChangedOnLayout(this, animate));
+    myListeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
   @NotNull
@@ -401,7 +397,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param animate should the changes be animated or not.
    */
   public void notifyLiveUpdate(boolean animate) {
-    new ArrayList<>(myListeners).forEach(listener -> listener.modelLiveUpdate(this, animate));
+    myListeners.forEach(listener -> listener.modelLiveUpdate(this, animate));
   }
 
   /**
@@ -1102,9 +1098,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       deactivate(); // ensure listeners are unregistered if necessary
     }
 
-    synchronized (myListeners) {
-      myListeners.clear();
-    }
+    myListeners.clear();
   }
 
   @Override
@@ -1187,7 +1181,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myModelVersion.increase(reason);
     updateTheme();
     myModificationTrigger = reason;
-    listenersCopy().forEach(listener -> listener.modelChanged(this));
+    myListeners.forEach(listener -> listener.modelChanged(this));
   }
 
   public ChangeType getLastChangeType() {
@@ -1196,11 +1190,5 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void resetLastChange() {
     myModificationTrigger = null;
-  }
-
-  private List<ModelListener> listenersCopy() {
-    synchronized (myListeners) {
-      return ImmutableList.copyOf(myListeners);
-    }
   }
 }

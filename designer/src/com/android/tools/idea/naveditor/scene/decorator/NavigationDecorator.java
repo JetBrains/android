@@ -26,18 +26,16 @@ import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 
 /**
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
  */
 public class NavigationDecorator extends SceneDecorator {
-  static final int BASELINE_OFFSET = 35;
-  static final int FONT_SIZE = 30;
+  private static final int BASELINE_OFFSET = 35;
+  private static final int FONT_SIZE = 30;
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {

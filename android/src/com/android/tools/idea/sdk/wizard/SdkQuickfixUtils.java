@@ -32,7 +32,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -62,7 +61,7 @@ public final class SdkQuickfixUtils {
   public static ModelWizardDialog createDialogForPaths(@Nullable Component parent,
                                                        @NotNull Collection<String> requestedPaths,
                                                        boolean backgroundable) {
-    return createDialog(null, parent, requestedPaths, null, null, getSdkHandler(), backgroundable);
+    return createDialog(null, parent, requestedPaths, null, null, getSdkHandler(), null, backgroundable);
   }
 
   /**
@@ -77,7 +76,7 @@ public final class SdkQuickfixUtils {
                                                           @NotNull Collection<UpdatablePackage> requestedPackages,
                                                           @NotNull Collection<LocalPackage> uninstallPackages,
                                                           boolean backgroundable) {
-    return createDialog(null, parent, null, requestedPackages, uninstallPackages, getSdkHandler(), backgroundable);
+    return createDialog(null, parent, null, requestedPackages, uninstallPackages, getSdkHandler(), null, backgroundable);
   }
 
   /**
@@ -88,7 +87,22 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialogForPaths(@Nullable Project project, @NotNull Collection<String> requestedPaths) {
-    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), false);
+    return createDialogForPaths(project, requestedPaths, null);
+  }
+
+  /**
+   * Create an SdkQuickFix dialog.
+   *
+   * @param project        The {@link Project} to use as a parent for the wizard dialog.
+   * @param requestedPaths The paths of packages to install. Callers should ensure that the given packages include remote versions.
+   * @param noOpMessage    Error message to show when nothing is going to be installed or uninstalled after resolving the resolved paths or
+   *                       null if there is no need to show an error.
+   */
+  @Nullable
+  public static ModelWizardDialog createDialogForPaths(@Nullable Project project,
+                                                       @NotNull Collection<String> requestedPaths,
+                                                       @Nullable String noOpMessage) {
+    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), noOpMessage, false);
   }
 
   public static void showSdkMissingDialog() {
@@ -97,7 +111,7 @@ public final class SdkQuickfixUtils {
     String okText = message("android.sdk.open.manager");
     String cancelText = CommonBundle.getCancelButtonText();
 
-    if (Messages.showOkCancelDialog((Project) null, msg, title, okText, cancelText, Messages.getErrorIcon()) == Messages.OK) {
+    if (Messages.showOkCancelDialog((Project)null, msg, title, okText, cancelText, Messages.getErrorIcon()) == Messages.OK) {
       showAndroidSdkManager();
     }
   }
@@ -125,6 +139,7 @@ public final class SdkQuickfixUtils {
                                         @Nullable Collection<UpdatablePackage> requestedPackages,
                                         @Nullable Collection<LocalPackage> requestedUninstalls,
                                         @Nullable AndroidSdkHandler sdkHandler,
+                                        @Nullable String noOpMessage,
                                         boolean backgroundable) {
     if (sdkHandler == null) {
       return null;
@@ -185,6 +200,9 @@ public final class SdkQuickfixUtils {
 
     // If everything was removed, don't continue.
     if (resolvedPackages.isEmpty() && resolvedUninstalls.isEmpty()) {
+      if (noOpMessage != null) {
+        Messages.showErrorDialog(project, noOpMessage, "SDK Manager");
+      }
       return null;
     }
     List<RemotePackage> installRequests = resolvedPackages.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList());

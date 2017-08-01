@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.Library;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;

@@ -41,7 +41,6 @@ import java.io.IOException;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,6 +51,8 @@ import static org.junit.Assert.assertNotNull;
 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppModuleTest {
+  private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Nullable private String myOldSavedCompanyDomain;
 

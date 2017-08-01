@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -141,7 +142,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import
     actionList.add(new WipeAvdDataAction(this));
 
-    if (AvdWizardUtils.emulatorSupportsFastBoot()) {
+    if (AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
       actionList.add(new ColdBootNowAction(this));
     }
     actionList.add(new ShowAvdOnDiskAction(this));

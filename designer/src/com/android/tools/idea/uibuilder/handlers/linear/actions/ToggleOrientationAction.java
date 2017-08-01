@@ -16,13 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
-import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import icons.AndroidDesignerIcons;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.intellij.openapi.command.WriteCommandAction;
+import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,11 +40,12 @@ public class ToggleOrientationAction extends LinearLayoutAction {
   protected void perform(@NotNull ViewEditor editor, @NotNull LinearLayoutHandler handler, @NotNull NlComponent component,
                          @NotNull List<NlComponent> selectedChildren,
                          @JdkConstants.InputEventMask int modifiers) {
-    if (!selectedChildren.isEmpty()) {
-      boolean isHorizontal = !handler.isVertical(component);
-      String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
-      component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
-    }
+    boolean isHorizontal = !handler.isVertical(component);
+    String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
+    NlModel model = editor.getModel();
+    WriteCommandAction.runWriteCommandAction(model.getProject(), "Change LinearLayout orientation", null,
+                                             () -> component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value),
+                                             model.getFile());
   }
 
   @Override
@@ -57,9 +57,8 @@ public class ToggleOrientationAction extends LinearLayoutAction {
                                     int modifiers) {
 
     boolean vertical = handler.isVertical(component);
-
-    presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
-    Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
+    presentation.setLabel("Convert orientation to " + (vertical ? VALUE_HORIZONTAL : VALUE_VERTICAL));
+    Icon icon = vertical ? AndroidIcons.Views.LinearLayout : AndroidIcons.Views.VerticalLinearLayout;
     presentation.setIcon(icon);
   }
 }

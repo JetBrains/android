@@ -128,6 +128,13 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       for (IDevice device : bridge.getDevices()) {
         deviceConnected(device);
       }
+    } else {
+      // Perfd must be spawned through ADB. When |bridge| is null, it means the ADB that was available earlier
+      // becomes invalid and every running perfd it had spawned is being killed. As a result, we should kill the
+      // corresponding proxies, too.
+      for (PerfdProxy proxy : myDeviceProxies.values()) {
+        proxy.disconnect();
+      }
     }
   }
 

@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Wizard to setup Android Studio before the first run
  */
 public class FirstRunWizard extends DynamicWizard {
-  public static final String WIZARD_TITLE = "Android Studio Setup Wizard";
+  private static final String WIZARD_TITLE = "Android Studio Setup Wizard";
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
@@ -66,7 +66,7 @@ public class FirstRunWizard extends DynamicWizard {
       if (initialSdkLocation.isDirectory()) {
         AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkExists = ((AndroidSdkHandler)sdkHandler).getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+        sdkExists = sdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
       }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
@@ -138,7 +138,7 @@ public class FirstRunWizard extends DynamicWizard {
     return "Android Studio Setup Wizard";
   }
 
-  public class FirstRunProgressStep extends ConsolidatedProgressStep {
+  private class FirstRunProgressStep extends ConsolidatedProgressStep {
     public FirstRunProgressStep() {
       super(getDisposable(), myHost);
       setPaths(myPaths);

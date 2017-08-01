@@ -23,7 +23,6 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.collect.ImmutableList;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.project.Project;
@@ -108,8 +107,17 @@ public class InstantRunBuildAnalyzer {
         return ImmutableList.of(new KillTask(myProject, myContext), updateStateTask);
       case HOTSWAP:
       case WARMSWAP:
-        return ImmutableList
-          .of(new HotSwapTask(myProject, myContext, deployType == DeployType.WARMSWAP), updateStateTask);
+        ImmutableList.Builder<LaunchTask> taskBuilder = new ImmutableList.Builder<>();
+        // Deploy resources APK(s) for O and above
+        if (myBuildInfo.hasOneOf(SPLIT)) {
+          taskBuilder.add(new SplitApkDeployTask(myProject, myContext, true));
+          taskBuilder.add(new UpdateAppInfoTask(myProject, myContext));
+        }
+        // Deploy Code and Resources changes below O
+        if (myBuildInfo.hasOneOf(RELOAD_DEX) || myBuildInfo.hasHotSwapResources()) {
+          taskBuilder.add(new HotSwapTask(myProject, myContext, deployType == DeployType.WARMSWAP));
+        }
+        return taskBuilder.add(updateStateTask).build();
       case SPLITAPK:
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
       case FULLAPK:

@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,7 @@ public class CpuProfilerTestUtils {
 
   public static CpuCapture getCapture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType)
     throws IOException, ExecutionException, InterruptedException {
-    CpuCaptureParser parser = new CpuCaptureParser(Runnable::run);
+    CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
     return parser.parse(FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
   }
 }

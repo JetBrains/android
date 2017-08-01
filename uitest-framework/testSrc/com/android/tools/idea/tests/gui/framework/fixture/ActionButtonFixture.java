@@ -20,13 +20,16 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Field;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
@@ -61,6 +64,25 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   @NotNull
   public static ActionButtonFixture findByText(@NotNull final String text, @NotNull Robot robot, @NotNull Container container) {
     final ActionButton button = robot.finder().find(container, Matchers.byText(ActionButton.class, text));
+    return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
+  public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @NotNull Container container) {
+    ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        try {
+          Field field = ActionButton.class.getDeclaredField("myIcon");
+          field.setAccessible(true);
+          JBUI.JBIcon fieldIcon = (JBUI.JBIcon)field.get(component);
+          return icon.equals(fieldIcon);
+        }
+        catch (NoSuchFieldException | IllegalAccessException e) {
+          return false;
+        }
+      }
+    });
     return new ActionButtonFixture(robot, button);
   }
 

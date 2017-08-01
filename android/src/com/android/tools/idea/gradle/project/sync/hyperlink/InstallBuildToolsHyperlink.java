@@ -66,7 +66,7 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
       }
       else {
         // TODO Change for plugin changed trigger if created
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
       }
     }
   }

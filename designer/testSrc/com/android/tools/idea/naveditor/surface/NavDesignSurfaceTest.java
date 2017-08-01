@@ -41,15 +41,13 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testComponentActivated() throws Exception {
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
-    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_main")
           .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
+        fragmentComponent("fragment2")
+          .withLayoutAttribute("activity_main2")
           .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
     ).build();
     surface.setModel(model);
@@ -63,13 +61,11 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testNoLayoutComponentActivated() throws Exception {
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
-    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1")
+        fragmentComponent("fragment1")
           .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment2")
+        fragmentComponent("fragment2")
           .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.BlankFragment"))
     ).build();
     surface.setModel(model);
@@ -83,15 +79,12 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testSubflowActivated() throws Exception {
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
-    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1"),
-        component(TAG_NAVIGATION)
-          .id("@+id/subnav")
-          .unboundedChildren(component(TAG_FRAGMENT)
-                               .id("@+id/fragment2")))
-      ).build();
+        fragmentComponent("fragment1"),
+        navigationComponent("subnav")
+          .unboundedChildren(fragmentComponent("fragment2")))
+    ).build();
     surface.setModel(model);
     assertEquals(model.getComponents().get(0), surface.getCurrentNavigation());
     NlComponent subnav = model.find("subnav");
@@ -100,14 +93,12 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
   }
 
   public void testDoubleClickFragment() throws Exception {
-    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment1")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_main"),
+        fragmentComponent("fragment2")
+          .withLayoutAttribute("activity_main2"))
     ).build();
 
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();

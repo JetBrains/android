@@ -129,8 +129,33 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
+      private int myTerminationCount = 0;
+      private boolean myWillBeDestroyed = true;
+
+      @Override
+      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+        Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger-processWillTerminate: " + pkgName +
+                                                               ", willBeDestroyed=" + willBeDestroyed);
+        myWillBeDestroyed = willBeDestroyed;
+        processTerminationCallback();
+      }
+
       @Override
       public void processTerminated(ProcessEvent event) {
+        Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger-processTerminated: " + pkgName);
+        processTerminationCallback();
+      }
+
+      /**
+       * In some cases (e.g. see b/37119032), processWillTerminate is called before processTerminated.
+       * Since we need to know if the process termination is a disconnect or a terminate, we forward both calls to this method,
+       * which perform its action only on the 2nd call (whichever it is).
+       */
+      private void processTerminationCallback() {
+        myTerminationCount++;
+        if (myTerminationCount != 2) {
+          return;
+        }
         debugProcessHandler.removeProcessListener(this);
 
         Client currentClient = device.getClient(pkgName);
@@ -139,13 +164,17 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
           return;
         }
 
-        Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger terminating, so terminating process: " + pkgName);
-        // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
-        try {
-          device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
-        }
-        catch (Exception e) {
-          // don't care..
+        if (myWillBeDestroyed) {
+          Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger terminating, so terminating process: " + pkgName);
+          // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
+          try {
+            device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
+          }
+          catch (Exception e) {
+            // don't care..
+          }
+        } else {
+          Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger detaching, leaving process alive: " + pkgName);
         }
       }
     });
