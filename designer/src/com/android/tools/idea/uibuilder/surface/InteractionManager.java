@@ -27,11 +27,13 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.util.PsiNavigateUtil;
+import com.intellij.pom.Navigatable;
+import com.intellij.psi.PsiElement;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -317,16 +319,15 @@ public class InteractionManager {
     public void mouseClicked(@NotNull MouseEvent event) {
       int x = event.getX();
       int y = event.getY();
+      int clickCount = event.getClickCount();
 
-      if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
+      if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
         NlComponent component = getComponentAt(x, y);
 
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-            // Warp to the text editor and show the corresponding XML for the
-            // double-clicked widget
-            PsiNavigateUtil.navigate(component.getTag());
+            navigateEditor(component, true);
           }
           else {
             SceneView view = mySurface.getSceneView(x, y);
@@ -341,10 +342,32 @@ public class InteractionManager {
             mySurface.notifyComponentActivate(component, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
           }
         }
+        return;
       }
-      else if (event.isPopupTrigger()) {
+
+      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1) {
+        NlComponent component = getComponentAt(x, y);
+        // TODO: find a way to move layout-specific logic elsewhere.
+        if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
+          navigateEditor(component, false);
+        }
+      }
+
+      if (event.isPopupTrigger()) {
         selectComponentAt(x, y, false, true);
         mySurface.getActionManager().showPopup(event);
+      }
+    }
+
+    /**
+     * Warp to the text editor and show the corresponding XML for the clicked widget.
+     * @param component the target we need to navigate to
+     * @param needFocusEditor true for focusing the editor after navigation. false otherwise.
+     */
+    private void navigateEditor(@NotNull NlComponent component, boolean needFocusEditor) {
+      PsiElement element = component.getTag().getNavigationElement();
+      if (PsiNavigationSupport.getInstance().canNavigate(element) && element instanceof Navigatable) {
+        ((Navigatable)element).navigate(needFocusEditor);
       }
     }
 
