@@ -382,10 +382,7 @@ public class WidgetConstraintPanel extends JPanel {
     model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
 
-    Project project = model.getProject();
-    XmlFile file = model.getFile();
-
-    myWriteAction = new NlWriteCommandAction(project, "Change Widget", file, () -> {
+    myWriteAction = new NlWriteCommandAction(component, "Change Widget", () -> {
       AttributesTransaction transaction2 = component.startAttributeTransaction();
 
       transaction2.setAttribute(nameSpace, attribute, value);
