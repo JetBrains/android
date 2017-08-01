@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "uitest-framework",
+    iml_files = ["uitest-framework.iml"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "designer",
     srcs = ["src"],
+    iml_files = ["designer.iml"],
     javacopts = [
         "-Xep:MissingCasesInEnumSwitch:WARN",
         "-Xep:IdentityBinaryExpression:WARN",
@@ -40,6 +41,7 @@ iml_module(
 
 iml_module(
     name = "designer-tests",
+    iml_files = ["designer-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [

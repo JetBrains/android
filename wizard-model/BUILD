@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "wizard-model",
     srcs = ["src"],
+    iml_files = ["wizard-model.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.wizard.WizardModelTestSuite",
     test_srcs = ["testSrc"],

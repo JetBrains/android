@@ -9,6 +9,16 @@ iml_module(
         "src",
         "gen",
     ],
+    bundle_data = [
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/lib:licenses",
+        "//tools/adt/idea/android/lib:bundled-libs",
+        "//tools/adt/idea/android:profiler-artifacts",
+    ] + glob([
+        "device-art-resources/**",
+        "build.xml",
+    ]),
+    iml_files = ["android.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
@@ -89,6 +99,7 @@ iml_module(
 
 iml_module(
     name = "android-tests",
+    iml_files = ["android-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_data = [
@@ -207,6 +218,7 @@ filegroup(
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
     }),
+    visibility = ["//visibility:public"],
 )
 
 maven_repo(

@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "profilers-ui",
     srcs = ["src"],
+    iml_files = ["profilers-ui.iml"],
     resources = ["resources"],
     tags = ["managed"],
     test_data = glob(["testData/**"]),

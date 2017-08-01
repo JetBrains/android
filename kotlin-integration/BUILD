@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "kotlin-integration-tests",
+    iml_files = ["kotlin-integration-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [

@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "profilers",
     srcs = ["src"],
+    iml_files = ["profilers.iml"],
     tags = ["managed"],
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
