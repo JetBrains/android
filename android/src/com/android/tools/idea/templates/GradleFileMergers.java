@@ -33,8 +33,9 @@ public class GradleFileMergers {
   static final String DEPENDENCIES = "dependencies";
 
   private static final ImmutableList<String> KNOWN_CONFIGURATIONS_IN_ORDER =
-    ImmutableList.of("feature", "api", "implementation", "compile", "testImplementation", "testCompile",
-                     "androidTestImplementation", "androidTestCompile");
+    ImmutableList.of("feature", "api", "implementation", "compile",
+                     "testApi", "testImplementation", "testCompile",
+                     "androidTestApi", "androidTestImplementation", "androidTestCompile", "androidTestUtil");
 
   /**
    * Defined an ordering on gradle configuration names.
