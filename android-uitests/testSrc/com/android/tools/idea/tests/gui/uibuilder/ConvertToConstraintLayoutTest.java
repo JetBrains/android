@@ -83,6 +83,7 @@ public class ConvertToConstraintLayoutTest {
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    android:id=\"@+id/absoluteLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
@@ -110,43 +111,44 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
-                 "        android:layout_marginTop=\"<test>\"\n" +
                  "        android:ems=\"10\"\n" +
                  "        android:inputType=\"textPersonName\"\n" +
                  "        android:text=\"Name\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button3\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginEnd=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
-                 "        android:layout_marginTop=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button5\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/button5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button5\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginBottom=\"<test>\"\n" +
+                 "        android:layout_marginEnd=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
-                 "        app:layout_constraintBottom_toTopOf=\"parent\"\n" +
-                 "        app:layout_constraintEnd_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/button3\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button6\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:text=\"Button\"\n" +
-                 "        app:layout_constraintBottom_toTopOf=\"parent\"\n" +
-                 "        app:layout_constraintEnd_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button5\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/button3\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";
@@ -199,6 +201,7 @@ public class ConvertToConstraintLayoutTest {
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    android:id=\"@+id/linearLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"wrap_content\">\n" +
                  "\n" +
@@ -207,14 +210,17 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:text=\"Welcome\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/attending_remotely\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/attending_remotely\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintVertical_chainStyle=\"packed\" />\n" +
                  "\n" +
                  "    <FrameLayout\n" +
                  "        android:id=\"@+id/attending_remotely\"\n" +
                  "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:foreground=\"?android:selectableItemBackground\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/attending_in_person\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/title\">\n" +
@@ -238,6 +244,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:foreground=\"?android:selectableItemBackground\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/attending_remotely\">\n" +
