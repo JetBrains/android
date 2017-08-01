@@ -33,7 +33,7 @@ public class IdeTestOptions extends IdeModel implements TestOptions {
   public IdeTestOptions(@NotNull TestOptions testOptions, @NotNull ModelCache modelCache) {
     super(testOptions, modelCache);
     myAnimationsDisabled = testOptions.getAnimationsDisabled();
-    myExecutionEnum = testOptions.getExecutionEnum();
+    myExecutionEnum = testOptions.getExecution();
     myHashCode = calculateHashCode();
   }
 
@@ -44,7 +44,7 @@ public class IdeTestOptions extends IdeModel implements TestOptions {
 
   @Override
   @Nullable
-  public Execution getExecutionEnum() {
+  public Execution getExecution() {
     return myExecutionEnum;
   }
 

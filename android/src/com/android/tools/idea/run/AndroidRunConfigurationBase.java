@@ -275,7 +275,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
         if (testArtifact != null &&
             testArtifact.getTestOptions() != null &&
-            testArtifact.getTestOptions().getExecutionEnum() == TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR) {
+            testArtifact.getTestOptions().getExecution() == TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR) {
           throw new ExecutionException("Debugging is not yet supported when using Android Tech Orchestrator.");
         }
       }

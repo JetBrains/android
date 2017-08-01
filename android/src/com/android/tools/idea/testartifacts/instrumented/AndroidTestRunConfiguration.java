@@ -513,7 +513,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     public RemoteAndroidTestRunner getRemoteAndroidTestRunner(@Nullable IdeAndroidArtifact artifact, @NotNull IDevice device) {
       return artifact != null &&
              artifact.getTestOptions() != null &&
-             Execution.ANDROID_TEST_ORCHESTRATOR.equals(artifact.getTestOptions().getExecutionEnum()) ?
+             Execution.ANDROID_TEST_ORCHESTRATOR.equals(artifact.getTestOptions().getExecution()) ?
              new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
              new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
     }
