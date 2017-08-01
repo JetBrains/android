@@ -69,11 +69,13 @@ public class ActionHandleTarget extends NavBaseTarget {
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myIsDragging = true;
     myComponent.getScene().needsRebuildList();
+    getComponent().setDragging(true);
   }
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myIsDragging = false;
+    getComponent().setDragging(false);
   }
 
   public void createAction(@NotNull SceneComponent destination) {

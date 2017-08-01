@@ -16,18 +16,18 @@
 package com.android.tools.idea.naveditor.scene.decorator;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
-import com.android.tools.idea.common.scene.draw.DrawTextRegion;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -86,11 +86,23 @@ public class NavigationDecorator extends SceneDecorator {
 
     DisplayList displayList = new DisplayList();
     super.buildList(displayList, time, sceneContext, component);
-
-    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
+    list.add(createDrawCommand(displayList, component));
   }
 
   private static boolean isRoot(@NotNull NavDesignSurface navSurface, @NotNull SceneComponent component) {
     return component.getNlComponent() == navSurface.getCurrentNavigation();
+  }
+
+  public static DrawCommand createDrawCommand(DisplayList list, SceneComponent component) {
+    int level = DrawCommand.COMPONENT_LEVEL;
+
+    if (component.isDragging()) {
+      level = DrawCommand.TOP_LEVEL;
+    }
+    else if (component.isSelected()) {
+      level = DrawCommand.COMPONENT_SELECTED_LEVEL;
+    }
+
+    return list.getCommand(level);
   }
 }
