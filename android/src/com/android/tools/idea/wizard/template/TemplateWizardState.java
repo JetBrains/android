@@ -88,38 +88,35 @@ public class TemplateWizardState implements Function<String, Object> {
   /**
    * Template handler responsible for instantiating templates and reading resources
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public Template myTemplate;
+  private Template myTemplate;
 
   /**
    * Targeted source set
    */
-  protected SourceProvider mySourceProvider;
+  private SourceProvider mySourceProvider;
 
   /**
    * Configured parameters, by id
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public final Map<String, Object> myParameters = new HashMap<String, Object>();
+  private final Map<String, Object> myParameters = new HashMap<>();
 
   /**
    * Ids for parameters which should be hidden (because the client wizard already
    * has information for these parameters)
    */
   // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myHidden = new HashSet<String>();
+  public final Set<String> myHidden = new HashSet<>();
 
   /**
    * Ids for parameters whose values should not change.
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myFinal = new HashSet<String>();
+  private final Set<String> myFinal = new HashSet<>();
 
   /**
    * Ids for parameters which have been modified directly by the user.
    */
   // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myModified = new HashSet<String>();
+  public final Set<String> myModified = new HashSet<>();
 
   public TemplateWizardState() {
     put(ATTR_IS_NEW_PROJECT, false);
@@ -132,6 +129,11 @@ public class TemplateWizardState implements Function<String, Object> {
     put(ATTR_AIDL_DIR, "src/main/aidl");
     put(ATTR_MANIFEST_DIR, "src/main");
     put(ATTR_TEST_DIR, "src/androidTest");
+  }
+
+  public TemplateWizardState(Template template) {
+    this();
+    myTemplate = template;
   }
 
   /**

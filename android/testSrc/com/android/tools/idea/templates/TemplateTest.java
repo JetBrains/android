@@ -1082,7 +1082,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       values.setParameterDefaults();
     }
     else {
-      TemplateMetadata projectMetadata = projectValues.myTemplate.getMetadata();
+      TemplateMetadata projectMetadata = projectValues.getTemplate().getMetadata();
       assertNotNull(projectMetadata);
       parameters = Iterables.concat(parameters, projectMetadata.getParameters());
     }
@@ -1424,20 +1424,20 @@ public class TemplateTest extends AndroidGradleTestCase {
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
         final RenderingContext projectContext =
-          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, projectState.myParameters);
+          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, projectState.getParameters());
         projectTemplate.render(projectContext);
         AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
 
         final RenderingContext context =
-          createRenderingContext(projectState.myTemplate, project, projectRoot, moduleRoot, projectState.myParameters);
-        projectState.myTemplate.render(context);
+          createRenderingContext(projectState.getTemplate(), project, projectRoot, moduleRoot, projectState.getParameters());
+        projectState.getTemplate().render(context);
         if (projectState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = projectState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
           final RenderingContext activityContext =
-            createRenderingContext(template, project, moduleRoot, moduleRoot, activityTemplateState.myParameters);
+            createRenderingContext(template, project, moduleRoot, moduleRoot, activityTemplateState.getParameters());
           template.render(activityContext);
           context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }

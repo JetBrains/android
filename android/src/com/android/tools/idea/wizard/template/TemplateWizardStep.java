@@ -370,13 +370,13 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   }
 
   public void refreshUiFromParameters() {
-    if (myTemplateState.myTemplate == null) {
+    if (myTemplateState.getTemplate() == null) {
       return;
     }
 
-    for (Parameter param : myTemplateState.myTemplate.getMetadata().getParameters()) {
+    for (Parameter param : myTemplateState.getTemplate().getMetadata().getParameters()) {
       if (param.initial != null && !myTemplateState.myModified.contains(param.id)) {
-        myTemplateState.myParameters.remove(param.id);
+        myTemplateState.getParameters().remove(param.id);
       }
     }
     myTemplateState.setParameterDefaults();
