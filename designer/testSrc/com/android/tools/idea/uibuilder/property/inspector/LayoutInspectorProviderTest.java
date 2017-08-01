@@ -16,7 +16,10 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -100,7 +103,7 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
     List<NlComponent> components = Collections.singletonList(component);
     Map<String, NlProperty> properties = getFakePropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
 
     InspectorPanel panel = mock(InspectorPanel.class);
     when(panel.addComponent(anyString(), anyString(), any())).thenAnswer(invocation -> new JLabel());

@@ -25,7 +25,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.cache.Cache;

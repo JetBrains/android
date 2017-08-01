@@ -16,9 +16,12 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +33,7 @@ import java.util.*;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 
-public class FavoritesInspectorProvider implements InspectorProvider {
+public class FavoritesInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   private final List<String> myStarredPropertyNames;
   private FavoritesInspectorComponent myInspectorComponent;
   private String myLastStarredPropertyListValue;
@@ -54,9 +57,9 @@ public class FavoritesInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NlPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                       @NotNull Map<String, NlProperty> properties,
+                                                                       @NotNull NlPropertiesManager propertiesManager) {
     if (myInspectorComponent == null) {
       myInspectorComponent = new FavoritesInspectorComponent(myStarredPropertyNames);
     }
@@ -94,7 +97,7 @@ public class FavoritesInspectorProvider implements InspectorProvider {
     return propertyName.substring(propertyName.indexOf(':') + 1);
   }
 
-  private static class FavoritesInspectorComponent implements InspectorComponent {
+  private static class FavoritesInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final List<String> myStarredPropertyNames;
     private final Map<String, NlComponentEditor> myEditorMap;
 

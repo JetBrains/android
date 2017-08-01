@@ -22,17 +22,16 @@ import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.PropertiesPanel;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
-import com.intellij.ide.CopyProvider;
-import com.intellij.ide.CutProvider;
-import com.intellij.ide.DeleteProvider;
-import com.intellij.ide.PasteProvider;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -65,8 +64,7 @@ import java.util.Map;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
-public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
-                                                         DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> implements ViewAllPropertiesAction.Model {
   static final String PROPERTY_MODE = "properties.mode";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
@@ -77,7 +75,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private final PTable myTable;
   private final JPanel myTablePanel;
   private final PTableModel myModel;
-  private final InspectorPanel myInspectorPanel;
+  private final InspectorPanel<NlPropertiesManager> myInspectorPanel;
   private final JBCardLayout myCardLayout;
   private final JPanel myCardPanel;
   private final PropertyChangeListener myPropertyChangeListener = this::scrollIntoView;
@@ -88,13 +86,12 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private PropertiesViewMode myPropertiesViewMode;
   private Runnable myRestoreToolWindowCallback;
 
-  public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
-    this(propertiesManager, parentDisposable, new NlPTable(new PTableModel()), null);
+  public NlPropertiesPanel(@NotNull Disposable parentDisposable) {
+    this(parentDisposable, new NlPTable(new PTableModel()), null);
   }
 
   @VisibleForTesting
-  NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager,
-                    @NotNull Disposable parentDisposable,
+  NlPropertiesPanel(@NotNull Disposable parentDisposable,
                     @NotNull PTable table,
                     @Nullable InspectorPanel inspectorPanel) {
     super(new BorderLayout());
@@ -124,7 +121,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
     myInspectorPanel = inspectorPanel != null
                        ? inspectorPanel
-                       : new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
+                       : new NlInspectorPanel(parentDisposable, createViewAllPropertiesLinkPanel(true));
 
     Disposer.register(parentDisposable, this);
 
@@ -228,6 +225,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     setAllPropertiesPanelVisible(false);
   }
 
+  @Override
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
@@ -266,6 +264,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     return result;
   }
 
+  @Override
   public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
     UIUtil.invokeLaterIfNeeded(() -> {
       // Bug:219552 : Make sure updateDefaultProperties is always called from the same thread (the UI thread)
@@ -279,7 +278,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     });
   }
 
-  private void updateDefaultProperties(@NotNull NlPropertiesManager propertiesManager) {
+  private void updateDefaultProperties(@NotNull PropertiesManager propertiesManager) {
     if (myComponents.isEmpty() || myProperties.isEmpty()) {
       return;
     }
@@ -369,6 +368,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     return mode;
   }
 
+  @Override
   public void activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
     Runnable selectEditor = () -> {
       // Restore a possibly minimized tool window

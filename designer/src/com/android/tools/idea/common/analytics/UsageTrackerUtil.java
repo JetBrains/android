@@ -16,9 +16,9 @@
 package com.android.tools.idea.common.analytics;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;

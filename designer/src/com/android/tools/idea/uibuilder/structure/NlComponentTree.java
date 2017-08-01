@@ -25,8 +25,10 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Sets;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -63,7 +65,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
 import java.awt.event.InputEvent;
@@ -76,7 +77,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDATE_DELAY_MSECS;
+import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
@@ -497,7 +498,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-    setScreenView((ScreenView)sceneView);
+    setScreenView(sceneView);
   }
 
   @Override

@@ -16,14 +16,14 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
-import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
@@ -49,8 +49,6 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";
@@ -116,9 +114,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myDesignSurface = myModel.getSurface();
     myScreenView = createScreen(myModel);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
-    NlInspectorProviders inspectorProviders = new NlInspectorProviders(myPropertiesManager, myDesignSurface);
-    when(myDesignSurface.getInspectorProviders(any(), any()))
-      .thenReturn(inspectorProviders);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     myUsageTracker = mockNlUsageTracker(myDesignSurface);
@@ -339,7 +334,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                                .withBounds(410, 310, 50, 100)
                                                .id("@id/imgv")
                                                .withAttribute(AUTO_URI, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, ".2")
-                                       ))));
+                                           ))));
     return builder.build();
   }
 
@@ -459,7 +454,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     return property;
   }
 
-  protected boolean isApplicable(@NotNull InspectorProvider provider, @NotNull NlComponent... componentArray) {
+  protected boolean isApplicable(@NotNull InspectorProvider<NlPropertiesManager> provider, @NotNull NlComponent... componentArray) {
     return provider.isApplicable(Arrays.asList(componentArray), getPropertyMap(Arrays.asList(componentArray)), myPropertiesManager);
   }
 }

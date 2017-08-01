@@ -34,10 +34,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -238,12 +235,6 @@ public class NlDesignSurface extends DesignSurface {
       return myPrimarySceneView;
     }
     return null;
-  }
-
-  @NotNull
-  @Override
-  public NlInspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
-    return new NlInspectorProviders(propertiesManager, parentDisposable);
   }
 
   @Nullable

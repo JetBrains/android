@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -77,14 +80,15 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     List<NlComponent> components = ImmutableList.of(mySwitch);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     List<NlComponentEditor> editors = inspector.getEditors();
     assertThat(editors.size()).isEqualTo(14);
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(editors.size() + 1);
 
     Set<String> inspectorProperties = new HashSet<>(new SwitchHandler().getInspectorProperties());
 
-    InspectorPanel panel = mock(InspectorPanel.class);
+    @SuppressWarnings("unchecked")
+    InspectorPanel<NlPropertiesManager> panel = mock(InspectorPanel.class);
     when(panel.addComponent(anyString(), anyString(), any())).thenAnswer(invocation -> new JLabel());
     inspector.attachToInspector(panel);
 
@@ -112,7 +116,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     List<NlComponent> components = ImmutableList.of(myImageView);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     inspector.updateProperties(components, properties, myPropertiesManager);
 
     NlComponentEditor srcEditor = inspector.getEditors().get(0);

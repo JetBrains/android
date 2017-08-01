@@ -16,7 +16,10 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -68,7 +71,7 @@ public class ProgressBarInspectorProviderTest extends PropertyTestCase {
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
 
-    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     List<NlComponentEditor> editors = inspector.getEditors();
     assertThat(editors.size()).isEqualTo(10);
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(11);
@@ -92,7 +95,7 @@ public class ProgressBarInspectorProviderTest extends PropertyTestCase {
     List<NlComponent> components = ImmutableList.of(myProgressBar);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    InspectorComponent<NlPropertiesManager> inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     inspector.refresh();
 
     assertThat(isEditorVisible(inspector, ATTR_STYLE, "")).isTrue();
@@ -134,15 +137,17 @@ public class ProgressBarInspectorProviderTest extends PropertyTestCase {
     assertThat(isEditorVisible(inspector, ATTR_INDETERMINATE)).isTrue();
   }
 
-  private static boolean isEditorVisible(@NotNull InspectorComponent inspector, @NotNull String attributeName) {
+  private static boolean isEditorVisible(@NotNull InspectorComponent<NlPropertiesManager> inspector, @NotNull String attributeName) {
     return isEditorVisible(inspector, attributeName, ANDROID_URI);
   }
 
-  private static boolean isEditorVisible(@NotNull InspectorComponent inspector, @NotNull String attributeName, @NotNull String namespace) {
+  private static boolean isEditorVisible(@NotNull InspectorComponent<NlPropertiesManager> inspector,
+                                         @NotNull String attributeName,
+                                         @NotNull String namespace) {
     return getEditor(inspector, attributeName, namespace).getComponent().isVisible();
   }
 
-  private static NlComponentEditor getEditor(@NotNull InspectorComponent inspector,
+  private static NlComponentEditor getEditor(@NotNull InspectorComponent<NlPropertiesManager> inspector,
                                              @NotNull String attributeName,
                                              @NotNull String namespace) {
     Optional<NlComponentEditor> attributeEditor =

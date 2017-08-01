@@ -16,10 +16,13 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -41,10 +44,10 @@ import static com.android.SdkConstants.TOOLS_URI;
  * Override {@link ViewHandler#getLayoutInspectorProperties()} when you want to show
  * editors in the properties inspector when the child view is focused in the layout editor.
  */
-public class LayoutInspectorProvider implements InspectorProvider {
+public class LayoutInspectorProvider implements InspectorProvider<NlPropertiesManager> {
 
   private final ViewHandlerManager myViewHandlerManager;
-  private final Map<String, InspectorComponent> myParentInspectors;
+  private final Map<String, InspectorComponent<NlPropertiesManager>> myParentInspectors;
 
   public LayoutInspectorProvider(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
@@ -76,12 +79,12 @@ public class LayoutInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NlPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                       @NotNull Map<String, NlProperty> properties,
+                                                                       @NotNull NlPropertiesManager propertiesManager) {
     assert components.size() >= 1;
     String parentTagName = getParentTagName(components);
-    InspectorComponent inspector = myParentInspectors.get(parentTagName);
+    InspectorComponent<NlPropertiesManager> inspector = myParentInspectors.get(parentTagName);
     assert inspector != null;
     inspector.updateProperties(components, properties, propertiesManager);
     return inspector;
@@ -92,7 +95,7 @@ public class LayoutInspectorProvider implements InspectorProvider {
     myParentInspectors.clear();
   }
 
-  private static class LayoutInspectorComponent implements InspectorComponent {
+  private static class LayoutInspectorComponent implements InspectorComponent<NlPropertiesManager> {
 
     private final String myTagName;
     private final List<String> myPropertyNames;

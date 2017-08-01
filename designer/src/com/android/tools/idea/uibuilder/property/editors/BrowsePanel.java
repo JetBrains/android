@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;

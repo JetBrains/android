@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.fixtures;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.base.Objects;

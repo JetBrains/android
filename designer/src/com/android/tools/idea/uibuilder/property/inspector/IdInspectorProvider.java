@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
@@ -34,7 +38,7 @@ import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.PreferenceTags.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class IdInspectorProvider implements InspectorProvider {
+public class IdInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   private IdInspectorComponent myComponent;
 
   @Override
@@ -77,7 +81,7 @@ public class IdInspectorProvider implements InspectorProvider {
     myComponent = null;
   }
 
-  static class IdInspectorComponent implements InspectorComponent {
+  static class IdInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final NlReferenceEditor myIdEditor;
     private final NlEnumEditor myWidthEditor;
     private final NlEnumEditor myHeightEditor;
@@ -87,7 +91,7 @@ public class IdInspectorProvider implements InspectorProvider {
     private NlProperty myLayoutWidth;
     private NlProperty myLayoutHeight;
 
-    public IdInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
+    public IdInspectorComponent(@NotNull PropertiesManager propertiesManager) {
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
       myWidthEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);

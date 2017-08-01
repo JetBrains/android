@@ -16,10 +16,14 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.inspector.TextInspectorProvider.TextInspectorComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.UIUtil;

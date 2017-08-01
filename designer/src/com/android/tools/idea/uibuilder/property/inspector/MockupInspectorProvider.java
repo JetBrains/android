@@ -1,10 +1,13 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
@@ -27,7 +30,7 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
  *
  * It will only be displayed if the user has already added a mockup to the selected component.
  */
-public class MockupInspectorProvider implements InspectorProvider {
+public class MockupInspectorProvider implements InspectorProvider<NlPropertiesManager> {
 
   private static final Set<String> MOCKUP_PROPERTIES = ImmutableSet.of(ATTR_MOCKUP);
   private MockupInspectorComponent myInspector;
@@ -44,9 +47,9 @@ public class MockupInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NlPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                       @NotNull Map<String, NlProperty> properties,
+                                                                       @NotNull NlPropertiesManager propertiesManager) {
     if (myInspector == null) {
       myInspector = new MockupInspectorComponent(propertiesManager.getProject());
     }
@@ -62,7 +65,7 @@ public class MockupInspectorProvider implements InspectorProvider {
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
-  private static class MockupInspectorComponent implements InspectorComponent {
+  private static class MockupInspectorComponent implements InspectorComponent<NlPropertiesManager> {
 
     public static final String TITLE = "View Mockup";
     private final NlReferenceEditor myOpacityEditor;

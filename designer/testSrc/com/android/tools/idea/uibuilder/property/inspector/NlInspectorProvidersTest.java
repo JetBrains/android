@@ -16,8 +16,9 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.google.common.collect.ImmutableList;
@@ -59,10 +60,10 @@ public class NlInspectorProvidersTest extends PropertyTestCase {
 
 
   public void testLookAndFeelChange() {
-    List<InspectorComponent> emptyInspectors = getInspectorsFor(ImmutableList.of());
-    List<InspectorComponent> textInspectors = getInspectorsFor(myTextView);
-    List<InspectorComponent> progressInspectors = getInspectorsFor(myProgressBar);
-    List<InspectorComponent> buttonInspectors = getInspectorsFor(myButton);
+    List<InspectorComponent<NlPropertiesManager>> emptyInspectors = getInspectorsFor(ImmutableList.of());
+    List<InspectorComponent<NlPropertiesManager>> textInspectors = getInspectorsFor(myTextView);
+    List<InspectorComponent<NlPropertiesManager>> progressInspectors = getInspectorsFor(myProgressBar);
+    List<InspectorComponent<NlPropertiesManager>> buttonInspectors = getInspectorsFor(myButton);
 
     assertSameInstances(emptyInspectors, getInspectorsFor(ImmutableList.of()));
     assertSameInstances(textInspectors, getInspectorsFor(myTextView));
@@ -80,26 +81,26 @@ public class NlInspectorProvidersTest extends PropertyTestCase {
   }
 
   @NotNull
-  private List<InspectorComponent> getInspectorsFor(@NotNull NlComponent component) {
+  private List<InspectorComponent<NlPropertiesManager>> getInspectorsFor(@NotNull NlComponent component) {
     return getInspectorsFor(ImmutableList.of(component));
   }
 
   @NotNull
-  private List<InspectorComponent> getInspectorsFor(@NotNull List<NlComponent> components) {
+  private List<InspectorComponent<NlPropertiesManager>> getInspectorsFor(@NotNull List<NlComponent> components) {
     Map<String, NlProperty> properties = getPropertyMap(components);
     return myProviders.createInspectorComponents(components, properties, myPropertiesManager);
   }
 
-  private static void assertSameInstances(@NotNull List<InspectorComponent> expected,
-                                          @NotNull List<InspectorComponent> actual) {
+  private static void assertSameInstances(@NotNull List<InspectorComponent<NlPropertiesManager>> expected,
+                                          @NotNull List<InspectorComponent<NlPropertiesManager>> actual) {
     assertThat(actual.size()).isEqualTo(expected.size());
     for (int index = 0; index < expected.size(); index++) {
       assertThat(actual.get(index)).isSameAs(expected.get(index));
     }
   }
 
-  private static void assertDifferentInstances(@NotNull List<InspectorComponent> expected,
-                                               @NotNull List<InspectorComponent> actual) {
+  private static void assertDifferentInstances(@NotNull List<InspectorComponent<NlPropertiesManager>> expected,
+                                               @NotNull List<InspectorComponent<NlPropertiesManager>> actual) {
     assertThat(actual.size()).isEqualTo(expected.size());
     for (int index = 0; index < expected.size(); index++) {
       assertThat(actual.get(index)).isNotSameAs(expected.get(index));

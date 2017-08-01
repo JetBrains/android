@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.property.AddPropertyItem;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.adtui.ptable.PTableCellEditorProvider;

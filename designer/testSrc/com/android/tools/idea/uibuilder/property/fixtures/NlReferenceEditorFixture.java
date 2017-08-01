@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.fixtures;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor.SliderWithTimeDelay;

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.common.property.inspector.InspectorProviders;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSetInspectorProvider;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.google.common.collect.ImmutableList;
@@ -24,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class NlInspectorProviders extends InspectorProviders {
-  protected final List<InspectorProvider> myProviders;
-  protected final InspectorProvider myNullProvider;
+public class NlInspectorProviders extends InspectorProviders<NlPropertiesManager> {
+  private final List<InspectorProvider<NlPropertiesManager>> myProviders;
+  private final InspectorProvider<NlPropertiesManager> myNullProvider;
 
   public NlInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(propertiesManager, parentDisposable);
@@ -44,13 +46,13 @@ public class NlInspectorProviders extends InspectorProviders {
 
   @NotNull
   @Override
-  protected List<InspectorProvider> getProviders() {
+  protected List<InspectorProvider<NlPropertiesManager>> getProviders() {
     return myProviders;
   }
 
   @NotNull
   @Override
-  protected InspectorProvider getNullProvider() {
+  protected InspectorProvider<NlPropertiesManager> getNullProvider() {
     return myNullProvider;
   }
 }

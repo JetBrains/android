@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.common.property.inspector.InspectorProviders;
+import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +27,11 @@ import java.util.List;
 /**
  * Creates the {@link InspectorProvider}s for navigation editor elements.
  */
-public class NavInspectorProviders extends InspectorProviders {
-  private final List<InspectorProvider> myProviders;
-  private final InspectorProvider myNullProvider;
+public class NavInspectorProviders extends InspectorProviders<NavPropertiesManager> {
+  private final List<InspectorProvider<NavPropertiesManager>> myProviders;
+  private final InspectorProvider<NavPropertiesManager> myNullProvider;
 
-  public NavInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
+  public NavInspectorProviders(@NotNull NavPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(propertiesManager, parentDisposable);
     NavigationInspectorProvider provider = new NavigationInspectorProvider();
     myNullProvider = provider;
@@ -40,13 +40,13 @@ public class NavInspectorProviders extends InspectorProviders {
 
   @NotNull
   @Override
-  protected List<InspectorProvider> getProviders() {
+  protected List<InspectorProvider<NavPropertiesManager>> getProviders() {
     return myProviders;
   }
 
   @NotNull
   @Override
-  protected InspectorProvider getNullProvider() {
+  protected InspectorProvider<NavPropertiesManager> getNullProvider() {
     return myNullProvider;
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.fixtures;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import org.jetbrains.annotations.NotNull;

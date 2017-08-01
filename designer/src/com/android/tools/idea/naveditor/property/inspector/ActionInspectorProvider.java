@@ -16,12 +16,12 @@
 package com.android.tools.idea.naveditor.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.naveditor.property.NavPropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -38,14 +38,14 @@ import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
  *
  * TODO: merge with NavigationInspectorProvider?
  */
-public class ActionInspectorProvider implements InspectorProvider {
-  private InspectorComponent myComponent;
+public class ActionInspectorProvider implements InspectorProvider<NavPropertiesManager> {
   private static final String[] ACTION_PROPERTIES = {NavigationSchema.ATTR_DESTINATION};
+  private InspectorComponent<NavPropertiesManager> myComponent;
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
-                              @NotNull NlPropertiesManager propertiesManager) {
+                              @NotNull NavPropertiesManager propertiesManager) {
     if (components.size() == 1) {
       return components.get(0).getTagName().equals(NavigationSchema.TAG_ACTION);
     }
@@ -54,9 +54,9 @@ public class ActionInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NavPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                        @NotNull Map<String, NlProperty> properties,
+                                                                        @NotNull NavPropertiesManager propertiesManager) {
     if (myComponent == null) {
       myComponent = new ActionInspectorComponent(properties, propertiesManager);
     }
@@ -69,16 +69,16 @@ public class ActionInspectorProvider implements InspectorProvider {
 
   }
 
-  private static class ActionInspectorComponent implements InspectorComponent {
+  private static class ActionInspectorComponent implements InspectorComponent<NavPropertiesManager> {
 
     private final List<NlComponentEditor> myEditors = new ArrayList<>();
 
     public ActionInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                                    @NotNull NlPropertiesManager propertiesManager) {
+                                    @NotNull NavPropertiesManager propertiesManager) {
       createEditors(properties, propertiesManager);
     }
 
-    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NlPropertiesManager propertiesManager) {
+    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NavPropertiesManager propertiesManager) {
       for (String propertyName : ACTION_PROPERTIES) {
         boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
         propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);
@@ -97,7 +97,7 @@ public class ActionInspectorProvider implements InspectorProvider {
     @Override
     public void updateProperties(@NotNull List<NlComponent> components,
                                  @NotNull Map<String, NlProperty> properties,
-                                 @NotNull NlPropertiesManager propertiesManager) {
+                                 @NotNull NavPropertiesManager propertiesManager) {
       myEditors.clear();
       createEditors(properties, propertiesManager);
     }

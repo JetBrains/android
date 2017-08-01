@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -37,8 +38,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -58,8 +59,8 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     myModel = new PTableModel();
     myTable = new MyTable(myModel);
-    myInspector = spy(new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JPanel()));
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myInspector = spy(new NlInspectorPanel(getTestRootDisposable(), new JPanel()));
+    myPanel = new NlPropertiesPanel(getTestRootDisposable(), myTable, myInspector);
   }
 
   @Override
@@ -300,14 +301,14 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void testInitialModeIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myPanel = new NlPropertiesPanel(getTestRootDisposable(), myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
   }
 
   public void testInitialModeFromMalformedOptionValueIsIgnored() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myPanel = new NlPropertiesPanel(getTestRootDisposable(), myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
   }
 

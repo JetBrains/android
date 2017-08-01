@@ -16,14 +16,13 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -57,7 +56,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     super.setUp();
     myPropertiesComponent = mock(PropertiesComponent.class);
     registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
-    myInspector = new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JLabel());
+    myInspector = new NlInspectorPanel(getTestRootDisposable(), new JLabel());
   }
 
   private void init(@NotNull NlComponent... componentArray) {

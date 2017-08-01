@@ -16,10 +16,14 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.api.PropertyComponentHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
@@ -31,9 +35,9 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-public class ViewInspectorProvider implements InspectorProvider {
+public class ViewInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
-  private final Map<String, InspectorComponent> myInspectors;
+  private final Map<String, InspectorComponent<NlPropertiesManager>> myInspectors;
 
   ViewInspectorProvider() {
     myInspectors = new HashMap<>();
@@ -68,12 +72,12 @@ public class ViewInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NlPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                       @NotNull Map<String, NlProperty> properties,
+                                                                       @NotNull NlPropertiesManager propertiesManager) {
     assert components.size() == 1;
     String tagName = components.get(0).getTagName();
-    InspectorComponent inspector = myInspectors.get(tagName);
+    InspectorComponent<NlPropertiesManager> inspector = myInspectors.get(tagName);
     assert inspector != null;
     inspector.updateProperties(components, properties, propertiesManager);
     return inspector;
@@ -84,7 +88,7 @@ public class ViewInspectorProvider implements InspectorProvider {
     myInspectors.clear();
   }
 
-  private static class ViewInspectorComponent implements InspectorComponent {
+  private static class ViewInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final String myComponentName;
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
@@ -101,7 +105,7 @@ public class ViewInspectorProvider implements InspectorProvider {
       createEditors(properties, propertiesManager);
     }
 
-    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NlPropertiesManager propertiesManager) {
+    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull PropertiesManager propertiesManager) {
       for (String propertyName : myPropertyNames) {
         boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
         propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);

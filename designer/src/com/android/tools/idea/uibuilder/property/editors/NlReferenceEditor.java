@@ -21,7 +21,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;

@@ -16,11 +16,12 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.utils.Pair;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -64,7 +65,7 @@ public class NlProperties {
   }
 
   @NotNull
-  public Table<String, String, NlPropertyItem> getProperties(@NotNull NlPropertiesManager propertiesManager,
+  public Table<String, String, NlPropertyItem> getProperties(@NotNull PropertiesManager propertiesManager,
                                                              @NotNull List<NlComponent> components) {
     AndroidFacet facet = getFacet(components);
     if (facet == null) {
@@ -75,7 +76,7 @@ public class NlProperties {
 
   @VisibleForTesting
   Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                      @NotNull NlPropertiesManager propertiesManager,
+                                                      @NotNull PropertiesManager propertiesManager,
                                                       @NotNull List<NlComponent> components) {
     return ApplicationManager.getApplication().runReadAction((Computable<Table<String, String, NlPropertyItem>>)() ->
       getPropertiesWithReadLock(facet, propertiesManager, components));
@@ -83,7 +84,7 @@ public class NlProperties {
 
   @NotNull
   private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull AndroidFacet facet,
-                                                                          @NotNull NlPropertiesManager propertiesManager,
+                                                                          @NotNull PropertiesManager propertiesManager,
                                                                           @NotNull List<NlComponent> components) {
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
@@ -172,7 +173,7 @@ public class NlProperties {
   public static void saveStarState(@Nullable String propertyNamespace,
                                    @NotNull String propertyName,
                                    boolean starred,
-                                   @NotNull NlPropertiesManager propertiesManager) {
+                                   @NotNull PropertiesManager propertiesManager) {
     String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
     List<String> favorites = new ArrayList<>();
     for (String starredProperty : getStarredProperties()) {
@@ -280,7 +281,7 @@ public class NlProperties {
   private static void setUpSrcCompat(@NotNull Table<String, String, NlPropertyItem> properties,
                                      @NotNull AndroidFacet facet,
                                      @NotNull List<NlComponent> components,
-                                     @NotNull NlPropertiesManager propertiesManager) {
+                                     @NotNull PropertiesManager propertiesManager) {
     NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
     if (srcProperty != null && shouldAddSrcCompat(facet, components)) {
       AttributeDefinition srcDefinition = srcProperty.getDefinition();

@@ -16,7 +16,10 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -85,7 +88,7 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
 
   public void testInspectorComponentCreation() {
     myPropertiesComponent.setValue(STARRED_PROP, TOOLS_NS_NAME_PREFIX + ATTR_ELEVATION + ";" + ATTR_VISIBILITY);
-    InspectorComponent inspector = createInspector(myTextView);
+    InspectorComponent<NlPropertiesManager> inspector = createInspector(myTextView);
     List<NlComponentEditor> editors = inspector.getEditors();
     assertThat(editors.size()).isEqualTo(2);
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(3);
@@ -105,8 +108,8 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
 
   public void testInspectorComponentAdjustToNewlySelectedComponents() {
     myPropertiesComponent.setValue(STARRED_PROP, TOOLS_NS_NAME_PREFIX + ATTR_ELEVATION + ";" + ATTR_VISIBILITY);
-    InspectorComponent inspector1 = createInspector(myTextView);
-    InspectorComponent inspector2 = createInspector(myProgressBar);
+    InspectorComponent<NlPropertiesManager> inspector1 = createInspector(myTextView);
+    InspectorComponent<NlPropertiesManager> inspector2 = createInspector(myProgressBar);
 
     assertThat(inspector1).isSameAs(inspector2);
     List<NlComponentEditor> editors = inspector2.getEditors();
@@ -125,7 +128,7 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
 
   public void testAttachToInspectorPanel() {
     myPropertiesComponent.setValue(STARRED_PROP, TOOLS_NS_NAME_PREFIX + ATTR_ELEVATION + ";" + ATTR_VISIBILITY);
-    InspectorComponent inspector = createInspector(myTextView);
+    InspectorComponent<NlPropertiesManager> inspector = createInspector(myTextView);
 
     InspectorPanel panel = mock(InspectorPanel.class);
     when(panel.addComponent(anyString(), anyString(), any())).thenAnswer(invocation -> new JLabel());
@@ -155,7 +158,7 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
   }
 
   @NotNull
-  private InspectorComponent createInspector(@NotNull NlComponent... componentArray) {
+  private InspectorComponent<NlPropertiesManager> createInspector(@NotNull NlComponent... componentArray) {
     List<NlComponent> components = Arrays.asList(componentArray);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();

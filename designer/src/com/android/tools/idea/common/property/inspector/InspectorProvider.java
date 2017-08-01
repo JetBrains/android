@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.inspector;
+package com.android.tools.idea.common.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
 
-public interface InspectorProvider {
+public interface InspectorProvider<PropMgr extends PropertiesManager<PropMgr>> {
   /**
-   * Returns true if this {@link InspectorProvider} should be used for the given
+   * Returns true if this {@code InspectorProvider} should be used for the given
    * components and properties.
    */
   boolean isApplicable(@NotNull List<NlComponent> components,
                        @NotNull Map<String, NlProperty> properties,
-                       @NotNull NlPropertiesManager propertiesManager);
+                       @NotNull PropMgr propertiesManager);
 
   /**
    * Return an {@link InspectorComponent} for editing a subset of properties for
@@ -39,9 +39,9 @@ public interface InspectorProvider {
    * for a given set of component types and properties.
    */
   @NotNull
-  InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                           @NotNull Map<String, NlProperty> properties,
-                                           @NotNull NlPropertiesManager propertiesManager);
+  InspectorComponent<PropMgr> createCustomInspector(@NotNull List<NlComponent> components,
+                                                    @NotNull Map<String, NlProperty> properties,
+                                                    @NotNull PropMgr propertiesManager);
 
 
   /**

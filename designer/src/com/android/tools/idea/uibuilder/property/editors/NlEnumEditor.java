@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;

@@ -31,9 +31,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
-import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -138,12 +136,6 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public NavSceneManager getSceneManager() {
     return (NavSceneManager)super.getSceneManager();
-  }
-
-  @NotNull
-  @Override
-  public NavInspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
-    return new NavInspectorProviders(propertiesManager, parentDisposable);
   }
 
   @Override
