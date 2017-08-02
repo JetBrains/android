@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
@@ -85,12 +85,12 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
     myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
     List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
-    SwatchComponent.SwatchIcon icon;
+    ResourceSwatchComponent.SwatchIcon icon;
     if (images.isEmpty()) {
-      icon = SwatchComponent.WARNING_ICON;
+      icon = ResourceSwatchComponent.WARNING_ICON;
     }
     else {
-      icon = new SwatchComponent.SquareImageIcon(Iterables.getLast(images));
+      icon = new ResourceSwatchComponent.SquareImageIcon(Iterables.getLast(images));
       icon.setIsStack(images.size() > 1);
     }
     component.setSwatchIcon(icon);

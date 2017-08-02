@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swing.ui;
+package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.swing.ui.ClickableLabel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -52,7 +53,7 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
 /**
  * Component that displays a clickable icon and a label or a text field with autocompletion
  */
-public class SwatchComponent extends JPanel {
+public class ResourceSwatchComponent extends JPanel {
 
   private static final String PRIVATE_ERROR_PATTERN = "%s is a private framework resource";
   private static final String NON_EXISTENT_ERROR_PATTERN = "The resource %s does not exist";
@@ -86,10 +87,10 @@ public class SwatchComponent extends JPanel {
   private final @NotNull Project myProject;
 
   /**
-   * Constructs a SwatchComponent that is composed of a clickable icon and a text field with autocompletion or a label
+   * Constructs a ResourceSwatchComponent that is composed of a clickable icon and a text field with autocompletion or a label
    * @param isEditor if true, this component has a text field with autocompletion, whereas if false, it has a label
    */
-  public SwatchComponent(@NotNull Project project, boolean isEditor) {
+  public ResourceSwatchComponent(@NotNull Project project, boolean isEditor) {
     super(new BorderLayout(PADDING, 0));
     setBorder(null);
     myProject = project;
