@@ -1,9 +1,9 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
-    name = "android-common",
+    name = "build-common",
     srcs = ["src"],
-    iml_files = ["android-common.iml"],
+    iml_files = ["build-common.iml"],
     resources = ["resources"],
     tags = ["managed"],
     test_resources = ["testResources"],

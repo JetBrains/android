@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="jps-model-impl" />
     <orderEntry type="module" module-name="jps-model-serialization" />
     <orderEntry type="module" module-name="android-jps-plugin" />
-    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="build-common" />
     <orderEntry type="library" name="Gradle" level="project" />
   </component>
 </module>
