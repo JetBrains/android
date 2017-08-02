@@ -48,7 +48,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * Deprecated by {@link TemplateValueInjector}
  */
 @Deprecated
-public class NewProjectWizardState extends TemplateWizardState {
+public class NewProjectWizardState {
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
 
   private static final String APPLICATION_NAME = "My Application";
@@ -57,22 +57,22 @@ public class NewProjectWizardState extends TemplateWizardState {
    * State for the template wizard, used to embed an activity template
    */
   private final TemplateWizardState myActivityState;
+  private final TemplateWizardState myModuleState;
   private final Template myProjectTemplate;
 
   public NewProjectWizardState(@NotNull Template moduleTemplate) {
-    super(moduleTemplate);
-
+    myModuleState = new TemplateWizardState(moduleTemplate);
     myActivityState = new TemplateWizardState();
 
-    myHidden.add(ATTR_PROJECT_LOCATION);
-    myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myModuleState.myHidden.add(ATTR_PROJECT_LOCATION);
+    myModuleState.myHidden.remove(ATTR_IS_LIBRARY_MODULE);
 
-    put(ATTR_IS_LAUNCHER, false);
-    put(ATTR_CREATE_ICONS, false);
-    put(ATTR_IS_NEW_PROJECT, true);
-    put(ATTR_THEME_EXISTS, true);
-    put(ATTR_CREATE_ACTIVITY, true);
-    put(ATTR_IS_LIBRARY_MODULE, false);
+    myModuleState.put(ATTR_IS_LAUNCHER, false);
+    myModuleState.put(ATTR_CREATE_ICONS, false);
+    myModuleState.put(ATTR_IS_NEW_PROJECT, true);
+    myModuleState.put(ATTR_THEME_EXISTS, true);
+    myModuleState.put(ATTR_CREATE_ACTIVITY, true);
+    myModuleState.put(ATTR_IS_LIBRARY_MODULE, false);
 
     putSdkDependentParams();
 
@@ -98,19 +98,19 @@ public class NewProjectWizardState extends TemplateWizardState {
 
     updateParameters();
 
-    myHidden.remove(ATTR_PROJECT_LOCATION);
-    myHidden.remove(ATTR_IS_LIBRARY_MODULE);
-    myHidden.remove(ATTR_APP_TITLE);
+    myModuleState.myHidden.remove(ATTR_PROJECT_LOCATION);
+    myModuleState.myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myModuleState.myHidden.remove(ATTR_APP_TITLE);
 
-    put(ATTR_IS_LIBRARY_MODULE, false);
-    put(ATTR_IS_LAUNCHER, true);
-    put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
-    put(ATTR_APP_TITLE, APPLICATION_NAME);
+    myModuleState.put(ATTR_IS_LIBRARY_MODULE, false);
+    myModuleState.put(ATTR_IS_LAUNCHER, true);
+    myModuleState.put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
+    myModuleState.put(ATTR_APP_TITLE, APPLICATION_NAME);
     final int DEFAULT_MIN = SdkVersionInfo.LOWEST_ACTIVE_API;
-    put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
-    put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
+    myModuleState.put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
+    myModuleState.put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-    setParameterDefaults();
+    myModuleState.setParameterDefaults();
 
     updateParameters();
   }
@@ -125,11 +125,17 @@ public class NewProjectWizardState extends TemplateWizardState {
     return myActivityState;
   }
 
+  @NotNull
+  public TemplateWizardState getModuleTemplateState() {
+    return myModuleState;
+  }
+
   /**
    * Updates the dependencies stored in the parameters map, to include support libraries required by the extra features selected.
    */
   public void updateDependencies() {
-    @SuppressWarnings("unchecked") SetMultimap<String, String> dependencies = (SetMultimap<String, String>)get(ATTR_DEPENDENCIES_MULTIMAP);
+    @SuppressWarnings("unchecked")
+    SetMultimap<String, String> dependencies = (SetMultimap<String, String>)myModuleState.get(ATTR_DEPENDENCIES_MULTIMAP);
     if (dependencies == null) {
       dependencies = HashMultimap.create();
     }
@@ -137,28 +143,28 @@ public class NewProjectWizardState extends TemplateWizardState {
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
     // Support Library
-    Object fragmentsExtra = get(ATTR_FRAGMENTS_EXTRA);
-    Object navigationDrawerExtra = get(ATTR_NAVIGATION_DRAWER_EXTRA);
+    Object fragmentsExtra = myModuleState.get(ATTR_FRAGMENTS_EXTRA);
+    Object navigationDrawerExtra = myModuleState.get(ATTR_NAVIGATION_DRAWER_EXTRA);
     if ((fragmentsExtra != null && Boolean.parseBoolean(fragmentsExtra.toString())) ||
         (navigationDrawerExtra != null && Boolean.parseBoolean(navigationDrawerExtra.toString()))) {
       dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_V4, true));
     }
 
     // AppCompat Library
-    Object actionBarExtra = get(ATTR_ACTION_BAR_EXTRA);
+    Object actionBarExtra = myModuleState.get(ATTR_ACTION_BAR_EXTRA);
     if (actionBarExtra != null && Boolean.parseBoolean(actionBarExtra.toString())) {
       dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.APP_COMPAT_V7,
                                                                                                         true));
     }
 
     // GridLayout Library
-    Object gridLayoutExtra = get(ATTR_GRID_LAYOUT_EXTRA);
+    Object gridLayoutExtra = myModuleState.get(ATTR_GRID_LAYOUT_EXTRA);
     if (gridLayoutExtra != null && Boolean.parseBoolean(gridLayoutExtra.toString())) {
       dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.GRID_LAYOUT_V7,
                                                                                                         true));
     }
 
-    put(ATTR_DEPENDENCIES_MULTIMAP, dependencies);
+    myModuleState.put(ATTR_DEPENDENCIES_MULTIMAP, dependencies);
   }
 
   /**
@@ -166,8 +172,8 @@ public class NewProjectWizardState extends TemplateWizardState {
    * (i.e. states for other template wizards that are part of the same dialog).
    */
   public void updateParameters() {
-    put(ATTR_COPY_ICONS, !Boolean.parseBoolean(get(ATTR_CREATE_ICONS).toString()));
-    copyParameters(getParameters(), myActivityState.getParameters(), ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
+    myModuleState.put(ATTR_COPY_ICONS, !Boolean.parseBoolean(myModuleState.get(ATTR_CREATE_ICONS).toString()));
+    copyParameters(myModuleState.getParameters(), myActivityState.getParameters(), ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_TARGET_API_STRING, ATTR_BUILD_API_STRING,
                    ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
                    ATTR_CREATE_ICONS, ATTR_IS_GRADLE,
@@ -179,13 +185,13 @@ public class NewProjectWizardState extends TemplateWizardState {
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), false);
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.
-      put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+      myModuleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
 
     File location = sdkHandler.getLocation();
     if (location != null) {
       // Gradle expects a platform-neutral path
-      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(location.getPath()));
+      myModuleState.put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(location.getPath()));
     }
   }
 
