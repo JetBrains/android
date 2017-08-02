@@ -32,11 +32,11 @@ public class SceneDeleteActionTest extends SceneTest {
     myInteraction.mouseRelease("button", -45, 25);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
   }
 
   @Override

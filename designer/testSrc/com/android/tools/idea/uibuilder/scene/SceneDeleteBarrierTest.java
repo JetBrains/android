@@ -45,9 +45,9 @@ public class SceneDeleteBarrierTest extends SceneTest {
                  "  android:padding=\"20dp\">\n" +
                  "\n" +
                  "    <android.support.constraint.ConstraintHelper\n" +
-                 "    android:id=\"@id/barrier\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\" />\n" +
+                 "        android:id=\"@id/barrier\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }

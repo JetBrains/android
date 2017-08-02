@@ -78,11 +78,11 @@ public class SceneDeleteWidgetTest extends SceneTest {
     handler.deleteChildren(layoutComponent, deleted);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"8dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"185dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"185dp\" />");
   }
 }
