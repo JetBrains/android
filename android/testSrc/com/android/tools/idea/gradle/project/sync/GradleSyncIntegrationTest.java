@@ -26,11 +26,12 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -164,7 +165,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // Disabled until the prebuilt SDK has CMake.
   public void /*test*/ExternalSystemSourceFolderSync() throws Exception {
     loadProject(HELLO_JNI);
-    Module appModule = myModules.getAppModule();
+    myModules.getAppModule();
   }
 
   // Disabled until the prebuilt Maven repo has all dependencies.
@@ -426,5 +427,40 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     assertTrue(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
     action.update(event);
     assertTrue(presentation.isEnabledAndVisible());
+  }
+
+  // Verify that sync issues were reported properly when there're unresolved dependencies
+  // due to conflicts in variant attributes.
+  // See b/64213214.
+  public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
+    Project project = getProject();
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+
+    // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
+    loadProject(TestProjectPaths.DEPENDENT_MODULES);
+
+    // Define new buildType qa in app module.
+    // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid.buildTypes { qa { } }\n");
+
+    try {
+      requestSyncAndWait();
+    }
+    catch (AssertionError expected) {
+      // Sync issues are expected.
+    }
+
+    // Verify sync issues are reported properly.
+    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    assertThat(messages).hasSize(4);
+    SyncMessage message = messages.get(0);
+    // @formatter:off
+    // Verify text contains both of single line and multi-line message from SyncIssue.
+    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
+                                            .hasGroup("Unresolved dependencies")
+                                            .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0)
+                                            .hasMessageLine( "Could not resolve project :lib.", 1);
+    // @formatter:on
   }
 }
