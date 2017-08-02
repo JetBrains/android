@@ -94,6 +94,7 @@ public class TemplateWizardState implements Function<String, Object> {
   /**
    * Template handler responsible for instantiating templates and reading resources
    */
+  @Nullable
   private Template myTemplate;
 
   /**
@@ -132,7 +133,7 @@ public class TemplateWizardState implements Function<String, Object> {
     put(ATTR_TEST_DIR, "src/androidTest");
   }
 
-  public TemplateWizardState(Template template) {
+  public TemplateWizardState(@NotNull Template template) {
     this();
     myTemplate = template;
   }
@@ -236,6 +237,7 @@ public class TemplateWizardState implements Function<String, Object> {
     return myTemplate.getMetadata();
   }
 
+  @NotNull
   public Map<String, Object> getParameters() {
     return myParameters;
   }
