@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.io.BufferingFileWrapper;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,7 +38,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
