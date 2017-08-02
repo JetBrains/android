@@ -22,4 +22,5 @@ public class LaunchTaskDurations {
   public static final int DEPLOY_HOTSWAP = 8;
   public static final int DEPLOY_APK = 20;
   public static final int DEPLOY_INSTANT_APP = 20;
+  public static final int UNINSTALL_IOT_APK = 20;
 }

@@ -44,7 +44,7 @@ public class UpdateSessionTasksProvider implements LaunchTasksProvider {
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter)
     throws ExecutionException {
-    List<LaunchTask> tasks = new ArrayList<>(myBuildAnalyzer.getDeployTasks(myLaunchOptions));
+    List<LaunchTask> tasks = new ArrayList<>(myBuildAnalyzer.getDeployTasks(device, myLaunchOptions));
     tasks.add(myBuildAnalyzer.getNotificationTask());
     return ImmutableList.copyOf(tasks);
   }

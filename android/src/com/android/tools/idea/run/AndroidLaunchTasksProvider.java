@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
@@ -35,6 +36,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -44,12 +46,12 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
-  private final Project myProject;
   private final AndroidFacet myFacet;
   private final InstantRunBuildAnalyzer myInstantRunBuildAnalyzer;
   private final ApplicationIdProvider myApplicationIdProvider;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
+  private final Project myProject;
 
   public AndroidLaunchTasksProvider(@NotNull AndroidRunConfigurationBase runConfig,
                                     @NotNull ExecutionEnvironment env,
@@ -82,9 +84,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     String packageName;
     try {
-      launchTasks.addAll(getDeployTasks(device));
-
       packageName = myApplicationIdProvider.getPackageName();
+      launchTasks.addAll(getDeployTasks(device, packageName));
 
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
@@ -123,9 +124,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @NotNull
-  private List<LaunchTask> getDeployTasks(@NotNull final IDevice device) throws ApkProvisionException, ExecutionException {
+  @VisibleForTesting
+  List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException, ExecutionException {
     if (myInstantRunBuildAnalyzer != null) {
-      return myInstantRunBuildAnalyzer.getDeployTasks(myLaunchOptions);
+      return myInstantRunBuildAnalyzer.getDeployTasks(device, myLaunchOptions);
     }
 
     // regular APK deploy flow
@@ -133,12 +135,17 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return Collections.emptyList();
     }
 
-    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      return ImmutableList.of(new DeployInstantAppTask(myApkProvider.getApks(device)));
+    List<LaunchTask> tasks = new ArrayList<>();
+    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
+      tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
-
-    InstantRunManager.LOG.info("Using legacy/main APK deploy task");
-    return ImmutableList.of(new DeployApkTask(myProject, myLaunchOptions, myApkProvider.getApks(device)));
+    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
+    } else {
+      InstantRunManager.LOG.info("Using legacy/main APK deploy task");
+      tasks.add(new DeployApkTask(myProject, myLaunchOptions, myApkProvider.getApks(device)));
+    }
+    return ImmutableList.copyOf(tasks);
   }
 
   @Nullable

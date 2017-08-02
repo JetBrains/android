@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.ir.client.InstantRunArtifactType;
 import com.android.tools.ir.client.InstantRunBuildInfo;
@@ -32,11 +33,14 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class InstantRunBuildAnalyzerTest {
+  private IDevice myDevice;
+  private IDevice myEmbeddedDevice;
   private Project myProject;
   private GradleInstantRunContext myContext;
   private ProcessHandler mySession;
@@ -45,11 +49,15 @@ public class InstantRunBuildAnalyzerTest {
 
   @Before
   public void setUp() {
+    myDevice = mock(IDevice.class);
+    myEmbeddedDevice = mock(IDevice.class);
     myProject = mock(Project.class);
     myContext = mock(GradleInstantRunContext.class);
     mySession = mock(ProcessHandler.class);
     myBuildInfo = mock(InstantRunBuildInfo.class);
     myLaunchOptions = LaunchOptions.builder().build(); // has no impact on list of tasks.
+    when(myDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false);
+    when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myBuildInfo.isCompatibleFormat()).thenReturn(true);
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
   }
@@ -65,10 +73,43 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.NO_CHANGES, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof NoChangesTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
+  }
+
+  @Test
+  public void testFullApk() {
+    // setup conditions
+    when(mySession.isProcessTerminated()).thenReturn(true);
+    when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(false);
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT_MAIN)).thenReturn(false);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.FULLAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
+    assertEquals(tasks.size(), 1);
+    assertTrue(tasks.get(0) instanceof DeployApkTask);
+  }
+
+  @Test
+  public void testFullApkOnEmbeddedHardware() {
+    // setup conditions
+    when(mySession.isProcessTerminated()).thenReturn(true);
+    when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(false);
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT_MAIN)).thenReturn(false);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.FULLAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof UninstallIotLauncherAppsTask);
+    assertTrue(tasks.get(1) instanceof DeployApkTask);
   }
 
   @Test
@@ -81,10 +122,27 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.SPLITAPK, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
+  }
+
+  @Test
+  public void testSplitApkOnEmbeddedHardware() {
+    // setup conditions
+    when(mySession.isProcessTerminated()).thenReturn(true);
+    when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(true);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.SPLITAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
+    assertEquals(tasks.size(), 3);
+    assertTrue(tasks.get(0) instanceof UninstallIotLauncherAppsTask);
+    assertTrue(tasks.get(1) instanceof SplitApkDeployTask);
+    assertTrue(tasks.get(2) instanceof UpdateInstantRunStateTask);
   }
 
   @Test
@@ -99,7 +157,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.RESTART, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof KillTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
@@ -117,7 +175,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof HotSwapTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
@@ -136,7 +194,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof HotSwapTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
@@ -155,7 +213,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 4);
     assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
     assertTrue(tasks.get(1) instanceof UpdateAppInfoTask);
@@ -176,7 +234,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 3);
     assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
     assertTrue(tasks.get(1) instanceof UpdateAppInfoTask);
@@ -197,7 +255,7 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, true);
     assertEquals(DeployType.WARMSWAP, buildAnalyzer.getDeployType());
-    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myDevice, myLaunchOptions);
     assertEquals(tasks.size(), 2);
     assertTrue(tasks.get(0) instanceof HotSwapTask);
     assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
