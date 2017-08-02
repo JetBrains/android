@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ddmlib.IDevice;
 import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
@@ -95,10 +96,15 @@ public class InstantRunBuildAnalyzer {
    * Returns the list of deploy tasks that will update the instant run state on the device.
    */
   @NotNull
-  public List<LaunchTask> getDeployTasks(@NotNull LaunchOptions launchOptions) {
+  public List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull LaunchOptions launchOptions) {
     LaunchTask updateStateTask = new UpdateInstantRunStateTask(myContext);
 
     DeployType deployType = getDeployType();
+    List<LaunchTask> tasks = new ArrayList<>();
+    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED) &&
+        (deployType == DeployType.SPLITAPK || deployType == DeployType.FULLAPK)) {
+      tasks.add(new UninstallIotLauncherAppsTask(myProject, myContext.getApplicationId()));
+    }
     switch (deployType) {
       case NO_CHANGES:
         return ImmutableList.of(new NoChangesTask(myProject, myContext), updateStateTask);
@@ -119,9 +125,12 @@ public class InstantRunBuildAnalyzer {
         }
         return taskBuilder.add(updateStateTask).build();
       case SPLITAPK:
-        return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
+        tasks.add(new SplitApkDeployTask(myProject, myContext));
+        tasks.add(updateStateTask);
+        return ImmutableList.copyOf(tasks);
       case FULLAPK:
-        return ImmutableList.of(new DeployApkTask(myProject, launchOptions, myApks, myContext));
+        tasks.add(new DeployApkTask(myProject, launchOptions, myApks, myContext));
+        return ImmutableList.copyOf(tasks);
       default:
         // https://code.google.com/p/android/issues/detail?id=232515
         // We don't know as yet how this happened, so we collect some information
