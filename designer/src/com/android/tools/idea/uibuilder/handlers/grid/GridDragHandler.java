@@ -18,13 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,34 @@ final class GridDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException
     if (layout.getChildCount() == 0) {
+      insertComponents(-1, insertType);
+      return;
+    }
+
+    if (insertType.isCreate() && components.size() == 1) {
+      // dragging new component to GridLayout
+      NlComponent component = components.get(0);
+      int row = getRow(lastY);
+      int column = getColumn(lastX);
+
+      if (row == -1 || column == -1) {
+        // unexpected case, ignore.
+        return;
+      }
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      switch (layout.getNlComponent().getTagName()) {
+        case SdkConstants.GRID_LAYOUT: {
+          transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
+          transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
+          break;
+        }
+        case SdkConstants.GRID_LAYOUT_V7: {
+          transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
+          transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
+          break;
+        }
+      }
+      transaction.commit();
       insertComponents(-1, insertType);
       return;
     }
@@ -74,12 +103,20 @@ final class GridDragHandler extends DragHandler {
 
   @VisibleForTesting
   int getStartRow() {
-    return info.getRow(editor.dpToPx(startY));
+    return getRow(startY);
   }
 
   @VisibleForTesting
   int getStartColumn() {
-    return info.getColumn(editor.dpToPx(startX));
+    return getColumn(startX);
+  }
+
+  private int getRow(@AndroidDpCoordinate int y) {
+    return info.getRow(editor.dpToPx(y));
+  }
+
+  private int getColumn(@AndroidDpCoordinate int x) {
+    return info.getColumn(editor.dpToPx(x));
   }
 
   @Override
