@@ -36,12 +36,12 @@ public class SceneComplexBaselineConnectionTest extends SceneTest {
     myInteraction.mouseRelease("button2", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button1")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "    android:text=\"Button\"\n" +
-                 "    tools:layout_editor_absoluteX=\"56dp\"\n" +
-                 "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button2\" />");
+                 "        android:id=\"@id/button1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        android:text=\"Button\"\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button2\"\n" +
+                 "        tools:layout_editor_absoluteX=\"56dp\" />");
   }
 
   @Override

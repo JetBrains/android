@@ -18,17 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import com.android.tools.idea.common.scene.target.Target;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +93,9 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
       return;
     }
-    AttributesTransaction attributes = myComponent.getAuthoritativeNlComponent().startAttributeTransaction();
+
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    AttributesTransaction attributes = component.startAttributeTransaction();
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
@@ -119,19 +118,7 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     }
 
     attributes.apply();
-
-    NlModel nlModel = myComponent.getAuthoritativeNlComponent().getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Cycle Guideline";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        attributes.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(component, "Cycle Guideline", attributes::commit);
   }
 
   @Override
