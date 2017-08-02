@@ -237,11 +237,8 @@ final class GridInfo {
     if (lineLocations.length < 2) {
       throw new IllegalArgumentException(Arrays.toString(lineLocations));
     }
-    else if (location < lineLocations[0]) {
-      return 0;
-    }
-    else if (location >= lineLocations[lineLocations.length - 1]) {
-      return lineLocations.length - 2;
+    else if (location < lineLocations[0] || location > lineLocations[lineLocations.length - 1]) {
+      return -1;
     }
 
     for (int i = 0, j = 0; i < lineLocations.length - 1; i++) {
