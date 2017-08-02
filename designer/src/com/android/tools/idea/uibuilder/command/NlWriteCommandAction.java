@@ -20,7 +20,9 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.application.BaseActionRunnable;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiNamedElement;
 import org.jetbrains.annotations.NotNull;
 
 public final class NlWriteCommandAction implements Runnable {
@@ -47,7 +49,14 @@ public final class NlWriteCommandAction implements Runnable {
       @Override
       protected void run() throws Throwable {
         myRunnable.run();
-        TemplateUtils.reformatAndRearrange(project, myComponent.getTag());
+        PsiNamedElement tag = myComponent.getTag();
+
+        if (tag.getContainingFile().getVirtualFile() == null) {
+          Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + tag.getName() + " because its virtual file is null");
+          return;
+        }
+
+        TemplateUtils.reformatAndRearrange(project, tag);
       }
     };
 
