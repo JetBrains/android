@@ -17,7 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;

@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.fd.client.InstantRunPushFailedException;
-import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.ir.client.InstantRunClient;
+import com.android.tools.ir.client.InstantRunPushFailedException;
+import com.android.tools.ir.client.UpdateMode;
 import com.android.tools.idea.fd.DeployType;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
