@@ -121,7 +121,6 @@ public class InstantRunBuildAnalyzer {
       case SPLITAPK:
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
       case FULLAPK:
-      case LEGACY:
         return ImmutableList.of(new DeployApkTask(myProject, launchOptions, myApks, myContext));
       default:
         // https://code.google.com/p/android/issues/detail?id=232515
