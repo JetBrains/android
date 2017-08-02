@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -50,8 +51,6 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.*;
@@ -76,28 +75,30 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   @Override
   void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
     String dependency = syncIssue.getData();
-    assert dependency != null;
-    // FIXME: remove this workaround once b/37944674 is fixed.
-    // Dependency string might contain extra text due to bug in Android plugin, strip out extra text
-    dependency = retrieveDependency(dependency);
-    report(dependency, module, buildFile);
-  }
-
-  @NotNull
-  static String retrieveDependency(@NotNull String dependency) {
-    // make this function specific to workaround b/37944674
-    Pattern pattern = Pattern.compile("^.*?any matches for ([^\\s]+) .*", Pattern.DOTALL);
-    Matcher matcher = pattern.matcher(dependency);
-    if (matcher.matches()) {
-      return matcher.group(1);
+    if (dependency != null) {
+      report(dependency, module, buildFile);
     }
-    pattern = Pattern.compile("^.*?Could not find ([^\\s]+)\\..*", Pattern.DOTALL);
-    matcher = pattern.matcher(dependency);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    }
+    else {
+      // getData can be null if the unresolved dependency is on a sub-module due to non-matching variant attributes.
+      // Use getMessage to display the sync error in that case.
+      // b/64213214.
+      List<String> messages = new ArrayList<>();
+      messages.add(syncIssue.getMessage());
+      try {
+        List<String> multiLineMessage = syncIssue.getMultiLineMessage();
+        if (multiLineMessage != null) {
+          messages.addAll(multiLineMessage);
+        }
+      }
+      catch (UnsupportedMethodException ex) {
+        // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+      }
 
-    return dependency;
+      // Since the problem is caused by mismatch between mutliple modules, don't offer open file hyperlinks or other quickfixes.
+      SyncMessage syncMessage =
+        new SyncMessage("Unresolved dependencies", ERROR, NonNavigatable.INSTANCE, messages.toArray(new String[messages.size()]));
+      getSyncMessages(module).report(syncMessage);
+    }
   }
 
   public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
