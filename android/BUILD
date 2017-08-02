@@ -23,7 +23,7 @@ iml_module(
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = ["//tools/adt/idea/common:android-common"],
+    exports = ["//tools/adt/idea/build-common"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi[module]",
@@ -37,7 +37,7 @@ iml_module(
         "//tools/idea/plugins/properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
-        "//tools/adt/idea/common:android-common[module]",
+        "//tools/adt/idea/build-common:build-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/java/java-indexing-api[module]",
         "//tools/idea/jps/jps-builders[module]",

@@ -8,7 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="build-common" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="jps-builders" />
     <orderEntry type="module" module-name="util" />

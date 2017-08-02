@@ -11,7 +11,7 @@
     <orderEntry type="library" exported="" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="sdk-common" />
     <orderEntry type="module" module-name="annotations" />
-    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="build-common" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="layoutlib-api" />
     <orderEntry type="library" name="ASM" level="project" />
