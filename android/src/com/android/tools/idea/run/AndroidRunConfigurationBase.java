@@ -622,6 +622,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return irSupportStatus;
     }
 
+    if (!InstantRunGradleUtils.appHasCode(AndroidFacet.getInstance(module))) {
+      return InstantRunGradleSupport.HAS_CODE_FALSE;
+    }
+
     // Gradle will instrument against the runtime android.jar (see commit 353f46cbc7363e3fca44c53a6dc0b4d17347a6ac).
     // This means that the SDK platform corresponding to the device needs to be installed, otherwise the build will fail.
     // We do this as the last check because it is actually possible to recover from this failure. In the future, maybe issues
