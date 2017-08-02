@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -76,6 +77,9 @@ public final class NewInstantAppModuleModel extends WizardModel {
     myTemplateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     myTemplateValues.put(ATTR_MODULE_NAME, moduleName().get());
     myTemplateValues.put(ATTR_MAKE_IGNORE, createGitIgnore().get());
+
+    TemplateValueInjector injector = new TemplateValueInjector(myTemplateValues);
+    injector.addGradleVersions(myProject);
 
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);

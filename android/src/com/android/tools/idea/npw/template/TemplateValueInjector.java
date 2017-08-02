@@ -312,7 +312,7 @@ public final class TemplateValueInjector {
     return this;
   }
 
-  private void addGradleVersions(@Nullable Project project) {
+  public void addGradleVersions(@Nullable Project project) {
     myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
     myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
   }
