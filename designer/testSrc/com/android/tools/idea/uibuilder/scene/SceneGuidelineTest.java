@@ -64,28 +64,28 @@ public class SceneGuidelineTest extends SceneTest {
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_end=\"900dp\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_end=\"900dp\" />");
     myInteraction.mouseDown("guideline", GuidelineCycleTarget.class, 0);
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_percent=\"0.1\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.1\" />");
     myInteraction.mouseDown("guideline", GuidelineCycleTarget.class, 0);
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_begin=\"100dp\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_begin=\"100dp\" />");
   }
 }
