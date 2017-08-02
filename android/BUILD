@@ -38,6 +38,7 @@ iml_module(
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
         "//tools/adt/idea/build-common:build-common[module]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/java/java-indexing-api[module]",
         "//tools/idea/jps/jps-builders[module]",

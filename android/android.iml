@@ -27,6 +27,7 @@
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
     <orderEntry type="module" module-name="build-common" exported="" />
+    <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
     <orderEntry type="module" module-name="jps-builders" />

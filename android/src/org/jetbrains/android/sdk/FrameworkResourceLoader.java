@@ -24,10 +24,10 @@ import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.io.BufferingFolderWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.BufferingFolderWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

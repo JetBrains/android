@@ -18,18 +18,17 @@ package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.ide.common.sdk.LoadStatus;
 import com.android.layoutlib.bridge.Bridge;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
