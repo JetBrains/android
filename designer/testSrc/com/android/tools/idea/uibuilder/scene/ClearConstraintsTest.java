@@ -61,18 +61,17 @@ public class ClearConstraintsTest  extends SceneTest {
     myScene.clearAttributes();
     myScreen.get("@+id/button1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/button1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@+id/button1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
     myScreen.get("@+id/text1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/text1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
-
+                 "        android:id=\"@+id/text1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
   }
 }

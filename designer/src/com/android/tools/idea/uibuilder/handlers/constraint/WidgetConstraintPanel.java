@@ -26,10 +26,6 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -396,9 +392,6 @@ public class WidgetConstraintPanel extends JPanel {
     String label = "Constraint Disconnected";
     String[] attribute = ourDeleteAttributes[type];
     String[] namespace = ourDeleteNamespace[type];
-    NlModel nlModel = mComponent.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
 
     AttributesTransaction transaction = mComponent.startAttributeTransaction();
     for (int i = 0; i < attribute.length; i++) {
@@ -409,13 +402,7 @@ public class WidgetConstraintPanel extends JPanel {
     ConstraintComponentUtilities.ensureVerticalPosition(mComponent, transaction);
 
     transaction.apply();
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(mComponent, label, transaction::commit);
   }
 
   public static final int UNKNOWN = -1;
