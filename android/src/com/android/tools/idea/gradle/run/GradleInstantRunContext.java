@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceUrl;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;

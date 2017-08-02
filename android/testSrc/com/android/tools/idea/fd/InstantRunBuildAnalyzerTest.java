@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.tools.fd.client.InstantRunArtifact;
-import com.android.tools.fd.client.InstantRunArtifactType;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunArtifact;
+import com.android.tools.ir.client.InstantRunArtifactType;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;

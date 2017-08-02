@@ -16,7 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.AndroidDevice;

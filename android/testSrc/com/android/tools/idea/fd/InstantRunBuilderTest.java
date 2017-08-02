@@ -21,7 +21,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.AndroidRunConfigContext;

@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
