@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -38,8 +39,16 @@ public class DebuggerTestBase {
    * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
    */
   void openAndToggleBreakPoints(IdeFrameFixture ideFrame, String fileName, String... lines) {
-    EditorFixture editor = ideFrame.getEditor().open(fileName);
+    toggleBreakpoints(ideFrame.getEditor().open(fileName), lines);
+  }
 
+  void openAndToggleBreakPoints(@NotNull IdeFrameFixture ideFrameFixture, @NotNull VirtualFile file, @NotNull String... lines) {
+    toggleBreakpoints(
+      ideFrameFixture.getEditor().open(file, EditorFixture.Tab.DEFAULT),
+      lines);
+  }
+
+  private void toggleBreakpoints(@NotNull EditorFixture editor, @NotNull String[] lines) {
     for (String line : lines) {
       editor.moveBetween("", line);
       editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
