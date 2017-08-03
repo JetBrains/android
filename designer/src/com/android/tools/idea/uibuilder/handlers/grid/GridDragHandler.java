@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -57,8 +58,8 @@ final class GridDragHandler extends DragHandler {
       int row = getRow(lastY);
       int column = getColumn(lastX);
 
-      if (row == -1 || column == -1) {
-        // unexpected case, ignore.
+      if (row == -1 || column == -1 || info.cellHasChild(row, column)) {
+        // doesn't drag into cell, or drag to the cell which already has component.
         return;
       }
       AttributesTransaction transaction = component.startAttributeTransaction();
@@ -157,11 +158,17 @@ final class GridDragHandler extends DragHandler {
     graphics.useStyle(info.cellHasChild(row, column) ? NlDrawingStyle.INVALID : NlDrawingStyle.DROP_ZONE_ACTIVE);
 
     Rectangle rectangle = getActiveDropZoneRectangle();
-    graphics.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    if (rectangle != null) {
+      graphics.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    }
   }
 
   @AndroidCoordinate
+  @Nullable
   private Rectangle getActiveDropZoneRectangle() {
+    if (row == -1 || column == -1) {
+      return null;
+    }
     int startRow = row;
     int startColumn = column;
     int endRow = row + 1;
@@ -199,6 +206,10 @@ final class GridDragHandler extends DragHandler {
         }
       }
 
+      if (endRow >= rowCount) {
+        return null;
+      }
+
       int columnCount = info.getColumnCount();
 
       while (endColumn < columnCount) {
@@ -208,6 +219,10 @@ final class GridDragHandler extends DragHandler {
         else {
           break;
         }
+      }
+
+      if (endColumn >= columnCount) {
+        return null;
       }
     }
 
