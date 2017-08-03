@@ -25,38 +25,71 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiNamedElement;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 public final class NlWriteCommandAction implements Runnable {
-  private final NlComponent myComponent;
+  private final List<NlComponent> myComponents;
   private final String myName;
   private final Runnable myRunnable;
 
-  public NlWriteCommandAction(@NotNull NlComponent component, @NotNull String name, @NotNull Runnable runnable) {
-    myComponent = component;
+  public NlWriteCommandAction(@NotNull List<NlComponent> components, @NotNull String name, @NotNull Runnable runnable) {
+    checkComponents(components);
+
+    myComponents = components;
     myName = name;
     myRunnable = runnable;
   }
 
+  private static void checkComponents(@NotNull List<NlComponent> components) {
+    int size = components.size();
+
+    switch (size) {
+      case 0:
+        throw new IllegalArgumentException();
+      case 1:
+        break;
+      default:
+        Object model = components.get(0).getModel();
+
+        for (NlComponent component : components.subList(1, size)) {
+          if (component.getModel() != model) {
+            throw new IllegalArgumentException();
+          }
+        }
+
+        break;
+    }
+  }
+
   public static void run(@NotNull NlComponent component, @NotNull String name, @NotNull Runnable runnable) {
-    new NlWriteCommandAction(component, name, runnable).run();
+    new NlWriteCommandAction(Collections.singletonList(component), name, runnable).run();
+  }
+
+  public static void run(@NotNull List<NlComponent> components, @NotNull String name, @NotNull Runnable runnable) {
+    new NlWriteCommandAction(components, name, runnable).run();
   }
 
   @Override
   public void run() {
-    NlModel model = myComponent.getModel();
+    NlModel model = myComponents.get(0).getModel();
     Project project = model.getProject();
 
     BaseActionRunnable<Void> action = new WriteCommandAction.Simple<Void>(project, myName, model.getFile()) {
       @Override
       protected void run() throws Throwable {
         myRunnable.run();
-        PsiNamedElement tag = myComponent.getTag();
 
-        if (tag.getContainingFile().getVirtualFile() == null) {
-          Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + tag.getName() + " because its virtual file is null");
-          return;
+        for (NlComponent component : myComponents) {
+          PsiNamedElement tag = component.getTag();
+
+          if (tag.getContainingFile().getVirtualFile() == null) {
+            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + tag.getName() + " because its virtual file is null");
+            continue;
+          }
+
+          TemplateUtils.reformatAndRearrange(project, tag);
         }
-
-        TemplateUtils.reformatAndRearrange(project, tag);
       }
     };
 
