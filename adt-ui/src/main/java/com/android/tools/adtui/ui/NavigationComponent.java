@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swing.ui;
+package com.android.tools.adtui.ui;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
-import org.apache.http.entity.ContentType;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
 
   public NavigationComponent() {
     setEditable(false);
-    setContentType(ContentType.TEXT_HTML.getMimeType());
+    setContentType(UIUtil.HTML_MIME);
     putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
     // Disable links decoration.

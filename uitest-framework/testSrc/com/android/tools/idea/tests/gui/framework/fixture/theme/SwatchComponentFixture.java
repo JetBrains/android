@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.android.tools.swing.ui.ClickableLabel;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;

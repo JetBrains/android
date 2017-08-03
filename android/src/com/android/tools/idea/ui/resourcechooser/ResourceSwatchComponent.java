@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.swing.ui.ClickableLabel;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;

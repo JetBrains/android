@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swing.ui;
+package com.android.tools.adtui.ui;
 
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
