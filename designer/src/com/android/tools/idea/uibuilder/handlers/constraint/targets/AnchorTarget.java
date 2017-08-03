@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -24,7 +25,6 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;

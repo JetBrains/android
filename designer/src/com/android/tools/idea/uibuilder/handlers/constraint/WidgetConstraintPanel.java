@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
