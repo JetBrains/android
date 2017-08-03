@@ -487,7 +487,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isLiveAllocationEnabled() {
-    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() && getDevice() != null &&
            getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O && isAgentAttached();
   }
 
