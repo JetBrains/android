@@ -15,7 +15,6 @@ iml_module(
         "//tools/adt/idea/android/lib:bundled-libs",
         "//tools/adt/idea/android:profiler-artifacts",
     ] + glob([
-        "device-art-resources/**",
         "build.xml",
     ]),
     iml_files = ["android.iml"],
@@ -127,7 +126,7 @@ iml_module(
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android:device-art-resources",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/lib/libwebp",
@@ -199,12 +198,6 @@ iml_module(
         "//tools/idea/plugins/properties/properties-psi-impl[module, test]",
         "//tools/adt/idea/artwork[module, test]",
     ],
-)
-
-filegroup(
-    name = "device-art-resources",
-    srcs = glob(["device-art-resources/**"]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(

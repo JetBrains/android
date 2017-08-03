@@ -14,3 +14,9 @@ iml_module(
     # do not sort: must match IML order
     deps = ["//tools/idea/platform/util[module]"],
 )
+
+filegroup(
+    name = "device-art-resources",
+    srcs = glob(["resources/device-art-resources/**"]),
+    visibility = ["//visibility:public"],
+)
