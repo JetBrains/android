@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,21 +78,11 @@ public class CreateAPKProjectTest {
   @Test
   @RunIn(TestGroup.QA)
   public void createProjectFromLocallyBuiltApk() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("ApkDebug");
-
-    ideFrame.waitAndInvokeMenuPath("Build", "Build APK(s)");
-    guiTest.waitForBackgroundTasks();
-
-    File projectRoot = ideFrame.getProjectPath();
-    // We will have another window opened for the APK project. Close this window
-    // so we don't have to manage two windows.
-    ideFrame.closeProject();
+    File projectRoot = buildApkLocally("ApkDebug");
 
     profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"));
 
-    guiTest.waitForBackgroundTasks();
-
-    ideFrame = guiTest.ideFrame();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
     attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
 
@@ -103,7 +94,6 @@ public class CreateAPKProjectTest {
     editor.open("lib/x86/libsanangeles.so")
       .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);
-
     guiTest.waitForBackgroundTasks();
 
     List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
@@ -169,6 +159,17 @@ public class CreateAPKProjectTest {
 
     Assert.assertEquals(1, numCppFolders);
     Assert.assertEquals(2, numIncludeFolders);
+  }
+
+  @Test
+  @Ignore
+  public void debugLocallyBuiltApk() {
+    // TODO Build an APK
+    // TODO Create an APK project from that locally built APK
+    // TODO Attach Java and C++ sources
+    // TODO Set breakpoints
+    // TODO debug the APK
+    // TODO verify breakpoints are hit
   }
 
   @After
@@ -262,5 +263,23 @@ public class CreateAPKProjectTest {
     FileChooserDialogFixture.findDialog(guiTest.robot(), "Select APK File")
       .select(apkFile)
       .clickOk();
+
+    guiTest.waitForBackgroundTasks();
+  }
+
+  @NotNull
+  private File buildApkLocally(@NotNull String apkProjectToImport) throws IOException {
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport);
+
+    ideFrame.waitAndInvokeMenuPath("Build", "Build APK(s)");
+    guiTest.waitForBackgroundTasks();
+
+    File projectRoot = ideFrame.getProjectPath();
+
+    // We will have another window opened for the APK project. Close this window
+    // so we don't have to manage two windows.
+    ideFrame.closeProject();
+
+    return projectRoot;
   }
 }
