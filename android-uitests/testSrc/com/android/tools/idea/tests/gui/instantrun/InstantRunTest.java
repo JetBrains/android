@@ -470,6 +470,7 @@ public class InstantRunTest {
    *   If you answer yes, application should deploy and run with Instant Run enabled.
    *   </pre>
    */
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
