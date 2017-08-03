@@ -126,6 +126,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertTabHost(iterator.next());
     assertWebView(iterator.next());
     assertSearchView(iterator.next());
+    assertViewPager(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = images.getItems().iterator();

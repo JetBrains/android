@@ -413,6 +413,7 @@
     <item tag="TabHost"/>
     <item tag="WebView"/>
     <item tag="SearchView"/>
+    <item tag="android.support.v4.view.ViewPager"/>
   </group>
   <group name="Images">
     <item tag="ImageButton"/>

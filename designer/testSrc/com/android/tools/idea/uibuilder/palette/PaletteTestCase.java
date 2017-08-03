@@ -411,6 +411,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardLayout(item, "SearchView", IN_PLATFORM);
   }
 
+  public void assertViewPager(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, "android.support.v4.view.ViewPager", SUPPORT_LIB_ARTIFACT);
+  }
+
   @Language("XML")
   private static final String IMAGE_BUTTON_XML =
     "<ImageButton\n" +
