@@ -898,6 +898,38 @@ public final class StudioProfilersTest {
     assertFalse(timer.isRunning());
   }
 
+  @Test
+  public void testProfilingStopsWithLiveAllocationEnabled() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
+    // Enable live allocation tracker
+    services.enableLiveAllocationTracking(true);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), services, timer);
+
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process = Profiler.Process.newBuilder().setPid(1).setState(Profiler.Process.State.ALIVE).setName("process").build();
+    Common.Session session1 = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilerService.addProcess(session1, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertTrue(timer.isRunning());
+
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process, profilers.getProcess());
+
+    // Stop the profiler
+    profilers.stop();
+
+    assertFalse(timer.isRunning());
+    assertEquals(null, profilers.getProcess());
+    assertEquals(null, profilers.getDevice());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
