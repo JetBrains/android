@@ -19,7 +19,7 @@ import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.adtui.TableUtils;
-import com.android.tools.swing.ui.FixedColumnTable;
+import com.android.tools.adtui.ui.FixedColumnTable;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
