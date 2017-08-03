@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -45,9 +47,10 @@ import java.io.IOException;
 import java.util.List;
 
 @RunWith(GuiTestRunner.class)
-public class CreateAPKProjectTest {
+public class CreateAPKProjectTest extends DebuggerTestBase {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   @Before
   public void removeExistingApkProjects() {
@@ -89,8 +92,7 @@ public class CreateAPKProjectTest {
     // need to wait since the editor doesn't open the java file immediately
     waitForJavaFileToShow(editor);
 
-    File debugSymbols =
-      new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
+    File debugSymbols = new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
     editor.open("lib/x86/libsanangeles.so")
       .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);
@@ -161,15 +163,102 @@ public class CreateAPKProjectTest {
     Assert.assertEquals(2, numIncludeFolders);
   }
 
+  /**
+   * Verifies APKs built locally can be debugged with the Java debugger
+   * and native debugger.
+   *
+   * <p>TT ID: eb372dee-1f04-48d8-95f8-bdac7484913d
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Import ApkDebug project to build the APK locally.
+   *   2. Open the prebuilt APK file to create an APK profiling and debugging project.
+   *   3. Open the native library editor and attach C and C++ source code.
+   *   4. Open the DemoActivity smali file to attach the Java source code.
+   *   5. Create an emulator.
+   *   6. Set some breakpoints in a Java source file and C source file.
+   *   7. Launch the application in debug mode on the emulator.
+   *   8. Check if the breakpoints are hit in the debug tool window.
+   *   Verify:
+   *   1. Java breakpoint is hit by the Java debugger.
+   *   2. Native breakpoints are hit by the native debugger.
+   * </pre>
+   */
   @Test
-  @Ignore
-  public void debugLocallyBuiltApk() {
-    // TODO Build an APK
-    // TODO Create an APK project from that locally built APK
-    // TODO Attach Java and C++ sources
-    // TODO Set breakpoints
-    // TODO debug the APK
-    // TODO verify breakpoints are hit
+  @RunIn(TestGroup.QA)
+  public void debugLocallyBuiltApk() throws Exception {
+    File projectRoot = buildApkLocally("ApkDebug");
+
+    profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"));
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    EditorFixture editor = ideFrame.getEditor();
+
+    File debugSymbols = new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
+    editor.open("lib/x86/libsanangeles.so")
+      .getLibrarySymbolsFixture()
+      .addDebugSymbols(debugSymbols);
+    guiTest.waitForBackgroundTasks();
+
+    // Add Java sources after adding native library debugging symbols due to b/62476714
+    attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
+    waitForJavaFileToShow(editor);
+
+    VirtualFile demoActivity = VfsUtil.findFileByIoFile(
+      new File(projectRoot, "app/src/main/java/com/example/SanAngeles/DemoActivity.java"),
+      true);
+
+    openAndToggleBreakPoints(ideFrame, demoActivity, "super.onCreate(savedInstanceState);");
+
+    VirtualFile cFile = VfsUtil.findFileByIoFile(
+      new File(projectRoot, "app/src/main/cpp/app-android.c"),
+      true);
+
+    openAndToggleBreakPoints(
+      ideFrame,
+      cFile,
+      "_resume(); // BREAKPOINT MARKING COMMENT");
+
+    String debugConfigName = "app-x86-debug";
+
+    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
+    ideFrame.debugApp(debugConfigName)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    String debugWindowJava = "app-x86-debug-java";
+    DebugToolWindowFixture debugWindow = ideFrame.getDebugToolWindow();
+    Wait.seconds(EMULATOR_LAUNCH_WAIT_SECONDS)
+      .expecting("emulator with the app launched in debug mode")
+      .until(() -> {
+        if (debugWindow.getContentCount() < 2) {
+          return false;
+        }
+
+        return debugWindow.getDebuggerContent(debugWindowJava) != null;
+      });
+
+    debugWindow.waitForBreakPointHit();
+    String[] expectedPattern = {
+      variableToSearchPattern("savedInstanceState", "null"),
+      variableToSearchPattern("mGLView", "null")
+    };
+
+    checkAppIsPaused(ideFrame, expectedPattern, debugWindowJava);
+
+    debugWindow.pressResumeProgram();
+
+    expectedPattern = new String[] {
+      variableToSearchPattern("gAppAlive", "int", "1"),
+      variableToSearchPattern("sDemoStopped", "int", "0")
+    };
+
+    checkAppIsPaused(ideFrame, expectedPattern, debugConfigName);
+
+    debugWindow.pressResumeProgram();
+
+    stopDebugSession(debugWindow, debugConfigName);
   }
 
   @After
