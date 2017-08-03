@@ -40,7 +40,6 @@ import java.util.List;
 public class GuidelineCycleTarget extends ConstraintDragTarget {
 
   private final boolean myIsHorizontal;
-  private int mySize = 16;
 
   public GuidelineCycleTarget(boolean isHorizontal) {
     myIsHorizontal = isHorizontal;
@@ -62,16 +61,18 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
+    int size = 16;
+
     if (myIsHorizontal) {
-      myLeft = l - mySize;
-      myTop = t - mySize / 2;
+      myLeft = l - size;
+      myTop = t - size / 2F;
       myRight = l;
-      myBottom = t + mySize / 2;
+      myBottom = t + size / 2F;
     }
     else {
-      myLeft = l - mySize / 2;
-      myTop = t - mySize;
-      myRight = l + mySize / 2;
+      myLeft = l - size / 2F;
+      myTop = t - size;
+      myRight = l + size / 2F;
       myBottom = t;
     }
     return false;
@@ -100,6 +101,7 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
     SceneComponent parent = myComponent.getParent();
+    assert parent != null;
     int value = myComponent.getDrawY() - parent.getDrawY();
     int dimension = parent.getDrawHeight();
     if (!myIsHorizontal) {
@@ -138,6 +140,7 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
     SceneComponent parent = myComponent.getParent();
+    assert parent != null;
     int value = y - parent.getDrawY();
     float dimension = parent.getDrawHeight();
     if (!myIsHorizontal) {
@@ -153,7 +156,7 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
     }
     else if (percent != null) {
-      String percentStringValue = null;
+      String percentStringValue;
       float percentValue = value / dimension;
       if (percentValue > 1) {
         percentValue = 1;
@@ -170,21 +173,22 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     }
     ConstraintComponentUtilities.cleanup(attributes, myComponent);
   }
-  private void setBegin(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
+
+  private static void setBegin(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
     String position = String.format(SdkConstants.VALUE_N_DP, value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
   }
 
-  private void setEnd(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
+  private static void setEnd(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
     String position = String.format(SdkConstants.VALUE_N_DP, value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
   }
 
-  private void setPercent(AttributesTransaction transaction, float value) {
+  private static void setPercent(AttributesTransaction transaction, float value) {
     String position = String.valueOf(value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
