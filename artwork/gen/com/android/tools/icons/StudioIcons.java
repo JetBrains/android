@@ -74,6 +74,302 @@ public class StudioIcons {
     public static final Icon ZOOM_OUT = load("/studio/icons/common/zoom-out.png"); // 16x16
   }
 
+  public static class DeviceExplorer {
+    public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.png"); // 16x16
+    public static final Icon SHARED_PREFS = load("/studio/icons/device-explorer/shared-prefs.png"); // 16x16
+  }
+
+  public static class LayoutEditor {
+    public static class Extras {
+      public static final Icon PALETTE_DOWNLOAD_SELECT = load("/studio/icons/layout-editor/extras/palette-download-select.png"); // 16x16
+      public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.png"); // 16x16
+      public static final Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.png"); // 16x16
+      public static final Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.png"); // 16x16
+      public static final Icon VISIBILITY_GONE_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/visibility-gone-inline-selected.png"); // 16x16
+      public static final Icon VISIBILITY_GONE_INLINE = load("/studio/icons/layout-editor/extras/visibility-gone-inline.png"); // 16x16
+    }
+
+    public static class Palette {
+      public static final Icon ADVIEW = load("/studio/icons/layout-editor/palette/ad-view.png"); // 16x16
+      public static final Icon ADVIEW_LARGE = load("/studio/icons/layout-editor/palette/ad-view_large.png"); // 24x24
+      public static final Icon ADAPTERVIEWFLIPPER = load("/studio/icons/layout-editor/palette/adapter-view-flipper.png"); // 16x16
+      public static final Icon ADAPTERVIEWFLIPPER_LARGE = load("/studio/icons/layout-editor/palette/adapter-view-flipper_large.png"); // 24x24
+      public static final Icon ANALOGCLOCK = load("/studio/icons/layout-editor/palette/analog-clock.png"); // 16x16
+      public static final Icon ANALOGCLOCK_LARGE = load("/studio/icons/layout-editor/palette/analog-clock_large.png"); // 24x24
+      public static final Icon APPBARLAYOUT = load("/studio/icons/layout-editor/palette/app-bar-layout.png"); // 16x16
+      public static final Icon APPBARLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/app-bar-layout_large.png"); // 24x24
+      public static final Icon AUTOCOMPLETETEXTVIEW = load("/studio/icons/layout-editor/palette/autocomplete-textview.png"); // 16x16
+      public static final Icon AUTOCOMPLETETEXTVIEW_LARGE = load("/studio/icons/layout-editor/palette/autocomplete-textview_large.png"); // 24x24
+      public static final Icon BUTTON = load("/studio/icons/layout-editor/palette/button.png"); // 16x16
+      public static final Icon BUTTON_LARGE = load("/studio/icons/layout-editor/palette/button_large.png"); // 24x24
+      public static final Icon CALENDARVIEW = load("/studio/icons/layout-editor/palette/calendar-view.png"); // 16x16
+      public static final Icon CALENDARVIEW_LARGE = load("/studio/icons/layout-editor/palette/calendar-view_large.png"); // 24x24
+      public static final Icon CARDVIEW = load("/studio/icons/layout-editor/palette/card-view-compat.png"); // 16x16
+      public static final Icon CARDVIEW_LARGE = load("/studio/icons/layout-editor/palette/card-view-compat_large.png"); // 24x24
+      public static final Icon CHECKBOX = load("/studio/icons/layout-editor/palette/checkbox.png"); // 16x16
+      public static final Icon CHECKBOX_LARGE = load("/studio/icons/layout-editor/palette/checkbox_large.png"); // 24x24
+      public static final Icon CHECKEDTEXTVIEW = load("/studio/icons/layout-editor/palette/checked-textview.png"); // 16x16
+      public static final Icon CHECKEDTEXTVIEW_LARGE = load("/studio/icons/layout-editor/palette/checked-textview_large.png"); // 24x24
+      public static final Icon CHRONOMETER = load("/studio/icons/layout-editor/palette/chronometer.png"); // 16x16
+      public static final Icon CHRONOMETER_LARGE = load("/studio/icons/layout-editor/palette/chronometer_large.png"); // 24x24
+      public static final Icon COLLAPSING_TOOLBAR_LAYOUT = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.png"); // 16x16
+      public static final Icon COLLAPSING_TOOLBAR_LAYOUT_LARGE = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout_large.png"); // 24x24
+      public static final Icon CONSTRAINTLAYOUT = load("/studio/icons/layout-editor/palette/constraint-layout.png"); // 16x16
+      public static final Icon CONSTRAINTLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/constraint-layout_large.png"); // 24x24
+      public static final Icon COORDINATORLAYOUT = load("/studio/icons/layout-editor/palette/coordinator-layout.png"); // 16x16
+      public static final Icon COORDINATORLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/coordinator-layout_large.png"); // 24x24
+      public static final Icon DATEPICKER = load("/studio/icons/layout-editor/palette/date-picker.png"); // 16x16
+      public static final Icon DATEPICKER_LARGE = load("/studio/icons/layout-editor/palette/date-picker_large.png"); // 24x24
+      public static final Icon EDITTEXTDATE = load("/studio/icons/layout-editor/palette/date-textfield.png"); // 16x16
+      public static final Icon EDITTEXTDATE_LARGE = load("/studio/icons/layout-editor/palette/date-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTEMAIL = load("/studio/icons/layout-editor/palette/email-textfield.png"); // 16x16
+      public static final Icon EDITTEXTEMAIL_LARGE = load("/studio/icons/layout-editor/palette/email-textfield_large.png"); // 24x24
+      public static final Icon EXPANDABLELISTVIEW = load("/studio/icons/layout-editor/palette/expandable-list-view.png"); // 16x16
+      public static final Icon EXPANDABLELISTVIEW_LARGE = load("/studio/icons/layout-editor/palette/expandable-list-view_large.png"); // 24x24
+      public static final Icon FLOATINGACTIONBUTTON = load("/studio/icons/layout-editor/palette/floating-action-button.png"); // 16x16
+      public static final Icon FLOATINGACTIONBUTTON_LARGE = load("/studio/icons/layout-editor/palette/floating-action-button_large.png"); // 24x24
+      public static final Icon FRAGMENT = load("/studio/icons/layout-editor/palette/fragment.png"); // 16x16
+      public static final Icon FRAGMENT_LARGE = load("/studio/icons/layout-editor/palette/fragment_large.png"); // 24x24
+      public static final Icon FRAMELAYOUT = load("/studio/icons/layout-editor/palette/frame-layout.png"); // 16x16
+      public static final Icon FRAMELAYOUT_LARGE = load("/studio/icons/layout-editor/palette/frame-layout_large.png"); // 24x24
+      public static final Icon GRIDLAYOUTCOMPAT = load("/studio/icons/layout-editor/palette/grid-layout-compat.png"); // 16x16
+      public static final Icon GRIDLAYOUTCOMPAT_LARGE = load("/studio/icons/layout-editor/palette/grid-layout-compat_large.png"); // 24x24
+      public static final Icon GRIDLAYOUT = load("/studio/icons/layout-editor/palette/grid-layout.png"); // 16x16
+      public static final Icon GRIDLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/grid-layout_large.png"); // 24x24
+      public static final Icon GRIDVIEW = load("/studio/icons/layout-editor/palette/grid-view.png"); // 16x16
+      public static final Icon GRIDVIEW_LARGE = load("/studio/icons/layout-editor/palette/grid-view_large.png"); // 24x24
+      public static final Icon GROUP = load("/studio/icons/layout-editor/palette/group.png"); // 16x16
+      public static final Icon GROUP_LARGE = load("/studio/icons/layout-editor/palette/group_large.png"); // 24x24
+      public static final Icon HORIZONTALSCROLLVIEW = load("/studio/icons/layout-editor/palette/horizontal-scroll-view.png"); // 16x16
+      public static final Icon HORIZONTALSCROLLVIEW_LARGE = load("/studio/icons/layout-editor/palette/horizontal-scroll-view_large.png"); // 24x24
+      public static final Icon IMAGEBUTTON = load("/studio/icons/layout-editor/palette/image-button.png"); // 16x16
+      public static final Icon IMAGEBUTTON_LARGE = load("/studio/icons/layout-editor/palette/image-button_large.png"); // 24x24
+      public static final Icon IMAGESWITCHER = load("/studio/icons/layout-editor/palette/image-switcher.png"); // 16x16
+      public static final Icon IMAGESWITCHER_LARGE = load("/studio/icons/layout-editor/palette/image-switcher_large.png"); // 24x24
+      public static final Icon IMAGEVIEW = load("/studio/icons/layout-editor/palette/image-view.png"); // 16x16
+      public static final Icon IMAGEVIEW_LARGE = load("/studio/icons/layout-editor/palette/image-view_large.png"); // 24x24
+      public static final Icon INCLUDE = load("/studio/icons/layout-editor/palette/include-advanced.png"); // 16x16
+      public static final Icon INCLUDE_LARGE = load("/studio/icons/layout-editor/palette/include-advanced_large.png"); // 24x24
+      public static final Icon ITEM = load("/studio/icons/layout-editor/palette/item.png"); // 16x16
+      public static final Icon ITEM_LARGE = load("/studio/icons/layout-editor/palette/item_large.png"); // 24x24
+      public static final Icon LINEARLAYOUT = load("/studio/icons/layout-editor/palette/linear-layout-horz.png"); // 16x16
+      public static final Icon LINEARLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/linear-layout-horz_large.png"); // 24x24
+      public static final Icon VERTICALLINEARLAYOUT = load("/studio/icons/layout-editor/palette/linear-layout-vert.png"); // 16x16
+      public static final Icon VERTICALLINEARLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/linear-layout-vert_large.png"); // 24x24
+      public static final Icon LISTVIEW = load("/studio/icons/layout-editor/palette/list-view.png"); // 16x16
+      public static final Icon LISTVIEW_LARGE = load("/studio/icons/layout-editor/palette/list-view_large.png"); // 24x24
+      public static final Icon MAPFRAGMENT = load("/studio/icons/layout-editor/palette/map-fragment.png"); // 16x16
+      public static final Icon MAPFRAGMENT_LARGE = load("/studio/icons/layout-editor/palette/map-fragment_large.png"); // 24x24
+      public static final Icon MAPVIEW = load("/studio/icons/layout-editor/palette/map-view.png"); // 16x16
+      public static final Icon MAPVIEW_LARGE = load("/studio/icons/layout-editor/palette/map-view_large.png"); // 24x24
+      public static final Icon MENU = load("/studio/icons/layout-editor/palette/menu.png"); // 16x16
+      public static final Icon MENU_LARGE = load("/studio/icons/layout-editor/palette/menu_large.png"); // 24x24
+      public static final Icon MULTIAUTOCOMPLETETEXTVIEW = load("/studio/icons/layout-editor/palette/multi-autocomplete-textview.png"); // 16x16
+      public static final Icon MULTIAUTOCOMPLETETEXTVIEW_LARGE = load("/studio/icons/layout-editor/palette/multi-autocomplete-textview_large.png"); // 24x24
+      public static final Icon NESTEDSCROLLVIEW = load("/studio/icons/layout-editor/palette/nested-scroll-view.png"); // 16x16
+      public static final Icon NESTEDSCROLLVIEW_LARGE = load("/studio/icons/layout-editor/palette/nested-scroll-view_large.png"); // 24x24
+      public static final Icon EDITTEXTNUMBERDECIMAL = load("/studio/icons/layout-editor/palette/number-decimal-textfield.png"); // 16x16
+      public static final Icon EDITTEXTNUMBERDECIMAL_LARGE = load("/studio/icons/layout-editor/palette/number-decimal-textfield_large.png"); // 24x24
+      public static final Icon NUMBERPICKER = load("/studio/icons/layout-editor/palette/number-picker.png"); // 16x16
+      public static final Icon NUMBERPICKER_LARGE = load("/studio/icons/layout-editor/palette/number-picker_large.png"); // 24x24
+      public static final Icon EDITTEXTSIGNED = load("/studio/icons/layout-editor/palette/number-signed-textfield.png"); // 16x16
+      public static final Icon EDITTEXTSIGNED_LARGE = load("/studio/icons/layout-editor/palette/number-signed-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTNUMBER = load("/studio/icons/layout-editor/palette/number-textfield.png"); // 16x16
+      public static final Icon EDITTEXTNUMBER_LARGE = load("/studio/icons/layout-editor/palette/number-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTPASSWORDNUMERIC = load("/studio/icons/layout-editor/palette/password-numeric-textfield.png"); // 16x16
+      public static final Icon EDITTEXTPASSWORDNUMERIC_LARGE = load("/studio/icons/layout-editor/palette/password-numeric-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTPASSWORD = load("/studio/icons/layout-editor/palette/password-textfield.png"); // 16x16
+      public static final Icon EDITTEXTPASSWORD_LARGE = load("/studio/icons/layout-editor/palette/password-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTPHONE = load("/studio/icons/layout-editor/palette/phone-textfield.png"); // 16x16
+      public static final Icon EDITTEXTPHONE_LARGE = load("/studio/icons/layout-editor/palette/phone-textfield_large.png"); // 24x24
+      public static final Icon EDITTEXTPOSTALADDRESS = load("/studio/icons/layout-editor/palette/postal-address-textfield.png"); // 16x16
+      public static final Icon EDITTEXTPOSTALADDRESS_LARGE = load("/studio/icons/layout-editor/palette/postal-address-textfield_large.png"); // 24x24
+      public static final Icon PROGRESSBARHORIZONTAL = load("/studio/icons/layout-editor/palette/progress-bar-horizontal.png"); // 16x16
+      public static final Icon PROGRESSBARHORIZONTAL_LARGE = load("/studio/icons/layout-editor/palette/progress-bar-horizontal_large.png"); // 24x24
+      public static final Icon PROGRESSBAR = load("/studio/icons/layout-editor/palette/progress-bar.png"); // 16x16
+      public static final Icon PROGRESSBAR_LARGE = load("/studio/icons/layout-editor/palette/progress-bar_large.png"); // 24x24
+      public static final Icon QUICKCONTACTBADGE = load("/studio/icons/layout-editor/palette/quick-contact-badge.png"); // 16x16
+      public static final Icon QUICKCONTACTBADGE_LARGE = load("/studio/icons/layout-editor/palette/quick-contact-badge_large.png"); // 24x24
+      public static final Icon RADIOBUTTON = load("/studio/icons/layout-editor/palette/radio-button.png"); // 16x16
+      public static final Icon RADIOBUTTON_LARGE = load("/studio/icons/layout-editor/palette/radio-button_large.png"); // 24x24
+      public static final Icon RADIOGROUP = load("/studio/icons/layout-editor/palette/radio-group.png"); // 16x16
+      public static final Icon RADIOGROUP_LARGE = load("/studio/icons/layout-editor/palette/radio-group_large.png"); // 24x24
+      public static final Icon RATINGBAR = load("/studio/icons/layout-editor/palette/rating-bar.png"); // 16x16
+      public static final Icon RATINGBAR_LARGE = load("/studio/icons/layout-editor/palette/rating-bar_large.png"); // 24x24
+      public static final Icon RECYCLERVIEW = load("/studio/icons/layout-editor/palette/recycler-view-compat.png"); // 16x16
+      public static final Icon RECYCLERVIEW_LARGE = load("/studio/icons/layout-editor/palette/recycler-view-compat_large.png"); // 24x24
+      public static final Icon RELATIVELAYOUT = load("/studio/icons/layout-editor/palette/relative-layout.png"); // 16x16
+      public static final Icon RELATIVELAYOUT_LARGE = load("/studio/icons/layout-editor/palette/relative-layout_large.png"); // 24x24
+      public static final Icon REQUESTFOCUS = load("/studio/icons/layout-editor/palette/request-focus-advanced.png"); // 16x16
+      public static final Icon REQUESTFOCUS_LARGE = load("/studio/icons/layout-editor/palette/request-focus-advanced_large.png"); // 24x24
+      public static final Icon SCROLLVIEW = load("/studio/icons/layout-editor/palette/scroll-view.png"); // 16x16
+      public static final Icon SCROLLVIEW_LARGE = load("/studio/icons/layout-editor/palette/scroll-view_large.png"); // 24x24
+      public static final Icon SEARCHVIEW = load("/studio/icons/layout-editor/palette/search-view.png"); // 16x16
+      public static final Icon SEARCHVIEW_LARGE = load("/studio/icons/layout-editor/palette/search-view_large.png"); // 24x24
+      public static final Icon SEEKBARDISCRETE = load("/studio/icons/layout-editor/palette/seek-bar-discrete.png"); // 16x16
+      public static final Icon SEEKBARDISCRETE_LARGE = load("/studio/icons/layout-editor/palette/seek-bar-discrete_large.png"); // 24x24
+      public static final Icon SEEKBAR = load("/studio/icons/layout-editor/palette/seek-bar.png"); // 16x16
+      public static final Icon SEEKBAR_LARGE = load("/studio/icons/layout-editor/palette/seek-bar_large.png"); // 24x24
+      public static final Icon SPACE = load("/studio/icons/layout-editor/palette/space.png"); // 16x16
+      public static final Icon SPACE_LARGE = load("/studio/icons/layout-editor/palette/space_large.png"); // 24x24
+      public static final Icon SPINNER = load("/studio/icons/layout-editor/palette/spinner.png"); // 16x16
+      public static final Icon SPINNER_LARGE = load("/studio/icons/layout-editor/palette/spinner_large.png"); // 24x24
+      public static final Icon STACKVIEW = load("/studio/icons/layout-editor/palette/stack-view.png"); // 16x16
+      public static final Icon STACKVIEW_LARGE = load("/studio/icons/layout-editor/palette/stack-view_large.png"); // 24x24
+      public static final Icon SURFACEVIEW = load("/studio/icons/layout-editor/palette/surface-view.png"); // 16x16
+      public static final Icon SURFACEVIEW_LARGE = load("/studio/icons/layout-editor/palette/surface-view_large.png"); // 24x24
+      public static final Icon SWITCH = load("/studio/icons/layout-editor/palette/switch.png"); // 16x16
+      public static final Icon SWITCH_LARGE = load("/studio/icons/layout-editor/palette/switch_large.png"); // 24x24
+      public static final Icon TABHOST = load("/studio/icons/layout-editor/palette/tab-host.png"); // 16x16
+      public static final Icon TABHOST_LARGE = load("/studio/icons/layout-editor/palette/tab-host_large.png"); // 24x24
+      public static final Icon TABITEM = load("/studio/icons/layout-editor/palette/tab-item.png"); // 16x16
+      public static final Icon TABITEM_LARGE = load("/studio/icons/layout-editor/palette/tab-item_large.png"); // 24x24
+      public static final Icon TABLAYOUT = load("/studio/icons/layout-editor/palette/tab-layout.png"); // 16x16
+      public static final Icon TABLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/tab-layout_large.png"); // 24x24
+      public static final Icon TABWIDGET = load("/studio/icons/layout-editor/palette/tab-widget.png"); // 16x16
+      public static final Icon TABWIDGET_LARGE = load("/studio/icons/layout-editor/palette/tab-widget_large.png"); // 24x24
+      public static final Icon TABLELAYOUT = load("/studio/icons/layout-editor/palette/table-layout.png"); // 16x16
+      public static final Icon TABLELAYOUT_LARGE = load("/studio/icons/layout-editor/palette/table-layout_large.png"); // 24x24
+      public static final Icon TABLEROW = load("/studio/icons/layout-editor/palette/table-row.png"); // 16x16
+      public static final Icon TABLEROW_LARGE = load("/studio/icons/layout-editor/palette/table-row_large.png"); // 24x24
+      public static final Icon TEXTCLOCK = load("/studio/icons/layout-editor/palette/text-clock.png"); // 16x16
+      public static final Icon TEXTCLOCK_LARGE = load("/studio/icons/layout-editor/palette/text-clock_large.png"); // 24x24
+      public static final Icon TEXTINPUTLAYOUT = load("/studio/icons/layout-editor/palette/text-input-layout.png"); // 16x16
+      public static final Icon TEXTINPUTLAYOUT_LARGE = load("/studio/icons/layout-editor/palette/text-input-layout_large.png"); // 24x24
+      public static final Icon TEXTSWITCHER = load("/studio/icons/layout-editor/palette/text-switcher.png"); // 16x16
+      public static final Icon TEXTSWITCHER_LARGE = load("/studio/icons/layout-editor/palette/text-switcher_large.png"); // 24x24
+      public static final Icon TEXTFIELD_MULTILINE = load("/studio/icons/layout-editor/palette/textfield-multiline.png"); // 16x16
+      public static final Icon TEXTFIELD_MULTILINE_LARGE = load("/studio/icons/layout-editor/palette/textfield-multiline_large.png"); // 24x24
+      public static final Icon TEXTFIELD = load("/studio/icons/layout-editor/palette/textfield.png"); // 16x16
+      public static final Icon TEXTFIELD_LARGE = load("/studio/icons/layout-editor/palette/textfield_large.png"); // 24x24
+      public static final Icon TEXTUREVIEW = load("/studio/icons/layout-editor/palette/texture-view.png"); // 16x16
+      public static final Icon TEXTUREVIEW_LARGE = load("/studio/icons/layout-editor/palette/texture-view_large.png"); // 24x24
+      public static final Icon TEXTVIEW = load("/studio/icons/layout-editor/palette/textview.png"); // 16x16
+      public static final Icon TEXTVIEW_LARGE = load("/studio/icons/layout-editor/palette/textview_large.png"); // 24x24
+      public static final Icon TIMEPICKER = load("/studio/icons/layout-editor/palette/time-picker.png"); // 16x16
+      public static final Icon TIMEPICKER_LARGE = load("/studio/icons/layout-editor/palette/time-picker_large.png"); // 24x24
+      public static final Icon EDITTEXTTIME = load("/studio/icons/layout-editor/palette/time-textfield.png"); // 16x16
+      public static final Icon EDITTEXTTIME_LARGE = load("/studio/icons/layout-editor/palette/time-textfield_large.png"); // 24x24
+      public static final Icon TOGGLEBUTTON = load("/studio/icons/layout-editor/palette/toggle-button.png"); // 16x16
+      public static final Icon TOGGLEBUTTON_LARGE = load("/studio/icons/layout-editor/palette/toggle-button_large.png"); // 24x24
+      public static final Icon TOOLBAR = load("/studio/icons/layout-editor/palette/toolbar-compat.png"); // 16x16
+      public static final Icon TOOLBAR_LARGE = load("/studio/icons/layout-editor/palette/toolbar-compat_large.png"); // 24x24
+      public static final Icon VIDEOVIEW = load("/studio/icons/layout-editor/palette/video-view.png"); // 16x16
+      public static final Icon VIDEOVIEW_LARGE = load("/studio/icons/layout-editor/palette/video-view_large.png"); // 24x24
+      public static final Icon UNKNOWN = load("/studio/icons/layout-editor/palette/view-advanced.png"); // 16x16
+      public static final Icon UNKNOWN_LARGE = load("/studio/icons/layout-editor/palette/view-advanced_large.png"); // 24x24
+      public static final Icon VIEWANIMATOR = load("/studio/icons/layout-editor/palette/view-animator.png"); // 16x16
+      public static final Icon VIEWANIMATOR_LARGE = load("/studio/icons/layout-editor/palette/view-animator_large.png"); // 24x24
+      public static final Icon VIEWFLIPPER = load("/studio/icons/layout-editor/palette/view-flipper.png"); // 16x16
+      public static final Icon VIEWFLIPPER_LARGE = load("/studio/icons/layout-editor/palette/view-flipper_large.png"); // 24x24
+      public static final Icon VIEWSTUB = load("/studio/icons/layout-editor/palette/view-stub-advanced.png"); // 16x16
+      public static final Icon VIEWSTUB_LARGE = load("/studio/icons/layout-editor/palette/view-stub-advanced_large.png"); // 24x24
+      public static final Icon VIEWSWITCHER = load("/studio/icons/layout-editor/palette/view-switcher.png"); // 16x16
+      public static final Icon VIEWSWITCHER_LARGE = load("/studio/icons/layout-editor/palette/view-switcher_large.png"); // 24x24
+      public static final Icon WEBVIEW = load("/studio/icons/layout-editor/palette/web-view.png"); // 16x16
+      public static final Icon WEBVIEW_LARGE = load("/studio/icons/layout-editor/palette/web-view_large.png"); // 24x24
+    }
+
+    public static class Properties {
+      public static final Icon FAVORITESHOVER = load("/studio/icons/layout-editor/properties/favorites-hover.png"); // 16x16
+      public static final Icon FAVORITESSELECTED = load("/studio/icons/layout-editor/properties/favorites-selected.png"); // 16x16
+      public static final Icon FAVORITES = load("/studio/icons/layout-editor/properties/favorites.png"); // 16x16
+      public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.png"); // 16x16
+      public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.png"); // 16x16
+      public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.png"); // 16x16
+      public static final Icon TEXT_ALIGN_CENTER = load("/studio/icons/layout-editor/properties/text-align-center.png"); // 16x16
+      public static final Icon TEXT_ALIGN_LAYOUT_LEFT = load("/studio/icons/layout-editor/properties/text-align-layout-left.png"); // 16x16
+      public static final Icon TEXT_ALIGN_LAYOUT_RIGHT = load("/studio/icons/layout-editor/properties/text-align-layout-right.png"); // 16x16
+      public static final Icon TEXT_ALIGN_LEFT = load("/studio/icons/layout-editor/properties/text-align-left.png"); // 16x16
+      public static final Icon TEXT_ALIGN_RIGHT = load("/studio/icons/layout-editor/properties/text-align-right.png"); // 16x16
+      public static final Icon TEXT_STYLE_BOLD = load("/studio/icons/layout-editor/properties/text-style-bold.png"); // 16x16
+      public static final Icon TEXT_STYLE_ITALIC = load("/studio/icons/layout-editor/properties/text-style-italic.png"); // 16x16
+      public static final Icon TEXT_STYLE_UPPERCASE = load("/studio/icons/layout-editor/properties/text-style-uppercase.png"); // 16x16
+      public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/layout-editor/properties/toggle-properties.png"); // 16x16
+    }
+
+    public static class Toolbar {
+      public static final Icon ANDROID_API = load("/studio/icons/layout-editor/toolbar/android-api.png"); // 16x16
+      public static final Icon AUTO_CONNECT = load("/studio/icons/layout-editor/toolbar/auto-connect.png"); // 16x16
+      public static final Icon AUTO_CORRECT_OFF = load("/studio/icons/layout-editor/toolbar/auto-correct-off.png"); // 16x16
+      public static final Icon BASELINE_ALIGNED = load("/studio/icons/layout-editor/toolbar/baseline-aligned.png"); // 16x16
+      public static final Icon BLUEPRINT_MODE_INACTIVE = load("/studio/icons/layout-editor/toolbar/blueprint-mode-inactive.png"); // 16x16
+      public static final Icon BOTTOM_ALIGNED = load("/studio/icons/layout-editor/toolbar/bottom-aligned.png"); // 16x16
+      public static final Icon CENTER_HORIZONTAL_PARENT = load("/studio/icons/layout-editor/toolbar/center-horizontal-parent.png"); // 16x16
+      public static final Icon CENTER_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/center-horizontal.png"); // 16x16
+      public static final Icon CENTER_VERTICAL_PARENT = load("/studio/icons/layout-editor/toolbar/center-vertical-parent.png"); // 16x16
+      public static final Icon CENTER_VERTICAL = load("/studio/icons/layout-editor/toolbar/center-vertical.png"); // 16x16
+      public static final Icon CLEAR_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/clear-constraints.png"); // 16x16
+      public static final Icon DESIGN_MODE = load("/studio/icons/layout-editor/toolbar/design-mode.png"); // 16x16
+      public static final Icon DISTRIBUTE_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/distribute-horizontal.png"); // 16x16
+      public static final Icon DISTRIBUTE_VERTICAL = load("/studio/icons/layout-editor/toolbar/distribute-vertical.png"); // 16x16
+      public static final Icon EXPAND_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/expand-horizontal.png"); // 16x16
+      public static final Icon EXPAND_VERTICAL = load("/studio/icons/layout-editor/toolbar/expand-vertical.png"); // 16x16
+      public static final Icon HIDE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/hide-constraints.png"); // 16x16
+      public static final Icon HORIZONTAL_CENTER_ALIGNED = load("/studio/icons/layout-editor/toolbar/horizontal-center-aligned.png"); // 16x16
+      public static final Icon HORIZONTAL_GUIDE = load("/studio/icons/layout-editor/toolbar/horizontal-guide.png"); // 16x16
+      public static final Icon INFER_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/infer-constraints.png"); // 16x16
+      public static final Icon LANGUAGE = load("/studio/icons/layout-editor/toolbar/language.png"); // 16x16
+      public static final Icon LEFT_ALIGNED = load("/studio/icons/layout-editor/toolbar/left-aligned.png"); // 16x16
+      public static final Icon LOCK = load("/studio/icons/layout-editor/toolbar/lock.png"); // 16x16
+      public static final Icon MARGIN = load("/studio/icons/layout-editor/toolbar/margin.png"); // 16x16
+      public static final Icon NORMAL_RENDER = load("/studio/icons/layout-editor/toolbar/normal-render.png"); // 16x16
+      public static final Icon PACK_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/pack-horizontal.png"); // 16x16
+      public static final Icon PACK_VERTICAL = load("/studio/icons/layout-editor/toolbar/pack-vertical.png"); // 16x16
+      public static final Icon PAN_TOOL = load("/studio/icons/layout-editor/toolbar/pan-tool.png"); // 16x16
+      public static final Icon REFRESH = load("/studio/icons/layout-editor/toolbar/refresh.png"); // 16x16
+      public static final Icon RIGHT_ALIGNED = load("/studio/icons/layout-editor/toolbar/right-aligned.png"); // 16x16
+      public static final Icon ROTATE_BUTTON = load("/studio/icons/layout-editor/toolbar/rotate-button.png"); // 16x16
+      public static final Icon SHOW_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/show-constraints.png"); // 16x16
+      public static final Icon THEME_BUTTON = load("/studio/icons/layout-editor/toolbar/theme-button.png"); // 16x16
+      public static final Icon TOP_ALIGNED = load("/studio/icons/layout-editor/toolbar/top-aligned.png"); // 16x16
+      public static final Icon UNLOCK = load("/studio/icons/layout-editor/toolbar/unlock.png"); // 16x16
+      public static final Icon VARIANTS = load("/studio/icons/layout-editor/toolbar/variants.png"); // 16x16
+      public static final Icon VERTICAL_CENTER_ALIGNED = load("/studio/icons/layout-editor/toolbar/vertical-center-aligned.png"); // 16x16
+      public static final Icon VERTICAL_GUIDE = load("/studio/icons/layout-editor/toolbar/vertical-guide.png"); // 16x16
+      public static final Icon VIEWPORT_RENDER = load("/studio/icons/layout-editor/toolbar/viewport-render.png"); // 16x16
+    }
+  }
+
+  public static class Logcat {
+    public static final Icon FILTER = load("/studio/icons/logcat/toolbar/filter.png"); // 16x16
+    public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.png"); // 16x16
+    public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.png"); // 16x16
+    public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.png"); // 16x16
+    public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.png"); // 16x16
+  }
+
+  public static class NavEditor {
+    public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.png"); // 16x16
+    public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.png"); // 16x16
+    public static final Icon AUTO_ALIGN = load("/studio/icons/nav-editor/toolbar/auto-align.png"); // 16x16
+    public static final Icon DESTINATION_GROUP = load("/studio/icons/nav-editor/toolbar/destination-group.png"); // 16x16
+    public static final Icon DESTINATION = load("/studio/icons/nav-editor/toolbar/destination.png"); // 16x16
+  }
+
+  public static class NewResourceFile {
+    public static final Icon COUNTRY_CODE = load("/studio/icons/new-resource-file/country-code.png"); // 16x16
+    public static final Icon DENSITY = load("/studio/icons/new-resource-file/density.png"); // 16x16
+    public static final Icon DIMENSION = load("/studio/icons/new-resource-file/dimension.png"); // 16x16
+    public static final Icon KEYBOARD = load("/studio/icons/new-resource-file/keyboard.png"); // 16x16
+    public static final Icon LAYOUT_DIRECTION = load("/studio/icons/new-resource-file/layout-direction.png"); // 16x16
+    public static final Icon LOCALE = load("/studio/icons/new-resource-file/locale.png"); // 16x16
+    public static final Icon NAVIGATION_METHOD = load("/studio/icons/new-resource-file/navigation-method.png"); // 16x16
+    public static final Icon NAVIGATION_STATE = load("/studio/icons/new-resource-file/navigation-state.png"); // 16x16
+    public static final Icon NETWORK_CODE = load("/studio/icons/new-resource-file/network-code.png"); // 16x16
+    public static final Icon NIGHT_MODE = load("/studio/icons/new-resource-file/night-mode.png"); // 16x16
+    public static final Icon ORIENTATION = load("/studio/icons/new-resource-file/orientation.png"); // 16x16
+    public static final Icon SCREEN_HEIGHT = load("/studio/icons/new-resource-file/screen-height.png"); // 16x16
+    public static final Icon SCREEN_RATIO = load("/studio/icons/new-resource-file/screen-ratio.png"); // 16x16
+    public static final Icon SCREEN_SIZE = load("/studio/icons/new-resource-file/screen-size.png"); // 16x16
+    public static final Icon SCREEN_WIDTH = load("/studio/icons/new-resource-file/screen-width.png"); // 16x16
+    public static final Icon SMALLEST_SCREEN_SIZE = load("/studio/icons/new-resource-file/smallest-screen-size.png"); // 16x16
+    public static final Icon TEXT_INPUT = load("/studio/icons/new-resource-file/text-input.png"); // 16x16
+    public static final Icon TOUCH_SCREEN = load("/studio/icons/new-resource-file/touch-screen.png"); // 16x16
+    public static final Icon UI_MODE = load("/studio/icons/new-resource-file/ui-mode.png"); // 16x16
+    public static final Icon VERSION = load("/studio/icons/new-resource-file/version.png"); // 16x16
+  }
+
   public static class Profiler {
     public static class Events {
       public static final Icon BACK_BUTTON = load("/studio/icons/profiler/events/back-button.png"); // 22x22
@@ -108,6 +404,10 @@ public class StudioIcons {
       public static final Icon RECORD = load("/studio/icons/profiler/toolbar/record.png"); // 16x16
       public static final Icon STOP_RECORDING = load("/studio/icons/profiler/toolbar/stop-recording.png"); // 16x16
     }
+  }
+
+  public static class ResourcePicker {
+    public static final Icon WEB_FONT = load("/studio/icons/resource-picker/web-font.png"); // 16x16
   }
 
   public static class Shell {
