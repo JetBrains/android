@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.command.NlWriteCommandAction
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.AnAction
