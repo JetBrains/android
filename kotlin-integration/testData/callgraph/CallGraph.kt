@@ -104,6 +104,29 @@ class SimpleField {
 }
 
 
+/** Test calls through array elements.  */
+class SimpleArray {
+  var itNotUnique = arrayOfNulls<It>(1)
+  var itUnique = arrayOfNulls<It>(1)
+  var itTypeEvidencedSubImpl = arrayOfNulls<Array<It>>(1)
+  var itTypeEvidencedImpl = arrayOfNulls<It>(1)
+  var itTypeEvidencedBoth = arrayOfNulls<Array<It>>(1)
+
+  init {
+    itTypeEvidencedSubImpl[0]!![0] = SubImpl()
+    itTypeEvidencedImpl[0] = Impl()
+    itTypeEvidencedBoth[0]!![0] = Impl()
+    itTypeEvidencedBoth[0]!![0] = SubImpl()
+  }
+
+  fun notUnique() { itNotUnique[0]!!.f() }
+  fun unique() { itUnique[0]!!.implUnique() }
+  fun typeEvidencedSubImpl() { itTypeEvidencedSubImpl[0]!![0].f() }
+  fun typeEvidencedImpl() { itTypeEvidencedImpl[0]!!.f() }
+  fun typeEvidencedBoth() { itTypeEvidencedBoth[0]!![0].f() }
+}
+
+
 /** Test special calls through this and super. */
 open class Special {
   init {

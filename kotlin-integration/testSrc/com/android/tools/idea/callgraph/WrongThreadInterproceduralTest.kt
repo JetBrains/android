@@ -16,18 +16,10 @@
 package com.android.tools.idea.callgraph
 
 import com.android.tools.lint.checks.searchForInterproceduralThreadAnnotationViolations
-import com.android.tools.lint.detector.api.interprocedural.buildCallGraph
-import com.android.tools.lint.detector.api.interprocedural.buildClassHierarchy
-import com.android.tools.lint.detector.api.interprocedural.buildIntraproceduralReceiverEval
 import com.android.tools.lint.detector.api.interprocedural.shortName
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.components.ServiceManager
-import com.intellij.psi.PsiManager
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.uast.UFile
-import org.jetbrains.uast.UastContext
-import org.jetbrains.uast.convertWithParent
 
 class WrongThreadInterproceduralTest : AndroidTestCase() {
 
@@ -38,17 +30,15 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
     val virtualFile = myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext, "src/ThreadAnnotations" + ext)
-    val uastContext = ServiceManager.getService(project, UastContext::class.java)
-    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
-    val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
-    val files = listOf(file)
-    val classHierarchy = buildClassHierarchy(files)
-    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
-    val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)
-    val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
+    val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
+    val paths = searchForInterproceduralThreadAnnotationViolations(graph, receiverEval)
 
     val pathStrs = paths
-        .map { (searchNodes, _, _) -> searchNodes.joinToString(separator = " -> ") { (node, _) -> node.shortName } }
+        .map { (searchNodes, _, _) ->
+          searchNodes.joinToString(separator = " -> ") { (contextualNode, _) ->
+            contextualNode.node.shortName
+          }
+        }
         .toSortedSet()
         .joinToString(separator = "\n")
 
