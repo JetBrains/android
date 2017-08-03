@@ -408,7 +408,7 @@ public class AndroidCommonUtils {
 
     LOG.info(command2string(commands));
     final Map<String, String> home = System.getenv().containsKey(PROGUARD_HOME_ENV_VARIABLE)
-                                     ? Collections.<String, String>emptyMap()
+                                     ? Collections.emptyMap()
                                      : Collections.singletonMap(PROGUARD_HOME_ENV_VARIABLE, proguardHome);
     return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands), home);
   }
@@ -499,7 +499,7 @@ public class AndroidCommonUtils {
     final File[] children2 = getFilteredChildren(dir2, filter);
 
     if (children1 == null || children2 == null) {
-      return children1 == children2;
+      return Arrays.equals(children1, children2);
     }
 
     if (children1.length != children2.length) {
