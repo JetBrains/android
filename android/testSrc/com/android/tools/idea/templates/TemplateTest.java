@@ -310,39 +310,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
   });
 
-  private final ProjectStateCustomizer thingsPeripheralCustomizer = ((templateMap, projectMap) -> {
-    templateMap.put("integrateButton", false);
-    templateMap.put("integrateCapacitiveTouchButton", false);
-    templateMap.put("integrateOledDisplay", false);
-    templateMap.put("integrateAlphanumericDisplay", false);
-    templateMap.put("integrateNumericDisplay", false);
-    templateMap.put("integrateLEDStrip", false);
-    templateMap.put("integrateAccelerometer", false);
-    templateMap.put("integrateGps", false);
-    templateMap.put("integrateTemperaturePressureSensor", false);
-    templateMap.put("integrateServo", false);
-    templateMap.put("integrateSpeakerBuzzer", false);
-  });
-
-  private final ProjectStateCustomizer thingsPeripheralCustomizerWithKotlin = ((templateMap, projectMap) -> {
-    projectMap.put(ATTR_KOTLIN_SUPPORT, true);
-    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.KOTLIN_VERSION_FOR_TESTS);
-    projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
-    templateMap.put(ATTR_KOTLIN_SUPPORT, true);
-    templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
-    templateMap.put("integrateButton", false);
-    templateMap.put("integrateCapacitiveTouchButton", false);
-    templateMap.put("integrateOledDisplay", false);
-    templateMap.put("integrateAlphanumericDisplay", false);
-    templateMap.put("integrateNumericDisplay", false);
-    templateMap.put("integrateLEDStrip", false);
-    templateMap.put("integrateAccelerometer", false);
-    templateMap.put("integrateGps", false);
-    templateMap.put("integrateTemperaturePressureSensor", false);
-    templateMap.put("integrateServo", false);
-    templateMap.put("integrateSpeakerBuzzer", false);
-  });
-
   //--- Activity templates ---
 
   @TemplateCheck
@@ -377,17 +344,17 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewThingsPeripheralActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", false, thingsPeripheralCustomizer);
+    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", false);
   }
 
   @TemplateCheck
   public void testNewProjectWithThingsPeripheralActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true, thingsPeripheralCustomizer);
+    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true);
   }
 
   @TemplateCheck
   public void testNewProjectWithThingsPeripheralActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true, thingsPeripheralCustomizerWithKotlin);
+    checkCreateTemplate("activities", "AndroidThingsPeripheralActivity", true, withKotlin);
   }
 
   @TemplateCheck
