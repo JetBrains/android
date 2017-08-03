@@ -18,6 +18,11 @@ package com.android.tools.idea.common.model;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -25,15 +30,10 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -909,15 +909,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (!NlModelHelperKt.addDependencies(this, toAdd, insertType)) {
       return;
     }
-    assert toAdd != null;
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        handleAddition(toAdd, receiver, before, insertType);
-      }
-    };
-    action.execute();
+    assert toAdd != null;
+    NlWriteCommandAction.run(toAdd, insertType.getDragType().getDescription(), () -> handleAddition(toAdd, receiver, before, insertType));
+
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
 
@@ -928,34 +923,30 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       @NotNull NlComponent receiver,
                       @Nullable NlComponent before,
                       final @NotNull InsertType insertType) {
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
-      @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
-        for (NlComponent component : added) {
-          NlComponent parent = component.getParent();
-          if (parent != null) {
-            parent.removeChild(component);
-          }
-          receiver.addChild(component, before);
-          if (receiver.getTag() != component.getTag()) {
-            XmlTag prev = component.getTag();
-            transferNamespaces(prev);
-            if (before != null) {
-              component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
-            }
-            else {
-              component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
-            }
-            if (insertType.isMove()) {
-              prev.delete();
-            }
-          }
-          removeNamespaceAttributes(component);
-          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
+    NlWriteCommandAction.run(added, insertType.getDragType().getDescription(), () -> {
+      for (NlComponent component : added) {
+        NlComponent parent = component.getParent();
+        if (parent != null) {
+          parent.removeChild(component);
         }
+        receiver.addChild(component, before);
+        if (receiver.getTag() != component.getTag()) {
+          XmlTag prev = component.getTag();
+          transferNamespaces(prev);
+          if (before != null) {
+            component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
+          }
+          else {
+            component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
+          }
+          if (insertType.isMove()) {
+            prev.delete();
+          }
+        }
+        removeNamespaceAttributes(component);
       }
-    };
-    action.execute();
+    });
+
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
 
@@ -986,7 +977,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
       removeNamespaceAttributes(component);
-      TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
     }
   }
 

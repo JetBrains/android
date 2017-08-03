@@ -35,6 +35,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -378,7 +379,7 @@ public class WidgetConstraintPanel extends JPanel {
     model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
 
-    myWriteAction = new NlWriteCommandAction(component, "Change Widget", () -> {
+    myWriteAction = new NlWriteCommandAction(Collections.singletonList(component), "Change Widget", () -> {
       AttributesTransaction transaction2 = component.startAttributeTransaction();
 
       transaction2.setAttribute(nameSpace, attribute, value);
