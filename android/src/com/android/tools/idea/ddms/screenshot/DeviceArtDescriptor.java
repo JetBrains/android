@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
@@ -78,10 +79,10 @@ public class DeviceArtDescriptor {
     // In development environments, search a few other folders
     String basePath = PathManager.getHomePath();
     String[] paths = new String[] {
-      "plugins" + File.separatorChar + "android" + File.separatorChar,
-      ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
-      "android" + File.separatorChar + "android" + File.separatorChar,
-      "community" + File.separatorChar + "android" + File.separatorChar + "android" + File.separatorChar,
+      FileUtil.join("plugins", "android"),
+      FileUtil.join("..", "adt", "idea", "artwork", "resources"),
+      FileUtil.join("android", "artwork", "resources"),
+      FileUtil.join("community", "android", "artwork", "resources"),
     };
 
     for (String p : paths) {

@@ -9,7 +9,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android:device-art-resources",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib/libwebp",
         "//tools/adt/idea/android/testData",

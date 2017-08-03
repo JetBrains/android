@@ -72,7 +72,7 @@ public class IdeaTestSuite {
     VfsRootAccess.allowRootAccess("/");
 
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
-    symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
+    symbolicLinkInTmpDir("tools/adt/idea/artwork/resources/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/android/lib");
     symbolicLinkInTmpDir("tools/base/templates");
