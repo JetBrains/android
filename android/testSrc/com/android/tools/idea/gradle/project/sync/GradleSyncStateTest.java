@@ -105,7 +105,6 @@ public class GradleSyncStateTest extends IdeaTestCase {
     String msg = "Something went wrong";
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncFailed(msg);
-    mySyncState.syncFailed(msg);
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
@@ -113,12 +112,26 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(mySyncListener, times(1)).syncFailed(myProject, msg);
   }
 
-  public void testSyncEnded() {
-    mySyncState.syncEnded();
+  public void testSyncFailedWithoutSyncStarted() {
+    String msg = "Something went wrong";
+    mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncFailed(msg);
+    verify(mySummary, never()).setSyncErrorsFound(true);
+    verify(mySyncListener, never()).syncFailed(myProject, msg);
+  }
 
+  public void testSyncEnded() {
+    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncEnded();
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySyncListener, times(1)).syncSucceeded(myProject);
+  }
+
+  public void testSyncEndedWithoutSyncStarted() {
+    mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.syncEnded();
+    verify(mySyncListener, never()).syncSucceeded(myProject);
   }
 
   public void testSetupStarted() {
