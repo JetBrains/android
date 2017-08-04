@@ -20,13 +20,13 @@ import com.android.flags.FlagGroup;
 import com.android.flags.FlagOverrides;
 import com.android.flags.ImmutableFlagOverrides;
 import com.android.flags.overrides.DefaultFlagOverrides;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,7 +50,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Comparator;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 public final class StudioFlagsDialog extends DialogWrapper {
   public static final String TITLE = "Edit Studio Flags";

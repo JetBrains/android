@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.expressions.Expression;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

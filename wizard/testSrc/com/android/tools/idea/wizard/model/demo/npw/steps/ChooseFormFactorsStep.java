@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.steps;
 
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.demo.npw.android.FormFactor;
@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.any;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.any;
 
 public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
   private final ListenerManager myListeners = new ListenerManager();

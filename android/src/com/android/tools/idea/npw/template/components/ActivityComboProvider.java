@@ -17,8 +17,8 @@ package com.android.tools.idea.npw.template.components;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.google.common.base.Strings;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;

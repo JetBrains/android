@@ -17,9 +17,9 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.ui.properties.core.ObservableOptional;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.ObservableOptional;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;

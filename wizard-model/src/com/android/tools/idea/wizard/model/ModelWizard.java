@@ -16,8 +16,8 @@
 package com.android.tools.idea.wizard.model;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;

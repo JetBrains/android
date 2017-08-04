@@ -17,12 +17,12 @@ package com.android.tools.idea.npw.importing;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
