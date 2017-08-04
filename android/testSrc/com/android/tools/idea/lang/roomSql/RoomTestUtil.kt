@@ -50,13 +50,29 @@ abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
 
           public @interface Query { String value(); }
           """.trimIndent())
+
+    myFixture.addClass(
+        """
+          package android.arch.persistence.room;
+
+          public @interface Ignore {}
+          """.trimIndent())
   }
 
-  protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, tableNameOverride: String? = null): PsiClass {
+  protected fun JavaCodeInsightTestFixture.addRoomEntity(
+      qualifiedClassName: String,
+      tableNameOverride: String? = null,
+      fields: Map<String, String>? = null
+  ) : PsiClass {
     val packageName = qualifiedClassName.substringBeforeLast('.', "")
     val className = qualifiedClassName.substringAfterLast('.')
     val packageLine = if (packageName.isEmpty()) "" else "package $packageName;"
     val annotationArguments = if (tableNameOverride == null) "" else "(tableName = \"$tableNameOverride\")"
+
+    val fieldsSnippet = fields
+        ?.entries
+        ?.joinToString(prefix = "\n", postfix = "\n", separator = "\n") { (name, type) -> "private $type $name;" }
+        .orEmpty()
 
     return addClass(
         """
@@ -65,7 +81,7 @@ abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
         import android.arch.persistence.room.Entity;
 
         @Entity$annotationArguments
-        public class $className {}
+        public class $className { $fieldsSnippet }
         """.trimIndent())
   }
 }
