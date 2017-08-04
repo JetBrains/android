@@ -83,8 +83,14 @@ public final class NlWriteCommandAction implements Runnable {
         for (NlComponent component : myComponents) {
           PsiNamedElement tag = component.getTag();
 
+          // noinspection ConstantConditions
+          if (tag == null) {
+            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its tag is null");
+            continue;
+          }
+
           if (tag.getContainingFile().getVirtualFile() == null) {
-            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + tag.getName() + " because its virtual file is null");
+            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its virtual file is null");
             continue;
           }
 
