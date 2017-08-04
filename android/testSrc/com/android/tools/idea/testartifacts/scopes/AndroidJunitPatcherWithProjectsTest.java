@@ -59,8 +59,8 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
     parameters.configureByModule(app, JavaParameters.CLASSES_AND_TESTS);
 
     File projectPath = getProjectFolderPath();
-    String javaTestResources = projectPath.getPath() + "/lib/build/resources/test";
-    String javaMainResources = projectPath.getPath() + "/lib/build/resources/main";
+    String javaTestResources = new File(projectPath, "/lib/build/resources/test").toString();
+    String javaMainResources = new File(projectPath, "/lib/build/resources/main").toString();
 
     String classpath = parameters.getClassPath().getPathsString();
     assertThat(classpath).doesNotContain(javaTestResources);
