@@ -37,6 +37,6 @@ iml_module(
         "//tools/base/sdk-common:studio.sdk-common[module]",
         "//tools/base/sdklib:studio.sdklib[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/android-common",
+        "//tools/adt/idea/android-common[module]",
     ],
 )

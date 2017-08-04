@@ -4,7 +4,6 @@ iml_module(
     name = "profilers-ui",
     srcs = ["src"],
     iml_files = ["profilers-ui.iml"],
-    resources = ["resources"],
     tags = ["managed"],
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],

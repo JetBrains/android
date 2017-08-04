@@ -10,7 +10,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/build-common:build-common[module]",
+        "//tools/adt/idea/build-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/jps/jps-builders[module]",
         "//tools/idea/platform/util[module]",
