@@ -141,7 +141,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void stop() {
+    if (isStopped()) {
+      // Profiler is already stopped. Nothing to do. Ideally, this method shouldn't be called when the profiler is already stopped.
+      // However, some exceptions might be thrown when listeners are notified about ProfilerAspect.STAGE aspect change and react
+      // accordingly. In this case, we could end up with an inconsistent model and allowing to try to call stop and notify the listeners
+      // again can only make it worse. Therefore, we return early to avoid making the model problem bigger.
+      return;
+    }
+    // The following line can't throw an exception, will stop the updater's timer and guarantees future calls to isStopped() return true.
     myUpdater.stop();
+    // The following lines trigger aspect changes and, therefore, can make many models to update. That might cause an exception to be thrown
+    // and make some models inconsistent. In this case, we want future calls to this method to return early, as we can only make the
+    // inconsistency worse if we call these lines again.
     setDevice(null);
     changed(ProfilerAspect.STAGE);
   }

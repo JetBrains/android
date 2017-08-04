@@ -930,6 +930,36 @@ public final class StudioProfilersTest {
     assertEquals(null, profilers.getDevice());
   }
 
+  @Test
+  public void testStopppingTwice() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+
+    // Should be modified when STAGE aspect is fired.
+    boolean[] stageAspectTriggered = {false};
+    profilers.addDependency(new AspectObserver())
+      .onChange(ProfilerAspect.STAGE, () -> {
+        stageAspectTriggered[0] = true;
+      });
+
+    // Check profiler is not stopped.
+    assertFalse(profilers.isStopped());
+    assertTrue(timer.isRunning());
+    // Stop the profiler
+    profilers.stop();
+    // Profiler should have stopped and STAGE is supposed to have been fired.
+    assertTrue(stageAspectTriggered[0]);
+
+    // Check profiler is stopped.
+    assertTrue(profilers.isStopped());
+    assertFalse(timer.isRunning());
+    stageAspectTriggered[0] = false;
+    // Try to stop the profiler again.
+    profilers.stop();
+    // Profiler was already stopped and STAGE is not supposed to have been fired.
+    assertFalse(stageAspectTriggered[0]);
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
