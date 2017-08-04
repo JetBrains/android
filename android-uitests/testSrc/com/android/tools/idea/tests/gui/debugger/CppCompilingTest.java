@@ -42,6 +42,8 @@ public class CppCompilingTest extends DebuggerTestBase {
   private final String CPP_SHARED = "c++_shared";
   private final String GNUSTL_STATIC = "gnustl_static";
   private final String GNUSTL_SHARED = "gnustl_shared";
+  private final String CLANG_TOOLCHAIN = "-DANDROID_TOOLCHAIN=clang";
+  private final String GCC_TOOLCHAIN = "-DANDROID_TOOLCHAIN=gcc";
 
   /**
    * Verifies C++ compilation works normally.
@@ -55,7 +57,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   1. Import BasicCmakeAppForUI and wait for sync to finish.
    *   2. Create an AVD with x86 API 24 or above.
    *   3. Select Auto debugger on Edit Configurations dialog.
-   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=cpp_static""
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=cpp_static",
+   *      "-DANDROID_TOOLCHAIN=gcc""
    *   5. Set breakpoints in C++ and Java code.
    *   6. Debug on the AVD created above.
    *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
@@ -65,8 +68,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
-  public void testCppStatic() throws Exception {
-    processToTestCppCompiling(CPP_STATIC);
+  public void testGccCppStatic() throws Exception {
+    processToTestCppCompiling(GCC_TOOLCHAIN, CPP_STATIC);
   }
 
   /**
@@ -81,7 +84,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   1. Import BasicCmakeAppForUI and wait for sync to finish.
    *   2. Create an AVD with x86 API 24 or above.
    *   3. Select Auto debugger on Edit Configurations dialog.
-   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=c++_shared""
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=c++_shared",
+   *      "-DANDROID_TOOLCHAIN=gcc""
    *   5. Set breakpoints in C++ and Java code.
    *   6. Debug on the AVD created above.
    *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
@@ -91,8 +95,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
-  public void testCppShared() throws Exception {
-    processToTestCppCompiling(CPP_SHARED);
+  public void testGccCppShared() throws Exception {
+    processToTestCppCompiling(GCC_TOOLCHAIN, CPP_SHARED);
   }
 
   /**
@@ -107,7 +111,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   1. Import BasicCmakeAppForUI and wait for sync to finish.
    *   2. Create an AVD with x86 API 24 or above.
    *   3. Select Auto debugger on Edit Configurations dialog.
-   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_static""
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_static",
+   *      "-DANDROID_TOOLCHAIN=gcc""
    *   5. Set breakpoints in C++ and Java code.
    *   6. Debug on the AVD created above.
    *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
@@ -117,8 +122,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
-  public void testGnustlStatic() throws Exception {
-    processToTestCppCompiling(GNUSTL_STATIC);
+  public void testGccGnustlStatic() throws Exception {
+    processToTestCppCompiling(GCC_TOOLCHAIN, GNUSTL_STATIC);
   }
 
   /**
@@ -133,7 +138,8 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   1. Import BasicCmakeAppForUI and wait for sync to finish.
    *   2. Create an AVD with x86 API 24 or above.
    *   3. Select Auto debugger on Edit Configurations dialog.
-   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_shared""
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_shared",
+   *      "-DANDROID_TOOLCHAIN=gcc""
    *   5. Set breakpoints in C++ and Java code.
    *   6. Debug on the AVD created above.
    *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
@@ -143,19 +149,123 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
-  public void testGnustlShared() throws Exception {
-    processToTestCppCompiling(GNUSTL_SHARED);
+  public void testGccGnustlShared() throws Exception {
+    processToTestCppCompiling(GCC_TOOLCHAIN, GNUSTL_SHARED);
   }
 
-  private void processToTestCppCompiling(@NotNull String dandroidStlType) throws Exception {
-    IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
+  /**
+   * Verifies C++ compilation works normally.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 486bea8f-ee79-47b4-9f41-602341c670d3
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI and wait for sync to finish.
+   *   2. Create an AVD with x86 API 24 or above.
+   *   3. Select Auto debugger on Edit Configurations dialog.
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=cpp_static",
+   *      "-DANDROID_TOOLCHAIN=clang""
+   *   5. Set breakpoints in C++ and Java code.
+   *   6. Debug on the AVD created above.
+   *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
+   *   8. When the C++ breakpoint is hit verify call stack and variables and press F9 to resume.
+   *   9. Stop debugging
+   *   </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void testClangCppStatic() throws Exception {
+    processToTestCppCompiling(CLANG_TOOLCHAIN, CPP_STATIC);
+  }
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType(AUTO)
-      .clickOk();
+  /**
+   * Verifies C++ compilation works normally.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 14d92870-c9d6-42e4-9acc-e29e70286bd1
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI and wait for sync to finish.
+   *   2. Create an AVD with x86 API 24 or above.
+   *   3. Select Auto debugger on Edit Configurations dialog.
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=c++_shared",
+   *      "-DANDROID_TOOLCHAIN=clang""
+   *   5. Set breakpoints in C++ and Java code.
+   *   6. Debug on the AVD created above.
+   *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
+   *   8. When the C++ breakpoint is hit verify call stack and variables and press F9 to resume.
+   *   9. Stop debugging
+   *   </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void testClangCppShared() throws Exception {
+    processToTestCppCompiling(CLANG_TOOLCHAIN, CPP_SHARED);
+  }
+
+  /**
+   * Verifies C++ compilation works normally.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: df1ec714-a2fb-477b-b0e9-227bee31c7e5
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI and wait for sync to finish.
+   *   2. Create an AVD with x86 API 24 or above.
+   *   3. Select Auto debugger on Edit Configurations dialog.
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_static",
+   *      "-DANDROID_TOOLCHAIN=clang""
+   *   5. Set breakpoints in C++ and Java code.
+   *   6. Debug on the AVD created above.
+   *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
+   *   8. When the C++ breakpoint is hit verify call stack and variables and press F9 to resume.
+   *   9. Stop debugging
+   *   </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void testClangGnustlStatic() throws Exception {
+    processToTestCppCompiling(CLANG_TOOLCHAIN, GNUSTL_STATIC);
+  }
+
+  /**
+   * Verifies C++ compilation works normally.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: c5fb21ca-0a8d-41f1-bcc6-44576126cb2c
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI and wait for sync to finish.
+   *   2. Create an AVD with x86 API 24 or above.
+   *   3. Select Auto debugger on Edit Configurations dialog.
+   *   4. Open "build.gradle" in android studio, add "arguments "-DANDROID_STL=gnustl_shared",
+   *      "-DANDROID_TOOLCHAIN=clang""
+   *   5. Set breakpoints in C++ and Java code.
+   *   6. Debug on the AVD created above.
+   *   7. When the Java breakpoint is hit verify call stack and variables and press F9 to resume
+   *   8. When the C++ breakpoint is hit verify call stack and variables and press F9 to resume.
+   *   9. Stop debugging
+   *   </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void testClangGnustlShared() throws Exception {
+    processToTestCppCompiling(CLANG_TOOLCHAIN, GNUSTL_SHARED);
+  }
+
+  private void processToTestCppCompiling(@NotNull String toolChain,
+                                         @NotNull String dandroidStlType) throws Exception {
+    if (!toolChain.equals(CLANG_TOOLCHAIN) && !toolChain.equals(GCC_TOOLCHAIN)) {
+      throw new RuntimeException("Not supported Android toolchain provided: " + toolChain);
+    }
 
     String cmakeArgsValue = null;
     if (dandroidStlType.equals(CPP_STATIC) ||
@@ -167,9 +277,18 @@ public class CppCompilingTest extends DebuggerTestBase {
       throw new RuntimeException("Not supported Android STL type provided: " + dandroidStlType);
     }
 
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
+
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType(AUTO)
+      .clickOk();
+
     ideFrame.getEditor().open("app/build.gradle")
       .moveBetween("cppFlags \"\"", "")
-      .enterText("\narguments \"" + cmakeArgsValue + "\"");
+      .enterText("\narguments \"" + cmakeArgsValue + "\"" + ", \"" + toolChain + "\"");
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
