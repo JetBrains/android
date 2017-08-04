@@ -63,10 +63,10 @@ public class SceneDragGuidelineTest extends SceneTest {
     myInteraction.mouseRelease(400, 100);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"500dp\"\n" +
-                 "    android:layout_height=\"0dp\"\n" +
-                 "    app:layout_constraintGuide_percent=\"0.2\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"500dp\"\n" +
+                 "        android:layout_height=\"0dp\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.2\" />");
   }
 
   public void testDragGuidelineRounding() {
@@ -74,10 +74,10 @@ public class SceneDragGuidelineTest extends SceneTest {
     myInteraction.mouseRelease(400, 147.25981f);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"500dp\"\n" +
-                 "    android:layout_height=\"0dp\"\n" +
-                 "    app:layout_constraintGuide_percent=\"0.29\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"500dp\"\n" +
+                 "        android:layout_height=\"0dp\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.29\" />");
   }
 
   public void testDragGuidelineRoundingUp() {
@@ -85,10 +85,10 @@ public class SceneDragGuidelineTest extends SceneTest {
     myInteraction.mouseRelease(400, 148f);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"500dp\"\n" +
-                 "    android:layout_height=\"0dp\"\n" +
-                 "    app:layout_constraintGuide_percent=\"0.3\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"500dp\"\n" +
+                 "        android:layout_height=\"0dp\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.3\" />");
   }
 
   public void testDragVerticalGuideline() {
@@ -96,10 +96,10 @@ public class SceneDragGuidelineTest extends SceneTest {
     myInteraction.mouseRelease(400, 100);
     myScreen.get("@id/verticalGuideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/verticalGuideline\"\n" +
-                 "    android:layout_width=\"0dp\"\n" +
-                 "    android:layout_height=\"500dp\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "    app:layout_constraintGuide_percent=\"0.8\" />");
+                 "        android:id=\"@id/verticalGuideline\"\n" +
+                 "        android:layout_width=\"0dp\"\n" +
+                 "        android:layout_height=\"500dp\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.8\" />");
   }
 }

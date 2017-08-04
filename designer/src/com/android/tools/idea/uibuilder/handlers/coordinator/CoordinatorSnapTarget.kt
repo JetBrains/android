@@ -17,13 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AttributesTransaction
-import com.android.tools.idea.uibuilder.model.ensureLiveId
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.model.ensureLiveId
 import java.awt.Color
-import java.util.Arrays.asList
 
 /**
  * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget
@@ -94,7 +93,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     }
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, value)
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())
-    applyAndCommit(myComponent.nlComponent.model, asList(attributes), "Set gravity")
+    applyAndCommit(attributes, "Set gravity")
   }
 
   override fun setComponentSelection(selection: Boolean) {

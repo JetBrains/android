@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.common.scene.target;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.List;
 
 /**
  * Base implementation of a Target
@@ -58,7 +53,9 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
-  public SceneComponent getComponent() { return myComponent; }
+  public SceneComponent getComponent() {
+    return myComponent;
+  }
 
   @Override
   public void setOver(boolean over) {
@@ -124,28 +121,11 @@ public abstract class BaseTarget implements Target {
 
   /**
    * Apply live and commit a list of AttributesTransaction
-   *
-   * @param nlModel the model we operate on
-   * @param attributesList the list of AttributesTransaction
-   * @param label label used for the write command (will be appearing when using undo/redo)
    */
-  public void applyAndCommit(@NotNull NlModel nlModel,
-                             @NotNull List<AttributesTransaction> attributesList,
-                             @NotNull String label) {
-    for (AttributesTransaction attributes : attributesList) {
-      attributes.apply();
-    }
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        for (AttributesTransaction attributes : attributesList) {
-          attributes.commit();
-        }
-      }
-    };
-    action.execute();
+  protected void applyAndCommit(@NotNull AttributesTransaction attributes, @NotNull String label) {
+    attributes.apply();
+    NlWriteCommandAction.run(attributes.getComponent(), label, attributes::commit);
+
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 

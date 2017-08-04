@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +49,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   private final Point mySnappedCoordinates = new Point();
   private final TargetSnapper myTargetSnapper;
 
-  public DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
+  private DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
     super();
     myTargetSnapper = targetSnapper;
   }
@@ -175,18 +171,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
       attributes.apply();
 
       if (commitChanges) {
-        NlModel nlModel = component.getModel();
-        Project project = nlModel.getProject();
-        XmlFile file = nlModel.getFile();
-
-        String commandName = "Dragged " + StringUtil.getShortName(component.getTagName());
-        WriteCommandAction action = new WriteCommandAction(project, commandName, file) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            attributes.commit();
-          }
-        };
-        action.execute();
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.getTagName()), attributes::commit);
       }
     }
     if (myChangedComponent) {
