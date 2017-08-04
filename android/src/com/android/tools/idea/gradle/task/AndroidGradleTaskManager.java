@@ -24,17 +24,24 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
+import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
 
 /**
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
+
+  /**
+   * @deprecated use {@link #executeTasks(ExternalSystemTaskId, List, String, GradleExecutionSettings, String, ExternalSystemTaskNotificationListener)}
+   */
   @Override
   public boolean executeTasks(@NotNull ExternalSystemTaskId id,
                               @NotNull List<String> taskNames,
@@ -44,14 +51,32 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull List<String> scriptParameters,
                               @Nullable String debuggerSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
+    GradleExecutionSettings effectiveSettings =
+      settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
+    effectiveSettings
+      .withVmOptions(vmOptions)
+      .withArguments(scriptParameters);
+    return executeTasks(id, taskNames, projectPath, effectiveSettings, debuggerSetup, listener);
+  }
+
+  @Override
+  public boolean executeTasks(@NotNull final ExternalSystemTaskId id,
+                              @NotNull final List<String> taskNames,
+                              @NotNull String projectPath,
+                              @Nullable GradleExecutionSettings settings,
+                              @Nullable final String jvmAgentSetup,
+                              @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
     if (gradleBuildInvoker != null) {
       GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), taskNames, id);
 
+      GradleExecutionSettings effectiveSettings =
+        settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
+      appendInitScriptArgument(taskNames, jvmAgentSetup, effectiveSettings);
       // @formatter:off
       request.setBuildFilePath(new File(projectPath))
-             .setJvmArguments(vmOptions)
-             .setCommandLineArguments(scriptParameters)
+             .setJvmArguments(new ArrayList<>(effectiveSettings.getVmOptions()))
+             .setCommandLineArguments(effectiveSettings.getArguments())
              .setTaskListener(listener)
              .setWaitForCompletion(true);
       // @formatter:on
