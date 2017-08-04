@@ -99,6 +99,7 @@ public class AttributesTransaction implements NlAttributesHolder {
 
   /**
    * Applies all the existing attributes to the given ViewInfo info
+   *
    * @param viewInfo
    */
   private void applyAllPendingAttributesToView(@NotNull ViewInfo viewInfo) {
@@ -175,6 +176,11 @@ public class AttributesTransaction implements NlAttributesHolder {
     finally {
       myLock.readLock().unlock();
     }
+  }
+
+  @NotNull
+  public NlComponent getComponent() {
+    return myComponent;
   }
 
   private boolean finishTransaction() {
