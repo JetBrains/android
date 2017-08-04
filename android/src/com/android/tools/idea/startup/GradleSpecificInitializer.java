@@ -97,11 +97,16 @@ public class GradleSpecificInitializer implements Runnable {
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
+  // Id for TemplateProjectSettingsGroup
+  @NotNull public static final String  TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
+
   @Override
   public void run() {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
+    // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
+    replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
     checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
