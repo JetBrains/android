@@ -36,7 +36,7 @@ iml_module(
         "//tools/idea/plugins/properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
-        "//tools/adt/idea/build-common:build-common[module]",
+        "//tools/adt/idea/build-common[module]",
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/java/java-indexing-api[module]",
@@ -151,7 +151,6 @@ iml_module(
     deps = [
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
-        "//tools/adt/idea/android-common[module]",
         "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/adt-ui-model[module, test]",
@@ -198,6 +197,7 @@ iml_module(
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/idea/plugins/properties/properties-psi-impl[module, test]",
         "//tools/adt/idea/artwork[module, test]",
+        "//tools/adt/idea/android-common[module, test]",
     ],
 )
 

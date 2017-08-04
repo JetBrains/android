@@ -13,7 +13,7 @@ iml_module(
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.sdk-common[module]",
         "//tools/idea/platform/annotations[module]",
-        "//tools/adt/idea/android-common",
+        "//tools/adt/idea/android-common[module]",
         "//tools/idea/platform/platform-api[module]",
         "//tools/base/layoutlib-api:studio.layoutlib-api[module]",
         "//tools/idea/.idea/libraries:ASM",

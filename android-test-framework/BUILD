@@ -12,7 +12,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools/idea:compiler-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
-        "//tools/adt/idea/android-common[module, test]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:jsr305[test]",

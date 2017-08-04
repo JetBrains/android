@@ -14,7 +14,7 @@ iml_module(
         "//tools/idea/jps/model-impl:jps-model-impl[module]",
         "//tools/idea/jps/model-serialization:jps-model-serialization[module]",
         "//tools/adt/idea/jps-plugin:android-jps-plugin[module]",
-        "//tools/adt/idea/build-common:build-common[module]",
+        "//tools/adt/idea/build-common[module]",
         "//tools/idea/.idea/libraries:Gradle",
     ],
 )
