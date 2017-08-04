@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;

@@ -38,6 +38,7 @@ import java.util.*;
 public class NavigationSchema implements Disposable {
   public static final String TAG_ACTION = "action";
   public static final String TAG_DEEPLINK = "deeplink";
+  public static final String TAG_ARGUMENT = "argument";
   public static final String ATTR_DESTINATION = "destination";
 
   public static final String TAG_INCLUDE = "include";

@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Divider;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
@@ -58,7 +59,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
-  implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
+  implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener, Disposable {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -81,7 +82,9 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     mySurface = designSurface;
     myEditors = NlPropertyEditors.getInstance(getProject());
     setToolContextWithoutCheck(designSurface);
+    Disposer.register(facet.getModule().getProject(), this);
   }
+
 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {

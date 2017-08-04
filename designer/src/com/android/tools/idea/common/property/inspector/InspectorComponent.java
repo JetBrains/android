@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property.inspector;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

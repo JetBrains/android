@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.util
+package com.android.tools.idea.common.util
 
 import java.awt.image.BufferedImage
 import javax.swing.Icon
@@ -23,7 +23,7 @@ import javax.swing.ImageIcon
  * Generator of icons where all colors are replaced with white.
  * The alpha value of each color is maintained.
  */
-class WhiteIconGenerator {
+object WhiteIconGenerator {
 
   fun generateWhiteIcon(icon: Icon): Icon {
     //noinspection UndesirableClassUsage

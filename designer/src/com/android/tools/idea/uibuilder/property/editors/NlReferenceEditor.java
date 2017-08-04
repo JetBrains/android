@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.common.property.NlProperty;
