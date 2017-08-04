@@ -66,7 +66,8 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     }
     else if (location.getLineNumber() >= 0) {
       // If the specified CodeLocation has a line number, navigatable is that line
-      return new OpenFileDescriptor(myProject, psiClass.getContainingFile().getVirtualFile(), location.getLineNumber(), 0);
+      return new OpenFileDescriptor(myProject, psiClass.getNavigationElement().getContainingFile().getVirtualFile(),
+                                    location.getLineNumber(), 0);
     }
     else if (location.getMethodName() != null && location.getSignature() != null) {
       // If it has both method name and signature, navigatable is the corresponding method
