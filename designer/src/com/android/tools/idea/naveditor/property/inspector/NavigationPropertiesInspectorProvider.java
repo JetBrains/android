@@ -17,12 +17,12 @@ package com.android.tools.idea.naveditor.property.inspector;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -35,10 +35,8 @@ import java.util.Map;
 
 /**
  * Creates the properties inspector for navigation Destinations.
- *
- * TODO: merge with ActionInspectorProvider?
  */
-public class NavigationInspectorProvider implements InspectorProvider<NavPropertiesManager> {
+public class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
   private static final String[] NAVIGATION_PROPERTIES = {
     SdkConstants.ATTR_NAME, SdkConstants.ATTR_ID, SdkConstants.ATTR_LABEL
   };
@@ -127,7 +125,6 @@ public class NavigationInspectorProvider implements InspectorProvider<NavPropert
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       refresh();
-      inspector.addTitle(myComponentName);
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
         String propertyName = property.getName();

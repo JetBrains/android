@@ -8,7 +8,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

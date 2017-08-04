@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

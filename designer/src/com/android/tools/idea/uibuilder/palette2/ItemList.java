@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.util.WhiteIconGenerator;
+import com.android.tools.idea.common.util.WhiteIconGenerator;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.IdeBorderFactory;
@@ -103,7 +103,6 @@ public class ItemList extends ListWithMargin<Palette.Item> {
   }
 
   private static class TextCellRenderer extends ColoredListCellRenderer<Palette.Item> {
-    private final WhiteIconGenerator myWhiteIconGenerator = new WhiteIconGenerator();
 
     @Override
     protected void customizeCellRenderer(@NotNull JList<? extends Palette.Item> list,
@@ -123,7 +122,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
-      setIcon(hasFocus ? myWhiteIconGenerator.generateWhiteIcon(icon) : icon);
+      setIcon(hasFocus ? WhiteIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
       append(text);
     }
   }

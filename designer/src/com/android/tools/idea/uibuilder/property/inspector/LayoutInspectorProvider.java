@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;

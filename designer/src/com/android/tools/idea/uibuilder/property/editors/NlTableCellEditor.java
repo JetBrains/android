@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;

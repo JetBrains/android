@@ -33,6 +33,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -166,6 +167,7 @@ public class ModelBuilder {
 
       SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile);
       DesignSurface surface = model.getSurface();
+      Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
       SceneManager sceneManager = myManagerFactory.apply(model);
       SelectionModel selectionModel = surface.getSelectionModel();

@@ -22,7 +22,7 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.inspector.TextInspectorProvider.TextInspectorComponent;
 import com.google.common.collect.ImmutableList;

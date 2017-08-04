@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;

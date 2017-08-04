@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.util.WhiteIconGenerator;
+import com.android.tools.idea.common.util.WhiteIconGenerator;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
@@ -35,7 +35,6 @@ import javax.swing.*;
  * Decorator for the structure pane tree control.
  */
 public class StructureTreeDecorator {
-  private static final WhiteIconGenerator ourWhiteIconGenerator = new WhiteIconGenerator();
 
   private StructureTreeDecorator() {
   }
@@ -47,7 +46,7 @@ public class StructureTreeDecorator {
     append(container, component);
     Icon icon = getViewHandler(component).getIcon(component);
     if (hasFocus && StudioFlags.NELE_NEW_PALETTE.get()) {
-      icon = ourWhiteIconGenerator.generateWhiteIcon(icon);
+      icon = WhiteIconGenerator.INSTANCE.generateWhiteIcon(icon);
     }
     container.setIcon(icon);
   }

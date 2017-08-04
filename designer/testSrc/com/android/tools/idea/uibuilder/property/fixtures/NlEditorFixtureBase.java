@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;

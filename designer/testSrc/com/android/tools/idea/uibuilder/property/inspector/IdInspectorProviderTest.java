@@ -20,7 +20,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.inspector.IdInspectorProvider.IdInspectorComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
