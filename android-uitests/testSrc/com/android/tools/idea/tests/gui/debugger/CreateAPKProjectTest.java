@@ -128,8 +128,6 @@ public class CreateAPKProjectTest {
    *   1. C and C++ code directories are attached to the native library.
    *   2. Java source code files are added to the project tree.
    * </pre>
-   *
-   * @throws Exception
    */
   @Test
   @RunIn(TestGroup.QA)
@@ -245,8 +243,7 @@ public class CreateAPKProjectTest {
   private int countOccurrencesOfFolderNameIn(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes, @NotNull String folderName) {
     int numFolders = 0;
     for (ProjectViewFixture.NodeFixture node : nodes) {
-      String folderText = node.getSourceFolderName();
-      if(folderName.equals(folderText)) {
+      if(folderName.equals(node.getSourceFolderName())) {
         numFolders++;
       }
     }
