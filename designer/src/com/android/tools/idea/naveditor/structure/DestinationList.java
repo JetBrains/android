@@ -44,10 +44,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
@@ -280,16 +278,20 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   }
 
   private void updateComponentList(@Nullable DesignSurface toolContext) {
-    myListModel.clear();
+    List<NlComponent> newElements = new ArrayList<>();
     if (toolContext != null) {
       NlComponent root = myDesignSurface.getCurrentNavigation();
       for (NlComponent child : root.getChildren()) {
         if (getSchema().getDestinationType(child.getTagName()) != null) {
-          myListModel.addElement(child);
+          newElements.add(child);
         }
       }
     }
- }
+    if (!newElements.equals(Collections.list(myListModel.elements()))) {
+      myListModel.clear();
+      newElements.forEach(myListModel::addElement);
+    }
+  }
 
   @NotNull
   @Override
