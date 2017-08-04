@@ -20,6 +20,7 @@ import com.android.tools.analytics.Anonymizer;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.utils.ILogger;
+import com.android.tools.log.LogWrapper;
 import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
@@ -48,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 public class AndroidStudioUsageTracker {
 
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";
-  public static final ILogger LOGGER = new IntelliJLogger(AndroidStudioUsageTracker.class);
+  public static final ILogger LOGGER = new LogWrapper(AndroidStudioUsageTracker.class);
 
   public static void setup(ScheduledExecutorService scheduler) {
     // Send initial report immediately, daily from then on.

@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.process.ProcessException;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.stats.IntelliJLogger;
+import com.android.tools.log.LogWrapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -91,7 +91,7 @@ public class ApkParser {
       return AndroidApplicationInfo.UNKNOWN;
     }
     try {
-      AaptInvoker invoker = new AaptInvoker(AndroidSdks.getInstance().tryToChooseSdkHandler(), new IntelliJLogger(ApkParser.class));
+      AaptInvoker invoker = new AaptInvoker(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(ApkParser.class));
 
       List<String> xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
       return AndroidApplicationInfo.parse(xmlTree);
