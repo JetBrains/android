@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -144,7 +144,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   private static ResourceMerger createResourceMerger(File file, String namespace, String libraryName) {
-    ILogger logger = new LogWrapper(LOG);
+    ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
     ResourceMerger merger = new ResourceMerger(0);
 
     ResourceSet resourceSet = new ResourceSet(file.getName(), namespace, libraryName, false /* validateEnabled */);
