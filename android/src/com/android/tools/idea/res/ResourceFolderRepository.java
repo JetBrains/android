@@ -27,7 +27,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.log.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
@@ -300,7 +300,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myResourceSet.setShouldParseResourceIds(true);
       myResourceSet.setDontNormalizeQualifiers(true);
       myResourceSet.setTrackSourcePositions(false);
-      myILogger = new LogWrapper(LOG);
+      myILogger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
       myResourceDir = resourceDir;
     }
 

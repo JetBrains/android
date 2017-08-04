@@ -22,6 +22,8 @@ import com.intellij.openapi.diagnostic.Logger;
 
 public class LogWrapper implements ILogger {
   private final Logger myLog;
+  private boolean myAlwaysLogAsDebug;
+  private boolean myAllowVerboseLogging = true;
 
   public LogWrapper(@NonNull Logger log) {
     myLog = log;
@@ -31,30 +33,69 @@ public class LogWrapper implements ILogger {
     myLog = Logger.getInstance(clz);
   }
 
+  public LogWrapper(String category) {
+    myLog = Logger.getInstance(category);
+  }
+
+  /**
+   * Causes all messages to be logged as debug severity, regardless of which log message
+   * is invoked. Returns this.
+   */
+  public LogWrapper alwaysLogAsDebug(boolean alwaysLogAsDebug) {
+    myAlwaysLogAsDebug = alwaysLogAsDebug;
+    return this;
+  }
+
+  /**
+   * Enables or disables messages logged with verbose logging. (Default = true)
+   */
+  public LogWrapper allowVerbose(boolean shouldAllowVerboseLogging) {
+    myAllowVerboseLogging = shouldAllowVerboseLogging;
+    return this;
+  }
+
   @Override
   public void error(@Nullable Throwable t, @Nullable String msgFormat, Object... args) {
     if (msgFormat == null) {
       if (t != null) {
-        myLog.error(t);
+        if (myAlwaysLogAsDebug) {
+          myLog.debug(t);
+        } else {
+          myLog.error(t);
+        }
       }
       return;
     }
 
-    myLog.error(String.format(msgFormat, args), t);
+    if (myAlwaysLogAsDebug) {
+      myLog.debug(String.format(msgFormat, args), t);
+    } else {
+      myLog.error(String.format(msgFormat, args), t);
+    }
   }
 
   @Override
   public void warning(@NonNull String msgFormat, Object... args) {
-    myLog.warn(String.format(msgFormat, args));
+    if (myAlwaysLogAsDebug) {
+      myLog.debug(String.format(msgFormat, args));
+    } else {
+      myLog.warn(String.format(msgFormat, args));
+    }
   }
 
   @Override
   public void info(@NonNull String msgFormat, Object... args) {
-    myLog.info(String.format(msgFormat, args));
+    if (myAlwaysLogAsDebug) {
+      myLog.debug(String.format(msgFormat, args));
+    } else {
+      myLog.info(String.format(msgFormat, args));
+    }
   }
 
   @Override
   public void verbose(@NonNull String msgFormat, Object... args) {
-    myLog.debug(String.format(msgFormat, args));
+    if (myAllowVerboseLogging) {
+      myLog.debug(String.format(msgFormat, args));
+    }
   }
 }
