@@ -17,6 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,39 +62,45 @@ public class ResourceRepositories implements Disposable {
   @Nullable
   AppResourceRepository getAppResources(boolean createIfNecessary) {
     AndroidFacet facet = myFacet;
-    synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources == null && createIfNecessary) {
-        myAppResources = AppResourceRepository.create(facet);
-        Disposer.register(this, myAppResources);
+    return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
+      synchronized (APP_RESOURCES_LOCK) {
+        if (myAppResources == null && createIfNecessary) {
+          myAppResources = AppResourceRepository.create(facet);
+          Disposer.register(this, myAppResources);
+        }
+        return myAppResources;
       }
-      return myAppResources;
-    }
+    });
   }
 
   @Contract("true -> !null")
   @Nullable
   ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
     AndroidFacet facet = myFacet;
-    synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myProjectResources == null && createIfNecessary) {
-        myProjectResources = ProjectResourceRepository.create(facet);
-        Disposer.register(this, myProjectResources);
+    return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
+      synchronized (PROJECT_RESOURCES_LOCK) {
+        if (myProjectResources == null && createIfNecessary) {
+          myProjectResources = ProjectResourceRepository.create(facet);
+          Disposer.register(this, myProjectResources);
+        }
+        return myProjectResources;
       }
-      return myProjectResources;
-    }
+    });
   }
 
   @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     AndroidFacet facet = myFacet;
-    synchronized (MODULE_RESOURCES_LOCK) {
-      if (myModuleResources == null && createIfNecessary) {
-        myModuleResources = ModuleResourceRepository.create(facet);
-        Disposer.register(this, myModuleResources);
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+      synchronized (MODULE_RESOURCES_LOCK) {
+        if (myModuleResources == null && createIfNecessary) {
+          myModuleResources = ModuleResourceRepository.create(facet);
+          Disposer.register(this, myModuleResources);
+        }
+        return myModuleResources;
       }
-      return myModuleResources;
-    }
+    });
   }
 
   public void refreshResources() {
