@@ -150,6 +150,14 @@ public class DestinationListTest extends NavigationTestCase {
     //noinspection AssertEqualsBetweenInconvertibleTypes
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")),
                  Collections.list(list.myListModel.elements()));
+
+    // Verify that modifications that don't add or remove components don't cause the selection to change
+    ImmutableList<NlComponent> fragment3 = ImmutableList.of(model.find("fragment3"));
+    model.getSelectionModel().setSelection(fragment3);
+    assertEquals(fragment3, list.mySelectionModel.getSelection());
+
+    model.notifyModified(NlModel.ChangeType.EDIT);
+    assertEquals(fragment3, list.mySelectionModel.getSelection());
   }
 
   public void testDoubleClickActivity() throws Exception {
