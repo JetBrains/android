@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
@@ -48,7 +49,8 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), taskNames, id);
 
       // @formatter:off
-      request.setJvmArguments(vmOptions)
+      request.setBuildFilePath(new File(projectPath))
+             .setJvmArguments(vmOptions)
              .setCommandLineArguments(scriptParameters)
              .setTaskListener(listener)
              .setWaitForCompletion(true);
