@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;

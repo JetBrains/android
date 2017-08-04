@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;

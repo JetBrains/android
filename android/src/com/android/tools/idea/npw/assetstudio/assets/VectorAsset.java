@@ -19,7 +19,7 @@ import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
-import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.observable.core.*;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;

@@ -20,7 +20,7 @@ import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.observable.core.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
