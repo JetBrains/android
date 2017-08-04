@@ -237,4 +237,92 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isNull()
   }
+
+  fun testColums() {
+    myFixture.addRoomEntity(
+        "com.example.User",
+        fields = mapOf("name" to "String", "age" to "int"))
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    tableName = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", false)!!, "name"),
+                        Column(userClass.findFieldByName("age", false)!!, "age")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
+
+  fun testColums_ignore() {
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+        import android.arch.persistence.room.Ignore;
+
+        @Entity
+        public class User {
+          private String name;
+          @Ignore private int age;
+        }
+        """.trimIndent())
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    tableName = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", false)!!, "name")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
+
+  fun testColums_inheritance() {
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+
+        public abstract class NamedBase {
+          private String name;
+        }
+        """.trimIndent())
+
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+
+        @Entity
+        public class User extends NamedBase {
+          private int age;
+        }
+        """.trimIndent())
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    tableName = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", true)!!, "name"),
+                        Column(userClass.findFieldByName("age", false)!!, "age")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
 }
