@@ -41,16 +41,16 @@ public class NavigationSchema implements Disposable {
 
   public static final String TAG_INCLUDE = "include";
 
-  public static final String NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.Navigator";
-  public static final String NAV_GRAPH_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.NavGraphNavigator";
-  public static final String FRAGMENT_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.FragmentNavigator";
-  public static final String ACTIVITY_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.ActivityNavigator";
+  public static final String NAVIGATOR_CLASS_NAME = "android.arch.navigation.Navigator";
+  public static final String NAV_GRAPH_NAVIGATOR_CLASS_NAME = "android.arch.navigation.NavGraphNavigator";
+  public static final String FRAGMENT_NAVIGATOR_CLASS_NAME = "android.arch.navigation.FragmentNavigator";
+  public static final String ACTIVITY_NAVIGATOR_CLASS_NAME = "android.arch.navigation.ActivityNavigator";
 
   public static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
     NAV_GRAPH_NAVIGATOR_CLASS_NAME, DestinationType.NAVIGATION,
     FRAGMENT_NAVIGATOR_CLASS_NAME, DestinationType.FRAGMENT,
     ACTIVITY_NAVIGATOR_CLASS_NAME, DestinationType.ACTIVITY);
-  public static final String ANNOTATION_NAV_TAG_NAME = "android.support.navigation.app.nav.Navigator.Name";
+  public static final String ANNOTATION_NAV_TAG_NAME = "android.arch.navigation.Navigator.Name";
   public static final String ATTR_NAV_TYPE = "navType";
   public static final String ATTR_START_DESTINATION = "startDestination";
 
@@ -124,7 +124,7 @@ public class NavigationSchema implements Disposable {
     Map<String, PsiClass> result = myClassMaps.getClassMap(className);
     if (result.isEmpty()) {
       // TODO: handle the not-synced-yet case
-      throw new RuntimeException();
+      throw new RuntimeException(className + " not found");
     }
     return result;
   }

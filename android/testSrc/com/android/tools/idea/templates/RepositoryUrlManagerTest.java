@@ -117,16 +117,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testGetLibraryRevision() throws Exception {
     // Check missing Maven metadata file. We should fall back to scanning the files.
-    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
-
-    // Set up our fake file contents for the "maven-metadata.xml" file
-    myFileOp.recordExistingFile(new File(SDK_DIR, "extras/android/m2repository/com/android/support/support-v4/maven-metadata.xml").getAbsolutePath(),
-                                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
-                                "<version>13.0.0</version> <version>19.0.1</version> <version>20.0.0-rc1</version>" +
-                                "</versioning>");
-
-    assertEquals("25.4.0", getLibraryRevision(SupportLibrary.SUPPORT_V4, false));
-    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** Checks {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
@@ -165,23 +156,14 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testGetLibraryRevision_offlineIndex() throws Exception {
     myFileOp.deleteFileOrFolder(SDK_DIR);
-    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** @see com.android.ide.common.repository.MavenRepositories#isPreview(GradleCoordinate) */
   public void testGetLibraryRevision_playServices_preview() throws Exception {
     // Check without metadata file.
-    assertEquals("5.0.89", getLibraryRevision(SupportLibrary.PLAY_SERVICES, false));
-    assertEquals("5.2.08", getLibraryRevision(SupportLibrary.PLAY_SERVICES, true));
-
-    // Check with metadata file.
-    myFileOp.recordExistingFile(new File(SDK_DIR, "extras/google/m2repository/com/google/android/gms/play-services/maven-metadata.xml").getAbsolutePath(),
-                                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
-                                "<version>5.0.89</version> <version>5.2.08</version>" +
-                                "</versioning>");
-
-    assertEquals("5.0.89", getLibraryRevision(SupportLibrary.PLAY_SERVICES, false));
-    assertEquals("5.2.08", getLibraryRevision(SupportLibrary.PLAY_SERVICES, true));
+    assertEquals("11.2.0", getLibraryRevision(SupportLibrary.PLAY_SERVICES, false));
+    assertEquals("11.2.0", getLibraryRevision(SupportLibrary.PLAY_SERVICES, true));
   }
 
   public void testGetArchiveForCoordinate() throws Exception {
@@ -228,7 +210,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
     assertNotNull(coordinate);
-    assertEquals("25.4.0", resolveDynamicCoordinateVersion(coordinate));
+    assertEquals("26.0.1", resolveDynamicCoordinateVersion(coordinate));
 
     // Make sure already resolved coordinates are handled correctly
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
