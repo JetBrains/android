@@ -20,7 +20,7 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.icons.StudioIcons;
+import icons.StudioIcons;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -30,6 +30,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -151,8 +152,8 @@ public class StudioProfilersView extends AspectObserver {
     JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
 
-    FlatButton close = new FlatButton(StudioIcons.Common.CLOSE);
-    close.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.CLOSE));
+    FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
+    close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
     close.addActionListener(event -> myProfiler.stop());
     rightToolbar.add(close);
 
