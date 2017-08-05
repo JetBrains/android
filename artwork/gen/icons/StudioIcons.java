@@ -1,4 +1,4 @@
-package com.android.tools.icons;
+package icons;
 
 import com.intellij.openapi.util.IconLoader;
 
@@ -81,7 +81,7 @@ public class StudioIcons {
 
   public static class LayoutEditor {
     public static class Extras {
-      public static final Icon PALETTE_DOWNLOAD_SELECT = load("/studio/icons/layout-editor/extras/palette-download-select.png"); // 16x16
+      public static final Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.png"); // 16x16
       public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.png"); // 16x16
       public static final Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.png"); // 16x16
       public static final Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.png"); // 16x16

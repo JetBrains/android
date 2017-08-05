@@ -28,7 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.icons.StudioIcons;
+import icons.StudioIcons;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
