@@ -111,7 +111,7 @@ public class NewInstantAppTest {
                                "    Android Lint: Correctness\n" +
                                "        Obsolete Gradle Dependency\n" +
                                "            build.gradle\n" +
-                               "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0-beta2\n" +
+                               "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +

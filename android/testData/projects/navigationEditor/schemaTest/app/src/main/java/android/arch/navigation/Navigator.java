@@ -1,4 +1,4 @@
-package android.support.navigation.app.nav;
+package android.arch.navigation;
 
 public abstract class Navigator {
     public @interface Name {

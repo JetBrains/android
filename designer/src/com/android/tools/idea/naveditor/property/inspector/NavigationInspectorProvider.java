@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public class NavigationInspectorProvider implements InspectorProvider {
   private static final String[] NAVIGATION_PROPERTIES = {
-    SdkConstants.ATTR_NAME, SdkConstants.ATTR_ID, SdkConstants.ATTR_LABEL, NavigationSchema.ATTR_NAV_TYPE
+    SdkConstants.ATTR_NAME, SdkConstants.ATTR_ID, SdkConstants.ATTR_LABEL
   };
 
   private final Map<String, InspectorComponent> myInspectors = new HashMap<>();

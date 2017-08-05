@@ -1,4 +1,4 @@
-package android.support.navigation.app.nav;
+package android.arch.navigation;
 
 @Navigator.Name("activity")
 public class ActivityNavigator extends Navigator {

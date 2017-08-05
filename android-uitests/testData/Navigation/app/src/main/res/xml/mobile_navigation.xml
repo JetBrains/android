@@ -18,7 +18,6 @@
     <activity android:id="@+id/main_activity"
               android:icon="@mipmap/ic_launcher"
               android:label="@string/title_activity_main"
-              app:navType="primary"
               android:name="google.navigation.MainActivity"
               tools:layout="@layout/activity_main" >
         <default-argument app:name="myarg" app:defaultValue="Home" />
