@@ -291,7 +291,6 @@ public final class TranslationsEditorTest {
     assertEquals("<string name=\"app_name\">app_name_main_iw</string>", line);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63894383
   @Test
   public void rename() throws IOException {
     importSimpleApplication();
