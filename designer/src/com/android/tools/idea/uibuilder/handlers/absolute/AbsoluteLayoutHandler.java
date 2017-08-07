@@ -49,6 +49,11 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
+  public boolean handlesPainting() {
+    return true;
+  }
+
+  @Override
   @NotNull
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
