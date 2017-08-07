@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.webp;
+package com.android.tools.adtui.webp;
 
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import junit.framework.TestCase;
@@ -28,8 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Base64;
 
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
-import static com.google.common.truth.Truth.assertThat;
+import com.google.common.truth.Truth;
 
 public class WebpSupportTest extends TestCase {
   @Override
@@ -76,7 +76,7 @@ public class WebpSupportTest extends TestCase {
     BufferedImage decoded = ImageIO.read(stream);
     assertNotNull(decoded);
 
-    assertImageSimilar(getName(), image, decoded, 3);
+    ImageDiffUtil.assertImageSimilar(getName(), image, decoded, 3);
   }
 
   public void testLossyWithTransparency() throws Exception {
@@ -106,11 +106,11 @@ public class WebpSupportTest extends TestCase {
     BufferedImage decoded = ImageIO.read(stream);
     assertNotNull(decoded);
 
-    assertImageSimilar(getName(), image, decoded, 3);
+    ImageDiffUtil.assertImageSimilar(getName(), image, decoded, 3);
 
     // Check that alpha was preserved
     int encodedAlpha = decoded.getRGB(x, y) >>> 24;
-    assertThat(encodedAlpha).isIn(Range.range(alpha - 1, BoundType.CLOSED, alpha + 1, BoundType.CLOSED));
+    Truth.assertThat(encodedAlpha).isIn(Range.range(alpha - 1, BoundType.CLOSED, alpha + 1, BoundType.CLOSED));
   }
 
   public void testConvertIndexedPalette() throws Exception {
@@ -180,7 +180,7 @@ public class WebpSupportTest extends TestCase {
     BufferedImage decoded = ImageIO.read(stream);
     assertNotNull(decoded);
 
-    assertImageSimilar(getName(), image, decoded, 3);
+    ImageDiffUtil.assertImageSimilar(getName(), image, decoded, 3);
   }
 
   @NotNull

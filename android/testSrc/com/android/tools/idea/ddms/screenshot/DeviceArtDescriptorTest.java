@@ -16,7 +16,8 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.resources.ScreenOrientation;
-import com.android.tools.idea.rendering.webp.WebpMetadata;
+import com.android.tools.adtui.webp.WebpMetadata;
+import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

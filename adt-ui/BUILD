@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/observable[module]",
+        "//tools/adt/idea/adt-ui/lib:libwebp",
     ],
 )
 

@@ -23,5 +23,14 @@
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="module" module-name="observable" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/libwebp.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

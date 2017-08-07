@@ -71,6 +71,7 @@ public class IdeaTestSuite {
     // Bazel tests are sandboxed so we disable VfsRoot checks.
     VfsRootAccess.allowRootAccess("/");
 
+    symbolicLinkInTmpDir("tools/adt/idea/adt-ui/lib/libwebp");
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
     symbolicLinkInTmpDir("tools/adt/idea/artwork/resources/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
