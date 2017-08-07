@@ -384,7 +384,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
    * Converts jni class names into java names
    * e.g. Ljava/lang/String; -> java.lang.String
    * e.g. [[Ljava/lang/Object; -> java.lang.Object[][]
-   * TODO convert primitive types too?
+   *
+   * JNI primitive type names are converted too
+   * e.g. Z -> boolean
    */
   private static String jniToJavaName(String jniName) {
     int arrayDimension = 0;
@@ -401,6 +403,34 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
     else {
       javaName = jniName.substring(classNameIndex, jniName.length());
+      switch (javaName) {
+        case "Z":
+          javaName = "boolean";
+          break;
+        case "B":
+          javaName = "byte";
+          break;
+        case "C":
+          javaName = "char";
+          break;
+        case "S":
+          javaName = "short";
+          break;
+        case "I":
+          javaName = "int";
+          break;
+        case "J":
+          javaName = "long";
+          break;
+        case "F":
+          javaName = "float";
+          break;
+        case "D":
+          javaName = "double";
+          break;
+        default:
+          break;
+      }
     }
 
     while (arrayDimension > 0) {
