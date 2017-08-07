@@ -45,7 +45,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
@@ -61,6 +64,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
   }
+
+  private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
   private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
   private static final String BOOT_COMPLETE_MESSAGE = "1";
@@ -128,7 +133,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       for (IDevice device : bridge.getDevices()) {
         deviceConnected(device);
       }
-    } else {
+    }
+    else {
       // Perfd must be spawned through ADB. When |bridge| is null, it means the ADB that was available earlier
       // becomes invalid and every running perfd it had spawned is being killed. As a result, we should kill the
       // corresponding proxies, too.
@@ -297,9 +303,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      * Push one binary for each supported abi cpu arch, i.e. cpu family. Abi of same cpu family can share, like "armeabi" and "armeabi-v7a".
      */
     private void pushJvmtiAgentNativeLibraries(String devicePath) throws AdbCommandRejectedException, IOException {
-      File dir = new File(PathManager.getHomePath(),"plugins/android/resources/perfa");
+      File dir = new File(PathManager.getHomePath(), "plugins/android/resources/perfa");
       if (!dir.exists()) {
-        dir = new File(PathManager.getHomePath(),"../../bazel-bin/tools/base/profiler/native/perfa/android");
+        dir = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/profiler/native/perfa/android");
       }
       // Multiple abis of same cpu arch need only one binary to push, for example, "armeabi" and "armeabi-v7a" abis' cpu arch is "arm".
       Set<String> cpuArchSet = new HashSet<>();
@@ -336,7 +342,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
                                     ? Agent.SocketType.ABSTRACT_SOCKET
                                     : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig = Agent.AgentConfig.newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
-        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+        .setMemConfig(Agent.AgentConfig.MemoryConfig.newBuilder()
+                        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+                        .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+                        .build())
         .setSocketType(socketType)
         .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
         // Using "@" to indicate an abstract socket in unix.
