@@ -1313,10 +1313,13 @@ public class TemplateTest extends AndroidGradleTestCase {
         // for a bit of time. It is also possible that there are Virtual Files that are still syncronizing to the File System, this will
         // break tear-down, when it tries to delete the project.
         if (SystemInfo.isWindows) {
-          new WaitFor(30000) {
+          System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
+          new WaitFor(60000) {
             @Override
             protected boolean condition() {
-              FileUtil.delete(projectRoot);
+              if (!FileUtil.delete(projectRoot)) {
+                System.out.println("Windows: delete project Root failed - time = " + System.currentTimeMillis());
+              }
               return projectRoot.mkdir();
             }
           };
