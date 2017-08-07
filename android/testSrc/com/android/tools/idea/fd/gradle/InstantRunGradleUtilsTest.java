@@ -16,13 +16,10 @@
 package com.android.tools.idea.fd.gradle;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.util.AndroidUtilsTest;
-import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ENABLED;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_HAS_CODE;
 
 public class InstantRunGradleUtilsTest extends AndroidTestCase {
   @Override
@@ -31,17 +28,17 @@ public class InstantRunGradleUtilsTest extends AndroidTestCase {
   }
 
   public void testAppHasCodeDefaultTrue() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/enabled/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertTrue(InstantRunGradleUtils.appHasCode(myFacet));
   }
 
   public void testAppHasCodeTrue() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/hasCode/AndroidManifestHasCodeTrue.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_HAS_CODE + "/AndroidManifestHasCodeTrue.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertTrue(InstantRunGradleUtils.appHasCode(myFacet));
   }
 
   public void testAppHasCodeFalse() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/hasCode/AndroidManifestHasCodeFalse.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_HAS_CODE + "/AndroidManifestHasCodeFalse.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertFalse(InstantRunGradleUtils.appHasCode(myFacet));
   }
 }
