@@ -11,7 +11,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
-        "//tools/adt/idea/android/lib/libwebp",
+        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/kotlin-integration/testData",
         "//tools/base/templates",

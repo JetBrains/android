@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
-import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
+import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,7 +37,6 @@ import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

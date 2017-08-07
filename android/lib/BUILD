@@ -62,13 +62,6 @@ java_import(
 )
 
 java_import(
-    name = "libwebp",
-    jars = ["libwebp.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "baksmali-2.2.1",
     jars = ["baksmali-2.2.1.jar"],
     tags = ["managed"],

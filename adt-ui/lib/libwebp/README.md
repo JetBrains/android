@@ -2,14 +2,14 @@
 
 The webp support requires a native library (`libwebp_jni`) and `libwebp.jar`.
 The native libraries are added to the `tools/adt/idea/` project in
-`android/lib/libwebp/[platform]`.
+`adt-ui/lib/libwebp/[platform]`.
 
 This describes how to build `libwebp_jni` for each of the platforms. The steps
 must be repeated for each platform - once for 32 bit and once for 64 bit
 architectures. __Make sure to do a clean build when switching architectures__:
 `git clean -dfX`.
 
-`libwebp.jar` is copied directly from `<libwebp>/swig/` to `android/lib/`
+`libwebp.jar` is copied directly from `<libwebp>/swig/` to `adt-ui/lib/`
 
 ## Windows:
 1. Install Visual Studio 2015 with the following components:

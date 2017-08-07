@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.webp;
+package com.android.tools.adtui.webp;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PluginPathManager;
@@ -97,7 +97,7 @@ public class WebpNativeLibHelper {
 
   public static File getLibLocation() {
     // A terrible hack for dev environment.
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/android/lib/libwebp/" + getPlatformName();
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/adt-ui/lib/libwebp/" + getPlatformName();
     File adtFile = new File(adtPath);
     return adtFile.exists() ? adtFile : new File(PluginPathManager.getPluginHome("android"), "lib");
   }
