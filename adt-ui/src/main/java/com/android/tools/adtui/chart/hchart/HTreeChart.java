@@ -64,6 +64,8 @@ public class HTreeChart<T> extends AnimatedComponent {
   @NotNull
   private final List<HNode<T>> myNodes;
 
+  private boolean myRootVisible;
+
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
@@ -89,6 +91,8 @@ public class HTreeChart<T> extends AnimatedComponent {
     myReducer = reducer;
     myYRange = new Range(0, 0);
     myOrientation = orientation;
+    myRootVisible = true;
+
     setFocusable(true);
     initializeInputMap();
     initializeMouseEvents();
@@ -100,6 +104,11 @@ public class HTreeChart<T> extends AnimatedComponent {
 
   public HTreeChart(Range xRange, Orientation orientation) {
     this(xRange, orientation, new DefaultHTreeChartReducer<>());
+  }
+
+  public void setRootVisible(boolean rootVisible) {
+    myRootVisible = rootVisible;
+    changed();
   }
 
   private void changed() {
@@ -205,6 +214,10 @@ public class HTreeChart<T> extends AnimatedComponent {
           myRectangles.add(createRectangle(child));
         }
       }
+    }
+    if (!myRootVisible && !myNodes.isEmpty()) {
+      myNodes.remove(0);
+      myRectangles.remove(0);
     }
   }
 
