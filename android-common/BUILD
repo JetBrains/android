@@ -10,5 +10,6 @@ iml_module(
     deps = [
         "//tools/base/common:studio.common[module]",
         "//tools/idea/platform/util[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
     ],
 )

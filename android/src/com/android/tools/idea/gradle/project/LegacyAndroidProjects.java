@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.LEGACY_IDEA_ANDROID_PROJECT;
 import static com.intellij.notification.NotificationType.WARNING;
@@ -98,7 +98,7 @@ class LegacyAndroidProjects {
         }
         if (packageName != null) {
           AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
-          event.setCategory(GRADLE).setKind(LEGACY_IDEA_ANDROID_PROJECT).setProjectId(anonymizeUtf8(packageName));
+          event.setCategory(GRADLE).setKind(LEGACY_IDEA_ANDROID_PROJECT).setProjectId(AnonymizerUtil.anonymizeUtf8(packageName));
           usageTracker.log(event);
         }
       }

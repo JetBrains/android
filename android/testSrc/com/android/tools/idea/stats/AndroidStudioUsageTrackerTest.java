@@ -41,7 +41,7 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
   @Test
   public void testDeviceToDeviceInfo() throws Exception {
     DeviceInfo info = AndroidStudioUsageTracker.deviceToDeviceInfo(createMockDevice());
-    assertEquals(info.getAnonymizedSerialNumber(), AndroidStudioUsageTracker.anonymizeUtf8("serial"));
+    assertEquals(info.getAnonymizedSerialNumber(), AnonymizerUtil.anonymizeUtf8("serial"));
     assertEquals(info.getBuildTags(), "release-keys");
     assertEquals(info.getBuildType(), "userdebug");
     assertEquals(info.getBuildVersionRelease(), "5.1.1");
