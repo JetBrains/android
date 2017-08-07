@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,7 +50,6 @@ import static com.android.tools.idea.fd.InstantRunSettings.isInstantRunEnabled;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.modelSupportsInstantRun;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.variantSupportsInstantRun;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.*;
@@ -113,7 +113,7 @@ public class ProjectStructureUsageTracker {
       List<GradleAndroidModule> gradleAndroidModules = new ArrayList<>();
       List<GradleNativeAndroidModule> gradleNativeAndroidModules = new ArrayList<>();
 
-      String appId = anonymizeUtf8(model.getApplicationId());
+      String appId = AnonymizerUtil.anonymizeUtf8(model.getApplicationId());
       AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
       if (gradleVersion == null) {
@@ -133,7 +133,7 @@ public class ProjectStructureUsageTracker {
           IdeAndroidProject moduleAndroidProject = androidModel.getAndroidProject();
           GradleAndroidModule.Builder androidModule = GradleAndroidModule.newBuilder();
           // @formatter:off
-          androidModule.setModuleName(anonymizeUtf8(module.getName()))
+          androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(module.getName()))
                        .setSigningConfigCount(moduleAndroidProject.getSigningConfigs().size())
                        .setIsLibrary(moduleAndroidProject.getProjectType() == PROJECT_TYPE_LIBRARY)
                        .setBuildTypeCount(androidModel.getBuildTypeNames().size())
@@ -158,7 +158,7 @@ public class ProjectStructureUsageTracker {
           else {
             buildSystemType = GRADLE_EXPERIMENTAL;
           }
-          moduleName = anonymizeUtf8(ndkModuleModel.getModuleName());
+          moduleName = AnonymizerUtil.anonymizeUtf8(ndkModuleModel.getModuleName());
         }
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;

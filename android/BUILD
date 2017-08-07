@@ -151,6 +151,7 @@ iml_module(
     deps = [
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/adt-ui-model[module, test]",

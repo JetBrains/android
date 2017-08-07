@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="analytics-shared" />
   </component>
 </module>
