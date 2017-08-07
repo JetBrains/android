@@ -181,6 +181,6 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
   private static void verifyOpenHyperlink(@NotNull NotificationHyperlink hyperlink, @NotNull String expectedPath) {
     assertThat(hyperlink).isInstanceOf(OpenFileHyperlink.class);
     OpenFileHyperlink openHyperlink = (OpenFileHyperlink)hyperlink;
-    assertThat(openHyperlink.getFilePath()).isEqualTo(expectedPath);
+    assertThat(toSystemDependentName(openHyperlink.getFilePath())).isEqualTo(expectedPath);
   }
 }
