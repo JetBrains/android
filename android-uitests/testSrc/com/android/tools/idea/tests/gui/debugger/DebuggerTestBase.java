@@ -34,7 +34,7 @@ public class DebuggerTestBase {
 
   protected static final String DEBUG_CONFIG_NAME = "app";
   protected static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
-  protected static final long EMULATOR_LAUNCH_WAIT_SECONDS = 70;
+  protected static final long EMULATOR_LAUNCH_WAIT_SECONDS = 120;
 
   /**
    * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
