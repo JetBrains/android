@@ -326,6 +326,8 @@ class CpuCaptureView {
     }
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new MethodModelHRenderer(type));
+    chart.setRootVisible(false);
+
     chart.setHTree(node);
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
     TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
