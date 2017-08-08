@@ -62,7 +62,7 @@ public class InstrumentationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64475229
   @Test
   public void testInstrumentation() throws Exception {
     IdeFrameFixture ideFrameFixture =

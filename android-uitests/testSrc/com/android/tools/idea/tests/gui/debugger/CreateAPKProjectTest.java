@@ -122,7 +122,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64476008
   public void createFromPreexistingApk() throws Exception {
     File projectRoot = guiTest.copyProjectBeforeOpening("ApkDebug");
 

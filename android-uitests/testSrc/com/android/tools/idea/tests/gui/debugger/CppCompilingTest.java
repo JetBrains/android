@@ -148,7 +148,7 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64475674
   public void testGccGnustlShared() throws Exception {
     processToTestCppCompiling(GCC_TOOLCHAIN, GNUSTL_SHARED);
   }
