@@ -3,6 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "layoutlib",
     srcs = ["src"],
+    bundle_data = [
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:buildprop",
+    ],
     iml_files = ["layoutlib.iml"],
     resources = ["resources"],
     tags = ["managed"],
