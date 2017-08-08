@@ -277,8 +277,11 @@ public final class PathValidator implements Validator<File> {
     myFileOp = fileOp;
   }
 
+
   /**
    * A validator that provides reasonable defaults for checking a path's validity.
+   *
+   * @param pathName name of the path being validated. Used inside {@link Validator.Result}'s message.
    */
   public static PathValidator createDefault(@NotNull String pathName) {
     return new Builder().withAllRules(Severity.ERROR).build(pathName);
