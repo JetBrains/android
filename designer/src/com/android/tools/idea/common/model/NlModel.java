@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.uibuilder.api.*;
@@ -746,7 +747,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
       @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) {
         handleDeletion(components);
       }
     };
@@ -922,13 +923,29 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
 
+  /**
+   * Looks up the existing set of id's reachable from this model
+   */
+  public Set<String> getIds() {
+    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(getFacet());
+    Set<String> ids = new HashSet<>(resources.getItemsOfType(ResourceType.ID));
+    Set<String> pendingIds = getPendingIds();
+    if (!pendingIds.isEmpty()) {
+      Set<String> all = new HashSet<>(pendingIds.size() + ids.size());
+      all.addAll(ids);
+      all.addAll(pendingIds);
+      ids = all;
+    }
+    return ids;
+  }
+
   private void handleAddition(@NotNull List<NlComponent> added,
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
                               @Nullable ViewEditor editor) {
     InsertType realInsertType = insertType;
-    HashSet<String> ids = Sets.newHashSet(NlModelHelperKt.getIds(this));
+    Set<String> ids = getIds();
 
     for (NlComponent component : added) {
 

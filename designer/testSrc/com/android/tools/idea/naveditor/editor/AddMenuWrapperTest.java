@@ -31,6 +31,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ResourceUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import sun.awt.image.ToolkitImage;
 
@@ -42,8 +43,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import static org.mockito.ArgumentMatchers.any;
+import static com.android.SdkConstants.AUTO_URI;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 
 public class AddMenuWrapperTest extends NavigationTestCase {
 
@@ -75,12 +77,12 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     super.tearDown();
   }
 
-  public void testAddFromDestination() throws Exception {
+  public void testAddFromDestination() {
     PsiFile layout = LocalResourceManager.getInstance(myAndroidFacet.getModule()).findResourceFiles(
       ResourceFolderType.LAYOUT).stream().filter(file -> file.getName().equals("activity_main.xml")).findFirst().get();
     NavActionManager.Destination destination = new NavActionManager.Destination(
       (XmlFile)layout, "MainActivity", "mytest.navtest.MainActivity", "activity", null);
-    myMenu.addElement(destination, mySurface);
+    myMenu.addElement(destination, mySurface, null, null);
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +
                  "    NlComponent{tag=<navigation>, instance=2}\n" +
@@ -96,7 +98,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
                  newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID));
   }
 
-  public void testAddDirectly() throws Exception {
+  public void testAddDirectly() {
     myMenu.addElement(mySurface, "myTag", "myId", "myName", component -> component.setAttribute("ns", "attr", "value"));
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +
@@ -111,11 +113,10 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertEquals("value", newChild.getAttribute("ns", "attr"));
   }
 
-  public void testFragmentValidation() throws Exception {
+  public void testFragmentValidation() {
     myMenu.myKindPopup.setSelectedItem("fragment");
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
-    myMenu.myClassPopup.setSelectedItem("mytest.navtest.BlankFragment");
     assertTrue(myMenu.validate());
     assertFalse(myMenu.myValidationLabel.isVisible());
 
@@ -130,18 +131,12 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     myMenu.myLabelField.setText("");
     assertFalse(myMenu.validate());
     assertTrue(myMenu.myValidationLabel.isVisible());
-    myMenu.myLabelField.setText("myLabel");
-
-    myMenu.myClassPopup.setSelectedItem(null);
-    assertFalse(myMenu.validate());
-    assertTrue(myMenu.myValidationLabel.isVisible());
   }
 
-  public void testActivityValidation() throws Exception {
+  public void testActivityValidation() {
     myMenu.myKindPopup.setSelectedItem("activity");
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
-    myMenu.myClassPopup.setSelectedItem("mytest.navtest.MainActivity");
     assertTrue(myMenu.validate());
     assertFalse(myMenu.myValidationLabel.isVisible());
 
@@ -156,14 +151,9 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     myMenu.myLabelField.setText("");
     assertFalse(myMenu.validate());
     assertTrue(myMenu.myValidationLabel.isVisible());
-    myMenu.myLabelField.setText("myLabel");
-
-    myMenu.myClassPopup.setSelectedItem(null);
-    assertFalse(myMenu.validate());
-    assertTrue(myMenu.myValidationLabel.isVisible());
   }
 
-  public void testNestedValidation() throws Exception {
+  public void testNestedValidation() {
     myMenu.myKindPopup.setSelectedItem("navigation");
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
@@ -183,7 +173,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertTrue(myMenu.myValidationLabel.isVisible());
   }
 
-  public void testIncludeValidation() throws Exception {
+  public void testIncludeValidation() {
     myMenu.myKindPopup.setSelectedItem("include");
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
@@ -205,41 +195,41 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertTrue(myMenu.myValidationLabel.isVisible());
   }
 
-  public void testVisibleComponents() throws Exception {
+  public void testVisibleComponents() {
     myMenu.myKindPopup.setSelectedItem("fragment");
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
     assertTrue(myMenu.myLabelField.isVisible());
-    assertTrue(myMenu.myClassPopup.isVisible());
-    assertTrue(myMenu.myClassLabel.isVisible());
+    assertTrue(myMenu.myLabelLabel.isVisible());
+    assertTrue(myMenu.myIdLabel.isVisible());
 
     myMenu.myKindPopup.setSelectedItem("navigation");
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
     assertTrue(myMenu.myLabelField.isVisible());
-    assertFalse(myMenu.myClassPopup.isVisible());
-    assertFalse(myMenu.myClassLabel.isVisible());
+    assertTrue(myMenu.myLabelLabel.isVisible());
+    assertTrue(myMenu.myIdLabel.isVisible());
 
     myMenu.myKindPopup.setSelectedItem("include");
     assertTrue(myMenu.mySourcePopup.isVisible());
     assertTrue(myMenu.mySourceLabel.isVisible());
-    assertTrue(myMenu.myIdField.isVisible());
-    assertTrue(myMenu.myLabelField.isVisible());
-    assertFalse(myMenu.myClassPopup.isVisible());
-    assertFalse(myMenu.myClassLabel.isVisible());
+    assertFalse(myMenu.myIdField.isVisible());
+    assertFalse(myMenu.myLabelField.isVisible());
+    assertFalse(myMenu.myLabelLabel.isVisible());
+    assertFalse(myMenu.myIdLabel.isVisible());
 
     myMenu.myKindPopup.setSelectedItem("activity");
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
     assertTrue(myMenu.myLabelField.isVisible());
-    assertTrue(myMenu.myClassPopup.isVisible());
-    assertTrue(myMenu.myClassLabel.isVisible());
+    assertTrue(myMenu.myLabelLabel.isVisible());
+    assertTrue(myMenu.myIdLabel.isVisible());
   }
 
-  public void testCreateNested() throws Exception {
+  public void testCreateNested() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem("navigation");
@@ -251,46 +241,61 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     Mockito.verify(menu).addElement(mySurface, "navigation", "myId", "myLabel", null);
   }
 
-  public void testCreateFragment() throws Exception {
+  public void testCreateFragment() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem("fragment");
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
-    menu.myClassPopup.setSelectedItem("mytest.navtest.BlankFragment");
 
     menu.createDestination();
 
     Mockito.verify(menu)
-      .addElement(new NavActionManager.Destination(null, "BlankFragment", "mytest.navtest.BlankFragment", "fragment", null), mySurface);
+      .addElement(new NavActionManager.Destination(null, "", "", "fragment", null), mySurface,
+                  "myId", "myLabel");
   }
 
-  public void testCreateActivity() throws Exception {
+  public void testCreateActivity() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem("activity");
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
-    menu.myClassPopup.setSelectedItem("mytest.navtest.MainActivity");
 
     menu.createDestination();
 
     Mockito.verify(menu)
-      .addElement(new NavActionManager.Destination(null, "MainActivity", "mytest.navtest.MainActivity", "activity", null), mySurface);
+      .addElement(new NavActionManager.Destination(null, "", "", "activity", null), mySurface,
+                  "myId", "myLabel");
   }
 
-  public void testCreateInclude() throws Exception {
+  public void testCreateInclude() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
     menu.myKindPopup.setSelectedItem("include");
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
-    menu.mySourcePopup.setSelectedItem("othernav.xml");
+    menu.mySourcePopup.setSelectedItem("navigation.xml");
 
     menu.createDestination();
 
+    ArgumentCaptor<Consumer<NlComponent>> consumerArg = ArgumentCaptor.forClass(Consumer.class);
     Mockito.verify(menu)
-      .addElement(eq(mySurface), eq("include"), eq("myId"), eq("myLabel"), any(Consumer.class));
+      .addElement(eq(mySurface), eq("include"), isNull(), isNull(), consumerArg.capture());
+
+    NlComponent component = Mockito.mock(NlComponent.class);
+    consumerArg.getValue().accept(component);
+    Mockito.verify(component).setAttribute(AUTO_URI, "graph", "@navigation/navigation");
+  }
+
+  public void testUniqueId() {
+    myMenu.myKindPopup.setSelectedItem("fragment");
+    assertEquals("fragment", myMenu.myIdField.getText());
+    myMenu.createDestination();
+    myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());
+    myMenu.createCustomComponentPopup();
+    myMenu.myKindPopup.setSelectedItem("fragment");
+    assertEquals("fragment2", myMenu.myIdField.getText());
   }
 
   public void testImageLoading() throws Exception {
@@ -324,7 +329,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertNull(menu.myLoadingPanel);
   }
 
-  public void testKindPopup() throws Exception {
+  public void testKindPopup() {
     ComboBox<String> popup = myMenu.myKindPopup;
     ListCellRenderer<? super String> renderer = popup.getRenderer();
     Set<String> result = new HashSet<>();

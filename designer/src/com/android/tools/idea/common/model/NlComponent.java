@@ -505,7 +505,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   public String assignId(@NotNull String baseName) {
-    return assignId(baseName, NlModelHelperKt.getIds(getModel()));
+    return assignId(baseName, getModel().getIds());
   }
 
   /**
@@ -516,7 +516,7 @@ public class NlComponent implements NlAttributesHolder {
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull Collection<String> ids) {
+  public String assignId(@NotNull Set<String> ids) {
     return assignId(getTagName(), ids);
   }
 
@@ -529,7 +529,7 @@ public class NlComponent implements NlAttributesHolder {
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull String baseName, @NotNull Collection<String> ids) {
+  public String assignId(@NotNull String baseName, @NotNull Set<String> ids) {
     String newId = generateId(baseName, ids, ResourceFolderType.LAYOUT, getModel().getModule());
     // If the component has an open transaction, assign the id in that transaction
     NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
@@ -541,7 +541,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @NotNull
-  public static String generateId(@NotNull String baseName, @NotNull Collection<String> ids, ResourceFolderType type, Module module) {
+  public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
     Project project = module.getProject();
