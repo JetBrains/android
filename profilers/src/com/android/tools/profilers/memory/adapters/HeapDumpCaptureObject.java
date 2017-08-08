@@ -112,6 +112,11 @@ public class HeapDumpCaptureObject implements CaptureObject {
     return myLabel;
   }
 
+  @Override
+  public boolean isExportable() {
+    return true;
+  }
+
   @Nullable
   @Override
   public String getExportableExtension() {
