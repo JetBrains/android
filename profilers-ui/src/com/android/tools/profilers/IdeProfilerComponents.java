@@ -23,6 +23,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -72,4 +73,9 @@ public interface IdeProfilerComponents {
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);
+
+  @NotNull
+  AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
+                                                    @NotNull String value,
+                                                    @NotNull Collection<String> variants);
 }

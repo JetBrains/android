@@ -22,9 +22,7 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 
 /**
@@ -53,6 +51,14 @@ class CaptureModel {
   @NotNull
   private ClockType myClockType = ClockType.GLOBAL;
 
+  /**
+   * A filter that is applied to the current {@link CaptureNode}.
+   * After appling the filter, the transformed tree will contain of nodes
+   * whose either an ancestor matches to the filter or a descendant.
+   */
+  @NotNull
+  private String myFilter;
+
   @Nullable
   private Details myDetails;
 
@@ -65,6 +71,7 @@ class CaptureModel {
     myStage = stage;
     myCaptureConvertedRange = new Range();
     myThread = NO_THREAD;
+    myFilter = "";
 
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
@@ -124,6 +131,40 @@ class CaptureModel {
     return myClockType;
   }
 
+  void setFilter(@NotNull String filter) {
+    if (filter.trim().equals(myFilter)) {
+      return;
+    }
+    myFilter = filter.trim();
+    rebuildDetails();
+  }
+
+  /**
+   * @return collection of all class names and class name combined with method name
+   * (in the format: |classname.methodname|) of all nodes of the current tree {@link #getNode()}.
+   */
+  @NotNull
+  Collection<String> getPossibleFilters() {
+    CaptureNode node = getNode();
+    Set<String> filters = new HashSet<>();
+    Queue<CaptureNode> queue = new LinkedList<>();
+    queue.add(node);
+    while (!queue.isEmpty()) {
+      CaptureNode curNode = queue.poll();
+      assert curNode.getData() != null;
+      filters.add(curNode.getData().getClassName());
+      filters.add(curNode.getData().getFullName());
+
+      queue.addAll(curNode.getChildren());
+    }
+    return filters;
+  }
+
+  @NotNull
+  String getFilter() {
+    return myFilter;
+  }
+
   void setDetails(@Nullable Details.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
@@ -147,13 +188,58 @@ class CaptureModel {
 
   private void buildDetails(@Nullable Details.Type type) {
     updateCaptureConvertedRange();
-    myDetails = type != null ? type.build(myCaptureConvertedRange, getNode()) : null;
+
+    if (type != null) {
+      CaptureNode node = getNode();
+      if (node != null && !matchesToFilter(node)) {
+        node = applyFilter(node, false);
+      }
+      myDetails = type.build(myCaptureConvertedRange, node);
+    } else {
+      myDetails = null;
+    }
+
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_DETAILS);
   }
 
   @Nullable
   private CaptureNode getNode() {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
+  }
+
+  /**
+   * Applies the current filter {@link #myFilter} to the {@param node}.
+   * @param node - a node to apply the current filter
+   * @param matches - whether there is a match to the filter in one of its ancestors.
+   * @return - a {@link CaptureNode} which contains nodes from subtree of {@param node}
+   *           whose either an ancestor matches to the filter or a descendant.
+   */
+  @Nullable
+  private CaptureNode applyFilter(@NotNull CaptureNode node, boolean matches) {
+    matches = matches || matchesToFilter(node);
+
+    CaptureNode newNode = new CaptureNode();
+    newNode.setMethodModel(node.getData());
+    newNode.setClockType(node.getClockType());
+    newNode.setDepth(node.getDepth());
+    newNode.setStartGlobal(node.getStartGlobal());
+    newNode.setEndGlobal(node.getEndGlobal());
+    newNode.setStartThread(node.getStartThread());
+    newNode.setEndThread(node.getEndThread());
+
+    for (int i = 0; i < node.getChildCount(); ++i) {
+      CaptureNode child = applyFilter(node.getChildAt(i), matches);
+      if (child != null) {
+        newNode.addChild(child);
+      }
+    }
+    // There is a matching ancestor or descendant.
+    return (matches || newNode.getChildCount() > 0) ? newNode : null;
+  }
+
+  private boolean matchesToFilter(@NotNull CaptureNode node) {
+    assert node.getData() != null;
+    return node.getData().getFullName().contains(myFilter);
   }
 
   /**

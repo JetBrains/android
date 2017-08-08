@@ -49,11 +49,16 @@ public class MethodModel {
     return mySignature;
   }
 
-  public String getId() {
+  @NotNull
+  public String getFullName() {
     // Separator is only needed if we have a class name, otherwise we're gonna end up with a leading "." character.
     // We don't have a class name, for instance, for native methods (e.g. clock_gettime)
     // or the special nodes created to represent a thread (e.g. AsyncTask #1).
     String separator = StringUtil.isEmpty(myClassName) ? "" : ".";
-    return String.format("%s%s%s%s", myClassName, separator, myName, mySignature);
+    return String.format("%s%s%s", myClassName, separator, myName);
+  }
+
+  public String getId() {
+    return String.format("%s%s", getFullName(), mySignature);
   }
 }

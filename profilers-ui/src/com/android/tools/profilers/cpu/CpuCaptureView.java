@@ -25,20 +25,14 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.InfoMessagePanel;
-import com.android.tools.profilers.JComboBoxView;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -49,14 +43,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeWillExpandListener;
+import javax.swing.event.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
@@ -100,8 +93,6 @@ class CpuCaptureView {
 
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
-    myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
-
     myTabsPanel = new FlatTabbedPane();
 
     for (String label : TABS.values()) {
@@ -116,8 +107,20 @@ class CpuCaptureView {
     clockTypes.bind();
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
 
-    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
-    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
+    myPanel = new JPanel(new TabularLayout("*,150px,Fit", "Fit,*"));
+
+    boolean isFilterEnabled = view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled();
+    if (isFilterEnabled) {
+      AutoCompleteTextField filterField =
+        myView.getIdeComponents().createAutoCompleteTextField("Filter", myView.getStage().getCaptureFilter(),
+                                                              myView.getStage().getPossibleCaptureFilters());
+      filterField.addOnDocumentChange(() -> myView.getStage().setCaptureFilter(filterField.getText()));
+
+      myPanel.add(filterField.getComponent(), new TabularLayout.Constraint(0, 1));
+    }
+
+    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 2));
+    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 3));
 
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);

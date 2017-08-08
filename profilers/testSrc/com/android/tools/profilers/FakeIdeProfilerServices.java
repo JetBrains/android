@@ -136,6 +136,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isLiveAllocationsEnabled() {
         return isLiveTrackingEnabled;
       }
+
+      @Override
+      public boolean isCpuCaptureFilterEnabled() {
+        return false;
+      }
     };
   }
 
