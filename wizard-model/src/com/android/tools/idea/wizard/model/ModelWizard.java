@@ -359,6 +359,9 @@ public final class ModelWizard implements Disposable {
     handleFinished(WizardResult.CANCELLED);
   }
 
+  /**
+   * Add a listener which will be triggered when the wizard finishes OR fails to finish.
+   */
   public void addResultListener(@NotNull WizardListener listener) {
     myWizardListeners.add(listener);
   }
