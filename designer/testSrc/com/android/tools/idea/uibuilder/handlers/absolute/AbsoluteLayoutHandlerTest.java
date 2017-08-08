@@ -37,11 +37,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(220, 230);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"120dp\"\n" +
-                 "    android:layout_height=\"130dp\"\n" +
-                 "    android:layout_x=\"100dp\"\n" +
-                 "    android:layout_y=\"100dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"120dp\"\n" +
+                 "        android:layout_height=\"130dp\"\n" +
+                 "        android:layout_x=\"100dp\"\n" +
+                 "        android:layout_y=\"100dp\" />");
   }
 
   public void testResizeTopLeft() throws Exception {
@@ -50,11 +50,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(80, 70);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"120dp\"\n" +
-                 "    android:layout_height=\"130dp\"\n" +
-                 "    android:layout_x=\"80dp\"\n" +
-                 "    android:layout_y=\"70dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"120dp\"\n" +
+                 "        android:layout_height=\"130dp\"\n" +
+                 "        android:layout_x=\"80dp\"\n" +
+                 "        android:layout_y=\"70dp\" />");
   }
 
   public void testResizeInsideOutFromTopLeft() throws Exception {
@@ -63,11 +63,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(400, 300);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    android:layout_x=\"200dp\"\n" +
-                 "    android:layout_y=\"200dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"200dp\"\n" +
+                 "        android:layout_y=\"200dp\" />");
   }
 
   public void testResizeInsideOutFromTop() throws Exception {
@@ -76,11 +76,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(400, 350);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"150dp\"\n" +
-                 "    android:layout_x=\"100dp\"\n" +
-                 "    android:layout_y=\"200dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"150dp\"\n" +
+                 "        android:layout_x=\"100dp\"\n" +
+                 "        android:layout_y=\"200dp\" />");
   }
 
   public void testResizeSnapToMatchParent() throws Exception {
@@ -89,12 +89,12 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(995, 150);
     myScreen.get("@id/myButton")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/myButton\"\n" +
-                 "    android:text=\"Button\"\n" +
-                 "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    android:layout_x=\"0dp\"\n" +
-                 "    android:layout_y=\"300dp\"/>");
+                 "        android:id=\"@id/myButton\"\n" +
+                 "        android:layout_width=\"match_parent\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"0dp\"\n" +
+                 "        android:layout_y=\"300dp\"\n" +
+                 "        android:text=\"Button\" />");
   }
 
   public void testResizeSnapToWrapContent() throws Exception {
@@ -108,12 +108,12 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(wrapSize.width + 4, 300 + wrapSize.height - 3);
     myScreen.get("@id/myButton")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/myButton\"\n" +
-                 "    android:text=\"Button\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:layout_x=\"0dp\"\n" +
-                 "    android:layout_y=\"300dp\"/>");
+                 "        android:id=\"@id/myButton\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_x=\"0dp\"\n" +
+                 "        android:layout_y=\"300dp\"\n" +
+                 "        android:text=\"Button\" />");
   }
 
   public void testResizeInsideOutSnapToWrapContent() throws Exception {
@@ -127,12 +127,12 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(100 + wrapSize.width + 3, 400 + wrapSize.height);
     myScreen.get("@id/myButton")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/myButton\"\n" +
-                 "    android:text=\"Button\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:layout_x=\"100dp\"\n" +
-                 "    android:layout_y=\"400dp\"/>");
+                 "        android:id=\"@id/myButton\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_x=\"100dp\"\n" +
+                 "        android:layout_y=\"400dp\"\n" +
+                 "        android:text=\"Button\" />");
   }
 
   public void testDrag() throws Exception {
@@ -178,11 +178,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(1100, 250);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"150dp\"\n" +
-                 "    android:layout_height=\"150dp\"\n" +
-                 "    android:layout_x=\"950dp\"\n" +
-                 "    android:layout_y=\"100dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"150dp\"\n" +
+                 "        android:layout_height=\"150dp\"\n" +
+                 "        android:layout_x=\"950dp\"\n" +
+                 "        android:layout_y=\"100dp\" />");
   }
 
   @Override
