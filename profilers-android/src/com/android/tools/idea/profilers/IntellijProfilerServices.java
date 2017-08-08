@@ -164,6 +164,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isLiveAllocationsEnabled() {
         return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
       }
+
+      @Override
+      public boolean isCpuCaptureFilterEnabled() {
+        return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
+      }
     };
   }
 

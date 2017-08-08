@@ -15,14 +15,16 @@
  */
 package com.android.tools.profilers;
 
-/**
- * A collection of values that configure various features inside the profiler. This is often a way
- * to allow the IDE to communicate to the profilers that a feature should be on or off.
- */
-public interface FeatureConfig {
-  boolean isJvmtiAgentEnabled();
-  boolean isNetworkThreadViewEnabled();
-  boolean isSimplePerfEnabled();
-  boolean isLiveAllocationsEnabled();
-  boolean isCpuCaptureFilterEnabled();
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+
+public interface AutoCompleteTextField {
+  @NotNull
+  JComponent getComponent();
+
+  void addOnDocumentChange(@NotNull Runnable callback);
+
+  @NotNull
+  String getText();
 }

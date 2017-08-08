@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
+import com.android.tools.profilers.AutoCompleteTextField;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.stacktrace.*;
 import com.google.common.collect.ImmutableMap;
@@ -39,6 +40,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -148,7 +150,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   }
 
   @NotNull
-  private DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
+  private static DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
     DefaultActionGroup actionGroup = (DefaultActionGroup)component.getClientProperty(COMPONENT_CONTEXT_MENU);
     if (actionGroup == null) {
       final DefaultActionGroup newActionGroup = new DefaultActionGroup();
@@ -205,5 +207,13 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
     return new ResizableImage(image);
+  }
+
+  @NotNull
+  @Override
+  public AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeholder,
+                                                           @NotNull String value,
+                                                           @NotNull Collection<String> variants) {
+    return new IntellijAutoCompleteTextField(myProject, placeholder , value, variants);
   }
 }

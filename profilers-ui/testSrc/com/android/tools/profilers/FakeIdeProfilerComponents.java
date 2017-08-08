@@ -23,10 +23,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -128,6 +126,14 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
     return new JPanel();
+  }
+
+  @NotNull
+  @Override
+  public AutoCompleteTextField createAutoCompleteTextField(@Nullable String placeHolder,
+                                                           @Nullable String value,
+                                                           @Nullable Collection<String> variants) {
+    return null;
   }
 
   public static final class StackTraceViewStub implements StackTraceView {

@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -653,6 +654,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // invalidate the capture start time when setting the capture state
     myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
     myAspect.changed(CpuProfilerAspect.CAPTURE);
+  }
+
+  public void setCaptureFilter(@NotNull String filter) {
+    myCaptureModel.setFilter(filter);
+  }
+
+  @NotNull
+  public String getCaptureFilter() {
+    return myCaptureModel.getFilter();
+  }
+
+  @NotNull
+  public Collection<String> getPossibleCaptureFilters() {
+    return myCaptureModel.getPossibleFilters();
   }
 
   @NotNull

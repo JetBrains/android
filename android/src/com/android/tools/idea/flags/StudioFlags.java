@@ -85,6 +85,11 @@ public final class StudioFlags {
     "Show a view in the network profiler that groups connections by their creation thread.",
     false);
 
+  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
+    PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
+    "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
+    false);
+
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
