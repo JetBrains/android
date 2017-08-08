@@ -63,14 +63,14 @@ public class ScoutArrangeTest extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toTopOf=\"@+id/textview2\" />");
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/textview2\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -105,16 +105,16 @@ public class ScoutArrangeTest extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterVerticallyInParent, list,true);
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\" />");
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -148,12 +148,12 @@ public class ScoutArrangeTest extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"462dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textview2\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview2\" />");
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"@+id/textview2\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/textview2\"\n" +
+                 "        tools:layout_editor_absoluteX=\"462dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
