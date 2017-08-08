@@ -22,6 +22,7 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.android.tools.profilers.cpu.TraceParser;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,18 +68,6 @@ public class SimplePerfTraceParser implements TraceParser {
   private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
 
   /**
-   * Maps a thread id to its last callchain collected in samples.
-   */
-  private final Map<Integer, List<SimpleperfReport.Sample.CallChainEntry>> myLastCallChain;
-
-  /**
-   * Stores the {@link CaptureNode} on the top of the last call stack corresponding to a thread.
-   * Storing a {@link CaptureNode} for each thread is important, for instance,
-   * to avoid parsing the same call chain multiple times.
-   */
-  private final Map<Integer, CaptureNode> myLastCallStackTopNode;
-
-  /**
    * Number of samples read from trace file.
    */
   private long mySampleCount;
@@ -97,8 +86,6 @@ public class SimplePerfTraceParser implements TraceParser {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
     myCaptureTrees = new HashMap<>();
-    myLastCallChain = new HashMap<>();
-    myLastCallStackTopNode = new HashMap<>();
     myThreads = new HashMap<>();
   }
 
@@ -111,7 +98,17 @@ public class SimplePerfTraceParser implements TraceParser {
   }
 
   private static boolean equals(SimpleperfReport.Sample.CallChainEntry c1, SimpleperfReport.Sample.CallChainEntry c2) {
-    return c1.getVaddrInFile() == c2.getVaddrInFile() && c1.getFileId() == c2.getFileId() && c1.getSymbolId() == c2.getSymbolId();
+    boolean isSameFileAndSymbolId = c1.getFileId() == c2.getFileId() && c1.getSymbolId() == c2.getSymbolId();
+    if (!isSameFileAndSymbolId) {
+      // Call chain entries need to be obtained from the same file and have the same symbol id in order to be equal.
+      return false;
+    }
+    if (c1.getSymbolId() == -1) {
+      // Symbol is invalid, fallback to vaddress
+      return c1.getVaddrInFile() == c2.getVaddrInFile();
+    }
+    // Both file and symbol id match, and symbol is valid
+    return true;
   }
 
   private static Logger getLog() {
@@ -225,23 +222,33 @@ public class SimplePerfTraceParser implements TraceParser {
     if (mySamples.isEmpty()) {
       return;
     }
+    // Set the capture range
     long startTimestamp = mySamples.get(0).getTime();
-
-    // Process each sample
-    for (SimpleperfReport.Sample sample : mySamples) {
-      parseCallChain(sample.getCallchainList(), sample.getThreadId(), sample.getTime());
-    }
-
-    // Update the end timestamp of the last active call chain of each thread
     long endTimestamp = mySamples.get(mySamples.size() - 1).getTime();
     myRange = new Range(TimeUnit.NANOSECONDS.toMicros(startTimestamp), TimeUnit.NANOSECONDS.toMicros(endTimestamp));
-    for (CaptureNode lastNode : myLastCallStackTopNode.values()) {
-      CaptureNode node = lastNode;
-      while (node != null && node.getEnd() == 0) {
-        setNodeEndTime(node, endTimestamp);
-        node = node.getParent();
-      }
+
+    // Split the samples per thread.
+    Map<Integer, List<SimpleperfReport.Sample>> threadSamples = splitSamplesPerThread();
+
+    // Process the sampels for each thread
+    for (Map.Entry<Integer, List<SimpleperfReport.Sample>> threadSamplesEntry : threadSamples.entrySet()) {
+      parseThreadSamples(threadSamplesEntry.getKey(), threadSamplesEntry.getValue());
     }
+  }
+
+  /**
+   * Group the samples collected by thread.
+   */
+  private Map<Integer, List<SimpleperfReport.Sample>> splitSamplesPerThread() {
+    Map<Integer, List<SimpleperfReport.Sample>> threadSamples = new HashMap<>();
+    for (SimpleperfReport.Sample sample : mySamples) {
+      int threadId = sample.getThreadId();
+      if (!threadSamples.containsKey(threadId)) {
+        threadSamples.put(threadId, new ArrayList<>());
+      }
+      threadSamples.get(threadId).add(sample);
+    }
+    return threadSamples;
   }
 
   // TODO: support thread time
@@ -257,83 +264,123 @@ public class SimplePerfTraceParser implements TraceParser {
   }
 
   /**
-   * Given a {@link SimpleperfReport.Sample.CallChainEntry}, a thread id and a sample timestamp, update the {@link CaptureNode}
-   * corresponding to that thread with the information obtained from the call chain.
+   * Parses the list of samples of a thread into a {@link CaptureNode} tree.
    */
-  private void parseCallChain(List<SimpleperfReport.Sample.CallChainEntry> callChain, int threadId, long timestamp) {
-    if (!myLastCallStackTopNode.containsKey(threadId)) {
-      // if there is no entry for threadId in the map, create one to represent the thread itself.
-      CaptureNode main = createCaptureNode(myThreads.getOrDefault(threadId, "main"), timestamp);
-      main.setDepth(0);
-      if (!myThreads.containsKey(threadId)) {
-        throw new IllegalStateException("Malformed trace file: thread with id " + threadId + " not found.");
-      }
-      myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), main);
-      myLastCallStackTopNode.put(threadId, main);
-      // Initiate the previous call chain as an empty list
-      myLastCallChain.put(threadId, new LinkedList<>());
+  private void parseThreadSamples(int threadId, List<SimpleperfReport.Sample> threadSamples) {
+    if (threadSamples.isEmpty()) {
+      getLog().warn(String.format("Warning: No samples read for thread %s (%d)", myThreads.get(threadId), threadId));
+      return;
     }
 
-    List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = myLastCallChain.get(threadId);
-    // First, identify where the call chains diverge, so we update the endTime of the nodes that are not in the call chain anymore.
-    // If the last call chain is empty, there is no divergent index and no end values need to be updated.
-    // TODO: We probably can just reverse the callchain in the beginning of the method with no performance impact.
-    // Revisit that later to check that and make the change to simplify the code. Make sure to benchmark to verify the efficiency.
-    int previousCallChainIndex = previousCallChain.size() - 1;
-    int newCallChainIndex = callChain.size() - 1;
-    CaptureNode divergentNodeParent = null;
-    if (!previousCallChain.isEmpty()) {
-      while (previousCallChainIndex >= 0 && newCallChainIndex >= 0 &&
-             equals(previousCallChain.get(previousCallChainIndex), callChain.get(newCallChainIndex))) {
-        previousCallChainIndex--;
-        newCallChainIndex--;
-      }
-      divergentNodeParent = findDivergenceAndUpdateEndTime(previousCallChainIndex, threadId, timestamp);
+    if (!myThreads.containsKey(threadId)) {
+      throw new IllegalStateException("Malformed trace file: thread with id " + threadId + " not found.");
     }
 
-    // Now, add the nodes of the new call chain to the tree
-    if (newCallChainIndex >= 0) {
-      divergentNodeParent = divergentNodeParent == null ? myLastCallStackTopNode.get(threadId) : divergentNodeParent;
-      addNewNodes(callChain, divergentNodeParent, newCallChainIndex, timestamp, threadId);
+    // Add a root node to represent the thread itself.
+    long firstTimestamp = threadSamples.get(0).getTime();
+    CaptureNode root = createCaptureNode(myThreads.get(threadId), firstTimestamp);
+    root.setDepth(0);
+    myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
+
+    // Parse the first call chain so we have a value for lastCallchain
+    List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = Lists.reverse(threadSamples.get(0).getCallchainList());
+    // Node used to traverse the tree. In the first traversal we pass an empty list as previous call chain and root as last visited node.
+    CaptureNode lastVisitedNode = parseCallChain(previousCallChain, Collections.emptyList(), threadSamples.get(0).getTime(), root);
+
+    // Now parse all the rest of the samples collected for this thread
+    for (int i = 1; i < threadSamples.size(); i++) {
+      SimpleperfReport.Sample sample = threadSamples.get(i);
+      // Reverse the call chain order because simpleperf returns the call chains ordered from leaf to root,
+      // so reversing it makes the traversal easier.
+      List<SimpleperfReport.Sample.CallChainEntry> callChain = Lists.reverse(sample.getCallchainList());
+      // TODO: when --trace-offcpu is supported, we will need to call updateAncestorsEndTime if sample has a "schedule" out event.
+      lastVisitedNode = parseCallChain(callChain, previousCallChain, sample.getTime(), lastVisitedNode);
+      previousCallChain = callChain;
     }
 
-    // Finally, update previous call chain and previous last node
-    myLastCallChain.put(threadId, callChain);
+    // Finally, update the end timestamp of the nodes in the last sample of the thread, which should be the last sample's timestamp.
+    // TODO: when --trace-offcpu is supported, we need to check if the last sample has a "schedule" out event before updating the end time.
+    long lastTimestamp = mySamples.get(mySamples.size() - 1).getTime();
+    updateAncestorsEndTime(lastTimestamp, lastVisitedNode);
+    // update the root timestamp
+    setNodeEndTime(root, lastTimestamp);
   }
 
   /**
-   * Update the end timestamp of the last call chain node corresponding to a thread.
-   * Then, go backwards and do the same to the ancestors of the node until the newly read call chain
-   * matches with the previous one. When a divergence is found, return the parent of the divergent node.
+   * Updates the end timestamp of a node and all its ancestors except the root.
    */
-  private CaptureNode findDivergenceAndUpdateEndTime(int divergenceCount, int tid, long endTimestamp) {
-    CaptureNode node = myLastCallStackTopNode.get(tid);
+  private static void updateAncestorsEndTime(long endTimestamp, CaptureNode lastVisited) {
+    CaptureNode node = lastVisited;
+    while (node.getParent() != null && node.getEnd() == 0) {
+      setNodeEndTime(node, endTimestamp);
+      node = node.getParent();
+      assert node != null;
+    }
+  }
+
+  /**
+   * Given a {@link SimpleperfReport.Sample.CallChainEntry} and the previous one, add the new method calls as nodes to the tree and set
+   * their start time to the given timestamp. Also, check which methods are not on the call chain anymore and update their end time.
+   * Receives a {@link CaptureNode} as a starting point to traverse the tree when adding new nodes or visiting existing ones. Returns the
+   * last visited node.
+   */
+  private CaptureNode parseCallChain(List<SimpleperfReport.Sample.CallChainEntry> callChain,
+                                     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain,
+                                     long sampleTimestamp, CaptureNode lastVisitedNode) {
+    // Node used to traverse the tree when adding new nodes or going up to find the divergent node ancestor.
+    CaptureNode traversalNode = lastVisitedNode;
+
+    // Find the node whre the current call chain diverge from the previous one
+    int divergenceIndex = 0;
+    while (divergenceIndex < callChain.size() && divergenceIndex < previousCallChain.size() &&
+           equals(previousCallChain.get(divergenceIndex), callChain.get(divergenceIndex))) {
+      divergenceIndex ++;
+    }
+
+    // If there is a divergence, we update the end time of the traversal node and go up in the tree until we find the divergent node parent.
+    if (divergenceIndex < previousCallChain.size()) {
+      int divergenceCount = previousCallChain.size() - divergenceIndex;
+      traversalNode = findDivergenceAndUpdateEndTime(divergenceCount, sampleTimestamp, traversalNode);
+    }
+
+    // We add the new nodes (if any) present in the new call chain as descendants of the parent of the first divergent node.
+    if (divergenceIndex < callChain.size()) {
+      traversalNode = addNewNodes(callChain, traversalNode, divergenceIndex, sampleTimestamp);
+    }
+
+    // Finally, return the traversal node.
+    return traversalNode;
+  }
+
+  /**
+   * Updates the end timestamp of a given node and go up in the tree N times, where N is the divergence count passed as an argument.
+   * Returns the parent of the last visited node, meaning nodes that we have changed the end time.
+   */
+  private static CaptureNode findDivergenceAndUpdateEndTime(int divergenceCount, long endTimestamp, CaptureNode node) {
     for (int i = 0; i < divergenceCount; i++) {
       assert node != null;
       setNodeEndTime(node, endTimestamp);
       node = node.getParent();
     }
 
-    // Node should be the parent of the first divergent node
     return node;
   }
 
   /**
-   * Given a list of call chain entries and a start index, convert them to {@link CaptureNode}
-   * and add them to the call tree corresponding to the thread id passed as argument, as descendants
-   * of a given node.
+   * Given a list of call chain entries and a start index, convert them to {@link CaptureNode} and add them as descendants of a given node.
+   * Returns the last visited (added) node.
    */
-  private void addNewNodes(List<SimpleperfReport.Sample.CallChainEntry> callChain,
-                           CaptureNode node, int startIndex, long startTimestamp, int tid) {
+  private CaptureNode addNewNodes(List<SimpleperfReport.Sample.CallChainEntry> callChain,
+                                  CaptureNode node, int startIndex, long startTimestamp) {
     assert node != null;
-    for (int i = startIndex; i >= 0; i--) {
+    for (int i = startIndex; i < callChain.size(); i++) {
       CaptureNode child = createCaptureNode(parseMethodName(callChain.get(i)), startTimestamp);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
       node = child;
     }
-    // Update the pointer to the last call chain node
-    myLastCallStackTopNode.put(tid, node);
+    // Return the last added node, as it's the visited one
+    return node;
   }
 
   private String parseMethodName(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
