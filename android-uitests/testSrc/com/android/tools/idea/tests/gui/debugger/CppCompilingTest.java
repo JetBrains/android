@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -231,6 +232,7 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
+  @Ignore("b/64487038")
   public void testClangGnustlStatic() throws Exception {
     processToTestCppCompiling(CLANG_TOOLCHAIN, GNUSTL_STATIC);
   }
@@ -258,6 +260,7 @@ public class CppCompilingTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA)
+  @Ignore("b/64487038")
   public void testClangGnustlShared() throws Exception {
     processToTestCppCompiling(CLANG_TOOLCHAIN, GNUSTL_SHARED);
   }
