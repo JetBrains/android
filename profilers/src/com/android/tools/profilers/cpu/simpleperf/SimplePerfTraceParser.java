@@ -262,8 +262,8 @@ public class SimplePerfTraceParser implements TraceParser {
    */
   private void parseCallChain(List<SimpleperfReport.Sample.CallChainEntry> callChain, int threadId, long timestamp) {
     if (!myLastCallStackTopNode.containsKey(threadId)) {
-      // if there is no entry for threadId in the map, create one with the main node as value.
-      CaptureNode main = createCaptureNode("main", timestamp);
+      // if there is no entry for threadId in the map, create one to represent the thread itself.
+      CaptureNode main = createCaptureNode(myThreads.getOrDefault(threadId, "main"), timestamp);
       main.setDepth(0);
       if (!myThreads.containsKey(threadId)) {
         throw new IllegalStateException("Malformed trace file: thread with id " + threadId + " not found.");
