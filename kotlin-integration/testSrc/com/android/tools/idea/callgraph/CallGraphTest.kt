@@ -55,6 +55,7 @@ class CallGraphTest : AndroidTestCase() {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
     val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph" + ext, "src/CallGraph" + ext)
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
+    val contextualGraph = graph.buildContextualCallGraph(receiverEval)
     val nodeMap = graph.nodes.associateBy({ it.shortName })
 
     fun String.assertCalls(vararg callees: String) {
@@ -66,7 +67,7 @@ class CallGraphTest : AndroidTestCase() {
     fun String.findPath(callee: String): List<String>? {
       val source = nodeMap.getValue(this)
       val sink = nodeMap.getValue(callee)
-      val paths = graph.searchForPaths(listOf(source), listOf(sink), receiverEval)
+      val paths = contextualGraph.searchForPaths(listOf(source), listOf(sink))
       return paths.firstOrNull()?.map { (contextualNode, _) -> contextualNode.node.shortName }
     }
 
@@ -123,6 +124,7 @@ class CallGraphTest : AndroidTestCase() {
     "Lambdas#h".assertCalls("Lambdas#h#lambda")
     "Lambdas#h#lambda".assertCalls("Lambdas#f", "Lambdas#g")
     "Lambdas#i".assertReaches("Lambdas#f")
+    "Lambdas#j".assertReaches("Lambdas#f")
 
     // Test contextual call paths relying on single argument.
     "Contextual#a".assertReaches("Contextual#f")
@@ -158,6 +160,24 @@ class CallGraphTest : AndroidTestCase() {
     "Contextual#c".assertDoesNotReach("Contextual#g")
     "Contextual#run3".assertReaches("Contextual#f")
     "Contextual#run3".assertDoesNotReach("Contextual#g")
+
+    // Test contextual paths involving lambda captures.
+    // TODO(kotlin-uast-cleanup): Due to the current issues with Kotlin UAST (hashing and name resolution),
+    //   invocations of captured functional variables in Kotlin is not supported yet. It's better to wait until the Kotlin
+    //   UAST issues are fixed than to pollute the code with the hacks/workarounds that would be required.
+    if (ext == ".java") {
+      "Contextual#d".assertReaches("Contextual#f")
+      "Contextual#d".assertDoesNotReach("Contextual#g")
+      "Contextual#e".assertReaches("Contextual#f")
+      "Contextual#e".assertDoesNotReach("Contextual#g")
+      "Contextual#h".assertReaches("Contextual#g")
+      "Contextual#h".assertDoesNotReach("Contextual#f")
+      "Contextual#runWrappedMulti".assertReaches("Contextual#f")
+      "Contextual#runWrappedMulti".assertReaches("Contextual#g")
+    }
+    else {
+      assert(ext == ".kt")
+    }
 
     // Kotlin-specific (e.g., top-level functions).
     if (ext == ".kt") {
