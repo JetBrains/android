@@ -530,11 +530,22 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   public String assignId(@NotNull String baseName, @NotNull Collection<String> ids) {
+    String newId = generateId(baseName, ids, ResourceFolderType.LAYOUT, getModel().getModule());
+    // If the component has an open transaction, assign the id in that transaction
+    NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
+    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    // TODO clear the pending ids
+    getModel().getPendingIds().add(newId);
+    return newId;
+  }
+
+  @NotNull
+  public static String generateId(@NotNull String baseName, @NotNull Collection<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
-    Module module = getModel().getModule();
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, type);
 
     String nextIdValue = idValue;
     int index = 0;
@@ -553,15 +564,7 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
 
-    String newId = idValue + (index == 0 ? "" : index);
-
-    // If the component has an open transaction, assign the id in that transaction
-    NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
-    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
-
-    // TODO clear the pending ids
-    getModel().getPendingIds().add(newId);
-    return newId;
+    return idValue + (index == 0 ? "" : index);
   }
 
   @Nullable
