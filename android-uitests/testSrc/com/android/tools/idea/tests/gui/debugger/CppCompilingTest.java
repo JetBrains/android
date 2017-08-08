@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -148,7 +149,7 @@ public class CppCompilingTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/64475674
+  @RunIn(TestGroup.QA)
   public void testGccGnustlShared() throws Exception {
     processToTestCppCompiling(GCC_TOOLCHAIN, GNUSTL_SHARED);
   }
@@ -290,7 +291,7 @@ public class CppCompilingTest extends DebuggerTestBase {
       .moveBetween("cppFlags \"\"", "")
       .enterText("\narguments \"" + cmakeArgsValue + "\"" + ", \"" + toolChain + "\"");
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(30));
 
     // Setup C++ and Java breakpoints.
     openAndToggleBreakPoints(ideFrame,
