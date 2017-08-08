@@ -21,22 +21,19 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
@@ -348,23 +345,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       return;
     }
     String oldValue = getValue();
-    NlComponent first = myComponents.get(0);
-    String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
-    String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
-    Project project = getModel().getProject();
-    TransactionGuard.submitTransaction(project, () -> new WriteCommandAction.Simple(project, msg, getModel().getFile()) {
-      @Override
-      protected void run() throws Throwable {
-        for (NlComponent component : myComponents) {
-          component.setAttribute(myNamespace, myName, attrValue);
-          TemplateUtils.reformatAndRearrange(project, component.getTag());
-        }
-        myPropertiesManager.propertyChanged(NlPropertyItem.this, oldValue, attrValue);
-        if (valueUpdated != null) {
-          valueUpdated.run();
-        }
+    String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
+
+    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValue, () -> {
+      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValue));
+      myPropertiesManager.propertyChanged(this, oldValue, attrValue);
+
+      if (valueUpdated == null) {
+        return;
       }
-    }.execute());
+
+      valueUpdated.run();
+    });
 
     myPropertiesManager.logPropertyChange(this);
   }
