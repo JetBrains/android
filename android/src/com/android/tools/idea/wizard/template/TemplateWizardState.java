@@ -193,31 +193,6 @@ public class TemplateWizardState implements Function<String, Object> {
 
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
     put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
-
-    populateRelativePackage(null);
-  }
-
-  public void populateRelativePackage(@Nullable Module module) {
-    // If the module's application package is "foo.bar", and we're creating an activity
-    // in the "foo.bar.baz.bay" package, the package prefix should be ".baz.bay". That lets
-    // templates (for example) specify activity names in the manifest relative to the application
-    // package node.
-    String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
-    if (pkg != null) {
-      if (module != null) {
-        String applicationId = MergedManifest.get(module).getPackage();
-        if (applicationId != null) {
-          if (pkg.startsWith(applicationId) && pkg.length() > applicationId.length() &&
-              pkg.charAt(applicationId.length()) == '.') {
-            pkg = pkg.substring(applicationId.length());
-          }
-        }
-      }
-      else {
-        pkg = "";
-      }
-      put(ATTR_RELATIVE_PACKAGE, pkg);
-    }
   }
 
   public boolean hasTemplate() {

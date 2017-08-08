@@ -56,7 +56,6 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
   public static final String ATTR_PACKAGE_ROOT = "packageRoot";
-  public static final String ATTR_RELATIVE_PACKAGE = "relativePackage";
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
