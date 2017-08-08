@@ -83,33 +83,33 @@ public class ScoutTest8 extends SceneTest {
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:id=\"@+id/content_main\"\n" +
-                 "  android:layout_width=\"1000dp\"\n" +
-                 "  android:layout_height=\"1000dp\">\n" +
+                 "    android:layout_width=\"1000dp\"\n" +
+                 "    android:layout_height=\"1000dp\">\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      android:id=\"@+id/textView\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"200dp\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/textView\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginTop=\"200dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      android:id=\"@+id/textView2\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textView\"\n" +
-                 "      android:layout_marginTop=\"25dp\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/textView\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/textView2\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginTop=\"25dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/textView\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/textView\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      android:id=\"@+id/textView3\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textView2\"\n" +
-                 "      android:layout_marginTop=\"25dp\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/textView2\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/textView3\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginTop=\"25dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/textView2\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/textView2\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }

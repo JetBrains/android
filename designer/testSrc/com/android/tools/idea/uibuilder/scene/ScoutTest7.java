@@ -69,14 +69,14 @@ public class ScoutTest7 extends SceneTest {
     Scout.inferConstraintsAndCommit (myModel.getComponents());
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintBottom_toTopOf=\"@+id/textview2\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/textview2\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\" />");
   }
 }
