@@ -125,3 +125,9 @@ filegroup(
     ]),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "sample-data",
+    srcs = glob(["sampleData/**"]),
+    visibility = ["//visibility:public"],
+)

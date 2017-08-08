@@ -13,6 +13,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:licenses",
         "//tools/adt/idea/android/lib:bundled-libs",
+        "//tools/adt/idea/android/lib:sample-data",
         "//tools/adt/idea/android:profiler-artifacts",
     ] + glob([
         "build.xml",

@@ -8,6 +8,7 @@ iml_module(
         "src",
         "gen",
     ],
+    bundle_data = [":device-art-resources"],
     iml_files = ["artwork.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
