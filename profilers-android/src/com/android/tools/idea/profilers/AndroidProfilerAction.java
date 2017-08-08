@@ -23,7 +23,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -41,11 +41,11 @@ public class AndroidProfilerAction extends DumbAwareAction {
     if (project != null) {
       PropertiesComponent properties = PropertiesComponent.getInstance(project);
       if (properties.getBoolean(AndroidProfilerToolWindowFactory.ANDROID_PROFILER_ACTIVE, false)) {
-        e.getPresentation().setIcon(ExecutionUtil.getLiveIndicator(AndroidIcons.Profiler.Toolbar));
+        e.getPresentation().setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.Toolbar.PROFILER));
         return;
       }
     }
-    e.getPresentation().setIcon(AndroidIcons.Profiler.Toolbar);
+    e.getPresentation().setIcon(StudioIcons.Shell.Toolbar.PROFILER);
   }
 
   @Override

@@ -600,11 +600,6 @@ public class AndroidIcons {
     public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16
   }
 
-  public static class Profiler {
-    public static final Icon Toolbar = load("/icons/profiler/android-profiler.png"); //16x16
-    public static final Icon ToolWindow = load("/icons/profiler/tool-window-android-profiler.png"); //13x13
-  }
-
   public static class Mockup {
     public static final Icon Mockup = load("/icons/mockup/mockup.png"); // 16x16
     public static final Icon Crop = load("/icons/mockup/crop.png"); // 16x16
