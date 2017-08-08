@@ -284,7 +284,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setDevice(Profiler.Device device) {
     if (!Objects.equals(device, myDevice)) {
-      Profiler.Device previousDevice = myDevice;
+      // The device has changed and we need to reset the process.
+      // First, stop profiling the current process.
+      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
+      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
+      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
+      // a dead or non-being-profiled process is noop in all of our profilers.
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
+        myProfilers.forEach(profiler -> profiler.stopProfiling(mySessionData, myProcess));
+      }
+
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
 
@@ -298,21 +309,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         mySessionData = null;
       }
 
-      // The device has changed and we need to reset the process.
-      // First, stop profiling the current process.
-      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
-      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
-      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
-      // a dead or non-being-profiled process is noop in all of our profilers.
-      if (previousDevice != null && myProcess != null &&
-          previousDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
-        Common.Session previousSession = Common.Session.newBuilder()
-          .setDeviceSerial(previousDevice.getSerial())
-          .setBootId(previousDevice.getBootId())
-          .build();
-        myProfilers.forEach(profiler -> profiler.stopProfiling(previousSession, myProcess));
-      }
       // Then set a new process.
       setProcess(null);
     }

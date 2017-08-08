@@ -62,6 +62,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
+  private int mySuspectAllocationCount;
+  private int myResumeAllocationCount;
 
   private int myAppId;
 
@@ -99,6 +101,22 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     }
     response.onNext(builder.build());
     response.onCompleted();
+  }
+
+  @Override
+  public void suspendTrackAllocations(SuspendTrackAllocationsRequest request,
+                                      StreamObserver<SuspendTrackAllocationsResponse> responseObserver) {
+    mySuspectAllocationCount++;
+    responseObserver.onNext(SuspendTrackAllocationsResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void resumeTrackAllocations(ResumeTrackAllocationsRequest request,
+                                     StreamObserver<ResumeTrackAllocationsResponse> responseObserver) {
+    myResumeAllocationCount++;
+    responseObserver.onNext(ResumeTrackAllocationsResponse.getDefaultInstance());
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -338,5 +356,13 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public int getTrackAllocationCount() {
     return myTrackAllocationCount;
+  }
+
+  public int getSuspendAllocationCount() {
+    return mySuspectAllocationCount;
+  }
+
+  public int getResumeAllocationCount() {
+    return myResumeAllocationCount;
   }
 }

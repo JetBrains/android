@@ -15,40 +15,164 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.network.FakeNetworkService;
+import com.google.common.truth.Truth;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
 
-  private final FakeMemoryService myService = new FakeMemoryService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myService);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeMemoryService myMemoryService = new FakeMemoryService();
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myProfilerService, new FakeEventService(), new FakeCpuService(),
+                        FakeNetworkService.newBuilder().build());
 
   private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
-  private MemoryProfiler myProfiler;
+  private StudioProfilers myStudioProfiler;
+  private FakeIdeProfilerServices myIdeProfilerServices;
+  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+    myTimer = new FakeTimer();
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    myStudioProfiler = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
   }
 
   @Test
-  public void startMonitoring() {
-    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getProcessId());
+  public void testStartMonitoring() {
+    MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
+    memoryProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(0);
   }
 
   @Test
-  public void stopMonitoring() {
-    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getProcessId());
+  public void testStopMonitoring() {
+    MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
+    memoryProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testLiveAllocationTrackingOnAgentAttach() {
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    setupODeviceAndProcess();
+
+    // Advance the timer to select the device + process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    // Expecting a stop/start trackAllocations request pair.
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void testAllocationTrackingNotStartedIfInfoExists() {
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    setupODeviceAndProcess();
+
+    // AllocationsInfo should exist for tracking to not restart.
+    myMemoryService.setMemoryData(com.android.tools.profiler.proto.MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.newBuilder()
+        .setStatus(com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS)
+        .setStartTime(Long.MIN_VALUE)
+        .setEndTime(Long.MAX_VALUE)
+        .setLegacy(false).build()
+    ).build());
+
+    // Advance the timer to select the device + process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testSuspendAndResumeLiveAllocationTracking() {
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    setupODeviceAndProcess();
+
+    // Advance the timer to select the device + process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
+
+    // Switch to a different process. We should expect a suspend + resume pair.
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(21)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("PreferredFakeProcess")
+      .build();
+    myStudioProfiler.setPreferredProcessName("PreferredFakeProcess");
+    myProfilerService.addProcess(myStudioProfiler.getSession(), process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(1);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void testSuspendOnProfilerStop() {
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    setupODeviceAndProcess();
+
+    // Advance the timer to select the device + process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(0);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
+
+    myStudioProfiler.stop();
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+    Truth.assertThat(myMemoryService.getSuspendAllocationCount()).isEqualTo(1);
+    Truth.assertThat(myMemoryService.getResumeAllocationCount()).isEqualTo(1);
+  }
+
+  private void setupODeviceAndProcess() {
+    Profiler.Device device = Profiler.Device.newBuilder()
+      .setSerial("FakeDevice")
+      .setState(Profiler.Device.State.ONLINE)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
   }
 }
