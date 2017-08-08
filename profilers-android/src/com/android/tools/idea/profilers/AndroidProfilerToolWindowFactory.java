@@ -29,7 +29,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
@@ -66,14 +66,14 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
     PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(AndroidIcons.Profiler.ToolWindow));
+    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
     properties.setValue(ANDROID_PROFILER_ACTIVE, true);
   }
 
   public static void removeContent(Project project, ToolWindow toolWindow) {
     toolWindow.getContentManager().removeAllContents(true);
     PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    toolWindow.setIcon(AndroidIcons.Profiler.ToolWindow);
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
     properties.setValue(ANDROID_PROFILER_ACTIVE, false);
   }
 
