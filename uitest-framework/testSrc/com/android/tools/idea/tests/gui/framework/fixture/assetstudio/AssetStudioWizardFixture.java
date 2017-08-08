@@ -20,12 +20,17 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
-import org.fest.swing.core.Robot;
+import com.google.common.collect.Iterables;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JSliderFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Collection;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioWizardFixture> {
 
@@ -52,14 +57,36 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
 
   @NotNull
   public AssetStudioWizardFixture enableAutoMirror() {
-    Robot robot = robot();
     String title = "Enable auto mirroring for RTL layout";
-    JCheckBox checkbox = robot.finder().find(target(), Matchers.byText(JCheckBox.class, title));
-    Wait.seconds(1).expecting("button " + title + " to be enabled")
-      .until(() -> checkbox.isEnabled() && checkbox.isVisible() && checkbox.isShowing());
-    if (!checkbox.isSelected()) {
-      robot.click(checkbox);
-    }
+    JCheckBox box = GuiTests.waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, title));
+    robot().click(box);
+    Wait.seconds(1).expecting("button " + title + " to be enabled").until(() -> box.isEnabled());
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture enableOverrideDefaultSize() {
+    String title = "Override";
+    JCheckBox box = GuiTests.waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, title));
+    robot().click(box);
+    Wait.seconds(1).expecting("button " + title + " to be enabled").until(() -> box.isEnabled());
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture setSize(int width, int height) {
+    Collection<JFormattedTextField> all =
+      robot().finder().findAll(target(), Matchers.byType(JFormattedTextField.class).andIsShowing().andIsEnabled());
+    assertThat(all).hasSize(2);
+    new JTextComponentFixture(robot(), Iterables.get(all, 0)).setText(Integer.toString(width));
+    new JTextComponentFixture(robot(), Iterables.get(all, 1)).setText(Integer.toString(height));
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture setOpacity(int ratio) {
+    JSlider slider = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(JSlider.class));
+    new JSliderFixture(robot(), slider).slideTo(ratio);
     return this;
   }
 }

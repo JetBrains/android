@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -67,7 +68,7 @@ class MenuFixture {
     Container root = myContainer;
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
-      JMenuItem found = myRobot.finder().find(root, Matchers.byText(JMenuItem.class, segment));
+      JMenuItem found = GuiTests.waitUntilShowingAndEnabled(myRobot, root, Matchers.byText(JMenuItem.class, segment));
       if (root instanceof JPopupMenu) {
         previouslyFoundPopups.add((JPopupMenu)root);
       }
