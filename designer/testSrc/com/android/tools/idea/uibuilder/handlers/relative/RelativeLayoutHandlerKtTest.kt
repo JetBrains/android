@@ -44,13 +44,13 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(220f, 230f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"70dp\"\n" +
-            "    android:layout_height=\"80dp\"\n" +
-            "    android:layout_below=\"@id/button\"\n" +
-            "    android:layout_toRightOf=\"@id/button\"\n" +
-            "    android:layout_marginLeft=\"100dp\"\n" +
-            "    android:layout_marginTop=\"100dp\"/>")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"70dp\"\n" +
+            "        android:layout_height=\"80dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"100dp\"\n" +
+            "        android:layout_marginTop=\"100dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
   }
 
   fun testDragComponentToLeftTopSide() {
