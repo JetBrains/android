@@ -99,47 +99,47 @@ public class ScoutChainTest02 extends SceneTest {
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:id=\"@+id/content_main\"\n" +
-                 "  android:layout_width=\"360dp\"\n" +
-                 "  android:layout_height=\"512dp\">\n" +
+                 "    android:layout_width=\"360dp\"\n" +
+                 "    android:layout_height=\"512dp\">\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/a\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintHorizontal_chainStyle=\"spread_inside\"\n" +
-                 "      android:layout_marginTop=\"4dp\"\n" +
-                 "      app:layout_constraintEnd_toStartOf=\"@+id/b\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginEnd=\"1dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/a\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginEnd=\"1dp\"\n" +
+                 "        android:layout_marginTop=\"4dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/b\"\n" +
+                 "        app:layout_constraintHorizontal_chainStyle=\"spread_inside\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"4dp\"\n" +
-                 "      app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
-                 "      app:layout_constraintEnd_toStartOf=\"@+id/c\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginTop=\"4dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/c\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"4dp\"\n" +
-                 "      app:layout_constraintStart_toEndOf=\"@+id/b\"\n" +
-                 "      app:layout_constraintEnd_toStartOf=\"@+id/d\"\n" +
-                 "      android:layout_marginEnd=\"1dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/c\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginEnd=\"1dp\"\n" +
+                 "        android:layout_marginTop=\"4dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/d\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/b\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/d\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"4dp\"\n" +
-                 "      app:layout_constraintStart_toEndOf=\"@+id/c\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/d\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginTop=\"4dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }
