@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.testutils.TestResources;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
@@ -45,6 +45,7 @@ public class ConnectionDetailsViewTest {
     .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET").build();
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
+  private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
 
   private ConnectionDetailsView myView;
 
@@ -96,7 +97,7 @@ public class ConnectionDetailsViewTest {
     myView.getStackTraceView().getModel().addDependency(observer)
       .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
-    File file = TestResources.getFile(this.getClass(), "/icons/garbage-event.png");
+    File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).build();
     data.setResponsePayloadFile(file);
 
