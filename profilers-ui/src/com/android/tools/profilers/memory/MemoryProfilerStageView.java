@@ -21,11 +21,9 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.flat.FlatButton;
-import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import icons.StudioIcons;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
@@ -37,6 +35,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -285,7 +284,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
         .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
-        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2, StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2)
+        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
         .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
@@ -379,11 +379,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildCaptureUi() {
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
-    toolbar.add(myCaptureView.getExportButton());
-    toolbar.add(new FlatSeparator());
     toolbar.add(myCaptureView.getComponent());
-    toolbar.add(new FlatSeparator());
-
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
 

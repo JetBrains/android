@@ -113,6 +113,10 @@ public interface CaptureObject extends MemoryObject {
     return null;
   }
 
+  default boolean isExportable() {
+    return false;
+  }
+
   @Nullable
   String getExportableExtension();
 

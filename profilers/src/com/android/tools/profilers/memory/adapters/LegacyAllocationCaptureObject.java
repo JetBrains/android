@@ -83,10 +83,14 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     return myLabel;
   }
 
+  @Override
+  public boolean isExportable() {
+    return true;
+  }
+
   @Nullable
   @Override
   public String getExportableExtension() {
-    // TODO only return this if in legacy mode, otherwise return null
     return "alloc";
   }
 
