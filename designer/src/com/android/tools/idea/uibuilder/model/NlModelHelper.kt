@@ -302,23 +302,6 @@ fun NlModel.createComponents(sceneView: SceneView,
   return components
 }
 
-/**
- * Looks up the existing set of id's reachable from the given module
- */
-fun getIds(model: NlModel): Collection<String> {
-  val facet = model.facet
-  val resources = AppResourceRepository.getOrCreateInstance(facet)
-  var ids = resources.getItemsOfType(ResourceType.ID)
-  val pendingIds = model.pendingIds
-  if (!pendingIds.isEmpty()) {
-    val all = Lists.newArrayListWithCapacity<String>(pendingIds.size + ids.size)
-    all.addAll(ids)
-    all.addAll(pendingIds)
-    ids = all
-  }
-  return ids
-}
-
 object NlModelHelper {
   fun handleDeletion(parent: NlComponent, children: Collection<NlComponent>): Boolean {
     if (parent.hasNlComponentInfo) {

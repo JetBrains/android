@@ -21,8 +21,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,8 +52,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.dvlib.DeviceSchema.ATTR_NAME;
@@ -76,15 +80,14 @@ public class AddMenuWrapper extends DropDownAction {
   @VisibleForTesting
   JTextField myLabelField;
   @VisibleForTesting
+  JLabel myLabelLabel;
   JTextField myIdField;
   @VisibleForTesting
-  JLabel myClassLabel;
-  @VisibleForTesting
-  ComboBox<String> myClassPopup;
+  JLabel myIdLabel;
   @VisibleForTesting
   JLabel mySourceLabel;
   @VisibleForTesting
-  ComboBox<PsiFile> mySourcePopup;
+  ComboBox<String> mySourcePopup;
   @VisibleForTesting
   JLabel myValidationLabel;
   private final NavigationSchema mySchema;
@@ -97,6 +100,8 @@ public class AddMenuWrapper extends DropDownAction {
   public JButton myCreateButton;
   @VisibleForTesting
   public ASGallery<NavActionManager.Destination> myDestinationsGallery;
+  private String myDefaultId;
+  private String myDefaultLabel;
 
   private MediaTracker myMediaTracker;
   @VisibleForTesting
@@ -110,7 +115,10 @@ public class AddMenuWrapper extends DropDownAction {
   }
 
   @VisibleForTesting
-  void addElement(@NotNull NavActionManager.Destination destination, @NotNull NavDesignSurface surface) {
+  void addElement(@NotNull NavActionManager.Destination destination,
+                  @NotNull NavDesignSurface surface,
+                  @Nullable String id,
+                  @Nullable String label) {
     String tagName = destination.getTag();
     String qName = destination.getQualifiedName();
     Consumer<NlComponent> extraActions = component -> {
@@ -121,24 +129,28 @@ public class AddMenuWrapper extends DropDownAction {
         component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layoutId);
       }
     };
-    addElement(surface, tagName, qName, qName, extraActions);
+    addElement(surface, tagName, id != null ? id : qName, label != null ? label : qName, extraActions);
   }
 
   @VisibleForTesting
   void addElement(@NotNull NavDesignSurface surface,
-                         @NotNull String tagName,
-                         @NotNull String idBase,
-                         @NotNull String name,
-                         @Nullable Consumer<NlComponent> extraActions) {
+                  @NotNull String tagName,
+                  @Nullable String idBase,
+                  @Nullable String name,
+                  @Nullable Consumer<NlComponent> extraActions) {
     new WriteCommandAction(surface.getProject(), "Create " + name, surface.getModel().getFile()) {
       @Override
-      protected void run(@NotNull Result result) throws Throwable {
+      protected void run(@NotNull Result result) {
         NlComponent parent = surface.getCurrentNavigation();
         XmlTag tag = parent.getTag().createChildTag(tagName, null, null, true);
         NlComponent newComponent = surface.getModel().createComponent(tag, parent, null);
         surface.getSelectionModel().setSelection(ImmutableList.of(newComponent));
-        newComponent.assignId(idBase);
-        newComponent.setAttribute(ANDROID_URI, ATTR_NAME, name);
+        if (idBase != null) {
+          newComponent.assignId(idBase);
+        }
+        if (name != null) {
+          newComponent.setAttribute(ANDROID_URI, ATTR_NAME, name);
+        }
         if (extraActions != null) {
           extraActions.accept(newComponent);
         }
@@ -149,11 +161,16 @@ public class AddMenuWrapper extends DropDownAction {
   @Nullable
   @Override
   protected JPanel createCustomComponentPopup() {
-    myMainPanel = new JPanel(new JBCardLayout());
+    if (myMainPanel == null) {
+      myMainPanel = new JPanel(new JBCardLayout());
 
-    myMainPanel.add(createSelectionPanel(), SELECTION_PANEL_NAME);
-    myMainPanel.add(createNewPanel(), NEW_PANEL_NAME);
-
+      myMainPanel.add(createSelectionPanel(), SELECTION_PANEL_NAME);
+      myMainPanel.add(createNewPanel(), NEW_PANEL_NAME);
+    }
+    ((JBCardLayout)myMainPanel.getLayout()).show(myMainPanel, SELECTION_PANEL_NAME);
+    myDefaultLabel = null;
+    myDefaultId = null;
+    updateDefaultIdAndLabel();
     return myMainPanel;
   }
 
@@ -205,19 +222,19 @@ public class AddMenuWrapper extends DropDownAction {
         filename = "dummy.xml";
       }
       else {
-        filename = ((PsiFile)mySourcePopup.getSelectedItem()).getName();
+        filename = (String)mySourcePopup.getSelectedItem();
       }
-      addElement(mySurface, TAG_INCLUDE, myIdField.getText(), myLabelField.getText(),
-                 component -> component.setAttribute(AUTO_URI, "graph", filename));
+      String resource = "@" + ResourceType.NAVIGATION.getName() + "/" + FileUtil.getNameWithoutExtension(new File(filename).getName());
+      addElement(mySurface, TAG_INCLUDE, null, null, component -> component.setAttribute(AUTO_URI, "graph", resource));
+      closePopup();
       return;
     }
     NavigationSchema.DestinationType type = mySchema.getDestinationType((String)myKindPopup.getSelectedItem());
     if (type == ACTIVITY || type == FRAGMENT) {
-      String className = (String)myClassPopup.getSelectedItem();
       NavActionManager.Destination dest =
-        new NavActionManager.Destination(null, className.substring(className.lastIndexOf('.') + 1), className,
+        new NavActionManager.Destination(null, "", "",
                                          (String)myKindPopup.getSelectedItem(), null);
-      addElement(dest, mySurface);
+      addElement(dest, mySurface, myIdField.getText(), myLabelField.getText());
     }
     else if (type == NAVIGATION) {
       addElement(mySurface, (String)myKindPopup.getSelectedItem(), myIdField.getText(), myLabelField.getText(), null);
@@ -229,16 +246,11 @@ public class AddMenuWrapper extends DropDownAction {
   boolean validate() {
     String error = null;
     String kind = (String)myKindPopup.getSelectedItem();
-    NavigationSchema.DestinationType type = mySchema.getDestinationType(kind);
     if (myLabelField.getText().isEmpty()) {
       error = "Label must be set";
     }
     else if (myIdField.getText().isEmpty()) {
       error = "ID must be set";
-    }
-    else if (myClassPopup.getSelectedItem() == null && (type == ACTIVITY || type == FRAGMENT)) {
-      // TODO: validate class?
-      error = "Class must be set";
     }
     if (error != null) {
       myValidationLabel.setText(error);
@@ -258,19 +270,14 @@ public class AddMenuWrapper extends DropDownAction {
     JPanel selectionGrid = new JPanel(layout);
     selectionGrid.add(new JLabel("Kind"), new TabularLayout.Constraint(0, 0));
 
-    selectionGrid.add(new JLabel("Label"), new TabularLayout.Constraint(1, 0));
-    // TODO: uniqification
-    myLabelField = new JTextField("Dest 0", 40);
-    selectionGrid.add(myLabelField, new TabularLayout.Constraint(1, 2));
-    selectionGrid.add(new JLabel("ID"), new TabularLayout.Constraint(2, 0));
-    // TODO: uniqification
-    myIdField = new JTextField("dest_0", 40);
+    myLabelLabel = new JLabel("Label");
+    selectionGrid.add(myLabelLabel, new TabularLayout.Constraint(1, 0));
+    myIdField = new JTextField("", 40);
     selectionGrid.add(myIdField, new TabularLayout.Constraint(2, 2));
-
-    myClassLabel = new JLabel("Class");
-    selectionGrid.add(myClassLabel, new TabularLayout.Constraint(3, 0));
-    createClassPopup();
-    selectionGrid.add(myClassPopup, new TabularLayout.Constraint(3, 2));
+    myLabelField = new JTextField("", 40);
+    selectionGrid.add(myLabelField, new TabularLayout.Constraint(1, 2));
+    myIdLabel = new JLabel("ID");
+    selectionGrid.add(myIdLabel, new TabularLayout.Constraint(2, 0));
 
     mySourceLabel = new JLabel("Source");
     selectionGrid.add(mySourceLabel, new TabularLayout.Constraint(3, 0));
@@ -282,13 +289,26 @@ public class AddMenuWrapper extends DropDownAction {
     selectionGrid.add(myKindPopup, new TabularLayout.Constraint(0, 2));
 
     myKindPopup.setSelectedItem(mySchema.getTag(FRAGMENT));
+    updateDefaultIdAndLabel();
     return selectionGrid;
   }
 
-  private void createClassPopup() {
-    // TODO: not clear what should be in here yet...
-    myClassPopup = new ComboBox<>();
-    myClassPopup.setEditable(true);
+  private void updateDefaultIdAndLabel() {
+    String newKind = (String)myKindPopup.getSelectedItem();
+    // If we haven't changed from the default, update the value
+    if (myDefaultId == null || myIdField.getText().equals(myDefaultId)) {
+      NlModel model = mySurface.getModel();
+      myDefaultId = NlComponent.generateId(newKind, model.getIds(), ResourceFolderType.NAVIGATION,
+                                           model.getModule());
+      myIdField.setText(myDefaultId);
+    }
+    if (myDefaultLabel == null || myLabelField.getText().equals(myDefaultLabel)) {
+      Matcher m = Pattern.compile("\\d*$").matcher(myDefaultId);
+      m.find();
+      String n = m.group();
+      myDefaultLabel = getTypeLabel((String)myKindPopup.getSelectedItem()) + (n.isEmpty() ? "" : " " + n);
+      myLabelField.setText(myDefaultLabel);
+    }
   }
 
   private void createSourcePopup() {
@@ -300,14 +320,14 @@ public class AddMenuWrapper extends DropDownAction {
       if (mySurface.getModel().getFile().equals(navPsi)) {
         continue;
       }
-      mySourcePopup.addItem(navPsi);
+      mySourcePopup.addItem(navPsi.getName());
     }
     mySourcePopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
       if (value == null) {
         RENDERER_COMPONENT.setText("New...");
       }
       else {
-        RENDERER_COMPONENT.setText(value.getName());
+        RENDERER_COMPONENT.setText(value);
       }
       return RENDERER_COMPONENT;
     });
@@ -317,30 +337,7 @@ public class AddMenuWrapper extends DropDownAction {
     myKindPopup = new ComboBox<>();
 
     myKindPopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
-      // TODO: print different text for different (custom) navigators?
-      NavigationSchema.DestinationType type = mySchema.getDestinationType(value);
-      String text = null;
-      if (TAG_INCLUDE.equals(value)) {
-        text = "Include Graph";
-      }
-      else {
-        if (type == NAVIGATION) {
-          text = "Nested Graph";
-        }
-        else if (type == FRAGMENT) {
-          text = "Fragment";
-        }
-        else if (type == ACTIVITY) {
-          text = "Activity";
-        }
-        if (type != null && !value.equals(mySchema.getTag(type))) {
-          // If it's a custom tag, show it
-          text += " (" + value + ")";
-        }
-      }
-      if (text == null) {
-        text = value;
-      }
+      String text = getTypeLabel(value);
       RENDERER_COMPONENT.setText(text);
       return RENDERER_COMPONENT;
     });
@@ -353,21 +350,53 @@ public class AddMenuWrapper extends DropDownAction {
     }
 
     myKindPopup.addItemListener(itemEvent -> {
-      myClassLabel.setVisible(false);
-      myClassPopup.setVisible(false);
-      mySourceLabel.setVisible(false);
-      mySourcePopup.setVisible(false);
       String item = (String)itemEvent.getItem();
-      NavigationSchema.DestinationType type = mySchema.getDestinationType(item);
-      if (type == ACTIVITY || type == FRAGMENT) {
-        myClassLabel.setVisible(true);
-        myClassPopup.setVisible(true);
-      }
-      else if (TAG_INCLUDE.equals(item)) {
+      if (TAG_INCLUDE.equals(item)) {
+        myIdField.setVisible(false);
+        myLabelField.setVisible(false);
+        myIdLabel.setVisible(false);
+        myLabelLabel.setVisible(false);
         mySourceLabel.setVisible(true);
         mySourcePopup.setVisible(true);
       }
+      else {
+        mySourceLabel.setVisible(false);
+        mySourcePopup.setVisible(false);
+        myLabelLabel.setVisible(true);
+        myLabelField.setVisible(true);
+        myIdLabel.setVisible(true);
+        myIdField.setVisible(true);
+      }
+      updateDefaultIdAndLabel();
     });
+  }
+
+  @NotNull
+  private String getTypeLabel(String tag) {
+    NavigationSchema.DestinationType type = mySchema.getDestinationType(tag);
+    String text = null;
+    if (TAG_INCLUDE.equals(tag)) {
+      text = "Include Graph";
+    }
+    else {
+      if (type == NAVIGATION) {
+        text = "Nested Graph";
+      }
+      else if (type == FRAGMENT) {
+        text = "Fragment";
+      }
+      else if (type == ACTIVITY) {
+        text = "Activity";
+      }
+      if (type != null && !tag.equals(mySchema.getTag(type))) {
+        // If it's a custom tag, show it
+        text += " (" + tag + ")";
+      }
+    }
+    if (text == null) {
+      text = tag;
+    }
+    return text;
   }
 
   @NotNull
@@ -375,7 +404,7 @@ public class AddMenuWrapper extends DropDownAction {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
     // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
     myDestinationsGallery = new ASGallery<NavActionManager.Destination>(
-      listModel, d->null, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
+      listModel, d -> null, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
       @Override
       @NotNull
       public Dimension getPreferredScrollableViewportSize() {
@@ -451,13 +480,13 @@ public class AddMenuWrapper extends DropDownAction {
     JPanel createButtonPanel = new JPanel();
     createButtonPanel.add(myNewDestinationButton);
     selectionPanel.add(createButtonPanel);
-    myNewDestinationButton.addActionListener(event ->
-      ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, "new", JBCardLayout.SwipeDirection.FORWARD));
+    myNewDestinationButton
+      .addActionListener(event -> ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, "new", JBCardLayout.SwipeDirection.FORWARD));
     myDestinationsGallery.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {
         if (myDestinationsGallery.getSelectedIndex() != -1) {
-          addElement(myDestinationsGallery.getSelectedElement(), mySurface);
+          addElement(myDestinationsGallery.getSelectedElement(), mySurface, null, null);
           closePopup();
         }
       }
