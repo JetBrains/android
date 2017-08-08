@@ -1408,7 +1408,6 @@ public class TemplateTest extends AndroidGradleTestCase {
         moduleState.getTemplate().render(context);
         if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = projectState.getActivityTemplateState();
-          activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
           final RenderingContext activityContext =
