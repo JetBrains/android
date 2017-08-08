@@ -55,11 +55,11 @@ public class SceneResizeTest extends SceneTest {
     myInteraction.mouseRelease(300, 300);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"300dp\"\n" +
-                 "    android:layout_height=\"220dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"300dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"300dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"300dp\"\n" +
+                 "        android:layout_height=\"220dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"300dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"300dp\" />");
   }
 
   public void testResizeRightTop() {
@@ -68,11 +68,11 @@ public class SceneResizeTest extends SceneTest {
     myInteraction.mouseRelease(900, 300);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"400dp\"\n" +
-                 "    android:layout_height=\"220dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"500dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"300dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"400dp\"\n" +
+                 "        android:layout_height=\"220dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"500dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"300dp\" />");
   }
 
   public void testResizeLeftBottom() {
@@ -81,11 +81,11 @@ public class SceneResizeTest extends SceneTest {
     myInteraction.mouseRelease(300, 700);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"300dp\"\n" +
-                 "    android:layout_height=\"200dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"300dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"500dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"300dp\"\n" +
+                 "        android:layout_height=\"200dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"300dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"500dp\" />");
   }
 
   public void testResizeRightBottom() {
@@ -94,10 +94,10 @@ public class SceneResizeTest extends SceneTest {
     myInteraction.mouseRelease(900, 700);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"400dp\"\n" +
-                 "    android:layout_height=\"200dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"500dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"500dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"400dp\"\n" +
+                 "        android:layout_height=\"200dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"500dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"500dp\" />");
   }
 }

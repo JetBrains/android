@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -235,18 +231,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     updateAttributes(attributes, x, y);
     attributes.apply();
 
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String commandName = "Resize " + StringUtil.getShortName(component.getTagName());
-    WriteCommandAction action = new WriteCommandAction(project, commandName, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        attributes.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(component, "Resize " + StringUtil.getShortName(component.getTagName()), attributes::commit);
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
