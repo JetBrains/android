@@ -22,9 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
-import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.*;
 
 /**
  * Check that connections to parent if referenced by an id still works, also check the display list sorted result.
@@ -71,13 +69,13 @@ public class ScoutTest3 extends SceneTest {
     Scout.inferConstraintsAndCommit (myModel.getComponents());
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"40dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"375dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"50dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/guide1\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"375dp\" />");
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"40dp\"\n" +
+                 "        android:layout_marginTop=\"375dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/guide1\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"50dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"375dp\" />");
   }
 }
