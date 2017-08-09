@@ -1036,6 +1036,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return;
     }
 
+    if (psiFile.getProject().isDisposed()) return;
+
     PsiFile file = psiFile;
     if (folderType == VALUES) {
       // For unit test tracking purposes only
