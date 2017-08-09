@@ -17,20 +17,16 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.rendering.webp.WebpMetadata;
-import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
@@ -131,8 +127,6 @@ public class DeviceArtDescriptorTest extends TestCase {
     if (file == null) {
       return;
     }
-    Iterator<ImageReader> ite  = ImageIO.getImageReadersByMIMEType("image/webp");
-    ArrayList<ImageReader> readers = Lists.newArrayList(ite);
 
     BufferedImage image = ImageIO.read(file);
 
