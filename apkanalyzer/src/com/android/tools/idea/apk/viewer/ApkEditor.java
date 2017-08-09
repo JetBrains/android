@@ -24,7 +24,6 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
-import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -358,6 +357,6 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     // skip 9 patch editor since nine patch information has been stripped out
     return Arrays.stream(providers).filter(
-      fileEditorProvider -> !(fileEditorProvider instanceof NinePatchEditorProvider)).findFirst();
+      fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();
   }
 }

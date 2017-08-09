@@ -95,6 +95,7 @@ iml_module(
         "//tools/adt/idea/observable-ui[module]",
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/project-system[module]",
+        "//tools/adt/idea/apkanalyzer[module]",
     ],
 )
 
@@ -199,6 +200,7 @@ iml_module(
         "//tools/idea/plugins/properties/properties-psi-impl[module, test]",
         "//tools/adt/idea/artwork[module, test]",
         "//tools/adt/idea/android-common[module, test]",
+        "//tools/adt/idea/apkanalyzer[module, test]",
     ],
 )
 

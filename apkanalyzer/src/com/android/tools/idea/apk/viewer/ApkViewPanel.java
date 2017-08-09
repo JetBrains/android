@@ -43,7 +43,6 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -107,7 +106,13 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
     }, EdtExecutor.INSTANCE);
 
-    mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
+    mySizeComponent.setToolTipText(
+      "1. The <b>raw size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after "
+      + "installation.\n"
+      + "2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed "
+      + "version of the file).\n"
+      + "For application updates, Google Play serves patches that are typically much smaller.\n"
+      + "The installation size may be higher than the raw size depending on various other factors.");
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     myCompareWithButton.addActionListener(e -> {
