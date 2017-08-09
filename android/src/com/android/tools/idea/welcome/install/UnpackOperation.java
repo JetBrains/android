@@ -77,7 +77,7 @@ public final class UnpackOperation extends InstallOperation<File, File> {
       CapturingAnsiEscapesAwareProcessHandler handler = new CapturingAnsiEscapesAwareProcessHandler(line);
       handler.addProcessListener(new ProcessAdapter() {
         @Override
-        public void onTextAvailable(ProcessEvent event, Key outputType) {
+        public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
           String string = event.getText();
           if (!StringUtil.isEmptyOrSpaces(string)) {
             if (string.startsWith(EXTRACT_OPERATION_OUTPUT)) { // Extract operation prefix

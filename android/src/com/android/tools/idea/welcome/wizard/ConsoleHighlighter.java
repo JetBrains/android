@@ -188,7 +188,7 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
     private AtomicBoolean mySkipped = new AtomicBoolean(false);
 
     @Override
-    public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+    public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
       if (!mySkipped.compareAndSet(false, true)) {
         print(event.getText(), ConsoleViewContentType.getConsoleViewType(outputType).getAttributes());
       }

@@ -78,7 +78,7 @@ public class EmulatorRunner {
     private final StringBuilder sb = new StringBuilder();
 
     @Override
-    public void onTextAvailable(ProcessEvent event, Key outputType) {
+    public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
       sb.append(event.getText());
     }
 

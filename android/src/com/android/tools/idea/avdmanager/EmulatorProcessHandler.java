@@ -58,7 +58,7 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
     // Wait for both the stdout and stderr reader threads to finish and then indicate that the process has terminated
     addProcessListener(new ProcessAdapter() {
       @Override
-      public void startNotified(final ProcessEvent event) {
+      public void startNotified(@NotNull final ProcessEvent event) {
         try {
           String presentableName = CommandLineUtil.extractPresentableName(myCommandLine.getCommandLineString());
           final BaseDataReader stdoutReader = new EmulatorOutputReader(myProcess.getInputStream(), ProcessOutputTypes.STDOUT,
