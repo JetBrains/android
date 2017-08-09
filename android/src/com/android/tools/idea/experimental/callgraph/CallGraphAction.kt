@@ -24,7 +24,12 @@ import com.intellij.ide.hierarchy.actions.BrowseHierarchyActionBase
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
@@ -57,13 +62,13 @@ class ContextualCallPathTreeStructure(
     project: Project,
     val graph: ContextualCallGraph,
     element: PsiElement,
-    val reverseEdges: Boolean
+    private val reverseEdges: Boolean
 ) :
     HierarchyTreeStructure(
         project,
         CallHierarchyNodeDescriptor(project, null, element, true, false)) {
 
-  val reachableContextualNodes: Multimap<HierarchyNodeDescriptor, ContextualEdge> = HashMultimap.create()
+  private val reachableContextualNodes: Multimap<HierarchyNodeDescriptor, ContextualEdge> = HashMultimap.create()
 
   init {
     val initialEdges = graph.contextualNodes
@@ -154,20 +159,31 @@ class CallGraphAction : AnAction() {
     val project = e.project ?: return
     PsiDocumentManager.getInstance(project).commitAllDocuments() // Prevents problems with smart pointers creation.
 
-    val scope = AnalysisScope(project)
-    val cha = ClassHierarchyVisitor()
-        .apply { visitAll(project, scope) }
-        .classHierarchy
-    val receiverEval = IntraproceduralDispatchReceiverVisitor(cha)
-        .apply { visitAll(project, scope) }
-        .receiverEval
-    val callGraph = CallGraphVisitor(receiverEval, cha)
-        .apply { visitAll(project, scope) }
-        .callGraph
-    val contextualGraph = callGraph.buildContextualCallGraph(receiverEval)
+    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Building contextual call graph", true) {
+      override fun run(indicator: ProgressIndicator) {
+        ApplicationManager.getApplication().runReadAction {
+          val scope = AnalysisScope(project)
+          val cha = ClassHierarchyVisitor()
+              .apply { visitAll(project, scope) }
+              .classHierarchy
+          val receiverEval = IntraproceduralDispatchReceiverVisitor(cha)
+              .apply { visitAll(project, scope) }
+              .receiverEval
+          val callGraph = CallGraphVisitor(receiverEval, cha)
+              .apply { visitAll(project, scope) }
+              .callGraph
+          val contextualGraph = callGraph.buildContextualCallGraph(receiverEval)
 
-    val provider = ContextualCallPathProvider(contextualGraph)
-    val target = provider.getTarget(e.dataContext) ?: return
-    BrowseHierarchyActionBase.createAndAddToPanel(project, provider, target)
+          val provider = ContextualCallPathProvider(contextualGraph)
+          val target = provider.getTarget(e.dataContext) ?: return@runReadAction
+
+          ApplicationManager.getApplication().invokeLater({
+            if (!project.isDisposed) {
+              BrowseHierarchyActionBase.createAndAddToPanel(project, provider, target)
+            }
+          }, ModalityState.NON_MODAL)
+        }
+      }
+    })
   }
 }
