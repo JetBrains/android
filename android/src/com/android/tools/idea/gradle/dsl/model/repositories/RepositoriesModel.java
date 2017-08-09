@@ -90,16 +90,23 @@ public class RepositoriesModel extends GradleDslBlockModel {
   public void addRepositoryByMethodName(@NotNull String methodName) {
     GradleDslElementList repositoriesElementList = getRepositoryElementList();
     // Check if it is already there
-    if (containsMethodCall(repositoriesElementList, methodName)) {
+    if (containsMethodCall(methodName)) {
       return;
     }
     repositoriesElementList.addNewElement(new GradleDslMethodCall(repositoriesElementList, methodName, /* no statement */null));
   }
 
-  private static boolean containsMethodCall(@NotNull GradleDslElementList list, @NotNull String name) {
+  /**
+   * Looks for a repository by method name.
+   *
+   * @param methodName Method name of the repository
+   * @return {@code true} if there is a call to {@code methodName}, {@code false} other wise.
+   */
+  public boolean containsMethodCall(@NotNull String methodName) {
+    GradleDslElementList list = getRepositoryElementList();
     List<GradleDslMethodCall> elements = list.getElements(GradleDslMethodCall.class);
     for (GradleDslMethodCall element : elements) {
-      if (name.equals(element.getName())) {
+      if (methodName.equals(element.getName())) {
         return true;
       }
     }
@@ -114,7 +121,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
   public void addMavenRepositoryByUrl(@NotNull String url, @NotNull String name) {
     GradleDslElementList repositoriesElementList = getRepositoryElementList();
     // Check if it is already there
-    if (containsMavenRepositoryByUrl(repositoriesElementList, url)) {
+    if (containsMavenRepositoryByUrl(url)) {
       return;
     }
     MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(repositoriesElementList, MAVEN_BLOCK_NAME);
@@ -124,11 +131,18 @@ public class RepositoriesModel extends GradleDslBlockModel {
     repositoriesElementList.addNewElement(newElement);
   }
 
-  private static boolean containsMavenRepositoryByUrl(@NotNull GradleDslElementList list, @NotNull String url) {
+  /**
+   * Looks for a repository by URL.
+   *
+   * @param repositoryUrl the URL of the repository to find.
+   * @return {@code true} if there is a repository using {@code repositoryUrl} as URL, {@code false} otherwise.
+   */
+  public boolean containsMavenRepositoryByUrl(@NotNull String repositoryUrl) {
+    GradleDslElementList list = getRepositoryElementList();
     List<MavenRepositoryDslElement> elements = list.getElements(MavenRepositoryDslElement.class);
     for (MavenRepositoryDslElement element : elements) {
       String urlElement = element.getLiteralProperty("url", String.class).value();
-      if (url.equals(urlElement)) {
+      if (repositoryUrl.equals(urlElement)) {
         return true;
       }
     }
