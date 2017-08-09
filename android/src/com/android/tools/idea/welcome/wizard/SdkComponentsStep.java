@@ -16,10 +16,9 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.npw.WizardUtils.ValidationResult;
-import com.android.tools.idea.npw.WizardUtils.ValidationResult.Status;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.idea.npw.PathValidationResult.Status;
+import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
@@ -62,6 +61,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+
 /**
  * Wizard page for selecting SDK components to download.
  */
@@ -84,7 +85,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @SuppressWarnings("unused") private JPanel myBody;
 
   private boolean myUserEditedPath = false;
-  private ValidationResult mySdkDirectoryValidationResult;
+  private PathValidationResult mySdkDirectoryValidationResult;
   private boolean myWasVisible = false;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
@@ -194,7 +195,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     }
 
     mySdkDirectoryValidationResult =
-      WizardUtils.validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+      validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
 
     boolean ok = mySdkDirectoryValidationResult.isOk();
     Status status = mySdkDirectoryValidationResult.getStatus();
