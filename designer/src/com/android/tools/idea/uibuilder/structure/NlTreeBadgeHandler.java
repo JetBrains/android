@@ -16,15 +16,14 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.hint.HintUtil;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.JBColor;
@@ -300,22 +299,14 @@ public class NlTreeBadgeHandler {
     }
 
     private void toggleLocking(@NotNull NlComponent component) {
-      NlModel model = component.getModel();
       boolean isLocked = SceneManager.isComponentLocked(component);
       if (component.getParent() == null) {
         // Don't do anything for the root component
         return;
       }
-      new WriteCommandAction(model.getProject(), model.getFile()) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          String value = SdkConstants.VALUE_TRUE;
-          if (isLocked) {
-            value = null;
-          }
-          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED, value);
-        }
-      }.execute();
+
+      NlWriteCommandAction.run(component, "", () ->
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED, isLocked ? null : SdkConstants.VALUE_TRUE));
     }
 
     private void handleShowBadge(@NotNull MouseEvent event, @NotNull JTree tree) {
