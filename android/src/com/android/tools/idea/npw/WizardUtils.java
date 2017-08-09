@@ -46,25 +46,6 @@ public class WizardUtils {
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   /**
-   * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name
-   * conflicts with an existing module, append a number to the end to make a unique name.
-   */
-  @NotNull
-  public static String computeModuleName(@NotNull String appName, @Nullable Project project) {
-    String moduleName = appName.toLowerCase(Locale.US).replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
-    moduleName = moduleName.replaceAll("\\s", "");
-
-    if (!isUniqueModuleName(moduleName, project)) {
-      int i = 2;
-      while (!isUniqueModuleName(moduleName + Integer.toString(i), project)) {
-        i++;
-      }
-      moduleName += Integer.toString(i);
-    }
-    return moduleName;
-  }
-
-  /**
    * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#getProjectLocationParent()} instead.
    * TODO: Post wizard migration: delete
    */
