@@ -19,8 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.process.ProcessException;
 import com.android.tools.apk.analyzer.*;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;

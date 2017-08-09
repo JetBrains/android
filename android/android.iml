@@ -97,5 +97,6 @@
     <orderEntry type="module" module-name="observable-ui" />
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="project-system" />
+    <orderEntry type="module" module-name="apkanalyzer" />
   </component>
 </module>
