@@ -19,6 +19,8 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,11 +53,30 @@ public class AppNameToModuleNameExpression extends Expression<String> {
 
     int i = 2;
     String uniqueModuleName = moduleName;
-    while (!WizardUtils.isUniqueModuleName(uniqueModuleName, myProject)) {
+    while (!isUniqueModuleName(uniqueModuleName, myProject)) {
       uniqueModuleName = moduleName + Integer.toString(i);
       i++;
     }
 
     return uniqueModuleName;
   }
+
+  /**
+   * @return true if the given module name is unique inside the given project. Returns true if the given
+   * project is null.
+   */
+  private static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
+    if (project == null) {
+      return true;
+    }
+    // Check our modules
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module m : moduleManager.getModules()) {
+      if (m.getName().equalsIgnoreCase(moduleName)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }
