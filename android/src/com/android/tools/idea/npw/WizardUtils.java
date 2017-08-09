@@ -63,24 +63,6 @@ public class WizardUtils {
   }
 
   /**
-   * @return true if the given module name is unique inside the given project. Returns true if the given
-   * project is null.
-   */
-  public static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
-    if (project == null) {
-      return true;
-    }
-    // Check our modules
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module m : moduleManager.getModules()) {
-      if (m.getName().equalsIgnoreCase(moduleName)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * A Validation Result for Wizard Validations, contains a status and a message
    *
    * @deprecated Use {@link PathValidator} instead.
