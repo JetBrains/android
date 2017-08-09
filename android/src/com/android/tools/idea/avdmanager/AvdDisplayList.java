@@ -16,13 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.npw.WizardUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -658,7 +658,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       long sizeInBytes = 0;
       if (avdInfo != null) {
         File avdDir = new File(avdInfo.getDataFolderPath());
-        for (File file : WizardUtils.listFiles(avdDir)) {
+        for (File file : FileOpUtils.create().listFiles(avdDir)) {
           sizeInBytes += file.length();
         }
       }

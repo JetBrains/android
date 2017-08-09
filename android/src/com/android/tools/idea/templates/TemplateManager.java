@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
@@ -60,7 +61,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
-import static com.android.tools.idea.templates.TemplateUtils.listFiles;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 /**
@@ -735,5 +735,9 @@ public class TemplateManager {
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
     return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
+  }
+
+  private static File[] listFiles(@NotNull File root) {
+    return FileOpUtils.create().listFiles(root);
   }
 }
