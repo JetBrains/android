@@ -31,7 +31,6 @@ import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
-import com.intellij.debugger.settings.DataBinding;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -969,8 +968,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        if (!psiFile.isValid()) return;
-
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
