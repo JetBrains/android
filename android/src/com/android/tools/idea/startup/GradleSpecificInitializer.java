@@ -21,8 +21,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.WizardUtils.ValidationResult;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -70,7 +70,7 @@ import java.util.Properties;
 
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.npw.WizardUtils.validateLocation;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
@@ -283,7 +283,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     if (androidHome != null) {
       String androidHomePath = androidHome.getAbsolutePath();
-      ValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+      PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (result.isError()) {
         notifyInvalidSdk();
       }

@@ -24,17 +24,16 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.npw.WizardUtils.ValidationResult;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
+import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -89,6 +88,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -540,8 +541,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
     File sdkLocation = myConfigurable.getRepoManager().getLocalPath();
     String sdkLocationPath = sdkLocation == null ? null : sdkLocation.getAbsolutePath();
 
-    ValidationResult result =
-      WizardUtils.validateLocation(sdkLocationPath, "Android SDK location", false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+    PathValidationResult result =
+      validateLocation(sdkLocationPath, "Android SDK location", false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
 
     switch (result.getStatus()) {
       case OK:

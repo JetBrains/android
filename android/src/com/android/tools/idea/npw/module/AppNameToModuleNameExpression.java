@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.ui.validation.validators.PathValidator;

@@ -20,8 +20,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -74,7 +73,7 @@ import java.util.List;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.WizardUtils.validateLocation;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -620,8 +619,9 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @Nullable
   private String validateAndroidSdkPath() {
     //noinspection deprecation
-    WizardUtils.ValidationResult wizardValidationResult =
-      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+    PathValidationResult wizardValidationResult =
+      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false,
+                       PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }

@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
