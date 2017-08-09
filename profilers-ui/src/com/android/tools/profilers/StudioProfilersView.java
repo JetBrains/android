@@ -157,6 +157,7 @@ public class StudioProfilersView extends AspectObserver {
     FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
     close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
     close.addActionListener(event -> myProfiler.stop());
+    close.setToolTipText("Close");
     rightToolbar.add(close);
 
     rightToolbar.add(new FlatSeparator());
