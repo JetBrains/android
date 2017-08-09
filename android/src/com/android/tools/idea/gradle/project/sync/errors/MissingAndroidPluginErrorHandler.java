@@ -16,10 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -32,10 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
-import static com.android.tools.idea.gradle.util.GradleVersions.isGradle4OrNewer;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
@@ -74,44 +68,11 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     if (gradleBuildModel != null) {
       // Check if Google Maven repository can be added
       VirtualFile buildFile = gradleBuildModel.getVirtualFile();
-      if (!hasGoogleMavenRepository(project, gradleBuildModel)) {
+      if (!hasGoogleMavenRepository(gradleBuildModel.buildscript().repositories())) {
         hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
       }
       hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));
     }
     return hyperlinks;
-  }
-
-  private static boolean hasGoogleMavenRepository(@NotNull Project project, @NotNull GradleBuildModel gradleBuildModel) {
-    if (isGradle4OrNewer(project) && hasGoogleMavenRepositoryMethod(gradleBuildModel)) {
-      // google repository by method can only be used in gradle 4.0+
-      return true;
-    }
-    return hasGoogleMavenRepositoryUrl(gradleBuildModel);
-  }
-
-  private static boolean hasGoogleMavenRepositoryMethod(@NotNull GradleBuildModel gradleBuildModel) {
-    RepositoriesModel repositories = gradleBuildModel.buildscript().repositories();
-    for (RepositoryModel repository : repositories.repositories()) {
-      if (repository instanceof GoogleDefaultRepositoryModel) {
-        if (GOOGLE_DEFAULT_REPO_NAME.equals(repository.name().value())) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean hasGoogleMavenRepositoryUrl(@NotNull GradleBuildModel gradleBuildModel) {
-    RepositoriesModel repositories = gradleBuildModel.buildscript().repositories();
-    for (RepositoryModel repository : repositories.repositories()) {
-      if (repository instanceof MavenRepositoryModel) {
-        MavenRepositoryModel mavenModel = (MavenRepositoryModel)repository;
-        if (GOOGLE_DEFAULT_REPO_URL.equals(mavenModel.url().value())) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
