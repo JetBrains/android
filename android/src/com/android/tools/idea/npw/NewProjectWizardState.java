@@ -27,6 +27,7 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.collect.HashMultimap;
