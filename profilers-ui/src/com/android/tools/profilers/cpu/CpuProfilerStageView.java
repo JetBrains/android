@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -588,7 +589,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
       JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
-      panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 15));
+      panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, JBUI.scale(15)));
       panel.setBackground(list.getBackground());
 
       myLabel.setText(value.getName());
