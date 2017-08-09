@@ -87,7 +87,7 @@ public class DeviceChooserTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/64486800
+  @RunIn(TestGroup.QA)
   @Test
   public void testDeviceChooser() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
