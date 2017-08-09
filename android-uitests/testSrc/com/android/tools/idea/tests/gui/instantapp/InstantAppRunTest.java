@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class InstantAppRunTests {
+public class InstantAppRunTest {
   private static final String O_AVD_NAME = "O dev under test";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
