@@ -147,7 +147,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     assertEquals("url", GOOGLE_DEFAULT_REPO_URL, googleRepository.url());
   }
 
-  public void testRemoveAllRepositoriesSingleBlock() throws IOException {
+  public void testRemoveRepositoriesSingleBlock() throws IOException {
     String text = "buildscript {\n" +
                   "  repositories {\n" +
                   "    jcenter()\n" +
@@ -158,12 +158,12 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     BuildScriptModel buildscript = getGradleBuildModel().buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
-    buildscript.removeAllRepositories();
+    buildscript.removeRepositoriesBlocks();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(0);
   }
 
-  public void testRemoveAllRepositoriesMultipleBlocks() throws IOException {
+  public void testRemoveRepositoriesMultipleBlocks() throws IOException {
     String text = "buildscript {\n" +
                   "  repositories {\n" +
                   "    jcenter()\n" +
@@ -176,7 +176,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     BuildScriptModel buildscript = getGradleBuildModel().buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
-    buildscript.removeAllRepositories();
+    buildscript.removeRepositoriesBlocks();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(0);
   }

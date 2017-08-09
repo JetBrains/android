@@ -23,6 +23,8 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.util.PositionInFile;
@@ -52,6 +54,7 @@ import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.*;
+import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
@@ -117,7 +120,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
     }
     else if (dependency.startsWith("com.android.support")) {
-      quickFixes.add(new InstallRepositoryHyperlink(ANDROID, dependency));
+      addGoogleMavenRepositoryHyperlink(module, buildFile, quickFixes);
     }
     else if (dependency.startsWith("com.google.android")) {
       quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
@@ -238,5 +241,33 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
 
     message.add(quickFixes);
     getSyncMessages(module).report(message);
+  }
+
+  /**
+   * Append a quick fix to add Google Maven repository to solve a dependency in a module in a list of fixes if needed.
+   *
+   * @param module Module that has a dependency on the repository.
+   * @param buildFile Build file where the dependency is.
+   * @param fixes List of hyperlinks in which the quickfix will be added if the reposirory is not already used.
+   */
+  private static void addGoogleMavenRepositoryHyperlink(@NotNull Module module,
+                                                        @Nullable VirtualFile buildFile,
+                                                        @NotNull List<NotificationHyperlink> fixes) {
+    Project project = module.getProject();
+    if (buildFile != null) {
+      GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
+      if (!hasGoogleMavenRepository(moduleBuildModel.repositories())) {
+        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
+      }
+    }
+    else {
+      GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
+      if (projectBuildModel != null) {
+        RepositoriesModel repositories = projectBuildModel.repositories();
+        if (!hasGoogleMavenRepository(repositories)) {
+          fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
+        }
+      }
+    }
   }
 }
