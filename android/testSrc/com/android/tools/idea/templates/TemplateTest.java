@@ -1395,7 +1395,6 @@ public class TemplateTest extends AndroidGradleTestCase {
           assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
         }
         projectState.updateParameters();
-        projectState.updateDependencies();
 
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
