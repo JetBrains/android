@@ -46,23 +46,6 @@ public class WizardUtils {
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   /**
-   * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#getProjectLocationParent()} instead.
-   * TODO: Post wizard migration: delete
-   */
-  @NotNull
-  public static File getProjectLocationParent() {
-    String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
-
-    if (parent == null) {
-      String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
-      return new File(SystemProperties.getUserHome(), child);
-    }
-    else {
-      return new File(parent.replace('/', File.separatorChar));
-    }
-  }
-
-  /**
    * A Validation Result for Wizard Validations, contains a status and a message
    *
    * @deprecated Use {@link PathValidator} instead.
