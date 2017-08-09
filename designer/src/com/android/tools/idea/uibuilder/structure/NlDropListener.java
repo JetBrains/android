@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -27,8 +28,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
@@ -40,7 +39,9 @@ import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -253,14 +254,13 @@ public class NlDropListener extends DropTargetAdapter {
         transaction.removeAttribute(attribute.namespace, attribute.name);
       }
     }
-    new WriteCommandAction(model.getProject(), model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        final XmlTag tag = myDragReceiver.getTag();
-        tag.setName(CONSTRAINT_LAYOUT);
-        myDragReceiver.setTag(tag);
-        transaction.commit();
-      }
-    }.execute();
+
+    NlWriteCommandAction.run(myDragReceiver, "", () -> {
+      XmlTag tag = myDragReceiver.getTag();
+      tag.setName(CONSTRAINT_LAYOUT);
+
+      myDragReceiver.setTag(tag);
+      transaction.commit();
+    });
   }
 }
