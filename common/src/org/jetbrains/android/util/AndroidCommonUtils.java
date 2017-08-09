@@ -168,7 +168,7 @@ public class AndroidCommonUtils {
       private AndroidCompilerMessageKind myCategory = null;
 
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         String[] msgs = event.getText().split("\\n");
         for (String msg : msgs) {
           msg = msg.trim();
@@ -628,7 +628,7 @@ public class AndroidCommonUtils {
     final StringBuilder builder = new StringBuilder();
     handler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         builder.append(event.getText());
       }
     });

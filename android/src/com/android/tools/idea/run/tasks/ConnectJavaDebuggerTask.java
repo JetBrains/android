@@ -129,7 +129,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void processTerminated(ProcessEvent event) {
+      public void processTerminated(@NotNull ProcessEvent event) {
         debugProcessHandler.removeProcessListener(this);
 
         Client currentClient = device.getClient(pkgName);

@@ -322,7 +322,7 @@ public class AndroidUtils {
 
     final ProcessAdapter listener = new ProcessAdapter() {
       @Override
-      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+      public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
         if (processor != null) {
           final String message = event.getText();
           processor.onTextAvailable(message);
