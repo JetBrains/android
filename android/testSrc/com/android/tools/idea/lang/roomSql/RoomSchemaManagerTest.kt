@@ -46,8 +46,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_tableNameOverride_expression() {
@@ -65,8 +65,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses_table")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses_table")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_addEntity() {
@@ -124,8 +124,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testDatabases_single() {
@@ -239,9 +239,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
   }
 
   fun testColums() {
-    myFixture.addRoomEntity(
-        "com.example.User",
-        fields = mapOf("name" to "String", "age" to "int"))
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
+
 
     val userClass = myFixture.findClass("com.example.User")
 
@@ -250,7 +249,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
             entities = setOf(
                 Entity(
                     userClass,
-                    tableName = "User",
+                    name = "User",
                     columns = setOf(
                         Column(userClass.findFieldByName("name", false)!!, "name"),
                         Column(userClass.findFieldByName("age", false)!!, "age")))),
@@ -280,7 +279,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
             entities = setOf(
                 Entity(
                     userClass,
-                    tableName = "User",
+                    name = "User",
                     columns = setOf(
                         Column(userClass.findFieldByName("name", false)!!, "name")))),
             databases = emptySet(),
@@ -318,7 +317,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
             entities = setOf(
                 Entity(
                     userClass,
-                    tableName = "User",
+                    name = "User",
                     columns = setOf(
                         Column(userClass.findFieldByName("name", true)!!, "name"),
                         Column(userClass.findFieldByName("age", false)!!, "age")))),

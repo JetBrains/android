@@ -35,6 +35,11 @@ private const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
+interface SqlNameDefinition {
+  val name: String
+  val nameElement: PsiElement
+}
+
 data class Database(
 
     /** Annotated class. */
@@ -50,17 +55,18 @@ data class Entity(
     val psiClass: PsiClass,
 
     /** Name of the table: take from the class name or the annotation parameter. */
-    val tableName: String,
-
-    /** Columns present in the table representing this entity. */
-    val columns: Set<Column> = emptySet(),
+    override val name: String,
 
     /**
      * [PsiElement] that determines the table name and should be the destination of references from SQL.
      *
      * This can be either the class itself or the annotation element.
      */
-    val tableNameElement: PsiElement = psiClass)
+    override val nameElement: PsiElement = psiClass,
+
+    /** Columns present in the table representing this entity. */
+    val columns: Set<Column> = emptySet()
+) : SqlNameDefinition
 
 
 data class Column(
@@ -68,10 +74,11 @@ data class Column(
     val psiField: PsiField,
 
     /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
-    val columnName: String,
+    override val name: String,
 
     /** The [PsiElement] that defines the column name. */
-    val columnNameElement: PsiElement = psiField)
+    override val nameElement: PsiElement = psiField
+) : SqlNameDefinition
 
 
 data class Dao(val psiClass: PsiClass)
@@ -80,7 +87,9 @@ data class Dao(val psiClass: PsiClass)
 data class RoomSchema(
     val databases: Set<Database>,
     val entities: Set<Entity>,
-    val daos: Set<Dao>)
+    val daos: Set<Dao>) {
+  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass == psiClass }
+}
 
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */
@@ -122,7 +131,7 @@ class RoomSchemaManager(val module: Module) {
     val (tableName, tableNameElement) = getNameAndNameElement(
         psiClass, annotationName = ENTITY_ANNOTATION_NAME, annotationAttributeName = "tableName") ?: return null
 
-    return Entity(psiClass, tableName, findColumns(psiClass), tableNameElement)
+    return Entity(psiClass, tableName, tableNameElement, findColumns(psiClass))
   }
 
   private fun findColumns(psiClass: PsiClass): Set<Column> {

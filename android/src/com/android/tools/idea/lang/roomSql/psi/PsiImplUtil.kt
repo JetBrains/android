@@ -18,28 +18,11 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
+import com.android.tools.idea.lang.roomSql.RoomColumnPsiReference
 import com.android.tools.idea.lang.roomSql.RoomTablePsiReference
 import com.intellij.psi.PsiReference
 
 
 fun getReference(table: RoomTableName): PsiReference? = RoomTablePsiReference(table)
 
-fun getNameAsString(table: RoomTableName): String = when {
-  table.identifier != null -> table.identifier!!.text
-  table.bracketLiteral != null -> {
-    val text = table.bracketLiteral!!.text
-    text.substring(1, text.length - 1)
-  }
-  table.stringLiteral != null -> {
-    val text = table.stringLiteral!!.text
-    text.substring(1, text.length - 1).replace("''", "'")
-  }
-  else -> error("invalid RoomTableName")
-}
-
-/**
- * Checks if a given [RoomTableName] is using quoting.
- *
- * Unquoted table name references are case insensitive.
- */
-fun isQuoted(table: RoomTableName) = table.identifier == null
+fun getReference(column: RoomColumnName): PsiReference? = RoomColumnPsiReference(column)

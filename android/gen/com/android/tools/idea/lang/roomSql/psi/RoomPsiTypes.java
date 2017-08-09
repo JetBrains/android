@@ -129,6 +129,7 @@ public interface RoomPsiTypes {
   IElementType ASC = new RoomTokenType("ASC");
   IElementType ATTACH = new RoomTokenType("ATTACH");
   IElementType AUTOINCREMENT = new RoomTokenType("AUTOINCREMENT");
+  IElementType BACKTICK_LITERAL = new RoomTokenType("BACKTICK_LITERAL");
   IElementType BAR = new RoomTokenType("|");
   IElementType BEFORE = new RoomTokenType("BEFORE");
   IElementType BEGIN = new RoomTokenType("BEGIN");
@@ -162,6 +163,7 @@ public interface RoomPsiTypes {
   IElementType DISTINCT = new RoomTokenType("DISTINCT");
   IElementType DIV = new RoomTokenType("/");
   IElementType DOT = new RoomTokenType(".");
+  IElementType DOUBLE_QUOTE_STRING_LITERAL = new RoomTokenType("DOUBLE_QUOTE_STRING_LITERAL");
   IElementType DROP = new RoomTokenType("DROP");
   IElementType EACH = new RoomTokenType("EACH");
   IElementType ELSE = new RoomTokenType("ELSE");
@@ -247,8 +249,8 @@ public interface RoomPsiTypes {
   IElementType SET = new RoomTokenType("SET");
   IElementType SHL = new RoomTokenType("<<");
   IElementType SHR = new RoomTokenType(">>");
+  IElementType SINGLE_QUOTE_STRING_LITERAL = new RoomTokenType("SINGLE_QUOTE_STRING_LITERAL");
   IElementType STAR = new RoomTokenType("*");
-  IElementType STRING_LITERAL = new RoomTokenType("STRING_LITERAL");
   IElementType TABLE = new RoomTokenType("TABLE");
   IElementType TEMP = new RoomTokenType("TEMP");
   IElementType TEMPORARY = new RoomTokenType("TEMPORARY");

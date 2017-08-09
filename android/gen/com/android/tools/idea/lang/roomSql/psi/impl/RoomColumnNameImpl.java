@@ -25,10 +25,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.intellij.psi.PsiReference;
 
-public class RoomColumnNameImpl extends ASTWrapperPsiElement implements RoomColumnName {
+public class RoomColumnNameImpl extends AbstractRoomNameElement implements RoomColumnName {
 
   public RoomColumnNameImpl(ASTNode node) {
     super(node);
@@ -43,22 +44,9 @@ public class RoomColumnNameImpl extends ASTWrapperPsiElement implements RoomColu
     else super.accept(visitor);
   }
 
-  @Override
   @Nullable
-  public PsiElement getBracketLiteral() {
-    return findChildByType(BRACKET_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getIdentifier() {
-    return findChildByType(IDENTIFIER);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getStringLiteral() {
-    return findChildByType(STRING_LITERAL);
+  public PsiReference getReference() {
+    return PsiImplUtil.getReference(this);
   }
 
 }
