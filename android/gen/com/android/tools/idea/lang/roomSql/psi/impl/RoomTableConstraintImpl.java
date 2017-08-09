@@ -75,8 +75,20 @@ public class RoomTableConstraintImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getBracketLiteral() {
     return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
   }
 
   @Override
@@ -87,8 +99,8 @@ public class RoomTableConstraintImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
-  public PsiElement getStringLiteral() {
-    return findChildByType(STRING_LITERAL);
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

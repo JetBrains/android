@@ -23,23 +23,9 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 
-public interface RoomTableName extends PsiElement {
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getStringLiteral();
+public interface RoomTableName extends RoomNameElement {
 
   @Nullable
   PsiReference getReference();
-
-  @NotNull
-  String getNameAsString();
-
-  boolean isQuoted();
 
 }

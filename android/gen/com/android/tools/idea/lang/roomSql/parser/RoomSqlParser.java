@@ -457,29 +457,29 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean collation_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "collation_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, COLLATION_NAME, "<collation name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean column_alias(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "column_alias")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, COLUMN_ALIAS, "<column alias>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // ( CONSTRAINT  entity_name )?
+  // ( CONSTRAINT  name )?
   //   ( PRIMARY KEY ( ASC | DESC )? conflict_clause ( AUTOINCREMENT )?
   //   | NOT NULL conflict_clause
   //   | UNIQUE conflict_clause
@@ -496,20 +496,20 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ( CONSTRAINT  entity_name )?
+  // ( CONSTRAINT  name )?
   private static boolean column_constraint_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "column_constraint_0")) return false;
     column_constraint_0_0(b, l + 1);
     return true;
   }
 
-  // CONSTRAINT  entity_name
+  // CONSTRAINT  name
   private static boolean column_constraint_0_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "column_constraint_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, CONSTRAINT);
-    r = r && entity_name(b, l + 1);
+    r = r && name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -706,12 +706,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean column_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "column_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, COLUMN_NAME, "<column name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -1595,12 +1595,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean database_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "database_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, DATABASE_NAME, "<database name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -2025,33 +2025,20 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER | STRING_LITERAL | BRACKET_LITERAL
-  static boolean entity_name(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "entity_name")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    if (!r) r = consumeToken(b, STRING_LITERAL);
-    if (!r) r = consumeToken(b, BRACKET_LITERAL);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // STRING_LITERAL
+  // string_literal
   public static boolean error_message(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "error_message")) return false;
-    if (!nextTokenIs(b, STRING_LITERAL)) return false;
+    if (!nextTokenIs(b, "<error message>", DOUBLE_QUOTE_STRING_LITERAL, SINGLE_QUOTE_STRING_LITERAL)) return false;
     boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, STRING_LITERAL);
-    exit_section_(b, m, ERROR_MESSAGE, r);
+    Marker m = enter_section_(b, l, _NONE_, ERROR_MESSAGE, "<error message>");
+    r = string_literal(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
   // REFERENCES foreign_table ( '(' column_name ( ',' column_name )* ')' )?
-  //   ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  entity_name ) )?
+  //   ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
   //   ( ( NOT )? DEFERRABLE ( INITIALLY DEFERRED | INITIALLY IMMEDIATE )? )?
   public static boolean foreign_key_clause(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreign_key_clause")) return false;
@@ -2110,14 +2097,14 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  entity_name ) )?
+  // ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
   private static boolean foreign_key_clause_3(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreign_key_clause_3")) return false;
     foreign_key_clause_3_0(b, l + 1);
     return true;
   }
 
-  // ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  entity_name
+  // ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name
   private static boolean foreign_key_clause_3_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreign_key_clause_3_0")) return false;
     boolean r;
@@ -2165,13 +2152,13 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // MATCH  entity_name
+  // MATCH  name
   private static boolean foreign_key_clause_3_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreign_key_clause_3_0_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, MATCH);
-    r = r && entity_name(b, l + 1);
+    r = r && name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2221,34 +2208,34 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean foreign_table(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreign_table")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FOREIGN_TABLE, "<foreign table>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean function_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "function_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FUNCTION_NAME, "<function name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean index_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "index_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, INDEX_NAME, "<index name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -2727,7 +2714,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // NUMERIC_LITERAL
-  //   | STRING_LITERAL // X marks a blob literal
+  //   | string_literal // X marks a blob literal
   //   | NULL
   //   | CURRENT_TIME
   //   | CURRENT_DATE
@@ -2737,7 +2724,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL_VALUE, "<literal value>");
     r = consumeToken(b, NUMERIC_LITERAL);
-    if (!r) r = consumeToken(b, STRING_LITERAL);
+    if (!r) r = string_literal(b, l + 1);
     if (!r) r = consumeToken(b, NULL);
     if (!r) r = consumeToken(b, CURRENT_TIME);
     if (!r) r = consumeToken(b, CURRENT_DATE);
@@ -2747,24 +2734,38 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean module_argument(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "module_argument")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, MODULE_ARGUMENT, "<module argument>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean module_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "module_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, MODULE_NAME, "<module name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER | BRACKET_LITERAL | BACKTICK_LITERAL | string_literal
+  static boolean name(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "name")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    if (!r) r = consumeToken(b, BRACKET_LITERAL);
+    if (!r) r = consumeToken(b, BACKTICK_LITERAL);
+    if (!r) r = string_literal(b, l + 1);
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -2818,12 +2819,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean pragma_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "pragma_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, PRAGMA_NAME, "<pragma name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -2903,14 +2904,14 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // signed_number | entity_name | STRING_LITERAL
+  // signed_number | name | string_literal
   public static boolean pragma_value(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "pragma_value")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, PRAGMA_VALUE, "<pragma value>");
     r = signed_number(b, l + 1);
-    if (!r) r = entity_name(b, l + 1);
-    if (!r) r = consumeToken(b, STRING_LITERAL);
+    if (!r) r = name(b, l + 1);
+    if (!r) r = string_literal(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -3177,12 +3178,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean savepoint_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "savepoint_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, SAVEPOINT_NAME, "<savepoint name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -4235,18 +4236,31 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // SINGLE_QUOTE_STRING_LITERAL | DOUBLE_QUOTE_STRING_LITERAL
+  static boolean string_literal(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "string_literal")) return false;
+    if (!nextTokenIs(b, "", DOUBLE_QUOTE_STRING_LITERAL, SINGLE_QUOTE_STRING_LITERAL)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, SINGLE_QUOTE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, DOUBLE_QUOTE_STRING_LITERAL);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // name
   public static boolean table_alias(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "table_alias")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TABLE_ALIAS, "<table alias>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // ( CONSTRAINT  entity_name )?
+  // ( CONSTRAINT  name )?
   //   ( ( PRIMARY KEY | UNIQUE ) '(' indexed_column ( ',' indexed_column )* ')' conflict_clause
   //   | CHECK '(' expr ')'
   //   | FOREIGN KEY '(' column_name ( ',' column_name )* ')' foreign_key_clause )
@@ -4260,20 +4274,20 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ( CONSTRAINT  entity_name )?
+  // ( CONSTRAINT  name )?
   private static boolean table_constraint_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "table_constraint_0")) return false;
     table_constraint_0_0(b, l + 1);
     return true;
   }
 
-  // CONSTRAINT  entity_name
+  // CONSTRAINT  name
   private static boolean table_constraint_0_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "table_constraint_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, CONSTRAINT);
-    r = r && entity_name(b, l + 1);
+    r = r && name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4391,23 +4405,23 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean table_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "table_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TABLE_NAME, "<table name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean table_or_index_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "table_or_index_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TABLE_OR_INDEX_NAME, "<table or index name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -4608,23 +4622,23 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean trigger_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "trigger_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TRIGGER_NAME, "<trigger name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // entity_name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
+  // name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
   public static boolean type_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TYPE_NAME, "<type name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     r = r && type_name_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
@@ -4989,12 +5003,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entity_name
+  // name
   public static boolean view_name(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "view_name")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, VIEW_NAME, "<view name>");
-    r = entity_name(b, l + 1);
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

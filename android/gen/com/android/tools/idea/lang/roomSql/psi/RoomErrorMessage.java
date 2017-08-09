@@ -24,7 +24,10 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomErrorMessage extends PsiElement {
 
-  @NotNull
-  PsiElement getStringLiteral();
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }
