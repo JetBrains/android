@@ -97,8 +97,10 @@ public class WebpNativeLibHelper {
 
   public static File getLibLocation() {
     // A terrible hack for dev environment.
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/android/lib/libwebp/" + getPlatformName();
+    String libPath = "/lib/libwebp/" + getPlatformName();
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/android" + libPath;
     File adtFile = new File(adtPath);
+    if (!adtFile.exists()) adtFile = new File(PluginPathManager.getPluginHomePath("android") + libPath);
     return adtFile.exists() ? adtFile : new File(PluginPathManager.getPluginHome("android"), "lib");
   }
 
