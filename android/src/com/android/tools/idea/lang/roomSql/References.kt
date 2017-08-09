@@ -16,6 +16,8 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
+import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes
 import com.android.tools.idea.lang.roomSql.psi.RoomTableName
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -30,19 +32,54 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.search.searches.ReferencesSearch
-import com.intellij.psi.tree.TokenSet
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.ArrayUtil
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
+
+/**
+ * A [PsiReference] pointing from the column name in SQL to the Java PSI element defining the column name.
+ *
+ * @see Column.nameElement
+ */
+class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiReferenceBase.Poly<RoomColumnName>(columnName) {
+
+  private val schema: RoomSchema?
+    get() = ModuleUtil.findModuleForPsiElement(columnName)?.let(RoomSchemaManager.Companion::getInstance)?.getSchema()
+
+  override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> = PsiElementResolveResult.createResults(
+      schema
+          ?.entities
+          ?.asSequence()
+          ?.flatMap { it.columns.asSequence() }
+          ?.filter { it.name.equals(columnName.nameAsString, ignoreCase = true) }
+          ?.map { it.nameElement }
+          ?.toList()
+          .orEmpty())
+
+  override fun getVariants(): Array<Any> =
+      schema
+          ?.entities
+          ?.flatMap { (psiClass, _, _ , columns) ->
+            columns.map { (psiField, columnName) ->
+              LookupElementBuilder.create(psiField, RoomSqlLexer.getValidName(columnName))
+                  .withTypeText(psiClass.qualifiedName, true)
+            }
+          }
+          ?.let { it as? List<Any> }
+          ?.toTypedArray()
+          ?: ArrayUtil.EMPTY_OBJECT_ARRAY
+}
+
+
 /**
  * A [PsiReference] pointing from the table name in SQL to the Java PSI element defining the table name.
  *
- * @see Entity.tableNameElement
+ * @see Entity.nameElement
  */
-class RoomTablePsiReference(val tableName: RoomTableName) : PsiReferenceBase.Poly<RoomTableName>(tableName) {
+class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReferenceBase.Poly<RoomTableName>(tableName) {
 
   private val schema: RoomSchema?
     get() = ModuleUtil.findModuleForPsiElement(tableName)?.let(RoomSchemaManager.Companion::getInstance)?.getSchema()
@@ -51,18 +88,17 @@ class RoomTablePsiReference(val tableName: RoomTableName) : PsiReferenceBase.Pol
       schema
           ?.entities
           ?.asSequence()
-          ?.filter { it.tableName.equals(tableName.nameAsString, ignoreCase = !tableName.isQuoted) }
-          ?.map { it.tableNameElement }
+          ?.filter { it.name.equals(tableName.nameAsString, ignoreCase = true) }
+          ?.map { it.nameElement }
           ?.toList()
           .orEmpty())
 
   override fun getVariants(): Array<Any> =
       schema
           ?.entities
-          ?.map {
-            LookupElementBuilder.create(it.psiClass, RoomSqlLexer.getValidName(it.tableName))
-                .withTypeText(it.psiClass.qualifiedName, true)
-                .withCaseSensitivity(RoomSqlLexer.needsQuoting(it.tableName))
+          ?.map { (psiClass, tableName) ->
+            LookupElementBuilder.create(psiClass, RoomSqlLexer.getValidName(tableName))
+                .withTypeText(psiClass.qualifiedName, true)
           }
           ?.let { it as? List<Any> }
           ?.toTypedArray()
@@ -70,28 +106,31 @@ class RoomTablePsiReference(val tableName: RoomTableName) : PsiReferenceBase.Pol
 }
 
 /**
- * [ElementManipulator] that inserts the new table name (possibly quoted) into the PSI.
+ * [ElementManipulator] that inserts the new name (possibly quoted) into the PSI.
  *
- * It also specifies the range in element, which for quoted table names does not include the quotes. This fixes the inline renamer,
+ * It also specifies the range in element, which for quoted names does not include the quotes. This fixes the inline renamer,
  * because SQL remains valid when renaming quoted names.
  */
-class RoomTableNameManipulator : AbstractElementManipulator<RoomTableName>() {
-  override fun handleContentChange(element: RoomTableName, range: TextRange, newContent: String?): RoomTableName {
+class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>() {
+  override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String?): RoomNameElement {
     if (newContent.isNullOrEmpty()) {
       return element
     }
 
-    val newName = RoomSqlPsiFacade.getInstance(element.project)?.createTableName(newContent!!) ?: return element
-    return element.replace(newName) as RoomTableName
+    val newName = RoomSqlPsiFacade.getInstance(element.project)?.run {
+      when (element.node.elementType) {
+        RoomPsiTypes.TABLE_NAME -> createTableName(newContent!!)
+        RoomPsiTypes.COLUMN_NAME -> createColumnName(newContent!!)
+        else -> error("Don't know how to rename ${element.node.elementType}")
+      }
+    } ?: return element
+
+    return element.replace(newName) as RoomNameElement
   }
 
-  override fun getRangeInElement(tableName: RoomTableName): TextRange =
-      if (tableName.identifier != null) TextRange(0, tableName.textLength) else TextRange(1, tableName.textLength - 1)
+  override fun getRangeInElement(nameElement: RoomNameElement): TextRange =
+      if (nameElement.nameIsQuoted) TextRange(1, nameElement.textLength - 1) else TextRange(0, nameElement.textLength)
 }
-
-private val IDENTIFIERS = TokenSet.create(RoomPsiTypes.IDENTIFIER, RoomPsiTypes.BRACKET_LITERAL)
-private val COMMENTS = TokenSet.create(RoomPsiTypes.COMMENT, RoomPsiTypes.LINE_COMMENT)
-private val LITERALS = TokenSet.create(RoomPsiTypes.STRING_LITERAL)
 
 /**
  * No-op [FindUsagesProvider] that provides the right [WordsScanner] for SQL.
@@ -104,41 +143,50 @@ private val LITERALS = TokenSet.create(RoomPsiTypes.STRING_LITERAL)
  * that disables the action if the provider is an instance of [EmptyFindUsagesProvider].
  */
 class RoomFindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvider() {
-  override fun getWordsScanner(): WordsScanner = DefaultWordsScanner(RoomSqlLexer(), IDENTIFIERS, COMMENTS, LITERALS)
+  override fun getWordsScanner(): WordsScanner = DefaultWordsScanner(RoomSqlLexer(), IDENTIFIERS, COMMENTS, STRING_LITERALS)
 }
 
 /**
- * `referencesSearch` that checks the word index for the right words (in case table name is not the same as class name).
+ * `referencesSearch` that checks the word index for the right words (in case a table/column name is not the same as class name).
  */
 class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
+  private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
+    ModuleUtil.findModuleForPsiElement(element)
+        ?.let(RoomSchemaManager.Companion::getInstance)
+        ?.getSchema()
+  }
+
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
-    val psiClass = queryParameters.elementToSearch as? PsiClass ?: return
+    val element = queryParameters.elementToSearch
 
-    val schema: RoomSchema = ReadAction.compute<RoomSchema?, Nothing> {
-      ModuleUtil.findModuleForPsiElement(psiClass)
-          ?.let(RoomSchemaManager.Companion::getInstance)
-          ?.getSchema()
-    } ?: return
+    val nameDefinition = when (element) {
+      is PsiClass -> getSchema(element)?.findEntity(element) ?: return
+      is PsiField -> getSchema(element)?.findEntity(element.containingClass ?: return)?.columns?.find { it.psiField == element } ?: return
+      else -> return
+    }
 
-    val entity = schema.entities.find { it.psiClass == psiClass } ?: return
+    val name = nameDefinition.name
 
-    // We need to figure out how a reference to this table name looks like in the IdIndex. We find the first "word" in the quoted name and
-    // look for it in the index, as any RoomTableName for this table will include this word in its text.
-    val word: String =
-        if (entity.psiClass == entity.tableNameElement)
-          // The table name is not overridden, which means it's a valid Java name and therefore a valid IdIndex "word".
-          entity.tableName
-        else {
-          val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
-          RoomFindUsagesProvider().wordsScanner.processWords(RoomSqlLexer.getValidName(entity.tableName), processor)
-          processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: entity.tableName
-        }
-
+    val word = when {
+      RoomSqlLexer.needsQuoting(name) -> {
+        // We need to figure out how a reference to this element looks like in the IdIndex. We find the first "word" in the quoted name and
+        // look for it in the index, as any reference for this table will include this word in its text.
+        val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
+        RoomFindUsagesProvider().wordsScanner.processWords(RoomSqlLexer.getValidName(name), processor)
+        processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: name
+      }
+      else -> name
+    }
 
     // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
     // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a
-    // given text. Scheduled searches get merged and run later.
-    queryParameters.optimizer.searchWord(word, queryParameters.effectiveSearchScope, false, entity.tableNameElement)
+    // given text. Scheduled searches get merged and run later. We use the latter API, but:
+    //   - We search for the right word (as calculate above).
+    //   - We use `scopeDeterminedByUser`, not `effectiveScope`. Effective scope for a private field contains only the file in which it's
+    //     defined, which is not how Room works.
+    //   - We look for references to the right element: if a table/column name is overriden using annotations, the PSI references may not
+    //     point to the class/field itself, but we still want to show these references in "find usages".
+    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, nameDefinition.nameElement)
   }
 }
 
@@ -150,6 +198,5 @@ private val SQL_USAGE_TYPE = UsageType("Referenced in SQL query")
  * @see SQL_USAGE_TYPE
  */
 class RoomUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?) =
-      if (element is RoomTableName) SQL_USAGE_TYPE else null
+  override fun getUsageType(element: PsiElement?) = if (element is RoomNameElement) SQL_USAGE_TYPE else null
 }

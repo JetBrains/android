@@ -25,9 +25,12 @@ import com.intellij.psi.PsiElement;
 public interface RoomLiteralValue extends PsiElement {
 
   @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
   PsiElement getNumericLiteral();
 
   @Nullable
-  PsiElement getStringLiteral();
+  PsiElement getSingleQuoteStringLiteral();
 
 }

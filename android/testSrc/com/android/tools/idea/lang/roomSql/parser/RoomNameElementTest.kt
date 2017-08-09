@@ -23,7 +23,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 import kotlin.reflect.KClass
 
-class PsiImplUtilTest : LightCodeInsightFixtureTestCase() {
+class RoomNameElementTest : LightCodeInsightFixtureTestCase() {
 
   /**
    * Parses the given string and finds the first [PsiElement] of the requested class.
@@ -37,6 +37,9 @@ class PsiImplUtilTest : LightCodeInsightFixtureTestCase() {
     assertThat(parseAndFind("""select * from "my table"""", RoomTableName::class).nameAsString).isEqualTo("my table")
     assertThat(parseAndFind("select * from 'Foo''s kingdom''s table'", RoomTableName::class).nameAsString)
         .isEqualTo("Foo's kingdom's table")
+    assertThat(parseAndFind("select * from \"some\"\"table\"", RoomTableName::class).nameAsString).isEqualTo("some\"table")
+    assertThat(parseAndFind("select * from `some table`", RoomTableName::class).nameAsString).isEqualTo("some table")
+    assertThat(parseAndFind("select * from `some``table`", RoomTableName::class).nameAsString).isEqualTo("some`table")
   }
 }
 

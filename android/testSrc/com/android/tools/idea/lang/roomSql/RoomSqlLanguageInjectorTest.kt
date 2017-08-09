@@ -33,7 +33,7 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
 
     InjectedLanguageUtil.enumerate(
         host,
-        PsiLanguageInjectionHost.InjectedPsiVisitor { injectedPsi, places ->
+        { injectedPsi, places ->
           assertEquals("More than one injection", 0, injectionsCount++)
           block(injectedPsi, places)
         })
@@ -52,7 +52,7 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
         JavaFileType.INSTANCE,
         """interface UserDao { @android.arch.persistence.room.Query("select * from User") List<User> findAll(); }""")
 
-    checkInjection("* from") { psi, places ->
+    checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
       assertEquals("select * from User", psi.text)
     }
@@ -90,7 +90,7 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
         }
         """)
 
-    checkInjection("* from") { psi, places ->
+    checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
       assertEquals("select * from UserTable where id = :id", psi.text)
     }
@@ -107,7 +107,7 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
         }
         """)
 
-    checkInjection("delete from") { psi, places ->
+    checkInjection("delete from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
       assertEquals("delete from User", psi.text)
     }
@@ -138,7 +138,7 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
         }
         """)
 
-    checkInjection("* from") { psi, places ->
+    checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
     }
 

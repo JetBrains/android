@@ -46,8 +46,12 @@
     // In the flex file we manually insert %caseless, in the preview only upper case keywords work.
 
     NUMERIC_LITERAL='regexp:(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)'
-    STRING_LITERAL="regexp:X?('(''|[^'])*'|\"(\"\"|[^\"])*\")"
+
+    // Manually tweaked in the flex file to handle literals without the closing character.
+    SINGLE_QUOTE_STRING_LITERAL="regexp:X?'(''|[^'])*'"
+    DOUBLE_QUOTE_STRING_LITERAL="regexp:X?\"(\"\"|[^\"])*\""
     BRACKET_LITERAL="regexp:\[[^\]]*\]"
+    BACKTICK_LITERAL="regexp:`(``|[^`])*`"
 
     // Some approximation of what's actually allowed. This doesn't seem to be defined anywhere.
     IDENTIFIER='regexp:([:letter:]|_)([:letter:]|[:digit:]|_)*'
@@ -123,15 +127,18 @@ sql_stmt ::=
 
 alter_table_stmt ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO table_name | ADD ( COLUMN )? column_def )
 
-table_name ::= entity_name {
-  methods=[getReference getNameAsString isQuoted]
+table_name ::= name {
+  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
+  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
+  generateTokenAccessors=false
+  methods=[getReference]
 }
 
-database_name ::= entity_name
+database_name ::= name
 
 analyze_stmt ::= ANALYZE ( database_name | table_or_index_name | database_name '.' table_or_index_name )?
 
-table_or_index_name ::= entity_name
+table_or_index_name ::= name
 
 attach_stmt ::= ATTACH ( DATABASE )? expr AS database_name
 
@@ -141,7 +148,7 @@ commit_stmt ::= ( COMMIT | END ) ( TRANSACTION )?
 
 rollback_stmt ::= ROLLBACK ( TRANSACTION )? ( TO ( SAVEPOINT )? savepoint_name )?
 
-savepoint_name ::= entity_name
+savepoint_name ::= name
 
 savepoint_stmt ::= SAVEPOINT savepoint_name
 
@@ -152,13 +159,18 @@ create_index_stmt ::=
   ( database_name '.' )? index_name ON table_name '(' indexed_column ( ',' indexed_column )* ')'
   ( WHERE expr )?
 
-index_name ::= entity_name
+index_name ::= name
 
 indexed_column ::= column_name ( COLLATE collation_name )? ( ASC | DESC )?
 
-column_name ::= entity_name
+column_name ::= name {
+  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
+  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
+  generateTokenAccessors=false
+  methods=[getReference]
+}
 
-collation_name ::= entity_name
+collation_name ::= name
 
 create_table_stmt ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
@@ -167,10 +179,10 @@ create_table_stmt ::=
 
 column_def ::= column_name ( type_name )? ( column_constraint )*
 
-type_name ::= entity_name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
+type_name ::= name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
 
 column_constraint ::=
-  ( CONSTRAINT  entity_name )?
+  ( CONSTRAINT  name )?
   ( PRIMARY KEY ( ASC | DESC )? conflict_clause ( AUTOINCREMENT )?
   | NOT NULL conflict_clause
   | UNIQUE conflict_clause
@@ -181,17 +193,17 @@ column_constraint ::=
 signed_number ::= ( '+' | '-' )? NUMERIC_LITERAL
 
 table_constraint ::=
-  ( CONSTRAINT  entity_name )?
+  ( CONSTRAINT  name )?
   ( ( PRIMARY KEY | UNIQUE ) '(' indexed_column ( ',' indexed_column )* ')' conflict_clause
   | CHECK '(' expr ')'
   | FOREIGN KEY '(' column_name ( ',' column_name )* ')' foreign_key_clause )
 
 foreign_key_clause ::=
   REFERENCES foreign_table ( '(' column_name ( ',' column_name )* ')' )?
-  ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  entity_name ) )?
+  ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
   ( ( NOT )? DEFERRABLE ( INITIALLY DEFERRED | INITIALLY IMMEDIATE )? )?
 
-foreign_table ::= entity_name
+foreign_table ::= name
 
 conflict_clause ::= ( ON CONFLICT ( ROLLBACK | ABORT | FAIL | IGNORE | REPLACE ) )?
 
@@ -202,21 +214,21 @@ create_trigger_stmt ::=
   ( FOR EACH ROW )? ( WHEN expr )?
   BEGIN ( update_stmt | insert_stmt | delete_stmt | select_stmt ) ';' END
 
-trigger_name ::= entity_name
+trigger_name ::= name
 
 create_view_stmt ::=
   CREATE ( TEMP | TEMPORARY )? VIEW ( IF NOT EXISTS )?
   ( database_name '.' )? view_name AS select_stmt
 
-view_name ::= entity_name
+view_name ::= name
 
 create_virtual_table_stmt ::=
   CREATE VIRTUAL TABLE ( IF NOT EXISTS )?
   ( database_name '.' )? table_name
   USING module_name ( '(' module_argument ( ',' module_argument )* ')' )?
 
-module_name ::= entity_name
-module_argument ::= entity_name
+module_name ::= name
+module_argument ::= name
 
 with_clause ::= WITH ( RECURSIVE )? cte_table_name AS '(' select_stmt ')' ( ',' cte_table_name AS '(' select_stmt ')' )*
 
@@ -321,17 +333,17 @@ column_ref_expr ::=
   | table_name '.' column_name
   | column_name
 
-function_name ::= entity_name
+function_name ::= name
 
 bind_parameter ::= PARAMETER_NAME
 
 raise_function_expr ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) ',' error_message ) ')'
 
-error_message ::= STRING_LITERAL // TODO: check
+error_message ::= string_literal // TODO: check
 
 literal_value ::=
   NUMERIC_LITERAL
-  | STRING_LITERAL // X marks a blob literal
+  | string_literal // X marks a blob literal
   | NULL
   | CURRENT_TIME
   | CURRENT_DATE
@@ -344,9 +356,9 @@ insert_stmt ::=
 
 pragma_stmt ::= PRAGMA ( database_name '.' )? pragma_name ( '=' pragma_value | '(' pragma_value ')' )?
 
-pragma_name ::= entity_name // TODO: check
+pragma_name ::= name // TODO: check
 
-pragma_value ::= signed_number | entity_name | STRING_LITERAL // TODO: check
+pragma_value ::= signed_number | name | string_literal // TODO: check
 
 reindex_stmt ::= REINDEX ( collation_name | ( database_name '.' )? ( table_name | index_name ) )?
 
@@ -371,14 +383,14 @@ table_or_subquery ::=
   | '(' ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) ')'
   | '(' select_stmt ')' ( ( AS )? table_alias )?
 
-table_alias ::= entity_name
+table_alias ::= name
 
 result_column ::=
   '*'
   | table_name '.' '*'
   | expr ( ( AS )? column_alias )?
 
-column_alias ::= entity_name
+column_alias ::= name
 
 join_operator ::= ',' | ( NATURAL )? ( LEFT ( OUTER )? | INNER | CROSS )? JOIN
 
@@ -400,4 +412,5 @@ qualified_table_name ::= ( database_name '.' )? table_name ( INDEXED BY index_na
 
 vacuum_stmt ::= VACUUM
 
-private entity_name ::= IDENTIFIER | STRING_LITERAL | BRACKET_LITERAL
+private name ::= IDENTIFIER | BRACKET_LITERAL | BACKTICK_LITERAL | string_literal
+private string_literal ::= SINGLE_QUOTE_STRING_LITERAL | DOUBLE_QUOTE_STRING_LITERAL

@@ -16,17 +16,19 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
-import com.android.tools.idea.lang.roomSql.psi.RoomSqlStmt
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
 import com.android.tools.idea.lang.roomSql.psi.RoomTableName
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.util.PsiTreeUtil
 
 private const val DUMMY_FILE_NAME = "dummy.rsql"
 
 class RoomSqlPsiFacade(val project: Project) {
   companion object {
+    @JvmStatic
     fun getInstance(project: Project): RoomSqlPsiFacade? = ServiceManager.getService(project, RoomSqlPsiFacade::class.java)
   }
 
@@ -34,12 +36,12 @@ class RoomSqlPsiFacade(val project: Project) {
       PsiFileFactory.getInstance(project).createFileFromText(DUMMY_FILE_NAME, ROOM_SQL_FILE_TYPE, text)
 
   fun createTableName(name: String): RoomTableName? =
-      createFileFromText("select * from ${RoomSqlLexer.getValidName(name)}")
-          .firstChild
-          .let { it as? RoomSqlStmt }
-          ?.selectStmt
-          ?.tableOrSubqueryList
-          ?.singleOrNull()
-          ?.tableName
+      PsiTreeUtil.findChildOfAnyType(
+          createFileFromText("select * from ${RoomSqlLexer.getValidName(name)}"),
+          RoomTableName::class.java)
 
+  fun createColumnName(name: String): RoomColumnName? =
+      PsiTreeUtil.findChildOfAnyType(
+          createFileFromText("select ${RoomSqlLexer.getValidName(name)}"),
+          RoomColumnName::class.java)
 }
