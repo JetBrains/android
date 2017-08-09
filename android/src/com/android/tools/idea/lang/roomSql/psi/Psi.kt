@@ -21,10 +21,8 @@ import com.android.tools.idea.lang.roomSql.ROOM_SQL_LANGUAGE
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
-import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
-import com.intellij.psi.tree.TokenSet
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
@@ -45,8 +43,4 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RO
 }
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(ROOM_SQL_LANGUAGE)
-
-val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
-val COMMENTS = TokenSet.create(RoomPsiTypes.COMMENT, RoomPsiTypes.LINE_COMMENT)
-val STRING_LITERALS = TokenSet.create(RoomPsiTypes.STRING_LITERAL)
 

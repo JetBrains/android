@@ -45,14 +45,20 @@ public class RoomLiteralValueImpl extends ASTWrapperPsiElement implements RoomLi
 
   @Override
   @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getNumericLiteral() {
     return findChildByType(NUMERIC_LITERAL);
   }
 
   @Override
   @Nullable
-  public PsiElement getStringLiteral() {
-    return findChildByType(STRING_LITERAL);
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

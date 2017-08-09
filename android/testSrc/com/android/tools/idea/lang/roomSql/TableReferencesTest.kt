@@ -21,7 +21,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.ResolveResult
 
-class ReferencesTest : LightRoomTestCase() {
+class TableReferencesTest : LightRoomTestCase() {
 
   fun testDefaultTableName() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
@@ -34,7 +34,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
     """.trimIndent())
@@ -53,7 +53,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM u<caret>ser") List<User> getAll();
         }
     """.trimIndent())
@@ -72,12 +72,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM 'u<caret>ser'") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.file.findReferenceAt(myFixture.caretOffset)!!.resolve()).isNull()
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
 
   fun testTableNameOverride() {
@@ -91,7 +91,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM <caret>people") List<User> getAll();
         }
     """.trimIndent())
@@ -112,7 +112,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
     """.trimIndent())
@@ -132,7 +132,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
     """.trimIndent())
@@ -146,7 +146,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM Person") List<Person> getAll();
         }
     """.trimIndent())
@@ -164,7 +164,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class OrderDao {
+        public interface OrderDao {
           @Query("SELECT * FROM 'O<caret>rder'") List<Order> getAll();
         }
     """.trimIndent())
@@ -178,7 +178,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class OrderDao {
+        public interface OrderDao {
           @Query("SELECT * FROM OrderItem") List<OrderItem> getAll();
         }
     """.trimIndent())
@@ -196,7 +196,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM User") List<<caret>User> getAll();
         }
     """.trimIndent())
@@ -210,7 +210,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM Person") List<Person> getAll();
         }
     """.trimIndent())
@@ -228,7 +228,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
     """.trimIndent())
@@ -244,8 +244,8 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
-          @Query("SELECT * FROM '$newName'") List<$newName> getAll();
+        public interface UserDao {
+          @Query("SELECT * FROM `$newName`") List<$newName> getAll();
         }
     """.trimIndent())
 
@@ -262,7 +262,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>") List<User> getAll();
         }
     """.trimIndent())
@@ -276,7 +276,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM User") List<User> getAll();
         }
     """.trimIndent())
@@ -293,7 +293,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM <caret>") List<User> getAll();
         }
     """.trimIndent())
@@ -316,7 +316,7 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM <caret>") List<User> getAll();
         }
     """.trimIndent())
@@ -325,9 +325,9 @@ class ReferencesTest : LightRoomTestCase() {
 
     assertThat(lookupElements.map { Pair(it.lookupString, it.psiElement) })
         .containsExactly(
-            Pair("'funny people'", userClass),
+            Pair("`funny people`", userClass),
             Pair("Address", myFixture.findClass("com.example.Address")),
-            Pair("'Order'", myFixture.findClass("com.example.Order"))) // ORDER is a keyword in SQL.
+            Pair("`Order`", myFixture.findClass("com.example.Order"))) // ORDER is a keyword in SQL.
 
     myFixture.lookup.currentItem = lookupElements.find { it.psiElement === userClass }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
@@ -339,8 +339,8 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
-          @Query("SELECT * FROM 'funny people'") List<User> getAll();
+        public interface UserDao {
+          @Query("SELECT * FROM `funny people`") List<User> getAll();
         }
     """.trimIndent())
   }
@@ -355,12 +355,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!).isNotNull()
+    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE }).isNotNull()
   }
 
   fun testUsages_caseInsensitive() {
@@ -373,12 +373,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM user") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
         .isNotNull()
   }
 
@@ -392,17 +392,17 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
+        public interface UserDao {
           @Query("SELECT * FROM people") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
         .isNotNull()
   }
 
   fun testUsages_tableNameOverride_escaping() {
-    myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo'bar")
+    myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo`bar")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -411,12 +411,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
-          @Query("SELECT * FROM 'foo''bar'") List<User> getAll();
+        public interface UserDao {
+          @Query("SELECT * FROM `foo``bar`") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
         .isNotNull()
   }
 
@@ -430,12 +430,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class UserDao {
-          @Query("SELECT * FROM 'foo bar'") List<User> getAll();
+        public interface UserDao {
+          @Query("SELECT * FROM `foo bar`") List<User> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
         .isNotNull()
   }
 
@@ -449,12 +449,12 @@ class ReferencesTest : LightRoomTestCase() {
         import android.arch.persistence.room.Query;
 
         @Dao
-        public class OrderDao {
-          @Query("SELECT * FROM 'Order'") List<Order> getAll();
+        public interface OrderDao {
+          @Query("SELECT * FROM `Order`") List<Order> getAll();
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
         .isNotNull()
   }
 }

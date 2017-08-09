@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.lang.roomSql.parser
 
-import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.COMMENTS
+import com.android.tools.idea.lang.roomSql.STRING_LITERALS
+import com.android.tools.idea.lang.roomSql.WHITE_SPACES
+import com.android.tools.idea.lang.roomSql.psi.ROOM_SQL_FILE_NODE_TYPE
+import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes
+import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
@@ -38,7 +43,7 @@ class RoomSqlLexer : FlexAdapter(_RoomSqlLexer()) {
 
     /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
     fun getValidName(name: String): String =
-        if (!needsQuoting(name)) name else "'${name.replace("'", "''")}'"
+        if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
   }
 }
 

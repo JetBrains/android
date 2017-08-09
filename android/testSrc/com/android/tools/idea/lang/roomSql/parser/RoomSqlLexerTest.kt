@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.TokenType
 import com.intellij.psi.TokenType.BAD_CHARACTER
 import com.intellij.psi.tree.IElementType
@@ -32,7 +32,7 @@ class RoomSqlLexerTest : TestCase() {
       lexer.advance()
     }
 
-    Truth.assertThat(actualTokenTypes).containsExactlyElementsIn(expectedTokenTypes.asIterable())
+    assertThat(actualTokenTypes).containsExactlyElementsIn(expectedTokenTypes.asIterable())
   }
 
   private val SPACE = " " to TokenType.WHITE_SPACE
@@ -181,6 +181,20 @@ class RoomSqlLexerTest : TestCase() {
         "[column]" to BRACKET_LITERAL)
 
     assertTokenTypes(
+        "select `table`.`column` from `database`.`column`",
+        "select" to SELECT,
+        SPACE,
+        "`table`" to BACKTICK_LITERAL,
+        "." to DOT,
+        "`column`" to BACKTICK_LITERAL,
+        SPACE,
+        "from" to FROM,
+        SPACE,
+        "`database`" to BACKTICK_LITERAL,
+        "." to DOT,
+        "`column`" to BACKTICK_LITERAL)
+
+    assertTokenTypes(
         "select 11*11.22e33+11e+22-11.22e-33",
         "select" to SELECT,
         SPACE,
@@ -198,11 +212,11 @@ class RoomSqlLexerTest : TestCase() {
         """select "",'foo''bar','foo"bar'""",
         "select" to SELECT,
         SPACE,
-        "\"\"" to STRING_LITERAL,
+        "\"\"" to DOUBLE_QUOTE_STRING_LITERAL,
         "," to COMMA,
-        "'foo''bar'" to STRING_LITERAL,
+        "'foo''bar'" to SINGLE_QUOTE_STRING_LITERAL,
         "," to COMMA,
-        "'foo\"bar'" to STRING_LITERAL)
+        "'foo\"bar'" to SINGLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
         """CREATE TABLE "TABLE"("#!@""'☺\", "");""",
@@ -210,14 +224,56 @@ class RoomSqlLexerTest : TestCase() {
         SPACE,
         "TABLE" to TABLE,
         SPACE,
-        """"TABLE"""" to STRING_LITERAL,
+        """"TABLE"""" to DOUBLE_QUOTE_STRING_LITERAL,
         "(" to LPAREN,
-        """"#!@""'☺\"""" to STRING_LITERAL,
+        """"#!@""'☺\"""" to DOUBLE_QUOTE_STRING_LITERAL,
         "," to COMMA,
         SPACE,
-        "\"\"" to STRING_LITERAL,
+        "\"\"" to DOUBLE_QUOTE_STRING_LITERAL,
         ")" to RPAREN,
         ";" to SEMICOLON)
+
+    assertTokenTypes(
+        """select 'unterminated string""",
+        "select" to SELECT,
+        SPACE,
+        "'unterminated string" to BAD_CHARACTER)
+
+    assertTokenTypes(
+        """select 'unterminated '' string""",
+        "select" to SELECT,
+        SPACE,
+        "'unterminated '' string" to BAD_CHARACTER)
+
+    assertTokenTypes(
+        """select X"unterminated blob""",
+        "select" to SELECT,
+        SPACE,
+        "X\"unterminated blob" to BAD_CHARACTER)
+
+    assertTokenTypes(
+        """select X"unterminated "" blob""",
+        "select" to SELECT,
+        SPACE,
+        "X\"unterminated \"\" blob" to BAD_CHARACTER)
+
+    assertTokenTypes(
+        """select [unterminated bracket""",
+        "select" to SELECT,
+        SPACE,
+        "[unterminated bracket" to BAD_CHARACTER)
+
+    assertTokenTypes(
+        "select `foo``bar`",
+        "select" to SELECT,
+        SPACE,
+        "`foo``bar`" to BACKTICK_LITERAL)
+
+    assertTokenTypes(
+        """select `unterminated backtick""",
+        "select" to SELECT,
+        SPACE,
+        "`unterminated backtick" to BAD_CHARACTER)
   }
 
   fun testNeedsQuoting() {
@@ -227,13 +283,15 @@ class RoomSqlLexerTest : TestCase() {
     assertTrue(RoomSqlLexer.needsQuoting("foo'bar"))
     assertTrue(RoomSqlLexer.needsQuoting("foo bar"))
     assertTrue(RoomSqlLexer.needsQuoting("\$foo"))
+    assertTrue(RoomSqlLexer.needsQuoting("foo`bar"))
   }
 
   fun testValidName() {
-    Truth.assertThat(RoomSqlLexer.getValidName("foo")).isEqualTo("foo")
-    Truth.assertThat(RoomSqlLexer.getValidName("Order")).isEqualTo("'Order'")
-    Truth.assertThat(RoomSqlLexer.getValidName("foo bar")).isEqualTo("'foo bar'")
-    Truth.assertThat(RoomSqlLexer.getValidName("foo'bar'baz")).isEqualTo("'foo''bar''baz'")
-    Truth.assertThat(RoomSqlLexer.getValidName("\$foo")).isEqualTo("'\$foo'")
+    assertThat(RoomSqlLexer.getValidName("foo")).isEqualTo("foo")
+    assertThat(RoomSqlLexer.getValidName("Order")).isEqualTo("`Order`")
+    assertThat(RoomSqlLexer.getValidName("foo bar")).isEqualTo("`foo bar`")
+    assertThat(RoomSqlLexer.getValidName("foo'bar'baz")).isEqualTo("`foo'bar'baz`")
+    assertThat(RoomSqlLexer.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
+    assertThat(RoomSqlLexer.getValidName("\$foo")).isEqualTo("`\$foo`")
   }
 }

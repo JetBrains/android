@@ -44,9 +44,15 @@ public class RoomErrorMessageImpl extends ASTWrapperPsiElement implements RoomEr
   }
 
   @Override
-  @NotNull
-  public PsiElement getStringLiteral() {
-    return findNotNullChildByType(STRING_LITERAL);
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }
