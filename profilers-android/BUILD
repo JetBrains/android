@@ -20,6 +20,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api[module]",
         "//tools/adt/idea/android[module]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/idea:platform-impl_and_others[module]",
