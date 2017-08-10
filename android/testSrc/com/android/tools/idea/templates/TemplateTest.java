@@ -1403,6 +1403,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       assetGenerator.name().set("ic_launcher");
       assetGenerator.sourceAsset().setValue(new ImageAsset());
       createProject(projectState, myFixture.getProject(), assetGenerator);
+      assetGenerator.dispose();
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 

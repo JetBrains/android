@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio.icon;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -32,13 +31,12 @@ import java.awt.*;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
-
   private final ObjectProperty<ActionBarIconGenerator.Theme> myTheme =
-    new ObjectValueProperty<>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
+      new ObjectValueProperty<>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
   private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(new Color(51, 181, 229));
 
   public AndroidActionBarIconGenerator(int minSdkVersion) {
-    super(minSdkVersion);
+    super(minSdkVersion, new ActionBarIconGenerator());
   }
 
   /**
@@ -56,12 +54,6 @@ public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
   @NotNull
   public ObjectProperty<Color> customColor() {
     return myCustomColor;
-  }
-
-  @NotNull
-  @Override
-  protected GraphicGenerator createGenerator() {
-    return new ActionBarIconGenerator();
   }
 
   @NotNull

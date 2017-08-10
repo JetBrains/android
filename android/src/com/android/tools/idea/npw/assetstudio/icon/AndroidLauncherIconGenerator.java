@@ -33,7 +33,6 @@ import java.awt.*;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
-
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
@@ -42,7 +41,7 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
   private final BoolProperty myDogEared = new BoolValueProperty();
 
   public AndroidLauncherIconGenerator(int minSdkVersion) {
-    super(minSdkVersion);
+    super(minSdkVersion, new LauncherIconGenerator());
   }
 
   /**
@@ -94,12 +93,6 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
   @NotNull
   public BoolProperty dogEared() {
     return myDogEared;
-  }
-
-  @NotNull
-  @Override
-  protected GraphicGenerator createGenerator() {
-    return new LauncherIconGenerator();
   }
 
   @NotNull
