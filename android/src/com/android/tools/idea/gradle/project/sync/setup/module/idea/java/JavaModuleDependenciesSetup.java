@@ -38,7 +38,8 @@ class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File binaryPath,
                               @Nullable File sourcePath,
-                              @Nullable File documentationPath) {
+                              @Nullable File documentationPath,
+                              boolean isExported) {
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null) {
@@ -55,7 +56,7 @@ class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
       updateLibraryRootPath(library, SOURCES, modelsProvider, sourcePath);
       updateLibraryRootPath(library, JavadocOrderRootType.getInstance(), modelsProvider, documentationPath);
     }
-    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider);
+    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, isExported);
   }
 
   private void updateLibraryRootPath(@NotNull Library library,
