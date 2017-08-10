@@ -81,17 +81,15 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                @NotNull AndroidModuleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
-    AndroidProject androidProject = androidModel.getAndroidProject();
-
     DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant());
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateLibraryDependency(module, ideModelsProvider, dependency, androidProject);
+      updateLibraryDependency(module, ideModelsProvider, dependency, androidModel);
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(module, ideModelsProvider, dependency, androidProject);
+      updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
     }
 
-    addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidProject);
+    addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidModel);
 
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
@@ -99,23 +97,27 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     }
     else {
       //noinspection deprecation
-      Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
+      Collection<String> unresolvedDependencies = androidModel.getAndroidProject().getUnresolvedDependencies();
       UnresolvedDependenciesReporter.getInstance().report(unresolvedDependencies, module);
     }
+  }
+
+  private static boolean getExported(@NotNull AndroidModuleModel androidModuleModel) {
+    return androidModuleModel.getFeatures().shouldExportDependencies();
   }
 
   @VisibleForTesting
   void updateModuleDependency(@NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull ModuleDependency dependency,
-                              @NotNull AndroidProject androidProject) {
+                              @NotNull AndroidModuleModel moduleModel) {
     Module moduleDependency = dependency.getModule(modelsProvider);
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setScope(dependency.getScope());
-      orderEntry.setExported(false);
+      orderEntry.setExported(getExported(moduleModel));
       return;
     }
 
@@ -125,20 +127,20 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
 
     // fall back to library dependency, if available.
     if (compiledArtifact != null) {
-      updateLibraryDependency(module, modelsProvider, compiledArtifact, androidProject);
+      updateLibraryDependency(module, modelsProvider, compiledArtifact, moduleModel);
     }
   }
 
   public void updateLibraryDependency(@NotNull Module module,
                                       @NotNull IdeModifiableModelsProvider modelsProvider,
                                       @NotNull LibraryDependency dependency,
-                                      @NotNull AndroidProject androidProject) {
+                                      @NotNull AndroidModuleModel moduleModel) {
     String name = dependency.getName();
     DependencyScope scope = dependency.getScope();
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
-                                               dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION));
+                                               dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), getExported(moduleModel));
 
-    File buildFolder = androidProject.getBuildFolder();
+    File buildFolder = moduleModel.getAndroidProject().getBuildFolder();
 
     // Exclude jar files that are in "jars" folder in "build" folder.
     // see https://code.google.com/p/android/issues/detail?id=123788
@@ -165,8 +167,9 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
    */
   private void addExtraSdkLibrariesAsDependencies(@NotNull Module module,
                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
-                                                  @NotNull AndroidProject androidProject) {
+                                                  @NotNull AndroidModuleModel androidModuleModel) {
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    AndroidProject androidProject = androidModuleModel.getAndroidProject();
     Sdk sdk = moduleModel.getSdk();
     assert sdk != null; // If we got here, SDK will *NOT* be null.
 
@@ -201,7 +204,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, COMPILE, binaryPath);
+        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, COMPILE, binaryPath, getExported(androidModuleModel));
       }
     }
   }
