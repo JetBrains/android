@@ -65,6 +65,7 @@ public final class FreemarkerUtils {
     paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
     paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
+    paramMap.put("escapeKotlinIdentifiers", new FmEscapeKotlinIdentifierMethod());
 
     // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());
