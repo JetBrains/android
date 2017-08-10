@@ -16,6 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.common.editor.NlEditorPanel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
@@ -23,17 +30,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirector
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.common.editor.NlEditor;
-import com.android.tools.idea.common.editor.NlEditorPanel;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
@@ -231,11 +231,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   public NlEditorFixture showOnlyDesignView() {
-    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
-    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
-      getConfigToolbar().showDesign();
-      getConfigToolbar().hideBlueprint();
-    }
+    getConfigToolbar().selectDesign();
     return this;
   }
 
@@ -244,11 +240,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   public NlEditorFixture showOnlyBlueprintView() {
-    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
-    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
-      getConfigToolbar().showBlueprint();
-      getConfigToolbar().hideDesign();
-    }
+    getConfigToolbar().selectBlueprint();
     return this;
   }
 

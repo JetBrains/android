@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
@@ -124,11 +124,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
    * Switch to showing only the blueprint view.
    */
   public NlPreviewFixture showOnlyBlueprintView() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
-    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
-      getConfigToolbar().showBlueprint();
-      getConfigToolbar().hideDesign();
-    }
+    getConfigToolbar().selectBlueprint();
     return this;
   }
 
