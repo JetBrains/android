@@ -308,6 +308,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
     templateMap.put(ATTR_KOTLIN_SUPPORT, true);
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
+    templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
   //--- Activity templates ---
