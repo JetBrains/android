@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -29,12 +31,10 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.ResizePolicy;
+import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,18 +119,8 @@ public class ResizeInteraction extends Interaction {
                     NlComponentHelperKt.getH(myComponent)), deltaX, deltaY);
     myResizeHandler.update(ax, ay, modifiers, newBounds);
     if (commit) {
-      NlModel model = mySceneView.getModel();
-      Project project = model.getFacet().getModule().getProject();
-      XmlFile file = model.getFile();
-      String label = "Resize";
-      WriteCommandAction action = new WriteCommandAction(project, label, file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          myResizeHandler.commit(ax, ay, modifiers, newBounds);
-        }
-      };
-      action.execute();
-      model.notifyModified(NlModel.ChangeType.RESIZE_COMMIT);
+      NlWriteCommandAction.run(myComponent, "Resize", () -> myResizeHandler.commit(ax, ay, modifiers, newBounds));
+      mySceneView.getModel().notifyModified(NlModel.ChangeType.RESIZE_COMMIT);
     }
     mySceneView.getSurface().repaint();
   }
