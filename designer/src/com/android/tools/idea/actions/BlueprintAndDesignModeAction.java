@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,21 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Mode for toggling blueprint mode
  */
-public class BlueprintModeAction extends ToggleAction {
+public class BlueprintAndDesignModeAction extends ToggleAction {
   private final NlDesignSurface mySurface;
 
-  public BlueprintModeAction(@NotNull NlDesignSurface surface) {
-    super("Blueprint", "Show Blueprint Surface", null);
+  public BlueprintAndDesignModeAction(@NotNull NlDesignSurface surface) {
+    super("Design + Blueprint", "Show both Design and Blueprint", null);
     mySurface = surface;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY;
+    return mySurface.getScreenMode() == ScreenMode.BOTH;
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    mySurface.setScreenMode(ScreenMode.BLUEPRINT_ONLY, true);
+    mySurface.setScreenMode(ScreenMode.BOTH, true);
   }
 }
