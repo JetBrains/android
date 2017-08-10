@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface;
 
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,12 +43,12 @@ public enum ZoomType {
   /**
    * Zoom in
    */
-  IN("Zoom In (+)", AndroidIcons.NeleIcons.ZoomIn),
+  IN("Zoom In (+)", StudioIcons.Common.ZOOM_IN),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out (-)", AndroidIcons.NeleIcons.ZoomOut),
+  OUT("Zoom Out (-)", StudioIcons.Common.ZOOM_OUT),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)

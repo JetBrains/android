@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,7 +178,7 @@ public class LocaleMenuAction extends DropDownAction {
       //Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      presentation.setIcon(AndroidIcons.NeleIcons.Language);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
       String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
     }

@@ -179,52 +179,17 @@ public class AndroidIcons {
 
   public static class NeleIcons {
     // All 16x16 and 32x32 in Retina mode
-    public static final Icon Api = load("/icons/nele/android-api.png");
-    public static final Icon Language = load("/icons/nele/language.png");
-    public static final Icon Preview = load("/icons/nele/preview.png");
-    public static final Icon Rotate = load("/icons/nele/rotate-button.png");
-    public static final Icon Size = load("/icons/nele/size.png");
     public static final Icon Phone = load("/icons/nele/phone.png");
     public static final Icon Tablet = load("/icons/nele/tablet.png");
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
-    public static final Icon Theme = load("/icons/nele/theme-button.png");
     public static final Icon DeviceScreen = load("/icons/nele/DeviceScreen.png");
 
-    public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
-    public static final Icon ZoomOut = load("/icons/nele/zoom-out.png");
     public static final Icon ExpandToFit = load("/icons/nele/expand-to-fit.png");
-    public static final Icon Blueprint = load("/icons/nele/blueprint-mode.png"); // 16x16
-    public static final Icon BlueprintInactive = load("/icons/nele/blueprint-mode-inactive.png"); // 16x16
-    public static final Icon DesignView = load("/icons/nele/design-mode.png"); // 16x16
-    public static final Icon Elevation = load("/icons/nele/elevation.png"); // 16x16
     public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
-    public static final Icon UiMode = load("/icons/nele/uimode.png"); // 16x16
-    public static final Icon Pan = load("/icons/nele/pantool.png"); // 16x16
 
-    public static final Icon ToggleProperties = load("/icons/nele/toggle_props.png"); // 16x16
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12
     public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
-
-    public static final Icon FavoritesHoverOutline = load("/icons/nele/favorites-hover-outline.png");  // 16x16
-    public static final Icon FavoritesSelected = load("/icons/nele/favorites-selected.png");  // 16x16
-    public static final Icon Favorites = load("/icons/nele/favorites.png");  // 16x16
-
-    public static final Icon TextStyleBold = load("/icons/nele/text/text-style-bold.png"); // 16x16
-    public static final Icon TextStyleItalics = load("/icons/nele/text/text-style-italics.png"); // 16x16
-    public static final Icon TextAllCaps = load("/icons/nele/text/text-all-caps.png"); // 16x16
-
-    public static final Icon TextAlignTextStart = load("/icons/nele/text/text-align-text-start.png"); // 16x16
-    public static final Icon TextAlignViewStart = load("/icons/nele/text/text-align-view-start.png"); // 16x16
-    public static final Icon TextAlignCentered = load("/icons/nele/text/text-align-centered.png"); // 16x16
-    public static final Icon TextAlignViewEnd = load("/icons/nele/text/text-align-view-end.png"); // 16x16
-    public static final Icon TextAlignTextEnd = load("/icons/nele/text/text-align-text-end.png"); // 16x16
-
-    public static final Icon BackArrow = load("/icons/nele/back-arrow.png"); // 16x16
-    public static final Icon Close = load("/icons/nele/close.png"); // 16x16
-
-    public static final Icon Link = load("/icons/nele/link.png"); // 16x16
-    public static final Icon Refresh = load("/icons/nele/refresh.png"); // 16x16
   }
 
   public static class NavEditorIcons {
@@ -249,85 +214,37 @@ public class AndroidIcons {
   }
 
   public static class SherpaIcons {
-    public static final Icon ShowConstraints = load("/icons/sherpa/show_constraints.png");
-    public static final Icon ShowNoConstraints = load("/icons/sherpa/show_no_constraints.png");
-    public static final Icon ShowText = load("/icons/sherpa/show_text.png");
-    public static final Icon ShowNoText = load("/icons/sherpa/show_no_text.png");
-    public static final Icon ShowBlueprintOn = load("/icons/sherpa/switch_blueprint_on.png");
-    public static final Icon ShowBlueprintOff = load("/icons/sherpa/switch_blueprint_off.png");
-    public static final Icon ShowBlueprintBoth = load("/icons/sherpa/switch_blueprint_both.png");
-    public static final Icon ShowInfoIdOn = load("/icons/sherpa/info_on.png");
-    public static final Icon ShowInfoIdOff = load("/icons/sherpa/info_off.png");
-    public static final Icon Delete = load("/icons/sherpa/delete.png");
-    public static final Icon LeftConstraintCursor = load("/icons/sherpa/left_constraint_cursor.png");
-    public static final Icon TopConstraintCursor = load("/icons/sherpa/top_constraint_cursor.png");
-    public static final Icon RightConstraintCursor = load("/icons/sherpa/right_constraint_cursor.png");
-    public static final Icon BottomConstraintCursor = load("/icons/sherpa/bottom_constraint_cursor.png");
-    public static final Icon BaselineConstraintCursor = load("/icons/sherpa/baseline_constraint_cursor.png");
-    public static final Icon UnlinkConstraintCursor = load("/icons/sherpa/unlink_constraint_cursor.png");
-
-
     public static final Icon AddConnection = load("/icons/sherpa/add-connection.png");
     public static final Icon ArrowDown = load("/icons/sherpa/arrow_down.png");
     public static final Icon ArrowLeft = load("/icons/sherpa/arrow_left.png");
     public static final Icon ArrowRight = load("/icons/sherpa/arrow_right.png");
     public static final Icon ArrowUp = load("/icons/sherpa/arrow_up.png");
-    public static final Icon AutoConnect = load("/icons/sherpa/auto_connect.png");
-    public static final Icon AutoConnectOff = load("/icons/sherpa/auto_connect_off.png");
     public static final Icon BaselineAlignB = load("/icons/sherpa/baseline-aligned.png");
-    public static final Icon BaselineAlign = load("/icons/sherpa/baseline-aligned_b.png");
     public static final Icon BottomAlignB = load("/icons/sherpa/bottom-aligned.png");
-    public static final Icon BottomAlign = load("/icons/sherpa/bottom-aligned_b.png");
     public static final Icon CenterAlignedB = load("/icons/sherpa/center-aligned.png");
-    public static final Icon CenterAligned = load("/icons/sherpa/center-aligned_b.png");
     public static final Icon ChainStyle = load("/icons/sherpa/chain_style.png");
-    public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
-    public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraints.png");
     public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");
-    public static final Icon Margin = load("/icons/sherpa/margin.png");
-    public static final Icon GuidelineVertical = load("/icons/sherpa/guideline_vertical.png");
     public static final Icon BarrierVertical = load("/icons/sherpa/barrier_vertical.png");
-    public static final Icon GuidelineHorizontal = load("/icons/sherpa/guideline_horizontal.png");
     public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
-    public static final Icon Hide = load("/icons/sherpa/hide.png");
     public static final Icon Checked = load("/actions/checked.png");
     public static final Icon Unchecked = load("/icons/sherpa/unchecked.png");
 
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
-    public static final Icon HorizontalCenter = load("/icons/sherpa/center-constraint-horizontally_b.png");
     public static final Icon HorizontalCenterParentB = load("/icons/sherpa/center-horizontally-in-parent.png");
-    public static final Icon HorizontalCenterParent = load("/icons/sherpa/center-horizontally-in-parent_b.png");
     public static final Icon HorizontalDistributeB = load("/icons/sherpa/distribute-horizontally.png");
     public static final Icon HorizontalDistribute = load("/icons/sherpa/distribute-horizontally_b.png");
-    public static final Icon HorizontalExpandB = load("/icons/sherpa/expand-horizontally.png");
-    public static final Icon HorizontalExpand = load("/icons/sherpa/expand-horizontally_b.png");
-    public static final Icon Inference = load("/icons/sherpa/inference.png");
-    public static final Icon InferIntoTable = load("/icons/sherpa/infer_into_table.png");
     public static final Icon LeftAlignedB = load("/icons/sherpa/left_aligned.png");
-    public static final Icon LeftAligned = load("/icons/sherpa/left_aligned_b.png");
     public static final Icon LockConstraints = load("/icons/sherpa/ic_lock_black.png");
     public static final Icon MiddleAlignB = load("/icons/sherpa/horizontal-alignment.png");
-    public static final Icon MiddleAlign = load("/icons/sherpa/horizontal-alignment_b.png");
-    public static final Icon PackSelectionHorizontallyB = load("/icons/sherpa/pack-horizontally.png");
-    public static final Icon PackSelectionHorizontally = load("/icons/sherpa/pack-horizontally_b.png");
-    public static final Icon PackSelectionVerticallyB = load("/icons/sherpa/pack-vertically.png");
-    public static final Icon PackSelectionVertically = load("/icons/sherpa/pack-vertically_b.png");
     public static final Icon Percent = load("/icons/sherpa/percent.png");
     public static final Icon RightAlignedB = load("/icons/sherpa/right-aligned.png");
-    public static final Icon RightAligned = load("/icons/sherpa/right-aligned_b.png");
     public static final Icon TopAlignB = load("/icons/sherpa/top-aligned.png");
-    public static final Icon TopAlign = load("/icons/sherpa/top-aligned_b.png");
-    public static final Icon Unhide = load("/icons/sherpa/unhide.png");
     public static final Icon UnlockConstraints = load("/icons/sherpa/ic_lock_open_black.png");
     public static final Icon VerticalCenterB = load("/icons/sherpa/center-constraints-vertically.png");
-    public static final Icon VerticalCenter = load("/icons/sherpa/center-constraints-vertically_b.png");
     public static final Icon VerticalCenterParentB = load("/icons/sherpa/center-vertically-in-parent.png");
-    public static final Icon VerticalCenterParent = load("/icons/sherpa/center-vertically-in-parent_b.png");
     public static final Icon CreateHorizontalChain = load("/icons/sherpa/create-horizontal-chain.png");
     public static final Icon CreateVerticalChain = load("/icons/sherpa/create-vertical-chain.png");
-    public static final Icon VerticalExpandB = load("/icons/sherpa/expand-vertically.png");
-    public static final Icon VerticalExpand = load("/icons/sherpa/expand-vertically_b.png");
     public static final Icon verticallyDistributeB = load("/icons/sherpa/distribute-vertically.png");
     public static final Icon verticallyDistribute = load("/icons/sherpa/distribute-vertically_b.png");
     public static final Icon Chain = load("/icons/sherpa/chain.png");
@@ -385,8 +302,8 @@ public class AndroidIcons {
     public static final Icon CheckedTextViewLarge = load("/icons/palette/checked-textview_large.png"); // 24x24
     public static final Icon Chronometer = load("/icons/palette/chronometer.png"); // 16x16
     public static final Icon ChronometerLarge = load("/icons/palette/chronometer_large.png"); // 24x24
-    public static final Icon ConstraintLayout = load("/icons/palette/constraint-layout.png"); // 16x16
-    public static final Icon ConstraintLayoutLarge = load("/icons/palette/constraint-layout_large.png"); // 24x24
+//    public static final Icon ConstraintLayout = load("/icons/palette/constraint-layout.png"); // 16x16
+//    public static final Icon ConstraintLayoutLarge = load("/icons/palette/constraint-layout_large.png"); // 24x24
     public static final Icon CoordinatorLayout = load("/icons/palette/coordinator-layout.png"); // 16x16
     public static final Icon CoordinatorLayoutLarge = load("/icons/palette/coordinator-layout_large.png"); // 24x24
     public static final Icon DatePicker = load("/icons/palette/date-picker.png"); // 16x16

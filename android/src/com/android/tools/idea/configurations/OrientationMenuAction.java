@@ -37,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +62,7 @@ public class OrientationMenuAction extends DropDownAction {
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
   public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
-    super("", "Orientation in Editor", AndroidIcons.NeleIcons.Rotate);
+    super("", "Orientation in Editor", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
     mySurface = surface;
   }
