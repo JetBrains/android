@@ -25,6 +25,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public class FontEnumSupport extends EnumSupport {
           renderer.setIcon(AndroidIcons.FontFile);
         }
         else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
-          renderer.setIcon(AndroidIcons.NeleIcons.Link);
+          renderer.setIcon(StudioIcons.Common.LINK);
         }
         else {
           renderer.setIcon(AllIcons.General.BalloonError);

@@ -53,6 +53,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -182,7 +183,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
 
-    actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.Unhide, Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("Align", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
@@ -197,20 +198,20 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add((new MarginSelector()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
-    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVerticallyB, Lists.newArrayList(
+    actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.newArrayList(
 
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
-                        AndroidIcons.SherpaIcons.PackSelectionHorizontally,
+                        StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
                         "Pack Horizontally"),
         new AlignAction(Scout.Arrange.VerticalPack,
-                        AndroidIcons.SherpaIcons.PackSelectionVertically,
+                        StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
                         "Pack Vertically"),
         new AlignAction(Scout.Arrange.ExpandHorizontally,
-                        AndroidIcons.SherpaIcons.HorizontalExpand,
+                        StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
                         "Expand Horizontally"),
         new AlignAction(Scout.Arrange.ExpandVertically,
-                        AndroidIcons.SherpaIcons.VerticalExpand,
+                        StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
                         "Expand Vertically")),
       Lists.newArrayList(new ViewActionSeparator()),
 
@@ -230,17 +231,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       Lists.newArrayList(new ViewActionSeparator()),
       ConstraintViewActions.CENTER_ACTIONS)));
 
-    actions.add(new NestedViewActionMenu("Guidelines", AndroidIcons.SherpaIcons.GuidelineVertical, Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
       ConstraintViewActions.HELPER_ACTIONS)));
   }
 
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ViewActionMenu("Organize", AndroidIcons.SherpaIcons.PackSelectionHorizontally, ConstraintViewActions.ORGANIZE_ACTIONS));
-    actions.add(new ViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAligned, ConstraintViewActions.ALIGN_ACTIONS));
+    actions.add(new ViewActionMenu("Organize", StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
+    actions.add(new ViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new ViewActionMenu("Chain", AndroidIcons.SherpaIcons.CreateHorizontalChain, ConstraintViewActions.CHAIN_ACTIONS));
-    actions.add(new ViewActionMenu("Center", AndroidIcons.SherpaIcons.HorizontalCenter, ConstraintViewActions.CENTER_ACTIONS));
-    actions.add(new ViewActionMenu("Helpers", AndroidIcons.SherpaIcons.GuidelineVertical, ConstraintViewActions.HELPER_ACTIONS));
+    actions.add(new ViewActionMenu("Center", StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
+    actions.add(new ViewActionMenu("Helpers", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
   }
 
   interface Enableable {
@@ -431,7 +432,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
     public ToggleAutoConnectAction() {
-      super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn On Autoconnect", "Turn Off Autoconnect");
+      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect", "Turn Off Autoconnect");
     }
 
     @Override
@@ -488,7 +489,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
       presentation.setLabel("Clear All Constraints");
     }
   }
@@ -536,7 +537,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
       presentation.setLabel("Infer Constraints");
     }
   }
@@ -1160,34 +1161,34 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                      AndroidIcons.SherpaIcons.LeftAligned,
+                      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
                       AndroidIcons.SherpaIcons.LeftAlignedB,
                       "Align Left Edges"),
       new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                      AndroidIcons.SherpaIcons.CenterAligned,
+                      StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_CENTER_ALIGNED,
                       AndroidIcons.SherpaIcons.CenterAlignedB,
                       "Align Horizontal Centers"),
       new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                      AndroidIcons.SherpaIcons.RightAligned,
+                      StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED,
                       AndroidIcons.SherpaIcons.RightAlignedB,
                       "Align Right Edges"));
 
     private static final ImmutableList<ViewAction> ALIGN_VERTICALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                      AndroidIcons.SherpaIcons.TopAlign,
+                      StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED,
                       AndroidIcons.SherpaIcons.TopAlignB,
                       "Align Top Edges"),
       new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                      AndroidIcons.SherpaIcons.MiddleAlign,
+                      StudioIcons.LayoutEditor.Toolbar.VERTICAL_CENTER_ALIGNED,
                       AndroidIcons.SherpaIcons.MiddleAlignB,
                       "Align Vertical Centers"),
       new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                      AndroidIcons.SherpaIcons.BottomAlign,
+                      StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED,
                       AndroidIcons.SherpaIcons.BottomAlignB,
                       "Align Bottom Edges"),
       new AlignAction(Scout.Arrange.AlignBaseline,
-                      AndroidIcons.SherpaIcons.BaselineAlign,
-                      AndroidIcons.SherpaIcons.BottomAlignB, "Align Baselines"));
+                      StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED,
+                      AndroidIcons.SherpaIcons.BaselineAlignB, "Align Baselines"));
 
 
     private static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
@@ -1242,42 +1243,42 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> CENTER_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.CenterHorizontally,
-                      AndroidIcons.SherpaIcons.HorizontalCenter,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL,
                       AndroidIcons.SherpaIcons.HorizontalCenterB,
                       "Center Horizontally"),
       new AlignAction(Scout.Arrange.CenterVertically,
-                      AndroidIcons.SherpaIcons.VerticalCenter,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL,
                       AndroidIcons.SherpaIcons.VerticalCenterB,
                       "Center Vertically"),
       new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                      AndroidIcons.SherpaIcons.HorizontalCenterParent,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL_PARENT,
                       AndroidIcons.SherpaIcons.HorizontalCenterParentB,
                       "Center Horizontally in Parent"),
       new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                      AndroidIcons.SherpaIcons.VerticalCenterParent,
+                      StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL_PARENT,
                       AndroidIcons.SherpaIcons.VerticalCenterParentB,
                       "Center Vertically in Parent"));
 
     private static final ImmutableList<ViewAction> ORGANIZE_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.HorizontalPack,
-                      AndroidIcons.SherpaIcons.PackSelectionHorizontally,
+                      StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL,
                       "Pack Horizontally"),
       new AlignAction(Scout.Arrange.VerticalPack,
-                      AndroidIcons.SherpaIcons.PackSelectionVertically,
+                      StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL,
                       "Pack Vertically"),
       new AlignAction(Scout.Arrange.ExpandHorizontally,
-                      AndroidIcons.SherpaIcons.HorizontalExpand,
+                      StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
                       "Expand Horizontally"),
       new AlignAction(Scout.Arrange.ExpandVertically,
-                      AndroidIcons.SherpaIcons.VerticalExpand,
+                      StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
                       "Expand Vertically"));
 
     private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
       new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
-                           AndroidIcons.SherpaIcons.GuidelineVertical,
+                           StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE,
                            "Add Vertical Guideline"),
       new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
-                           AndroidIcons.SherpaIcons.GuidelineHorizontal,
+                           StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE,
                            "Add Horizontal Guideline"),
       new AddElementAction(AddElementAction.VERTICAL_BARRIER,
                            AndroidIcons.SherpaIcons.BarrierVertical,

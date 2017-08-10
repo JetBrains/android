@@ -42,7 +42,7 @@ import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -312,7 +312,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     textLink.setFocusable(false);
     HyperlinkLabel iconLink = new HyperlinkLabel();
-    iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
+    iconLink.setIcon(StudioIcons.LayoutEditor.Properties.TOGGLE_PROPERTIES);
     iconLink.setFocusable(false);
     iconLink.setUseIconAsLink(true);
     iconLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
