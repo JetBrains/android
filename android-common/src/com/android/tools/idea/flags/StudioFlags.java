@@ -176,6 +176,11 @@ public final class StudioFlags {
     "If enabled, the new resource magement tool are enabled. Subflags will also need to be enabled to enable all available new tools",
     false);
 
+  private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
+  public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
+    "If enabled, Show actions to let user choose overlay image on preview.", true);
+
   private StudioFlags() {
   }
 }
