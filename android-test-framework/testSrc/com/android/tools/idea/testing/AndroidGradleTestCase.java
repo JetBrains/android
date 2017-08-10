@@ -172,6 +172,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     myModules = null;
+    myAndroidFacet = null;
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
