@@ -53,6 +53,11 @@ public class ClassSet extends ClassifierSet {
     return Classifier.IDENTITY_CLASSIFIER;
   }
 
+  @Override
+  protected void applyFilter(@NotNull String filter) {
+    myIsFiltered = !myClassEntry.getSimpleClassName().startsWith(filter) && !myClassEntry.getClassName().startsWith(filter);
+  }
+
   private static final class ClassClassifier extends Classifier {
     @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
 
@@ -64,8 +69,14 @@ public class ClassSet extends ClassifierSet {
 
     @NotNull
     @Override
-    public List<ClassifierSet> getClassifierSets() {
-      return myClassMap.values().stream().filter(child -> !child.isEmpty()).collect(Collectors.toList());
+    public List<ClassifierSet> getFilteredClassifierSets() {
+      return myClassMap.values().stream().filter(child -> !child.isFiltered()).collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
+    protected List<ClassifierSet> getAllClassifierSets() {
+      return myClassMap.values().stream().collect(Collectors.toList());
     }
   }
 }

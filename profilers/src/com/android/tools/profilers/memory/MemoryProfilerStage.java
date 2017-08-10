@@ -73,6 +73,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
+  @NotNull private String myFilter = "";
+
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myAllocationDurations;
@@ -409,6 +411,19 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @Nullable
   public HeapSet getSelectedHeapSet() {
     return mySelection.getHeapSet();
+  }
+
+  public void selectCaptureFilter(String filter) {
+    filter = filter.trim();
+    if (!myFilter.equals(filter)) {
+      myFilter = filter;
+      myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
+    }
+  }
+
+  @NotNull
+  public String getCaptureFilter() {
+    return myFilter;
   }
 
   @VisibleForTesting

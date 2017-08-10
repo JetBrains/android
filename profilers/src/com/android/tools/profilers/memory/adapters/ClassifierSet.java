@@ -44,6 +44,8 @@ public abstract class ClassifierSet implements MemoryObject {
   protected long myTotalRetainedSize = 0L;
   protected int myInstancesWithStackInfoCount = 0;
 
+  protected boolean myIsFiltered;
+
   public ClassifierSet(@NotNull String name) {
     myName = name;
   }
@@ -210,7 +212,7 @@ public abstract class ClassifierSet implements MemoryObject {
       return myInstances.stream();
     }
     else {
-      return Stream.concat(getChildrenClassifierSets().stream().flatMap(ClassifierSet::getInstancesStream), myInstances.stream());
+      return Stream.concat(myClassifier.getAllClassifierSets().stream().flatMap(ClassifierSet::getInstancesStream), myInstances.stream());
     }
   }
 
@@ -222,7 +224,7 @@ public abstract class ClassifierSet implements MemoryObject {
   public List<ClassifierSet> getChildrenClassifierSets() {
     ensurePartition();
     assert myClassifier != null;
-    return myClassifier.getClassifierSets();
+    return myClassifier.getFilteredClassifierSets();
   }
 
   /**
@@ -282,6 +284,34 @@ public abstract class ClassifierSet implements MemoryObject {
   @NotNull
   protected abstract Classifier createSubClassifier();
 
+  public boolean isFiltered() {
+    return isEmpty() || myIsFiltered;
+  }
+
+  protected void applyFilter(@NotNull String filter) {
+    myIsFiltered = true;
+    ensurePartition();
+    myAllocatedCount = 0;
+    myDeallocatedCount = 0;
+    myTotalShallowSize = 0;
+    myTotalNativeSize = 0;
+    myTotalRetainedSize = 0;
+    myInstancesWithStackInfoCount = 0;
+
+    for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
+      classifierSet.applyFilter(filter);
+      if (!classifierSet.isFiltered()) {
+        myIsFiltered = false;
+        myAllocatedCount += classifierSet.myAllocatedCount;
+        myDeallocatedCount += classifierSet.myDeallocatedCount;
+        myTotalShallowSize += classifierSet.myTotalShallowSize;
+        myTotalNativeSize += classifierSet.myTotalNativeSize;
+        myTotalRetainedSize += classifierSet.myTotalRetainedSize;
+        myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
+      }
+    }
+  }
+
   /**
    * The base index for holding child {@link ClassifierSet}s.
    */
@@ -299,9 +329,17 @@ public abstract class ClassifierSet implements MemoryObject {
         throw new NotImplementedException(); // not used
       }
 
+      // Return child classifier sets which is non-empty and not filtered out
       @NotNull
       @Override
-      public List<ClassifierSet> getClassifierSets() {
+      public List<ClassifierSet> getFilteredClassifierSets() {
+        return Collections.emptyList();
+      }
+
+      // Return all child classifier sets
+      @NotNull
+      @Override
+      protected List<ClassifierSet> getAllClassifierSets() {
         return Collections.emptyList();
       }
     };
@@ -323,7 +361,10 @@ public abstract class ClassifierSet implements MemoryObject {
      * Gets a {@link List} of the child ClassifierSets.
      */
     @NotNull
-    public abstract List<ClassifierSet> getClassifierSets();
+    public abstract List<ClassifierSet> getFilteredClassifierSets();
+
+    @NotNull
+    protected abstract List<ClassifierSet> getAllClassifierSets();
 
     /**
      * Partitions {@link InstanceObject}s in {@code myInstances} according to the current {@link ClassifierSet}'s strategy.

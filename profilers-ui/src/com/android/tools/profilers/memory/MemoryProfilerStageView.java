@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
@@ -385,6 +386,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
+
+    toolbar = new JPanel(TOOLBAR_LAYOUT);
+    AutoCompleteTextField filterField =
+      getIdeComponents().createAutoCompleteTextField("Filter", "", new ArrayList<String>());
+    filterField.addOnDocumentChange(() -> getStage().selectCaptureFilter(filterField.getText()));
+    filterField.getComponent().setPreferredSize(new Dimension(150, filterField.getComponent().getPreferredSize().height));
+    toolbar.add(filterField.getComponent());
+    headingPanel.add(toolbar, BorderLayout.EAST);
+
     JPanel capturePanel = new JPanel(new BorderLayout());
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);

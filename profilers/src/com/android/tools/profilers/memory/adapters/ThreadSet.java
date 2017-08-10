@@ -76,8 +76,14 @@ public class ThreadSet extends ClassifierSet {
 
     @NotNull
     @Override
-    public List<ClassifierSet> getClassifierSets() {
-      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getClassifierSets().stream()).filter(child -> !child.isEmpty()).collect(Collectors.toList());
+    public List<ClassifierSet> getFilteredClassifierSets() {
+      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getFilteredClassifierSets().stream()).filter(child -> !child.isFiltered()).collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
+    protected List<ClassifierSet> getAllClassifierSets() {
+      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getAllClassifierSets().stream()).collect(Collectors.toList());
     }
   }
 }

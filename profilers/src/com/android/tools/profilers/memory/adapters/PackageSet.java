@@ -73,8 +73,14 @@ public class PackageSet extends ClassifierSet {
 
     @NotNull
     @Override
-    public List<ClassifierSet> getClassifierSets() {
-      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.isEmpty()).collect(Collectors.toList());
+    public List<ClassifierSet> getFilteredClassifierSets() {
+      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).filter(child -> !child.isFiltered()).collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
+    protected List<ClassifierSet> getAllClassifierSets() {
+      return Stream.concat(myPackageElements.values().stream(), myClassMap.values().stream()).collect(Collectors.toList());
     }
   }
 }
