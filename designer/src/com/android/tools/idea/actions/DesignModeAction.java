@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,24 +28,17 @@ public class DesignModeAction extends ToggleAction {
   private final NlDesignSurface mySurface;
 
   public DesignModeAction(@NotNull NlDesignSurface surface) {
-    super(null, "Show Design", StudioIcons.LayoutEditor.Toolbar.DESIGN_MODE);
+    super("Design", "Show Design Surface", null);
     mySurface = surface;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return mySurface.getScreenMode() == ScreenMode.BOTH || mySurface.getScreenMode() == ScreenMode.SCREEN_ONLY;
+    return mySurface.getScreenMode() == ScreenMode.SCREEN_ONLY;
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    ScreenMode mode = mySurface.getScreenMode();
-    if (state) {
-      mode = ScreenMode.BOTH;
-    }
-    else {
-      mode = ScreenMode.BLUEPRINT_ONLY;
-    }
-    mySurface.setScreenMode(mode, true);
+    mySurface.setScreenMode(ScreenMode.SCREEN_ONLY, true);
   }
 }
