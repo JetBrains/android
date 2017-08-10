@@ -84,7 +84,8 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY,
+                                               false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -124,7 +125,8 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, EMPTY_FILE_ARRAY,
+                                               false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);

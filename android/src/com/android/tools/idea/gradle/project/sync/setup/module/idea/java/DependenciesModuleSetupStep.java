@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
@@ -37,6 +39,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.facet.gradle.GradleFacet.getFacetTypeId;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -93,7 +96,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
         ModuleOrderEntry entry = moduleModel.addModuleOrderEntry(found);
-        entry.setExported(dependency.isExported());
+        entry.setExported(getExported(module, modelsProvider));
       }
       else {
         // If it depends on an android module, we should skip that.
@@ -119,7 +122,26 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
 
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, binaryPath, dependency.getSourcePath(),
-                                               dependency.getJavadocPath());
+                                               dependency.getJavadocPath(), getExported(module, modelsProvider));
+  }
+
+
+  private static boolean getExported(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    // For gradle earlier than 2.14, jetbrain's java plugin doesn't return transitive dependencies, need to always export dependencies.
+    // For gradle 2.14 and newer, plugin returns both of direct and transitive dependencies, set export to false.
+    GradleFacet gradleFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(getFacetTypeId());
+    assert gradleFacet != null : "Cannot find GradleFacet for module " + module.getName();
+    return getExported(gradleFacet);
+  }
+
+  @VisibleForTesting
+  static boolean getExported(@NotNull GradleFacet gradleFacet) {
+    if (gradleFacet.getGradleModuleModel() == null ||
+        gradleFacet.getGradleModuleModel().getGradleVersion() == null) {
+      return true;
+    }
+    GradleVersion version = GradleVersion.tryParse(gradleFacet.getGradleModuleModel().getGradleVersion());
+    return version == null || !version.isAtLeast(2, 14, 0);
   }
 
   @NotNull

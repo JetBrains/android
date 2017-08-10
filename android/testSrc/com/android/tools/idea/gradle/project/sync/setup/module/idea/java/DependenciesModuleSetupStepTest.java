@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -29,8 +32,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.project.sync.setup.module.idea.java.DependenciesModuleSetupStep.getExported;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -53,23 +59,32 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     mySetupStep = new DependenciesModuleSetupStep(myDependenciesSetup);
   }
 
-  public void testSetUpModuleDependency() {
-    String exportableModuleName = "exportableLib";
-    String nonExportableModuleName = "nonExportableLib";
+  public void testSetUpModuleDependencyWithGradle3dot5() {
+    // Verify that module dependency is not exported for gradle 3.5.
+    verifySetupModuleDependency("3.5", false);
+  }
+
+  public void testSetUpModuleDependencyWithGradle2dot2() {
+    // Verify that module dependency is exported for gradle 2.2.
+    verifySetupModuleDependency("2.2", true);
+  }
+
+  private void verifySetupModuleDependency(@NotNull String gradleVersion, boolean exported) {
+    String moduleName = "myLib";
 
     // These are the modules to add as dependency.
-    createModule(exportableModuleName);
-    createModule(nonExportableModuleName);
+    createModule(moduleName);
 
-    JavaModuleDependency exportableModuleDependency = new JavaModuleDependency(exportableModuleName, "compile", true);
-    JavaModuleDependency nonExportableModuleDependency = new JavaModuleDependency(nonExportableModuleName, "compile", false);
+    JavaModuleDependency exportableModuleDependency = new JavaModuleDependency(moduleName, "compile", true);
 
     Collection<JavaModuleDependency> moduleDependencies = new ArrayList<>();
     moduleDependencies.add(exportableModuleDependency);
-    moduleDependencies.add(nonExportableModuleDependency);
 
     when(myJavaModuleModel.getJavaModuleDependencies()).thenReturn(moduleDependencies); // We only want module dependencies
     when(myJavaModuleModel.getJarLibraryDependencies()).thenReturn(Collections.emptyList());
+
+    // Create GradleFacet and GradleModuleModel.
+    createGradleFacetWithModuleModel(gradleVersion);
 
     Module mainModule = getModule();
     mySetupStep.setUpModule(mainModule, myModelsProvider, myJavaModuleModel, null, null);
@@ -78,12 +93,40 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 
     // See https://code.google.com/p/android/issues/detail?id=225923
-    assertAbout(moduleDependencies()).that(mainModule).hasDependency(exportableModuleName, COMPILE, true /* exported */);
-    assertAbout(moduleDependencies()).that(mainModule).hasDependency(nonExportableModuleName, COMPILE, false /* not exported */);
+    assertAbout(moduleDependencies()).that(mainModule).hasDependency(moduleName, COMPILE, exported);
   }
 
   public void testInvokeOnSkippedSync() {
     // Make sure this step is called even when sync was skipped see b/62292929
     assertTrue(mySetupStep.invokeOnSkippedSync());
+  }
+
+  public void testGetExportedWithoutModel() {
+    // Verify exported is true when GradleModuleModel is null.
+    assertTrue(getExported(createAndAddGradleFacet(myModule)));
+  }
+
+  public void testGetExportedWithGradle2_2() {
+    // Verify exported is true when gradle version is 2.2.
+    assertTrue(getExported(createGradleFacetWithModuleModel("2.2")));
+  }
+
+  public void testGetExportedWithGradle2_14() {
+    // Verify exported is false when gradle version is 2.14.
+    assertFalse(getExported(createGradleFacetWithModuleModel("2.14")));
+  }
+
+  public void testGetExportedWithGradle3_5() {
+    // Verify exported is false when gradle version is 3.5.
+    assertFalse(getExported(createGradleFacetWithModuleModel("3.5")));
+  }
+
+  @NotNull
+  private GradleFacet createGradleFacetWithModuleModel(@NotNull String modelVersion) {
+    GradleFacet facet = createAndAddGradleFacet(myModule);
+    GradleModuleModel gradleModuleModel = mock(GradleModuleModel.class);
+    facet.setGradleModuleModel(gradleModuleModel);
+    when(gradleModuleModel.getGradleVersion()).thenReturn(modelVersion);
+    return facet;
   }
 }
