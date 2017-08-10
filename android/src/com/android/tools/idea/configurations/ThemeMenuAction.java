@@ -19,7 +19,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ public class ThemeMenuAction extends AnAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Theme in Editor");
-    presentation.setIcon(AndroidIcons.NeleIcons.Theme);
+    presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     updatePresentation(presentation);
   }
 

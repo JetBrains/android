@@ -23,6 +23,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredListCellRenderer;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -125,7 +126,7 @@ public class FontEnumSupportTest extends AndroidTestCase {
   public void testCustomizeCellRendererWithDownloadableFont() {
     ColoredListCellRenderer<ValueWithDisplayString> renderer = new MyRenderer();
     mySupport.customizeCellRenderer(renderer, new ValueWithDisplayString("roboto", "@font/roboto"), false);
-    assertThat(renderer.getIcon()).isSameAs(AndroidIcons.NeleIcons.Link);
+    assertThat(renderer.getIcon()).isSameAs(StudioIcons.Common.LINK);
   }
 
   public void testCustomizeCellRendererWithErrorFont() {
