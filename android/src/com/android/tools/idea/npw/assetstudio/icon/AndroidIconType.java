@@ -50,20 +50,6 @@ public enum AndroidIconType {
   }
 
   @NotNull
-  public static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
-    switch (iconType) {
-      case LAUNCHER:
-        return new AndroidLauncherIconGenerator(minSdkVersion);
-      case ACTIONBAR:
-        return new AndroidActionBarIconGenerator(minSdkVersion);
-      case NOTIFICATION:
-        return new AndroidNotificationIconGenerator(minSdkVersion);
-    }
-
-    throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);
-  }
-
-  @NotNull
   public String getDisplayName() {
     return myDisplayName;
   }

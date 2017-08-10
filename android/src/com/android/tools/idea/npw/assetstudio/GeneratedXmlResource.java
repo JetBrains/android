@@ -17,10 +17,11 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
+
 import java.nio.file.Path;
 
 /** A {@link GeneratedIcon} that is defined by an XML document. */
-public class GeneratedXmlResource extends GeneratedIcon {
+public final class GeneratedXmlResource extends GeneratedIcon {
     @NonNull private final String name;
     @NonNull private final Path outputPath;
     @NonNull private final IconCategory category;

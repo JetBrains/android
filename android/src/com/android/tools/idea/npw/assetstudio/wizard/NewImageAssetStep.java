@@ -40,7 +40,7 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
     super(model, "Configure Image Asset");
     AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
     AndroidVersion targetSdkVersion = AndroidModuleInfo.getInstance(facet).getTargetSdkVersion();
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, model.getPaths(), minSdkVersion, targetSdkVersion);
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths(), minSdkVersion, targetSdkVersion);
     myFacet = facet;
   }
 
