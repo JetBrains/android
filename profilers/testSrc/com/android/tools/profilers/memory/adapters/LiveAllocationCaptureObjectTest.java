@@ -186,6 +186,68 @@ public class LiveAllocationCaptureObjectTest {
   }
 
   @Test
+  public void testSelectionWithFilter() throws Exception {
+    // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
+    boolean[] loadSuccess = new boolean[1];
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA,
+                                                                          APP_ID,
+                                                                          CAPTURE_START_TIME,
+                                                                          LOAD_SERVICE,
+                                                                          myStage);
+
+    // Heap set should start out empty.
+    HeapSet heapSet = capture.getHeapSet(LiveAllocationCaptureObject.DEFAULT_HEAP_ID);
+    assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
+    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+    myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+
+
+    Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
+    loadSuccess[0] = false;
+    capture.load(loadRange, LOAD_JOINER);
+    // Filter with "Foo"
+    Queue<String> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    heapSet.selectFilter("Foo");
+    assertThat(loadSuccess[0]).isTrue();
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+
+    //Filter with "Bar"
+    heapSet.selectFilter("Bar");
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 1, 4, 1, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+
+    // Reset filter
+    heapSet.selectFilter("");
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 2, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "This", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_0_to_4.add(" " + String.format(NODE_FORMAT, "That", 2, 1, 2, 2, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Is", 1, 1, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_0_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+  }
+
+
+  @Test
   public void testSelectionMinChanges() throws Exception {
     // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
     boolean[] loadSuccess = new boolean[1];

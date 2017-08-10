@@ -28,6 +28,7 @@ public class HeapSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
   @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
+  @NotNull private String myFilter = "";
 
   public HeapSet(@NotNull CaptureObject captureObject, @NotNull String heapName, int id) {
     super(heapName);
@@ -48,10 +49,33 @@ public class HeapSet extends ClassifierSet {
     myInstances.clear();
     myClassifier = null;
     myInstances.addAll(descendantsStream);
+
+    if (!myFilter.equals("")) {
+      applyFilter();
+    }
   }
 
   public int getId() {
     return myId;
+  }
+
+  // Select and apply the filter if it is different from previous one.
+  // Calling selectFilter() on the same String would not filter newly added ClassSets, please call applyFilter() instead.
+  public void selectFilter(@NotNull String filter) {
+    if (!filter.equals(myFilter)) {
+      myFilter = filter;
+      applyFilter();
+    }
+  }
+
+  @NotNull
+  public String getFilter() {
+    return myFilter;
+  }
+
+  // Filter child ClassSets based on current selected filter string
+  public void applyFilter() {
+    applyFilter(myFilter);
   }
 
   @NotNull

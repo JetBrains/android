@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -26,7 +25,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -34,6 +32,7 @@ import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -45,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
-import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
@@ -64,20 +62,20 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testToggleAllocationTrackingFailedStatuses() throws Exception {
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
   }
 
@@ -92,17 +90,17 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true);
-    assertEquals(true, myStage.isTrackingAllocations());
-    assertEquals(null, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
     myStage.trackAllocations(true);
-    assertEquals(true, myStage.isTrackingAllocations());
-    assertEquals(null, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Stops the tracking session.
@@ -110,9 +108,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                          infoStart, infoEnd, true);
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(null, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
@@ -123,20 +121,20 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Advancing time (data range) should trigger MemoryProfilerStage to select the capture.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
+    Truth.assertThat(myStage.getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getSelectedCapture();
-    assertFalse(capture.isDoneLoading());
-    assertFalse(capture.isError());
+    Truth.assertThat(capture.isDoneLoading()).isFalse();
+    Truth.assertThat(capture.isError()).isFalse();
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
 
     // Finish the load task.
     myMockLoader.runTask();
-    assertEquals(capture, myStage.getSelectedCapture());
-    assertTrue(capture.isDoneLoading());
-    assertFalse(capture.isError());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(capture);
+    Truth.assertThat(capture.isDoneLoading()).isTrue();
+    Truth.assertThat(capture.isError()).isFalse();
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test
@@ -147,16 +145,16 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Test the no-action cases
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.FAILURE_UNKNOWN);
     myStage.requestHeapDump();
-    assertNull(myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.IN_PROGRESS);
     myStage.requestHeapDump();
-    assertNull(myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.UNSPECIFIED);
     myStage.requestHeapDump();
-    assertNull(myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(5, 10);
@@ -175,9 +173,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture0)),
                                   null);
-    assertEquals(capture0, myStage.getSelectedCapture());
-    assertNotNull(myStage.getSelectedHeapSet());
-    assertEquals("default", myStage.getSelectedHeapSet().getName());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(capture0);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNotNull();
+    Truth.assertThat(myStage.getSelectedHeapSet().getName()).isEqualTo("default");
 
     FakeCaptureObject capture1 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
     instanceObject = new FakeInstanceObject.Builder(capture1, "DUMMY_CLASS1").setHeapId(1).build();
@@ -185,9 +183,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture1)),
                                   null);
-    assertEquals(capture1, myStage.getSelectedCapture());
-    assertNotNull(myStage.getSelectedHeapSet());
-    assertEquals("app", myStage.getSelectedHeapSet().getName());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(capture1);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNotNull();
+    Truth.assertThat(myStage.getSelectedHeapSet().getName()).isEqualTo("app");
 
     FakeCaptureObject capture2 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
     instanceObject = new FakeInstanceObject.Builder(capture2, "DUMMY_CLASS1").setHeapId(0).build();
@@ -196,9 +194,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture2)),
                                   null);
-    assertEquals(capture2, myStage.getSelectedCapture());
-    assertNotNull(myStage.getSelectedHeapSet());
-    assertEquals("app", myStage.getSelectedHeapSet().getName());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(capture2);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNotNull();
+    Truth.assertThat(myStage.getSelectedHeapSet().getName()).isEqualTo("app");
   }
 
   @Test
@@ -213,9 +211,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
                              null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(startTimeUs, selectionRange.getMin(), 0);
-    assertEquals(endTimeUs, selectionRange.getMax(), 0);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat((long)selectionRange.getMin()).isEqualTo(startTimeUs);
+    Truth.assertThat((long)selectionRange.getMax()).isEqualTo(endTimeUs);
   }
 
   @Test
@@ -231,15 +229,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
                              null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertNull(myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNull();
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
@@ -247,91 +245,100 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
                              null);
     myMockLoader.runTask();
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertNotNull(myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNotNull();
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
-    assertNotNull(heapSet);
+    Truth.assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectHeapSet(heapSet);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    myStage.selectCaptureFilter("Filter");
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
+    Truth.assertThat(myStage.getCaptureFilter()).isEqualTo("Filter");
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
+
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
-    assertEquals(ARRANGE_BY_PACKAGE, myStage.getConfiguration().getClassGrouping());
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0, 0);
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 0, 0, 0);
 
     ClassifierSet classifierSet = heapSet.findContainingClassifierSet(mockInstance);
-    assertTrue(classifierSet instanceof ClassSet);
+    Truth.assertThat(classifierSet).isInstanceOf(ClassSet.class);
     ClassSet classSet = (ClassSet)classifierSet;
     myStage.selectClassSet(classSet);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertEquals(classSet, myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isEqualTo(classSet);
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0, 0);
 
     myStage.selectClassSet(classSet);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertEquals(classSet, myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isEqualTo(classSet);
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     myStage.selectInstanceObject(mockInstance);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertEquals(classSet, myStage.getSelectedClassSet());
-    assertEquals(mockInstance, myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isEqualTo(classSet);
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isEqualTo(mockInstance);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1, 0);
 
     myStage.selectInstanceObject(mockInstance);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertEquals(classSet, myStage.getSelectedClassSet());
-    assertEquals(mockInstance, myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isEqualTo(classSet);
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isEqualTo(mockInstance);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     // Test the reverse direction, to make sure children MemoryObjects are nullified in the selection.
     myStage.selectClassSet(null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertEquals(heapSet, myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isEqualTo(heapSet);
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 1, 0);
 
     // However, if a selection didn't change (e.g. null => null), it shouldn't trigger an aspect change either.
     myStage.selectHeapSet(null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
-    assertNull(myStage.getSelectedHeapSet());
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNull(myStage.getSelectedClassSet());
-    assertNull(myStage.getSelectedInstanceObject());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(captureObject);
+    Truth.assertThat(myStage.getSelectedHeapSet()).isNull();
+    Truth.assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    Truth.assertThat(myStage.getSelectedClassSet()).isNull();
+    Truth.assertThat(myStage.getSelectedInstanceObject()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 1, 0, 0, 0);
   }
 
@@ -343,21 +350,21 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
                              null);
-    assertEquals(mockCapture1, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture1);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture2)),
                              null);
-    assertEquals(mockCapture2, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture2);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
-    assertEquals(mockCapture2, myStage.getSelectedCapture());
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture2);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0, 0);
   }
 
@@ -374,16 +381,17 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
                              null);
-    assertEquals(mockCapture1, myStage.getSelectedCapture());
-    assertEquals(startTimeUs, selectionRange.getMin(), 0);
-    assertEquals(endTimeUs, selectionRange.getMax(), 0);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(mockCapture1);
+
+    Truth.assertThat((long)selectionRange.getMin()).isEqualTo(startTimeUs);
+    Truth.assertThat((long)selectionRange.getMax()).isEqualTo(endTimeUs);
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
-    assertEquals(null, myStage.getSelectedCapture());
-    assertTrue(selectionRange.isEmpty());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
+    Truth.assertThat(selectionRange.isEmpty()).isTrue();
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 0, 0, 0, 0);
   }
 
@@ -408,13 +416,13 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     DetailedMemoryUsage usage = myStage.getDetailedMemoryUsage();
     SeriesLegend objectLegend = legends.getObjectsLegend();
     RangedContinuousSeries objectSeries = usage.getObjectsSeries();
-    assertTrue(legends.getLegends().stream().noneMatch(legend -> legend == objectLegend));
-    assertTrue(usage.getSeries().stream().noneMatch(series -> series == objectSeries));
+    Truth.assertThat(legends.getLegends().stream().noneMatch(legend -> legend == objectLegend)).isTrue();
+    Truth.assertThat(usage.getSeries().stream().noneMatch(series -> series == objectSeries)).isTrue();
 
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertTrue(legends.getLegends().stream().anyMatch(legend -> legend == objectLegend));
-    assertTrue(usage.getSeries().stream().anyMatch(series -> series == objectSeries));
+    Truth.assertThat(legends.getLegends().stream().anyMatch(legend -> legend == objectLegend)).isTrue();
+    Truth.assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
   }
 
   @Test
@@ -433,30 +441,30 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setMemoryData(memoryData);
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
-    assertEquals("Java", legends.getJavaLegend().getName());
-    assertEquals("10KB", legends.getJavaLegend().getValue());
+    Truth.assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
+    Truth.assertThat(legends.getJavaLegend().getValue()).isEqualTo("10KB");
 
-    assertEquals("Native", legends.getNativeLegend().getName());
-    assertEquals("20KB", legends.getNativeLegend().getValue());
+    Truth.assertThat(legends.getNativeLegend().getName()).isEqualTo("Native");
+    Truth.assertThat(legends.getNativeLegend().getValue()).isEqualTo("20KB");
 
-    assertEquals("Graphics", legends.getGraphicsLegend().getName());
-    assertEquals("30KB", legends.getGraphicsLegend().getValue());
+    Truth.assertThat(legends.getGraphicsLegend().getName()).isEqualTo("Graphics");
+    Truth.assertThat(legends.getGraphicsLegend().getValue()).isEqualTo("30KB");
 
-    assertEquals("Stack", legends.getStackLegend().getName());
-    assertEquals("40KB", legends.getStackLegend().getValue());
+    Truth.assertThat(legends.getStackLegend().getName()).isEqualTo("Stack");
+    Truth.assertThat(legends.getStackLegend().getValue()).isEqualTo("40KB");
 
-    assertEquals("Code", legends.getCodeLegend().getName());
-    assertEquals("50KB", legends.getCodeLegend().getValue());
+    Truth.assertThat(legends.getCodeLegend().getName()).isEqualTo("Code");
+    Truth.assertThat(legends.getCodeLegend().getValue()).isEqualTo("50KB");
 
-    assertEquals("Others", legends.getOtherLegend().getName());
-    assertEquals("60KB", legends.getOtherLegend().getValue());
+    Truth.assertThat(legends.getOtherLegend().getName()).isEqualTo("Others");
+    Truth.assertThat(legends.getOtherLegend().getValue()).isEqualTo("60KB");
   }
 
   @Test
   public void testSelectLatestCaptureDisabled() throws Exception {
     myStage.enableSelectLatestCapture(false, null);
     myMockLoader.setReturnImmediateFuture(true);
-    assertNull(myStage.getSelectedCapture());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
 
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
@@ -467,8 +475,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                          infoStart, infoEnd, true);
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(null, myStage.getSelectedCapture());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
     myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
@@ -479,16 +487,16 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Advancing time (data range) - MemoryProfilerStage should not select the capture since the feature is disabled.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertNull(myStage.getSelectedCapture());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test
   public void testSelectLatestCaptureEnabled() throws Exception {
     myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
     myMockLoader.setReturnImmediateFuture(true);
-    assertNull(myStage.getSelectedCapture());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
 
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
@@ -499,8 +507,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                          infoStart, infoEnd, true);
     myStage.trackAllocations(false);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(null, myStage.getSelectedCapture());
+    Truth.assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
+    Truth.assertThat(myStage.getSelectedCapture()).isEqualTo(null);
     myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
 
     // Prepares an unfinished AllocationsInfo with the correct start time in the FakeMemoryService.
@@ -511,9 +519,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Advancing time (data range) - stage should not select it yet since the tracking session has not finished
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertNull(myStage.getSelectedCapture());
+    Truth.assertThat(myStage.getSelectedCapture()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
     // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
@@ -522,8 +530,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Advancing time (data range) - stage should select it since the tracking session is now done.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
+    Truth.assertThat(myStage.getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 1, 0, 0, 0);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 }

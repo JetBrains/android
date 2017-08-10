@@ -82,6 +82,8 @@ final class MemoryClassifierView extends AspectObserver {
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
+  @NotNull private String myFilter = "";
+
   public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
@@ -95,7 +97,8 @@ final class MemoryClassifierView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping);
+      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
+      .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -203,6 +206,13 @@ final class MemoryClassifierView extends AspectObserver {
     }
   }
 
+  private void refreshFilter() {
+    if (myHeapSet != null) {
+      myHeapSet.selectFilter(myStage.getCaptureFilter());
+      refreshTree();
+    }
+  }
+
   private void refreshCapture() {
     myCaptureObject = myStage.getSelectedCapture();
     if (myCaptureObject == null) {
@@ -307,6 +317,10 @@ final class MemoryClassifierView extends AspectObserver {
       return;
     }
 
+    if (myHeapSet.getFilter() != "") {
+      myHeapSet.applyFilter();
+    }
+
     assert myTreeRoot != null;
     myTreeRoot.reset();
     myTreeRoot.expandNode();
@@ -344,6 +358,8 @@ final class MemoryClassifierView extends AspectObserver {
     myHeapSet = heapSet;
 
     if (myHeapSet != null) {
+      myHeapSet.selectFilter(myStage.getCaptureFilter());
+      myHeapSet.applyFilter();
       refreshGrouping();
     }
   }

@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.stacktrace.*;
+import com.intellij.ui.TextFieldWithHistory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,7 +134,23 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public AutoCompleteTextField createAutoCompleteTextField(@Nullable String placeHolder,
                                                            @Nullable String value,
                                                            @Nullable Collection<String> variants) {
-    return null;
+    return new AutoCompleteTextField() {
+      final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return DEFAULT_COMPONENT;
+      }
+
+      @Override
+      public void addOnDocumentChange(@NotNull Runnable callback) {}
+
+      @NotNull
+      @Override
+      public String getText() {
+        return "";
+      }
+    };
   }
 
   public static final class StackTraceViewStub implements StackTraceView {
