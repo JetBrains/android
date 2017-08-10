@@ -20,7 +20,7 @@ import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -54,7 +54,7 @@ public final class TextAsset extends BaseAsset {
    */
   @NotNull
   public static List<String> getAllFontFamilies() {
-    return Lists.newArrayList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+    return ImmutableList.copyOf(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
   }
 
   /**

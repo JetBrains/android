@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import com.android.resources.Density;
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcons;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
-import com.android.tools.adtui.ImageComponent;
 import com.android.utils.Pair;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.primitives.Ints;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -50,11 +48,10 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("UseJBColor")
 public class PreviewIconsPanel extends JPanel {
-
-  public static final String GENERATED_IMAGE_KEY = "GeneratedImage";
+  private static final String GENERATED_IMAGE_KEY = "GeneratedImage";
 
   @NotNull private final Theme myTheme;
-  @NotNull private final Map<String, ImageComponent> myIconImages = Maps.newHashMap();
+  @NotNull private final Map<String, ImageComponent> myIconImages = new HashMap<>();
 
   @Nullable private CategoryIconMap.Filter myFilter;
 
@@ -81,7 +78,7 @@ public class PreviewIconsPanel extends JPanel {
     myFilter = filter;
   }
 
-  protected static void showPreviewImageImpl(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
+  private static void showPreviewImageImpl(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
     // Store the original image as a property to ensure we can get it later when
     // displayed in the other preview panel.
     imageComponent.putClientProperty(GENERATED_IMAGE_KEY, sourceImage);
@@ -93,10 +90,9 @@ public class PreviewIconsPanel extends JPanel {
   }
 
   /**
-   * Returns the list of generated preview images. This is a temporary method until the deprecated
-   * new image asset wizard ({@link com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated}) is
-   * replaced with the new one ({@link com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep}).
+   * Returns the list of generated preview images.
    */
+  // TODO  Renaud Paquay wrote that this method could be removed, but it's not clear to me what to replace it with.
   @NotNull
   public List<IconPreviewInfo> getIconPreviewInfos() {
     List<IconPreviewInfo> result = new ArrayList<>();
@@ -216,7 +212,7 @@ public class PreviewIconsPanel extends JPanel {
       @Override
       public int compare(Density left, Density right) {
         // The lower the enum index, the higher the density
-        return Ints.compare(left.ordinal(), right.ordinal());
+        return Integer.compare(left.ordinal(), right.ordinal());
       }
     };
     densities = densityOrdering.immutableSortedCopy(densities);

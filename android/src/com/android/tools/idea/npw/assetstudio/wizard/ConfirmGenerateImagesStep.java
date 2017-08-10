@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -32,13 +33,12 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.utils.XmlUtils;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -54,6 +54,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -63,14 +64,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
 public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
-
   private static final DefaultTreeModel EMPTY_MODEL = new DefaultTreeModel(null);
 
   private final ValidatorPanel myValidatorPanel;
@@ -99,7 +102,11 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myDetailsGridContainer;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  private JPanel myDensityRow;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel mySizeDetailsRow;
+  @SuppressWarnings("unused") // Defined to make things clearer in UI designer
+  private JPanel mySizePxRow;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myDetailsPanel;
   private JPanel myImagePreviewPanel;
@@ -169,7 +176,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
       GeneratedIcon generatedIcon = myNodeToPreviewImage.get(node);
       if (generatedIcon instanceof GeneratedImageIcon) {
-        BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();
+        GeneratedImageIcon generatedImageIcon = (GeneratedImageIcon)generatedIcon;
+        BufferedImage image = generatedImageIcon.getImage();
         ImageIcon icon = new ImageIcon(image);
         myPreviewIcon.setIcon(icon);
         myPreviewIcon.setVisible(true);
@@ -185,46 +193,71 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
         mySizePxTextField.setText(String.format("%dx%d", icon.getIconWidth(), icon.getIconHeight()));
 
-        Density density = ((GeneratedImageIcon)generatedIcon).getDensity();
+        Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
         float scaleFactor = GraphicGenerator.getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
-          String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
+            String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
+        mySizeDetailsRow.setVisible(true);
+        mySizePxRow.setVisible(true);
         myImagePreviewPanel.setVisible(true);
         myXmlPreviewPanel.setVisible(false);
         return;
       }
       else if (generatedIcon instanceof GeneratedXmlResource) {
         GeneratedXmlResource xml = (GeneratedXmlResource)generatedIcon;
+        String xmlText = xml.getXmlText();
+        BufferedImage image = getPreviewImage(xml);
+        if (image == null) {
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            if (myEditorFactory == null) {
+              myEditorFactory = EditorFactory.getInstance();
+            }
 
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          if (myEditorFactory == null) {
-            myEditorFactory = EditorFactory.getInstance();
+            if (myXmlPreviewDocument == null) {
+              myXmlPreviewDocument = myEditorFactory.createDocument("");
+            }
+            myXmlPreviewDocument.setReadOnly(false);
+            myXmlPreviewDocument.setText(xmlText);
+            myXmlPreviewDocument.setReadOnly(true);
+
+            if (myFilePreviewEditor == null) {
+              myFilePreviewEditor = (EditorEx)myEditorFactory.createViewer(myXmlPreviewDocument);
+              myFilePreviewEditor.setCaretVisible(false);
+              myFilePreviewEditor.getSettings().setLineNumbersShown(false);
+              myFilePreviewEditor.getSettings().setLineMarkerAreaShown(false);
+              myFilePreviewEditor.getSettings().setFoldingOutlineShown(false);
+              myFilePreviewEditor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, StdFileTypes.XML));
+              myXmlPreviewPanel.removeAll();
+              myXmlPreviewPanel.add(myFilePreviewEditor.getComponent());
+            }
+          });
+
+          myImagePreviewPanel.setVisible(false);
+          myXmlPreviewPanel.setVisible(true);
+        }
+        else {
+          ImageIcon icon = new ImageIcon(image);
+          myPreviewIcon.setIcon(icon);
+          String drawableType = getDrawableType(xmlText);
+          myFileTypeTextField.setText(drawableType);
+          myPreviewIcon.setVisible(true);
+          myDensityTextField.setText(Density.ANYDPI.getShortDisplayValue());
+          Dimension dpSize = getDpSize(xml);
+          if (dpSize == null) {
+            mySizeDetailsRow.setVisible(false);
           }
-
-          if (myXmlPreviewDocument == null) {
-            myXmlPreviewDocument = myEditorFactory.createDocument("");
+          else {
+            mySizeDpTextField.setText(String.format("%dx%d", dpSize.width, dpSize.height));
+            mySizeDetailsRow.setVisible(true);
           }
-          myXmlPreviewDocument.setReadOnly(false);
-          myXmlPreviewDocument.setText(xml.getXmlText());
-          myXmlPreviewDocument.setReadOnly(true);
+          mySizePxRow.setVisible(false);
+          myImagePreviewPanel.setVisible(true);
+          myXmlPreviewPanel.setVisible(false);
+        }
 
-          if (myFilePreviewEditor == null) {
-            myFilePreviewEditor = (EditorEx)myEditorFactory.createViewer(myXmlPreviewDocument);
-            myFilePreviewEditor.setCaretVisible(false);
-            myFilePreviewEditor.getSettings().setLineNumbersShown(false);
-            myFilePreviewEditor.getSettings().setLineMarkerAreaShown(false);
-            myFilePreviewEditor.getSettings().setFoldingOutlineShown(false);
-            myFilePreviewEditor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, StdFileTypes.XML));
-            myXmlPreviewPanel.removeAll();
-            myXmlPreviewPanel.add(myFilePreviewEditor.getComponent());
-          }
-        });
-
-        myImagePreviewPanel.setVisible(false);
-        myXmlPreviewPanel.setVisible(true);
         return;
       }
     }
@@ -241,6 +274,55 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     // the tree.
     myImagePreviewPanel.setVisible(true);
     myXmlPreviewPanel.setVisible(false);
+  }
+
+  @NotNull
+  private static String getDrawableType(@NotNull String xmlText) {
+    String tagName = XmlUtils.getRootTagName(xmlText);
+    if (tagName != null) {
+      switch (tagName) {
+        case "vector":
+          return "Vector Drawable";
+        case "shape":
+          return "Shape Drawable";
+        case "bitmap":
+          return "Bitmap Drawable";
+        case "layer-list":
+          return "Layer List";
+      }
+    }
+    return "Drawable";
+  }
+
+  @Nullable
+  private static Dimension getDpSize(@NotNull GeneratedXmlResource xml) {
+    IconCategory xmlCategory = xml.getCategory();
+    if (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER) {
+      return AdaptiveIconGenerator.SIZE_FULL_BLEED_DP;
+    }
+    return null;
+  }
+
+  @Nullable
+  private BufferedImage getPreviewImage(@NotNull GeneratedXmlResource xml) {
+    String xmlText = xml.getXmlText();
+    AndroidIconGenerator generator = getModel().getIconGenerator();
+    IconCategory xmlCategory = xml.getCategory();
+    if (generator != null
+        && (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER)) {
+      GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
+      // Use the same scale as a full bleed preview at xhdpi (see AdaptiveIconGenerator.generatePreviewImage).
+      Rectangle rectangle =
+          AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, GraphicGenerator.getMdpiScaleFactor(Density.XHIGH) * 0.8f);
+      ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
+      try {
+        return imageFuture.get();
+      }
+      catch (InterruptedException | ExecutionException e) {
+        // Ignore.
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -276,13 +358,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       }
 
       myNodeToPreviewImage.clear();
-      final Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(sourceSet.getPaths());
+      Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(sourceSet.getPaths());
       myFilesAlreadyExist.set(false);
 
       // Create a FileTreeModel containing all generated files
       FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
-      for (File path : pathIconMap.keySet()) {
-        GeneratedIcon icon = pathIconMap.get(path);
+      for (Map.Entry<File, GeneratedIcon> entry : pathIconMap.entrySet()) {
+        File path = entry.getKey();
+        GeneratedIcon icon = entry.getValue();
 
         if (path.exists()) {
           myFilesAlreadyExist.set(true);

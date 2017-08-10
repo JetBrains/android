@@ -231,7 +231,7 @@ public final class ImageDiffUtil {
 
     String error = null;
     if (percentDifference > maxPercentDifferent) {
-      error = String.format("Images differ (by %.1f%%)", percentDifference);
+      error = String.format("Images differ (by %.2g%%)", percentDifference);
     } else if (Math.abs(goldenImage.getWidth() - image.getWidth()) >= 2) {
       error = "Widths differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
               "vs" + image.getWidth() + "x" + image.getHeight();

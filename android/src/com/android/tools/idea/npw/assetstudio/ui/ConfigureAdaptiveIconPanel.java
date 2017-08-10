@@ -15,31 +15,32 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.observable.ui.*;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
@@ -51,21 +52,18 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -79,19 +77,11 @@ import java.util.Map;
  * {@link AndroidAdaptiveIconType}.
  */
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView {
-
-  /**
-   * Source material icons are provided in a vector graphics format, but their default resolution
-   * is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
-   * a fair bit.
-   */
-  private static final Dimension CLIPART_RESOLUTION = new Dimension(250, 250);
-  /**
-   * 108x108dp at XXXHDPI is 432x432px
-   */
+  private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
+  /** 108x108dp at XXXHDPI is 432x432px. */
   private static final Dimension LAYER_RESOLUTION = new Dimension(432, 432);
 
-  @NotNull private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
+  @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   @NotNull private final AndroidVersion myTargetSdkVersion;
   @NotNull private final BoolProperty myShowGridProperty;
@@ -115,7 +105,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private final StringProperty myForegroundLayerName;
   private final StringProperty myBackgroundLayerName;
 
-  private final ImmutableMap<JRadioButton, ? extends AssetComponent> myForegroundAssetPanelMap;
+  private final ImmutableMap<JRadioButton, AssetComponent> myForegroundAssetPanelMap;
 
   private final Map<GraphicGenerator.Shape, String> myShapeNames = ImmutableMap.of(
     GraphicGenerator.Shape.NONE, "None",
@@ -132,7 +122,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myForegroundClipartRadioButton;
   private JRadioButton myForegroundTextRadioButton;
   private JRadioButton myForegroundImageRadioButton;
-  private JRadioButton myForegroundTrimmedRadioButton;
+  private JRadioButton myForegroundTrimYesRadioButton;
+  private JRadioButton myForegroundTrimNoRadioButton;
   private JPanel myForegroundTrimOptionsPanel;
   private JSlider myForegroundResizeSlider;
   private JLabel myForegroundResizeValueLabel;
@@ -260,7 +251,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    * presented to the user in a combo box (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureAdaptiveIconPanel(@NotNull Disposable disposableParent,
+  public ConfigureAdaptiveIconPanel(@NotNull AndroidFacet facet,
+                                    @NotNull Disposable disposableParent,
                                     @NotNull AndroidVersion minSdkVersion,
                                     @NotNull AndroidVersion targetSdkVersion,
                                     @NotNull BoolProperty showGridProperty,
@@ -273,9 +265,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myShowGridProperty = showGridProperty;
     myShowSafeZoneProperty = showSafeZoneProperty;
     myPreviewDensityProperty = previewDensityProperty;
-    myIconGenerator =
-      (AndroidAdaptiveIconGenerator)AndroidAdaptiveIconType
-        .createIconGenerator(AndroidAdaptiveIconType.ADAPTIVE, minSdkVersion.getApiLevel());
+    myIconGenerator = new AndroidAdaptiveIconGenerator(facet, minSdkVersion.getApiLevel());
     myValidatorPanel = validatorPanel;
 
     DefaultComboBoxModel<GraphicGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
@@ -322,15 +312,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       myForegroundClipartRadioButton, myForegroundClipartAssetButton,
       myForegroundTextRadioButton, myForegroundTextAssetEditor
     );
-    myForegroundImageAssetBrowser.getAsset().imagePath().set(ImageAsset.getTemplateImage("ic_launcher_foreground.png"));
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_foreground.xml"));
     myForegroundImageAssetBrowser.getAsset().targetSize().setValue(LAYER_RESOLUTION);
     myForegroundClipartAssetButton.getAsset().targetSize().setValue(LAYER_RESOLUTION);
     myForegroundTextAssetEditor.getAsset().targetSize().setValue(LAYER_RESOLUTION);
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_background.xml"));
     myBackgroundImageAssetBrowser.getAsset().targetSize().setValue(LAYER_RESOLUTION);
 
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
-    // valid targets
+    // valid targets.
     myOutputNameLabel.setLabelFor(myOutputNameTextField);
 
     myForegroundLayerNameLabel.setLabelFor(myForegroundLayerNameTextField);
@@ -350,28 +341,25 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundResizeLabel.setLabelFor(myBackgroundResizeSliderPanel);
     myBackgroundColorLabel.setLabelFor(myBackgroundColorPanel);
     myGenerateRoundIconLabel.setLabelFor(myGenerateRoundIconRadioButtonsPanel);
-    myBackgroundColorLabel.setLabelFor(myBackgroundColorPanel);
     myLegacyIconShapeLabel.setLabelFor(myLegacyIconShapeComboBox);
     myWebIconShapeLabel.setLabelFor(myWebIconShapeComboBox);
 
-    // Default the active asset type to "clipart", it's the most visually appealing and easy to
-    // play around with.
+    // TODO Use ImageAsset for clip art.
     VectorAsset clipartAsset = myForegroundClipartAssetButton.getAsset();
-    clipartAsset.outputWidth().set(CLIPART_RESOLUTION.width);
-    clipartAsset.outputHeight().set(CLIPART_RESOLUTION.height);
-    myForegroundActiveAsset = new ObjectValueProperty<>(clipartAsset);
-    myForegroundClipartRadioButton.setSelected(true);
+    // Source material icons are provided in a vector graphics format, but their default resolution
+    // is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
+    // a fair bit.
+    clipartAsset.outputWidth().set(LAYER_RESOLUTION.width);
+    clipartAsset.outputHeight().set(LAYER_RESOLUTION.height);
 
-    // Set a reasonable default path for the background image
-    File sampleFile = createSampleBackgroundImage();
-    if (sampleFile != null) {
-      myBackgroundImageAssetBrowser.getAsset().imagePath().set(sampleFile);
-    }
-    myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
+    myForegroundImageRadioButton.setSelected(true);
+    myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
+    myForegroundColorPanel.setSelectedColor(myIconGenerator.foregroundColor().get());
 
-    // For the background layer, use a simple plain color by default
-    //myBackgroundColorRadioButton.setSelected(true);
+    // For the background layer, use a simple plain color by default.
     myBackgroundImageRadioButton.setSelected(true);
+    myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
+    myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
     initializeListenersAndBindings();
     initializeValidators();
@@ -380,27 +368,17 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     for (AssetComponent assetComponent : myForegroundAssetPanelMap.values()) {
       Disposer.register(this, assetComponent);
     }
+    Disposer.register(this, myBackgroundImageAssetBrowser);
+
     add(myRootPanel);
   }
 
-  /**
-   * Copy sample image resource to local file system so it can be imported as a file
-   */
-  @Nullable
-  private static File createSampleBackgroundImage() {
-    try {
-      BufferedImage image = GraphicGenerator.getStencilImage("/images/adaptive_icons_samples/background_layer.png");
-      if (image == null) {
-        return null;
-      }
-      Path sampleFile = getImageSamplesPath().resolve("background_layer.png");
-      Files.createDirectories(sampleFile.getParent());
-      ImageIO.write(image, "PNG", sampleFile.toFile());
-      return sampleFile.toFile();
-    }
-    catch (IOException e) {
-      return null;
-    }
+  @NotNull
+  private static File getTemplateImage(@NotNull String fileName) {
+    String resourceType = SdkUtils.endsWithIgnoreCase(fileName, ".xml") ? "drawable" : "mipmap-xxxhdpi";
+    String pathToSampleImageInTemplate =
+        FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", resourceType, fileName);
+    return new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate);
   }
 
   @NotNull
@@ -425,10 +403,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     return Paths.get(path, "AndroidStudio", "ImageAssets", "Samples");
   }
 
-
-
   private void initializeListenersAndBindings() {
-    final BoolProperty foregroundTrimmed = new SelectedProperty(myForegroundTrimmedRadioButton);
+    final BoolProperty foregroundTrimmed = new SelectedProperty(myForegroundTrimYesRadioButton);
     final BoolProperty backgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
 
     final IntProperty foregroundResizePercent = new SliderValueProperty(myForegroundResizeSlider);
@@ -451,7 +427,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
     updateBindingsAndUiForActiveIconType();
 
-    // Update foreground layer asset type depending on asset type radio buttons
+    // Update foreground layer asset type depending on asset type radio buttons.
     ActionListener radioSelectedListener = e -> {
       JRadioButton source = ((JRadioButton)e.getSource());
       AssetComponent assetComponent = myForegroundAssetPanelMap.get(source);
@@ -460,7 +436,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myForegroundClipartRadioButton.addActionListener(radioSelectedListener);
     myForegroundImageRadioButton.addActionListener(radioSelectedListener);
     myForegroundTextRadioButton.addActionListener(radioSelectedListener);
-    myForegroundImageAssetBrowser.getAsset().setImageImporter(image -> importImageAsset(image, myForegroundResizeSlider));
 
     // Update background asset depending on asset type radio buttons
     myBackgroundImageRadioButton.addActionListener(e -> myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset()));
@@ -473,36 +448,47 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       assetComponent.addAssetListener(assetPanelListener);
     }
     myBackgroundImageAssetBrowser.addAssetListener(assetPanelListener);
-    myBackgroundImageAssetBrowser.getAsset().setImageImporter(image -> importImageAsset(image, myBackgroundResizeSlider));
 
-    final Runnable onAssetModified = this::fireAssetListeners;
+    Runnable onAssetModified = this::fireAssetListeners;
     myListeners
-      .listenAll(foregroundTrimmed, foregroundResizePercent, myForegroundColor,
-                 backgroundTrimmed, backgroundResizePercent, myBackgroundColor,
-                 myGenerateLegacyIcon, myLegacyIconShape, myWebIconShape, myGenerateRoundIcon, myGenerateWebIcon)
-      .with(onAssetModified);
+        .listenAll(foregroundTrimmed, foregroundResizePercent, myForegroundColor,
+                   backgroundTrimmed, backgroundResizePercent, myBackgroundColor,
+                   myGenerateLegacyIcon, myLegacyIconShape,
+                   myGenerateRoundIcon,
+                   myGenerateWebIcon, myWebIconShape)
+        .with(onAssetModified);
 
+    BoolValueProperty foregroundIsResizable = new BoolValueProperty();
     myListeners.listenAndFire(myForegroundActiveAsset, sender -> {
       myForegroundActiveAssetBindings.releaseAll();
-      myForegroundActiveAssetBindings.bindTwoWay(foregroundTrimmed, myForegroundActiveAsset.get().trimmed());
-      myForegroundActiveAssetBindings.bindTwoWay(foregroundResizePercent, myForegroundActiveAsset.get().scalingPercent());
+      myForegroundActiveAssetBindings.bind(myForegroundActiveAsset.get().trimmed(), foregroundTrimmed);
+      myForegroundActiveAssetBindings.bind(myForegroundActiveAsset.get().scalingPercent(), foregroundResizePercent);
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, myForegroundActiveAsset.get().color());
+      myForegroundActiveAssetBindings.bind(foregroundIsResizable, myForegroundActiveAsset.get().isResizable());
 
       getIconGenerator().sourceAsset().setValue(myForegroundActiveAsset.get());
       onAssetModified.run();
     });
 
-    // When switching between Image/Color for background, bind corresponding properties and regenerate asset (to be sure)
-    myListeners.listenAndFire(myBackgroundImageAsset, sender -> {
+    BoolValueProperty backgroundIsResizable = new BoolValueProperty();
+    // When switching between Image/Color for background, bind corresponding properties and regenerate asset (to be sure).
+    Runnable onBackgroundAssetModified = () -> {
       myBackgroundActiveAssetBindings.releaseAll();
-      if (myBackgroundImageAsset.getValueOrNull() != null) {
-        myBackgroundActiveAssetBindings.bindTwoWay(backgroundTrimmed, myBackgroundImageAsset.getValue().trimmed());
-        myBackgroundActiveAssetBindings.bindTwoWay(backgroundResizePercent, myBackgroundImageAsset.getValue().scalingPercent());
+      ImageAsset imageAsset = myBackgroundImageAsset.getValueOrNull();
+      if (imageAsset != null) {
+        if (imageAsset.isResizable().get()) {
+          myBackgroundActiveAssetBindings.bind(imageAsset.trimmed(), backgroundTrimmed);
+          myBackgroundActiveAssetBindings.bind(imageAsset.scalingPercent(), backgroundResizePercent);
+        }
+        myBackgroundActiveAssetBindings.bind(backgroundIsResizable, imageAsset.isResizable());
       }
-
-      getIconGenerator().backgroundImageAsset().setNullableValue(myBackgroundImageAsset.getValueOrNull());
+      else {
+        backgroundIsResizable.set(false);
+      }
+      getIconGenerator().backgroundImageAsset().setNullableValue(imageAsset);
       onAssetModified.run();
-    });
+    };
+    myListeners.listenAndFire(myBackgroundImageAsset, sender -> onBackgroundAssetModified.run());
 
     BooleanExpression isClipartOrText =
       new BooleanExpression(myForegroundActiveAsset) {
@@ -522,56 +508,48 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     ImmutableMap.Builder<BoolProperty, ObservableBool> layoutPropertiesBuilder = ImmutableMap.builder();
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageAssetRowPanel), new SelectedProperty(myForegroundImageRadioButton));
     layoutPropertiesBuilder
-      .put(new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
+        .put(new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundTextAssetRowPanel), new SelectedProperty(myForegroundTextRadioButton));
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundColorRowPanel), isClipartOrText);
 
-    // Show either the image or the color UI controls
-    layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundImageAssetRowPanel), myBackgroundImageAsset.isPresent());
-    layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundColorRowPanel), myBackgroundImageAsset.isPresent().not());
-    layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimYesRadioButton), myBackgroundImageAsset.isPresent());
-    layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimNoRadioButton), myBackgroundImageAsset.isPresent());
-    layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeSlider), myBackgroundImageAsset.isPresent());
+    if (HIDE_INAPPLICABLE_CONTROLS) {
+      layoutPropertiesBuilder.put(new VisibleProperty(myForegroundScalingTitleSeparator), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageOptionsPanel), foregroundIsResizable);
+    } else {
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimYesRadioButton), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimNoRadioButton), foregroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeSlider), foregroundIsResizable);
+    }
+
+    // Show either the image or the color UI controls.
+    ObservableBool backgroundIsImage = new SelectedProperty(myBackgroundImageRadioButton);
+    ObservableBool backgroundIsColor = new SelectedProperty(myBackgroundColorRadioButton);
+    layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundImageAssetRowPanel), backgroundIsImage);
+    layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundColorRowPanel), backgroundIsColor);
+
+    if (HIDE_INAPPLICABLE_CONTROLS) {
+      layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundScalingTitleSeparator), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new VisibleProperty(myBackgroundImageOptionsPanel), backgroundIsResizable);
+    } else {
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimYesRadioButton), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundTrimNoRadioButton), backgroundIsResizable);
+      layoutPropertiesBuilder.put(new EnabledProperty(myBackgroundResizeSlider), backgroundIsResizable);
+    }
 
     layoutPropertiesBuilder.put(new EnabledProperty(myLegacyIconShapeComboBox), new SelectedProperty(myGenerateLegacyIconYesRadioButton));
     layoutPropertiesBuilder.put(new EnabledProperty(myWebIconShapeComboBox), new SelectedProperty(myGenerateWebIconYesRadioButton));
 
     ImmutableMap<BoolProperty, ObservableBool> layoutProperties = layoutPropertiesBuilder.build();
-    for (Map.Entry<BoolProperty, ObservableBool> e : layoutProperties.entrySet()) {
+    for (Map.Entry<BoolProperty, ObservableBool> entry : layoutProperties.entrySet()) {
       // Initialize everything off, as this makes sure the frame that uses this panel won't start
       // REALLY LARGE by default.
-      e.getKey().set(false);
-      myGeneralBindings.bind(e.getKey(), e.getValue());
+      entry.getKey().set(false);
+      myGeneralBindings.bind(entry.getKey(), entry.getValue());
     }
     myListeners.listenAll(layoutProperties.keySet()).with(() -> {
       SwingUtilities.updateComponentTreeUI(myForegroundAllOptionsPanel);
       SwingUtilities.updateComponentTreeUI(myBackgroundAllOptionsPanel);
     });
-  }
-
-  @NotNull
-  private static BufferedImage importImageAsset(@NotNull BufferedImage image, @NotNull JSlider resizeSlider) {
-    Rectangle imageRect = new Rectangle(0, 0, image.getWidth(), image.getHeight());
-    Rectangle layerRect = new Rectangle(0, 0, 108, 108);
-    Density highestDpi = Density.XXXHIGH;
-    float targetScaleFactor = GraphicGenerator.getMdpiScaleFactor(highestDpi);
-
-    // Look for best matching Density
-    for (Density density : new Density[] {Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, highestDpi}) {
-      float scaleFactor = GraphicGenerator.getMdpiScaleFactor(density);
-      Rectangle densityRect = AssetUtil.scaleRectangle(layerRect, scaleFactor);
-      if (densityRect.contains(imageRect)) {
-        resizeSlider.setValue(Math.round(100 * targetScaleFactor / scaleFactor));
-        break;
-      }
-      else if (density == highestDpi) {
-        // Image is too big for XXXHIGH, scale it down to XXXHIGH
-        scaleFactor = AssetUtil.getRectangleInsideScale(imageRect, densityRect);
-        resizeSlider.setValue(Math.round(100 * scaleFactor));
-      }
-    }
-
-    return image;
   }
 
   private void initializeValidators() {
@@ -633,6 +611,10 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
         return Validator.Result.OK;
       }
     });
+
+    //TODO: Validate background layer drawable path
+
+    //TODO: Validate foreground layer image path
   }
 
   /**
@@ -681,20 +663,19 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundImageAsset(), myBackgroundImageAsset);
 
-    AndroidAdaptiveIconGenerator adaptiveIconGenerator = myIconGenerator;
-    myGeneralBindings.bind(adaptiveIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
-    myGeneralBindings.bindTwoWay(myForegroundColor, adaptiveIconGenerator.foregroundColor());
-    myGeneralBindings.bindTwoWay(myBackgroundColor, adaptiveIconGenerator.backgroundColor());
-    myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, adaptiveIconGenerator.generateLegacyIcon());
-    myGeneralBindings.bindTwoWay(myGenerateRoundIcon, adaptiveIconGenerator.generateRoundIcon());
-    myGeneralBindings.bindTwoWay(myGenerateWebIcon, adaptiveIconGenerator.generateWebIcon());
-    myGeneralBindings.bindTwoWay(myLegacyIconShape, adaptiveIconGenerator.legacyIconShape());
-    myGeneralBindings.bindTwoWay(myWebIconShape, adaptiveIconGenerator.webIconShape());
-    myGeneralBindings.bindTwoWay(myShowGridProperty, adaptiveIconGenerator.showGrid());
-    myGeneralBindings.bindTwoWay(myShowSafeZoneProperty, adaptiveIconGenerator.showSafeZone());
-    myGeneralBindings.bindTwoWay(myPreviewDensityProperty, adaptiveIconGenerator.previewDensity());
-    myGeneralBindings.bindTwoWay(adaptiveIconGenerator.foregroundLayerName(), myForegroundLayerName);
-    myGeneralBindings.bindTwoWay(adaptiveIconGenerator.backgroundLayerName(), myBackgroundLayerName);
+    myGeneralBindings.bind(myIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
+    myGeneralBindings.bindTwoWay(myForegroundColor, myIconGenerator.foregroundColor());
+    myGeneralBindings.bindTwoWay(myBackgroundColor, myIconGenerator.backgroundColor());
+    myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, myIconGenerator.generateLegacyIcon());
+    myGeneralBindings.bindTwoWay(myGenerateRoundIcon, myIconGenerator.generateRoundIcon());
+    myGeneralBindings.bindTwoWay(myGenerateWebIcon, myIconGenerator.generateWebIcon());
+    myGeneralBindings.bindTwoWay(myLegacyIconShape, myIconGenerator.legacyIconShape());
+    myGeneralBindings.bindTwoWay(myWebIconShape, myIconGenerator.webIconShape());
+    myGeneralBindings.bindTwoWay(myShowGridProperty, myIconGenerator.showGrid());
+    myGeneralBindings.bindTwoWay(myShowSafeZoneProperty, myIconGenerator.showSafeZone());
+    myGeneralBindings.bindTwoWay(myPreviewDensityProperty, myIconGenerator.previewDensity());
+    myGeneralBindings.bindTwoWay(myIconGenerator.foregroundLayerName(), myForegroundLayerName);
+    myGeneralBindings.bindTwoWay(myIconGenerator.backgroundLayerName(), myBackgroundLayerName);
   }
 
   @Override
@@ -704,5 +685,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
     myAssetListeners.clear();
+    myIconGenerator.dispose();
   }
 }

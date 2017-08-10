@@ -20,21 +20,18 @@ import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidActionBarIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
+import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -176,7 +173,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     super(new BorderLayout());
 
     myIconType = iconType;
-    myIconGenerator = AndroidIconType.createIconGenerator(iconType, minSdkVersion);
+    myIconGenerator = createIconGenerator(iconType, minSdkVersion);
 
     DefaultComboBoxModel themesModel = new DefaultComboBoxModel(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
@@ -239,6 +236,20 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       Disposer.register(this, assetComponent);
     }
     add(myRootPanel);
+  }
+
+  @NotNull
+  private static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
+    switch (iconType) {
+      case LAUNCHER:
+        return new AndroidLauncherIconGenerator(minSdkVersion);
+      case ACTIONBAR:
+        return new AndroidActionBarIconGenerator(minSdkVersion);
+      case NOTIFICATION:
+        return new AndroidNotificationIconGenerator(minSdkVersion);
+    }
+
+    throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);
   }
 
   private void initializeListenersAndBindings() {
@@ -419,5 +430,6 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
     myAssetListeners.clear();
+    myIconGenerator.dispose();
   }
 }

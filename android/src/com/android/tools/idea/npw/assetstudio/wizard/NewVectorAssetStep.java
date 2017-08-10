@@ -16,18 +16,18 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
@@ -35,8 +35,8 @@ import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
@@ -243,6 +243,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myGeneralBindings.releaseAll();
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
+    myIconGenerator.dispose();
   }
 
   private void saveAssetPath() {
