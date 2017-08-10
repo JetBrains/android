@@ -32,6 +32,7 @@ import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
@@ -179,6 +180,20 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
     finally {
       super.tearDown();
+    }
+  }
+
+  /**
+   * This method saves the project to disk to make sure that {@link Project#getProjectFile()} doesn't return null.
+   * The implementation of {@link Project#getProjectFile()} unfortunately depends of the project (.ipr) file being
+   * saved to disk. Since saving the project is a slow operation, it would be preferable to make
+   * the {@link Project#getProjectFile()} method work regardless of whether the project file is saved or not.
+   */
+  public void makeSureThatProjectVirtualFileIsNotNull() {
+    if (getProject().getProjectFile() == null) {
+      ApplicationManagerEx.getApplicationEx().doNotSave(false);
+      getProject().save();
+      assert getProject().getProjectFile() != null;
     }
   }
 

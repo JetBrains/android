@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static org.junit.Assert.fail;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.util.AssetUtil;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
+import static org.junit.Assert.fail;
 
 /**
  * Shared test infrastructure for bitmap generator.
@@ -109,13 +108,17 @@ public final class BitmapGeneratorTests {
     assertThat(fileCount).named("number of generated files").isEqualTo(expectedFileCount);
   }
 
-  private static final GraphicGeneratorContext GRAPHIC_GENERATOR_CONTEXT = path -> {
-    try {
-      try (InputStream is = BitmapGeneratorTests.class.getResourceAsStream(path)) {
-        return (is == null) ? null : ImageIO.read(is);
+  private static final GraphicGeneratorContext GRAPHIC_GENERATOR_CONTEXT = new GraphicGeneratorContext(0) {
+    @Override
+    @Nullable
+    public BufferedImage loadImageResource(@NonNull String path) {
+      try {
+        try (InputStream is = BitmapGeneratorTests.class.getResourceAsStream(path)) {
+          return (is == null) ? null : ImageIO.read(is);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   };
 

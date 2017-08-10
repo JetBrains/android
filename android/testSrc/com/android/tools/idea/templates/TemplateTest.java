@@ -24,6 +24,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -43,7 +44,6 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.idea.Projects;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.client.api.LintDriver;
@@ -1410,6 +1410,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       assetGenerator.name().set("ic_launcher");
       assetGenerator.sourceAsset().setValue(new ImageAsset());
       createProject(projectState, myFixture.getProject(), assetGenerator);
+      assetGenerator.dispose();
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 

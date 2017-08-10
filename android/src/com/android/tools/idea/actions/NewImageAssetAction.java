@@ -17,7 +17,6 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
-import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -42,36 +41,20 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @Override
   protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    if (NewImageAssetStep_Deprecated.isEnabled()) {
-      wizardBuilder.addStep(new NewImageAssetStep_Deprecated(new GenerateImageIconsModel(facet), facet));
-    }
-    else {
-      wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
-    }
-
+    wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
     return wizardBuilder.build();
   }
 
   @NotNull
   @Override
   protected Dimension getWizardMinimumSize() {
-    if (NewImageAssetStep_Deprecated.isEnabled()) {
-      return JBUI.size(800, 750);
-    }
-    else {
-      return JBUI.size(800, 600);
-    }
+    return JBUI.size(800, 600);
   }
 
   @NotNull
   @Override
   protected Dimension getWizardPreferredSize() {
-    if (NewImageAssetStep_Deprecated.isEnabled()) {
-      return getWizardMinimumSize();
-    }
-    else {
-      return JBUI.size(1020, 680);
-    }
+    return JBUI.size(1020, 680);
   }
 
   @Nullable

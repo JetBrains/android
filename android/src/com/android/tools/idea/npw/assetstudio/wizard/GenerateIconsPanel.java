@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -66,7 +65,6 @@ import java.util.Map;
  * web application.
  */
 public final class GenerateIconsPanel extends JPanel implements Disposable {
-
   private static final int ASSET_PREVIEW_HEIGHT = 96;
 
   private final AndroidModuleTemplate myDefaultPaths;
@@ -170,12 +168,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   }
 
   private void initializeListenersAndBindings() {
-    ActionListener onAssetModified = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        renderIconPreviews();
-      }
-    };
+    ActionListener onAssetModified = actionEvent -> renderIconPreviews();
 
     for (Component component : myConfigureIconPanels.getComponents()) {
       ((ConfigureIconPanel)component).addAssetListener(onAssetModified);
@@ -206,24 +199,20 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       }
     }
 
-    throw new IllegalStateException("GenerateIconPanel configured incorrectly. Please report this error.");
+    throw new IllegalStateException("GenerateIconsPanel configured incorrectly. Please report this error.");
   }
 
   private void initializeValidators() {
-    myValidatorPanel.registerValidator(myOutputName, new Validator<String>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull String outputName) {
-        String trimmedName = outputName.trim();
-        if (trimmedName.isEmpty()) {
-          return new Result(Severity.ERROR, "Icon name must be set");
-        }
-        else if (iconExists()) {
-          return new Result(Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
-        }
-        else {
-          return Result.OK;
-        }
+    myValidatorPanel.registerValidator(myOutputName, outputName -> {
+      String trimmedName = outputName.trim();
+      if (trimmedName.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, "Icon name must be set");
+      }
+      else if (iconExists()) {
+        return new Validator.Result(Validator.Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
+      }
+      else {
+        return Validator.Result.OK;
       }
     });
   }
@@ -277,14 +266,13 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     // This method is often called as the result of a UI property changing which may also cause
     // some other properties to change. Invoke its logic later just to make sure everything gets a
     // chance to settle first.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
         BufferedImage assetImage = getActiveIconPanel().getAsset().toImage();
         updateSourceAssetPreview(assetImage);
         enqueueGenerateNotificationIcons(assetImage);
-      }
-    }, ModalityState.any());
+      },
+      ModalityState.any());
   }
 
   private void updateSourceAssetPreview(BufferedImage assetImage) {
@@ -320,7 +308,6 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     }
 
     SwingWorker<Void, Void> generateIconsWorker = new SwingWorker<Void, Void>() {
-
       @Nullable private CategoryIconMap myCategoryIconMap;
 
       @Override
@@ -350,12 +337,8 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
         if (nextImage != null) {
           final BufferedImage finalNextImage = nextImage;
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              enqueueGenerateNotificationIcons(finalNextImage);
-            }
-          }, ModalityState.any());
+          ApplicationManager.getApplication().invokeLater(() -> enqueueGenerateNotificationIcons(finalNextImage),
+                                                          ModalityState.any());
         }
       }
     };
