@@ -16,22 +16,33 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -76,10 +87,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
 
   public void testIsBuildWithGradleUsingGradleProject() {
     // Simulate this is a module built with Gradle
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager.getInstance(getModule()).addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-    });
-
+    createAndAddGradleFacet(getModule());
     assertTrue(myProjectInfo.isBuildWithGradle());
   }
 
@@ -157,5 +165,31 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     GradleSyncState syncState = mock(GradleSyncState.class);
     IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.getSummary()).thenReturn(summary);
+  }
+
+  public void testInvokesIndexHonoringExclusion() throws IOException {
+    Module module = getModule();
+    AndroidFacet facet = createAndAddAndroidFacet(module);
+
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
+    facet.setAndroidModel(androidModel);
+
+    ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
+    Project project = getProject();
+    myProjectInfo = new GradleProjectInfo(project, mock(AndroidProjectInfo.class), mock(AndroidStudioGradleProjectSettings.class),
+                                          projectFileIndex);
+
+    VirtualFile excludedFile = createFileInProjectRoot(project, "something.txt");
+
+    when(projectFileIndex.getModuleForFile(excludedFile, true)).thenReturn(null);
+    when(projectFileIndex.getModuleForFile(excludedFile, false)).thenReturn(module);
+
+    AndroidModuleModel found = myProjectInfo.findAndroidModelInModule(excludedFile);
+    assertNull(found);
+    verify(projectFileIndex).getModuleForFile(excludedFile, true);
+
+    found = myProjectInfo.findAndroidModelInModule(excludedFile, false);
+    assertSame(androidModel, found);
+    verify(projectFileIndex).getModuleForFile(excludedFile, false);
   }
 }
