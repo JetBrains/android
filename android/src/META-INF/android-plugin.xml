@@ -1131,6 +1131,8 @@
     <refactoring.safeDeleteProcessor
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
+
+    <writingAccessProvider implementation="com.android.tools.idea.gradle.editor.GeneratedFileWritingAccessProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
