@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
@@ -43,12 +44,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final AndroidStudioGradleProjectSettings myGradleProjectSettings;
+  @NotNull private final ProjectFileIndex myProjectFileIndex;
   @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myIsNewOrImportedProject;
@@ -60,10 +61,12 @@ public class GradleProjectInfo {
 
   public GradleProjectInfo(@NotNull Project project,
                            @NotNull AndroidProjectInfo projectInfo,
-                           @NotNull AndroidStudioGradleProjectSettings gradleProjectSettings) {
+                           @NotNull AndroidStudioGradleProjectSettings gradleProjectSettings,
+                           @NotNull ProjectFileIndex projectFileIndex) {
     myProject = project;
     myProjectInfo = projectInfo;
     myGradleProjectSettings = gradleProjectSettings;
+    myProjectFileIndex = projectFileIndex;
   }
 
   public boolean canUseLocalMavenRepo() {
@@ -177,16 +180,30 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file. If the module is not an Android module,
-   * this method will return {@code null}.
+   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
+   * <p/>
+   * This method will return {@code null} if the file is "excluded" or if the module the file belongs to is not an Android module.
    *
    * @param file the given file.
+   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
+   * module the file belongs to is not an Android module.
+   */
+  @Nullable
+  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file) {
+    return findAndroidModelInModule(file, true /* ignore "excluded files */);
+  }
+
+  /**
+   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
+   *
+   * @param file           the given file.
+   * @param honorExclusion if {@code true}, this method will return {@code null} if the given file is "excluded".
    * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
    * module.
    */
   @Nullable
-  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file) {
-    Module module = findModuleForFile(file, myProject);
+  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file, boolean honorExclusion) {
+    Module module = findModuleForFile(file, honorExclusion);
     if (module == null) {
       if (myProjectInfo.requiresAndroidModel()) {
         // You've edited a file that does not correspond to a module in a Gradle project; you are most likely editing a file in an excluded
@@ -195,7 +212,7 @@ public class GradleProjectInfo {
         if (rootFolder != null) {
           VirtualFile parent = file.getParent();
           while (parent != null && parent.equals(rootFolder)) {
-            module = findModuleForFile(parent, myProject);
+            module = findModuleForFile(file, honorExclusion);
             if (module != null) {
               break;
             }
@@ -215,6 +232,11 @@ public class GradleProjectInfo {
     }
 
     return AndroidModuleModel.get(module);
+  }
+
+  @Nullable
+  private Module findModuleForFile(@NotNull VirtualFile file, boolean honorExclusion) {
+    return myProjectFileIndex.getModuleForFile(file, honorExclusion);
   }
 
   @NotNull
