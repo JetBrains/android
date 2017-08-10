@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -129,7 +130,8 @@ public class NewImageAssetTest {
       );
   }
 
-  private static List<String> getNewFiles(Path root, Script script) {
+  @NotNull
+  public static List<String> getNewFiles(@NotNull Path root, @NotNull Script script) {
     List<String> newFiles = new ArrayList<>();
     List<Action> actions = script.getActions();
     for (Action action : actions) {
@@ -150,7 +152,8 @@ public class NewImageAssetTest {
     return newFiles;
   }
 
-  private static String toString(Path root, Path path) {
+  @NotNull
+  private static String toString(@NotNull Path root, @NotNull Path path) {
     return root.relativize(path).toString().replace('\\', '/');
   }
 }
