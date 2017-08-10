@@ -211,7 +211,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     // Verify ProjectSetUpTask
     listener = mock(GradleSyncListener.class);
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    request.setRunInBackground(false);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
