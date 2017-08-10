@@ -22,7 +22,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,9 +59,9 @@ public class NlTableNameRenderer extends PTableCellRenderer implements PNameRend
   private static Icon getStar(@NotNull StarState state, boolean isSelected, boolean isHovering) {
     switch (state) {
       case STARRED:
-        return isSelected ? AndroidIcons.NeleIcons.FavoritesSelected : AndroidIcons.NeleIcons.Favorites;
+        return isSelected ? StudioIcons.LayoutEditor.Properties.FAVORITES_SELECTED : StudioIcons.LayoutEditor.Properties.FAVORITES;
       case STAR_ABLE:
-        return isHovering ? AndroidIcons.NeleIcons.FavoritesHoverOutline : null;
+        return isHovering ? StudioIcons.LayoutEditor.Properties.FAVORITES_HOVER : null;
       default:
         return null;
     }

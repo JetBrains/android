@@ -23,7 +23,7 @@ import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
@@ -33,7 +33,7 @@ public class RefreshRenderAction extends AnAction {
   private final EditorDesignSurface mySurface;
 
   public RefreshRenderAction(EditorDesignSurface surface) {
-    super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, AndroidIcons.NeleIcons.Refresh);
+    super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, StudioIcons.LayoutEditor.Toolbar.REFRESH);
     mySurface = surface;
   }
 
