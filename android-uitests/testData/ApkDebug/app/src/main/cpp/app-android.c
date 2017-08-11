@@ -108,7 +108,7 @@ Java_com_example_SanAngeles_DemoGLSurfaceView_nativePause( JNIEnv*  env )
 void
 Java_com_example_SanAngeles_DemoGLSurfaceView_nativeResume( JNIEnv*  env )
 {
-    _resume();
+    _resume(); // BREAKPOINT MARKING COMMENT
 }
 
 /* Call to render the next GL frame */

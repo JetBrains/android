@@ -18,15 +18,13 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.core.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
-
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
  * Base class for all asset types which can be converted into Android icons. See also

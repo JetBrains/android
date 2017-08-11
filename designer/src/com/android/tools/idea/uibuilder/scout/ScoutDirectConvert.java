@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -28,32 +30,36 @@ import static com.android.SdkConstants.*;
  * This performs direct conversion of RelativeLayout to ConstraintLayout
  */
 public class ScoutDirectConvert {
+  public static final int VERTICAL = 0x1;
+  public static final int HORIZONTAL = 0x2;
+  public static final int BOTH = 0x3;
+
   static Convert[] ourConverts = {
-    new Convert(ATTR_LAYOUT_ABOVE, Dir.TOP, false, ATTR_LAYOUT_BOTTOM_TO_TOP_OF),
-    new Convert(ATTR_LAYOUT_BELOW, Dir.BOTTOM, false, ATTR_LAYOUT_TOP_TO_BOTTOM_OF),
-    new Convert(ATTR_LAYOUT_TO_END_OF, Dir.END, false, ATTR_LAYOUT_START_TO_END_OF),
-    new Convert(ATTR_LAYOUT_TO_START_OF, Dir.START, false, ATTR_LAYOUT_END_TO_START_OF),
-    new Convert(ATTR_LAYOUT_TO_LEFT_OF, Dir.LEFT, false, ATTR_LAYOUT_RIGHT_TO_LEFT_OF),
-    new Convert(ATTR_LAYOUT_TO_RIGHT_OF, Dir.RIGHT, false, ATTR_LAYOUT_LEFT_TO_RIGHT_OF),
+    new Convert(ATTR_LAYOUT_ABOVE, Dir.TOP, false, VERTICAL, ATTR_LAYOUT_BOTTOM_TO_TOP_OF),
+    new Convert(ATTR_LAYOUT_BELOW, Dir.BOTTOM, false, VERTICAL, ATTR_LAYOUT_TOP_TO_BOTTOM_OF),
+    new Convert(ATTR_LAYOUT_TO_END_OF, Dir.END, false, HORIZONTAL, ATTR_LAYOUT_START_TO_END_OF),
+    new Convert(ATTR_LAYOUT_TO_START_OF, Dir.START, false, HORIZONTAL, ATTR_LAYOUT_END_TO_START_OF),
+    new Convert(ATTR_LAYOUT_TO_LEFT_OF, Dir.LEFT, false, HORIZONTAL, ATTR_LAYOUT_RIGHT_TO_LEFT_OF),
+    new Convert(ATTR_LAYOUT_TO_RIGHT_OF, Dir.RIGHT, false, HORIZONTAL, ATTR_LAYOUT_LEFT_TO_RIGHT_OF),
 
-    new Convert(ATTR_LAYOUT_ALIGN_RIGHT, Dir.NONE, false, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_LEFT, Dir.NONE, false, ATTR_LAYOUT_LEFT_TO_LEFT_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_END, Dir.NONE, false, ATTR_LAYOUT_END_TO_END_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_START, Dir.NONE, false, ATTR_LAYOUT_START_TO_START_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_RIGHT, Dir.NONE, false, HORIZONTAL, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_LEFT, Dir.NONE, false, HORIZONTAL, ATTR_LAYOUT_LEFT_TO_LEFT_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_END, Dir.NONE, false, HORIZONTAL, ATTR_LAYOUT_END_TO_END_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_START, Dir.NONE, false, HORIZONTAL, ATTR_LAYOUT_START_TO_START_OF),
 
-    new Convert(ATTR_LAYOUT_ALIGN_BASELINE, Dir.NONE, false, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_BOTTOM, Dir.NONE, false, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, Dir.NONE, true, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_END, Dir.NONE, true, ATTR_LAYOUT_END_TO_END_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_LEFT, Dir.NONE, true, ATTR_LAYOUT_LEFT_TO_LEFT_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, Dir.NONE, true, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_START, Dir.NONE, true, ATTR_LAYOUT_START_TO_START_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_PARENT_TOP, Dir.NONE, true, ATTR_LAYOUT_TOP_TO_TOP_OF),
-    new Convert(ATTR_LAYOUT_ALIGN_TOP, Dir.NONE, false, ATTR_LAYOUT_TOP_TO_TOP_OF),
-    new Convert(ATTR_LAYOUT_CENTER_HORIZONTAL, Dir.NONE, true, ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
-    new Convert(ATTR_LAYOUT_CENTER_IN_PARENT, Dir.NONE, true,
+    new Convert(ATTR_LAYOUT_ALIGN_BASELINE, Dir.NONE, false, VERTICAL, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_BOTTOM, Dir.NONE, false, VERTICAL, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, Dir.NONE, true, VERTICAL, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_END, Dir.NONE, true, HORIZONTAL, ATTR_LAYOUT_END_TO_END_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_LEFT, Dir.NONE, true, HORIZONTAL, ATTR_LAYOUT_LEFT_TO_LEFT_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, Dir.NONE, true, HORIZONTAL, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_START, Dir.NONE, true, HORIZONTAL, ATTR_LAYOUT_START_TO_START_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_PARENT_TOP, Dir.NONE, true, VERTICAL, ATTR_LAYOUT_TOP_TO_TOP_OF),
+    new Convert(ATTR_LAYOUT_ALIGN_TOP, Dir.NONE, false, VERTICAL, ATTR_LAYOUT_TOP_TO_TOP_OF),
+    new Convert(ATTR_LAYOUT_CENTER_HORIZONTAL, Dir.NONE, true, HORIZONTAL, ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
+    new Convert(ATTR_LAYOUT_CENTER_IN_PARENT, Dir.NONE, true, BOTH,
                 ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF),
-    new Convert(ATTR_LAYOUT_CENTER_VERTICAL, Dir.NONE, true, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
+    new Convert(ATTR_LAYOUT_CENTER_VERTICAL, Dir.NONE, true, VERTICAL, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF),
   };
 
   enum Dir {
@@ -68,10 +74,12 @@ public class ScoutDirectConvert {
     String[] mConstraintAttributes;
     boolean mAttachToParent;
     Dir mMddTargetMargin;
+    int mConstrained;
 
-    public Convert(String attribute, Dir addTargetMargin, boolean parent, String... constraintAttributes) {
+    public Convert(String attribute, Dir addTargetMargin, boolean parent, int constraint, String... constraintAttributes) {
       mRelativeAttribute = attribute;
       mAttachToParent = parent;
+      mConstrained = constraint;
       mConstraintAttributes = constraintAttributes;
       mMddTargetMargin = addTargetMargin;
     }
@@ -113,10 +121,14 @@ public class ScoutDirectConvert {
       ArrayList<String[]> createList = new ArrayList<>();
       ArrayList<String[]> delList = new ArrayList<>();
       List<AttributeSnapshot> list = child.getAttributes();
+      boolean verticalConstrained = false;
+      boolean horizontallyConstrained = false;
       for (AttributeSnapshot attr : list) {
         Convert a = ourRelativeLayoutAttr.get(attr.name);
 
         if (a != null) {
+          verticalConstrained |= (a.mConstrained & VERTICAL) > 0;
+          horizontallyConstrained |= (a.mConstrained & HORIZONTAL) > 0;
           if (!a.mAttachToParent) {
             delList.add(new String[]{ANDROID_URI, attr.name});
             createList.add(new String[]{SHERPA_URI, a.mConstraintAttributes[0], attr.value});
@@ -155,10 +167,16 @@ public class ScoutDirectConvert {
 
             delList.add(new String[]{ANDROID_URI, attr.name});
             for (int i = 0; i < a.mConstraintAttributes.length; i++) {
-              createList.add(new String[]{SHERPA_URI, a.mConstraintAttributes[i], "parent"});
+              createList.add(new String[]{SHERPA_URI, a.mConstraintAttributes[i], ATTR_PARENT});
             }
           }
         }
+      }
+      if (!verticalConstrained) {
+        createList.add(new String[]{SHERPA_URI, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_PARENT});
+      }
+      if (!horizontallyConstrained) {
+        createList.add(new String[]{SHERPA_URI, ATTR_LAYOUT_START_TO_START_OF, ATTR_PARENT});
       }
       AttributesTransaction transaction = child.startAttributeTransaction();
 

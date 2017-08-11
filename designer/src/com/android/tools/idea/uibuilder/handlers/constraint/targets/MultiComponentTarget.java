@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.scene.target.Target;
 
 /**
  * Marker interface to indicate that a {@link Target} should act on all selected components.

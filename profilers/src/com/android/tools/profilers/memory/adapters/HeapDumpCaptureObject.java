@@ -21,6 +21,7 @@ import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.ext.NativeRegistryPostProcessor;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
@@ -83,6 +84,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   private volatile boolean myIsLoadingError = false;
 
+  private boolean myHasNativeAllocations;
+
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                @Nullable Common.Session session,
                                int appId,
@@ -107,6 +110,11 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @Override
   public String getName() {
     return myLabel;
+  }
+
+  @Override
+  public boolean isExportable() {
+    return true;
   }
 
   @Nullable
@@ -184,6 +192,10 @@ public class HeapDumpCaptureObject implements CaptureObject {
     return myHeapDumpInfo.getEndTime();
   }
 
+  public boolean getHasNativeAllocations() {
+    return myHasNativeAllocations;
+  }
+
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     DumpDataResponse response;
@@ -213,13 +225,15 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
     InMemoryBuffer buffer = new InMemoryBuffer(response.getData().asReadOnlyByteBuffer());
     Snapshot snapshot;
+    NativeRegistryPostProcessor nativeRegistryPostProcessor = new NativeRegistryPostProcessor();
     if (myProguardMap != null) {
-      snapshot = Snapshot.createSnapshot(buffer, myProguardMap);
+      snapshot = Snapshot.createSnapshot(buffer, myProguardMap, Arrays.asList(nativeRegistryPostProcessor));
     }
     else {
-      snapshot = Snapshot.createSnapshot(buffer);
+      snapshot = Snapshot.createSnapshot(buffer, new ProguardMap(), Arrays.asList(nativeRegistryPostProcessor));
     }
     snapshot.computeDominators();
+    myHasNativeAllocations = nativeRegistryPostProcessor.getHasNativeAllocations();
     mySnapshot = snapshot;
 
     Map<Heap, HeapSet> heapSets = new HashMap<>(snapshot.getHeaps().size());
@@ -282,14 +296,19 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(LABEL, ALLOC_COUNT, SHALLOW_SIZE, RETAINED_SIZE);
+    return myHasNativeAllocations ? Arrays.asList(LABEL, ALLOC_COUNT, NATIVE_SIZE, SHALLOW_SIZE, RETAINED_SIZE)
+                                  : Arrays.asList(LABEL, ALLOC_COUNT, SHALLOW_SIZE, RETAINED_SIZE);
   }
 
   @Override
   @NotNull
   public List<InstanceAttribute> getInstanceAttributes() {
-    return Arrays
-      .asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE);
+    return myHasNativeAllocations ?
+           Arrays
+             .asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.NATIVE_SIZE, InstanceAttribute.SHALLOW_SIZE,
+                     InstanceAttribute.RETAINED_SIZE) :
+           Arrays
+             .asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE);
   }
 
   @Nullable

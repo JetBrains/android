@@ -16,8 +16,12 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutDecorator;
+import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +49,8 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.SEEK_BAR, SeekBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.LINEAR_LAYOUT, LinearLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.GRID_LAYOUT, GridLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7, GridLayoutV7Decorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {
       // ignore invalid component

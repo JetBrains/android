@@ -17,15 +17,15 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.JavaDocViewer;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -114,11 +114,25 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    Disposer.dispose(myModel);
-    reset(myScreen, mySurface);
-    myModel = null;
-    myTree = null;
-    super.tearDown();
+    try {
+      Disposer.dispose(myModel);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myCopyPasteManager = null;
+      myJavaDocViewer = null;
+      myRelativeLayout = null;
+      myLinearLayout = null;
+      myButton = null;
+      myTextView = null;
+      myAbsoluteLayout = null;
+      myScreen = null;
+      mySurface = null;
+      myModel = null;
+      myTree = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testTreeStructure() {

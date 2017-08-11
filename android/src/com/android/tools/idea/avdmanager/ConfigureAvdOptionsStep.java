@@ -30,14 +30,14 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.observable.*;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.ui.properties.*;
-import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
-import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.string.StringExpression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -45,11 +45,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
@@ -79,10 +77,8 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -181,11 +177,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private String myOriginalName;
   /**
-   * Boolean used to control if we should warn the user about how changing the size of the SD will erase it.
-   */
-  private boolean myCheckSdForChanges;
-  /**
-   * Device's original Sd card
+   * Device's original Sd card size
    */
   private Storage myOriginalSdCard;
   /**
@@ -369,7 +361,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     updateSystemImageData();
 
-    myOriginalSdCard = getModel().sdCardStorage().getValue();
 
     mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
                                                       : AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES;
@@ -440,20 +431,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
         updateSystemImageData();
-      }
-    });
-
-    myListeners.receive(getModel().sdCardStorage(), storage -> {
-      if (myCheckSdForChanges && storage.isPresent() && !storage.get().equals(myOriginalSdCard)) {
-        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
-                                                             "the current contents of the card. Continue?", "Confirm Data Wipe",
-                                              AllIcons.General.QuestionDialog);
-        if (result == Messages.YES) {
-          myCheckSdForChanges = false;
-        }
-        else {
-          getModel().sdCardStorage().setValue(myOriginalSdCard);
-        }
       }
     });
 
@@ -587,8 +564,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
     myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
-
-    myCheckSdForChanges = true;
   }
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
@@ -634,15 +609,24 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    // If we are not lets make sure it has the right amount of memory
+    // If we are using an internal SD card, make sure it has enough memory.
     myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Storage> value) {
-        return (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
-                getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10)
-               ? new Result(Severity.ERROR, "The SD card must be larger than 10MB")
-               : Result.OK;
+        if (myOriginalSdCard == null) {
+          myOriginalSdCard = getModel().sdCardStorage().getValue();
+        }
+
+        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
+            getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10) {
+          return new Result(Severity.ERROR, "The SD card must be larger than 10MB");
+        }
+        if (!getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
+          return new Result(Severity.WARNING, "Modifying the SD card size will erase the card's contents! " +
+                                              "Click Cancel to abort.");
+        }
+        return Result.OK;
       }
     });
 

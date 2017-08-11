@@ -17,15 +17,20 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.PanZoomListener;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
@@ -271,7 +276,7 @@ public class PanZoomPanel extends JPanel
   /**
    * If the close event is cancel, the {@link PanZoomPanel#PROP_OPEN} properties will be set to false
    * to notify that the popup has been closed by the user (either by clicking the cancel button or the
-   * {@link com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction}).
+   * {@link TogglePanningDialogAction}).
    *
    * If the event is triggered from {@link JBPopup#closeOk(InputEvent)}, we don't persist the state so the {@link DesignSurface} knows that
    * the {@link PanZoomPanel} should be shown when it is reactivated.
@@ -694,8 +699,8 @@ public class PanZoomPanel extends JPanel
       // Rectangle of the drawing surface
       gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
 
-      int x = (int)Math.round(myCenterOffset.x + myDesignSurfaceOffset.x - (currentSceneView.getX() / 2) * mySceneViewScale);
-      int y = (int)Math.round(myCenterOffset.y + myDesignSurfaceOffset.y - (currentSceneView.getY() / 2) * mySceneViewScale);
+      int x = (int)Math.round(myCenterOffset.x + myDesignSurfaceOffset.x - (currentSceneView.getX() / 2.) * mySceneViewScale);
+      int y = (int)Math.round(myCenterOffset.y + myDesignSurfaceOffset.y - (currentSceneView.getY() / 2.) * mySceneViewScale);
       int width = (int)Math.round((myDesignSurfaceSize.getWidth() - currentSceneView.getX() / 2.) * mySceneViewScale);
       int height = (int)Math.round((myDesignSurfaceSize.getHeight() - currentSceneView.getY() / 2.) * mySceneViewScale);
 

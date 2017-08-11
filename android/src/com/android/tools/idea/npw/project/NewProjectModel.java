@@ -18,18 +18,16 @@ package com.android.tools.idea.npw.project;
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.module.NewModuleModel;
-import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
@@ -64,7 +62,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 

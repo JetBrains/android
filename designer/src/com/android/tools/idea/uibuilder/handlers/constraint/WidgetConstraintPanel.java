@@ -17,19 +17,15 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.command.NlWriteCommandAction;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +35,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -382,10 +379,7 @@ public class WidgetConstraintPanel extends JPanel {
     model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
 
-    Project project = model.getProject();
-    XmlFile file = model.getFile();
-
-    myWriteAction = new NlWriteCommandAction(project, "Change Widget", file, () -> {
+    myWriteAction = new NlWriteCommandAction(Collections.singletonList(component), "Change Widget", () -> {
       AttributesTransaction transaction2 = component.startAttributeTransaction();
 
       transaction2.setAttribute(nameSpace, attribute, value);
@@ -399,9 +393,6 @@ public class WidgetConstraintPanel extends JPanel {
     String label = "Constraint Disconnected";
     String[] attribute = ourDeleteAttributes[type];
     String[] namespace = ourDeleteNamespace[type];
-    NlModel nlModel = mComponent.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
 
     AttributesTransaction transaction = mComponent.startAttributeTransaction();
     for (int i = 0; i < attribute.length; i++) {
@@ -412,13 +403,7 @@ public class WidgetConstraintPanel extends JPanel {
     ConstraintComponentUtilities.ensureVerticalPosition(mComponent, transaction);
 
     transaction.apply();
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(mComponent, label, transaction::commit);
   }
 
   public static final int UNKNOWN = -1;

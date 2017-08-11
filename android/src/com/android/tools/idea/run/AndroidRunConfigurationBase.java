@@ -275,7 +275,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
         if (testArtifact != null &&
             testArtifact.getTestOptions() != null &&
-            testArtifact.getTestOptions().getExecutionEnum() == TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR) {
+            testArtifact.getTestOptions().getExecution() == TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR) {
           throw new ExecutionException("Debugging is not yet supported when using Android Tech Orchestrator.");
         }
       }
@@ -549,7 +549,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
-      return new GradleApplicationIdProvider(facet);
+      return new GradleApplicationIdProvider(facet, myOutputProvider);
     }
     return new NonGradleApplicationIdProvider(facet);
   }
@@ -620,6 +620,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), version);
     if (irSupportStatus != SUPPORTED) {
       return irSupportStatus;
+    }
+
+    if (!InstantRunGradleUtils.appHasCode(AndroidFacet.getInstance(module))) {
+      return InstantRunGradleSupport.HAS_CODE_FALSE;
     }
 
     // Gradle will instrument against the runtime android.jar (see commit 353f46cbc7363e3fca44c53a6dc0b4d17347a6ac).

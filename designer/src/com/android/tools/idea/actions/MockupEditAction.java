@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,17 +82,13 @@ public class MockupEditAction extends AnAction {
     if (component == null) {
       return;
     }
-    Project project = component.getModel().getProject();
     myMockupToggleAction.setSelected(event, true);
     MockUpFileChooser.INSTANCE.chooseMockUpFile(
       component,
-      (path) -> new WriteCommandAction.Simple(project, event.getPresentation().getText()) {
-        @Override
-        protected void run() throws Throwable {
-          component.setAttribute(TOOLS_URI, ATTR_MOCKUP, path);
-          component.setAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, "");
-        }
-      }.execute()
+      (path) -> NlWriteCommandAction.run(component, Strings.nullToEmpty(event.getPresentation().getText()), () -> {
+        component.setAttribute(TOOLS_URI, ATTR_MOCKUP, path);
+        component.setAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, "");
+      })
     );
   }
 

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -56,7 +56,9 @@ public class Scout {
     AlignHorizontallyCenter, AlignHorizontallyRight, DistributeVertically,
     DistributeHorizontally, VerticalPack, HorizontalPack, ExpandVertically, AlignBaseline,
     ExpandHorizontally, CenterHorizontallyInParent, CenterVerticallyInParent, CenterVertically,
-    CenterHorizontally, CreateHorizontalChain, CreateVerticalChain, ConnectTop, ConnectBottom, ConnectStart, ConnectEnd
+    CenterHorizontally, CreateHorizontalChain, CreateVerticalChain, ConnectTop, ConnectBottom, ConnectStart, ConnectEnd,
+    ChainVerticalRemove, ChainHorizontalRemove, ChainVerticalMoveUp, ChainVerticalMoveDown, ChainHorizontalMoveLeft,ChainHorizontalMoveRight,
+    ChainInsertHorizontal, ChainInsertVertical
   }
 
   private static int sMargin = 8;
@@ -71,10 +73,44 @@ public class Scout {
 
   public static void arrangeWidgets(Arrange type, List<NlComponent> widgets,
                                     boolean applyConstraint) {
+    switch (type) {
+      case ChainVerticalRemove:
+      case ChainHorizontalRemove:
+      case ChainVerticalMoveUp:
+      case ChainVerticalMoveDown:
+      case ChainHorizontalMoveLeft:
+      case ChainHorizontalMoveRight:
+      case ChainInsertHorizontal:
+      case ChainInsertVertical:
+        ScoutChainsArrange.change( type, widgets);
+        return;
+    }
     ScoutArrange.align(type, widgets, applyConstraint);
     commit(widgets, type.toString());
   }
 
+  /**
+   * Provide catagories of test
+   */
+  public enum ChainTest {
+    InVerticalChain,
+    InHorizontalChain,
+    IsTopOfChain,
+    IsBottomOfChain,
+    IsNearVerticalChain,
+    IsNearHorizontalChain,
+  }
+
+  /**
+   * This function can check a view for many critria (in enum)
+   *
+   * @param widgets
+   * @param test 
+   * @return true if the widget meets the critria
+   */
+  public static boolean chainCheck( List<NlComponent> widgets, ChainTest test){
+    return ScoutChainsArrange.chainCheck(widgets,test);
+  }
   /**
    * Detect if any component under the tree overlap.
    * inference does not work if views overlap.

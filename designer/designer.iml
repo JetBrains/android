@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="wizard" />
     <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>

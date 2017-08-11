@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
@@ -56,12 +57,12 @@ public class SceneAnimationTest extends SceneTest {
     myInteraction.mouseRelease("root", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-                 "      android:layout_marginEnd=\"8dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginEnd=\"8dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
     SceneComponent component = myScene.getSceneComponent("button");
     long currentTime = System.currentTimeMillis();
     assertEquals(100, component.getDrawX(currentTime));

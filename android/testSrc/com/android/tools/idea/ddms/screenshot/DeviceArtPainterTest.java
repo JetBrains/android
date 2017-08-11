@@ -21,6 +21,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +58,10 @@ import static org.junit.Assert.assertTrue;
  * and adjusted device-art descriptors.
  */
 public class DeviceArtPainterTest {
+  @BeforeClass
+  public static void setUp() {
+    WebpMetadata.ensureWebpRegistered();
+  }
 
   @Rule
   public TemporaryFolder myTemporaryFolder = new TemporaryFolder();

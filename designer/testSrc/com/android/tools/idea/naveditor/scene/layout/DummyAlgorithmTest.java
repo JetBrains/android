@@ -16,9 +16,9 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 /**

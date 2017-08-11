@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -35,6 +36,7 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Tests for the local repository utility class
@@ -109,8 +111,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     return getLibraryRevision(library, preview, null);
   }
 
-  private String getLibraryRevision(SupportLibrary library, boolean preview, String filterPrefix) {
-    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), filterPrefix, preview, SDK_DIR, myFileOp);
+  private String getLibraryRevision(SupportLibrary library, boolean preview, Predicate<GradleVersion> filter) {
+    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), filter, preview, SDK_DIR, myFileOp);
   }
 
   public void testGetLibraryRevision() throws Exception {
@@ -153,12 +155,12 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   public void testGetLibraryRevision_SdkOnly() throws Exception {
-    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, "24"));
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
   public void testGetLibraryRevision_missingSdk() throws Exception {
     myFileOp.deleteFileOrFolder(SDK_DIR);
-    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, "24"));
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
   public void testGetLibraryRevision_offlineIndex() throws Exception {
@@ -166,7 +168,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
-  /** @see com.android.ide.common.repository.MavenRepositories#isPreview(com.android.ide.common.repository.GradleCoordinate) */
+  /** @see com.android.ide.common.repository.MavenRepositories#isPreview(GradleCoordinate) */
   public void testGetLibraryRevision_playServices_preview() throws Exception {
     // Check without metadata file.
     assertEquals("5.0.89", getLibraryRevision(SupportLibrary.PLAY_SERVICES, false));

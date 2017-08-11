@@ -45,6 +45,7 @@ public class DependenciesTest {
   private static final String APP_NAME = "App";
   private static final String MIN_SDK = "18";
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/64414268
   @Test
   public void createNewFlavors() throws Exception {
     String projPath = guiTest.importSimpleApplication()

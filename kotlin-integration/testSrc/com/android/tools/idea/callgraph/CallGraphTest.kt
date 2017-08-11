@@ -15,15 +15,35 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.tools.idea.experimental.callgraph.*
+import com.android.tools.lint.detector.api.interprocedural.*
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
+
+fun buildInterproceduralAnalysesForTest(
+    virtualFile: VirtualFile,
+    project: Project): Triple<ClassHierarchy, IntraproceduralDispatchReceiverEvaluator, CallGraph> {
+  val uastContext = ServiceManager.getService(project, UastContext::class.java)
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
+  val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
+  val cha = ClassHierarchyVisitor()
+      .also { file.accept(it) }
+      .classHierarchy
+  val receiverEval = IntraproceduralDispatchReceiverVisitor(cha)
+      .also { file.accept(it) }
+      .receiverEval
+  val graph = CallGraphVisitor(receiverEval, cha)
+      .also { file.accept(it) }
+      .callGraph
+  return Triple(cha, receiverEval, graph)
+}
 
 class CallGraphTest : AndroidTestCase() {
 
@@ -34,13 +54,7 @@ class CallGraphTest : AndroidTestCase() {
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
     val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph" + ext, "src/CallGraph" + ext)
-    val uastContext = ServiceManager.getService(project, UastContext::class.java)
-    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
-    val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
-    val files = listOf(file)
-    val classHierarchy = buildClassHierarchy(files)
-    val receiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
-    val graph = buildCallGraph(files, receiverEval, classHierarchy)
+    val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val nodeMap = graph.nodes.associateBy({ it.shortName })
 
     fun String.assertCalls(vararg callees: String) {
@@ -52,7 +66,8 @@ class CallGraphTest : AndroidTestCase() {
     fun String.findPath(callee: String): List<String>? {
       val source = nodeMap.getValue(this)
       val sink = nodeMap.getValue(callee)
-      return graph.searchForPaths(listOf(source), listOf(sink), receiverEval).firstOrNull()?.map { (node, _) -> node.shortName }
+      val paths = graph.searchForPaths(listOf(source), listOf(sink), receiverEval)
+      return paths.firstOrNull()?.map { (contextualNode, _) -> contextualNode.node.shortName }
     }
 
     fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach $callee", this.findPath(callee))
@@ -76,12 +91,14 @@ class CallGraphTest : AndroidTestCase() {
     "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#Impl")
     "SimpleLocal#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f", "SubImpl#SubImpl", "Impl#Impl")
 
-    // Check calls through fields.
-    "SimpleField#notUnique".assertCalls(/*nothing*/)
-    "SimpleField#unique".assertCalls("Impl#implUnique")
-    "SimpleField#typeEvidencedSubImpl".assertCalls("SubImpl#f")
-    "SimpleField#typeEvidencedImpl".assertCalls("Impl#f")
-    "SimpleField#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f")
+    // Check calls through fields and array elements.
+    for (kind in listOf("Field", "Array")) {
+      "Simple$kind#notUnique".assertCalls(/*nothing*/)
+      "Simple$kind#unique".assertCalls("Impl#implUnique")
+      "Simple$kind#typeEvidencedSubImpl".assertCalls("SubImpl#f")
+      "Simple$kind#typeEvidencedImpl".assertCalls("Impl#f")
+      "Simple$kind#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f")
+    }
 
     // Test special calls through super.
     "Special#Special".assertCalls("Special#h", "Object#Object")
@@ -128,6 +145,10 @@ class CallGraphTest : AndroidTestCase() {
     "Contextual#implicitThisA".assertReaches("ImplicitThisA#myRun")
     "Contextual#implicitThisA".assertDoesNotReach("Contextual#g")
     "Contextual#implicitThisA".assertDoesNotReach("ImplicitThisB#myRun")
+    "Contextual#implicitThisB".assertReaches("Contextual#g")
+    "Contextual#implicitThisB".assertReaches("ImplicitThisB#myRun")
+    "Contextual#implicitThisB".assertDoesNotReach("Contextual#f")
+    "Contextual#implicitThisB".assertDoesNotReach("ImplicitThisA#myRun")
     "ImplicitThisA#myRun".assertReaches("Contextual#f")
     "ImplicitThisA#myRun".assertDoesNotReach("Contextual#g")
 

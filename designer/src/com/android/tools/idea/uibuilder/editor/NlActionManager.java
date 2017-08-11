@@ -19,6 +19,14 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
+import com.android.tools.idea.common.actions.DeselectAllAction;
+import com.android.tools.idea.common.actions.GotoComponentAction;
+import com.android.tools.idea.common.actions.SelectAllAction;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -27,17 +35,12 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
@@ -374,15 +377,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
       if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-          }
-        }.execute();
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
+          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
       }
       else {
         // Catch missing write lock and diagnose as missing affectsRedo
@@ -483,16 +480,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
-
       if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            applySelection(state);
-          }
-        }.execute();
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(state));
       }
       else {
         try {

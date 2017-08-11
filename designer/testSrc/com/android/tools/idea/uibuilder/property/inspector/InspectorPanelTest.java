@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.google.common.collect.ArrayListMultimap;
@@ -46,7 +46,6 @@ import static org.mockito.Mockito.verify;
 
 public class InspectorPanelTest extends PropertyTestCase {
   private PropertiesComponent myPropertiesComponent;
-  private Disposable myDisposable;
   private InspectorPanel myInspector;
   private Multimap<Integer, Component> myComponents;
   private Map<String, Integer> myLabelToRowNumber;
@@ -58,8 +57,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     super.setUp();
     myPropertiesComponent = mock(PropertiesComponent.class);
     registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
-    myDisposable = Disposer.newDisposable();
-    myInspector = new InspectorPanel(myPropertiesManager, myDisposable, new JLabel());
+    myInspector = new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JLabel());
   }
 
   private void init(@NotNull NlComponent... componentArray) {
@@ -76,7 +74,14 @@ public class InspectorPanelTest extends PropertyTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      Disposer.dispose(myDisposable);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myPropertiesComponent = null;
+      myInspector = null;
+      myComponents = null;
+      myLabelToRowNumber = null;
+      myLabelToGroupSize = null;
+      myComponentToLabel = null;
     }
     finally {
       super.tearDown();

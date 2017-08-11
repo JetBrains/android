@@ -684,7 +684,7 @@ public class MemoryClassifierViewTest {
     JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Native Size", "Shallow Size", "Retained Size");
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
@@ -708,6 +708,7 @@ public class MemoryClassifierViewTest {
                                       : " (" + classSet.getClassEntry().getPackageName() + ")"},
                                     new String[]{Integer.toString(classSet.getAllocatedCount())},
                                     new String[]{Integer.toString(classSet.getDeallocatedCount())},
+                                    new String[]{Long.toString(classSet.getTotalNativeSize())},
                                     new String[]{Long.toString(classSet.getTotalShallowSize())},
                                     new String[]{Long.toString(classSet.getTotalRetainedSize())});
     }

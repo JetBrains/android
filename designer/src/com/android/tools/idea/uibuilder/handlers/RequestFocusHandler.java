@@ -17,12 +17,9 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import icons.AndroidIcons;
+import com.android.tools.idea.common.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Handler for the {@code requestFocus} tag.

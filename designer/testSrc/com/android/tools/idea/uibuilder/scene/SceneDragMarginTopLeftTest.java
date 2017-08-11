@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -55,13 +55,13 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(800, 210);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"748dp\"\n" +
-                 "    android:layout_marginTop=\"200dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"748dp\"\n" +
+                 "        android:layout_marginTop=\"200dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 
   public void testDragBottom() {
@@ -69,13 +69,13 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(150, 500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"100dp\"\n" +
-                 "    android:layout_marginTop=\"488dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 
   public void testDragBottomRight() {
@@ -83,12 +83,12 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
     myInteraction.mouseRelease(800, 500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"748dp\"\n" +
-                 "    android:layout_marginTop=\"488dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"748dp\"\n" +
+                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 }

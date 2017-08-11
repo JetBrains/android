@@ -16,12 +16,11 @@
 package com.android.tools.idea.naveditor.model;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.util.NlTreeDumper;
 
 import static com.google.common.truth.Truth.assertThat;
 

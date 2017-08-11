@@ -16,9 +16,11 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +30,8 @@ import javax.swing.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_LAYOUT;
+
 public final class MemoryCaptureView extends AspectObserver {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryCaptureView.class);
@@ -35,9 +39,11 @@ public final class MemoryCaptureView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final JLabel myLabel = new JLabel();
+  @NotNull private final JLabel myLabel;
 
   @NotNull private final JButton myExportButton;
+
+  @NotNull private final JPanel myPanel;
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -47,26 +53,33 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
+    myPanel = new JPanel(TOOLBAR_LAYOUT);
+
+    myLabel = new JLabel();
+    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
+
     myExportButton = new FlatButton(AllIcons.Actions.Export);
-    myExportButton.setToolTipText("Export heap dump to HPROF file");
+    myExportButton.setToolTipText("Export capture to file");
     myExportButton.addActionListener(e -> ideProfilerComponents.openExportDialog(
-                                               () -> "Export As",
-                                               this::getFileExtension,
-                                               file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));
+      () -> "Export As",
+      this::getFileExtension,
+      file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));
     reset();
   }
 
+  @VisibleForTesting
   @NotNull
-  JLabel getComponent() {
+  JLabel getLabel() {
     return myLabel;
   }
 
   @NotNull
-  JButton getExportButton() {
-    return myExportButton;
+  JComponent getComponent() {
+    return myPanel;
   }
 
   private void reset() {
+    myPanel.removeAll();
     myLabel.setText("");
     myCaptureObject = myStage.getSelectedCapture();
     myExportButton.setEnabled(false);
@@ -75,9 +88,16 @@ public final class MemoryCaptureView extends AspectObserver {
   private void refresh() {
     CaptureObject captureObject = myStage.getSelectedCapture();
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
-    myExportButton.setEnabled(validCapture);
+
     if (validCapture) {
+      if (captureObject.isExportable()) {
+        myExportButton.setEnabled(captureObject.isExportable());
+        myPanel.add(myExportButton);
+        myPanel.add(new FlatSeparator());
+      }
       myLabel.setText(myCaptureObject.getName());
+      myPanel.add(myLabel);
+      myPanel.add(new FlatSeparator());
     }
   }
 

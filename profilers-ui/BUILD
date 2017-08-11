@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "profilers-ui",
     srcs = ["src"],
+    iml_files = ["profilers-ui.iml"],
     resources = ["resources"],
     tags = ["managed"],
     test_data = glob(["testData/**"]),
@@ -24,5 +25,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
+        "//tools/adt/idea/artwork[module]",
     ],
 )

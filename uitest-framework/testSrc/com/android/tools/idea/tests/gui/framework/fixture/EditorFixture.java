@@ -26,7 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -717,8 +717,7 @@ public class EditorFixture {
   }
 
   @NotNull
-  public LibraryEditorFixture getLibrarySymbolsFixture(@NotNull String libraryName) {
-    switchToTab(libraryName);
+  public LibraryEditorFixture getLibrarySymbolsFixture() {
     return LibraryEditorFixture.find(getIdeFrame());
   }
 }

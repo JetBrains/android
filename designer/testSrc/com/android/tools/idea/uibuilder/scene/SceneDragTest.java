@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -60,11 +60,11 @@ public class SceneDragTest extends SceneTest {
     myInteraction.mouseRelease(800, 500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"750dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"490dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"750dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
   }
 
   public void testDragTooSmall() {
@@ -87,11 +87,11 @@ public class SceneDragTest extends SceneTest {
     myInteraction.mouseRelease(200, 600);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"5dp\"\n" +
-                 "    android:layout_height=\"5dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"195dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"592dp\"/>");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"5dp\"\n" +
+                 "        android:layout_height=\"5dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"195dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"592dp\" />");
   }
 
   public void testDragLeft() {
@@ -99,10 +99,10 @@ public class SceneDragTest extends SceneTest {
     myInteraction.mouseRelease(-800, -500);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"0dp\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"0dp\" />");
   }
 }

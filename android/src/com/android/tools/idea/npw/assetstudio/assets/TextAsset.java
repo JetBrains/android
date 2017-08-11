@@ -16,10 +16,10 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.assetstudiolib.TextRenderUtil;
-import com.android.tools.idea.ui.properties.core.IntProperty;
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 

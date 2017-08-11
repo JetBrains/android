@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.model.AttributesTransaction
+import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 import com.android.SdkConstants.*

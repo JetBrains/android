@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -33,13 +34,22 @@ public class DebuggerTestBase {
 
   protected static final String DEBUG_CONFIG_NAME = "app";
   protected static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
+  protected static final long EMULATOR_LAUNCH_WAIT_SECONDS = 120;
 
   /**
    * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
    */
   void openAndToggleBreakPoints(IdeFrameFixture ideFrame, String fileName, String... lines) {
-    EditorFixture editor = ideFrame.getEditor().open(fileName);
+    toggleBreakpoints(ideFrame.getEditor().open(fileName), lines);
+  }
 
+  void openAndToggleBreakPoints(@NotNull IdeFrameFixture ideFrameFixture, @NotNull VirtualFile file, @NotNull String... lines) {
+    toggleBreakpoints(
+      ideFrameFixture.getEditor().open(file, EditorFixture.Tab.DEFAULT),
+      lines);
+  }
+
+  private void toggleBreakpoints(@NotNull EditorFixture editor, @NotNull String[] lines) {
     for (String line : lines) {
       editor.moveBetween("", line);
       editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
@@ -49,12 +59,16 @@ public class DebuggerTestBase {
   void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), EMULATOR_LAUNCH_WAIT_SECONDS);
   }
 
   public static void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern) {
+    checkAppIsPaused(ideFrame, expectedPattern, DEBUG_CONFIG_NAME);
+  }
+
+  public static void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern, String debugConfigName) {
     Wait.seconds(5).expecting("variable patterns to match")
-        .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, DEBUG_CONFIG_NAME));
+      .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, debugConfigName));
   }
 
   protected static void resume(@NotNull String debugConfigName, IdeFrameFixture ideFrame) {
@@ -95,7 +109,11 @@ public class DebuggerTestBase {
   }
 
   void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
-    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    stopDebugSession(debugToolWindowFixture, DEBUG_CONFIG_NAME);
+  }
+
+  void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture, String debugConfigName) {
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
     contentFixture.waitForStopClick();
     contentFixture.waitForExecutionToFinish();
   }

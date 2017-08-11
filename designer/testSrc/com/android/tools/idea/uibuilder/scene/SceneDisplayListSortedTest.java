@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -67,17 +68,17 @@ public class SceneDisplayListSortedTest extends SceneTest {
   public void testBasicScene() {
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawLinearLayout,10,10,990,20,1\n" +
+                        "DrawLinearLayout,10,10,990,20,1,false\n" +
                         "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "Clip,10,10,990,20\n" +
-                        "DrawComponentBackground,10,10,990,20,1\n" +
+                        "DrawComponentBackground,10,10,990,20,1,false\n" +
                         "DrawTextRegion,10,10,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "UNClip\n" +
-                        "DrawLinearLayout,10,100,990,20,1\n" +
+                        "DrawLinearLayout,10,100,990,20,1,false\n" +
                         "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "Clip,10,100,990,20\n" +
-                        "DrawComponentBackground,10,100,990,20,1\n" +
+                        "DrawComponentBackground,10,100,990,20,1,false\n" +
                         "DrawTextRegion,10,100,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "UNClip\n" +
@@ -93,18 +94,18 @@ public class SceneDisplayListSortedTest extends SceneTest {
     String result = disp.generateSortedDisplayList(SceneContext.get());
     String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
-                    "DrawLinearLayout,10,10,990,20,1\n" +
+                    "DrawLinearLayout,10,10,990,20,1,false\n" +
                     "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "Clip,10,10,990,20\n" +
-                    "DrawComponentBackground,10,10,990,20,1\n" +
+                    "DrawComponentBackground,10,10,990,20,1,false\n" +
                     "DrawTextRegion,10,10,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                     "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "UNClip\n" +
                     "\n" +
-                    "DrawLinearLayout,10,100,990,20,1\n" +
+                    "DrawLinearLayout,10,100,990,20,1,false\n" +
                     "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "Clip,10,100,990,20\n" +
-                    "DrawComponentBackground,10,100,990,20,1\n" +
+                    "DrawComponentBackground,10,100,990,20,1,false\n" +
                     "DrawTextRegion,10,100,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                     "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "UNClip\n" +

@@ -24,7 +24,7 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlRenderers;
 import com.google.common.collect.Multimap;

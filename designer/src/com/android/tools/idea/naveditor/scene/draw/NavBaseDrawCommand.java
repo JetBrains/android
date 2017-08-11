@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 

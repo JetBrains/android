@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.CollectionQuery;
@@ -126,6 +126,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertTabHost(iterator.next());
     assertWebView(iterator.next());
     assertSearchView(iterator.next());
+    assertViewPager(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = images.getItems().iterator();

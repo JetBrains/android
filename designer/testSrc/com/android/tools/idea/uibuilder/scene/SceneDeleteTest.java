@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -47,18 +47,18 @@ public class SceneDeleteTest extends SceneTest {
     myScene.clearAttributes();
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"526dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"526dp\" />");
   }
 
   @Override

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.uibuilder.model.NlComponent
-import com.android.tools.idea.uibuilder.surface.DesignSurface
+import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.TransactionGuard
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.colors.EditorColors
@@ -140,7 +140,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
    * Apply the provided tag name to the component in the model
    */
   private fun applyTagEdit(newTagName: String) {
-    val editTagRunnable = Runnable {
+    NlWriteCommandAction.run(myNlComponent, "Morph " + myNlComponent.tagName + " to $newTagName", {
       myNlComponent.tag.name = newTagName
       TransactionGuard.getInstance().submitTransactionAndWait {
         myAttributes
@@ -150,11 +150,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
               myNlComponent.tag.setAttribute(it, null)
             }
       }
-    }
-
-    WriteCommandAction.runWriteCommandAction(myProject, "Morph " + myNlComponent.tagName + " to $newTagName", null,
-        editTagRunnable, myNlComponent.tag.containingFile)
-
+    })
   }
 
   private fun createMorphPopup(morphDialog: MorphDialog, editorEx: EditorEx): JBPopup {

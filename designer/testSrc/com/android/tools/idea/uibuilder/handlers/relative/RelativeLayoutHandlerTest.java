@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
@@ -212,9 +212,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_marginLeft=\"50dp\"\n" +
                  "        android:layout_marginTop=\"50dp\"\n" +
-                 "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
 
@@ -229,8 +229,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"65dp\"\n" +
                  "        android:layout_alignTop=\"@+id/button\"\n" +
+                 "        android:layout_marginLeft=\"65dp\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
 
@@ -245,9 +245,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_alignTop=\"@+id/button\"\n" +
                  "        android:layout_marginLeft=\"65dp\"\n" +
                  "        android:layout_marginTop=\"11dp\"\n" +
-                 "        android:layout_alignTop=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
 
@@ -262,8 +262,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"125dp\"\n" +
                  "        android:layout_alignBottom=\"@+id/button\"\n" +
+                 "        android:layout_marginLeft=\"125dp\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
 
@@ -278,10 +278,10 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"125dp\"\n" +
                  "        android:layout_alignBottom=\"@+id/button\"\n" +
-                 "        android:layout_toRightOf=\"@+id/button\"\n" +
-                 "        android:layout_marginBottom=\"15dp\" />");
+                 "        android:layout_marginBottom=\"15dp\"\n" +
+                 "        android:layout_marginLeft=\"125dp\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
   }
 
   public void testMoveSnapToMiddleOfLayout() {
@@ -295,8 +295,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_centerVertical=\"true\"\n" +
-                 "        android:layout_centerHorizontal=\"true\" />");
+                 "        android:layout_centerHorizontal=\"true\"\n" +
+                 "        android:layout_centerVertical=\"true\" />");
   }
 
   public void testMoveLeft() {
@@ -313,11 +313,11 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginLeft=\"15dp\"\n" +
-                 "        android:layout_marginStart=\"15dp\"\n" +
-                 "        android:layout_alignParentTop=\"true\"\n" +
                  "        android:layout_alignParentLeft=\"true\"\n" +
-                 "        android:layout_alignParentStart=\"true\" />");
+                 "        android:layout_alignParentStart=\"true\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_marginLeft=\"15dp\"\n" +
+                 "        android:layout_marginStart=\"15dp\" />");
 
     // This should have start attributes and no left attributes
     setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
@@ -332,9 +332,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginStart=\"15dp\"\n" +
+                 "        android:layout_alignParentStart=\"true\"\n" +
                  "        android:layout_alignParentTop=\"true\"\n" +
-                 "        android:layout_alignParentStart=\"true\" />");
+                 "        android:layout_marginStart=\"15dp\" />");
   }
 
   public void testMoveRight() {
@@ -351,11 +351,11 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginRight=\"15dp\"\n" +
-                 "        android:layout_marginEnd=\"15dp\"\n" +
-                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentEnd=\"true\"\n" +
                  "        android:layout_alignParentRight=\"true\"\n" +
-                 "        android:layout_alignParentEnd=\"true\" />");
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_marginEnd=\"15dp\"\n" +
+                 "        android:layout_marginRight=\"15dp\" />");
 
     // This should have start attributes and no left attributes
     setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
@@ -370,9 +370,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginEnd=\"15dp\"\n" +
+                 "        android:layout_alignParentEnd=\"true\"\n" +
                  "        android:layout_alignParentTop=\"true\"\n" +
-                 "        android:layout_alignParentEnd=\"true\" />");
+                 "        android:layout_marginEnd=\"15dp\" />");
   }
 
   public void testSnapCheckBoxToTopLeftOfLayoutThenMoveButtonToSnapWithCheckBox() {
@@ -387,8 +387,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_alignParentTop=\"true\"\n" +
-                 "        android:layout_alignParentLeft=\"true\" />");
+                 "        android:layout_alignParentLeft=\"true\"\n" +
+                 "        android:layout_alignParentTop=\"true\" />");
     screen
       .get("@id/button")
       .drag()
@@ -399,8 +399,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginStart=\"100dp\"\n" +
                  "        android:layout_below=\"@+id/checkbox\"\n" +
+                 "        android:layout_marginStart=\"100dp\"\n" +
                  "        android:layout_toRightOf=\"@+id/checkbox\" />");
   }
 
@@ -431,9 +431,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginLeft=\"40dp\"\n" +
                  "        android:layout_alignBaseline=\"@+id/checkbox\"\n" +
                  "        android:layout_alignBottom=\"@+id/checkbox\"\n" +
+                 "        android:layout_marginLeft=\"40dp\"\n" +
                  "        android:layout_toRightOf=\"@+id/checkbox\" />");
   }
 
@@ -465,9 +465,9 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_marginLeft=\"55dp\"\n" +
                  "        android:layout_marginTop=\"55dp\"\n" +
-                 "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />\n" +
                  "\n" +
                  "    <TextView\n" +

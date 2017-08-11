@@ -40,6 +40,7 @@ public enum InstantRunGradleSupport {
   TARGET_PLATFORM_NOT_INSTALLED(AndroidBundle.message("instant.run.notification.ir.disabled.target.platform.missing")),
   API_TOO_LOW_FOR_INSTANT_RUN(AndroidBundle.message("instant.run.notification.ir.disabled.api.less.than.21")),
   INSTANT_APP, // for now just disable silently
+  HAS_CODE_FALSE(AndroidBundle.message("instant.run.notification.ir.disabled.app.has.code.false")),
 
   // Gradle 2.2.0-alpha6 and above can provide more fine grained info when IR is disabled.
   // The following status messages correspond to the values returned by the gradle plugin.

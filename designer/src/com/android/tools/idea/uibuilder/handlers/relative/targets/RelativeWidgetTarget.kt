@@ -16,15 +16,15 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.getBaseline
-import com.android.tools.idea.uibuilder.scene.SceneComponent
-import com.android.tools.idea.uibuilder.scene.SceneContext
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList
 import com.android.tools.idea.uibuilder.scene.target.Notch
-import com.android.tools.idea.uibuilder.scene.target.Target
 import com.intellij.ui.JBColor
-import java.util.ArrayList
+import java.util.*
 
 const private val DEBUG = false
 const private val NOTCH_GAP_SIZE = 6

@@ -246,13 +246,13 @@ public class MemoryInstanceDetailsViewTest {
     // -> fake3
     FakeInstanceObject fake1 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref1").setFields(Collections.singletonList("mField"))
-        .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
+        .setDepth(1).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
     FakeInstanceObject fake2 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref2").setFields(Collections.singletonList("mField"))
-        .setDepth(4).setShallowSize(5).setRetainedSize(6).build();
+        .setDepth(4).setNativeSize(2).setShallowSize(5).setRetainedSize(6).build();
     FakeInstanceObject fake3 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref3").setFields(Collections.singletonList("mField"))
-        .setDepth(7).setShallowSize(8).setRetainedSize(9).build();
+        .setDepth(7).setNativeSize(3).setShallowSize(8).setRetainedSize(9).build();
     List<FakeInstanceObject> references = Arrays.asList(fake1, fake2, fake3);
 
     FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").setName("MockRoot").build();
@@ -274,7 +274,7 @@ public class MemoryInstanceDetailsViewTest {
     JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
     assertEquals(references.size(), root.getChildCount());
@@ -285,6 +285,7 @@ public class MemoryInstanceDetailsViewTest {
                                     new String[]{""},
                                     new String[]{""},
                                     new String[]{Integer.toString(ref.getDepth())},
+                                    new String[]{Long.toString(ref.getNativeSize())},
                                     new String[]{Integer.toString(ref.getShallowSize())},
                                     new String[]{Long.toString(ref.getRetainedSize())});
     }

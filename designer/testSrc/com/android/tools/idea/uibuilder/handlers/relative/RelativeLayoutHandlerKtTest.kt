@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.util.NlTreeDumper
-
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.util.NlTreeDumper
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
@@ -60,13 +59,13 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(150f, 150f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_marginTop=\"145dp\"\n" +
-            "      android:layout_alignParentStart=\"true\"\n" +
-            "      android:layout_marginStart=\"145dp\"\n" +
-            "      android:layout_alignParentTop=\"true\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentStart=\"true\"\n" +
+            "        android:layout_alignParentTop=\"true\"\n" +
+            "        android:layout_marginStart=\"145dp\"\n" +
+            "        android:layout_marginTop=\"145dp\" />")
   }
 
   fun testDragComponentToRightBottomSide() {
@@ -75,13 +74,13 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(400f, 400f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_alignParentEnd=\"true\"\n" +
-            "      android:layout_marginEnd=\"95dp\"\n" +
-            "      android:layout_alignParentBottom=\"true\"\n" +
-            "      android:layout_marginBottom=\"95dp\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentBottom=\"true\"\n" +
+            "        android:layout_alignParentEnd=\"true\"\n" +
+            "        android:layout_marginBottom=\"95dp\"\n" +
+            "        android:layout_marginEnd=\"95dp\" />")
   }
 
   fun testDragComponentOverLeftTopEdges() {
@@ -90,11 +89,11 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(-100f, -100f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_alignParentStart=\"true\"\n" +
-            "      android:layout_alignParentTop=\"true\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentStart=\"true\"\n" +
+            "        android:layout_alignParentTop=\"true\" />")
   }
 
   fun testDragComponentOverRightBottomEdges() {
@@ -104,11 +103,11 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(500f, 500f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_alignParentEnd=\"true\"\n" +
-            "      android:layout_alignParentBottom=\"true\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentBottom=\"true\"\n" +
+            "        android:layout_alignParentEnd=\"true\" />")
   }
 
   fun testDragComponentCenterHorizontal() {
@@ -117,12 +116,12 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(250f, 30f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_marginTop=\"25dp\"\n" +
-            "      android:layout_centerHorizontal=\"true\"\n" +
-            "      android:layout_alignParentTop=\"true\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentTop=\"true\"\n" +
+            "        android:layout_centerHorizontal=\"true\"\n" +
+            "        android:layout_marginTop=\"25dp\" />")
   }
 
   fun testDragComponentCenterVertical() {
@@ -131,12 +130,12 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(30f, 250f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_alignParentStart=\"true\"\n" +
-            "      android:layout_centerVertical=\"true\"\n" +
-            "      android:layout_marginStart=\"25dp\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignParentStart=\"true\"\n" +
+            "        android:layout_centerVertical=\"true\"\n" +
+            "        android:layout_marginStart=\"25dp\" />")
   }
 
   fun testDragComponentToCenterOfParent() {
@@ -145,10 +144,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(250f, 250f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_centerInParent=\"true\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_centerInParent=\"true\" />")
   }
 
   fun testDragComponentToAlignWidgetStartAndTop() {
@@ -157,11 +156,11 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(50f, 50f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "      android:layout_alignTop=\"@+id/button\"\n" +
-            "      android:layout_alignStart=\"@+id/button\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_alignStart=\"@+id/button\"\n" +
+            "        android:layout_alignTop=\"@+id/button\" />")
   }
 
   fun testDragComponentToBelowAndToEndOfWidget() {
@@ -170,11 +169,11 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     myInteraction.mouseRelease(100f, 100f)
     myScreen.get("@id/checkbox")
         .expectXml("<CheckBox\n" +
-            "    android:id=\"@id/checkbox\"\n" +
-            "    android:layout_width=\"20dp\"\n" +
-            "    android:layout_height=\"20dp\"\n" +
-            "    android:layout_below=\"@+id/button\"\n" +
-            "      android:layout_toEndOf=\"@+id/button\" />")
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_below=\"@+id/button\"\n" +
+            "        android:layout_toEndOf=\"@+id/button\" />")
   }
 
   override fun createModel(): ModelBuilder {

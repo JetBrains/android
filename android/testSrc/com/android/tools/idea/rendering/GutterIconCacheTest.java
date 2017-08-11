@@ -70,7 +70,8 @@ public class GutterIconCacheTest extends AndroidTestCase {
     assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
   }
 
-  public void testIconUpToDate_entryInvalidSavedChanges() {
+  // FIXME: Disabled due to flakiness b/64485516
+  public void disabled_testIconUpToDate_entryInvalidSavedChanges() {
     GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
 
     // Modify image resource by adding an empty comment and then save to disk

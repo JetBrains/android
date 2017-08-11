@@ -21,7 +21,6 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.flat.FlatButton;
-import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -36,6 +35,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +92,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
 
-    myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
-    myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.HEAP_DUMP));
+    myHeapDumpButton = new FlatButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
+    myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Dump Java heap");
     myHeapDumpButton.addActionListener(e -> {
       getStage().requestHeapDump();
@@ -122,8 +122,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
-    JButton forceGarbageCollectionButton = new FlatButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
-    forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION));
+    JButton forceGarbageCollectionButton = new FlatButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> {
       getStage().forceGarbageCollection();
@@ -206,14 +206,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText("");
-      myAllocationButton.setIcon(ProfilerIcons.STOP_RECORDING);
-      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
+      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
       myAllocationButton.setToolTipText("Stop recording");
     }
     else {
       myAllocationButton.setText("");
-      myAllocationButton.setIcon(ProfilerIcons.RECORD);
-      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
+      myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myAllocationButton.setToolTipText("Record memory allocations");
     }
   }
@@ -283,8 +283,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
-        .setIcon(ProfilerIcons.GARBAGE_EVENT)
-        .setLabelOffsets(-ProfilerIcons.GARBAGE_EVENT.getIconWidth() / 2, ProfilerIcons.GARBAGE_EVENT.getIconHeight() / 2)
+        .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
+        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
         .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
@@ -378,11 +379,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildCaptureUi() {
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
-    toolbar.add(myCaptureView.getExportButton());
-    toolbar.add(new FlatSeparator());
     toolbar.add(myCaptureView.getComponent());
-    toolbar.add(new FlatSeparator());
-
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
 
@@ -453,13 +450,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (valueObject instanceof FieldObject) {
       FieldObject field = (FieldObject)valueObject;
       if (field.getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(field.getAsInstance(), ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
+        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
       else if (field.getValueType().getIsPrimitive()) {
         return AllIcons.Debugger.Db_primitive;
       }
       else {
-        return getStackedIcon(field.getAsInstance(), ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
+        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
     else if (valueObject instanceof ReferenceObject) {
@@ -468,14 +465,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         return AllIcons.Hierarchy.Subtypes;
       }
       else if (referrer.getReferenceInstance().getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(referrer.getReferenceInstance(), ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
+        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
       else {
-        return getStackedIcon(referrer.getReferenceInstance(), ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
+        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
     else if (valueObject instanceof InstanceObject) {
-      return getStackedIcon((InstanceObject)valueObject, ProfilerIcons.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
+      return getStackedIcon((InstanceObject)valueObject, StudioIcons.Profiler.Overlays.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
     }
     else {
       return PlatformIcons.INTERFACE_ICON;

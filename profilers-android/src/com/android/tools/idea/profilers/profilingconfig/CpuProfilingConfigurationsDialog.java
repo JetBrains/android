@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
@@ -133,6 +132,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myConfigurations = new JBList<>(myConfigurationsModel);
       setUpConfigurationsList();
       selectConfiguration(preSelectedConfiguration);
+    }
+
+    @Nullable
+    @Override
+    public String getHelpTopic() {
+      return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/cpu-recording-configurations-help-link.html";
     }
 
     private void setUpConfigurationsList() {

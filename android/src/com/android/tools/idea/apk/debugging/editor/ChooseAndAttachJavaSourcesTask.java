@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -33,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleJavaPathDescriptor;
 
@@ -83,7 +83,8 @@ class ChooseAndAttachJavaSourcesTask implements Runnable {
                                          .setCategory(AndroidStudioEvent.EventCategory.APK_DEBUG)
                                          .setKind(AndroidStudioEvent.EventKind.APK_DEBUG_ATTACH_JAVA_SOURCES)
                                          .setApkDebugProject(ApkDebugProject.newBuilder()
-                                                               .setPackageId(anonymizeUtf8(facet.getConfiguration().APP_PACKAGE))));
+                                                               .setPackageId(
+                                                                 AnonymizerUtil.anonymizeUtf8(facet.getConfiguration().APP_PACKAGE))));
       }
 
       ModifiableRootModel moduleModel = ModuleRootManager.getInstance(myModule).getModifiableModel();

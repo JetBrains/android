@@ -20,6 +20,7 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
+import icons.StudioIcons;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -29,6 +30,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -121,7 +123,7 @@ public class StudioProfilersView extends AspectObserver {
     myMonitoringToolbar.add(processCombo);
 
     myCommonToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
-    JButton button = new FlatButton(ProfilerIcons.BACK_ARROW);
+    JButton button = new FlatButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
@@ -150,16 +152,16 @@ public class StudioProfilersView extends AspectObserver {
     JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
 
-    FlatButton close = new FlatButton(ProfilerIcons.CLOSE);
-    close.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.CLOSE));
+    FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
+    close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
     close.addActionListener(event -> myProfiler.stop());
     rightToolbar.add(close);
 
     rightToolbar.add(new FlatSeparator());
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    FlatButton zoomOut = new FlatButton(ProfilerIcons.ZOOM_OUT);
-    zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.ZOOM_OUT));
+    FlatButton zoomOut = new FlatButton(StudioIcons.Common.ZOOM_OUT);
+    zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
     zoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
@@ -167,8 +169,8 @@ public class StudioProfilersView extends AspectObserver {
     zoomOut.setToolTipText("Zoom out");
     rightToolbar.add(zoomOut);
 
-    FlatButton zoomIn = new FlatButton(ProfilerIcons.ZOOM_IN);
-    zoomIn.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.ZOOM_IN));
+    FlatButton zoomIn = new FlatButton(StudioIcons.Common.ZOOM_IN);
+    zoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
     zoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
@@ -176,8 +178,8 @@ public class StudioProfilersView extends AspectObserver {
     zoomIn.setToolTipText("Zoom in");
     rightToolbar.add(zoomIn);
 
-    FlatButton resetZoom = new FlatButton(ProfilerIcons.RESET_ZOOM);
-    resetZoom.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RESET_ZOOM));
+    FlatButton resetZoom = new FlatButton(StudioIcons.Common.RESET_ZOOM);
+    resetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
     resetZoom.addActionListener(event -> {
       timeline.resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
@@ -186,8 +188,8 @@ public class StudioProfilersView extends AspectObserver {
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
-    myGoLive = new FlatToggleButton("Live", ProfilerIcons.GOTO_LIVE);
-    myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.GOTO_LIVE));
+    myGoLive = new FlatToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+    myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
     myGoLive.setToolTipText("See realtime profiler data");
     myGoLive.addActionListener(event -> {
       timeline.toggleStreaming();

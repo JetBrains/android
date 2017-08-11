@@ -18,14 +18,14 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -72,6 +72,17 @@ public class NlComponentFixture {
   }
 
   /**
+   * Returns the right bottom point in panel coordinates
+   */
+  @NotNull
+  private Point getRightBottomPoint() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int x = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
+    int y = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
+    return new Point(x, y);
+  }
+
+  /**
    * Returns the bottom center point in panel coordinates
    */
   @NotNull
@@ -115,12 +126,49 @@ public class NlComponentFixture {
     return new Point(rightX, midY);
   }
 
+  @NotNull
+  public NlComponentFixture resizeBy(int widthBy, int heightBy) {
+    Point point = getRightBottomPoint();
+    myDragAndDrop.drag(mySurface, point);
+    myDragAndDrop.drop(mySurface, new Point(((int)point.getX()) + widthBy, ((int)point.getY()) + heightBy));
+    return this;
+  }
+
+  @NotNull
+  public int getWidth() {
+    return mySceneComponent.getDrawWidth();
+  }
+
+  @NotNull
+  public int getHeight() {
+    return mySceneComponent.getDrawHeight();
+  }
+
+  // Note that this op behaves nothing. It is for testing purpose.
+  @NotNull
+  public NlComponentFixture createConstraintFromBottomToLeftOf(@NotNull NlComponentFixture destination) {
+    myDragAndDrop.drag(mySurface, getBottomCenterPoint());
+    myDragAndDrop.drop(mySurface, destination.getLeftCenterPoint());
+    return this;
+  }
+
+  @NotNull
   public NlComponentFixture createConstraintFromBottomToTopOf(@NotNull NlComponentFixture destination) {
     myDragAndDrop.drag(mySurface, getBottomCenterPoint());
     myDragAndDrop.drop(mySurface, destination.getTopCenterPoint());
     return this;
   }
 
+  @NotNull
+  public NlComponentFixture createConstraintFromBottomToBottomOfLayout() {
+    Point bottomCenterPoint = getBottomCenterPoint();
+    myDragAndDrop.drag(mySurface, bottomCenterPoint);
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    myDragAndDrop.drop(mySurface, new Point(bottomCenterPoint.x, mySurface.getCurrentSceneView().getY() + sceneView.getSize().height));
+    return this;
+  }
+
+  @NotNull
   public NlComponentFixture createConstraintFromTopToTopOfLayout() {
     Point topCenterPoint = getTopCenterPoint();
     myDragAndDrop.drag(mySurface, topCenterPoint);
@@ -128,6 +176,7 @@ public class NlComponentFixture {
     return this;
   }
 
+  @NotNull
   public NlComponentFixture createConstraintFromLeftToLeftOfLayout() {
     Point leftCenterPoint = getLeftCenterPoint();
     myDragAndDrop.drag(mySurface, leftCenterPoint);
@@ -135,6 +184,7 @@ public class NlComponentFixture {
     return this;
   }
 
+  @NotNull
   public NlComponentFixture createConstraintFromRightToRightOfLayout() {
     Point rightCenterPoint = getRightCenterPoint();
     myDragAndDrop.drag(mySurface, rightCenterPoint);
@@ -143,6 +193,7 @@ public class NlComponentFixture {
     return this;
   }
 
+  @NotNull
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
     String expectedTooltipText = "Edit Baseline";
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -166,14 +217,17 @@ public class NlComponentFixture {
     return this;
   }
 
+  @NotNull
   public String getTextAttribute() {
     return myComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
   }
 
+  @NotNull
   public Object getViewObject() {
     return NlComponentHelperKt.getViewInfo(myComponent).getViewObject();
   }
 
+  @NotNull
   public String getText() {
     try {
       return (String)getViewObject().getClass().getMethod("getText").invoke(getViewObject());
@@ -186,6 +240,7 @@ public class NlComponentFixture {
   /**
    * Click in the middle of the view (typically selects it)
    */
+  @NotNull
   public NlComponentFixture click() {
     myComponentDriver.click(mySurface, getMidPoint());
     return this;
@@ -206,6 +261,7 @@ public class NlComponentFixture {
     new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 
+  @NotNull
   public NlComponent getComponent() {
     return myComponent;
   }

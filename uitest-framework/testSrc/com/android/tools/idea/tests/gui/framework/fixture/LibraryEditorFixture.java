@@ -16,14 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JLabelFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import java.awt.Component;
 import java.awt.Container;
 import java.io.File;
 
@@ -76,5 +84,55 @@ public class LibraryEditorFixture extends EditorFixture {
     debugSymbolsDialog.clickOk();
     debugSymbolsDialog.waitUntilNotShowing();
     return this;
+  }
+
+  @NotNull
+  public PathMappingTableFixture getPathMappings() {
+    return PathMappingTableFixture.find(robot, libraryContainer);
+  }
+
+  @NotNull
+  public LibraryEditorFixture applyChanges() {
+    Wait.seconds(5)
+      .expecting("apply changes label to appear")
+      .until(() -> getApplyChangesLabel(robot, libraryContainer) != null);
+
+    new HyperlinkLabelFixture(robot, getApplyChangesLabel(robot, libraryContainer)).clickLink("Apply Changes");
+    Wait.seconds(5)
+      .expecting("path mappings to be performed")
+      .until(() -> {
+        String expectedLabel = "All debug symbol paths are mapped to local paths.";
+        JLabel label = getPathMappingsLabel(robot, libraryContainer);
+        return label != null && label.getText().equals(expectedLabel);
+      });
+    return this;
+  }
+
+  @Nullable
+  private static HyperlinkLabel getApplyChangesLabel(@NotNull Robot robot, @NotNull Container container) {
+    try {
+      return robot.finder()
+        .findByName(
+          container,
+          "applyChangesLabel",
+          HyperlinkLabel.class,
+          true);
+    } catch (ComponentLookupException didNotFind) {
+      return null;
+    }
+  }
+
+  @Nullable
+  private static JLabel getPathMappingsLabel(@NotNull Robot robot, @NotNull Container container) {
+    try {
+      return robot.finder()
+        .findByName(
+          container,
+          "pathMappingsLabel",
+          JLabel.class,
+          true);
+    } catch (ComponentLookupException didNotFind) {
+      return null;
+    }
   }
 }

@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.InputEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Test selecting overlapping widgets
@@ -104,11 +102,11 @@ public class SceneOverlapSelectionTest extends SceneTest {
     assertEquals(myScene.getSceneComponent("button1").getNlComponent(), componentList.get(0));
     myScreen.get("@id/button1")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"540dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"555dp\"/>");
+                 "        android:id=\"@id/button1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"540dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"555dp\" />");
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "    android:id=\"@id/button2\"\n" +
@@ -145,11 +143,11 @@ public class SceneOverlapSelectionTest extends SceneTest {
                  "    tools:layout_editor_absoluteY=\"200dp\"/>");
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"565dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"520dp\"/>");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"565dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"520dp\" />");
     myScreen.get("@id/button3")
       .expectXml("<Button\n" +
                  "    android:id=\"@id/button3\"\n" +
@@ -186,10 +184,10 @@ public class SceneOverlapSelectionTest extends SceneTest {
                  "    tools:layout_editor_absoluteY=\"165dp\"/>");
     myScreen.get("@id/button3")
       .expectXml("<Button\n" +
-                 "    android:id=\"@id/button3\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"585dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"585dp\"/>");
+                 "        android:id=\"@id/button3\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"585dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"585dp\" />");
   }
 }

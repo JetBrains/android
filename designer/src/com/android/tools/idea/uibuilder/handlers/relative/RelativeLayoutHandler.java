@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.TextDirection;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,29 +93,26 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         NlComponent previous = null;
         for (NlComponent component : components) {
           NlComponent finalPrevious = previous;
-          NlModel model = editor.getModel();
-          new WriteCommandAction(model.getProject(), type.getDescription(), model.getFile()) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              if (finalPrevious == null) {
-                moveHandler.applyConstraints(component);
-              }
-              else {
-                // Arrange the nodes next to each other, depending on which
-                // edge we are attaching to. For example, if attaching to the
-                // top edge, arrange the subsequent nodes in a column below it.
-                //
-                // TODO: Try to do something smarter here where we detect
-                // constraints between the dragged edges, and we preserve these.
-                // We have to do this carefully though because if the
-                // constraints go through some other nodes not part of the
-                // selection, this doesn't work right, and you might be
-                // dragging several connected components, which we'd then
-                // need to stitch together such that they are all visible.
-                moveHandler.attachPrevious(finalPrevious, component);
-              }
+
+          NlWriteCommandAction.run(component, type.getDescription(), () -> {
+            if (finalPrevious == null) {
+              moveHandler.applyConstraints(component);
             }
-          }.execute();
+            else {
+              // Arrange the nodes next to each other, depending on which
+              // edge we are attaching to. For example, if attaching to the
+              // top edge, arrange the subsequent nodes in a column below it.
+              //
+              // TODO: Try to do something smarter here where we detect
+              // constraints between the dragged edges, and we preserve these.
+              // We have to do this carefully though because if the
+              // constraints go through some other nodes not part of the
+              // selection, this doesn't work right, and you might be
+              // dragging several connected components, which we'd then
+              // need to stitch together such that they are all visible.
+              moveHandler.attachPrevious(finalPrevious, component);
+            }
+          });
 
           previous = component;
         }

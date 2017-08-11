@@ -240,12 +240,13 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull String message) {
-    // If mySyncStartedTimestamp is -1, that means sync have not started or
-    // syncFailed has been called for this invocation, do nothing
+    long syncEndTimestamp = System.currentTimeMillis();
+    // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
+    // Reset sync state and don't log the events or notify listener again.
     if (mySyncStartedTimestamp == -1L) {
+      syncFinished(syncEndTimestamp);
       return;
     }
-    long syncEndTimestamp = System.currentTimeMillis();
     setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
     if (isNotEmpty(message)) {
@@ -268,6 +269,12 @@ public class GradleSyncState {
     // syncFailed should be called if there're any sync issues.
     assert !lastSyncFailedOrHasIssues();
     long syncEndTimestamp = System.currentTimeMillis();
+    // If mySyncStartedTimestamp is -1, that means sync has not started or syncEnded has been called for this invocation.
+    // Reset sync state and don't log the events or notify listener again.
+    if (mySyncStartedTimestamp == -1L) {
+      syncFinished(syncEndTimestamp);
+      return;
+    }
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
     addInfoToEventLog(msg);
@@ -277,7 +284,6 @@ public class GradleSyncState {
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     LintUtils.sTryPrefixLookup = true;
-
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";

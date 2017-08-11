@@ -95,5 +95,7 @@
     <orderEntry type="module" module-name="sdk-common" scope="TEST" />
     <orderEntry type="module" module-name="flags" scope="TEST" />
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
+    <orderEntry type="module" module-name="artwork" scope="TEST" />
+    <orderEntry type="module" module-name="android-common" scope="TEST" />
   </component>
 </module>

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.callgraph
 
+import java.util.function.Consumer;
+
 
 /** Test trivial call chains. */
 class Trivial {
@@ -81,6 +83,29 @@ class SimpleField {
   void typeEvidencedSubImpl() { itTypeEvidencedSubImpl.f(); }
   void typeEvidencedImpl() { itTypeEvidencedImpl.f(); }
   void typeEvidencedBoth() { itTypeEvidencedBoth.f(); }
+}
+
+
+/** Test calls through array elements. */
+class SimpleArray {
+  It[] itNotUnique = new It[1];
+  It[] itUnique = new It[1];
+  It[][] itTypeEvidencedSubImpl = new It[1][1];
+  It[] itTypeEvidencedImpl = new It[1];
+  It[][] itTypeEvidencedBoth = new It[1][1];
+
+  SimpleArray() {
+    itTypeEvidencedSubImpl[0][0] = new SubImpl();
+    itTypeEvidencedImpl[0] = new Impl();
+    itTypeEvidencedBoth[0][0] = new Impl();
+    itTypeEvidencedBoth[0][0] = new SubImpl();
+  }
+
+  void notUnique() { itNotUnique[0].f(); }
+  void unique() { itUnique[0].implUnique(); }
+  void typeEvidencedSubImpl() { itTypeEvidencedSubImpl[0][0].f(); }
+  void typeEvidencedImpl() { itTypeEvidencedImpl[0].f(); }
+  void typeEvidencedBoth() { itTypeEvidencedBoth[0][0].f(); }
 }
 
 
@@ -181,10 +206,10 @@ class Return {
 
 /** Test lambdas. */
 class Lambdas {
-  void f() {}
+  void f(Object o) {}
   void g() {
-    Runnable r = this::f;
-    r.run();
+    Consumer<Object> r = this::f;
+    r.accept(null);
   }
   void h() {
     Runnable r = () -> { f(); g(); };
@@ -238,8 +263,9 @@ class Contextual {
     @Override
     protected void myRun(Runnable r) { r.run(); }
   }
-  void runImplicitThis(ImplicitThis it, Runnable r) { it.run(r); }
-  void implicitThisA() { runImplicitThis(new ImplicitThisA(), () -> f()); }
+  void runWithConsumer(Consumer<Runnable> c, Runnable r) { c.accept(r); }
+  void runImplicitThis(ImplicitThis it, Runnable r) { runWithConsumer(it::myRun, r); }
+  void implicitThisA() { runImplicitThis(new ImplicitThisA(), this::f); }
   void implicitThisB() { runImplicitThis(new ImplicitThisB(), () -> g()); }
 
   // Test long contextual paths.

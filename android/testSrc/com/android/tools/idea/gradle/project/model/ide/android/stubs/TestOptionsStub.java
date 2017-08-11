@@ -34,7 +34,7 @@ public class TestOptionsStub extends BaseStub implements TestOptions {
 
   @Override
   @Nullable
-  public Execution getExecutionEnum() { return myExecutionEnum; }
+  public Execution getExecution() { return myExecutionEnum; }
 
   @Override
   public boolean getAnimationsDisabled() {
@@ -53,12 +53,12 @@ public class TestOptionsStub extends BaseStub implements TestOptions {
     }
     TestOptions options = (TestOptions)o;
     return equals(options, TestOptions::getAnimationsDisabled) &&
-           equals(options, TestOptions::getExecutionEnum);
+           equals(options, TestOptions::getExecution);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getAnimationsDisabled(), getExecutionEnum());
+    return Objects.hash(getAnimationsDisabled(), getExecution());
   }
 
   @Override

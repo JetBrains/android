@@ -17,8 +17,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -26,18 +26,18 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.ComponentProvider;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
-import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -238,6 +238,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
     actions.add(new ViewActionMenu("Organize", AndroidIcons.SherpaIcons.PackSelectionHorizontally, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new ViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAligned, ConstraintViewActions.ALIGN_ACTIONS));
+    actions.add(new ViewActionMenu("Chain", AndroidIcons.SherpaIcons.CreateHorizontalChain, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new ViewActionMenu("Center", AndroidIcons.SherpaIcons.HorizontalCenter, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new ViewActionMenu("Helpers", AndroidIcons.SherpaIcons.GuidelineVertical, ConstraintViewActions.HELPER_ACTIONS));
   }
@@ -880,7 +881,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       myToolTip = toolTip;
     }
 
-    private boolean isEnabled(int count) {
+    /**
+     * Function is called on right click
+     * It is moderatly compute intensive. (<10ms)
+     *
+     * @param selected
+     * @return
+     */
+    private boolean isEnabled(List<NlComponent> selected) {
+      int count = selected.size();
       switch (myActionType) {
         case AlignVerticallyTop:
         case AlignVerticallyMiddle:
@@ -893,9 +902,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         case VerticalPack:
         case HorizontalPack:
         case AlignBaseline:
-        case CreateHorizontalChain:
-        case CreateVerticalChain:
           return count > 1;
+        case CreateHorizontalChain:
+          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
+        case CreateVerticalChain:
+          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
         case ExpandVertically:
         case ExpandHorizontally:
         case CenterHorizontallyInParent:
@@ -903,6 +914,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         case CenterVertically:
         case CenterHorizontally:
           return count >= 1;
+        case ChainHorizontalMoveLeft:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsTopOfChain);
+        case ChainVerticalMoveDown:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsBottomOfChain);
+        case ChainVerticalMoveUp:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsTopOfChain);
+        case ChainHorizontalMoveRight:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain) &&
+                 !Scout.chainCheck(selected, Scout.ChainTest.IsBottomOfChain);
+        case ChainHorizontalRemove:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
+        case ChainVerticalRemove:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
+        case ChainInsertHorizontal:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearHorizontalChain);
+        case  ChainInsertVertical:
+          return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearVerticalChain);
         default:
           return false;
       }
@@ -935,7 +966,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           icon = myConstrainIcon;
         }
       }
-      presentation.setEnabled(isEnabled(selectedChildren.size()));
+      presentation.setVisible(isEnabled(selectedChildren));
+      presentation.setEnabled(isEnabled(selectedChildren));
       presentation.setIcon(icon);
       presentation.setLabel(myToolTip);
     }
@@ -1163,6 +1195,51 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       .addAll(ALIGN_VERTICALLY_ACTIONS)
       .build();
 
+    private static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
+
+      new AlignAction(Scout.Arrange.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      "Create Horizontal Chain"),
+      new AlignAction(Scout.Arrange.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "Create Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainInsertHorizontal,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      "Insert in Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainInsertVertical,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "Insert in  Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalRemove,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "remove from Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalRemove,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "remove from Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalMoveUp,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move up Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainVerticalMoveDown,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move down Vertical Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalMoveLeft,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move left Horizontal Chain"),
+      new AlignAction(Scout.Arrange.ChainHorizontalMoveRight,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "move right Horizontal Chain")
+    );
+
+
     private static final ImmutableList<ViewAction> CENTER_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.CenterHorizontally,
                       AndroidIcons.SherpaIcons.HorizontalCenter,
@@ -1172,14 +1249,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                       AndroidIcons.SherpaIcons.VerticalCenter,
                       AndroidIcons.SherpaIcons.VerticalCenterB,
                       "Center Vertically"),
-      new AlignAction(Scout.Arrange.CreateHorizontalChain,
-                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
-                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
-                      "Create Horizontal Chain"),
-      new AlignAction(Scout.Arrange.CreateVerticalChain,
-                      AndroidIcons.SherpaIcons.CreateVerticalChain,
-                      AndroidIcons.SherpaIcons.CreateVerticalChain,
-                      "Create Vertical Chain"),
       new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
                       AndroidIcons.SherpaIcons.HorizontalCenterParent,
                       AndroidIcons.SherpaIcons.HorizontalCenterParentB,

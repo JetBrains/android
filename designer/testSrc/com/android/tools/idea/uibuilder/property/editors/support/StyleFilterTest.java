@@ -55,6 +55,19 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     myFilter = new StyleFilter(getProject(), myResolver);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myResolver = null;
+      myFilter = null;
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testTextAppearances() {
     List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true);
     assertStylesSorted("TextAppearance", styles, 3, 50, 200,

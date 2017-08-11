@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.resources.ScreenOrientation;
+import com.android.tools.idea.rendering.webp.WebpMetadata;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,12 @@ import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class DeviceArtDescriptorTest extends TestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    WebpMetadata.ensureWebpRegistered();
+  }
+
   public void test1() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 

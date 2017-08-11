@@ -59,13 +59,14 @@ public class SimplePerfTraceParserTest {
   }
 
   @Test
-  public void allTreesShouldStartWithMain() throws IOException {
+  public void allTreesShouldStartWithThreadName() throws IOException {
     myParser.parse(myTraceFile);
     Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
 
-    for (CaptureNode tree : callTrees.values()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : callTrees.entrySet()) {
+      CaptureNode tree = entry.getValue();
       assertNotNull(tree.getData());
-      assertEquals("main", tree.getData().getName());
+      assertEquals(entry.getKey().getName(), tree.getData().getName());
     }
   }
 
@@ -75,7 +76,6 @@ public class SimplePerfTraceParserTest {
     Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
 
     assertFalse(callTrees.values().isEmpty());
-    CaptureNode first = callTrees.values().iterator().next();
 
     // Studio:Heartbeat
     int studioHeartbeatCount = 0;
@@ -86,8 +86,6 @@ public class SimplePerfTraceParserTest {
     // JVMTI Agent thread
     int jvmtiAgentCount = 0;
 
-    assertNotNull(first);
-    assertEquals("main", first.getData().getName());
     for (Map.Entry<CpuThreadInfo, CaptureNode> tree : callTrees.entrySet()) {
       String thread = tree.getKey().getName();
       // Using contains instead of equals because native thread names are limited to 15 characters

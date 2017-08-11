@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "sdk-updates",
     srcs = ["src"],
+    iml_files = ["sdk-updates.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -21,6 +22,7 @@ iml_module(
 
 iml_module(
     name = "sdk-updates-tests",
+    iml_files = ["sdk-updates-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.updater.SdkUpdaterTestSuite",
     test_data = [

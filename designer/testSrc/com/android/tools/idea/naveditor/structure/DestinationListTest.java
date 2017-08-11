@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.google.common.collect.ImmutableList;
 
 import java.awt.*;
@@ -151,6 +150,14 @@ public class DestinationListTest extends NavigationTestCase {
     //noinspection AssertEqualsBetweenInconvertibleTypes
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")),
                  Collections.list(list.myListModel.elements()));
+
+    // Verify that modifications that don't add or remove components don't cause the selection to change
+    ImmutableList<NlComponent> fragment3 = ImmutableList.of(model.find("fragment3"));
+    model.getSelectionModel().setSelection(fragment3);
+    assertEquals(fragment3, list.mySelectionModel.getSelection());
+
+    model.notifyModified(NlModel.ChangeType.EDIT);
+    assertEquals(fragment3, list.mySelectionModel.getSelection());
   }
 
   public void testDoubleClickActivity() throws Exception {

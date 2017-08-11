@@ -121,7 +121,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     convert(project, settings, true, Arrays.asList(files));
   }
 
-  public static boolean isResourceDirectory(@NotNull VirtualFile file, @NotNull Project project) {
+  private static boolean isResourceDirectory(@NotNull VirtualFile file, @NotNull Project project) {
     if (file.isDirectory()) {
       ResourceFolderType folderType = ResourceFolderType.getFolderType(file.getName());
       if (folderType != null) {
@@ -382,7 +382,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       for (AndroidFacet facet : facets) {
         Document document = MergedManifest.get(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {
-          Element element = XmlUtils.getFirstSubTagTagByName(document.getDocumentElement(), TAG_APPLICATION);
+          Element element = XmlUtils.getFirstSubTagByName(document.getDocumentElement(), TAG_APPLICATION);
           if (element != null) {
             addIcons(names, element);
             for (Element child : XmlUtils.getSubTags(element)) {

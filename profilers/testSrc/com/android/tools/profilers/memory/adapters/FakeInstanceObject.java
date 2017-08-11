@@ -39,6 +39,7 @@ public final class FakeInstanceObject implements InstanceObject {
   private final int myArrayLength;
   private final int myHeapId;
   private final int myDepth;
+  private final long myNativeSize;
   private final int myShallowSize;
   private final long myRetainedSize;
 
@@ -51,10 +52,11 @@ public final class FakeInstanceObject implements InstanceObject {
                              @Nullable ValueType arrayElementType,
                              @Nullable Object array,
                              int arrayLength,
-                             int heapId, int depth, int shallowSize, long retainedSize) {
+                             int heapId, int depth, long nativeSize, int shallowSize, long retainedSize) {
     myName = name;
     myClassEntry = classEntry;
     myDepth = depth;
+    myNativeSize = nativeSize;
     myShallowSize = shallowSize;
     myRetainedSize = retainedSize;
     myFields = new ArrayList<>();
@@ -183,6 +185,11 @@ public final class FakeInstanceObject implements InstanceObject {
   }
 
   @Override
+  public long getNativeSize() {
+    return myNativeSize;
+  }
+
+  @Override
   public int getShallowSize() {
     return myShallowSize;
   }
@@ -229,6 +236,7 @@ public final class FakeInstanceObject implements InstanceObject {
     private int myHeapId = FakeCaptureObject.DEFAULT_HEAP_ID;
 
     private int myDepth = Integer.MAX_VALUE;
+    private long myNativeSize = INVALID_VALUE;
     private int myShallowSize = INVALID_VALUE;
     private long myRetainedSize = INVALID_VALUE;
     private ValueType myArrayElementType;
@@ -308,6 +316,12 @@ public final class FakeInstanceObject implements InstanceObject {
     }
 
     @NotNull
+    public Builder setNativeSize(long nativeSize) {
+      myNativeSize = nativeSize;
+      return this;
+    }
+
+    @NotNull
     public Builder setShallowSize(int shallowSize) {
       myShallowSize = shallowSize;
       return this;
@@ -323,7 +337,7 @@ public final class FakeInstanceObject implements InstanceObject {
     public FakeInstanceObject build() {
       return new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassLoaderId, myClassName), myFields, myAllocationThreadId,
                                     myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength, myHeapId, myDepth,
-                                    myShallowSize, myRetainedSize);
+                                    myNativeSize, myShallowSize, myRetainedSize);
     }
   }
 }

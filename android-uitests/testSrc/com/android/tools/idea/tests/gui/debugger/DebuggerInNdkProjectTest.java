@@ -57,7 +57,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/63850391
+  @RunIn(TestGroup.QA)
   public void testAutoDebugger() throws Exception {
     processToTest(AUTO);
   }

@@ -22,12 +22,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewThemeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ResourceComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.BundleBase;
@@ -373,6 +375,169 @@ public class ConstraintLayoutTest {
     });
     newThemeDialog.clickCancel();
     colorCell.stopEditing();
+  }
+
+  /**
+   * To verify that a widget in a constraint layout can be rezied in the design view.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 25161e82-9e99-48b5-9c50-59ac06e79eb1
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open the layout file which uses constraint layout and switch to design view
+   *   2. From the palette window, drag and drop a widget to constraint layout. Say, a button
+   *   3. Now click on the widget in the design view, point your mouse to the little squares at any corner of the widget,
+   *   select it and resize (Verify 1)
+   *   Verify:
+   *   Should be able to resize.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void constraintLayoutResizeHandle() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    NlEditorFixture design = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN)
+      .getLayoutEditor(false)
+      .dragComponentToSurface("Widgets", "Button")
+      .waitForRenderToFinish();
+
+    NlComponentFixture textView = design.findView("Button", 0);
+    int width = textView.getWidth();
+    int height = textView.getHeight();
+    textView.resizeBy(10, 10);
+    design.waitForRenderToFinish();
+    assertThat(textView.getWidth()).isGreaterThan(width);
+    assertThat(textView.getHeight()).isGreaterThan(height);
+  }
+
+  /**
+   * To verify that anchors on different axis, such as left and top anchor cannot be connected.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: ffa37b5f-d71a-4b29-bcdd-2b73865e1496
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open the layout file which uses constraint layout and switch to design view
+   *   2. From the palette window, drag and drop couple of widgets to constraint layout. Say, a button and a text view
+   *   3. Now click on a widget in the design view, select left/right anchor and try to connect it to top and bottom anchor
+   *   4. Repeat step 3 with top/bottom anchor and try connect to left and right anchors
+   *   Verify:
+   *   Anchors on different axis, such as left and top anchor shall not get connected and no abnormal behavior is observed
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void constraintLayoutAnchorExemption() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    EditorFixture editor = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
+
+    NlEditorFixture design = editor.getLayoutEditor(false)
+      .dragComponentToSurface("Widgets", "Button")
+      .waitForRenderToFinish();
+    String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
+
+    editor.open("app/src/main/res/layout/constraint.xml", Tab.DESIGN)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish();
+    design.findView("Button", 0)
+      .createConstraintFromBottomToLeftOf(design.findView("TextView", 0));
+    String layoutContentsAfter = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).isEqualTo(layoutContentsAfter);
+  }
+
+  /**
+   * To verify that all the constraints of a widget can be cleared at the click of a button with out affecting constraints of other widgets
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 89d7cd9d-f01e-4407-9d35-31a4309f9804
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open the layout file which uses constraint layout and switch to design view
+   *   2. From the palette window, drag and drop couple of widgets to constraint layout. Say, one button and one text view.
+   *   3. Create constraints such that one widget refers to other
+   *   4. Now click on any widget (Verify 1)
+   *   5. Click on the button shown in the above step(verify 2)
+   *   Verify:
+   *   1. A button should appear with cross symbol and two little arrows.
+   *   2. Constraints for that widget should get cleared.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void clearConstraint() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    EditorFixture editor = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
+
+    NlEditorFixture design = editor.getLayoutEditor(false)
+      .dragComponentToSurface("Widgets", "Button")
+      .waitForRenderToFinish();
+
+    design.findView("Button", 0)
+      .createBaselineConstraintWith(design.findView("TextView", 0));
+    String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
+
+    editor.open("app/src/main/res/layout/constraint.xml", Tab.DESIGN)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish();
+    JComponent killButton = GuiTests.waitUntilShowing(guiTest.robot(),
+                                                      Matchers.byTooltip(JComponent.class, "Delete Baseline Constraint"));
+    guiTest.robot().click(killButton);
+    layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).doesNotContain("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
+  }
+
+  /**
+   * To verify vertical constraints are removed to a widget when creating a baseline constraint connection
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: db32c5d3-c282-4e45-8737-a7c06b9892ad
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open the layout file which uses constraint layout and switch to design view
+   *   2. In Design view drag and drop two widgets
+   *   3. Create horizontal and vertical constraints for two widgets
+   *   4. Create a baseline constraint from first widget to second (Verify 1)
+   *   Verify:
+   *   Vertical constraints for first widget should be removed
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void createBaselineConnection() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    EditorFixture editor = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
+
+    NlEditorFixture design = editor.getLayoutEditor(false)
+      .dragComponentToSurface("Widgets", "Button")
+      .waitForRenderToFinish();
+
+    design.findView("Button", 0)
+      .createConstraintFromTopToTopOfLayout()
+      .createConstraintFromBottomToBottomOfLayout()
+      .createConstraintFromLeftToLeftOfLayout()
+      .createConstraintFromRightToRightOfLayout()
+      .createBaselineConstraintWith(design.findView("TextView", 0));
+
+    String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).doesNotContainMatch("<Button.*app:layout_constraintTop_toTopOf=\"parent\"");
+    assertThat(layoutContents).doesNotContainMatch("<Button.*app:layout_constraintBottom_toBottomOf=\"parent\"");
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/64152425

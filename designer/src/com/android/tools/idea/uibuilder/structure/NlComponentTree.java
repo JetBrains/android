@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;

@@ -16,13 +16,14 @@
 package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.DumbService;
@@ -76,6 +77,9 @@ public final class NewInstantAppModuleModel extends WizardModel {
     myTemplateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     myTemplateValues.put(ATTR_MODULE_NAME, moduleName().get());
     myTemplateValues.put(ATTR_MAKE_IGNORE, createGitIgnore().get());
+
+    TemplateValueInjector injector = new TemplateValueInjector(myTemplateValues);
+    injector.addGradleVersions(myProject);
 
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);

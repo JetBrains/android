@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "perfd-host",
     srcs = ["src/main/java"],
+    iml_files = ["perfd-host.iml"],
     tags = ["managed"],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],

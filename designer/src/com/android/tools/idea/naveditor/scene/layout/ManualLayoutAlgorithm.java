@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.module.Module;

@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.graphics.NlGraphics
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget
 import com.android.tools.idea.uibuilder.model.*
-import com.android.tools.idea.uibuilder.scene.SceneComponent
-import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent
-import com.android.tools.idea.uibuilder.scene.target.Target
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.common.scene.target.Target
 import com.google.common.collect.ImmutableList
 
 /**
@@ -38,12 +41,11 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
   init {
     assert(components.size == 1)
     myDragged = components[0]
-    myComponent = TemporarySceneComponent(layout.getScene(), myDragged)
+    myComponent = TemporarySceneComponent(layout.scene, myDragged)
     myComponent.setSize(editor.pxToDp(myDragged.w), editor.pxToDp(myDragged.h), false)
     myComponent.setTargetProvider({ sceneComponent, isParent -> ImmutableList.of<Target>(ConstraintDragDndTarget()) }, false)
-    myComponent.setDrawState(SceneComponent.DrawState.DRAG)
+    myComponent.drawState = SceneComponent.DrawState.DRAG
     layout.addChild(myComponent)
-    assert(myDragged != null)
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {

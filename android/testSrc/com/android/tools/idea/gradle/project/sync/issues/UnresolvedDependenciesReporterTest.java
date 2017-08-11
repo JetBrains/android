@@ -21,7 +21,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter.retrieveDependency;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,30 +48,6 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     createAndAddModel(features);
 
     assertFalse(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
-  }
-
-  private void verifyRetrieveDependency(@NotNull String dependency) {
-    assertEquals(dependency,
-                 retrieveDependency("any matches for " + dependency +
-                                    " as no versions of com.android.support.constraint:constraint-layout are available"));
-    assertEquals(dependency,
-                 retrieveDependency(dependency));
-    assertEquals(dependency,
-                 retrieveDependency("Could not find any matches for " + dependency +
-                                    " as no versions of com.android.support.constraint:constraint-layout are available.\r\n" +
-                                    "Searched in the following locations:\r\n"));
-    assertEquals(dependency,
-                 retrieveDependency("Could not find any matches for " + dependency +
-                                    " as no versions of com.android.support.constraint:constraint-layout are available.\n" +
-                                    "Searched in the following locations:\n"));
-    assertEquals(dependency,
-                 retrieveDependency("Could not find " + dependency + ".\n" +
-                                    "     Searched in the following locations:\n"));
-  }
-
-  public void testRetrieveDependency() {
-    verifyRetrieveDependency("com.android.support.constraint:constraint-layout:+");
-    verifyRetrieveDependency("com.android.support.constraint:constraint-layout:1.0.2");
   }
 
   private void createAndAddModel(@NotNull AndroidModelFeatures features) {

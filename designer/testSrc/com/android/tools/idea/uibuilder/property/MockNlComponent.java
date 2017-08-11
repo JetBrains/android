@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property;
 
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.intellij.psi.xml.XmlTag;
 
 import static org.mockito.Mockito.mock;

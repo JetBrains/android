@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.ui.properties.core.StringProperty;
+import com.android.tools.idea.observable.core.StringProperty;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

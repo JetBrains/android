@@ -19,12 +19,15 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -97,10 +100,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
 
   private void addListItemAttribute(NlComponent component) {
     String newLayoutResource = createNewIncludedLayout();
-    WriteCommandAction.runWriteCommandAction(
-      getModel().getProject(), "Add listitem attribute", null,
-      () -> component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource),
-      getModel().getFile());
+    NlWriteCommandAction.run(component, "Add listitem attribute", () ->
+      component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource));
   }
 
   /**
@@ -143,7 +144,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
         addShowInAttribute(transaction);
         addSizeAttributes(transaction, getAndroidBounds());
         addMockupAttributes(transaction, getSelectionBounds());
-        WriteCommandAction.runWriteCommandAction(model.getProject(), (Computable)transaction::commit);
+        NlWriteCommandAction.run(component, "", transaction::commit);
       }
 
       @Override

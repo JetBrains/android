@@ -37,12 +37,16 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
   private final Set<PsiElement> myRoots;
   private final Map<PsiElement, Map<PsiElement, Integer>> myGraph;
   private final Map<PsiElement, Set<PsiElement>> myReverseGraph;
+  private final Set<PsiElement> myReferencedExternally;
 
   private final Map<PsiElement, PsiElement> myImmediateDominator; // Dominator tree (in reverse)
 
-  public AndroidCodeAndResourcesGraph(Map<PsiElement, Map<PsiElement, Integer>> graph, Set<PsiElement> roots) {
+  public AndroidCodeAndResourcesGraph(Map<PsiElement, Map<PsiElement, Integer>> graph,
+                                      Set<PsiElement> roots,
+                                      Set<PsiElement> referencedExternally) {
     myGraph = graph;
     myRoots = roots;
+    myReferencedExternally = referencedExternally;
     myReverseGraph = Maps.newHashMapWithExpectedSize(graph.size());
     for (PsiElement node : myGraph.keySet()) {
       for (PsiElement succ : myGraph.get(node).keySet()) {
@@ -73,6 +77,25 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
 
   public Set<PsiElement> getRoots() {
     return myRoots;
+  }
+
+  public Set<PsiElement> getReferencedOutsideScope() {
+    Stack<PsiElement> stack = new Stack<>();
+    Set<PsiElement> visited = new HashSet<>(myGraph.size());
+
+    for (PsiElement root : myReferencedExternally) {
+      stack.push(root);
+    }
+    while (!stack.isEmpty()) {
+      PsiElement current = stack.pop();
+      if (visited.add(current)) {
+        for (PsiElement succ : getTargets(current)) {
+          stack.push(succ);
+        }
+      }
+    }
+
+    return visited;
   }
 
   public int getFrequency(PsiElement source, PsiElement target) {
@@ -160,15 +183,18 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
 
     private final Set<PsiElement> myRoots = new HashSet<>();
     private final Map<PsiElement, Map<PsiElement, Integer>> myReferenceGraph = new HashMap<>();
+    private final Set<PsiElement> myReferencedExternally = new HashSet<>();
 
     public void markReference(PsiElement source, PsiElement target) {
-      Map<PsiElement, Integer> references = myReferenceGraph.get(source);
-      if (references == null) {
-        references = new HashMap<>();
-        myReferenceGraph.put(source, references);
-      }
+      Map<PsiElement, Integer> references = myReferenceGraph.computeIfAbsent(source, k -> new HashMap<>());
       Integer count = references.getOrDefault(target, 0);
       references.put(target, count + 1);
+    }
+
+    public void markReferencedOutsideScope(PsiElement elm) {
+      if (!myRoots.contains(elm)) {
+        myReferencedExternally.add(elm);
+      }
     }
 
     public void addRoot(PsiElement root) {
@@ -176,7 +202,7 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
     }
 
     public AndroidCodeAndResourcesGraph build() {
-      return new AndroidCodeAndResourcesGraph(myReferenceGraph, myRoots);
+      return new AndroidCodeAndResourcesGraph(myReferenceGraph, myRoots, myReferencedExternally);
     }
   }
 }
