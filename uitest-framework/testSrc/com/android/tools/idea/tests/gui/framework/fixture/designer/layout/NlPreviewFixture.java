@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
@@ -65,8 +66,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
                                                toolbar);
   }
 
-  @NotNull
-  public NlPreviewFixture openPalette() {
+  private void openPalette() {
     // Check if the palette is already open
     try {
       myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
@@ -74,8 +74,6 @@ public class NlPreviewFixture extends ToolWindowFixture {
     catch (ComponentLookupException e) {
       new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette "))).click();
     }
-
-    return this;
   }
 
   @NotNull
@@ -128,9 +126,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return this;
   }
 
-  public NlPreviewFixture waitForScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
+  public void waitForScreenMode(@NotNull ScreenMode mode) {
     Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
-    return this;
   }
 
   /**

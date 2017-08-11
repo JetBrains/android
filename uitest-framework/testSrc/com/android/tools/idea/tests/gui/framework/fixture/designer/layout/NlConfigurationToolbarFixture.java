@@ -30,13 +30,16 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
  */
 public class NlConfigurationToolbarFixture<ParentFixture> {
+  private static final Pattern SWITCH_TO_LANDSCAPE_PORTRAIT = Pattern.compile("Switch to (Landscape|Portrait)");
 
   @NotNull private final ParentFixture myParentFixture;
   private final Robot myRobot;
@@ -86,11 +89,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
-  @NotNull
-  public NlConfigurationToolbarFixture<ParentFixture> requireTheme(@NotNull String theme) {
+  public void requireTheme(@NotNull String theme) {
     Wait.seconds(1).expecting("theme to be updated")
-      .until(() -> theme.equals( TextAccessors.getTextAccessor(findToolbarButton("Theme in Editor")).getText()));
-    return this;
+      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme in Editor")).getText()));
   }
 
   /**
@@ -184,7 +185,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    * Click on the "Orientation in Editor" button
    */
   public NlConfigurationToolbarFixture<ParentFixture> switchOrientation() {
-    selectDropDownActionButtonItem("Orientation in Editor", item -> item.matches("Switch to (Landscape|Portrait)"));
+    selectDropDownActionButtonItem("Orientation in Editor", item -> SWITCH_TO_LANDSCAPE_PORTRAIT.matcher(item).matches());
     return this;
   }
 
@@ -227,8 +228,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
     @Override
     public boolean test(@NotNull String item) {
-      item = item.trim();
-      return item.endsWith(apiLevel);
+      return item.trim().endsWith(apiLevel);
     }
   }
 }
