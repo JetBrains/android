@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.util;
 
+import com.android.tools.idea.common.util.XmlTagUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class XmlTagUtilTest extends AndroidTestCase {
   public void testCreateTag() throws Exception {
     XmlTag result = XmlTagUtil.createTag(getProject(), "<LinearLayout" +
-                                                             "  attr1=\"value1\"" +
-                                                             "  attr2=\"2\" />");
+                                                       "  attr1=\"value1\"" +
+                                                       "  attr2=\"2\" />");
     assertEquals("LinearLayout", result.getName());
 
     result = XmlTagUtil.createTag(getProject(), "not-xml");

@@ -9,11 +9,20 @@ iml_module(
         "src",
         "gen",
     ],
+    bundle_data = [
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/lib:licenses",
+        "//tools/adt/idea/android/lib:bundled-libs",
+        "//tools/adt/idea/android:profiler-artifacts",
+    ] + glob([
+        "build.xml",
+    ]),
+    iml_files = ["android.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = ["//tools/adt/idea/common:android-common"],
+    exports = ["//tools/adt/idea/build-common"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi[module]",
@@ -27,7 +36,8 @@ iml_module(
         "//tools/idea/plugins/properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
-        "//tools/adt/idea/common:android-common[module]",
+        "//tools/adt/idea/build-common:build-common[module]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/java/java-indexing-api[module]",
         "//tools/idea/jps/jps-builders[module]",
@@ -83,11 +93,13 @@ iml_module(
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/adt/idea/observable-ui[module]",
+        "//tools/adt/idea/artwork[module]",
     ],
 )
 
 iml_module(
     name = "android-tests",
+    iml_files = ["android-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_data = [
@@ -114,7 +126,7 @@ iml_module(
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android:device-art-resources",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/lib/libwebp",
@@ -134,10 +146,12 @@ iml_module(
         "block-network",
     ],
     test_timeout = "eternal",
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/android[module, test]",
+        "//tools/adt/idea/android-common[module]",
         "//tools/idea/xml/xml-psi-api[module, test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/adt-ui-model[module, test]",
@@ -183,13 +197,8 @@ iml_module(
         "//tools/base/sdk-common:studio.sdk-common[module, test]",
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/idea/plugins/properties/properties-psi-impl[module, test]",
+        "//tools/adt/idea/artwork[module, test]",
     ],
-)
-
-filegroup(
-    name = "device-art-resources",
-    srcs = glob(["device-art-resources/**"]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -204,6 +213,7 @@ filegroup(
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
     }),
+    visibility = ["//visibility:public"],
 )
 
 maven_repo(
@@ -229,6 +239,17 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/transition/26.0.0-beta1:aar",
         "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/0.4-devpreview:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-apa102/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-bmx280/0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-button/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-cap12xx/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-gps/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-ht16k33/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-mma7660fc/0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-pwmservo/0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-pwmspeaker/0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-ssd1306/0.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-tm1637/0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",

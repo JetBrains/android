@@ -16,10 +16,9 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
-import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.RoundedLineBorder;

@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
-import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.application.Result;
@@ -41,7 +41,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static com.android.tools.idea.uibuilder.scene.SceneManager.SUPPORTS_LOCKING;
+import static com.android.tools.idea.common.scene.SceneManager.SUPPORTS_LOCKING;
 
 /**
  * Handler class responsible for drawing badges for each

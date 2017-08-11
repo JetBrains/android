@@ -16,14 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.model.AttributesTransaction
+import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.target.DragBaseTarget
+import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.Scene
-import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget
-import com.android.tools.idea.uibuilder.scene.target.Target
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Point
 
@@ -130,11 +129,7 @@ class RelativeDragTarget : DragBaseTarget() {
       attributes.apply()
 
       if (!(Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1)) {
-        val commandName = "Dragged " + StringUtil.getShortName(component.tagName)
-        object : WriteCommandAction<Any>(component.model.project, commandName, component.model.file) {
-          @Throws(Throwable::class)
-          override fun run(result: Result<Any>) { attributes.commit() }
-        }.execute()
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
 

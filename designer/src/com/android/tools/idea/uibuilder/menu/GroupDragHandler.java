@@ -16,16 +16,18 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
-import com.intellij.openapi.application.BaseActionRunnable;
-import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,17 +64,11 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    NlModel model = editor.getModel();
+    NlWriteCommandAction.run(myItems.get(0), "", () -> {
+      updateOrderInCategoryAttributes();
+      updateShowAsActionAttribute();
+    });
 
-    BaseActionRunnable<Void> action = new WriteCommandAction.Simple<Void>(model.getProject(), model.getFile()) {
-      @Override
-      protected void run() throws Throwable {
-        updateOrderInCategoryAttributes();
-        updateShowAsActionAttribute();
-      }
-    };
-
-    action.execute();
     insertComponents(getInsertIndex(), insertType);
   }
 

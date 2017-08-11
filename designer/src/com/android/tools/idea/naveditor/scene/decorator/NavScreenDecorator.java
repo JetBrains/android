@@ -22,12 +22,12 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen;
 import com.android.tools.idea.rendering.ImagePool;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -104,7 +104,6 @@ public class NavScreenDecorator extends SceneDecorator {
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     DisplayList displayList = new DisplayList();
     super.buildList(displayList, time, sceneContext, component);
-
-    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
+    list.add(NavigationDecorator.createDrawCommand(displayList, component));
   }
 }

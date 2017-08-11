@@ -164,9 +164,9 @@ public class ProfilerColors {
 
   public static final Color MEMORY_GRAPHICS = new JBColor(new Color(0xF4DEA2), new Color(0xA8825C));
 
-  public static final Color MEMORY_OTHERS = new JBColor(new Color(0x517C91), new Color(0x4E616B));
+  public static final Color MEMORY_OTHERS = new JBColor(new Color(0x6E92A5), new Color(0x4E616B));
 
-  public static final Color MEMORY_OBJECTS = new JBColor(new Color(0x5C7A86), new Color(0xD8DBDE));
+  public static final Color MEMORY_OBJECTS = new JBColor(new Color(0x1B6386), new Color(0xD8DBDE));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 

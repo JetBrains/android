@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.application.ApplicationManager;

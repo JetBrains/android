@@ -44,8 +44,9 @@ public interface CaptureObject extends MemoryObject {
     LABEL(0, ASCENDING),
     ALLOC_COUNT(2, DESCENDING),
     DEALLOC_COUNT(1, DESCENDING),
-    SHALLOW_SIZE(3, DESCENDING),
-    RETAINED_SIZE(4, DESCENDING);
+    NATIVE_SIZE(3, DESCENDING),
+    SHALLOW_SIZE(4, DESCENDING),
+    RETAINED_SIZE(5, DESCENDING);
 
     private final int myWeight;
 
@@ -75,8 +76,9 @@ public interface CaptureObject extends MemoryObject {
     ALLOCATION_TIME(2, DESCENDING),
     DEALLOCATION_TIME(3, DESCENDING),
     DEPTH(0, ASCENDING),
-    SHALLOW_SIZE(4, DESCENDING),
-    RETAINED_SIZE(5, DESCENDING);
+    NATIVE_SIZE(4, DESCENDING),
+    SHALLOW_SIZE(5, DESCENDING),
+    RETAINED_SIZE(6, DESCENDING);
 
     private final int myWeight;
 
@@ -109,6 +111,10 @@ public interface CaptureObject extends MemoryObject {
   @Nullable
   default MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
     return null;
+  }
+
+  default boolean isExportable() {
+    return false;
   }
 
   @Nullable

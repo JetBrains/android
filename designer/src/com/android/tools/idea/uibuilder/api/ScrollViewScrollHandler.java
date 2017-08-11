@@ -17,9 +17,6 @@ package com.android.tools.idea.uibuilder.api;
 
 import android.view.View;
 import android.view.ViewGroup;
-import com.android.annotations.NonNull;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntConsumer;

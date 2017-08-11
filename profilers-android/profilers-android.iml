@@ -19,6 +19,7 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="java-psi-api" />
     <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="android-common" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="lang-impl" />
@@ -28,5 +29,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>

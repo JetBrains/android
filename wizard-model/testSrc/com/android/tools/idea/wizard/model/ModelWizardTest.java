@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.BatchInvoker;
+import com.android.tools.idea.observable.TestInvokeStrategy;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -33,6 +36,19 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
+
+  private static TestInvokeStrategy ourInvokeStrategy;
+
+  @BeforeClass
+  public static void setUpBatchInvoker() {
+    ourInvokeStrategy = new TestInvokeStrategy();
+    BatchInvoker.setOverrideStrategy(ourInvokeStrategy);
+  }
+
+  @AfterClass
+  public static void restoreBatchInvoker() {
+    BatchInvoker.clearOverrideStrategy();
+  }
 
   @Test
   public void wizardCanProgressThroughAllStepsAsExpected() throws Exception {
@@ -53,7 +69,7 @@ public class ModelWizardTest {
       }
     });
 
-    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance()); // Lets wizard properties update
+    ourInvokeStrategy.updateAllSteps();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isTrue();
@@ -61,21 +77,21 @@ public class ModelWizardTest {
 
     wizard.goForward();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
-    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance());  // Lets wizard properties update
+    ourInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
 
     wizard.goForward();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(TitleStep.class);
-    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance());  // Lets wizard properties update
+    ourInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isTrue();
 
     assertThat(wizardResult[0]).isNull();
     wizard.goForward();
-    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance());  // Lets wizard properties update
+    ourInvokeStrategy.updateAllSteps();
 
     assertThat(wizard.isFinished()).isTrue();
     assertThat(wizard.canGoBack().get()).isFalse();

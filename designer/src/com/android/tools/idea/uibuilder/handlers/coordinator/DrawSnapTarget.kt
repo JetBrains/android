@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.uibuilder.scene.SceneContext
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion
+import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.sherpa.animation.Animation
 import java.awt.Color
 import java.awt.Graphics2D
@@ -52,9 +52,9 @@ class DrawSnapTarget : DrawRegion {
 
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val colorSet = sceneContext.colorSet
-    var progress = (sceneContext.time % 2000).toInt() / 2000f
+    val progress = (sceneContext.time % 2000).toInt() / 2000f
     val alpha = (Animation.getPulsatingAlpha(progress.toDouble()) * 0.7).toInt()
-    var arc = 12
+    val arc = 12
     if (myMode == OVER) {
       g.color = colorSet.highlightedSnapGuides
     } else {

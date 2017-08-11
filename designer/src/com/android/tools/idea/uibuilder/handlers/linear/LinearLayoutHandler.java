@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
-import com.android.tools.idea.uibuilder.handlers.linear.actions.*;
+import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
+import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
+import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
+import com.android.tools.idea.uibuilder.handlers.linear.actions.ToggleOrientationAction;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearResizeTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.command.WriteCommandAction;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -473,21 +475,20 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       return false;
     }
     NlComponent parent = sceneParent.getNlComponent();
-    NlModel model = parent.getModel();
 
-    Runnable swapComponent = () -> {
+    String id = component.getNlComponent().getId();
+    String name = (isDragFromPalette ? "Insert" : "Move") + ' ' +
+                  (id != null ? id : component.getNlComponent().getTagName());
+
+    NlWriteCommandAction.run(component.getNlComponent(), name, () -> {
       ImmutableList<NlComponent> nlComponentImmutableList = ImmutableList.of(component.getNlComponent());
       parent.getModel().addComponents(
         nlComponentImmutableList,
         parent,
         !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null,
         isDragFromPalette ? InsertType.CREATE : InsertType.MOVE_WITHIN);
-    };
-    String id = component.getNlComponent().getId();
-    String name = (isDragFromPalette ? "Insert" : "Move") + ' ' +
-                  (id != null ? id : component.getNlComponent().getTagName());
-    WriteCommandAction.runWriteCommandAction(model.getProject(), name,
-                                             null, swapComponent, model.getFile());
+    });
+
     return true;
   }
 

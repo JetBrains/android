@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.builder.model.InstantAppProjectBuildOutput;
+import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /**
  * Application id provider for Gradle projects.
@@ -28,17 +36,60 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   /** Default suffix for test packages (as added by Android Gradle plugin) */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
-  @NotNull
-  private final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final PostBuildModelProvider myOutputModelProvider;
 
   public GradleApplicationIdProvider(@NotNull AndroidFacet facet) {
+    this(facet, () -> null);
+  }
+
+  public GradleApplicationIdProvider(@NotNull AndroidFacet facet, @NotNull PostBuildModelProvider outputModelProvider) {
     myFacet = facet;
+    myOutputModelProvider = outputModelProvider;
   }
 
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
+    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      String applicationId = tryToGetInstantAppApplicationId();
+      if (applicationId != null) {
+        return applicationId;
+      }
+      else {
+        getLogger().warn("Could not get instant app applicationId from post build model.");
+      }
+    }
+
     return ApkProviderUtil.computePackageName(myFacet);
+  }
+
+  @Nullable
+  private String tryToGetInstantAppApplicationId() {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+    if (androidModel == null ||
+        !androidModel.getFeatures().isPostBuildSyncSupported() ||
+        androidModel.getAndroidProject().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+      return null;
+    }
+
+    PostBuildModel postBuildModel = myOutputModelProvider.getPostBuildModel();
+    if (postBuildModel == null) {
+      return null;
+    }
+
+    InstantAppProjectBuildOutput projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(myFacet);
+    if (projectBuildOutput == null) {
+      return null;
+    }
+
+    for (InstantAppVariantBuildOutput variantBuildOutput : projectBuildOutput.getInstantAppVariantsBuildOutput()) {
+      if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+        return variantBuildOutput.getApplicationId();
+      }
+    }
+
+    return null;
   }
 
   @Override
@@ -50,5 +101,9 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     Variant selectedVariant = androidModel.getSelectedVariant();
     String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
     return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(GradleApplicationIdProvider.class);
   }
 }

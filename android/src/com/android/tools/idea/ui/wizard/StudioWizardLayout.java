@@ -16,9 +16,9 @@
 package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.adtui.ImageComponent;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.swing.IconProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ui.IconProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.ui.JBColor;

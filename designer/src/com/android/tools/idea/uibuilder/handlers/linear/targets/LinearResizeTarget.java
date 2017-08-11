@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*;

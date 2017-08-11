@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -45,7 +44,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -89,6 +87,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawActionHandle,24,502,210,0,0,ffc0c0c0,fafafa\n" +
                  "DrawScreenLabel,22,310,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,21,NORMAL,98x50x192x320,310x50x192x320,NORMAL\n\n" +
+                 "DrawComponentBackground,570,50,100,25,1,true\n" +
                  "DrawTextRegion,570,50,100,25,0,17,true,false,4,4,30,0.5,\"navigation\"\n" +
                  "DrawComponentFrame,570,50,100,25,1,true\n" +
                  "DrawAction,21,NORMAL,570x50x100x25,50x50x192x320,NORMAL\n" +
@@ -351,6 +350,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawActionHandle,24,484,420,0,0,ffc0c0c0,fafafa\n" +
                  "DrawScreenLabel,22,100,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment2\n" +
                  "DrawAction,21,NORMAL,-304x100x384x640,100x100x384x640,NORMAL\n\n" +
+                 "DrawComponentBackground,1140,100,200,50,1,true\n" +
                  "DrawTextRegion,1140,100,200,50,0,35,true,false,4,4,30,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,1140,100,200,50,1,true\n" +
                  "DrawAction,21,NORMAL,1140x100x200x50,620x100x384x640,NORMAL\n" +

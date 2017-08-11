@@ -16,10 +16,10 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.collections.ObservableList;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.CollectionComboBoxModel;

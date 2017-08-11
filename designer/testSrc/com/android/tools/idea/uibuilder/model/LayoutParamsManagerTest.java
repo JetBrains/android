@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.resources.Density;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;

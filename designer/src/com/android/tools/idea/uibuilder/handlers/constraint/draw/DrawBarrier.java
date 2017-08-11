@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;

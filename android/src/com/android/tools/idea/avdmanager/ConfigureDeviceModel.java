@@ -21,7 +21,7 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;

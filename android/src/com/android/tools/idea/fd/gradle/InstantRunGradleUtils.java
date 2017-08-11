@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.fd.gradle;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -31,6 +32,8 @@ import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlAttribute;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,5 +186,21 @@ public class InstantRunGradleUtils {
     catch (ApkProvisionException e) {
       return null;
     }
+  }
+
+  public static boolean appHasCode(@Nullable AndroidFacet facet) {
+    if (facet == null) {
+      return true;
+    }
+    Manifest manifest = facet.getManifest();
+    if (manifest == null) {
+      return true;
+    }
+    XmlAttribute hasCodeAttr = manifest.getApplication().getXmlTag().getAttribute("android:" + SdkConstants.ATTR_HAS_CODE);
+    // hasCode not set => implied true
+    if (hasCodeAttr == null) {
+      return true;
+    }
+    return Boolean.parseBoolean(hasCodeAttr.getValue());
   }
 }

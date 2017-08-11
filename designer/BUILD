@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "designer",
     srcs = ["src"],
+    iml_files = ["designer.iml"],
     javacopts = [
         "-Xep:MissingCasesInEnumSwitch:WARN",
         "-Xep:IdentityBinaryExpression:WARN",
@@ -34,11 +35,13 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard[module]",
         "//tools/base/flags:studio.flags[module]",
+        "//tools/adt/idea/artwork[module]",
     ],
 )
 
 iml_module(
     name = "designer-tests",
+    iml_files = ["designer-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
@@ -70,6 +73,7 @@ iml_module(
         "block-network",
     ],
     test_timeout = "long",
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea:platform-impl_and_others[module]",
@@ -94,5 +98,6 @@ iml_module(
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:Gradle[test]",
         "//tools/base/flags:studio.flags[module]",
+        "//tools/adt/idea/artwork[module, test]",
     ],
 )

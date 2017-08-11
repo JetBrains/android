@@ -16,15 +16,19 @@
 package com.android.tools.idea.naveditor.scene.decorator;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.scene.draw.*;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.scene.draw.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -39,55 +43,73 @@ public class NavigationDecorator extends SceneDecorator {
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    // TODO: nothing?
+    if (isDisplayRoot(sceneContext, component)) {
+      return;
+    }
+
+    Rectangle rect = new Rectangle();
+    component.fillRect(rect);
+    SceneComponent.DrawState state = component.getDrawState();
+    DrawComponentBackground.add(list, sceneContext, rect, state.ordinal(), true);
   }
 
   @Override
   protected void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    DesignSurface surface = sceneContext.getSurface();
-    NavDesignSurface navSurface = (NavDesignSurface)surface;
-    if (navSurface != null && component.getNlComponent() != navSurface.getCurrentNavigation()) {
-      Rectangle bounds = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null));
-      // TODO: baseline based on text size
-      String label = component.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
-      if (label == null) {
-        label = NlComponent.stripId(component.getId());
-      }
-      if (label == null) {
-        label = "navigation";
-      }
-      double scale = sceneContext.getScale();
-      list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
-                                  (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
-                                  DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
+    if (isDisplayRoot(sceneContext, component)) {
+      return;
     }
+
+    Rectangle bounds = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null));
+    // TODO: baseline based on text size
+    String label = component.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
+    if (label == null) {
+      label = NlComponent.stripId(component.getId());
+    }
+    if (label == null) {
+      label = "navigation";
+    }
+    double scale = sceneContext.getScale();
+    list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
+                                (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
+                                DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
   }
 
   @Override
   protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    DesignSurface surface = sceneContext.getSurface();
-    NavDesignSurface navSurface = (NavDesignSurface)surface;
-    if (navSurface != null && !isRoot(navSurface, component)) {
-      DrawComponentFrame.add(list, sceneContext, component.fillRect(null), component.getDrawState().ordinal(), true);
+    if (isDisplayRoot(sceneContext, component)) {
+      return;
     }
+
+    DrawComponentFrame.add(list, sceneContext, component.fillRect(null), component.getDrawState().ordinal(), true);
   }
 
   @Override
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    DesignSurface surface = sceneContext.getSurface();
-    NavDesignSurface navSurface = (NavDesignSurface)surface;
-    if (navSurface != null && isRoot(navSurface, component)) {
+    if (isDisplayRoot(sceneContext, component)) {
       super.buildList(list, time, sceneContext, component);
       return;
     }
 
     DisplayList displayList = new DisplayList();
     super.buildList(displayList, time, sceneContext, component);
-
-    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
+    list.add(createDrawCommand(displayList, component));
   }
 
-  private static boolean isRoot(@NotNull NavDesignSurface navSurface, @NotNull SceneComponent component) {
-    return component.getNlComponent() == navSurface.getCurrentNavigation();
+  private static boolean isDisplayRoot(@NotNull SceneContext sceneContext, @NotNull SceneComponent sceneComponent) {
+    NavDesignSurface navSurface = (NavDesignSurface)sceneContext.getSurface();
+    return navSurface != null && sceneComponent.getNlComponent() == navSurface.getCurrentNavigation();
+  }
+
+  public static DrawCommand createDrawCommand(DisplayList list, SceneComponent component) {
+    int level = DrawCommand.COMPONENT_LEVEL;
+
+    if (component.isDragging()) {
+      level = DrawCommand.TOP_LEVEL;
+    }
+    else if (component.isSelected()) {
+      level = DrawCommand.COMPONENT_SELECTED_LEVEL;
+    }
+
+    return list.getCommand(level);
   }
 }

@@ -51,4 +51,11 @@ public class BuildScriptModel extends GradleDslBlockModel {
     }
     return new RepositoriesModel(repositoriesDslElement);
   }
+
+  /**
+   * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
+   */
+  public void removeAllRepositories() {
+    myDslElement.removeProperty(REPOSITORIES_BLOCK_NAME);
+  }
 }

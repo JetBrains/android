@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.google.common.collect.Iterators;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-
 import static com.android.SdkConstants.ATTR_GRAVITY;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;

@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -409,6 +409,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertSearchView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, "SearchView", IN_PLATFORM);
+  }
+
+  public void assertViewPager(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, "android.support.v4.view.ViewPager", SUPPORT_LIB_ARTIFACT);
   }
 
   @Language("XML")

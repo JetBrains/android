@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -141,11 +141,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(60, 80);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    android:layout_x=\"10dp\"\n" +
-                 "    android:layout_y=\"30dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"10dp\"\n" +
+                 "        android:layout_y=\"30dp\" />");
   }
 
   public void testDragWithoutSelecting() throws Exception {
@@ -153,11 +153,11 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
     myInteraction.mouseRelease(175, 175);
     myScreen.get("@id/myText")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    android:layout_x=\"125dp\"\n" +
-                 "    android:layout_y=\"125dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"125dp\"\n" +
+                 "        android:layout_y=\"125dp\" />");
   }
 
   // Regression test: This used to give a NPE

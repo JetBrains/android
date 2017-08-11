@@ -18,7 +18,9 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -28,6 +30,7 @@ import com.intellij.util.PathsList;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -176,6 +179,21 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
         for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
           addToClasspath(additionalClassesFolder, classPath, excludeScope);
+        }
+      }
+
+      // Adds resources from java modules to the classpath (see b/37137712)
+      JavaFacet javaFacet = JavaFacet.getInstance(affectedModule);
+      if (javaFacet != null) {
+        JavaModuleModel javaModel = javaFacet.getJavaModuleModel();
+        ExtIdeaCompilerOutput output = javaModel == null ? null : javaModel.getCompilerOutput();
+        File javaTestResources = output == null ? null : output.getTestResourcesDir();
+        if (javaTestResources != null) {
+          addToClasspath(javaTestResources, classPath, excludeScope);
+        }
+        File javaMainResources = output == null ? null : output.getMainResourcesDir();
+        if (javaMainResources != null) {
+          addToClasspath(javaMainResources, classPath, excludeScope);
         }
       }
     }

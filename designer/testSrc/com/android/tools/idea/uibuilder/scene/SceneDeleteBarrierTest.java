@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.intellij.openapi.command.WriteCommandAction;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.android.SdkConstants.*;
@@ -45,9 +43,9 @@ public class SceneDeleteBarrierTest extends SceneTest {
                  "  android:padding=\"20dp\">\n" +
                  "\n" +
                  "    <android.support.constraint.ConstraintHelper\n" +
-                 "    android:id=\"@id/barrier\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\" />\n" +
+                 "        android:id=\"@id/barrier\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }

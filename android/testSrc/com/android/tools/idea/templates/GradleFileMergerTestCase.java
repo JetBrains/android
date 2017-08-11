@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Charsets;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -25,6 +28,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * This is a base class for 2 tests that test methods.
@@ -103,6 +110,21 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
                    "templates/MergedToplevelInject.gradle");
   }
 
+  public void testRemoveExistingDependencies() throws Exception {
+    checkDependenciesRemoved("compile", "compile");
+    checkDependenciesRemoved("compile", "implementation");
+    checkDependenciesRemoved("compile", "api");
+    checkDependenciesRemoved("compile", "feature");
+    checkDependenciesRemoved("implementation", "compile");
+    checkDependenciesRemoved("implementation", "implementation");
+    checkDependenciesRemoved("implementation", "api");
+    checkDependenciesRemoved("implementation", "feature");
+    checkDependenciesRemoved("testCompile", "testImplementation");
+    checkDependenciesRemoved("testCompile", "testApi");
+    checkDependenciesRemoved("androidTestCompile", "androidTestImplementation");
+    checkDependenciesRemoved("androidTestCompile", "androidTestApi");
+  }
+
   private void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath) throws Exception {
     String source = "";
     String dest = "";
@@ -125,5 +147,25 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
     String result = mergeGradleFile(source, dest, getProject(), null);
 
     assertEquals(golden.replaceAll("\\s+","\n"), result.replaceAll("\\s+", "\n"));
+  }
+
+  private static void checkDependenciesRemoved(String dstConfigName, String srcConfigName) {
+    String dependencyId = "com.android.support:appcompat-v7";
+    GradleCoordinate dependencyCoordinate = GradleCoordinate.parseCoordinateString(dependencyId + ":23.1.1");
+
+    Multimap<String, GradleCoordinate> dstConfigs = LinkedListMultimap.create();
+    dstConfigs.put(dependencyId, dependencyCoordinate);
+    Map<String, Multimap<String, GradleCoordinate>> dstAllConfigs = new HashMap<>();
+    dstAllConfigs.put(dstConfigName, dstConfigs);
+
+    Multimap<String, GradleCoordinate> srcConfigs = LinkedListMultimap.create();
+    srcConfigs.put(dependencyId, dependencyCoordinate);
+    Map<String, Multimap<String, GradleCoordinate>> srcAllConfigs = new HashMap<>();
+    srcAllConfigs.put(srcConfigName, srcConfigs);
+
+    GradleFileMergers.removeExistingDependencies(srcAllConfigs, dstAllConfigs);
+
+    assertThat(dstConfigs).hasSize(1);
+    assertThat(srcConfigs).hasSize(0);
   }
 }

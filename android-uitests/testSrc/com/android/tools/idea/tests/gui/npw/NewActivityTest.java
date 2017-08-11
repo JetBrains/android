@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.util.text.StringUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -39,6 +38,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
@@ -46,6 +46,7 @@ import static org.junit.Assert.assertEquals;
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
+  private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
   private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
@@ -83,7 +84,7 @@ public class NewActivityTest {
     setSavedRenderSourceLanguage(Language.JAVA);
   }
 
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void createDefaultActivity() {
     myDialog.clickFinish();
@@ -94,12 +95,13 @@ public class NewActivityTest {
       "app/src/main/res/layout/activity_main.xml"
     );
 
-    myEditor.open(PROVIDED_MANIFEST);
+    String manifesText = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
+    assertEquals(getOccurrenceCount(manifesText, "android:name=\".MainActivity\""), 1);
+    assertEquals(getOccurrenceCount(manifesText, "@string/title_activity_main"), 1);
+    assertEquals(getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"), 1);
 
-    String text = myEditor.getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "@string/title_activity_main"), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 1);
+    String gradleText = myEditor.open(APP_BUILD_GRADLE).getCurrentFileContents();
+    assertEquals(getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"), 1);
   }
 
   @Test
@@ -112,7 +114,7 @@ public class NewActivityTest {
     myEditor.open(PROVIDED_MANIFEST);
 
     String text = myEditor.getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
+    assertEquals(getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
   }
 
   @Test
@@ -136,8 +138,8 @@ public class NewActivityTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     String text = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertThat(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\"")).isEqualTo(1);
-    assertThat(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\"")).isEqualTo(1);
+    assertThat(getOccurrenceCount(text, "android:name=\".MainActivity\"")).isEqualTo(1);
+    assertThat(getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\"")).isEqualTo(1);
   }
 
   @Test

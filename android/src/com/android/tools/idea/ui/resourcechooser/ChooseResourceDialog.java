@@ -40,7 +40,6 @@ import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.IconDetector;
-import com.android.tools.swing.ui.SwatchComponent;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -1206,7 +1205,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  private SwatchComponent.SwatchIcon getSwatchIcon(@Nullable String name) {
+  private ResourceSwatchComponent.SwatchIcon getSwatchIcon(@Nullable String name) {
     return StateListPicker.getSwatchIcon(name, getResourceResolver(), getRenderTask());
   }
 
@@ -1665,9 +1664,9 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     private void updateReferenceSwatchIcon() {
-      SwatchComponent.SwatchIcon icon = getSwatchIcon(myReferenceComponent.getValueText());
-      if (icon instanceof SwatchComponent.ColorIcon) {
-        SwatchComponent.ColorIcon colorIcon = (SwatchComponent.ColorIcon)icon;
+      ResourceSwatchComponent.SwatchIcon icon = getSwatchIcon(myReferenceComponent.getValueText());
+      if (icon instanceof ResourceSwatchComponent.ColorIcon) {
+        ResourceSwatchComponent.ColorIcon colorIcon = (ResourceSwatchComponent.ColorIcon)icon;
         myReferenceComponent.setWarning(
           ColorUtils.getContrastWarningMessage(myContrastColorsWithDescription, colorIcon.getColor(), myIsBackgroundColor));
       }

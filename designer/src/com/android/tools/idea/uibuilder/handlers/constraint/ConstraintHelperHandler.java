@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +37,10 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -235,8 +237,8 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
   }
 
   /**
-   * Execute a {@link WriteCommandAction} to write idList into the
-   * {@link com.android.SdkConstants#CONSTRAINT_REFERENCED_IDS} attribute using the provided transaction
+   * Execute a WriteCommandAction to write idList into the {@link com.android.SdkConstants#CONSTRAINT_REFERENCED_IDS} attribute using the
+   * provided transaction
    *
    * @param component   The Constraint Helper component to modify
    * @param transaction A started {@link AttributesTransaction} from component
@@ -246,13 +248,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
                                @NotNull AttributesTransaction transaction,
                                @Nullable String idList) {
     transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
-    NlModel model = component.getModel();
-    new WriteCommandAction(model.getProject(), model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    }.execute();
+    NlWriteCommandAction.run(component, "", transaction::commit);
   }
 
   @Override

@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 
 import java.awt.*;
@@ -237,11 +237,8 @@ final class GridInfo {
     if (lineLocations.length < 2) {
       throw new IllegalArgumentException(Arrays.toString(lineLocations));
     }
-    else if (location < lineLocations[0]) {
-      return 0;
-    }
-    else if (location >= lineLocations[lineLocations.length - 1]) {
-      return lineLocations.length - 2;
+    else if (location < lineLocations[0] || location > lineLocations[lineLocations.length - 1]) {
+      return -1;
     }
 
     for (int i = 0, j = 0; i < lineLocations.length - 1; i++) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
+import static com.android.tools.idea.common.editor.NlEditorProvider.DESIGNER_ID;
 
 public class LayoutNavigationManager implements Disposable {
 

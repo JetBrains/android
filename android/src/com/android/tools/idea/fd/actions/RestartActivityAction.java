@@ -17,8 +17,8 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.AppState;
-import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.ir.client.AppState;
+import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;

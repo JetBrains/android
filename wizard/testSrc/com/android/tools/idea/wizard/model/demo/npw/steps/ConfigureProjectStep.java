@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.steps;
 
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.string.StringExpression;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.demo.npw.models.ProjectModel;
 import com.google.common.base.CharMatcher;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 public final class ConfigureProjectStep extends ModelWizardStep<ProjectModel> {
   private final TextProperty myProjectLocationText;

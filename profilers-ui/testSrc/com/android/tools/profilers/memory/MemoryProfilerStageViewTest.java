@@ -202,7 +202,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     if (expectedCaptureObject == null) {
       assertNull(stageView.getChartCaptureSplitter().getSecondComponent());
-      assertEquals("", stageView.getCaptureView().getComponent().getText());
+      assertEquals("", stageView.getCaptureView().getLabel().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
       assertNull(stageView.getClassifierView().getTree());
       assertFalse(stageView.getClassSetView().getComponent().isVisible());
@@ -212,12 +212,12 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertNotNull(stageView.getChartCaptureSplitter().getSecondComponent());
     if (isCaptureLoading) {
-      assertEquals("", stageView.getCaptureView().getComponent().getText());
+      assertEquals("", stageView.getCaptureView().getLabel().getText());
       assertEquals(heapObjectComboBoxModel.getSize(), 0);
     }
     else {
       assertEquals(stageView.getCapturePanel(), stageView.getChartCaptureSplitter().getSecondComponent());
-      assertEquals(expectedCaptureObject.getName(), stageView.getCaptureView().getComponent().getText());
+      assertEquals(expectedCaptureObject.getName(), stageView.getCaptureView().getLabel().getText());
       assertEquals(new HashSet<>(expectedCaptureObject.getHeapSets()),
                    IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
                      .collect(Collectors.toSet()));

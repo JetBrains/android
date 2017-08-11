@@ -20,12 +20,12 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.workbench.*;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.naveditor.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
@@ -44,10 +44,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
 import static java.awt.event.KeyEvent.VK_DELETE;
@@ -280,16 +278,20 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   }
 
   private void updateComponentList(@Nullable DesignSurface toolContext) {
-    myListModel.clear();
+    List<NlComponent> newElements = new ArrayList<>();
     if (toolContext != null) {
       NlComponent root = myDesignSurface.getCurrentNavigation();
       for (NlComponent child : root.getChildren()) {
         if (getSchema().getDestinationType(child.getTagName()) != null) {
-          myListModel.addElement(child);
+          newElements.add(child);
         }
       }
     }
- }
+    if (!newElements.equals(Collections.list(myListModel.elements()))) {
+      myListModel.clear();
+      newElements.forEach(myListModel::addElement);
+    }
+  }
 
   @NotNull
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.*;

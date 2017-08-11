@@ -128,4 +128,11 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
     assertNotNull(facet);
     assertNull(facet.getJavaModuleModel());
   }
+
+  public void testInvokeOnSkippedSync() {
+    // Make sure this step is called even when sync was skipped.
+    // JavaFacetModuleSetup is necessary because we need JavaModuleModel in AndroidJunitPatcher,
+    // when changing the classpath before running a test so we can add resources of java libraries to it
+    assertTrue(mySetupStep.invokeOnSkippedSync());
+  }
 }

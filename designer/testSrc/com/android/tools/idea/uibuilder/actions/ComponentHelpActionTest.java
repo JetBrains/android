@@ -54,6 +54,24 @@ public class ComponentHelpActionTest extends AndroidTestCase {
     registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myDataContext = null;
+      myJavaDocViewer = null;
+      myEvent = null;
+      myPsiClassCaptor = null;
+      myContextCaptor = null;
+      myAction = null;
+      myTagName = null;
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testNullTagName() {
     myTagName = null;
     myAction.actionPerformed(myEvent);

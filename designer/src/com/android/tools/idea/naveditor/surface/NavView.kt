@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.idea.uibuilder.model.Coordinates
-import com.android.tools.idea.uibuilder.model.NlModel
-import com.android.tools.idea.uibuilder.scene.Scene
-import com.android.tools.idea.uibuilder.surface.SceneView
+import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.surface.SceneView
 import java.awt.Color
 import java.awt.Dimension
 

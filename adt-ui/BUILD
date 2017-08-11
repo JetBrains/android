@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "adt-ui",
     srcs = ["src/main/java"],
+    iml_files = ["adt-ui.iml"],
     resources = ["resources"],
     tags = ["managed"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",

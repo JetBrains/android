@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
-import com.android.tools.swing.ui.FixedColumnTable;
+import com.android.tools.adtui.ui.FixedColumnTable;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableHeaderFixture;

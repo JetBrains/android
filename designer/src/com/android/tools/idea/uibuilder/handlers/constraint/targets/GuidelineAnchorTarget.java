@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

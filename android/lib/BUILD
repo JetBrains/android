@@ -107,3 +107,21 @@ java_import(
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "licenses",
+    srcs = glob(["licenses/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "bundled-libs",
+    srcs = glob([
+        # TODO: Figure out why we need to bundle these if they
+        # are not needed to compile.
+        "commons-compress-1.8.1.jar",
+        "javawriter-2.2.1.jar",
+        "androidWidgets/**",
+    ]),
+    visibility = ["//visibility:public"],
+)

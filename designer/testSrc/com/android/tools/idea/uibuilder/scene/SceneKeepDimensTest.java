@@ -18,9 +18,9 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -114,12 +114,12 @@ public class SceneKeepDimensTest extends SceneTest {
     myInteraction.mouseRelease("textView1", 200, 200);
     myScreen.get("@+id/textView1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textView1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"220dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"400dp\"/>");
+                 "        android:id=\"@+id/textView1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"220dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"400dp\" />");
   }
 
   public void testKeepDimensionTop() {
@@ -140,12 +140,12 @@ public class SceneKeepDimensTest extends SceneTest {
     myInteraction.mouseRelease("textView2", 200, 200);
     myScreen.get("@+id/textView2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textView2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginTop=\"220dp\"\n" +
-                 "    tools:layout_editor_absoluteX=\"700dp\" />");
+                 "        android:id=\"@+id/textView2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginTop=\"220dp\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"700dp\" />");
   }
 
   public void testKeepDimensionRight() {
@@ -166,12 +166,12 @@ public class SceneKeepDimensTest extends SceneTest {
     myInteraction.mouseRelease("textView3", -200, 200);
     myScreen.get("@+id/textView3")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textView3\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "    android:layout_marginRight=\"220dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"700dp\"/>");
+                 "        android:id=\"@+id/textView3\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginRight=\"220dp\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"700dp\" />");
   }
 
   public void testKeepDimensionBottom() {
@@ -192,11 +192,11 @@ public class SceneKeepDimensTest extends SceneTest {
     myInteraction.mouseRelease("textView4", 200, -200);
     myScreen.get("@+id/textView4")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textView4\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteX=\"700dp\"\n" +
-                 "      android:layout_marginBottom=\"220dp\" />");
+                 "        android:id=\"@+id/textView4\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginBottom=\"220dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"700dp\" />");
   }
 }

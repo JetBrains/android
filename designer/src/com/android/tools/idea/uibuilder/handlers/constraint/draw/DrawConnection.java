@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.android.tools.idea.uibuilder.scene.draw.FancyStroke;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.FancyStroke;
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
@@ -635,10 +635,10 @@ public class DrawConnection implements DrawCommand {
                                    @SwingCoordinate Rectangle dest, Color color) {
     g.setColor(color);
     ourPath.reset();
-    ourPath.moveTo(source.x + source.width / 2, source.y);
-    ourPath.curveTo(source.x + source.width / 2, source.y - 40,
-                    dest.x + dest.width / 2, dest.y + 40,
-                    dest.x + dest.width / 2, dest.y);
+    ourPath.moveTo(source.x + source.width / 2., source.y);
+    ourPath.curveTo(source.x + source.width / 2., source.y - 40,
+                    dest.x + dest.width / 2., dest.y + 40,
+                    dest.x + dest.width / 2., dest.y);
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
     DrawConnectionUtils.getArrow(DIR_BOTTOM, dest.x + dest.width / 2, dest.y, xPoints, yPoints);

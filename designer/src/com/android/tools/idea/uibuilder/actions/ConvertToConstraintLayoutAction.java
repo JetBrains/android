@@ -17,10 +17,14 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -48,10 +52,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static java.util.Locale.ROOT;
@@ -73,7 +75,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT = "layout_conversion_absoluteHeight"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_WIDTH = "layout_conversion_wrapWidth"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT = "layout_conversion_wrapHeight"; //$NON-NLS-1$
-
+  private static final HashSet<String> ourExcludedTags = new HashSet<>(Arrays.asList(TAG_LAYOUT, TAG_DATA, TAG_VARIABLE, TAG_IMPORT));
   private final NlDesignSurface mySurface;
 
   public ConvertToConstraintLayoutAction(@NotNull NlDesignSurface surface) {
@@ -90,6 +92,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       String tagName = target.getTagName();
       // Don't show action if it's already a ConstraintLayout
       if (NlComponentHelperKt.isOrHasSuperclass(target, CONSTRAINT_LAYOUT)) {
+        presentation.setVisible(false);
+        return;
+      }
+      if (ourExcludedTags.contains(tagName)) { // prevent the user from converting a "<layout>"
         presentation.setVisible(false);
         return;
       }
@@ -484,8 +490,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       // See if the component seems to have a visual purpose - e.g. sets background or other styles
       if (component.getAttribute(ANDROID_URI, ATTR_BACKGROUND) != null
-          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null // such as ?android:selectableItemBackground
-          || component.getAttribute(null, ATTR_ID) != null) {
+          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null  ) {// such as ?android:selectableItemBackgroun
         return false;
       }
 

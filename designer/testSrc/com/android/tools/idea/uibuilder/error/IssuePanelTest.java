@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
 

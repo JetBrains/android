@@ -15,6 +15,7 @@ public final class TestProjectPaths {
   public static final String INSTANT_APP = "projects/instantApp";
   public static final String INSTRUMENTATION_RUNNER = "projects/instrumentationRunner";
   public static final String INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/instrumentationRunnerAndroidTestOrchestrator";
+  public static final String JAVA_LIB = "projects/javaLib";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
@@ -48,6 +49,7 @@ public final class TestProjectPaths {
   public static final String RUN_CONFIG_ALIAS = "projects/runConfig/alias";
   public static final String RUN_CONFIG_DEFAULT = "projects/runConfig/default";
   public static final String RUN_CONFIG_ENABLED = "projects/runConfig/enabled";
+  public static final String RUN_CONFIG_HAS_CODE = "projects/runConfig/hasCode";
   public static final String RUN_CONFIG_MANIFESTS = "projects/runConfig/manifests";
   public static final String RUN_CONFIG_RUNNER_ARGUMENTS = "projects/runConfig/runnerArguments";
   public static final String RUN_CONFIG_TV = "projects/runConfig/tv";

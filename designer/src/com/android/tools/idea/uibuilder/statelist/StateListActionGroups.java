@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.statelist;
 
-import com.android.tools.idea.uibuilder.actions.SetZoomAction;
-import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
-import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.common.actions.SetZoomAction;
+import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;

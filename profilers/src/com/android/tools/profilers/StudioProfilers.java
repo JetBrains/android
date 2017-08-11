@@ -141,7 +141,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void stop() {
+    if (isStopped()) {
+      // Profiler is already stopped. Nothing to do. Ideally, this method shouldn't be called when the profiler is already stopped.
+      // However, some exceptions might be thrown when listeners are notified about ProfilerAspect.STAGE aspect change and react
+      // accordingly. In this case, we could end up with an inconsistent model and allowing to try to call stop and notify the listeners
+      // again can only make it worse. Therefore, we return early to avoid making the model problem bigger.
+      return;
+    }
+    // The following line can't throw an exception, will stop the updater's timer and guarantees future calls to isStopped() return true.
     myUpdater.stop();
+    // The following lines trigger aspect changes and, therefore, can make many models to update. That might cause an exception to be thrown
+    // and make some models inconsistent. In this case, we want future calls to this method to return early, as we can only make the
+    // inconsistency worse if we call these lines again.
     setDevice(null);
     changed(ProfilerAspect.STAGE);
   }
@@ -273,7 +284,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setDevice(Profiler.Device device) {
     if (!Objects.equals(device, myDevice)) {
-      Profiler.Device previousDevice = myDevice;
+      // The device has changed and we need to reset the process.
+      // First, stop profiling the current process.
+      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
+      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
+      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
+      // a dead or non-being-profiled process is noop in all of our profilers.
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
+        myProfilers.forEach(profiler -> profiler.stopProfiling(mySessionData, myProcess));
+      }
+
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
 
@@ -287,21 +309,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         mySessionData = null;
       }
 
-      // The device has changed and we need to reset the process.
-      // First, stop profiling the current process.
-      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
-      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
-      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
-      // a dead or non-being-profiled process is noop in all of our profilers.
-      if (previousDevice != null && myProcess != null &&
-          previousDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
-        Common.Session previousSession = Common.Session.newBuilder()
-          .setDeviceSerial(previousDevice.getSerial())
-          .setBootId(previousDevice.getBootId())
-          .build();
-        myProfilers.forEach(profiler -> profiler.stopProfiling(previousSession, myProcess));
-      }
       // Then set a new process.
       setProcess(null);
     }
@@ -484,6 +491,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public boolean isProcessAlive() {
     return myProcess != null && myProcess.getState() == Profiler.Process.State.ALIVE;
+  }
+
+  public boolean isLiveAllocationEnabled() {
+    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() && getDevice() != null &&
+           getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O && isAgentAttached();
   }
 
   public boolean isAgentAttached() {

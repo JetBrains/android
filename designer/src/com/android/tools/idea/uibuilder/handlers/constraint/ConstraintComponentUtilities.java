@@ -19,20 +19,19 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.utils.Pair;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -584,18 +583,7 @@ public final class ConstraintComponentUtilities {
     clearAllAttributes(component, transaction);
     transaction.apply();
 
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Cleared all constraints";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(component, "Cleared all constraints", transaction::commit);
   }
 
   public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
@@ -709,19 +697,7 @@ public final class ConstraintComponentUtilities {
 
     if (transaction != null) {
       transaction.apply();
-      NlModel nlModel = component.getModel();
-      Project project = nlModel.getProject();
-      XmlFile file = nlModel.getFile();
-
-      String label = "Remove constraints pointing to a deleted component";
-      AttributesTransaction finalTransaction = transaction;
-      WriteCommandAction action = new WriteCommandAction(project, label, file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          finalTransaction.commit();
-        }
-      };
-      action.execute();
+      NlWriteCommandAction.run(component, "Remove constraints pointing to a deleted component", transaction::commit);
     }
   }
 
@@ -1112,18 +1088,7 @@ public final class ConstraintComponentUtilities {
     transaction.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
     transaction.apply();
 
-    NlModel nlModel = chainHead.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Cycle chain style";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(chainHead, "Cycle chain style", transaction::commit);
 
     component.getScene().needsRebuildList();
   }

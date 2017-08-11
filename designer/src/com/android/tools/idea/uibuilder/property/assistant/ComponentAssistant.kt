@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.property.assistant
 
 import com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.model.NlComponent
-import com.android.tools.idea.uibuilder.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import javax.swing.JComponent

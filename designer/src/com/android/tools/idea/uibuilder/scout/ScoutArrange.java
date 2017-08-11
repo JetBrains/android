@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scout;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 
 import java.awt.Rectangle;

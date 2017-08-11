@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -60,12 +60,12 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
     myInteraction.mouseRelease(800, 210);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
-                 "    tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"548dp\" />");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"548dp\"\n" +
+                 "        app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
 
 }

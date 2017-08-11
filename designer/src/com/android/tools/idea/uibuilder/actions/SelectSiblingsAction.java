@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentUtil;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.actionSystem.AnAction;

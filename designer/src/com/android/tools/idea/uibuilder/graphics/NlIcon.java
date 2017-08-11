@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import org.jetbrains.annotations.NotNull;
 

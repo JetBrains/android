@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;

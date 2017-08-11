@@ -21,7 +21,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -164,7 +164,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
                             UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                                              .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(applicationId))
+                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
                                                              .setApkAnalyzerStats(
                                                                ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
                                                                  .setUncompressedSize(uncompressed)

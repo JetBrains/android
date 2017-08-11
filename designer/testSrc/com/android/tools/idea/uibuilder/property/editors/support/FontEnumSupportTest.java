@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,6 +59,20 @@ public class FontEnumSupportTest extends AndroidTestCase {
     doCallRealMethod().when(myProperty).resolveValue(anyString());
 
     mySupport = new FontEnumSupport(myProperty);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myProperty = null;
+      myModel = null;
+      mySupport = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testFindPossibleValues() {

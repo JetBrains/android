@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.idea.editors.theme.ColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColorUtils;
-import com.android.tools.swing.ui.ClickableLabel;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;

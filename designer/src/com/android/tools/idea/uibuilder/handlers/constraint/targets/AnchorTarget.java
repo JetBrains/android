@@ -16,27 +16,27 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
@@ -586,21 +586,11 @@ public class AnchorTarget extends BaseTarget {
    * @param component
    */
   private void disconnectMe(NlComponent component) {
-    String label = "Constraint Disconnected";
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
     AttributesTransaction attributes = component.startAttributeTransaction();
     clearMe(attributes);
     ConstraintComponentUtilities.cleanup(attributes, myComponent);
     attributes.apply();
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        attributes.commit();
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(component, "Constraint Disconnected", attributes::commit);
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
@@ -755,18 +745,7 @@ public class AnchorTarget extends BaseTarget {
           NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
           AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
 
-          NlModel nlModel = component.getModel();
-          Project project = nlModel.getProject();
-          XmlFile file = nlModel.getFile();
-
-          String label = "Constraint Connected";
-          WriteCommandAction action = new WriteCommandAction(project, label, file) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              attributes.commit();
-            }
-          };
-          action.execute();
+          NlWriteCommandAction.run(component, "Constraint Connected", attributes::commit);
           myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
         }
       }

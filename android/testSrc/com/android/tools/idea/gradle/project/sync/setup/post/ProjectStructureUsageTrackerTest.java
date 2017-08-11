@@ -23,7 +23,7 @@ import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.openapi.module.ModuleManager;
@@ -82,20 +82,20 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                  .setAppModuleCount(1)
                                  .setLibModuleCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
-                                        .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8("app"))
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("app"))
                                         .setIsLibrary(false)
                                         .setBuildTypeCount(2)
                                         .setFlavorCount(2)
                                         .setFlavorDimension(1)
                                         .setSigningConfigCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
-                                        .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8("lib"))
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("lib"))
                                         .setIsLibrary(true)
                                         .setBuildTypeCount(2)
                                         .setFlavorCount(0)
                                         .setFlavorDimension(0)
                                         .setSigningConfigCount(1))
-                   .setAppId(AndroidStudioUsageTracker.anonymizeUtf8("com.example.projectwithappandlib.app"))
+                   .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 

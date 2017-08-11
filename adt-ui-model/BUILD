@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "adt-ui-model",
     srcs = ["src/main/java"],
+    iml_files = ["adt-ui-model.iml"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

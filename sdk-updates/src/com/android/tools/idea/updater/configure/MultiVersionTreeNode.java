@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.updater.configure;
 
-
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
@@ -42,6 +41,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
     myVersionNodes = versionNodes;
     RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
       myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),
+      null,
       true,
       GradleVersion::tryParse,
       Comparator.nullsFirst(Comparator.naturalOrder()));
@@ -62,7 +62,6 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
       }
     }
     return PackageNodeModel.SelectedState.NOT_INSTALLED;
-
   }
 
   @Override

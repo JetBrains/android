@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHa
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

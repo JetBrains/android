@@ -165,6 +165,11 @@ class HeapDumpInstanceObject implements InstanceObject {
   }
 
   @Override
+  public long getNativeSize() {
+    return myInstance.getNativeSize();
+  }
+
+  @Override
   public int getShallowSize() {
     return myInstance.getSize();
   }

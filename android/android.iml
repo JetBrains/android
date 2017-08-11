@@ -26,7 +26,8 @@
     <orderEntry type="module" module-name="properties" />
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
-    <orderEntry type="module" module-name="android-common" exported="" />
+    <orderEntry type="module" module-name="build-common" exported="" />
+    <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
     <orderEntry type="module" module-name="jps-builders" />
@@ -103,5 +104,6 @@
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="observable-ui" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>

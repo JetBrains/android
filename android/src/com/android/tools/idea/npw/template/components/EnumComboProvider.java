@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.idea.ui.properties.AbstractProperty;
+import com.android.tools.idea.observable.AbstractProperty;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

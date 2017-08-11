@@ -2,13 +2,14 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "kotlin-integration-tests",
+    iml_files = ["kotlin-integration-tests.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android:device-art-resources",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib/libwebp",
         "//tools/adt/idea/android/testData",

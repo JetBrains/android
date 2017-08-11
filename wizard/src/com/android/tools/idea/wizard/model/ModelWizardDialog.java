@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
-import com.android.tools.idea.ui.properties.swing.EnabledProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableOptional;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
@@ -40,7 +42,7 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 /**
  * A dialog container which drives an underlying {@link ModelWizard}, decorating it with UI.

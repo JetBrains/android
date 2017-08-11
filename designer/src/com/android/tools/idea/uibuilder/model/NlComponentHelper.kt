@@ -18,13 +18,14 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -135,12 +136,8 @@ fun NlComponent.ensureLiveId(): String {
   val attributes = startAttributeTransaction()
   val id = assignId()
   attributes.apply()
-  val action = object : WriteCommandAction<Void>(model.project, "Added id", model.file) {
-    override fun run(result: Result<Void>) {
-      attributes.commit()
-    }
-  }
-  action.execute()
+
+  NlWriteCommandAction.run(this, "Added ID", { attributes.commit() })
   return id
 }
 
@@ -320,9 +317,9 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
  * @param insertType The type of insertion
  */
 fun NlComponent.createChild(editor: ViewEditor,
-                            fqcn: String,
-                            before: NlComponent?,
-                            insertType: InsertType): NlComponent? {
+                                                                fqcn: String,
+                                                                before: NlComponent?,
+                                                                insertType: InsertType): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.fd.client.InstantRunPushFailedException;
-import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.ir.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunClient;
+import com.android.tools.ir.client.InstantRunPushFailedException;
+import com.android.tools.ir.client.UpdateMode;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.utils.ILogger;
+import com.android.tools.log.LogWrapper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;

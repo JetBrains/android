@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -63,6 +64,12 @@ public class DependencyManagerTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myDisposable);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myPalette = null;
+      myPanel = null;
+      myManager = null;
+      myDisposable = null;
     }
     finally {
       super.tearDown();
@@ -94,7 +101,7 @@ public class DependencyManagerTest extends AndroidTestCase {
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, CARD_VIEW))).isTrue();
 
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
 
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON))).isFalse();
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
@@ -104,10 +111,17 @@ public class DependencyManagerTest extends AndroidTestCase {
   }
 
   public void testDisposeStopsGradleSynchronizations() {
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
     Disposer.dispose(myDisposable);
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
     // Expect: No exceptions from myGradleDependencyManager mock
+  }
+
+  private void simulateGradleSync() {
+    // syncStarted should be called before syncEnded.
+    GradleSyncState syncState = GradleSyncState.getInstance(getProject());
+    syncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
+    syncState.syncEnded();
   }
 
   @NotNull

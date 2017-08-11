@@ -19,11 +19,11 @@ import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.structure.services.ServiceContext;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.ui.Messages;
@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 /**
  * Panel that provides a UI view onto a {@link DeveloperServiceMetadata}.

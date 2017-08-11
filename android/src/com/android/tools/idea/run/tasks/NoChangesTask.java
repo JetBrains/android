@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunArtifact;
+import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.run.ConsolePrinter;

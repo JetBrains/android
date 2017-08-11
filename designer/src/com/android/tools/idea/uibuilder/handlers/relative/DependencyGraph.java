@@ -19,7 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.util.containers.WeakHashMap;
 

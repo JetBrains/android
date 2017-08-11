@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.HtmlLabel;
 import com.intellij.ui.JBColor;
+import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,7 +45,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     topPanel.add(Box.createVerticalGlue());
     topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
-    JLabel picLabel = new JLabel(ProfilerIcons.ANDROID_PROFILERS);
+    JLabel picLabel = new JLabel(StudioIllustrations.Common.DISCONNECT);
     picLabel.setHorizontalAlignment(SwingConstants.CENTER);
     picLabel.setVerticalAlignment(SwingConstants.CENTER);
     picLabel.setAlignmentX(Component.CENTER_ALIGNMENT);

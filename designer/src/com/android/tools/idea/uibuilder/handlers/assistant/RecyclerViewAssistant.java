@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.assistant;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;

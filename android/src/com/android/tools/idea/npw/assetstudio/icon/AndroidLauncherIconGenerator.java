@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.assetstudio.icon;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

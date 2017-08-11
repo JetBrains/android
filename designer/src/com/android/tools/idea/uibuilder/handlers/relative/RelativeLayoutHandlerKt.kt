@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative
 
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneInteraction
+import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
@@ -22,12 +26,8 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTa
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeWidgetTarget
-import com.android.tools.idea.uibuilder.model.NlComponent
 import com.android.tools.idea.uibuilder.model.getBaseline
-import com.android.tools.idea.uibuilder.scene.SceneComponent
-import com.android.tools.idea.uibuilder.scene.SceneInteraction
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
-import com.android.tools.idea.uibuilder.scene.target.Target
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
 import java.awt.Graphics2D
