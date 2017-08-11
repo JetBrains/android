@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -94,7 +95,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       return false;
     }
     File sdkPath = toSystemDependentPath(path);
-    return validateAndroidSdk(sdkPath, false).success;
+    return validateAndroidSdk(sdkPath, false).isOk();
   }
 
   @Override
