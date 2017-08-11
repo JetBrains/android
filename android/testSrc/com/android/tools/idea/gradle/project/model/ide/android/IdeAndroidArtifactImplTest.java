@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
@@ -26,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
@@ -91,6 +93,30 @@ public class IdeAndroidArtifactImplTest {
     IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
+  }
+
+  // See http://b/64305584
+  @Test
+  public void withNpeInGetOutputs() throws Throwable {
+    AndroidArtifact original = new AndroidArtifactStub() {
+      @Override
+      @NotNull
+      public Collection<AndroidArtifactOutput> getOutputs() {
+        throw new NullPointerException();
+      }
+      @Override
+
+      public int hashCode() {
+        return Objects.hash(getName(), getCompileTaskName(), getAssembleTaskName(), getClassesFolder(), getJavaResourcesFolder(),
+                            getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
+                            getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getApplicationId(),
+                            getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
+                            getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned(), getAdditionalRuntimeApks(),
+                            getTestOptions());
+      }
+    };
+    IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
+    assertThat(copy.getOutputs()).isEmpty();
   }
 
   @Test
