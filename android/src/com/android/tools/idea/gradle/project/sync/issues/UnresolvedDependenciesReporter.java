@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.api.ProgressIndicator;
@@ -24,7 +23,6 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.gradle.util.PositionInFile;
@@ -54,6 +52,7 @@ import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.*;
+import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
@@ -62,6 +61,9 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
 
 public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
+  private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
+  private static final String OPEN_FILE_HYPERLINK_TEXT = "Open File";
+
   @NotNull
   public static UnresolvedDependenciesReporter getInstance() {
     return ServiceManager.getService(UnresolvedDependenciesReporter.class);
@@ -79,25 +81,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       report(dependency, module, buildFile);
     }
     else {
-      // getData can be null if the unresolved dependency is on a sub-module due to non-matching variant attributes.
-      // Use getMessage to display the sync error in that case.
-      // b/64213214.
-      List<String> messages = new ArrayList<>();
-      messages.add(syncIssue.getMessage());
-      try {
-        List<String> multiLineMessage = syncIssue.getMultiLineMessage();
-        if (multiLineMessage != null) {
-          messages.addAll(multiLineMessage);
-        }
-      }
-      catch (UnsupportedMethodException ex) {
-        // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
-      }
-
-      // Since the problem is caused by mismatch between mutliple modules, don't offer open file hyperlinks or other quickfixes.
-      SyncMessage syncMessage =
-        new SyncMessage("Unresolved dependencies", ERROR, NonNavigatable.INSTANCE, messages.toArray(new String[messages.size()]));
-      getSyncMessages(module).report(syncMessage);
+      reportWithoutDependencyInfo(syncIssue, module, buildFile);
     }
   }
 
@@ -126,7 +110,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     }
 
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
-    if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !canGetConstraintLayoutFromSdkManager(module)) {
+    if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !isSupportedInSdkManager(module)) {
       quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
     }
     else if (constraintPackage != null) {
@@ -139,7 +123,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
     }
     else {
-      group = "Unresolved dependencies";
+      group = UNRESOLVED_DEPENDENCIES_GROUP;
       Project project = module.getProject();
 
       if (isOfflineBuildModeEnabled(project)) {
@@ -153,7 +137,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     if (buildFile != null) {
       PositionInFile position = findDependencyPosition(dependency, buildFile);
       message = new SyncMessage(module.getProject(), group, ERROR, position, text);
-      String hyperlinkText = position.line > -1 ? "Show in File" : "Open File";
+      String hyperlinkText = position.line > -1 ? "Show in File" : OPEN_FILE_HYPERLINK_TEXT;
       quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, position.line, position.column));
     }
     else {
@@ -197,13 +181,6 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     return packages.getRemotePackages().values();
   }
 
-  @VisibleForTesting
-  static boolean canGetConstraintLayoutFromSdkManager(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
-    // see https://code.google.com/p/android/issues/detail?id=360563
-    return model == null /* 'null' means this is a brand-new project */ || model.getFeatures().isConstraintLayoutSdkLocationSupported();
-  }
-
   @Nullable
   private static TextRange findDependency(@NotNull String dependency, @NotNull Document buildFile) {
     Function<Pair<String, GroovyLexer>, TextRange> consumer = pair -> {
@@ -223,5 +200,43 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       lexer.advance();
     }
     return null;
+  }
+
+  private void reportWithoutDependencyInfo(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
+    // getData can be null if the unresolved dependency is on a sub-module due to non-matching variant attributes.
+    // Use getMessage to display the sync error in that case.
+    // b/64213214.
+    String text = syncIssue.getMessage();
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
+
+    SyncMessage message;
+    if (buildFile != null) {
+      PositionInFile position = new PositionInFile(buildFile, -1, 1);
+      message = new SyncMessage(module.getProject(), UNRESOLVED_DEPENDENCIES_GROUP, ERROR, position, text);
+      quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), OPEN_FILE_HYPERLINK_TEXT, position.line, position.column));
+    }
+    else {
+      message = new SyncMessage(UNRESOLVED_DEPENDENCIES_GROUP, ERROR, NonNavigatable.INSTANCE, text);
+    }
+
+    // Show the "extra info" of the SyncIssue in a dialog.
+    // See: https://issuetracker.google.com/62251247
+    List<String> extraInfo = new ArrayList<>();
+    try {
+      List<String> multiLineMessage = syncIssue.getMultiLineMessage();
+      if (multiLineMessage != null) {
+        extraInfo.addAll(multiLineMessage);
+      }
+    }
+    catch (UnsupportedMethodException ex) {
+      // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+    }
+
+    if (!extraInfo.isEmpty()) {
+      quickFixes.add(new ShowSyncIssuesDetailsHyperlink(text, extraInfo));
+    }
+
+    message.add(quickFixes);
+    getSyncMessages(module).report(message);
   }
 }
