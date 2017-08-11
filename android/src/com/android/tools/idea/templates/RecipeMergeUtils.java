@@ -286,6 +286,7 @@ public class RecipeMergeUtils {
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
       return ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
+                      ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
                       ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
         .addLibraryManifest(tempFile2)
         .asType(isMasterManifest ? XmlDocument.Type.MAIN : XmlDocument.Type.OVERLAY)
