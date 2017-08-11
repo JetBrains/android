@@ -54,7 +54,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
                                 @NotNull IdeDependenciesFactory dependenciesFactory,
                                 @Nullable GradleVersion gradleVersion) {
     super(artifact, modelCache, dependenciesFactory, gradleVersion);
-    myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
+    myOutputs = copyOutputs(artifact, modelCache);
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
     myGeneratedResourceFolders = ImmutableList.copyOf(artifact.getGeneratedResourceFolders());
@@ -69,6 +69,19 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
     myTestOptions = copyNewProperty(modelCache, artifact::getTestOptions, testOptions -> new IdeTestOptions(testOptions, modelCache), null);
 
     myHashCode = calculateHashCode();
+  }
+
+  @NotNull
+  private static Collection<AndroidArtifactOutput> copyOutputs(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache) {
+    Collection<AndroidArtifactOutput> outputs;
+    try {
+      outputs = artifact.getOutputs();
+      return copy(outputs, modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
+    }
+    catch (RuntimeException e) {
+      // See http://b/64305584
+      return Collections.emptyList();
+    }
   }
 
   @Nullable
