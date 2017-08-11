@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -244,7 +245,26 @@ public class AttributeProcessingUtil {
       if (styleableName != null) {
         registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
+      for (PsiClass additional : getAdditionalAttributesClasses(facet, c)) {
+        String additionalStyleableName = additional.getName();
+        if (additionalStyleableName != null) {
+          registerAttributes(facet, element, additionalStyleableName, getResourcePackage(additional), callback, skipNames);
+        }
+      }
       c = getSuperclass(c);
+    }
+  }
+
+  /**
+   * Return the classes that hold attributes used in the specified class c.
+   * This is for classes from support libaries without attrs.xml like support lib v4.
+   */
+  private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
+    switch (StringUtil.notNullize(c.getQualifiedName())) {
+      case CLASS_NESTED_SCROLL_VIEW:
+        return Collections.singleton(getViewClassMap(facet).get(SCROLL_VIEW));
+      default:
+        return Collections.emptySet();
     }
   }
 
@@ -461,10 +481,6 @@ public class AttributeProcessingUtil {
         if (parentTagName != null) {
           registerAttributesForClassAndSuperclasses(facet, element, map.get(parentTagName), callback, skipAttrNames);
         }
-        break;
-
-      case NESTED_SCROLL_VIEW:
-        registerAttributesForClassAndSuperclasses(facet, element, map.get(SCROLL_VIEW), callback, skipAttrNames);
         break;
 
       default:

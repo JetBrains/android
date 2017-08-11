@@ -648,7 +648,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testNestedScrollView() throws Throwable {
+    myFixture.copyFileToProject(myTestFolder + "/NestedScrollView.java", "src/android/support/v4/widget/NestedScrollView.java");
     toTestCompletion("nestedScrollView.xml", "nestedScrollView_after.xml");
+  }
+
+  public void testExtendedNestedScrollView() throws Throwable {
+    myFixture.copyFileToProject(myTestFolder + "/NestedScrollView.java", "src/android/support/v4/widget/NestedScrollView.java");
+    myFixture.copyFileToProject(myTestFolder + "/ExtendedNestedScrollView.java", "src/p1/p2/ExtendedNestedScrollView.java");
+    toTestCompletion("extendedNestedScrollView.xml", "extendedNestedScrollView_after.xml");
   }
 
   public void testNewIdCompletion1() throws Throwable {
