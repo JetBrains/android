@@ -68,7 +68,7 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.util.messages.MessageBusConnection;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -248,7 +248,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     JPanel logcatContentPanel = logcatView.getContentPanel();
 
     final Content logcatContent =
-      layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
+      layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", StudioIcons.Shell.ToolWindows.LOGCAT, null);
     logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
     logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);
