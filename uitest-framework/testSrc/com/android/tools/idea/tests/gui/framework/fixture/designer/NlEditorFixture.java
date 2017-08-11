@@ -258,7 +258,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
-  public NlEditorFixture dragMouseFromCenter(int dx, int dy, MouseButton mouseButton, int modifiers) {
+  public void dragMouseFromCenter(int dx, int dy, @NotNull MouseButton mouseButton, int modifiers) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressModifiers(modifiers);
@@ -266,7 +266,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
     robot().releaseMouseButtons();
     robot().releaseModifiers(modifiers);
-    return this;
   }
 
   @NotNull
