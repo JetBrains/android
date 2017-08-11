@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.tests.gui.instantapp.SdkReplacer.replaceSdkLocationAndActivate;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
@@ -42,6 +43,7 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewProjectInstantAppUIHidden() {
+    replaceSdkLocationAndActivate(null, false);
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
       .clickNext();
@@ -57,7 +59,7 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewProjectInstantAppUIShown() {
-    SdkReplacer.replaceSdkLocationAndActivate(null, true);
+    replaceSdkLocationAndActivate(null, true);
 
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
@@ -76,6 +78,7 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewModuleInstantAppUIHidden() throws IOException {
+    replaceSdkLocationAndActivate(null, false);
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -92,7 +95,7 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewModuleInstantAppUIShown() throws IOException {
-    SdkReplacer.replaceSdkLocationAndActivate(null, true);
+    replaceSdkLocationAndActivate(null, true);
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
