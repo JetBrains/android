@@ -15,45 +15,59 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Mockito.mock;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
-  public void testCanGetConstraintLayoutFromSdkManagerWithNoModel() {
-    // The module does not have a model. This happens when this is a new project, and modules have not been set up yet.
-    assertTrue(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
+  @Mock private SyncIssue mySyncIssue;
+
+  private GradleSyncMessagesStub mySyncMessages;
+
+  private UnresolvedDependenciesReporter myReporter;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    initMocks(this);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myReporter = new UnresolvedDependenciesReporter();
   }
 
-  public void testCanGetConstraintLayoutFromSdkManagerWithModelSupportingConstraintLayoutInSdk() {
-    AndroidModelFeatures features = mock(AndroidModelFeatures.class);
-    when(features.isConstraintLayoutSdkLocationSupported()).thenReturn(true);
-    createAndAddModel(features);
+  public void testReportWithoutDependencyAndExtraInfo() {
+    String text = "Hello!";
+    when(mySyncIssue.getMessage()).thenReturn(text);
 
-    assertTrue(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
-  }
+    List<String> extraInfo = Arrays.asList("line1", "line2");
+    when(mySyncIssue.getMultiLineMessage()).thenReturn(extraInfo);
 
-  public void testCanGetConstraintLayoutFromSdkManagerWithModelNotSupportingConstraintLayoutInSdk() {
-    AndroidModelFeatures features = mock(AndroidModelFeatures.class);
-    when(features.isConstraintLayoutSdkLocationSupported()).thenReturn(false);
-    createAndAddModel(features);
+    myReporter.report(mySyncIssue, getModule(), null);
 
-    assertFalse(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
-  }
+    SyncMessage message = mySyncMessages.getFirstReportedMessage();
+    assertEquals(text, message.getText()[0]);
 
-  private void createAndAddModel(@NotNull AndroidModelFeatures features) {
-    AndroidModuleModel model = mock(AndroidModuleModel.class);
-    when(model.getFeatures()).thenReturn(features);
-    AndroidFacet facet = createAndAddAndroidFacet(getModule());
-    facet.setAndroidModel(model);
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    assertThat(quickFixes).hasSize(1);
+
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(ShowSyncIssuesDetailsHyperlink.class);
+
+    ShowSyncIssuesDetailsHyperlink showDetailsQuickFix = (ShowSyncIssuesDetailsHyperlink)quickFix;
+    assertEquals(text, showDetailsQuickFix.getMessage());
+    assertEquals(extraInfo, showDetailsQuickFix.getDetails());
   }
 }

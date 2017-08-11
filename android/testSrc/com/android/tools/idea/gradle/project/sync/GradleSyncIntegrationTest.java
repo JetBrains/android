@@ -31,7 +31,6 @@ import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -437,7 +436,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    loadProject(TestProjectPaths.DEPENDENT_MODULES);
+    loadProject(DEPENDENT_MODULES);
 
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
@@ -459,8 +458,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     // Verify text contains both of single line and multi-line message from SyncIssue.
     assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
                                             .hasGroup("Unresolved dependencies")
-                                            .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0)
-                                            .hasMessageLine( "Could not resolve project :lib.", 1);
+                                            .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0);
     // @formatter:on
   }
 }
