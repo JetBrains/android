@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.validation.validators;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.adtui.validation.Validator;
@@ -277,8 +278,11 @@ public final class PathValidator implements Validator<File> {
     myFileOp = fileOp;
   }
 
+
   /**
    * A validator that provides reasonable defaults for checking a path's validity.
+   *
+   * @param pathName name of the path being validated. Used inside {@link Validator.Result}'s message.
    */
   public static PathValidator createDefault(@NotNull String pathName) {
     return new Builder().withAllRules(Severity.ERROR).build(pathName);
@@ -377,13 +381,25 @@ public final class PathValidator implements Validator<File> {
      */
     @NotNull
     public Builder withCommonRules() {
+      withCommonTestRules();
+      withRule(PATH_TOO_LONG, Severity.ERROR);
+      return this;
+    }
+
+    /**
+     * Contains Common rules but excluding the ones that will not pass
+     * build bot.
+     * Only used for unit tests.
+     */
+    @NotNull
+    @VisibleForTesting
+    public Builder withCommonTestRules() {
       withRule(INVALID_SLASHES, Severity.ERROR);
       withRule(ILLEGAL_CHARACTER, Severity.ERROR);
       withRule(ILLEGAL_WINDOWS_FILENAME, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(WHITESPACE, Severity.WARNING);
       withRule(NON_ASCII_CHARS, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(PARENT_DIRECTORY_NOT_WRITABLE, Severity.ERROR);
-      withRule(PATH_TOO_LONG, Severity.ERROR);
       withRule(LOCATION_IS_A_FILE, Severity.ERROR);
       withRule(LOCATION_IS_ROOT, Severity.ERROR);
       withRule(PARENT_IS_NOT_A_DIRECTORY, Severity.ERROR);

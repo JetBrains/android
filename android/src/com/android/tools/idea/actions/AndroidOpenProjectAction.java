@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
@@ -35,6 +38,7 @@ import com.intellij.projectImport.ProjectAttachProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
@@ -47,12 +51,16 @@ import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpene
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-public class AndroidOpenFileAction extends DumbAwareAction {
-  public AndroidOpenFileAction() {
+/**
+ * Opens existing project into Android Stduio
+ * This action replaces the default File -> Open action.
+ */
+public class AndroidOpenProjectAction extends DumbAwareAction {
+  public AndroidOpenProjectAction() {
     this("Open...");
   }
 
-  public AndroidOpenFileAction(@NotNull String text) {
+  public AndroidOpenProjectAction(@NotNull String text) {
     super(text);
   }
 
@@ -72,16 +80,38 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
     VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
     chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
-      for (VirtualFile file : files) {
-        if (!descriptor.isFileSelectable(file)) {
-          String message = IdeBundle.message("error.dir.contains.no.project", file.getPresentableUrl());
-          Messages.showInfoMessage(project, message, IdeBundle.message("title.cannot.open.project"));
+      ValidationIssue issue = validateFiles(files, descriptor, new ProjectImportPathValidator("project file"));
+      if (issue.result.getSeverity() != Validator.Severity.OK) {
+        boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
+        String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
+        Messages.showInfoMessage(project, issue.result.getMessage(), title);
+        if (isError) {
           return;
         }
       }
       doOpenFile(project, files);
     });
+  }
 
+  /**
+   * Checks the list of files passes validation. Returns null if there are no issues.
+   */
+  @VisibleForTesting
+  @NotNull
+  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor, Validator<File> validator) {
+    for (VirtualFile file : files) {
+      if (!descriptor.isFileSelectable(file)) {
+        Validator.Result result =
+          new Validator.Result(Validator.Severity.ERROR, IdeBundle.message("error.dir.contains.no.project", file.getPresentableUrl()));
+        return new ValidationIssue(result, file);
+      }
+
+      Validator.Result result = validator.validate(new File(file.getPath()));
+      if (result.getSeverity() != Validator.Severity.OK) {
+        return new ValidationIssue(result, file);
+      }
+    }
+    return new ValidationIssue(Validator.Result.OK, null);
   }
 
   private static void doOpenFile(@Nullable Project project, @NotNull List<VirtualFile> result) {
@@ -158,6 +188,20 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     return false;
   }
 
+  /**
+   * Returned by validateFiles after validating a project if there is an issue.
+   */
+  @VisibleForTesting
+  static final class ValidationIssue {
+    @NotNull Validator.Result result;
+    @Nullable VirtualFile file;
+
+    public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
+      this.result = result;
+      this.file = file;
+    }
+  }
+
   private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
     public ProjectOnlyFileChooserDescriptor() {
       super(true);
@@ -188,5 +232,4 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       return true;
     }
   }
-
 }
