@@ -17,8 +17,8 @@ package com.android.tools.idea.npw;
 
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * A Validation Result for Wizard Validations, contains a status and a message
@@ -39,7 +40,11 @@ import java.util.Locale;
 public final class PathValidationResult {
   public static final PathValidationResult OK = new PathValidationResult(Status.OK, null, "any");
 
-  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
+  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf("[/\\\\?%*:|\"<>!;]");
+  private static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
+    .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
+        "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",
+        "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   private final Status myStatus;
@@ -89,7 +94,7 @@ public final class PathValidationResult {
         char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
         return error(PathValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
-      if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
+      if (INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
         PathValidationResult.Status status = SystemInfo.isWindows ? PathValidationResult.Status.ERROR : PathValidationResult.Status.WARN;
         return new PathValidationResult(status, PathValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
