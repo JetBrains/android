@@ -16,8 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -97,7 +99,7 @@ public class AndroidImportProjectAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     try {
-      AddModuleWizard wizard = selectFileAndCreateWizard();
+      AddModuleWizard wizard = selectFileAndCreateWizard(e.getProject());
       if (wizard != null) {
         if (wizard.getStepCount() > 0) {
           if (!wizard.showAndGet()) {
@@ -137,26 +139,41 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
-    return selectFileAndCreateWizard(createFileChooserDescriptor());
+  private AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) throws IOException, ConfigurationException {
+    return selectFileAndCreateWizard(project, createFileChooserDescriptor());
   }
 
   @Nullable
-  private AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
-      throws IOException, ConfigurationException {
+  private AddModuleWizard selectFileAndCreateWizard(@Nullable Project project, @NotNull FileChooserDescriptor descriptor)
+    throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
       toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(lastLocation);
     }
-    VirtualFile[] files = chooser.choose(null, toSelect);
+    VirtualFile[] files = chooser.choose(project, toSelect);
     if (files.length == 0) {
       return null;
     }
     VirtualFile file = files[0];
+    if (isSelectedFileValid(project, file)) return null;
+
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
     return createImportWizard(file);
+  }
+
+  private boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
+    ProjectImportPathValidator validator = new ProjectImportPathValidator("project file");
+    Validator.Result result = validator.validate(file.getPath());
+    if (result.getSeverity() != Validator.Severity.OK) {
+      boolean isError = result.getSeverity() == Validator.Severity.ERROR;
+      Messages.showInfoMessage(project, result.getMessage(), isError ? "Cannot Import Project" : "Project Import Warning");
+      if (isError) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Nullable
@@ -193,7 +210,7 @@ public class AndroidImportProjectAction extends AnAction {
   private static AddModuleWizard importWithExtensions(@NotNull VirtualFile file) {
     List<ProjectImportProvider> available = getImportProvidersForTarget(file);
     if (available.isEmpty()) {
-      Messages.showInfoMessage((Project) null, "Cannot import anything from " + file.getPath(), "Cannot Import");
+      Messages.showInfoMessage((Project)null, "Cannot import anything from " + file.getPath(), "Cannot Import");
       return null;
     }
     String path;

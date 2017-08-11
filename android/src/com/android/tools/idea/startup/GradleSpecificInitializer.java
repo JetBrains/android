@@ -134,9 +134,7 @@ public class GradleSpecificInitializer implements Runnable {
     CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
     if (scheme != null) {
       CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
+      AndroidCodeStyleSettingsModifier.modify(settings);
     }
   }
 
@@ -164,7 +162,7 @@ public class GradleSpecificInitializer implements Runnable {
 
   private static void setUpNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
-    replaceAction("OpenFile", new AndroidOpenFileAction());
+    replaceAction("OpenFile", new AndroidOpenProjectAction());
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
@@ -183,7 +181,7 @@ public class GradleSpecificInitializer implements Runnable {
     System.setProperty("ide.new.welcome.screen.force", "true");
 
     // Update the Welcome Screen actions
-    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
+    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenProjectAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
