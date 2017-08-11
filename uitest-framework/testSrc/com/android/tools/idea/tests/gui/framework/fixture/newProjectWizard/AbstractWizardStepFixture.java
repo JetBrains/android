@@ -49,7 +49,7 @@ public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, 
 
   @NotNull
   protected JCheckBoxFixture selectCheckBoxWithText(@NotNull String text, boolean select) {
-    JCheckBox cb = (JCheckBox)robot().finder().find((c) -> c instanceof JCheckBox && ((JCheckBox)c).getText().equals(text));
+    JCheckBox cb = (JCheckBox)robot().finder().find(c -> c.isShowing() && c instanceof JCheckBox && ((JCheckBox)c).getText().equals(text));
     JCheckBoxFixture checkBox = new JCheckBoxFixture(robot(), cb);
     if (select) {
       checkBox.select();
