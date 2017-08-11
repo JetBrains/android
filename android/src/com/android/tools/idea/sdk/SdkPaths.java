@@ -16,7 +16,9 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.npw.PathValidationResult;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +41,33 @@ public class SdkPaths {
    * @return the validation result.
    */
   @NotNull
-  public static ValidationResult validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
+  public static Validator.Result validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
     return validatedSdkPath(sdkPath, "SDK", false, includePathInMessage);
+  }
+
+  @VisibleForTesting
+  static Validator.Result validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage, @NotNull Validator<File> validator) {
+    if (ndkPath != null) {
+      Validator.Result wizardValidationResult = validator.validate(ndkPath);
+      if (!wizardValidationResult.isOk()) {
+        return wizardValidationResult;
+      }
+    }
+    Validator.Result validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
+    if (validationResult.isOk() && ndkPath != null) {
+      File toolchainsDirPath = new File(ndkPath, "toolchains");
+      if (!toolchainsDirPath.isDirectory()) {
+        String message;
+        if (includePathInMessage) {
+          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+        }
+        else {
+          message = "NDK does not contain any toolchains.";
+        }
+        return new Validator.Result(Validator.Severity.ERROR, message);
+      }
+    }
+    return validationResult;
   }
 
   /**
@@ -51,39 +78,17 @@ public class SdkPaths {
    * @return the validation result.
    */
   @NotNull
-  public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
-    if (ndkPath != null) {
-      PathValidationResult wizardValidationResult =
-        PathValidationResult
-          .validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
-      if (!wizardValidationResult.isOk()) {
-        return ValidationResult.error(wizardValidationResult.getFormattedMessage());
-      }
-    }
-    ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
-    if (validationResult.success && ndkPath != null) {
-      File toolchainsDirPath = new File(ndkPath, "toolchains");
-      if (!toolchainsDirPath.isDirectory()) {
-        String message;
-        if (includePathInMessage) {
-          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
-        }
-        else {
-          message = "NDK does not contain any toolchains.";
-        }
-        return ValidationResult.error(message);
-      }
-    }
-    return validationResult;
+  public static Validator.Result validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+    return validateAndroidNdk(ndkPath, includePathInMessage, new PathValidator.Builder().withCommonRules().build("Android NDK location"));
   }
 
   @NotNull
-  private static ValidationResult validatedSdkPath(@Nullable File sdkPath,
+  private static Validator.Result validatedSdkPath(@Nullable File sdkPath,
                                                    @NotNull String sdkName,
                                                    boolean checkForWritable,
                                                    boolean includePathInMessage) {
     if (sdkPath == null) {
-      return ValidationResult.error("");
+      return new Validator.Result(Validator.Severity.ERROR, "");
     }
 
     String cause = null;
@@ -104,7 +109,7 @@ public class SdkPaths {
       else {
         message = String.format("The path %1$s", cause);
       }
-      return ValidationResult.error(message);
+      return new Validator.Result(Validator.Severity.ERROR, message);
     }
 
     File platformsDirPath = new File(sdkPath, SdkConstants.FD_PLATFORMS);
@@ -116,26 +121,9 @@ public class SdkPaths {
       else {
         message = String.format("%1$s does not contain any platforms.", sdkName);
       }
-      return ValidationResult.error(message);
+      return new Validator.Result(Validator.Severity.ERROR, message);
     }
 
-    return ValidationResult.SUCCESS;
-  }
-
-  public static class ValidationResult {
-    @NotNull public static final ValidationResult SUCCESS = new ValidationResult(true, null);
-
-    public final boolean success;
-    @Nullable public final String message;
-
-    @NotNull
-    static ValidationResult error(@NotNull String message) {
-      return new ValidationResult(false, message);
-    }
-
-    private ValidationResult(boolean success, @Nullable String message) {
-      this.success = success;
-      this.message = message;
-    }
+    return Validator.Result.OK;
   }
 }

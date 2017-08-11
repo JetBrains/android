@@ -17,7 +17,8 @@ package com.android.tools.idea.welcome.config;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
-import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.wizard.SdkComponentsStep;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
@@ -34,6 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.ui.validation.validators.PathValidator.PATH_NOT_WRITABLE;
 
 /**
  * Wrapper around data passed from the installer.
@@ -158,9 +161,10 @@ public class InstallerData {
       return false;
     }
     else {
-      String path = location.getAbsolutePath();
-      PathValidationResult validationResult = PathValidationResult.validateLocation(path, SdkComponentsStep.FIELD_SDK_LOCATION, false);
-      return !validationResult.isError();
+      PathValidator validator = new PathValidator.Builder().withCommonRules().withRule(PATH_NOT_WRITABLE, Validator.Severity.ERROR)
+        .build(SdkComponentsStep.FIELD_SDK_LOCATION);
+      Validator.Result validationResult = validator.validate(location);
+      return validationResult.getSeverity() != Validator.Severity.ERROR;
     }
   }
 

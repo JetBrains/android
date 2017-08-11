@@ -18,14 +18,14 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -69,10 +69,9 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -280,9 +279,9 @@ public class GradleSpecificInitializer implements Runnable {
     File androidHome = ideSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
-      String androidHomePath = androidHome.getAbsolutePath();
-      PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
-      if (result.isError()) {
+      PathValidator validator = new PathValidator.Builder().withCommonRules().build("Android SDK location");
+      Validator.Result result = validator.validate(androidHome);
+      if (result.getSeverity() == Validator.Severity.ERROR) {
         notifyInvalidSdk();
       }
 

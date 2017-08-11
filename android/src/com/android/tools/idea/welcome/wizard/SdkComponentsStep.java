@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.Status;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
@@ -44,7 +44,6 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +63,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import static com.android.tools.idea.ui.validation.validators.PathValidator.PATH_NOT_WRITABLE;
 
 /**
  * Wizard page for selecting SDK components to download.
@@ -88,8 +87,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   @SuppressWarnings("unused") private JPanel myBody;
   private JBLoadingPanel myContentPanel;
 
-  private boolean myUserEditedPath = false;
-  private PathValidationResult mySdkDirectoryValidationResult;
+  private Validator.Result mySdkDirectoryValidationResult;
   private boolean myWasVisible = false;
   private boolean myLoading;
 
@@ -192,62 +190,37 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     return file;
   }
 
-  @Contract("null->false")
-  private static boolean isExistingSdk(@Nullable String path) {
-    if (!StringUtil.isEmptyOrSpaces(path)) {
-      File file = new File(path);
-      return file.isDirectory() && IdeSdks.getInstance().isValidAndroidSdkPath(file);
-    }
-    else {
-      return false;
-    }
-  }
-
-  private static boolean isNonEmptyNonSdk(@Nullable String path) {
-    if (path == null) {
-      return false;
-    }
-    File file = new File(path);
-
-    if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
-      return AndroidSdkData.getSdkData(file) == null;
-    }
-    return false;
-  }
-
   @Override
   public boolean validate() {
     String path = myState.get(mySdkDownloadPathKey);
-    if (!StringUtil.isEmpty(path)) {
-      myUserEditedPath = true;
+    if (StringUtil.isEmpty(path)) {
+      return false;
     }
 
-    mySdkDirectoryValidationResult =
-      validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+    PathValidator validator = new PathValidator.Builder().
+      withCommonRules().withRule(PATH_NOT_WRITABLE, Validator.Severity.WARNING)
+      .build(FIELD_SDK_LOCATION);
+    mySdkDirectoryValidationResult = validator.validate(new File(path));
 
+    Validator.Severity serverity = mySdkDirectoryValidationResult.getSeverity();
     boolean ok = mySdkDirectoryValidationResult.isOk();
-    Status status = mySdkDirectoryValidationResult.getStatus();
-    String message = ok ? null : mySdkDirectoryValidationResult.getFormattedMessage();
+    String message = ok ? null : mySdkDirectoryValidationResult.getMessage();
 
     if (ok) {
       File filesystem = getTargetFilesystem(path);
-
-      if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
-        status = Status.ERROR;
-        message = "Target drive does not have enough free space.";
-      }
-      else if (isNonEmptyNonSdk(path)) {
-        status = Status.WARN;
-        message = "Target folder is neither empty nor does it point to an existing SDK installation.";
-      }
-      else if (isExistingSdk(path)) {
-        status = Status.WARN;
-        message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
+      if (filesystem != null) {
+        validator = new PathValidator.Builder()
+          .withRule(new NotEnoughSpace(getComponentsSize()), Validator.Severity.ERROR)
+          .withRule(NON_EMPTY_SDK, Validator.Severity.WARNING)
+          .withRule(EXISTING_SDK, Validator.Severity.WARNING).build("");
+        Validator.Result result = validator.validate(filesystem);
+        serverity = result.getSeverity();
+        message = result.getMessage();
       }
     }
 
-    switch (status) {
-      case WARN:
+    switch (serverity) {
+      case WARNING:
         myErrorMessage.setIcon(AllIcons.General.BalloonWarning);
         break;
       case ERROR:
@@ -258,11 +231,11 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
         break;
     }
 
-    setErrorHtml(myUserEditedPath ? message : null);
+    setErrorHtml(message);
     if (myLoading) {
       return false;
     }
-    return !mySdkDirectoryValidationResult.isError();
+    return serverity != Validator.Severity.ERROR;
   }
 
   @Override
@@ -362,7 +335,8 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
           // soon as the toggle action is finished.
           // Note: This calls "setValueAt" on "myTableModel" automatically.
           stopCellEditing();
-        } else {
+        }
+        else {
           // This happens when the "pressed" action is invoked programmatically through
           // accessibility, so we need to call "setValueAt" manually.
           myTableModel.setValueAt(myCheckBox.isSelected(), myCheckBox.getRow(), 0);
@@ -446,7 +420,8 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       protected void processKeyEvent(KeyEvent e) {
         if (myComponentsTable.isEditing()) {
           myCheckBox._processKeyEvent(e);
-        } else {
+        }
+        else {
           super.processKeyEvent(e);
         }
       }
@@ -455,7 +430,8 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
         if (myComponentsTable.isEditing()) {
           return myCheckBox._processKeyBinding(ks, e, condition, pressed);
-        } else {
+        }
+        else {
           return super.processKeyBinding(ks, e, condition, pressed);
         }
       }
@@ -485,10 +461,11 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
         public Accessible getAccessibleParent() {
           if (accessibleParent != null) {
             return accessibleParent;
-          } else {
+          }
+          else {
             Container parent = RendererPanel.this.getParent();
             if (parent instanceof Accessible) {
-              return (Accessible) parent;
+              return (Accessible)parent;
             }
           }
           return null;
@@ -596,4 +573,58 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       return getInstallableComponent(index).getDescription();
     }
   }
+
+  private final class NotEnoughSpace extends PathValidator.SimpleRule {
+    private final long mySize;
+
+    public NotEnoughSpace(long componentsSize) {
+      mySize = componentsSize;
+    }
+
+    @Override
+    protected boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
+      return file.getFreeSpace() <= mySize;
+    }
+
+    @NotNull
+    @Override
+    public String getMessage(@NotNull File file, @NotNull String fieldName) {
+      return "Target drive does not have enough free space.";
+    }
+  }
+
+  private static final PathValidator.Rule NON_EMPTY_SDK = new PathValidator.SimpleRule() {
+    @Override
+    protected boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
+      if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
+        return AndroidSdkData.getSdkData(file) == null;
+      }
+      return false;
+    }
+
+    @NotNull
+    @Override
+    public String getMessage(@NotNull File file, @NotNull String fieldName) {
+      return "Target folder is neither empty nor does it point to an existing SDK installation.";
+    }
+  };
+
+  private static final PathValidator.Rule EXISTING_SDK = new PathValidator.SimpleRule() {
+    @Override
+    protected boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
+      String path = file.getPath();
+      if (!StringUtil.isEmptyOrSpaces(path)) {
+        return file.isDirectory() && IdeSdks.getInstance().isValidAndroidSdkPath(file);
+      }
+      else {
+        return false;
+      }
+    }
+
+    @NotNull
+    @Override
+    public String getMessage(@NotNull File file, @NotNull String fieldName) {
+      return "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
+    }
+  };
 }

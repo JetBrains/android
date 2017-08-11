@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Strings;
@@ -98,7 +98,7 @@ public class SelectNdkDialog extends DialogWrapper {
     }
     else {
       myHeaderText.setText("The project's local.properties file contains an invalid NDK path:");
-      myErrorLabel.setText(validateAndroidNdk(new File(invalidNdkPath), false).message);
+      myErrorLabel.setText(validateAndroidNdk(new File(invalidNdkPath), false).getMessage());
       myErrorLabel.setVisible(true);
       myErrorLabel.setForeground(JBColor.RED);
     }
@@ -114,9 +114,9 @@ public class SelectNdkDialog extends DialogWrapper {
       public void validateSelectedFiles(VirtualFile[] files) throws Exception {
         for (VirtualFile virtualFile : files) {
           File file = virtualToIoFile(virtualFile);
-          ValidationResult validationResult = validateAndroidNdk(file, false);
-          if (!validationResult.success) {
-            String msg = validationResult.message;
+          Validator.Result validationResult = validateAndroidNdk(file, false);
+          if (!validationResult.isOk()) {
+            String msg = validationResult.getMessage();
             if (isEmpty(msg)) {
               msg = "Please choose a valid Android NDK directory.";
             }
@@ -172,11 +172,11 @@ public class SelectNdkDialog extends DialogWrapper {
       return "Android NDK path not specified.";
     }
 
-    ValidationResult validationResult = validateAndroidNdk(toSystemDependentPath(path), false);
-    if (!validationResult.success) {
+    Validator.Result validationResult = validateAndroidNdk(toSystemDependentPath(path), false);
+    if (!validationResult.isOk()) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291
-      return String.format("Invalid Android NDK path:<br>%1$s", validationResult.message);
+      return String.format("Invalid Android NDK path:<br>%1$s", validationResult.getMessage());
     } else {
       return null;
     }

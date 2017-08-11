@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
@@ -38,6 +39,10 @@ public class SdkPathsTest extends TestCase {
   private File tmpDir;
 
   private static final String DUMMY_PATH = "/dummy/path".replace('/', File.separatorChar);
+  private static final String DUMMY_NAME = "dummy";
+
+  // use test rules to avoid failing PATH_TOO_LONG rule
+  private static final Validator<File> CUSTOM_TEST_VALIDATOR = new PathValidator.Builder().withCommonTestRules().build("Android NDK location");
 
   @Override
   public void setUp() throws Exception {
@@ -57,36 +62,36 @@ public class SdkPathsTest extends TestCase {
     when(mockFile.getPath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(false);
 
-    ValidationResult result = validateAndroidSdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path does not belong to a directory.", result.message);
+    Validator.Result result = validateAndroidSdk(mockFile, false);
+    assertFalse(result.isOk());
+    assertEquals("The path does not belong to a directory.", result.getMessage());
 
     result = validateAndroidSdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.getMessage());
   }
 
   public void testNoPlatformsSdkDirectory() throws Exception {
     tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testNoPlatformsSdkDirectory");
 
-    ValidationResult result = validateAndroidSdk(tmpDir, false);
-    assertFalse(result.success);
-    assertEquals("SDK does not contain any platforms.", result.message);
+    Validator.Result result = validateAndroidSdk(tmpDir, false);
+    assertFalse(result.isOk());
+    assertEquals("SDK does not contain any platforms.", result.getMessage());
 
     result = validateAndroidSdk(tmpDir, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The SDK at\n'%1$s'\ndoes not contain any platforms.", tmpDir.getPath()), result.message);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The SDK at\n'%1$s'\ndoes not contain any platforms.", tmpDir.getPath()), result.getMessage());
   }
 
   public void testValidSdkDirectory() throws Exception {
     tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testValidSdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
 
-    ValidationResult result = validateAndroidSdk(tmpDir, false);
-    assertTrue(result.message, result.success);
+    Validator.Result result = validateAndroidSdk(tmpDir, false);
+    assertTrue(result.getMessage(), result.isOk());
 
     result = validateAndroidSdk(tmpDir, true);
-    assertTrue(result.message, result.success);
+    assertTrue(result.getMessage(), result.isOk());
   }
 
   public void testInvalidNdkDirectory() throws Exception {
@@ -94,14 +99,16 @@ public class SdkPathsTest extends TestCase {
     when(mockFile.getPath()).thenReturn(DUMMY_PATH);
     when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(false);
+    when(mockFile.getName()).thenReturn(DUMMY_NAME);
+    when(mockFile.getParent()).thenReturn("/dummy");
 
-    ValidationResult result = validateAndroidNdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path does not belong to a directory.", result.message);
+    Validator.Result result = validateAndroidNdk(mockFile, false);
+    assertFalse(result.isOk());
+    assertEquals("The path does not belong to a directory.", result.getMessage());
 
     result = validateAndroidNdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.getMessage());
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
@@ -110,14 +117,16 @@ public class SdkPathsTest extends TestCase {
     when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(true);
     when(mockFile.canRead()).thenReturn(false);
+    when(mockFile.getName()).thenReturn(DUMMY_NAME);
+    when(mockFile.getParent()).thenReturn("/dummy");
 
-    ValidationResult result = validateAndroidNdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path is not readable.", result.message);
+    Validator.Result result = validateAndroidNdk(mockFile, false);
+    assertFalse(result.isOk());
+    assertEquals("The path is not readable.", result.getMessage());
 
     result = validateAndroidNdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\nis not readable.", DUMMY_PATH), result.message);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The path\n'%1$s'\nis not readable.", DUMMY_PATH), result.getMessage());
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
@@ -127,13 +136,13 @@ public class SdkPathsTest extends TestCase {
     }
 
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoPlatformsNdkDirectory");
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertFalse(result.success);
-    assertEquals("NDK does not contain any platforms.", result.message);
+    Validator.Result result = validateAndroidNdk(tmpDir, false, CUSTOM_TEST_VALIDATOR);
+    assertFalse(result.isOk());
+    assertEquals("NDK does not contain any platforms.", result.getMessage());
 
-    result = validateAndroidNdk(tmpDir, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any platforms.", tmpDir.getPath()), result.message);
+    result = validateAndroidNdk(tmpDir, true, CUSTOM_TEST_VALIDATOR);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any platforms.", tmpDir.getPath()), result.getMessage());
   }
 
   public void testNoToolchainsNdkDirectory() throws Exception {
@@ -145,13 +154,13 @@ public class SdkPathsTest extends TestCase {
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoToolchainsNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
 
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertFalse(result.success);
-    assertEquals("NDK does not contain any toolchains.", result.message);
+    Validator.Result result = validateAndroidNdk(tmpDir, false, CUSTOM_TEST_VALIDATOR);
+    assertFalse(result.isOk());
+    assertEquals("NDK does not contain any toolchains.", result.getMessage());
 
-    result = validateAndroidNdk(tmpDir, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", tmpDir.getPath()), result.message);
+    result = validateAndroidNdk(tmpDir, true, CUSTOM_TEST_VALIDATOR);
+    assertFalse(result.isOk());
+    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", tmpDir.getPath()), result.getMessage());
   }
 
   public void testValidNdkDirectory() throws Exception {
@@ -164,10 +173,10 @@ public class SdkPathsTest extends TestCase {
     createDirectory(new File(tmpDir, "platforms"));
     createDirectory(new File(tmpDir, "toolchains"));
 
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertTrue(result.message, result.success);
+    Validator.Result result = validateAndroidNdk(tmpDir, false, CUSTOM_TEST_VALIDATOR);
+    assertTrue(result.getMessage(), result.isOk());
 
-    result = validateAndroidNdk(tmpDir, true);
-    assertTrue(result.message, result.success);
+    result = validateAndroidNdk(tmpDir, true, CUSTOM_TEST_VALIDATOR);
+    assertTrue(result.getMessage(), result.isOk());
   }
 }

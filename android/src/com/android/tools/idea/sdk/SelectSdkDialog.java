@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.sdk;
 
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.adtui.validation.Validator;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -168,11 +168,11 @@ public class SelectSdkDialog extends DialogWrapper {
       return "Android SDK path not specified.";
     }
 
-    ValidationResult validationResult = validateAndroidSdk(toSystemDependentPath(path), false);
-    if (!validationResult.success) {
+    Validator.Result validationResult = validateAndroidSdk(toSystemDependentPath(path), false);
+    if (!validationResult.isOk()) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291
-      return String.format("Invalid Android SDK path:<br>%1$s", validationResult.message);
+      return String.format("Invalid Android SDK path:<br>%1$s", validationResult.getMessage());
     } else {
       return null;
     }

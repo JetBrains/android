@@ -21,11 +21,10 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -34,6 +33,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -89,7 +89,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import static com.android.tools.idea.ui.validation.validators.PathValidator.PATH_NOT_WRITABLE;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -539,12 +539,16 @@ public class SdkUpdaterConfigPanel implements Disposable {
    */
   private void validate() {
     File sdkLocation = myConfigurable.getRepoManager().getLocalPath();
-    String sdkLocationPath = sdkLocation == null ? null : sdkLocation.getAbsolutePath();
+    if (sdkLocation == null) {
+      return;
+    }
 
-    PathValidationResult result =
-      validateLocation(sdkLocationPath, "Android SDK location", false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+    PathValidator validator = new PathValidator.Builder().withCommonRules().
+      withRule(PATH_NOT_WRITABLE, Validator.Severity.WARNING)
+      .build("Android SDK location");
+    Validator.Result result = validator.validate(sdkLocation);
 
-    switch (result.getStatus()) {
+    switch (result.getSeverity()) {
       case OK:
         mySdkLocationLabel.setForeground(JBColor.foreground());
         mySdkErrorLabel.setVisible(false);
@@ -552,9 +556,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
         myTabPane.setEnabled(true);
 
         break;
-      case WARN:
+      case WARNING:
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonWarning);
-        mySdkErrorLabel.setText(result.getFormattedMessage());
+        mySdkErrorLabel.setText(result.getMessage());
         mySdkErrorLabel.setVisible(true);
 
         myPlatformComponentsPanel.setEnabled(true);
@@ -563,13 +567,15 @@ public class SdkUpdaterConfigPanel implements Disposable {
         break;
       case ERROR:
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
-        mySdkErrorLabel.setText(result.getFormattedMessage());
+        mySdkErrorLabel.setText(result.getMessage());
         mySdkErrorLabel.setVisible(true);
 
         myPlatformComponentsPanel.setEnabled(false);
         myTabPane.setEnabled(false);
 
         break;
+      default:
+        return;
     }
   }
 
