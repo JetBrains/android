@@ -20,10 +20,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
@@ -96,6 +93,25 @@ public class LibraryDependency extends Dependency {
 
   void setName(@NotNull String name) {
     myName = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LibraryDependency)) {
+      return false;
+    }
+    LibraryDependency that = (LibraryDependency)o;
+    return Objects.equals(myPathsByType, that.myPathsByType) &&
+           Objects.equals(myArtifactPath, that.myArtifactPath) &&
+           Objects.equals(myName, that.myName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myPathsByType, myArtifactPath, myName);
   }
 
   @Override
