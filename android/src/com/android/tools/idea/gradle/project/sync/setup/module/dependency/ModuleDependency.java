@@ -25,6 +25,8 @@ import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -112,6 +114,24 @@ public class ModuleDependency extends Dependency {
     if (myBackupDependency != null) {
       myBackupDependency.setScope(getScope());
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ModuleDependency)) {
+      return false;
+    }
+    ModuleDependency that = (ModuleDependency)o;
+    return Objects.equals(myGradlePath, that.myGradlePath) &&
+           Objects.equals(myBackupDependency, that.myBackupDependency);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myGradlePath, myBackupDependency);
   }
 
   @Override
