@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.layoutInspector;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +50,7 @@ public class LayoutInspectorFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Ddms.LayoutInspector;
+    return StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR;
   }
 
   @Override

@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 
 /**
  * Triggers the creation of the Developer Services side panel.
@@ -54,7 +54,7 @@ public class OpenAssistSidePanelAction extends AnAction {
         // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
         toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true);
       }
-      toolWindow.setIcon(AndroidIcons.Assistant.Assistant);
+      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT);
 
       factory.createToolWindowContent(project, toolWindow);
 
