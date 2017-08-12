@@ -24,7 +24,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ public class LayoutInspectorAction extends AbstractClientAction {
     super(deviceContext,
           AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-          AndroidIcons.Ddms.LayoutInspector);
+          StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR);
     myProject = project;
   }
 
