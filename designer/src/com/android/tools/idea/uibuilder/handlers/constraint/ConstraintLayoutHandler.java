@@ -106,6 +106,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   // This is used to efficiently test if they are horizontal or vertical.
   static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   private ArrayList<ViewAction> myActions = new ArrayList<>();
+  private ArrayList<ViewAction> myGrayOnNoSelection = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -223,16 +224,50 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         AndroidIcons.SherpaIcons.verticallyDistribute, AndroidIcons.SherpaIcons.verticallyDistribute,
                         "Distribute Vertically")
       )
-    )));
+    )) {
+
+      @Override
+      public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                     @NotNull ViewEditor editor,
+                                     @NotNull ViewHandler handler,
+                                     @NotNull NlComponent component,
+                                     @NotNull List<NlComponent> selectedChildren,
+                                     @InputEventMask int modifiers) {
+        super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+        presentation.setVisible(isConstraintLayoutChild(selectedChildren));
+      }
+    });
 
     actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
       ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
       ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
       Lists.newArrayList(new ViewActionSeparator()),
-      ConstraintViewActions.CENTER_ACTIONS)));
+      ConstraintViewActions.CENTER_ACTIONS)) {
+      @Override
+      public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                     @NotNull ViewEditor editor,
+                                     @NotNull ViewHandler handler,
+                                     @NotNull NlComponent component,
+                                     @NotNull List<NlComponent> selectedChildren,
+                                     @InputEventMask int modifiers) {
+        super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers);
+        presentation.setVisible(isConstraintLayoutChild(selectedChildren));
+      }
+    });
 
-    actions.add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
-      ConstraintViewActions.HELPER_ACTIONS)));
+
+    actions
+      .add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
+        ConstraintViewActions.HELPER_ACTIONS)));
+  }
+
+  private static boolean isConstraintLayoutChild(List<NlComponent> children) {
+    for (NlComponent child : children) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child.getParent(), CONSTRAINT_LAYOUT)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -432,7 +467,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
     public ToggleAutoConnectAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect", "Turn Off Autoconnect");
+      super(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF, StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT, "Turn On Autoconnect",
+            "Turn Off Autoconnect");
     }
 
     @Override
@@ -905,9 +941,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         case AlignBaseline:
           return count > 1;
         case CreateHorizontalChain:
-          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
+          return count > 1 && !Scout.chainCheck(selected, Scout.ChainTest.InHorizontalChain);
         case CreateVerticalChain:
-          return count > 1 &&  !Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
+          return count > 1 && !Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
         case ExpandVertically:
         case ExpandHorizontally:
         case CenterHorizontallyInParent:
@@ -933,7 +969,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.InVerticalChain);
         case ChainInsertHorizontal:
           return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearHorizontalChain);
-        case  ChainInsertVertical:
+        case ChainInsertVertical:
           return count == 1 && Scout.chainCheck(selected, Scout.ChainTest.IsNearVerticalChain);
         default:
           return false;
@@ -996,18 +1032,23 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
-            String m = Integer.toString(margin);
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, 12));
+            String m = Integer.toString(margin) + "dp";
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
             ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
-            g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
+            g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY - 1);
+            g.setColor(JBColor.foreground().darker());
+            int marginRight = 6;
+            g.drawLine(x + 1, y + getIconHeight() - 1, x + getIconWidth() - 1, y + getIconHeight() - 1);
+            g.drawLine(x + 1, y + getIconHeight(), x + 1, y + getIconHeight() - marginRight);
+            g.drawLine(x + getIconWidth() - 1, y + getIconHeight(), x + getIconWidth() - 1, y + getIconHeight() - marginRight);
           }
 
           @Override
           public int getIconWidth() {
-            return 16;
+            return 36;
           }
 
           @Override
