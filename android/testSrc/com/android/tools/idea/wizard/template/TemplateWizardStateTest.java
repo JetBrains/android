@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static org.mockito.Mockito.*;
 
 /**

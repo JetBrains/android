@@ -16,9 +16,6 @@
 
 package com.android.tools.idea.wizard.template;
 
-import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -26,7 +23,6 @@ import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -144,7 +140,7 @@ public class TemplateWizardState implements Function<String, Object> {
    * structure and new-style Gradle builds with the new structure.
    */
   public void populateDirectoryParameters() {
-    File projectRoot = new File(getString(NewProjectWizardState.ATTR_PROJECT_LOCATION));
+    File projectRoot = new File(getString(ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
     File testSourceRoot = new File(moduleRoot, TEST_SOURCE_PATH);

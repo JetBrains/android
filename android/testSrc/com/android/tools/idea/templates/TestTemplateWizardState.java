@@ -25,9 +25,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
 
 /**
  * Helper class that tracks the Wizard Template and the Template Values

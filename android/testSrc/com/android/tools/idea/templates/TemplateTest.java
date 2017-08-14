@@ -90,7 +90,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
