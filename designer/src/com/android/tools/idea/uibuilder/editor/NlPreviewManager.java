@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -76,6 +77,9 @@ public class NlPreviewManager implements ProjectComponent {
   private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
+
+  @VisibleForTesting
+  private int myUpdateCount;
 
   public NlPreviewManager(final Project project, final FileEditorManager fileEditorManager) {
     myProject = project;
@@ -176,6 +180,11 @@ public class NlPreviewManager implements ProjectComponent {
     return "NlPreviewManager";
   }
 
+  @VisibleForTesting
+  public int getUpdateCount() {
+    return myUpdateCount;
+  }
+
   @Override
   public void initComponent() {
   }
@@ -211,6 +220,7 @@ public class NlPreviewManager implements ProjectComponent {
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
       public void run() {
+        myUpdateCount++;
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
@@ -403,10 +413,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        PsiFile psiFile = file.isValid() ? PsiManager.getInstance(myProject).findFile(file) : null;
-        processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
-      }, myProject.getDisposed());
+      ApplicationManager.getApplication().invokeLater(
+        () -> processFileEditorChange(getActiveLayoutXmlEditor(null)), myProject.getDisposed());
     }
 
     @Override

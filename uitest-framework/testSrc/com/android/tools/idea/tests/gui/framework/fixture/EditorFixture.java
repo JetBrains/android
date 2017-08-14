@@ -262,6 +262,21 @@ public class EditorFixture {
   }
 
   /**
+   * Closes the specified file.
+   */
+  public EditorFixture closeFile(@NotNull String relativePath) {
+    GuiTask.execute(
+      () -> {
+        VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+        if (file != null) {
+          FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+          manager.closeFile(file);
+        }
+      });
+    return this;
+  }
+
+  /**
    * Selects the given tab in the current editor. Used to switch between
    * design mode and editor mode for example.
    *
@@ -557,9 +572,7 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    boolean visible = GuiQuery.getNonNull(
-      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
-    if (!visible) {
+    if (!isPreviewShowing()) {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
@@ -567,6 +580,16 @@ public class EditorFixture {
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
     return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
+  }
+
+  public boolean isPreviewShowing() {
+    return GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+  }
+
+  public int getPreviewUpdateCount() {
+    return GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getUpdateCount());
   }
 
   /**
