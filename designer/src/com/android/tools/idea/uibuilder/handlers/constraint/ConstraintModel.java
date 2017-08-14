@@ -38,7 +38,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,8 +94,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   private long myModificationCount = -1;
 
-  private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<>();
-  private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
+  private static final Map<ScreenView, DrawConstraintModel> ourDrawModelCache = ContainerUtil.createWeakMap();
+  private static final Map<NlModel, ConstraintModel> ourModelCache = ContainerUtil.createWeakMap();
 
   private SaveXMLTimer mySaveXmlTimer = new SaveXMLTimer();
 

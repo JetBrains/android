@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
@@ -30,7 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.SoftValueHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +62,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
-  private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
+  private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
 
   private FileResourceRepository(@NotNull File file) {
     super(file.getName());

@@ -41,15 +41,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.SoftValueHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
@@ -70,7 +72,7 @@ public class ConfigurationManager implements Disposable {
   private List<Device> myDevices;
   private Map<String,Device> myDeviceMap;
   private final UserDeviceManager myUserDeviceManager;
-  private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
+  private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
   private List<Locale> myLocales;
   private Device myDefaultDevice;
   private Locale myLocale;
