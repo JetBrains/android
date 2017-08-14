@@ -226,7 +226,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
             catch (ProvisionException e) {
               ApplicationManager.getApplication().invokeAndWait(() -> {
                 int choice = Messages
-                  .showYesNoDialog("Provision failed with message: " + e.getMessage() + ". Do you want to retry?", "Instant Apps", null);
+                  .showYesNoDialog("Provision failed with message: " + e.getMessage() + " Do you want to retry?", "Instant Apps", null);
                 if (choice == Messages.OK) {
                   provisionRunner.clearCache();
                 }
