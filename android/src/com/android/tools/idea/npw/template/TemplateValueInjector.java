@@ -74,8 +74,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * Utility class that sets common Template values used by a project Module.
  */
 public final class TemplateValueInjector {
-  private static final String PROJECT_LOCATION_ID = "projectLocation";
-
   private final Map<String, Object> myTemplateValues;
 
   /**
@@ -246,7 +244,7 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    myTemplateValues.put(PROJECT_LOCATION_ID, moduleRoot.getParent());
+    myTemplateValues.put(ATTR_PROJECT_LOCATION, moduleRoot.getParent());
 
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
