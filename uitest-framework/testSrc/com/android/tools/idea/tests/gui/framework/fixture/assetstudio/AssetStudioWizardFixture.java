@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.Abstr
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JSliderFixture;
@@ -112,13 +111,8 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     FixedSizeButton browseButton = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(FixedSizeButton.class));
     robot().click(browseButton);
 
-    FileChooserDialogFixture fileChooserDialog = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-        @Override
-        protected boolean isMatching(@NotNull JDialog dialog) {
-          return "Select Path".equals(dialog.getTitle());
-        }
-      });
-    fileChooserDialog.select(file)
+    FileChooserDialogFixture.findDialog(robot(), "Select Path")
+      .select(file)
       .clickOk();
     return this;
   }
