@@ -28,7 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.SoftValueHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +67,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
-  private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
+  private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
 
   private FileResourceRepository(@NotNull File file, @Nullable String namespace, @Nullable String libraryName) {
     super(file.getName());
