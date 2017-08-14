@@ -51,7 +51,6 @@
             <arg line="--no-daemon" />
             <arg line="-Dorg.gradle.parallel=false" />  <!-- youtrack.jetbrains.com/issue/KT-15562 -->
             <arg line="${select.release.args}" />
-            <arg value="init" />
             <arg value="zipOfflineRepo" />
         </exec>
         <unzip src="${workspace}/out/dist/offline_repo.zip" dest="${workspace}/out/studio/repo" />
