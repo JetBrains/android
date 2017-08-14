@@ -22,13 +22,13 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.pixelprobe.*;
+import com.android.tools.pixelprobe.Guide;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,11 +39,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_FILE_CHANGED;
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_OPACITY_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.*;
 
 /**
  * <p>
@@ -120,7 +119,7 @@ public class Mockup implements ModelListener {
   private final static int C_W = 2;
   private final static int C_H = 3;
 
-  private static final WeakHashMap<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
+  private static final Map<NlComponent, Mockup> MOCKUP_CACHE = ContainerUtil.createWeakMap();
 
   private final List<MockupModelListener> myListeners = new ArrayList<>();
   private final Rectangle myBounds;

@@ -16,18 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.*;
 
 /**
  * Data structure about relative layout relationships which makes it possible to:
@@ -48,7 +46,7 @@ public class DependencyGraph {
   private static final String DEPENDENCY_FORMAT = "%1$s %2$s %3$s"; //$NON-NLS-1$
 
   /** Cache for {@link DependencyGraph} */
-  private static final WeakHashMap<NlComponent, DependencyGraph> ourCache = new WeakHashMap<NlComponent, DependencyGraph>();
+  private static final Map<NlComponent, DependencyGraph> ourCache = ContainerUtil.createWeakMap();
 
   private final Map<NlComponent, ViewData> myNodeToView = new HashMap<NlComponent, ViewData>();
   private final long myModelVersion;

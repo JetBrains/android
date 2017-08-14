@@ -19,7 +19,7 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +30,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.Map;
-
-import static com.android.tools.idea.sdk.install.patch.PatchInstallerUtil.PATCH_JAR_FN;
 
 /**
  * The Studio side of the integration between studio and the IJ patcher.
@@ -71,7 +69,7 @@ public class PatchRunner {
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static Map<LocalPackage, PatchRunner> ourCache = new WeakHashMap<>();
+  private static Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
 
   @Nullable
   public static PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
