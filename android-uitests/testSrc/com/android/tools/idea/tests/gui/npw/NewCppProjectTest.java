@@ -70,7 +70,7 @@ public class NewCppProjectTest {
    *   in any order."
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64688684
   @Test
   public void createNewProjectWithCpp1() throws Exception {
     createNewProjectWithCpp(false, false);
