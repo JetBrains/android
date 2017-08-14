@@ -89,7 +89,7 @@ public class ApkViewerTest {
    *   1. Should be able to delete the file successfully.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/64681296
   @Test
   public void testFileHandleRelease() throws Exception {
     final String SIMPLE_APP = "SimpleApplication";
