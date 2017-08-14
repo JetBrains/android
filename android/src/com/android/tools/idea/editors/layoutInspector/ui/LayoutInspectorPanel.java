@@ -75,35 +75,7 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
   @NotNull
   private JPanel getActionPanel() {
     ActionManager actionManager = ActionManager.getInstance();
-    ActionGroup actionGroup = (ActionGroup)actionManager.getAction(ImageEditorActions.GROUP_TOOLBAR);
-    // Filter out actions we don't support
-    if (actionGroup instanceof DefaultActionGroup) {
-      DefaultActionGroup group = (DefaultActionGroup)actionGroup;
-      AnAction[] children = group.getChildActionsOrStubs();
-      for (AnAction child : children) {
-        boolean remove = true;
-        // Actions are instances of ActionStub before render
-        if (child instanceof ActionStub) {
-          for (Class cls : SUPPORTED_IMAGE_ACTIONS) {
-            if (Objects.equals(((ActionStub)child).getClassName(), cls.getName())) {
-              remove = false;
-            }
-          }
-        }
-        // After render they are actual Actions
-        else {
-          for (Class cls : SUPPORTED_IMAGE_ACTIONS) {
-            if (child.getClass().equals(cls)) {
-              remove = false;
-            }
-          }
-        }
-
-        if (remove) {
-          group.remove(child);
-        }
-      }
-    }
+    ActionGroup actionGroup = getZoomActionGroup(actionManager);
 
     ActionToolbar actionToolbar = actionManager.createActionToolbar(
       ImageEditorActions.ACTION_PLACE, actionGroup, true
@@ -119,6 +91,32 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     return topPanel;
   }
 
+  private ActionGroup getZoomActionGroup(ActionManager actionManager) {
+    DefaultActionGroup intellijActionGroup = (DefaultActionGroup)actionManager.getAction(ImageEditorActions.GROUP_TOOLBAR);
+    DefaultActionGroup zoomActionGroup = new DefaultActionGroup();
+
+    AnAction[] children = intellijActionGroup.getChildActionsOrStubs();
+    for (AnAction child : children) {
+      // Actions are instances of ActionStub before render
+      if (child instanceof ActionStub) {
+        for (Class cls : SUPPORTED_IMAGE_ACTIONS) {
+          if (Objects.equals(((ActionStub)child).getClassName(), cls.getName())) {
+            zoomActionGroup.add(child);
+          }
+        }
+      }
+      // After render they are actual Actions
+      else {
+        for (Class cls : SUPPORTED_IMAGE_ACTIONS) {
+          if (child.getClass().equals(cls)) {
+            zoomActionGroup.add(child);
+          }
+        }
+      }
+    }
+
+    return zoomActionGroup;
+  }
 
   @Override
   public void setTransparencyChessboardVisible(boolean visible) {
