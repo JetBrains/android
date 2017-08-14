@@ -19,15 +19,15 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
-import com.android.tools.idea.common.editor.ToolbarActionGroups;
-import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.SetZoomAction;
-import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
 import com.android.tools.idea.common.actions.ZoomLabelAction;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.RefreshRenderAction;
+import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -93,7 +93,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  protected ActionGroup getEastGroup() {
+  protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new SetZoomAction(mySurface, ZoomType.OUT));
@@ -101,9 +101,17 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
     group.add(new SetZoomAction(mySurface, ZoomType.FIT));
     group.add(new TogglePanningDialogAction((NlDesignSurface)mySurface));
-    group.addSeparator();
+
+    return group;
+  }
+
+  @NotNull
+  @Override
+  protected ActionGroup getEastGroup() {
+    DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new IssueNotificationAction(mySurface));
+
     return group;
   }
 }

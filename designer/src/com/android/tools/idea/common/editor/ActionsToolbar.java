@@ -48,7 +48,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private NlModel myModel;
   private JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
-  private ActionToolbar myEastToolbar;
+  private ActionToolbar myNorthEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
 
   public ActionsToolbar(DesignSurface surface) {
@@ -82,25 +82,37 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups(mySurface);
 
     myNorthToolbar = createActionToolbar("NlConfigToolbar", groups.getNorthGroup());
+    myNorthToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
-    northToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     northToolbarComponent.setName("NlConfigToolbar");
 
+    myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
+
+    JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
+    northEastToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
+    northEastToolbarComponent.setName("NlRhsConfigToolbar");
+
     ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
+    centerToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     JComponent centerToolbarComponent = centerToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
 
-    myEastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
+    ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
-    JComponent eastToolbarComponent = myEastToolbar.getComponent();
+    JComponent eastToolbarComponent = eastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
+
+    JComponent northPanel = new JPanel(new BorderLayout());
+    northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    northPanel.add(northToolbarComponent, BorderLayout.CENTER);
+    northPanel.add(northEastToolbarComponent, BorderLayout.EAST);
 
     JComponent panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
-    panel.add(northToolbarComponent, BorderLayout.NORTH);
+    panel.add(northPanel, BorderLayout.NORTH);
     panel.add(centerToolbarComponent, BorderLayout.CENTER);
     panel.add(eastToolbarComponent, BorderLayout.EAST);
 
@@ -222,10 +234,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @Override
   public void zoomChanged(@NotNull DesignSurface surface) {
-    myEastToolbar.updateActionsImmediately();
+    myNorthEastToolbar.updateActionsImmediately();
   }
 
   @Override
   public void panningChanged(@NotNull AdjustmentEvent event) {
+    myNorthEastToolbar.updateActionsImmediately();
   }
 }
