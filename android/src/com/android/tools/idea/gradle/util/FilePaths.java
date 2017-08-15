@@ -20,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Stream;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
@@ -30,7 +28,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.vfs.StandardFileSystems.*;
 import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
-import static com.intellij.util.PathUtil.getParentPath;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
@@ -81,42 +78,4 @@ public final class FilePaths {
   public static File toSystemDependentPath(@Nullable String path) {
     return path != null ? new File(toSystemDependentName(path)) : null;
   }
-
-  @NotNull
-  public static List<String> computeRootPathsForFiles(@NotNull Stream<String> filePaths) {
-    List<String> folderPaths = new ArrayList<>();
-    filePaths.forEach(filePath -> {
-      String parentPath = getParentPath(filePath);
-      folderPaths.add(parentPath);
-    });
-    return mergePaths(folderPaths);
-  }
-
-  /**
-   * If both a parent folder and a subfolder exist in {@code paths}, only keep he parent folder, e.g. if both "/a" and "/a/b/c" exists, keep
-   * "/a" and get rid of "/a/b/c".
-   *
-   * TODO not just merge with parent, but also at some degree, merge the roots that have shallow common parents, e.g.
-   * /a/b/c, /a/b/d -> /a/b
-   */
-  @NotNull
-  public static List<String> mergePaths(@NotNull Collection<String> paths) {
-    if (paths.isEmpty()) {
-      return Collections.emptyList();
-    }
-    NavigableSet<String> sortedPaths = new TreeSet<>(paths);
-
-    List<String> result = new ArrayList<>(paths.size());
-
-    String current = sortedPaths.first();
-    for (String folder : sortedPaths) {
-      if (!folder.startsWith(current)) {
-        result.add(current);
-        current = folder;
-      }
-    }
-    result.add(current);
-    return result;
-  }
-
 }
