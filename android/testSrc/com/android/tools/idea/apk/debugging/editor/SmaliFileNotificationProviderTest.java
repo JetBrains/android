@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.debugging.editor;
 
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
-import com.android.tools.idea.gradle.util.FilePaths;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.testing.FileSubject;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;

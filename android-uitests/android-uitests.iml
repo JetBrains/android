@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="artwork" scope="TEST" />
+    <orderEntry type="module" module-name="android-common" scope="TEST" />
   </component>
 </module>

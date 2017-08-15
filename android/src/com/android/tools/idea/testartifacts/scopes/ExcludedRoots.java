@@ -41,7 +41,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

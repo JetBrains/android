@@ -32,5 +32,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/artwork[module, test]",
+        "//tools/adt/idea/android-common[module, test]",
     ],
 )
