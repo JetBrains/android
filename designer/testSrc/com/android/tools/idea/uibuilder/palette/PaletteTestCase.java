@@ -154,6 +154,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertSeekBar(@NotNull Palette.BaseItem item) {
     assertStandardView(item, SEEK_BAR, IN_PLATFORM, NO_SCALE);
+    checkComponent(createMockComponent("SeekBar"), "SeekBar", AndroidIcons.Views.SeekBar);
   }
 
   @Language("XML")
@@ -183,7 +184,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
               DISCRETE_SEEK_BAR_XML, IN_PLATFORM, 1.0);
     NlComponent component = createMockComponent("SeekBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
-    checkComponent(component, "SeekBar", AndroidIcons.Views.SeekBar);
+    checkComponent(component, "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete);
   }
 
   @Language("XML")
