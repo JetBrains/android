@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;

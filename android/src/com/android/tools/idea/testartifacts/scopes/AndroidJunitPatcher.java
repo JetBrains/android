@@ -38,7 +38,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_JAR;
 import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 /**

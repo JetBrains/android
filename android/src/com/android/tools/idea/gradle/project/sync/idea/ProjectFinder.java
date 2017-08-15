@@ -23,7 +23,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 

@@ -82,7 +82,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky

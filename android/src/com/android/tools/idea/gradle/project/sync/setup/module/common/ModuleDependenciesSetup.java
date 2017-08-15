@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public abstract class ModuleDependenciesSetup {
   protected void updateLibraryRootTypePaths(@NotNull Library library,

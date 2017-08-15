@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.io;
 
+import com.intellij.openapi.vfs.StandardFileSystems;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +28,6 @@ import static com.android.SdkConstants.EXT_ZIP;
 import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
-import static com.intellij.openapi.vfs.StandardFileSystems.*;
-import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
@@ -48,8 +48,8 @@ public final class FilePaths {
     String name = path.getName();
     boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
-    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
-    String url = constructUrl(protocol, toSystemIndependentName(path.getPath()));
+    String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
+    String url = VirtualFileManager.constructUrl(protocol, toSystemIndependentName(path.getPath()));
     if (isJarFile) {
       url += JAR_SEPARATOR;
     }
@@ -59,10 +59,10 @@ public final class FilePaths {
   @Nullable
   public static File getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
+    if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
       return null;
     }
-    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
+    String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
     int index = path.lastIndexOf(JAR_SEPARATOR);
     if (index != -1) {
       path = path.substring(0, index);
