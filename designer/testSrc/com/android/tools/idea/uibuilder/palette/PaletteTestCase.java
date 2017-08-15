@@ -232,7 +232,310 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   public void assertPlainTextEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Plain Text", AndroidIcons.Views.EditText, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_PREVIEW_XML,
               PLAIN_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
-    checkComponent(createMockComponent(EDIT_TEXT), "EditText - \"My value for EditText\"", AndroidIcons.Views.EditText);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPersonName");
+    checkComponent(component, "EditText (Plain Text)", AndroidIcons.Views.EditText);
+
+    // Check has text attribute case
+    when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My Text Value");
+    checkComponent(component, "EditText - \"My Text Value\"", AndroidIcons.Views.EditText);
+  }
+
+  @Language("XML")
+  private static final String PASSWORD_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"textPassword\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String PASSWORD_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Password\"\n" +
+    "  android:inputType=\"textPassword\"\n" +
+    "  android:text=\"••••••••\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertPasswordEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Password", AndroidIcons.Views.EditTextPassword, PASSWORD_EDIT_TEXT_XML, PASSWORD_EDIT_TEXT_PREVIEW_XML,
+              PASSWORD_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPassword");
+    checkComponent(component, "EditText (Password)", AndroidIcons.Views.EditTextPassword);
+  }
+
+  @Language("XML")
+  private static final String PASSWORD_NUMERIC_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"numberPassword\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String PASSWORD_NUMERIC_EDIT_TEXT_PREVIEW_XML =
+    "<!-- android:inputType=\"numberPassword\" not used here to allow digits in preview only -->\n" +
+    "  <EditText\n" +
+    "    android:id=\"@+id/PasswordNumeric\"\n" +
+    "    android:text=\"1•••2•••3\"\n" +
+    "    android:layout_width=\"200dip\"\n" +
+    "    android:layout_height=\"wrap_content\">\n" +
+    "  </EditText>\n";
+
+  public void assertPasswordNumericEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Password (Numeric)", AndroidIcons.Views.EditTextPasswordNumeric, PASSWORD_NUMERIC_EDIT_TEXT_XML, PASSWORD_NUMERIC_EDIT_TEXT_PREVIEW_XML,
+              PASSWORD_NUMERIC_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberPassword");
+    checkComponent(component, "EditText (Password (Numeric))", AndroidIcons.Views.EditTextPasswordNumeric);
+  }
+
+  @Language("XML")
+  private static final String EMAIL_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"textEmailAddress\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String EMAIL_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Email\"\n" +
+    "  android:inputType=\"textEmailAddress\"\n" +
+    "  android:text=\"user@domain.com\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertEmailEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "E-mail", AndroidIcons.Views.EditTextEmail, EMAIL_EDIT_TEXT_XML, EMAIL_EDIT_TEXT_PREVIEW_XML,
+              EMAIL_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textEmailAddress");
+    checkComponent(component, "EditText (E-mail)", AndroidIcons.Views.EditTextEmail);
+  }
+
+  @Language("XML")
+  private static final String PHONE_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"phone\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String PHONE_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Phone\"\n" +
+    "  android:inputType=\"phone\"\n" +
+    "  android:text=\"(555) 123 0100\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertPhoneEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Phone", AndroidIcons.Views.EditTextPhone, PHONE_EDIT_TEXT_XML, PHONE_EDIT_TEXT_PREVIEW_XML,
+              PHONE_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("phone");
+    checkComponent(component, "EditText (Phone)", AndroidIcons.Views.EditTextPhone);
+  }
+
+  @Language("XML")
+  private static final String POSTAL_ADDRESS_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"textPostalAddress\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String POSTAL_ADDRESS_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/PostalAddress\"\n" +
+    "  android:inputType=\"textPostalAddress\"\n" +
+    "  android:text=\"Address\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"100dip\">\n" +
+    "</EditText>\n";
+
+  public void assertPostalAddressEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Postal Address", AndroidIcons.Views.EditTextPostalAddress, POSTAL_ADDRESS_EDIT_TEXT_XML, POSTAL_ADDRESS_EDIT_TEXT_PREVIEW_XML,
+              POSTAL_ADDRESS_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPostalAddress");
+    checkComponent(component, "EditText (Postal Address)", AndroidIcons.Views.EditTextPostalAddress);
+  }
+
+  @Language("XML")
+  private static final String MULTILINE_TEXT_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"textMultiLine\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String MULTILINE_TEXT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/MultilineText\"\n" +
+    "  android:inputType=\"textMultiLine\"\n" +
+    "  android:text=\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"100dip\">\n" +
+    "</EditText>\n";
+
+  public void assertMultilineTextEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Multiline Text", AndroidIcons.Views.EditTextMultiline, MULTILINE_TEXT_EDIT_TEXT_XML, MULTILINE_TEXT_TEXT_PREVIEW_XML,
+              MULTILINE_TEXT_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textMultiLine");
+    checkComponent(component, "EditText (Multiline Text)", AndroidIcons.Views.EditTextMultiline);
+  }
+
+  @Language("XML")
+  private static final String TIME_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"time\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String TIME_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Time\"\n" +
+    "  android:inputType=\"time\"\n" +
+    "  android:text=\"12:00am\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertTimeEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Time", AndroidIcons.Views.EditTextTime, TIME_EDIT_TEXT_XML, TIME_EDIT_TEXT_PREVIEW_XML,
+              TIME_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("time");
+    checkComponent(component, "EditText (Time)", AndroidIcons.Views.EditTextTime);
+  }
+
+  @Language("XML")
+  private static final String DATE_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"date\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String DATE_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Date\"\n" +
+    "  android:inputType=\"date\"\n" +
+    "  android:text=\"1/1/2011\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertDateEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Date", AndroidIcons.Views.EditTextDate, DATE_EDIT_TEXT_XML, DATE_EDIT_TEXT_PREVIEW_XML,
+              DATE_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("date");
+    checkComponent(component, "EditText (Date)", AndroidIcons.Views.EditTextDate);
+  }
+
+  @Language("XML")
+  private static final String NUMBER_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"number\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String NUMBER_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/Number\"\n" +
+    "  android:inputType=\"number\"\n" +
+    "  android:text=\"42\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertNumberEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Number", AndroidIcons.Views.EditTextNumber, NUMBER_EDIT_TEXT_XML, NUMBER_EDIT_TEXT_PREVIEW_XML,
+              NUMBER_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("number");
+    checkComponent(component, "EditText (Number)", AndroidIcons.Views.EditTextNumber);
+  }
+
+  @Language("XML")
+  private static final String NUMBER_SIGNED_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"numberSigned\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String NUMBER_SIGNED_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/SignedNumber\"\n" +
+    "  android:inputType=\"numberSigned\"\n" +
+    "  android:text=\"-42\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertNumberSignedEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Number (Signed)", AndroidIcons.Views.EditTextSigned, NUMBER_SIGNED_EDIT_TEXT_XML, NUMBER_SIGNED_EDIT_TEXT_PREVIEW_XML,
+              NUMBER_SIGNED_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberSigned");
+    checkComponent(component, "EditText (Number (Signed))", AndroidIcons.Views.EditTextSigned);
+  }
+
+  @Language("XML")
+  private static final String NUMBER_DECIMAL_EDIT_TEXT_XML =
+    "<EditText\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:inputType=\"numberDecimal\"\n" +
+    "  android:ems=\"10\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String NUMBER_DECIMAL_EDIT_TEXT_PREVIEW_XML =
+    "<EditText\n" +
+    "  android:id=\"@+id/DecimalNumber\"\n" +
+    "  android:inputType=\"numberDecimal\"\n" +
+    "  android:text=\"42.0\"\n" +
+    "  android:layout_width=\"200dip\"\n" +
+    "  android:layout_height=\"wrap_content\">\n" +
+    "</EditText>\n";
+
+  public void assertNumberDecimalEditText(@NotNull Palette.BaseItem item) {
+    checkItem(item, EDIT_TEXT, "Number (Decimal)", AndroidIcons.Views.EditTextNumberDecimal, NUMBER_DECIMAL_EDIT_TEXT_XML, NUMBER_DECIMAL_EDIT_TEXT_PREVIEW_XML,
+              NUMBER_DECIMAL_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
+    NlComponent component = createMockComponent(EDIT_TEXT);
+    when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberDecimal");
+    checkComponent(component, "EditText (Number (Decimal))", AndroidIcons.Views.EditTextNumberDecimal);
   }
 
   final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
@@ -680,7 +983,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     @Language("XML")
     String xml = STANDARD_TEXT.getXml(tag, XmlType.COMPONENT_CREATION);
     checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, xml, expectedGradleCoordinate, NO_SCALE);
-    checkComponent(createMockComponent(tag), String.format("%1$s - \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
+    NlComponent component = createMockComponent(tag);
+    checkComponent(component, String.format("%1$s", tag), STANDARD_TEXT.getIcon(tag));
+
+    when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
+    checkComponent(component, String.format("%1$s - \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
   }
 
   private void assertLimitedHeightLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
@@ -734,7 +1041,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static NlComponent createMockComponent(@NotNull String tag) {
     NlComponent component = LayoutTestUtilities.createMockComponent();
     when(component.getTagName()).thenReturn(tag);
-    when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
     return component;
   }
 

@@ -99,6 +99,18 @@ public class NlPaletteModelTest extends PaletteTestCase {
     iterator = textFields.getItems().iterator();
     assertTextViewItem(iterator.next());
     assertPlainTextEditText(iterator.next());
+    assertPasswordEditText(iterator.next());
+    assertPasswordNumericEditText(iterator.next());
+    assertEmailEditText(iterator.next());
+    assertPhoneEditText(iterator.next());
+    assertPostalAddressEditText(iterator.next());
+    assertMultilineTextEditText(iterator.next());
+    assertTimeEditText(iterator.next());
+    assertDateEditText(iterator.next());
+    assertNumberEditText(iterator.next());
+    assertNumberSignedEditText(iterator.next());
+    assertNumberDecimalEditText(iterator.next());
+    // TODO: test AutoCompleteTextView and MultiAutoCompletTextView
     assertEquals("Items in text fields group", 15, textFields.getItems().size());
 
     iterator = layouts.getItems().iterator();
