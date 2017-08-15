@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.process.ProcessException;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.log.LogWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
