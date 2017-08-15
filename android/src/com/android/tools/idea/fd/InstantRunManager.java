@@ -26,7 +26,7 @@ import com.android.tools.ir.client.UpdateMode;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.utils.ILogger;
-import com.android.tools.log.LogWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;

@@ -22,7 +22,7 @@ import com.android.layoutlib.bridge.Bridge;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.io.BufferingFileWrapper;
+import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;

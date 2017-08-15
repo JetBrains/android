@@ -25,7 +25,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.io.BufferingFileWrapper;
+import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
