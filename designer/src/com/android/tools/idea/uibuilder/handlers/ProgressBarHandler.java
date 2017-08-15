@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.model.NlComponent;
-import com.intellij.openapi.util.text.StringUtil;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -32,6 +34,7 @@ import static com.android.SdkConstants.*;
 public class ProgressBarHandler extends ViewHandler {
   private static final String DOT_PROGRESS_BAR_DOT = ".ProgressBar.";
   private static final String PROGRESS_BAR_STYLE = "progressBarStyle";
+
   private static final String LARGE = "Large";
   private static final String SMALL = "Small";
   private static final String HORIZONTAL = "Horizontal";
@@ -55,12 +58,12 @@ public class ProgressBarHandler extends ViewHandler {
   }
 
   /**
-   * Returns either (Large, Small, Normal) depending on the style of the ProgressBar.
+   * Returns either {@link #LARGE}, {@link #SMALL}, {@link #HORIZONTAL}, or null(default) depending on the style of the ProgressBar.
    * @param component the node to find the progress bar style from
-   * @return either (Large, Small, Normal)
+   * @return either ({@link #LARGE}, {@link #SMALL}, {@link #HORIZONTAL}, null)
    */
   @Nullable
-  protected String getStyle(@NotNull NlComponent component) {
+  private static String getStyle(@NotNull NlComponent component) {
     String style = component.getAttribute(null, TAG_STYLE);
     if (style == null) {
       return null;
@@ -72,6 +75,10 @@ public class ProgressBarHandler extends ViewHandler {
     if (style.startsWith(ANDROID_THEME_PREFIX)) {
       int index = style.indexOf(PROGRESS_BAR_STYLE);
       return findProgressBarType(style.substring(index + PROGRESS_BAR_STYLE.length()));
+    }
+    if (style.startsWith(STYLE_RESOURCE_PREFIX)) {
+      int index = style.indexOf(DOT_PROGRESS_BAR_DOT);
+      return findProgressBarType(style.substring(index + DOT_PROGRESS_BAR_DOT.length()));
     }
     return null;
   }
@@ -88,5 +95,15 @@ public class ProgressBarHandler extends ViewHandler {
       return HORIZONTAL;
     }
     return null;
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    if (!component.getTagName().equals(PROGRESS_BAR)) {
+      return super.getIcon(component);
+    }
+    return HORIZONTAL.equals(getStyle(component)) ? AndroidIcons.Views.ProgressBarHorizontal
+                                                  : AndroidIcons.Views.ProgressBar;
   }
 }
