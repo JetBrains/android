@@ -32,7 +32,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
     assertNotNull(task);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 

@@ -45,7 +45,10 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -55,10 +58,9 @@ import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.F
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
 
 /**
- * The {@linkplain LayoutPullParserFactory} is responsible for creating
- * layout pull parsers for various different types of files.
+ * Methods for creating layout pull parsers for various different types of files.
  */
-public class LayoutPullParserFactory {
+public class LayoutPullParsers {
   static final boolean DEBUG = false;
 
   private static final String[] VALID_XML_TAGS = {TAG_APPWIDGET_PROVIDER, TAG_PREFERENCE_SCREEN};
@@ -67,6 +69,9 @@ public class LayoutPullParserFactory {
 
   private static final EnumSet<ResourceFolderType> FOLDER_NEEDS_READ_ACCESS =
     EnumSet.of(ResourceFolderType.DRAWABLE, ResourceFolderType.MENU, ResourceFolderType.XML, ResourceFolderType.FONT);
+
+  /** Not instantiatable. */
+  private LayoutPullParsers() {}
 
   /**
    * Returns whether the passed file is an {@link XmlFile} and starts with any of the given rootTags

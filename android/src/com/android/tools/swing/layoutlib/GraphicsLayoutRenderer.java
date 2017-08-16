@@ -17,13 +17,13 @@ package com.android.tools.swing.layoutlib;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
@@ -48,7 +48,6 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -150,13 +149,13 @@ public class GraphicsLayoutRenderer {
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    final LayoutlibCallbackImpl layoutlibCallback =
-      new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null) {
-        @Override
-        public ActionBarCallback getActionBarCallback() {
-          return actionBarCallback;
-        }
-      };
+    LayoutlibCallbackImpl layoutlibCallback =
+        new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null, null) {
+          @Override
+          public ActionBarCallback getActionBarCallback() {
+            return actionBarCallback;
+          }
+        };
 
     // Load the local project R identifiers.
     boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
