@@ -43,7 +43,13 @@ public class NewProjectMultiModuleTest {
 
   @Test
   public void createAllModuleWithIApp() {
-    create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    try {
+      SdkReplacer.replaceSdkLocationAndActivate(null, true);
+      create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    }
+    finally {
+      SdkReplacer.putBack();
+    }
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String appBuildGradle = editor.open("app/build.gradle").getCurrentFileContents();

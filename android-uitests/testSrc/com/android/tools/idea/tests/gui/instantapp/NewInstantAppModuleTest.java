@@ -61,11 +61,13 @@ public class NewInstantAppModuleTest {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     myOldSavedCompanyDomain = propertiesComponent.getValue(SAVED_COMPANY_DOMAIN);
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, "aia.example.com");
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
   }
 
   @After
   public void after() {
     PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, myOldSavedCompanyDomain);
+    SdkReplacer.putBack();
   }
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module
