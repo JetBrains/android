@@ -96,13 +96,13 @@ public class ScoutArrangeChainTest03 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintBottom_toTopOf=\"@+id/a\"\n" +
-                 "    app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"69dp\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/a\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"69dp\" />");
 
     list = new ArrayList<>(); // testing passing in an empty selection does not crash
     list.add(myScreen.get("@+id/b").getComponent());
@@ -110,13 +110,13 @@ public class ScoutArrangeChainTest03 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
-                 "    app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
-                 "      tools:layout_editor_absoluteY=\"69dp\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/a\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/a\"\n" +
+                 "        tools:layout_editor_absoluteY=\"69dp\" />");
 
     buildScene();
   }
@@ -129,21 +129,21 @@ public class ScoutArrangeChainTest03 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
-                 "      tools:layout_editor_absoluteY=\"69dp\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
+                 "        tools:layout_editor_absoluteY=\"69dp\" />");
 
     myScreen.get("@+id/a")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/a\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
-                 "    app:layout_constraintStart_toStartOf=\"@+id/b\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"29dp\" />");
+                 "        android:id=\"@+id/a\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/b\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"29dp\" />");
 
     buildScene();
   }
