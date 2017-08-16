@@ -296,4 +296,8 @@ class Contextual {
   void runWrappedMulti(MultiArg it, Runnable r) { run(() -> it.run(r)); }
   void e() { runWrappedMulti(new MultiArgA(), this::f); }
   void h() { runWrappedMulti(new MultiArgB(), this::g); }
+
+  // Test that recursive lambda specialization is properly limited. (If not, the analysis will never finish.)
+  void recursiveCapture(Runnable r) { recursiveCapture(() -> r.run()); }
+  void runRecursiveCapture() { recursiveCapture(() -> f()); }
 }
