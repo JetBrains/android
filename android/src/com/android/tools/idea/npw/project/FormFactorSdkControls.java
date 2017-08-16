@@ -36,7 +36,6 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
 
-import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -83,7 +82,7 @@ final class FormFactorSdkControls {
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
     myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
-    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE) && isInstantAppSdkEnabled()));
+    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE)));
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 

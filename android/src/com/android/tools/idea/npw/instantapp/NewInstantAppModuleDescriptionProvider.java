@@ -29,22 +29,16 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
-import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewInstantAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions() {
-    if (isInstantAppSdkEnabled()) {
-      return Arrays.asList(
-        new FeatureTemplateGalleryEntry(),
-        new ApplicationTemplateGalleryEntry());
-    }
-
-    return Collections.emptyList();
+    return Arrays.asList(
+      new FeatureTemplateGalleryEntry(),
+      new ApplicationTemplateGalleryEntry());
   }
 
   private static class FeatureTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
