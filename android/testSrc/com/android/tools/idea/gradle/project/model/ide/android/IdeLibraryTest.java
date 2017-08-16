@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Library;
+import com.android.builder.model.MavenCoordinates;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.LibraryStub;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
+import static junit.framework.TestCase.assertNotNull;
 
 /**
  * Tests for {@link IdeLibrary}.
@@ -44,6 +48,20 @@ public class IdeLibraryTest {
     };
     IdeLibrary library = new IdeLibrary(original, new ModelCache()) {};
     expectUnsupportedMethodException(library::isProvided);
+  }
+
+  @Test
+  public void model1_dot_5WithNullCoordinate() {
+    //noinspection NullableProblems
+    Library original = new JavaLibraryStub() {
+      @Override
+      @Nullable
+      public MavenCoordinates getResolvedCoordinates() {
+        return null;
+      }
+    };
+    IdeLibrary library = new IdeLibrary(original, new ModelCache()) {};
+    assertNotNull(library.getResolvedCoordinates());
   }
 
   @Test

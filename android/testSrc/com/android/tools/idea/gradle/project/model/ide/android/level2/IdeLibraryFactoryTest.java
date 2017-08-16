@@ -15,28 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
-import com.android.builder.model.Library;
-import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.LibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.MavenCoordinatesStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-
-import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.computeAddress;
-import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.isLocalAarModule;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link IdeLibraryFactory}.
@@ -85,91 +73,5 @@ public class IdeLibraryFactoryTest {
   @Test
   public void createFromString() {
     assertThat(IdeLibraryFactory.create("lib", myModelCache)).isInstanceOf(IdeModuleLibrary.class);
-  }
-
-  @Test
-  public void computeMavenAddress() {
-    Library library = new LibraryStub() {
-      @Override
-      @NotNull
-      public MavenCoordinates getResolvedCoordinates() {
-        return new MavenCoordinatesStub("com.android.tools", "test", "2.1", "aar");
-      }
-    };
-    assertThat(computeAddress(library)).isEqualTo("com.android.tools:test:2.1@aar");
-  }
-
-  @Test
-  public void computeMavenAddressWithModuleLibrary() {
-    Library library = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
-      @Override
-      @Nullable
-      public String getProject() {
-        return ":androidLib";
-      }
-
-      @Override
-      @Nullable
-      public String getProjectVariant() {
-        return "release";
-      }
-    };
-    assertThat(computeAddress(library)).isEqualTo(":androidLib::release");
-  }
-
-  @Test
-  public void computeMavenAddressWithNestedModuleLibrary() {
-    Library library = new LibraryStub() {
-      @Override
-      @NotNull
-      public MavenCoordinates getResolvedCoordinates() {
-        return new MavenCoordinatesStub("myGroup", ":androidLib:subModule", "undefined", "aar");
-      }
-    };
-    assertThat(computeAddress(library)).isEqualTo("myGroup:androidLib.subModule:undefined@aar");
-  }
-
-  @Test
-  public void checkIsLocalAarModule() {
-    AndroidLibrary localAarLibrary = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
-      @Override
-      @NotNull
-      public String getProject() {
-        return ":aarModule";
-      }
-
-      @Override
-      @NotNull
-      public File getBundle() {
-        return new File("/ProjectRoot/aarModule/aarModule.aar");
-      }
-    };
-    AndroidLibrary moduleLibrary = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
-      @Override
-      @NotNull
-      public String getProject() {
-        return ":androidLib";
-      }
-
-      @Override
-      @NotNull
-      public File getBundle() {
-        return new File("/ProjectRoot/androidLib/build/androidLib.aar");
-      }
-    };
-    AndroidLibrary externalLibrary = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
-      @Override
-      @Nullable
-      public String getProject() {
-        return null;
-      }
-    };
-    BuildFolderPaths buildFolderPaths = new BuildFolderPaths();
-    buildFolderPaths.addBuildFolderMapping(":aarModule", "/ProjectRoot/aarModule/build/");
-    buildFolderPaths.addBuildFolderMapping(":androidLib", "/ProjectRoot/androidLib/build/");
-
-    assertTrue(isLocalAarModule(localAarLibrary, buildFolderPaths));
-    assertFalse(isLocalAarModule(moduleLibrary, buildFolderPaths));
-    assertFalse(isLocalAarModule(externalLibrary, buildFolderPaths));
   }
 }
