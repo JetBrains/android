@@ -134,12 +134,12 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
     // Node popup
     myNodePopup = new JBPopupMenu();
-    myNodeVisibleMenuItem = new JBCheckboxMenuItem("Show in preview");
+    myNodeVisibleMenuItem = new JBCheckboxMenuItem(AndroidBundle.message("android.ddms.actions.layoutinspector.menu.show.bound"));
     myNodeVisibleMenuItem.addActionListener(new LayoutInspectorContext.ShowHidePreviewActionListener());
     myNodePopup.add(myNodeVisibleMenuItem);
 
     if (isDumpDisplayListEnabled()) {
-      myDumpDisplayListMenuItem = new JMenuItem("Dump DisplayList");
+      myDumpDisplayListMenuItem = new JMenuItem(AndroidBundle.message("android.ddms.actions.layoutinspector.menu.dump.display"));
       myDumpDisplayListMenuItem.addActionListener(new LayoutInspectorContext.DumpDisplayListActionListener());
       myDumpDisplayListMenuItem.setEnabled(myClient != null && myWindow != null);
       myNodePopup.add(myDumpDisplayListMenuItem);
