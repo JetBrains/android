@@ -75,6 +75,7 @@ public class ConvertToConstraintLayoutTest {
     waitForScout();
 
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
@@ -155,7 +156,10 @@ public class ConvertToConstraintLayoutTest {
   private static String wipeDimensions(@Language("XML") String xml) {
     // Remove specific pixel sizes from an XML layout before pretty printing it; they may very from machine
     // to machine. It's the constraints that matter.
+
+    // noinspection AssignmentToMethodParameter
     xml = TOOLS_DIMENSION.matcher(xml).replaceAll("tools:$1=\"<test>\"");
+    // noinspection AssignmentToMethodParameter
     xml = ANDROID_DIMENSION.matcher(xml).replaceAll("android:$1=\"<test>\"");
 
     return xml;

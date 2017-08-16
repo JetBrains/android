@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -258,7 +259,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       NlModel model = myLayout.getModel();
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
-      myScreenView.getSurface().getSceneManager().layout(false);
+
+      SceneManager manager = myScreenView.getSurface().getSceneManager();
+      assert manager != null;
+
+      manager.layout(false);
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
@@ -484,7 +489,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       // See if the component seems to have a visual purpose - e.g. sets background or other styles
       if (component.getAttribute(ANDROID_URI, ATTR_BACKGROUND) != null
-          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null  ) {// such as ?android:selectableItemBackgroun
+          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null) {// such as ?android:selectableItemBackgroun
         return false;
       }
 
