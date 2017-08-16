@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.model.*;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 
@@ -330,18 +328,7 @@ public class ScoutChainsArrange {
         }
       }
       transactions.addAll(a.insert(component, pos));
-      NlModel nlModel = component.getModel();
-      Project project = nlModel.getProject();
-      XmlFile file = nlModel.getFile();
-      WriteCommandAction action = new WriteCommandAction(project, "Chain Move", file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          for (AttributesTransaction attributes : transactions) {
-            attributes.commit();
-          }
-        }
-      };
-      action.execute();
+      commitAll(transactions, "Chain Move");
     }
   }
 
@@ -602,19 +589,8 @@ public class ScoutChainsArrange {
     if (transactions.isEmpty()) {
       return;
     }
-    NlModel nlModel = components.get(0).getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
 
-    WriteCommandAction action = new WriteCommandAction(project, "Chain Move", file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        for (AttributesTransaction attributes : transactions) {
-          attributes.commit();
-        }
-      }
-    };
-    action.execute();
+    commitAll(transactions, "Chain Move");
   }
 
   /**
@@ -632,18 +608,8 @@ public class ScoutChainsArrange {
     if (transactions.isEmpty()) {
       return;
     }
-    NlModel nlModel = components.get(0).getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-    WriteCommandAction action = new WriteCommandAction(project, "Chain Move", file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        for (AttributesTransaction attributes : transactions) {
-          attributes.commit();
-        }
-      }
-    };
-    action.execute();
+
+    commitAll(transactions, "Chain Move");
   }
 
   /**
@@ -658,18 +624,16 @@ public class ScoutChainsArrange {
       ScoutChainsArrange a = new ScoutChainsArrange(component, vertical);
       transactions.addAll(a.removeComponent(component));
     }
-    NlModel nlModel = components.get(0).getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-    WriteCommandAction action = new WriteCommandAction(project, "Chain Move", file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        for (AttributesTransaction attributes : transactions) {
-          attributes.commit();
-        }
-      }
-    };
-    action.execute();
+
+    commitAll(transactions, "Chain Move");
+  }
+
+  private static void commitAll(@NotNull Collection<AttributesTransaction> transactions, @NotNull String name) {
+    List<NlComponent> components = transactions.stream()
+      .map(AttributesTransaction::getComponent)
+      .collect(Collectors.toList());
+
+    NlWriteCommandAction.run(components, name, () -> transactions.forEach(AttributesTransaction::commit));
   }
 
   /**

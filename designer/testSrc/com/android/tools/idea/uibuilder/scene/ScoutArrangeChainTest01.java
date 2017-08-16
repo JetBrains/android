@@ -23,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Check Chain Minipulation APIs.
@@ -90,11 +91,11 @@ public class ScoutArrangeChainTest01 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/a\"\n" +
-                 "      app:layout_constraintBottom_toTopOf=\"@+id/c\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/a\" />");
 
 
     buildScene();
