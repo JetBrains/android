@@ -43,6 +43,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
       statusBar.setInfo(" ");
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.NONE);
+    GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.ALL);
   }
 }
