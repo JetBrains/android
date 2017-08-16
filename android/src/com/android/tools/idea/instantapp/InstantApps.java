@@ -16,12 +16,10 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.ddmlib.IDevice;
-import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -32,9 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
@@ -160,23 +156,11 @@ public class InstantApps {
   }
 
   public static int getMinTargetSdk() {
-    try {
-      return InstantAppSdks.getInstance().getMinTargetSdk();
-    }
-    catch (InstantAppSdkException ex) {
-      getLogger().error(ex);
-    }
-    return 21; // If there is any exception return the default value
+    return InstantAppSdks.getInstance().getMinTargetSdk();
   }
 
   public static long getCompatApiMinVersion() {
-    try {
-      return InstantAppSdks.getInstance().getCompatApiMinVersion();
-    }
-    catch (InstantAppSdkException ex) {
-      getLogger().error(ex);
-    }
-    return 1; // If there is any exception return the default value
+    return InstantAppSdks.getInstance().getCompatApiMinVersion();
   }
 
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
@@ -189,9 +173,5 @@ public class InstantApps {
 
     // Previews of O have api level 25, so comparing with #isGreaterOrEqualThan(apiLevel) doesn't work here.
     return version.compareTo(25, "O") >= 0;
-  }
-
-  private static Logger getLogger() {
-    return Logger.getInstance(InstantApps.class);
   }
 }
