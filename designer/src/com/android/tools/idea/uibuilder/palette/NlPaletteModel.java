@@ -109,7 +109,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   @NotNull
-  Palette getPalette(@NotNull NlLayoutType type) {
+  public Palette getPalette(@NotNull NlLayoutType type) {
     assert type.isSupportedByDesigner();
     Palette palette = myTypeToPalette.get(type);
 
