@@ -38,13 +38,13 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
 
   public void testAssembleTasksCorrect() throws Exception {
     Module[] modules = new Module[] { getModule("test") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE);
+    List<String> tasks = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
   public void testAssembleTasksNotDuplicated() throws Exception {
     Module[] modules = new Module[] { getModule("test"), getModule("app") };
-    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.NONE);
+    List<String> tasks = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
   }
 }

@@ -75,6 +75,6 @@ public class MakeGradleModuleAction extends AndroidStudioGradleAction {
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     Module[] modules = getModulesToBuildFromSelection(project, e.getDataContext());
-    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.NONE);
+    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL);
   }
 }

@@ -35,7 +35,7 @@ public class BuildProjectHyperlink extends NotificationHyperlink {
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() &&
         GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
-      GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.NONE);
+      GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.ALL);
       return;
     }
     CompilerManager.getInstance(project).make(null);
