@@ -112,9 +112,17 @@ public final class AvdOptionsModel extends WizardModel {
   private AvdInfo myCreatedAvd;
 
   public void setAsCopy() {
-    // Copying this AVD. Adjust its name and don't
-    // remove the original version.
-    myAvdDisplayName.set("Copy_of_" + myAvdDisplayName.get());
+    // Copying this AVD. Adjust its name.
+    String originalName = myAvdDisplayName.get();
+    String newName = "Copy_of_" + originalName;
+    for (int copyNum = 2;
+         AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(newName);
+         copyNum++) {
+      // Dang, that name's already in use. Try again.
+      newName = "Copy_" + copyNum + "_of_" + originalName;
+    }
+    myAvdDisplayName.set(newName);
+    // Don't remove the original AVD
     myRemovePreviousAvd.set(false);
   }
 
