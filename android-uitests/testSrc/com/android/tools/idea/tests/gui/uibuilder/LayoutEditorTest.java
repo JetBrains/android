@@ -142,7 +142,7 @@ public class LayoutEditorTest {
     try {
       GuiTests.waitUntilShowing(guiTest.robot(),
                                 assetStudioWizardFixture.target(),
-                                Matchers.byText(JLabel.class, invalidTip));
+                                Matchers.byText(JLabel.class, invalidTip).andIsShowing());
       throw new RuntimeException("Failed to identify a valid SVG");
     } catch (WaitTimedOutError e) {
       // Expected
@@ -152,7 +152,7 @@ public class LayoutEditorTest {
       findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true));
     GuiTests.waitUntilShowing(guiTest.robot(),
                               assetStudioWizardFixture.target(),
-                              Matchers.byText(JLabel.class, invalidTip));
+                              Matchers.byText(JLabel.class, invalidTip).andIsShowing());
 
     assetStudioWizardFixture.clickCancel();
   }
