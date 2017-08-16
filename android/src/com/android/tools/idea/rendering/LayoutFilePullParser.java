@@ -53,13 +53,22 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
   private String myFragmentLayout = null;
 
   /**
-   * Crates a new {@link LayoutFilePullParser
+   * Crates a new {@link LayoutFilePullParser} for the given XML file.
    */
-  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback,
-                                            @NotNull File xml) throws XmlPullParserException, IOException {
+  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback, @NotNull File xml)
+      throws XmlPullParserException, IOException {
+    String xmlText = Files.toString(xml, Charsets.UTF_8);
+    return create(layoutlibCallback, xmlText);
+  }
+
+  /**
+   * Crates a new {@link LayoutFilePullParser} for the given XML text.
+   */
+  @NotNull
+  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback, @NotNull String xmlText)
+      throws XmlPullParserException {
     LayoutFilePullParser parser = new LayoutFilePullParser(layoutlibCallback);
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-    String xmlText = Files.toString(xml, Charsets.UTF_8);
     parser.setInput(new StringReader(xmlText));
     return parser;
   }

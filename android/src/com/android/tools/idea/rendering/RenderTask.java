@@ -77,7 +77,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.annotations.VisibleForTesting.Visibility.PRIVATE;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -162,7 +161,8 @@ public class RenderTask implements IImageFactory {
              @NotNull Device device,
              @NotNull Object credential,
              @NotNull CrashReporter crashReporter,
-             @NotNull ImagePool imagePool) {
+             @NotNull ImagePool imagePool,
+             @Nullable ILayoutPullParserFactory parserFactory) {
     myRenderService = renderService;
     myLogger = logger;
     myCredential = credential;
@@ -182,7 +182,8 @@ public class RenderTask implements IImageFactory {
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    myLayoutlibCallback = new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler);
+    myLayoutlibCallback =
+        new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
     myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -431,7 +432,7 @@ public class RenderTask implements IImageFactory {
       return null;
     }
 
-    ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
+    ILayoutPullParser modelParser = LayoutPullParsers.create(this);
     if (modelParser == null) {
       return null;
     }
