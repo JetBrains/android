@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,22 +30,22 @@ import static com.android.SdkConstants.*;
 
 public class EditTextHandler extends TextViewHandler {
 
-  private static final Icon DEFAULT_ICON = AndroidIcons.Views.EditText;
+  private static final Icon DEFAULT_ICON = StudioIcons.LayoutEditor.Palette.EDIT_TEXT;
 
   // The style, title, and icon mapping should be same as layout_palette.xml file.
   private enum EditTextInputType {
-    PLAIN_TEXT("textPersonName", "Plain Text", DEFAULT_ICON),
-    PASSWORD("textPassword", "Password", AndroidIcons.Views.EditTextPassword),
-    PASSWORD_NUMERIC("numberPassword", "Password (Numeric)", AndroidIcons.Views.EditTextPasswordNumeric),
-    E_MAIL("textEmailAddress", "E-mail", AndroidIcons.Views.EditTextEmail),
-    PHONE("phone", "Phone", AndroidIcons.Views.EditTextPhone),
-    POSTAL_ADDRESS("textPostalAddress", "Postal Address", AndroidIcons.Views.EditTextPostalAddress),
-    MULTILINE_TEXT("textMultiLine", "Multiline Text", AndroidIcons.Views.EditTextMultiline),
-    TIME("time", "Time", AndroidIcons.Views.EditTextTime),
-    DATE("date", "Date", AndroidIcons.Views.EditTextDate),
-    NUMBER("number", "Number", AndroidIcons.Views.EditTextNumber),
-    NUMBER_SIGNED("numberSigned", "Number (Signed)", AndroidIcons.Views.EditTextSigned),
-    NUMBER_DECIMAL("numberDecimal", "Number (Decimal)", AndroidIcons.Views.EditTextNumberDecimal);
+    PLAIN_TEXT("textPersonName", "Plain Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD),
+    PASSWORD("textPassword", "Password", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD),
+    PASSWORD_NUMERIC("numberPassword", "Password (Numeric)", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD),
+    EMAIL("textEmailAddress", "E-mail", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD),
+    PHONE("phone", "Phone", StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD),
+    POSTAL_ADDRESS("textPostalAddress", "Postal Address", StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD),
+    MULTILINE_TEXT("textMultiLine", "Multiline Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE),
+    TIME("time", "Time", StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD),
+    DATE("date", "Date", StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD),
+    NUMBER("number", "Number", StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD),
+    NUMBER_SIGNED("numberSigned", "Number (Signed)", StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD),
+    NUMBER_DECIMAL("numberDecimal", "Number (Decimal)", StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD);
 
     @NotNull String typeString;
     @NotNull String title;

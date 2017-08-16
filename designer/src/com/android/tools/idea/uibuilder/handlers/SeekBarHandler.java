@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,7 +91,7 @@ public class SeekBarHandler extends ViewHandler {
     if (!component.getTagName().equals(SEEK_BAR)) {
       return super.getIcon(component);
     }
-    return DISCRETE.equals(getStyle(component)) ? AndroidIcons.Views.SeekBarDiscrete
-                                                : AndroidIcons.Views.SeekBar;
+    return DISCRETE.equals(getStyle(component)) ? StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE
+                                                : StudioIcons.LayoutEditor.Palette.SEEK_BAR;
   }
 }

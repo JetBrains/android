@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +103,7 @@ public class ProgressBarHandler extends ViewHandler {
     if (!component.getTagName().equals(PROGRESS_BAR)) {
       return super.getIcon(component);
     }
-    return HORIZONTAL.equals(getStyle(component)) ? AndroidIcons.Views.ProgressBarHorizontal
-                                                  : AndroidIcons.Views.ProgressBar;
+    return HORIZONTAL.equals(getStyle(component)) ? StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL
+                                                  : StudioIcons.LayoutEditor.Palette.PROGRESS_BAR;
   }
 }

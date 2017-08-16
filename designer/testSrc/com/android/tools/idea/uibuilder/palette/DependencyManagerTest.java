@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,17 +83,18 @@ public class DependencyManagerTest extends AndroidTestCase {
 
   public void testCreateItemIconOfTextView() {
     Icon icon = myManager.createItemIcon(PaletteTestCase.findItem(myPalette, TEXT_VIEW), myPanel);
-    assertThat(icon).isSameAs(AndroidIcons.Views.TextView);
+    assertThat(icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW);
   }
 
   public void testCreateItemIconOfFloatingActionButton() {
     Icon icon = myManager.createItemIcon(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON), myPanel);
-    assertThat(icon).isNotSameAs(AndroidIcons.Views.FloatingActionButton);
+    // The FloatingActionButton is in support library which is not used. Thus FloatingActionButton should show an icons with download badge.
+    assertThat(icon).isNotSameAs(StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON);
   }
 
   public void testCreateLargeItemIconOfTextView() {
     Icon icon = myManager.createLargeItemIcon(PaletteTestCase.findItem(myPalette, TEXT_VIEW), myPanel);
-    assertThat(icon).isNotSameAs(AndroidIcons.Views.TextView);
+    assertThat(icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW_LARGE);
   }
 
   public void testGradleSynchronization() {

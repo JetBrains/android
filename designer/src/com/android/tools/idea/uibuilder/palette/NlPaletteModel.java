@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.FileResourceRepository;
@@ -29,7 +30,6 @@ import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHa
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,7 +44,7 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -200,7 +200,8 @@ public class NlPaletteModel implements Disposable {
       //}
     }
     // TODO: Remove this. Use this line to test this feature.
-    //addThirdPartyComponent(type, THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
+    //addThirdPartyComponent(type, THIRD_PARTY_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
+    //                       StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE,
     //                       "com.google.android.exoplayer2.ui.SimpleExoPlayerView", null, null, "com.google.android.exoplayer:exoplayer",
     //                       null, Collections.singletonList("tag"), Collections.emptyList());
   }
@@ -218,8 +219,8 @@ public class NlPaletteModel implements Disposable {
         return false;
       }
 
-      addAdditionalComponent(type, PROJECT_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
-                             className, null, null, "",
+      addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
+                             StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE, className, null, null, "",
                              null, Collections.emptyList(), Collections.emptyList());
 
       return true;

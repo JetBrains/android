@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -262,8 +263,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
     String tag = "com.example.FakeCustomView";
     Palette.Item item = (Palette.Item)projectComponents.getItem(0);
     assertThat(item.getTagName()).isEqualTo(tag);
-    assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
-    assertThat(item.getLargeIcon()).isEqualTo(AndroidIcons.Android24);
+    assertThat(item.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
+    assertThat(item.getLargeIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE);
     assertThat(item.getTitle()).isEqualTo("FakeCustomView");
     assertThat(item.getGradleCoordinateId()).isEmpty();
     assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +

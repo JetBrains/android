@@ -36,7 +36,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     if (!component.getTagName().equals(LINEAR_LAYOUT)) {
       return super.getIcon(component);
     }
-    return isVertical(component) ? AndroidIcons.Views.VerticalLinearLayout : AndroidIcons.Views.LinearLayout;
+    return isVertical(component) ? StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT
+                                 : StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ;
   }
 
   @Override

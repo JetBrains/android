@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
-
-import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -64,18 +61,6 @@ public final class FragmentHandler extends ViewHandler {
   public String getTitleAttributes(@NotNull NlComponent component) {
     String name = component.getAttribute(ANDROID_URI, ATTR_NAME);
     return StringUtil.isEmpty(name) ? "" : "- " + name;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    return AndroidIcons.Views.Fragment;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    return AndroidIcons.Views.Fragment;
   }
 
   @Override

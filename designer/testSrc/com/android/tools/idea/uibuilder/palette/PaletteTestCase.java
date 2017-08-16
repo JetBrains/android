@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.xml.XmlBuilder;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -107,9 +107,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:entries=\"@android:array/postalAddressTypes\" />\n";
 
   public void assertSpinner(@NotNull Palette.BaseItem item) {
-    checkItem(item, SPINNER, "Spinner", AndroidIcons.Views.Spinner, SPINNER_XML, SPINNER_PREVIEW_XML,
+    checkItem(item, SPINNER, "Spinner", StudioIcons.LayoutEditor.Palette.SPINNER, SPINNER_XML, SPINNER_PREVIEW_XML,
               SPINNER_XML, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(SPINNER), "Spinner", AndroidIcons.Views.Spinner);
+    checkComponent(createMockComponent(SPINNER), "Spinner", StudioIcons.LayoutEditor.Palette.SPINNER);
   }
 
   @Language("XML")
@@ -121,9 +121,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertNormalProgressBarItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, "ProgressBar", "ProgressBar", AndroidIcons.Views.ProgressBar, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
+    checkItem(item, "ProgressBar", "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
               NORMAL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent("ProgressBar"), "ProgressBar", AndroidIcons.Views.ProgressBar);
+    checkComponent(createMockComponent("ProgressBar"), "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR);
   }
 
   @Language("XML")
@@ -144,16 +144,16 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertHorizontalProgressBarItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBarHorizontal, HORIZONTAL_PROGRESS_XML,
+    checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL, HORIZONTAL_PROGRESS_XML,
               HORIZONTAL_PROGRESS_PREVIEW_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM, 2.0);
     NlComponent component = createMockComponent("ProgressBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Horizontal");
-    checkComponent(component, "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBarHorizontal);
+    checkComponent(component, "ProgressBar (Horizontal)", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL);
   }
 
   public void assertSeekBar(@NotNull Palette.BaseItem item) {
     assertStandardView(item, SEEK_BAR, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent("SeekBar"), "SeekBar", AndroidIcons.Views.SeekBar);
+    checkComponent(createMockComponent("SeekBar"), "SeekBar", StudioIcons.LayoutEditor.Palette.SEEK_BAR);
   }
 
   @Language("XML")
@@ -178,12 +178,12 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
-    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete, DISCRETE_SEEK_BAR_XML,
+    checkItem(item, "SeekBar", "SeekBar (Discrete)", StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE, DISCRETE_SEEK_BAR_XML,
               DISCRETE_SEEK_BAR_PREVIEW_XML,
               DISCRETE_SEEK_BAR_XML, IN_PLATFORM, 1.0);
     NlComponent component = createMockComponent("SeekBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
-    checkComponent(component, "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete);
+    checkComponent(component, "SeekBar (Discrete)", StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE);
   }
 
   @Language("XML")
@@ -194,9 +194,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertQuickContactBadge(@NotNull Palette.BaseItem item) {
-    checkItem(item, QUICK_CONTACT_BADGE, "QuickContactBadge", AndroidIcons.Views.QuickContactBadge, QUICK_CONTACT_BADGE_XML,
+    checkItem(item, QUICK_CONTACT_BADGE, "QuickContactBadge", StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE, QUICK_CONTACT_BADGE_XML,
               QUICK_CONTACT_BADGE_XML, QUICK_CONTACT_BADGE_XML, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(QUICK_CONTACT_BADGE), "QuickContactBadge", AndroidIcons.Views.QuickContactBadge);
+    checkComponent(createMockComponent(QUICK_CONTACT_BADGE), "QuickContactBadge", StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE);
   }
 
   public void assertRatingBar(@NotNull Palette.BaseItem item) {
@@ -230,15 +230,15 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertPlainTextEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Plain Text", AndroidIcons.Views.EditText, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Plain Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_PREVIEW_XML,
               PLAIN_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPersonName");
-    checkComponent(component, "EditText (Plain Text)", AndroidIcons.Views.EditText);
+    checkComponent(component, "EditText (Plain Text)", StudioIcons.LayoutEditor.Palette.TEXTFIELD);
 
     // Check has text attribute case
     when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My Text Value");
-    checkComponent(component, "EditText - \"My Text Value\"", AndroidIcons.Views.EditText);
+    checkComponent(component, "EditText - \"My Text Value\"", StudioIcons.LayoutEditor.Palette.TEXTFIELD);
   }
 
   @Language("XML")
@@ -261,11 +261,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertPasswordEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Password", AndroidIcons.Views.EditTextPassword, PASSWORD_EDIT_TEXT_XML, PASSWORD_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Password", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD, PASSWORD_EDIT_TEXT_XML, PASSWORD_EDIT_TEXT_PREVIEW_XML,
               PASSWORD_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPassword");
-    checkComponent(component, "EditText (Password)", AndroidIcons.Views.EditTextPassword);
+    checkComponent(component, "EditText (Password)", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD);
   }
 
   @Language("XML")
@@ -288,11 +288,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  </EditText>\n";
 
   public void assertPasswordNumericEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Password (Numeric)", AndroidIcons.Views.EditTextPasswordNumeric, PASSWORD_NUMERIC_EDIT_TEXT_XML, PASSWORD_NUMERIC_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Password (Numeric)", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD, PASSWORD_NUMERIC_EDIT_TEXT_XML, PASSWORD_NUMERIC_EDIT_TEXT_PREVIEW_XML,
               PASSWORD_NUMERIC_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberPassword");
-    checkComponent(component, "EditText (Password (Numeric))", AndroidIcons.Views.EditTextPasswordNumeric);
+    checkComponent(component, "EditText (Password (Numeric))", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD);
   }
 
   @Language("XML")
@@ -315,11 +315,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertEmailEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "E-mail", AndroidIcons.Views.EditTextEmail, EMAIL_EDIT_TEXT_XML, EMAIL_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "E-mail", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD, EMAIL_EDIT_TEXT_XML, EMAIL_EDIT_TEXT_PREVIEW_XML,
               EMAIL_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textEmailAddress");
-    checkComponent(component, "EditText (E-mail)", AndroidIcons.Views.EditTextEmail);
+    checkComponent(component, "EditText (E-mail)", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD);
   }
 
   @Language("XML")
@@ -342,11 +342,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertPhoneEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Phone", AndroidIcons.Views.EditTextPhone, PHONE_EDIT_TEXT_XML, PHONE_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Phone", StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD, PHONE_EDIT_TEXT_XML, PHONE_EDIT_TEXT_PREVIEW_XML,
               PHONE_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("phone");
-    checkComponent(component, "EditText (Phone)", AndroidIcons.Views.EditTextPhone);
+    checkComponent(component, "EditText (Phone)", StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD);
   }
 
   @Language("XML")
@@ -369,11 +369,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertPostalAddressEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Postal Address", AndroidIcons.Views.EditTextPostalAddress, POSTAL_ADDRESS_EDIT_TEXT_XML, POSTAL_ADDRESS_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Postal Address", StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD, POSTAL_ADDRESS_EDIT_TEXT_XML, POSTAL_ADDRESS_EDIT_TEXT_PREVIEW_XML,
               POSTAL_ADDRESS_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPostalAddress");
-    checkComponent(component, "EditText (Postal Address)", AndroidIcons.Views.EditTextPostalAddress);
+    checkComponent(component, "EditText (Postal Address)", StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD);
   }
 
   @Language("XML")
@@ -396,11 +396,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertMultilineTextEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Multiline Text", AndroidIcons.Views.EditTextMultiline, MULTILINE_TEXT_EDIT_TEXT_XML, MULTILINE_TEXT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Multiline Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE, MULTILINE_TEXT_EDIT_TEXT_XML, MULTILINE_TEXT_TEXT_PREVIEW_XML,
               MULTILINE_TEXT_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textMultiLine");
-    checkComponent(component, "EditText (Multiline Text)", AndroidIcons.Views.EditTextMultiline);
+    checkComponent(component, "EditText (Multiline Text)", StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE);
   }
 
   @Language("XML")
@@ -423,11 +423,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertTimeEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Time", AndroidIcons.Views.EditTextTime, TIME_EDIT_TEXT_XML, TIME_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Time", StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD, TIME_EDIT_TEXT_XML, TIME_EDIT_TEXT_PREVIEW_XML,
               TIME_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("time");
-    checkComponent(component, "EditText (Time)", AndroidIcons.Views.EditTextTime);
+    checkComponent(component, "EditText (Time)", StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD);
   }
 
   @Language("XML")
@@ -450,11 +450,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertDateEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Date", AndroidIcons.Views.EditTextDate, DATE_EDIT_TEXT_XML, DATE_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Date", StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD, DATE_EDIT_TEXT_XML, DATE_EDIT_TEXT_PREVIEW_XML,
               DATE_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("date");
-    checkComponent(component, "EditText (Date)", AndroidIcons.Views.EditTextDate);
+    checkComponent(component, "EditText (Date)", StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD);
   }
 
   @Language("XML")
@@ -477,11 +477,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertNumberEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Number", AndroidIcons.Views.EditTextNumber, NUMBER_EDIT_TEXT_XML, NUMBER_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Number", StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD, NUMBER_EDIT_TEXT_XML, NUMBER_EDIT_TEXT_PREVIEW_XML,
               NUMBER_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("number");
-    checkComponent(component, "EditText (Number)", AndroidIcons.Views.EditTextNumber);
+    checkComponent(component, "EditText (Number)", StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD);
   }
 
   @Language("XML")
@@ -504,11 +504,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertNumberSignedEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Number (Signed)", AndroidIcons.Views.EditTextSigned, NUMBER_SIGNED_EDIT_TEXT_XML, NUMBER_SIGNED_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Number (Signed)", StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD, NUMBER_SIGNED_EDIT_TEXT_XML, NUMBER_SIGNED_EDIT_TEXT_PREVIEW_XML,
               NUMBER_SIGNED_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberSigned");
-    checkComponent(component, "EditText (Number (Signed))", AndroidIcons.Views.EditTextSigned);
+    checkComponent(component, "EditText (Number (Signed))", StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD);
   }
 
   @Language("XML")
@@ -531,11 +531,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</EditText>\n";
 
   public void assertNumberDecimalEditText(@NotNull Palette.BaseItem item) {
-    checkItem(item, EDIT_TEXT, "Number (Decimal)", AndroidIcons.Views.EditTextNumberDecimal, NUMBER_DECIMAL_EDIT_TEXT_XML, NUMBER_DECIMAL_EDIT_TEXT_PREVIEW_XML,
+    checkItem(item, EDIT_TEXT, "Number (Decimal)", StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD, NUMBER_DECIMAL_EDIT_TEXT_XML, NUMBER_DECIMAL_EDIT_TEXT_PREVIEW_XML,
               NUMBER_DECIMAL_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberDecimal");
-    checkComponent(component, "EditText (Number (Decimal))", AndroidIcons.Views.EditTextNumberDecimal);
+    checkComponent(component, "EditText (Number (Decimal))", StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD);
   }
 
   final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
@@ -563,9 +563,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</LinearLayout>\n";
 
   public void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout, HORIZONTAL_LINEAR_LAYOUT_XML,
+    checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ, HORIZONTAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout);
+    checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
   }
 
   @Language("XML")
@@ -577,11 +577,11 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</LinearLayout>\n";
 
   public void assertVerticalLinearLayoutItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout, VERTICAL_LINEAR_LAYOUT_XML,
+    checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT, VERTICAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
     when(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
-    checkComponent(component, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout);
+    checkComponent(component, "LinearLayout (vertical)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT);
   }
 
   public void assertRelativeLayout(@NotNull Palette.BaseItem item) {
@@ -597,15 +597,15 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertFragment(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_FRAGMENT, "<fragment>", AndroidIcons.Views.Fragment,
+    checkItem(item, VIEW_FRAGMENT, "<fragment>", StudioIcons.LayoutEditor.Palette.FRAGMENT,
               STANDARD_VIEW.getXml(VIEW_FRAGMENT, XmlType.COMPONENT_CREATION), NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(VIEW_FRAGMENT), "<fragment>", AndroidIcons.Views.Fragment);
+    checkComponent(createMockComponent(VIEW_FRAGMENT), "<fragment>", StudioIcons.LayoutEditor.Palette.FRAGMENT);
   }
 
   public void assertRadioGroup(@NotNull Palette.BaseItem item) {
-    checkItem(item, RADIO_GROUP, "RadioGroup", AndroidIcons.Views.RadioGroup, STANDARD_VIEW.getXml(RADIO_GROUP, XmlType.COMPONENT_CREATION),
+    checkItem(item, RADIO_GROUP, "RadioGroup", StudioIcons.LayoutEditor.Palette.RADIO_GROUP, STANDARD_VIEW.getXml(RADIO_GROUP, XmlType.COMPONENT_CREATION),
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(RADIO_GROUP), "RadioGroup (horizontal)", AndroidIcons.Views.RadioGroup);
+    checkComponent(createMockComponent(RADIO_GROUP), "RadioGroup (horizontal)", StudioIcons.LayoutEditor.Palette.RADIO_GROUP);
   }
 
   @Language("XML")
@@ -624,9 +624,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:dividerHeight=\"1px\" />\n";
 
   public void assertListView(@NotNull Palette.BaseItem item) {
-    checkItem(item, LIST_VIEW, "ListView", AndroidIcons.Views.ListView, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, LIST_VIEW_PREVIEW_XML,
+    checkItem(item, LIST_VIEW, "ListView", StudioIcons.LayoutEditor.Palette.LIST_VIEW, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, LIST_VIEW_PREVIEW_XML,
               IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(LIST_VIEW), "ListView", AndroidIcons.Views.ListView);
+    checkComponent(createMockComponent(LIST_VIEW), "ListView", StudioIcons.LayoutEditor.Palette.LIST_VIEW);
   }
 
   public void assertGridView(@NotNull Palette.BaseItem item) {
@@ -649,9 +649,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:dividerHeight=\"1px\" />\n";
 
   public void assertExpandableListView(@NotNull Palette.BaseItem item) {
-    checkItem(item, EXPANDABLE_LIST_VIEW, "ExpandableListView", AndroidIcons.Views.ExpandableListView, EXPANDABLE_LIST_VIEW_XML,
+    checkItem(item, EXPANDABLE_LIST_VIEW, "ExpandableListView", StudioIcons.LayoutEditor.Palette.EXPANDABLE_LIST_VIEW, EXPANDABLE_LIST_VIEW_XML,
               EXPANDABLE_LIST_VIEW_PREVIEW_XML, EXPANDABLE_LIST_VIEW_PREVIEW_XML, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(EXPANDABLE_LIST_VIEW), "ExpandableListView", AndroidIcons.Views.ExpandableListView);
+    checkComponent(createMockComponent(EXPANDABLE_LIST_VIEW), "ExpandableListView", StudioIcons.LayoutEditor.Palette.EXPANDABLE_LIST_VIEW);
   }
 
   public void assertScrollView(@NotNull Palette.BaseItem item) {
@@ -702,8 +702,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</TabHost>\n";
 
   public void assertTabHost(@NotNull Palette.BaseItem item) {
-    checkItem(item, TAB_HOST, "TabHost", AndroidIcons.Views.TabHost, TAB_HOST_XML, NO_PREVIEW, TAB_HOST_XML, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(TAB_HOST), "TabHost", AndroidIcons.Views.TabHost);
+    checkItem(item, TAB_HOST, "TabHost", StudioIcons.LayoutEditor.Palette.TAB_HOST, TAB_HOST_XML, NO_PREVIEW, TAB_HOST_XML, IN_PLATFORM, NO_SCALE);
+    checkComponent(createMockComponent(TAB_HOST), "TabHost", StudioIcons.LayoutEditor.Palette.TAB_HOST);
   }
 
   public void assertWebView(@NotNull Palette.BaseItem item) {
@@ -726,9 +726,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertImageButton(@NotNull Palette.BaseItem item) {
-    checkItem(item, IMAGE_BUTTON, "ImageButton", AndroidIcons.Views.ImageButton, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML,
+    checkItem(item, IMAGE_BUTTON, "ImageButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML,
               IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(IMAGE_BUTTON), "ImageButton", AndroidIcons.Views.ImageButton);
+    checkComponent(createMockComponent(IMAGE_BUTTON), "ImageButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON);
   }
 
   @Language("XML")
@@ -739,9 +739,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertImageView(@NotNull Palette.BaseItem item) {
-    checkItem(item, IMAGE_VIEW, "ImageView", AndroidIcons.Views.ImageView, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM,
+    checkItem(item, IMAGE_VIEW, "ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM,
               NO_SCALE);
-    checkComponent(createMockComponent(IMAGE_VIEW), "ImageView", AndroidIcons.Views.ImageView);
+    checkComponent(createMockComponent(IMAGE_VIEW), "ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW);
   }
 
   public void assertVideoView(@NotNull Palette.BaseItem item) {
@@ -797,20 +797,20 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertIncludeItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_INCLUDE, "<include>", AndroidIcons.Views.Include, "<include/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM,
+    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM,
               NO_SCALE);
-    checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", AndroidIcons.Views.Include);
+    checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE);
   }
 
   public void assertRequestFocus(@NotNull Palette.BaseItem item) {
-    checkItem(item, REQUEST_FOCUS, "<requestFocus>", AndroidIcons.Views.RequestFocus, "<requestFocus/>\n", NO_PREVIEW, NO_PREVIEW,
+    checkItem(item, REQUEST_FOCUS, "<requestFocus>", StudioIcons.LayoutEditor.Palette.REQUEST_FOCUS, "<requestFocus/>\n", NO_PREVIEW, NO_PREVIEW,
               IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(REQUEST_FOCUS), "<requestFocus>", AndroidIcons.Views.RequestFocus);
+    checkComponent(createMockComponent(REQUEST_FOCUS), "<requestFocus>", StudioIcons.LayoutEditor.Palette.REQUEST_FOCUS);
   }
 
   public void assertViewTag(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_TAG, "<view>", AndroidIcons.Views.Unknown, "<view/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(VIEW_TAG), "<view>", AndroidIcons.Views.Unknown);
+    checkItem(item, VIEW_TAG, "<view>", StudioIcons.LayoutEditor.Palette.VIEW, "<view/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
+    checkComponent(createMockComponent(VIEW_TAG), "<view>", StudioIcons.LayoutEditor.Palette.VIEW);
   }
 
   public void assertViewStub(@NotNull Palette.BaseItem item) {
@@ -875,9 +875,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  app:elevation=\"0dp\" />\n";
 
   public void assertFloatingActionButtonItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", AndroidIcons.Views.FloatingActionButton, FLOATING_ACTION_BUTTON_XML,
+    checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON, FLOATING_ACTION_BUTTON_XML,
               FLOATING_ACTION_BUTTON_PREVIEW_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT, 0.8);
-    checkComponent(createMockComponent(FLOATING_ACTION_BUTTON), "FloatingActionButton", AndroidIcons.Views.FloatingActionButton);
+    checkComponent(createMockComponent(FLOATING_ACTION_BUTTON), "FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON);
   }
 
   public void assertTextInputLayoutItem(@NotNull Palette.BaseItem item) {
@@ -952,9 +952,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</android.support.v7.widget.Toolbar>\n";
 
   public void assertToolbarV7(@NotNull Palette.BaseItem item) {
-    checkItem(item, TOOLBAR_V7, "Toolbar", AndroidIcons.Views.Toolbar, TOOLBAR_XML, TOOLBAR_PREVIEW_XML, TOOLBAR_PREVIEW_XML,
+    checkItem(item, TOOLBAR_V7, "Toolbar", StudioIcons.LayoutEditor.Palette.TOOLBAR, TOOLBAR_XML, TOOLBAR_PREVIEW_XML, TOOLBAR_PREVIEW_XML,
               APPCOMPAT_LIB_ARTIFACT, 0.5);
-    checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", AndroidIcons.Views.Toolbar);
+    checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", StudioIcons.LayoutEditor.Palette.TOOLBAR);
   }
 
   private void assertStandardView(@NotNull Palette.BaseItem item,
