@@ -25,7 +25,11 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.instantapp.ProvistionTasks;
+import com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
@@ -65,6 +69,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerImpl myRunManager;
+  @Mock private ProvistionTasks myProvisionTasks;
 
   private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
@@ -78,12 +83,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
+    myProvisionTasks = new ProvistionTasks();
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myGradleProjectInfo, mySyncInvoker, mySyncState, myDependencySetupIssues,
                                        myProjectSetup, myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
-                                       myModuleValidatorFactory, myRunManager);
+                                       myModuleValidatorFactory, myRunManager, myProvisionTasks);
   }
 
   public void testJUnitRunConfigurationSetup() {
@@ -168,5 +174,27 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
 
     verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
+  }
+
+  public void testProvisionBeforeRunTaskIsAdded() {
+    // Create android run configurations
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
+    AndroidRunConfiguration androidRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
+    AndroidRunConfiguration androidRunConfiguration2 = new AndroidRunConfiguration(getProject(), configurationFactory);
+    myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration, configurationFactory), true);
+    myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration2, configurationFactory), true);
+
+    // Provision before run task is created automatically when run configurations are created
+    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
+    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
+
+    // Reset only in one of the configurations (e.g. open old projects with run configs already created)
+    myRunManager.resetBeforeRunTasks(androidRunConfiguration);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    mySetup.setUpProject(request, myProgressIndicator);
+
+    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
+    assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
   }
 }
