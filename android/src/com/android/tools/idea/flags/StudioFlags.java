@@ -137,6 +137,11 @@ public final class StudioFlags {
     "Enable the new Target architecture in relative layout",
     false);
 
+  public static final Flag<Boolean> NELE_NEW_PALETTE = Flag.create(
+    NELE, "new.palette", "Enable the new Palette",
+    "Enable the new Palette with advanced Search",
+    false);
+
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle/IDE");
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
     GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",

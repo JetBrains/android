@@ -43,6 +43,8 @@ import java.util.Set;
  */
 @XmlRootElement(name = "palette")
 public class Palette {
+  public static final Palette EMPTY = new Palette();
+
   // @formatter:off
   @XmlElements({
     @XmlElement(name = "group", type = Group.class),
@@ -89,7 +91,7 @@ public class Palette {
   }
 
   @NotNull
-  Set<String> getGradleCoordinateIds() {
+  public Set<String> getGradleCoordinateIds() {
     return myGradleCoordinateIds;
   }
 
@@ -115,6 +117,9 @@ public class Palette {
     void visit(@NotNull Item item);
 
     default void visit(@SuppressWarnings("UnusedParameters") @NotNull Group group) {
+    }
+
+    default void visitAfter(@SuppressWarnings("UnusedParameters") @NotNull Group group) {
     }
   }
 
@@ -197,6 +202,7 @@ public class Palette {
       for (BaseItem item : myItems) {
         item.accept(visitor);
       }
+      visitor.visitAfter(this);
     }
 
     @NotNull
