@@ -16,12 +16,15 @@
 package org.jetbrains.android.dom.structure.manifest;
 
 import com.intellij.ide.presentation.PresentationProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 
 public class ApplicationPresentationProvider extends PresentationProvider<Application> {
   @Nullable
@@ -34,7 +37,12 @@ public class ApplicationPresentationProvider extends PresentationProvider<Applic
   @Nullable
   @Override
   public Icon getIcon(Application application) {
-    return AndroidIcons.AppModule;
+    // Use Android Studio icons
+    Module module = application.getModule();
+    if (module != null) {
+      return getModuleIcon(module);
+    }
+    return StudioIcons.Shell.Filetree.ANDROID_MODULE;
   }
 
   @Nullable
