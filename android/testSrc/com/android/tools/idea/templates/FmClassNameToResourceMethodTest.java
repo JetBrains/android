@@ -32,35 +32,35 @@ public class FmClassNameToResourceMethodTest extends TestCase {
     assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
   }
 
-  public void test1() throws Exception {
+  public void testSuffixIsActivity() throws Exception {
     check("FooActivity", "foo");
   }
 
-  public void test2() throws Exception {
+  public void testSuffixIsSubsetOfActivity() throws Exception {
     check("FooActiv", "foo");
   }
 
-  public void test3() throws Exception {
+  public void testNoSuffix() throws Exception {
     check("Foo", "foo");
   }
 
-  public void test4() throws Exception {
+  public void testNoSuffixMultipleWords() throws Exception {
+    check("FooBar", "foo_bar");
+  }
+
+  public void testEmptyString() throws Exception {
     check("", "");
   }
 
-  public void test5() throws Exception {
+  public void testSuffixIsSpecialKeywordFragement() throws Exception {
     check("FooFragment", "foo");
   }
 
-  public void test6() throws Exception {
+  public void testSuffixIsSpecialKeywordService() throws Exception {
     check("FooService", "foo");
   }
 
-  public void test7() throws Exception {
+  public void testSuffixIsSpecialKeywordProvider() throws Exception {
     check("FooProvider", "foo");
-  }
-
-  public void test8() throws Exception {
-    check("FooBar", "foo_bar");
   }
 }
