@@ -36,6 +36,8 @@ public class MinSdkForInstantAppTest {
 
   @Test
   public void testErrorWhenInvalidMinSdkSelected() {
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
+
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
       .clickNext();
@@ -48,5 +50,7 @@ public class MinSdkForInstantAppTest {
 
     newProjectWizard
       .clickCancel();
+
+    SdkReplacer.putBack();
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.instantapp;
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.instantapp.InstantAppSdks.installSdkIfNeeded;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -97,7 +97,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected void onEntering() {
     // Request user to install Instant App SDK, if not installed yet
-    installSdkIfNeeded();
+    InstantAppSdks.getInstance().installSdkIfNeeded();
   }
 
   @Override
