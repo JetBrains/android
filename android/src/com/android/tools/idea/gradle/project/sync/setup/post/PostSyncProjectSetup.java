@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
+import com.android.tools.idea.instantapp.ProvistionTasks;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -82,6 +83,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final RunManagerImpl myRunManager;
+  @NotNull private final ProvistionTasks myProvistionTasks;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -101,7 +103,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project));
+         RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
   }
 
   @VisibleForTesting
@@ -117,7 +119,8 @@ public class PostSyncProjectSetup {
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerImpl runManager) {
+                       @NotNull RunManagerImpl runManager,
+                       @NotNull ProvistionTasks provistionTasks) {
     myProject = project;
     myIdeInfo = ideInfo;
     myGradleProjectInfo = gradleProjectInfo;
@@ -131,6 +134,7 @@ public class PostSyncProjectSetup {
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
     myRunManager = runManager;
+    myProvistionTasks = provistionTasks;
   }
 
   /**
@@ -185,6 +189,8 @@ public class PostSyncProjectSetup {
     boolean androidStudio = myIdeInfo.isAndroidStudio();
     String taskName = androidStudio ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
+
+    myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
     notifySyncFinished(request);
     attemptToGenerateSources(request);
