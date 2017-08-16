@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -26,6 +25,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -203,7 +203,7 @@ public class RenderService extends AndroidFacetScopedService {
 
   /** Returns true if the given file can be rendered */
   public static boolean canRender(@Nullable PsiFile file) {
-    return file != null && LayoutPullParserFactory.isSupported(file);
+    return file != null && LayoutPullParsers.isSupported(file);
   }
 
   @NotNull
@@ -218,10 +218,24 @@ public class RenderService extends AndroidFacetScopedService {
    * @return a {@link RenderService} which can perform rendering services
    */
   @Nullable
-  public RenderTask createTask(@Nullable final PsiFile psiFile,
-                               @NotNull final Configuration configuration,
-                               @NotNull final RenderLogger logger,
-                               @Nullable final EditorDesignSurface surface) {
+  public RenderTask createTask(@Nullable PsiFile psiFile,
+                               @NotNull Configuration configuration,
+                               @NotNull RenderLogger logger,
+                               @Nullable EditorDesignSurface surface) {
+    return createTask(psiFile, configuration, logger, surface, null);
+  }
+
+  /**
+   * Creates a new {@link RenderService} associated with the given editor.
+   *
+   * @return a {@link RenderService} which can perform rendering services
+   */
+  @Nullable
+  public RenderTask createTask(@Nullable PsiFile psiFile,
+                               @NotNull Configuration configuration,
+                               @NotNull RenderLogger logger,
+                               @Nullable EditorDesignSurface surface,
+                               @Nullable ILayoutPullParserFactory parserFactory) {
     Module module = getModule();
     AndroidPlatform platform = getPlatform(module, logger);
     if (platform == null) {
@@ -282,7 +296,9 @@ public class RenderService extends AndroidFacetScopedService {
     }
 
     try {
-      RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance(), myImagePool);
+      RenderTask task =
+          new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance(), myImagePool,
+                         parserFactory);
       if (psiFile != null) {
         task.setPsiFile(psiFile);
       }
