@@ -101,28 +101,28 @@ public class ScoutArrangeChainTest04 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintEnd_toStartOf=\"@+id/a\"\n" +
-                 "    app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
-                 "      tools:layout_editor_absoluteX=\"51dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/a\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
+                 "        tools:layout_editor_absoluteX=\"51dp\" />");
 
     list = new ArrayList<>(); // testing passing in an empty selection does not crash
     list.add(myScreen.get("@+id/b").getComponent());
     Scout.arrangeWidgets(Scout.Arrange.ChainHorizontalMoveRight, list, true);
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
-                 "    app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
-                 "      tools:layout_editor_absoluteX=\"51dp\"\n" +
-                 "      app:layout_constraintStart_toEndOf=\"@+id/a\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
+                 "        tools:layout_editor_absoluteX=\"51dp\" />");
 
     buildScene();
   }
@@ -145,22 +145,22 @@ public class ScoutArrangeChainTest04 extends SceneTest {
 
     myScreen.get("@+id/b")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
-                 "      tools:layout_editor_absoluteX=\"51dp\" />");
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"@+id/a\"\n" +
+                 "        tools:layout_editor_absoluteX=\"51dp\" />");
 
     myScreen.get("@+id/a")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/a\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
-                 "    app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "    app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteX=\"4dp\" />");
+                 "        android:id=\"@+id/a\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"4dp\" />");
   }
 }
