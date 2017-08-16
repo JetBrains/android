@@ -22,7 +22,6 @@ import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.stats.AnonymizerUtil;
-import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -31,6 +30,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.Disposer;
@@ -68,6 +68,8 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   private DefaultTreeModel myTreeModel;
   private Listener myListener;
+  @NotNull private final ApkParser myApkParser;
+  private boolean myArchiveDisposed = false;
 
   public interface Listener {
     void selectionChanged(@Nullable ArchiveTreeNode[] entry);
@@ -75,26 +77,27 @@ public class ApkViewPanel implements TreeSelectionListener {
   }
 
   public ApkViewPanel(@NotNull ApkParser apkParser) {
+    myApkParser = apkParser;
     // construct the main tree along with the uncompressed sizes
-    ListenableFuture<ArchiveNode> treeStructureFuture = apkParser.constructTreeStructure();
-    FutureCallBackAdapter<ArchiveNode> setRootNode = new FutureCallBackAdapter<ArchiveNode>() {
+    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
       @Override
       public void onSuccess(ArchiveNode result) {
+        if (myArchiveDisposed){
+          return;
+        }
         setRootNode(result);
       }
-    };
-    Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
+    } , EdtExecutor.INSTANCE);
 
-    // once we have the tree, kick off computation of the compressed archive, and once its available, refresh the tree
-    ListenableFuture<ArchiveNode> compressedTreeFuture =
-      Futures.transform(treeStructureFuture, (Function<ArchiveNode, ArchiveNode>)input -> {
-        assert input != null;
-        return apkParser.updateTreeWithDownloadSizes(input);
-      }, PooledThreadExecutor.INSTANCE);
-    Futures.addCallback(compressedTreeFuture, new FutureCallBackAdapter<ArchiveNode>() {
+    // kick off computation of the compressed archive, and once its available, refresh the tree
+    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<ArchiveNode>() {
       @Override
       public void onSuccess(ArchiveNode result) {
-        ArchiveTreeStructure.sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
+        if (myArchiveDisposed){
+          return;
+        }
+        ArchiveTreeStructure
+          .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         refreshTree();
       }
     }, EdtExecutor.INSTANCE);
@@ -116,7 +119,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
     ListenableFuture<AndroidApplicationInfo> applicationInfo =
-      Futures.transformAsync(treeStructureFuture,
+      Futures.transformAsync(apkParser.constructTreeStructure(),
                              input -> {
                                assert input != null;
                                return apkParser.getApplicationInfo(Archives.getFirstManifestArchive(input));
@@ -125,6 +128,9 @@ public class ApkViewPanel implements TreeSelectionListener {
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
+        if (myArchiveDisposed){
+          return;
+        }
         setAppInfo(result);
       }
     }, EdtExecutor.INSTANCE);
@@ -139,6 +145,9 @@ public class ApkViewPanel implements TreeSelectionListener {
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
+                            if (myArchiveDisposed){
+                              return;
+                            }
                             if (result != null) {
                               long uncompressed = result.get(0);
                               Long compressed = result.get(1);
@@ -238,9 +247,18 @@ public class ApkViewPanel implements TreeSelectionListener {
     myListener = listener;
   }
 
-  private void setRootNode(@NotNull ArchiveNode root) {
+  public void clearArchive() {
+    myArchiveDisposed = true;
+    myApkParser.cancelAll();
+    setRootNode(null);
+    Logger.getInstance(ApkViewPanel.class).info("Cleared Archive on ApkViewPanel: " + this);
+  }
+
+  private void setRootNode(@Nullable ArchiveNode root) {
     myTreeModel = new DefaultTreeModel(root);
-    myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
+    if (root != null) {
+      myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
+    }
     myTree.setRootVisible(false);
     myTree.setModel(myTreeModel);
   }
