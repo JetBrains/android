@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.instantapp.InstantAppSdks.installSdkIfNeeded;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -91,6 +92,12 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onEntering() {
+    // Request user to install Instant App SDK, if not installed yet
+    installSdkIfNeeded();
   }
 
   @Override
