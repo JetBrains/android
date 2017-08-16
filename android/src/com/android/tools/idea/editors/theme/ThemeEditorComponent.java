@@ -48,11 +48,16 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenameViewDescriptor;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.PopupMenuListenerAdapter;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -586,7 +591,25 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (namePsiElement == null) {
       return;
     }
-    RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null);
+    RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null) {
+      @Override
+      protected RenameProcessor createRenameProcessor(String newName) {
+        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName, isSearchInComments(), isSearchInNonJavaFiles()) {
+          @NotNull
+          @Override
+          protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
+            LinkedHashMap<PsiElement, String> map = new LinkedHashMap<>();
+
+            // Generated R.java files are read-only. Filter out PsiFields.
+            getElements().stream()
+              .filter(element -> !(element instanceof PsiField))
+              .forEach(element -> map.put(element, getNewName(element)));
+
+            return new RenameViewDescriptor(map);
+          }
+        };
+      }
+    };
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
