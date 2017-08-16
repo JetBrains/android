@@ -22,7 +22,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,19 +115,19 @@ class LayersTree extends Tree {
 
         switch (layer.getType()) {
           case ADJUSTMENT:
-            setIcon(AndroidIcons.Views.SeekBar);
+            setIcon(StudioIcons.LayoutEditor.Palette.SEEK_BAR);
             break;
           case IMAGE:
-            setIcon(AndroidIcons.Views.ImageView);
+            setIcon(StudioIcons.LayoutEditor.Palette.IMAGE_VIEW);
             break;
           case GROUP:
             setIcon(AllIcons.Nodes.Folder);
             break;
           case SHAPE:
-            setIcon(AndroidIcons.Views.TextureView);
+            setIcon(StudioIcons.LayoutEditor.Palette.TEXTURE_VIEW);
             break;
           case TEXT:
-            setIcon(AndroidIcons.Views.TextView);
+            setIcon(StudioIcons.LayoutEditor.Palette.TEXT_VIEW);
             break;
         }
 

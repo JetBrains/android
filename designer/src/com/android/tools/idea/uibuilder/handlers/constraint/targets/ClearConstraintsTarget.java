@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.ActionTarget;
-import icons.AndroidIcons;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +29,8 @@ import static com.android.SdkConstants.SHERPA_URI;
 
 public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
   private static final NlIcon CLEAR_ICON =
-    new NlIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, AndroidIcons.SherpaIcons.DeleteConstraintB);
+    // TODO?: add new icon to StudioIcons to replace the icon in blueprint.
+    new NlIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
 
   public ClearConstraintsTarget(ActionTarget previous) {
     super(previous, CLEAR_ICON, null);

@@ -29,7 +29,6 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -47,7 +46,7 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -121,7 +120,7 @@ public class NlPreviewManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(AndroidIcons.AndroidPreview);
+    myToolWindow.setIcon(StudioIcons.Shell.Toolbar.ANDROID_PREVIEW);
 
     // The NlPreviewForm contains collapsible components like the palette. If one of those has the focus when the tool window is deactivated
     // it won't be able to regain it at the next activation. So we make sure the tool window does not try to give the focus on activation to

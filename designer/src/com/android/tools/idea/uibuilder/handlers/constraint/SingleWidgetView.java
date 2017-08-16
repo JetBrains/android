@@ -23,7 +23,7 @@ import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.ui.JBColor;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 
 import javax.swing.*;
 import java.awt.*;
@@ -586,7 +586,7 @@ public class SingleWidgetView extends JPanel {
 
     @Override
     public void paint(Graphics g) {
-      AndroidIcons.SherpaIcons.AddConnection.paintIcon(this, g, 0, 0);
+      StudioIcons.LayoutEditor.Properties.ADD_CONNECTION.paintIcon(this, g, 0, 0);
     }
   }
 

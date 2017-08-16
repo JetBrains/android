@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,7 +136,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myProgressEditor.setLabel(inspector.addComponent(ATTR_PROGRESS, myProgress.getTooltipText(), myProgressEditor.getComponent()));
       inspector.addComponent(ATTR_VISIBILITY, myVisibility.getTooltipText(), myVisibilityEditor.getComponent());
       JLabel designVisibility = inspector.addComponent(ATTR_VISIBILITY, myDesignVisibility.getTooltipText(), myDesignVisibilityEditor.getComponent());
-      designVisibility.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+      designVisibility.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
       inspector.addComponent(ATTR_INDETERMINATE, myIndeterminate.getTooltipText(), myIndeterminateEditor.getComponent());
     }
 

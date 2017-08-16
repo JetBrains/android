@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,7 +149,7 @@ public class LayoutInspectorProvider implements InspectorProvider {
         String propertyName = property.getName();
         JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
         if (TOOLS_URI.equals(property.getNamespace())) {
-          label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+          label.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
         }
         editor.setLabel(label);
       }

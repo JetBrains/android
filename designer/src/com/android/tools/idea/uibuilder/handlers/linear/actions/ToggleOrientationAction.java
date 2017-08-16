@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +56,8 @@ public class ToggleOrientationAction extends LinearLayoutAction {
 
     boolean vertical = handler.isVertical(component);
     presentation.setLabel("Convert orientation to " + (vertical ? VALUE_HORIZONTAL : VALUE_VERTICAL));
-    Icon icon = vertical ? AndroidIcons.Views.LinearLayout : AndroidIcons.Views.VerticalLinearLayout;
+    // If current orientation is vertical, then the icon should be horizontal, as so on.
+    Icon icon = vertical ? StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ : StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT;
     presentation.setIcon(icon);
   }
 }

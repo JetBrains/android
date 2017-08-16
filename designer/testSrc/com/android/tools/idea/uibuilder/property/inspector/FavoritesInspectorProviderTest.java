@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -151,7 +151,7 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
                                eq(elevationEditor.getComponent()));
     JLabel elevationLabel = elevationEditor.getLabel();
     assertThat(elevationLabel).isNotNull();
-    assertThat(elevationLabel.getIcon()).isSameAs(AndroidIcons.NeleIcons.DesignProperty);
+    assertThat(elevationLabel.getIcon()).isSameAs(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
   }
 
   @NotNull

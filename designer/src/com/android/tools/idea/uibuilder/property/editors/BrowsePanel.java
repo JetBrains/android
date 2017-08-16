@@ -27,7 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -280,7 +280,7 @@ public class BrowsePanel extends JPanel {
         Presentation presentation = event.getPresentation();
         switch (myDesignState) {
           case MISSING_DESIGN_PROPERTY:
-            presentation.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+            presentation.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
             presentation.setText("Specify Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);

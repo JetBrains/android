@@ -196,7 +196,7 @@ public class TextInspectorProvider implements InspectorProvider {
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
-      designText.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+      designText.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
       inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(), myStyleEditor.getKeySource());
