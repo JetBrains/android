@@ -39,67 +39,71 @@ public class FmActivityToLayoutMethodTest extends TestCase {
     assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
   }
 
-  public void test1() throws Exception {
+  public void testBasicConversion() throws Exception {
     check("FooActivity", "activity_foo");
   }
 
-  public void test2() throws Exception {
+  public void testConvertPartialSuffix() throws Exception {
     check("FooActiv", "activity_foo");
   }
 
-  public void test3() throws Exception {
+  public void testConvertDoubledSuffix() throws Exception {
+    check("FooActivityActivity", "activity_foo_activity");
+  }
+
+  public void testConvertNoSuffix() throws Exception {
     check("Foo", "activity_foo");
   }
 
-  public void test4() throws Exception {
+  public void testConvertSuffixOnly() throws Exception {
+    check("Activity", "activity_");
+  }
+
+  public void testConvertActivityActivity() throws Exception {
+    check("ActivityActivity", "activity_activity");
+  }
+
+  public void testConvertActivityActivityWithBaseName() throws Exception {
+    check("BaseNameActivityActiv", "activity", "activity_base_name_activity");
+  }
+
+  public void testConvertEmpty() throws Exception {
     check("", "");
   }
 
-  public void test5() throws Exception {
-    check("a", "activity_a");
+  public void testConvertLowercaseCharActivityName() throws Exception {
+    check("x", "activity_x");
   }
 
-  public void test6() throws Exception {
-    check("A", "activity_a");
+  public void testConvertUppercaseCharActivityName() throws Exception {
+    check("X", "activity_x");
   }
 
-  public void test7() throws Exception {
+  public void testActivityNameSubsetOfTheWordActivity() throws Exception {
+    check("Ac", "activity_");
+  }
+
+  public void testActivityNameSubsetOfTheWordActivityLowercase() throws Exception {
+    check("ac", "activity_ac");
+  }
+
+  public void testConvertTrailingDigit() throws Exception {
     check("FooActivity2", "activity_foo2");
   }
 
-  public void test8() throws Exception {
+  public void testConvertTrailingDigits() throws Exception {
     check("FooActivity200", "activity_foo200");
   }
 
-  public void test9() throws Exception {
+  public void testConvertTrailingDigitsOnlyActivity() throws Exception {
     check("Activity200", "activity_200");
   }
 
-  public void test10() throws Exception {
+  public void testCustomPrefixSingleWord() throws Exception {
     check("MainActivity", "simple", "simple_main");
   }
 
-  public void test11() throws Exception {
+  public void testCustomPrefixMultipleWords() throws Exception {
     check("FullScreenActivity", "content", "content_full_screen");
-  }
-
-  public void test12() throws Exception {
-    check("ac", "activity", "activity_ac");
-  }
-
-  public void test14() throws Exception {
-    check("Ac", "activity", "activity_");
-  }
-
-  public void test15() throws Exception {
-    check("Main2ActivityB", "activity", "activity_main2_b");
-  }
-
-  public void test16() throws Exception {
-    check("Main2ActivityActiv", "activity", "activity_main2_activity");
-  }
-
-  public void test17() throws Exception {
-    check("ActivityActivity", "activity", "activity_activity");
   }
 }
