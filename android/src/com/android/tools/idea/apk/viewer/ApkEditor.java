@@ -120,7 +120,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
     catch (IOException e) {
       Logger.getInstance(ApkEditor.class).error(e);
-      myArchive = null;
+      disposeArchive();
       mySplitter.setFirstComponent(new JBLabel(e.toString()));
     }
   }
@@ -232,10 +232,14 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Disposer.dispose(myCurrentEditor);
       myCurrentEditor = null;
     }
+    Logger.getInstance(ApkEditor.class).info("Disposing ApkEditor with ApkViewPanel: " + myApkViewPanel);
     disposeArchive();
   }
 
   private void disposeArchive() {
+    if (myApkViewPanel != null){
+      myApkViewPanel.clearArchive();
+    }
     if (myArchive != null) {
       try {
         myArchive.close();

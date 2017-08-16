@@ -20,6 +20,8 @@ import com.android.ide.common.process.ProcessException;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.log.LogWrapper;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -37,12 +39,28 @@ public class ApkParser {
   private final Archive myArchive;
   private final ApkSizeCalculator myApkSizeCalculator;
 
-  private ListenableFuture<ArchiveNode> myTreeStructure;
-  private ListenableFuture<Long> myCompressedFullApkSize;
+  @Nullable private ListenableFuture<ArchiveNode> myTreeStructure;
+  @Nullable private ListenableFuture<ArchiveNode> myTreeStructureWithDownloadSizes;
+  @Nullable private ListenableFuture<Long> myRawFullApkSize;
+  @Nullable private ListenableFuture<Long> myCompressedFullApkSize;
 
   public ApkParser(@NotNull Archive archive, @NotNull ApkSizeCalculator sizeCalculator) {
     myArchive = archive;
     myApkSizeCalculator = sizeCalculator;
+  }
+
+  public synchronized void cancelAll(){
+    ListenableFuture[] futures = new ListenableFuture[]{
+      myTreeStructureWithDownloadSizes,
+      myTreeStructure,
+      myRawFullApkSize,
+      myCompressedFullApkSize
+    };
+    for (int i = 0; i < futures.length; i++) {
+      if (futures[i] != null){
+        futures[i].cancel(true);
+      }
+    }
   }
 
   @NotNull
@@ -54,9 +72,16 @@ public class ApkParser {
     return myTreeStructure;
   }
 
-  public ArchiveNode updateTreeWithDownloadSizes(@NotNull ArchiveNode root) {
-    ArchiveTreeStructure.updateDownloadFileSizes(root, myApkSizeCalculator);
-    return root;
+  @NotNull
+  public synchronized ListenableFuture<ArchiveNode> updateTreeWithDownloadSizes() {
+    if (myTreeStructureWithDownloadSizes == null) {
+      myTreeStructureWithDownloadSizes = Futures.transform(constructTreeStructure(), (Function<ArchiveNode, ArchiveNode>)input -> {
+        assert input != null;
+        ArchiveTreeStructure.updateDownloadFileSizes(input, myApkSizeCalculator);
+        return input;
+      }, PooledThreadExecutor.INSTANCE);
+    }
+    return myTreeStructureWithDownloadSizes;
   }
 
   @NotNull
@@ -66,7 +91,10 @@ public class ApkParser {
 
   @NotNull
   public synchronized ListenableFuture<Long> getUncompressedApkSize() {
-    return ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkRawSize(myArchive.getPath()));
+    if (myRawFullApkSize == null) {
+      myRawFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkRawSize(myArchive.getPath()));
+    }
+    return myRawFullApkSize;
   }
 
   @NotNull
