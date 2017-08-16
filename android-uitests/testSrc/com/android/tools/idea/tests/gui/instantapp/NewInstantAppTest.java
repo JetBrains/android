@@ -28,8 +28,6 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,16 +46,6 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void before() {
-    SdkReplacer.replaceSdkLocationAndActivate("TestValue", true);
-  }
-
-  @After
-  public void after() {
-    SdkReplacer.putBack();
-  }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
