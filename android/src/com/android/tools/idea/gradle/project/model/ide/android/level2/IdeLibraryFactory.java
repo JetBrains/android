@@ -29,8 +29,8 @@ import java.io.File;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.level2.Library.*;
-import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.computeAddress;
-import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.isLocalAarModule;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLibraries.computeAddress;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLibraries.isLocalAarModule;
 import static com.android.utils.FileUtils.join;
 
 /**

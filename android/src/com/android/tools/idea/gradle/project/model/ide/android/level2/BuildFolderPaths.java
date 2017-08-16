@@ -48,7 +48,7 @@ public class BuildFolderPaths {
   }
 
   @TestOnly
-  void addBuildFolderMapping(@NotNull String moduleGradlePath, @NotNull String buildFolderPath) {
+  public void addBuildFolderMapping(@NotNull String moduleGradlePath, @NotNull String buildFolderPath) {
     myBuildFolderPathsByModule.put(moduleGradlePath, new File(buildFolderPath));
   }
 
