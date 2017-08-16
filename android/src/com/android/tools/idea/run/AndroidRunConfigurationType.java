@@ -39,8 +39,9 @@ public class AndroidRunConfigurationType implements ConfigurationType {
       super(type);
     }
 
+    @NotNull
     @Override
-    public RunConfiguration createTemplateConfiguration(Project project) {
+    public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
       return new AndroidRunConfiguration(project, this);
     }
 
