@@ -35,7 +35,7 @@
     </item>
     <item tag="ProgressBar"
           id="HorizontalProgressBar"
-          icon="AndroidIcons.Views.ProgressBarHorizontal"
+          icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
           title="ProgressBar (Horizontal)"
           scale="2.0">
       <xml reuse="preview,drag-preview">
@@ -51,7 +51,7 @@
     <item tag="SeekBar"/>
     <item tag="SeekBar"
           id="DiscreteSeekBar"
-          icon="AndroidIcons.Views.SeekBarDiscrete"
+          icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
           title="SeekBar (Discrete)">
       <xml reuse="preview,drag-preview">
         <![CDATA[
@@ -73,7 +73,8 @@
 
   <group name="Text">
     <item tag="TextView"/>
-    <item tag="EditText" title="Plain Text">
+    <item tag="EditText" title="Plain Text"
+          icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -96,7 +97,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Password" title="Password"
-          icon="AndroidIcons.Views.EditTextPassword">
+          icon="StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -120,7 +121,7 @@
       </preview>
     </item>
     <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
-          icon="AndroidIcons.Views.EditTextPasswordNumeric">
+          icon="StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -144,7 +145,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Email" title="E-mail"
-      icon="AndroidIcons.Views.EditTextEmail">
+      icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -168,7 +169,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Phone" title="Phone"
-          icon="AndroidIcons.Views.EditTextPhone">
+          icon="StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -192,7 +193,7 @@
       </preview>
     </item>
     <item tag="EditText" id="PostalAddress" title="Postal Address"
-          icon="AndroidIcons.Views.EditTextPostalAddress">
+          icon="StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -216,7 +217,7 @@
       </preview>
     </item>
     <item tag="EditText" id="MultilineText" title="Multiline Text"
-          icon="AndroidIcons.Views.EditTextMultiline">
+          icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -240,7 +241,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Time" title="Time"
-          icon="AndroidIcons.Views.EditTextTime">
+          icon="StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -264,7 +265,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Date" title="Date"
-      icon="AndroidIcons.Views.EditTextDate">
+      icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -288,7 +289,7 @@
       </preview>
     </item>
     <item tag="EditText" id="Number" title="Number"
-          icon="AndroidIcons.Views.EditTextNumber">
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -312,7 +313,7 @@
       </preview>
     </item>
     <item tag="EditText" id="SignedNumber" title="Number (Signed)"
-      icon="AndroidIcons.Views.EditTextSigned">
+      icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -336,7 +337,7 @@
       </preview>
     </item>
     <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
-      icon="AndroidIcons.Views.EditTextNumberDecimal">
+      icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -373,7 +374,7 @@
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
-          icon="AndroidIcons.Views.LinearLayout">
+          icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ">
       <xml>
         <![CDATA[
             <LinearLayout
@@ -386,7 +387,7 @@
     </item>
     <item tag="LinearLayout"
           title="LinearLayout (vertical)"
-          icon="AndroidIcons.Views.VerticalLinearLayout">
+          icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT">
       <xml>
         <![CDATA[
             <LinearLayout

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.IconLoader;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +54,7 @@ public class MenuHandler extends ViewGroupHandler {
   @NotNull
   @Override
   protected final Icon loadBuiltinIcon(@NotNull String tagName) {
-    return MoreObjects.firstNonNull(IconLoader.findIcon("AndroidIcons.MenuIcons." + tagName, getClass()), AndroidIcons.Views.Unknown);
+    return MoreObjects.firstNonNull(IconLoader.findIcon("StudioIcons.LayoutEditor.Palette." + tagName, getClass()),
+                                    StudioIcons.LayoutEditor.Palette.VIEW);
   }
 }

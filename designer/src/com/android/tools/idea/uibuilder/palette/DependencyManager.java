@@ -16,17 +16,17 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -66,12 +66,12 @@ public class DependencyManager {
 
   @NotNull
   public Icon createItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getIcon(), AndroidIcons.Views.DownloadOverlay, componentContext);
+    return createItemIcon(item, item.getIcon(), StudioIcons.LayoutEditor.Extras.DOWNLOAD_OVERLAY_LEGACY, componentContext);
   }
 
   @NotNull
   public Icon createLargeItemIcon(@NotNull Palette.Item item, @NotNull Component componentContext) {
-    return createItemIcon(item, item.getLargeIcon(), AndroidIcons.Views.DownloadOverlayLarge, componentContext);
+    return createItemIcon(item, item.getLargeIcon(), StudioIcons.LayoutEditor.Extras.DOWNLOAD_OVERLAY_LEGACY_LARGE, componentContext);
   }
 
   @NotNull

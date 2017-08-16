@@ -77,7 +77,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.*;
 import com.intellij.util.ui.accessibility.ScreenReader;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.actions.CreateXmlResourcePanel;
@@ -563,7 +563,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private ToggleAction createGridViewAction() {
-    return new ToggleAction(null, "grid", AndroidIcons.Views.GridView) {
+    return new ToggleAction(null, "grid", StudioIcons.LayoutEditor.Palette.GRID_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return myGridMode;
@@ -578,7 +578,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private ToggleAction createListViewAction() {
-    return new ToggleAction(null, "list", AndroidIcons.Views.ListView) {
+    return new ToggleAction(null, "list", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return !myGridMode;
