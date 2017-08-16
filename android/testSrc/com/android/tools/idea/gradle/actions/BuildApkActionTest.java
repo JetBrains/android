@@ -77,7 +77,7 @@ public class BuildApkActionTest extends IdeaTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.NONE));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL));
   }
 
   @NotNull

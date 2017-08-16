@@ -83,7 +83,7 @@ public class GradleBuildInvoker {
 
     // "Clean" also generates sources.
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
+    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL));
     addCleanTask(tasks);
     executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
   }
@@ -101,7 +101,7 @@ public class GradleBuildInvoker {
     setProjectBuildMode(buildMode);
 
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE));
+    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.ALL));
     if (cleanProject) {
       addCleanTask(tasks);
     }
@@ -121,7 +121,7 @@ public class GradleBuildInvoker {
    * Execute Gradle tasks that compile the relevant Java sources.
    *
    * @param modules         Modules that need to be compiled
-   * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#NONE} if compiling just the
+   * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#ALL} if compiling just the
    *                        main sources, {@link TestCompileType#UNIT_TESTS} if class files for running unit tests are needed.
    */
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
@@ -146,7 +146,7 @@ public class GradleBuildInvoker {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
+    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.ALL);
     executeTasks(tasks);
   }
 
