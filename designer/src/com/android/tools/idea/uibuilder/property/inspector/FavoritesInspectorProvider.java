@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,7 +153,7 @@ public class FavoritesInspectorProvider implements InspectorProvider {
           NlProperty property = editor.getProperty();
           JLabel label = inspector.addComponent(property.getName(), property.getTooltipText(), editor.getComponent());
           if (TOOLS_URI.equals(property.getNamespace())) {
-            label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+            label.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
           }
           editor.setLabel(label);
         }

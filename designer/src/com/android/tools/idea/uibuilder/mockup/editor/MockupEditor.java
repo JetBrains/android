@@ -136,6 +136,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
    * @param listener
    */
   private static JLabel createNoMockupIcon(MouseListener listener) {
+    // TODO: add new Icons to StudioIcons and replace this.
     JLabel addMockupIcon = new JBLabel(NO_MOCKUP_TEXT, AndroidIcons.Mockup.NoMockup, SwingConstants.CENTER);
     addMockupIcon.setHorizontalTextPosition(SwingConstants.CENTER);
     addMockupIcon.setVerticalTextPosition(SwingConstants.BOTTOM);

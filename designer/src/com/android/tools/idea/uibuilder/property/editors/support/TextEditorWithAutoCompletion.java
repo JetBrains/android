@@ -36,7 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -203,7 +203,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     @Nullable
     @Override
     protected Icon getIcon(@NotNull String item) {
-      return item.startsWith(SdkConstants.ANDROID_PREFIX) ? AndroidIcons.Android : null;
+      return item.startsWith(SdkConstants.ANDROID_PREFIX) ? StudioIcons.Shell.Filetree.ANDROID_PROJECT : null;
     }
 
     @NotNull

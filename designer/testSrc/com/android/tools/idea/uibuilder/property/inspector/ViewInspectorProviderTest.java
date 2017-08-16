@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.xml.XmlName;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 import javax.swing.*;
@@ -95,7 +95,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
       verify(panel).addComponent(eq(property.getName()), eq(property.getTooltipText()), eq(editor.getComponent()));
       assertThat(editor.getLabel()).isNotNull();
       if (TOOLS_URI.equals(property.getNamespace())) {
-        assertThat(editor.getLabel().getIcon()).isEqualTo(AndroidIcons.NeleIcons.DesignProperty);
+        assertThat(editor.getLabel().getIcon()).isEqualTo(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
         if (!inspectorProperties.remove(TOOLS_NS_NAME_PREFIX + property.getName())) {
           assertThat(inspectorProperties.remove(TOOLS_NS_NAME_PREFIX + property.getName())).named(property.getName()).isTrue();
         }

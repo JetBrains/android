@@ -43,6 +43,7 @@ public class SaveScreenshotAction extends AnAction {
   private final NlDesignSurface mySurface;
 
   public SaveScreenshotAction(NlDesignSurface surface) {
+    // TODO: add new icon to StudioIcons and replace this icon
     super("Save Screenshot...", null, AndroidIcons.Ddms.ScreenCapture);
     mySurface = surface;
   }

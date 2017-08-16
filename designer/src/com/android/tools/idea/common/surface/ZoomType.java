@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface;
 
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,12 +27,12 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen (0)", AndroidIcons.NeleIcons.ExpandToFit),
+  FIT("Zoom to Fit Screen (0)", StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
    */
-  FIT_INTO("Zoom out to Fit Screen", AndroidIcons.NeleIcons.ExpandToFit),
+  FIT_INTO("Zoom out to Fit Screen", StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
 
   /**
    * Zoom to actual size (100%)

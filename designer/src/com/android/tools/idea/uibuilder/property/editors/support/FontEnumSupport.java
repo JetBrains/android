@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDispla
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,11 +82,11 @@ public class FontEnumSupport extends EnumSupport {
     FontFamily fontFamily = myProjectFonts.getFont(fontValue);
     switch (fontFamily.getFontSource()) {
       case SYSTEM:
-        renderer.setIcon(AndroidIcons.Android);
+        renderer.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT);
         break;
       case PROJECT:
         if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
-          renderer.setIcon(AndroidIcons.FontFile);
+          renderer.setIcon(StudioIcons.Shell.Filetree.FONT_FILE);
         }
         else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
           renderer.setIcon(StudioIcons.Common.LINK);
