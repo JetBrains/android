@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
-public class LayoutPullParserFactoryTest extends RenderTestBase {
+public class LayoutPullParsersTest extends RenderTestBase {
   private DownloadableFontCacheService myFontCacheServiceMock;
 
   @Override
@@ -55,9 +55,9 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     PsiManager psiManager = PsiManager.getInstance(getProject());
 
-    assertTrue(LayoutPullParserFactory.isSupported(psiManager.findFile(layoutFile)));
-    assertTrue(LayoutPullParserFactory.isSupported(psiManager.findFile(menuFile)));
-    assertTrue(LayoutPullParserFactory.isSupported(psiManager.findFile(drawableFile)));
+    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(layoutFile)));
+    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(menuFile)));
+    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(drawableFile)));
   }
 
   public void testRenderDrawable() throws Exception {
@@ -65,7 +65,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
     assertNotNull(task);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -101,7 +101,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     RenderTask task = createRenderTask(redBox);
     assertNotNull(task);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -119,7 +119,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     task = createRenderTask(blueBox);
     assertNotNull(task);
-    parser = LayoutPullParserFactory.create(task);
+    parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     root = ((DomPullParser)parser).getRoot();
 
@@ -141,7 +141,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
   public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
     RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
 
-    DomPullParser parser = (DomPullParser)LayoutPullParserFactory.create(task);
+    DomPullParser parser = (DomPullParser)LayoutPullParsers.create(task);
     assert parser != null;
 
     assertFalse(task.getShowDecorations());
@@ -162,7 +162,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
     assertNotNull(task);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -190,7 +190,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
     assertNotNull(task);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -249,7 +249,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    ILayoutPullParser parser = LayoutPullParserFactory.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily);
+    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -284,6 +284,6 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNull(LayoutPullParserFactory.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
+    assertNull(LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
   }
 }

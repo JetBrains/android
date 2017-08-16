@@ -19,14 +19,16 @@ import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Maps;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+
+import static com.android.tools.idea.rendering.LayoutPullParsers.createEmptyParser;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.
@@ -36,9 +38,7 @@ import java.util.Map;
  * http://developer.android.com/guide/topics/ui/menus.html
  * http://developer.android.com/guide/topics/resources/menu-resource.html
  */
-public class MenuLayoutParserFactory extends LayoutPullParserFactory{
-
-
+public class MenuLayoutParserFactory {
   @NotNull
   private static final String FRAME_LAYOUT_XML =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -70,7 +70,7 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
     if (actionBarHandler != null) {
       actionBarHandler.setMenuIdNames(Collections.singletonList(resourceName));
     }
-    Map<Element, Object> viewCookies = Maps.newHashMap();
+    Map<Element, Object> viewCookies = new HashMap<>();
     return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
   }
 }
