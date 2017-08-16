@@ -77,11 +77,11 @@ public class InstantAppSdks {
   }
 
   /**
-   * Used to determine if instant app features should be shown or not.
-   * If the instant app sdk is downloaded it returns true.
+   * Since instant app SDK is already public and available, it should be always enabled.
+   * However this method can still be mocked in tests.
    */
   public boolean isInstantAppSdkEnabled() {
-    return getInstantAppLocalPackage() != null;
+    return true;
   }
 
   public int getMinTargetSdk() {
