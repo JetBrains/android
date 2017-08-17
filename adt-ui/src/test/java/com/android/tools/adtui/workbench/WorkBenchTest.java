@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -131,14 +132,16 @@ public class WorkBenchTest {
     myToolWindow1.setMinimized(false);
     myModel.update(myToolWindow1, PropertyType.AUTO_HIDE);
 
-    myWorkBench.addNotify();
-    try {
-      fireFocusOwnerChange(myContent);
-      assertThat(myToolWindow1.isMinimized()).isTrue();
-    }
-    finally {
-      myWorkBench.removeNotify();
-    }
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      myWorkBench.addNotify();
+      try {
+        fireFocusOwnerChange(myContent);
+        assertThat(myToolWindow1.isMinimized()).isTrue();
+      }
+      finally {
+        myWorkBench.removeNotify();
+      }
+    });
   }
 
   private static void fireFocusOwnerChange(@NotNull JComponent component) {
