@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 
@@ -25,21 +26,20 @@ import java.awt.*;
  */
 public class NavColorSet extends ColorSet {
   public NavColorSet() {
-    // TODO: most of the values below are wrong or unnecessary
-
     mStyle = WidgetDecorator.ANDROID_STYLE;
-
-    mShadow = new Color(250, 250, 250);
-    mSelectedFrames = Color.blue;
-    mComponentBackground = Color.WHITE;
-    mBackground = Color.WHITE;
-    mFrames = Color.black;
-    mSelectedText = Color.blue;
-    mText = Color.black;
-    mHighlightedFrames = new Color(106, 161, 211);
-    mSubduedBackground = new Color(0xfc, 0xfc, 0xfc);
-
     mDrawBackground = true;
     mDrawWidgetInfos = false;
+
+    mFrames = new JBColor(0xa7a7a7, 0x888888);
+    mHighlightedFrames = mFrames;
+
+    mSelectedFrames = new JBColor(0x1886f7, 0x9ccdff);
+    mSelectedText = mSelectedFrames;
+
+    mBackground = new JBColor(0xfdfdfd, 0x2d2f31);
+    mComponentBackground = mBackground;
+
+    mText = JBColor.BLACK;
+    mSubduedBackground = new Color(0xfc, 0xfc, 0xfc); // TODO: Darkula color?
   }
 }
