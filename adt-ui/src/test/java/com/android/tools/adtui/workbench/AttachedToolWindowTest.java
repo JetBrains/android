@@ -26,6 +26,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -198,7 +199,7 @@ public class AttachedToolWindowTest {
     myToolWindow.setMinimized(false);
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
-    panel.closeAutoHideWindow();
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> panel.closeAutoHideWindow());
     assertThat(myToolWindow.isMinimized()).isTrue();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
