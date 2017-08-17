@@ -20,6 +20,7 @@ import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -50,13 +51,22 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
     assertThat(classpath).doesNotContain("module3");
   }
 
-  public void testJavaLibResourcesInClasspath() throws Exception {
+  public void testJavaLibDependencyResourcesInClasspath() throws Exception {
     loadProject(JAVA_LIB);
+    testJavaLibResources("app");
+  }
+
+  public void testJavaLibModuleResourcesInClasspath() throws Exception {
+    loadProject(JAVA_LIB);
+    testJavaLibResources("lib");
+  }
+
+  private void testJavaLibResources(@NotNull String moduleToTest) throws Exception {
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
-    Module app = ModuleManager.getInstance(getProject()).findModuleByName("app");
+    Module module = ModuleManager.getInstance(getProject()).findModuleByName(moduleToTest);
     JavaParameters parameters = new JavaParameters();
-    parameters.configureByModule(app, JavaParameters.CLASSES_AND_TESTS);
+    parameters.configureByModule(module, JavaParameters.CLASSES_AND_TESTS);
 
     File projectPath = getProjectFolderPath();
     String javaTestResources = new File(projectPath, "/lib/build/resources/test").toString();
@@ -66,7 +76,7 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
     assertThat(classpath).doesNotContain(javaTestResources);
     assertThat(classpath).doesNotContain(javaMainResources);
 
-    myPatcher.patchJavaParameters(app, parameters);
+    myPatcher.patchJavaParameters(module, parameters);
     classpath = parameters.getClassPath().getPathsString();
 
     assertThat(classpath).contains(javaTestResources);
