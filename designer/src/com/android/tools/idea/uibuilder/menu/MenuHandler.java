@@ -41,6 +41,16 @@ public class MenuHandler extends ViewGroupHandler {
   }
 
   @Override
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType type) {
+    if (SearchItemHandler.handles(newChild)) {
+      SearchItemHandler.onChildInserted(editor);
+    }
+  }
+
+  @Override
   public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
