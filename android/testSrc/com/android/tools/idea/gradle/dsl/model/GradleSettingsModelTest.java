@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**

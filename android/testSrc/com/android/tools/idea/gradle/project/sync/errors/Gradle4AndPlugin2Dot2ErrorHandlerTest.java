@@ -23,7 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.google.common.truth.Truth.assertThat;
 

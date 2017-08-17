@@ -35,7 +35,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
 import static com.google.common.truth.Truth.assertAbout;

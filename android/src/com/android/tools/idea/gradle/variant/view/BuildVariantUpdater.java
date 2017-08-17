@@ -48,7 +48,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
-import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
+import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;

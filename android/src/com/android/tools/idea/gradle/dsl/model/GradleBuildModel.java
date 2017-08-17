@@ -75,7 +75,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLO
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleBuildModel extends GradleFileModel {

@@ -53,7 +53,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;

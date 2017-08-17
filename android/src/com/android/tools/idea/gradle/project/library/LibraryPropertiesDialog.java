@@ -39,7 +39,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
+import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;

@@ -56,7 +56,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 

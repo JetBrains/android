@@ -44,7 +44,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

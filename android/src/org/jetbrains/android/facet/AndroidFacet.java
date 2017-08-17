@@ -22,7 +22,7 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -125,7 +125,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   /**
    * Indicates whether the project requires a {@link AndroidProject} (obtained from a build system. To check if a project is a "Gradle
-   * project," please use the method {@link Projects#isBuildWithGradle(Project)}.
+   * project," please use the method {@link GradleProjects#isBuildWithGradle(Project)}.
    *
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */

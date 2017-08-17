@@ -27,9 +27,9 @@ import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static org.easymock.EasyMock.*;
 
 /**
- * Tests for {@link Projects}.
+ * Tests for {@link GradleProjects}.
  */
-public class ProjectsTest extends IdeaTestCase {
+public class GradleProjectsTest extends IdeaTestCase {
   public void testIsGradleProjectWithRegularProject() {
     assertFalse(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
@@ -50,7 +50,7 @@ public class ProjectsTest extends IdeaTestCase {
 
     replay(dataContext);
 
-    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
+    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
     assertSame(data, selectedModules);
 
     verify(dataContext);
@@ -63,7 +63,7 @@ public class ProjectsTest extends IdeaTestCase {
 
     replay(dataContext);
 
-    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
+    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
     assertNotSame(data, selectedModules);
     assertEquals(1, selectedModules.length);
     assertSame(myModule, selectedModules[0]);

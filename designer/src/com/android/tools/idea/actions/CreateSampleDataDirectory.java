@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,7 +45,7 @@ public class CreateSampleDataDirectory extends AnAction {
   @Nullable
   private static AndroidFacet getFacet(@NotNull AnActionEvent e){
     Project project = e.getProject();
-    Module[] modules = project != null ? Projects.getModulesToBuildFromSelection(project, e.getDataContext()) : null;
+    Module[] modules = project != null ? GradleProjects.getModulesToBuildFromSelection(project, e.getDataContext()) : null;
     return modules != null && modules.length > 0 ? AndroidFacet.getInstance(modules[0]) : null;
   }
 

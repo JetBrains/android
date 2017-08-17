@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;

@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.ide.impl.ProjectUtil.*;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;

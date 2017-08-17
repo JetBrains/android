@@ -34,7 +34,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;

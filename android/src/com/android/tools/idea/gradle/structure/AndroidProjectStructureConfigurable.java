@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
@@ -335,7 +335,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         // Populate the "Developer Services" section
         removeServices();
 
-        if (Projects.isBuildWithGradle(myProject)) {
+        if (GradleProjects.isBuildWithGradle(myProject)) {
           DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
           for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
             // Collect only Android modules
