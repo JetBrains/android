@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
@@ -96,7 +96,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   @Override
   public boolean canImport(@NotNull VirtualFile importSource) {
     try {
-      return Projects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
+      return GradleProjects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
     }
     catch (IOException e) {
       LOG.error(e);

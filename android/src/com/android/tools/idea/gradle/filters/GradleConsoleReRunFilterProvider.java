@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.filters;
 
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.execution.filters.ConsoleFilterProvider;
 import com.intellij.execution.filters.Filter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.Projects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class GradleConsoleReRunFilterProvider implements ConsoleFilterProvider {
   @NotNull
   @Override
   public Filter[] getDefaultFilters(@NotNull Project project) {
-    if (!Projects.isBuildWithGradle(project)) {
+    if (!GradleProjects.isBuildWithGradle(project)) {
       return Filter.EMPTY_ARRAY;
     }
     return new Filter[]{ new MyReRunBuildFilter() };

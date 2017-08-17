@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;

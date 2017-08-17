@@ -13,34 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.apk.debugging;
+package com.android.tools.idea;
 
-import com.android.tools.idea.Projects;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 
-public final class LibraryFolder {
-  private LibraryFolder() {
-  }
-
-  @Nullable
-  public static VirtualFile findIn(@NotNull Project project) {
-    File baseDirPath = Projects.getBaseDirPath(project);
-    File libFolderPath = new File(baseDirPath, getName());
-    if (libFolderPath.isDirectory()) {
-      return findFileByIoFile(libFolderPath, true /* refresh if needed */);
-    }
-    return null;
-  }
-
+public class Projects {
   @NotNull
-  public static String getName() {
-    return "lib";
+  public static File getBaseDirPath(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    assert basePath != null;
+    return new File(toCanonicalPath(basePath));
   }
 }

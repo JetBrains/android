@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;

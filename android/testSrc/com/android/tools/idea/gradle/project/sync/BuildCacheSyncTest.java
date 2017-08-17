@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Predicate;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;

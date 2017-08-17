@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.Projects;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;

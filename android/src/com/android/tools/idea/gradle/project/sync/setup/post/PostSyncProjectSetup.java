@@ -64,8 +64,8 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
-import static com.android.tools.idea.gradle.util.Projects.getPluginVersionsPerModule;
-import static com.android.tools.idea.gradle.util.Projects.storePluginVersionsPerModule;
+import static com.android.tools.idea.gradle.util.GradleProjects.getPluginVersionsPerModule;
+import static com.android.tools.idea.gradle.util.GradleProjects.storePluginVersionsPerModule;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 

@@ -34,7 +34,7 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 

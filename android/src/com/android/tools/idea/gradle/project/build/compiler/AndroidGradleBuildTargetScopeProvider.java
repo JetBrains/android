@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.build.compiler;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.compiler.impl.CompositeScope;
@@ -74,14 +74,14 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       else {
         // Triggered by menu item.
         // Make selected modules
-        modulesToBuild = Projects.getModulesToBuildFromSelection(project, null);
+        modulesToBuild = GradleProjects.getModulesToBuildFromSelection(project, null);
       }
       buildSettings.setModulesToBuild(modulesToBuild);
       buildSettings.setBuildMode(BuildMode.ASSEMBLE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules
-      buildSettings.setModulesToBuild(Projects.getModulesToBuildFromSelection(project, null));
+      buildSettings.setModulesToBuild(GradleProjects.getModulesToBuildFromSelection(project, null));
       buildSettings.setBuildMode(BuildMode.COMPILE_JAVA);
     }
 

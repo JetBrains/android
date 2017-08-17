@@ -41,8 +41,8 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
 import static com.intellij.openapi.util.io.FileUtil.*;

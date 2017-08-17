@@ -24,7 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
+import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
 
 public class MakeGradleModuleAction extends AndroidStudioGradleAction {

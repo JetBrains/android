@@ -61,18 +61,11 @@ import static java.lang.Boolean.TRUE;
 /**
  * Utility methods for {@link Project}s.
  */
-public final class Projects {
+public final class GradleProjects {
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
   private static final Key<Map<String, GradleVersion>> PLUGIN_VERSIONS_BY_MODULE = Key.create("project.plugin.versions.by.module");
 
-  private Projects() {
-  }
-
-  @NotNull
-  public static File getBaseDirPath(@NotNull Project project) {
-    String basePath = project.getBasePath();
-    assert basePath != null;
-    return new File(toCanonicalPath(basePath));
+  private GradleProjects() {
   }
 
   public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
