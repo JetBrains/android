@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 public final class ApkDebugging {
   @NotNull public static final ProjectSystemId SYSTEM_ID = new ProjectSystemId("APK Import", "APK Project");
+
+  @VisibleForTesting
+  static final String APK_DEBUGGING_PROPERTY = "com.android.ide.apk.debugging";
 
   private static final boolean APK_DEBUGGING_ENABLED = SystemProperties.getBooleanProperty("apk.importer.enabled", false);
 
@@ -29,5 +35,13 @@ public final class ApkDebugging {
 
   public static boolean isEnabled() {
     return true;
+  }
+
+  public static void markAsApkDebuggingProject(@NotNull Project project) {
+    PropertiesComponent.getInstance(project).setValue(APK_DEBUGGING_PROPERTY, true);
+  }
+
+  public static boolean isMarkedAsApkDebuggingProject(@NotNull Project project) {
+    return PropertiesComponent.getInstance(project).getBoolean(APK_DEBUGGING_PROPERTY, false);
   }
 }
