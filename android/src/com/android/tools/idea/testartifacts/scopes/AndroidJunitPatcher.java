@@ -56,6 +56,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
+      // Add resource folders if Java module and for module dependencies
+      addResourceFoldersToClasspath(module, null, javaParameters.getClassPath());
       return;
     }
 
@@ -156,14 +158,16 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
   private static void addResourceFoldersToClasspath(@NotNull Module module,
-                                                    @NotNull JavaArtifact testArtifact,
+                                                    @Nullable JavaArtifact testArtifact,
                                                     @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
-    classPath.add(testArtifact.getJavaResourcesFolder());
-    for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
-      classPath.add(additionalTestClasses);
+    if (testArtifact != null) {
+      classPath.add(testArtifact.getJavaResourcesFolder());
+      for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
+        classPath.add(additionalTestClasses);
+      }
     }
 
     FileRootSearchScope excludeScope = null;
