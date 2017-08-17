@@ -26,14 +26,18 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
+import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runners.model.Statement;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -52,6 +56,19 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AttachedToolWindowTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
+  @Rule
+  public TestRule myEdtRule = new TestRule() {
+    @NotNull
+    @Override
+    public Statement apply(@NotNull Statement base, @NotNull Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          UIUtil.invokeAndWaitIfNeeded((ThrowableRunnable)() -> base.evaluate());
+        }
+      };
+    }
+  };
   @Mock
   private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock
@@ -199,7 +216,7 @@ public class AttachedToolWindowTest {
     myToolWindow.setMinimized(false);
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
-    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> panel.closeAutoHideWindow());
+    panel.closeAutoHideWindow();
     assertThat(myToolWindow.isMinimized()).isTrue();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
