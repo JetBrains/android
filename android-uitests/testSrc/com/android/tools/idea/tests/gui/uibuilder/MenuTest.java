@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -33,35 +34,60 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
 public final class MenuTest {
+  @Language("XML")
+  @SuppressWarnings("XmlUnusedNamespaceDeclaration")
+  private static final String MENU_MAIN_XML_CONTENTS = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                                       "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                                                       "    <item\n" +
+                                                       "        android:id=\"@+id/action_settings\"\n" +
+                                                       "        android:title=\"@string/action_settings\"\n" +
+                                                       "        app:showAsAction=\"always\" />\n" +
+                                                       "</menu>\n";
+
+  private static final Path MENU_MAIN_XML_RELATIVE_PATH =
+    FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "menu_main.xml");
+
+  private static final Path IC_SEARCH_BLACK_24DP_XML_RELATIVE_PATH =
+    FileSystems.getDefault().getPath("app", "src", "main", "res", "drawable", "ic_search_black_24dp.xml");
+
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  private Path myMenuMainXmlAbsolutePath;
+  private Path myIcSearchBlack24dpXmlAbsolutePath;
+
   private EditorFixture myEditor;
-  private Path myMenuPath;
 
   @Before
   public void setUp() {
     WizardUtils.createNewProject(myGuiTest, "Basic Activity");
 
+    Path path = myGuiTest.getProjectPath().toPath();
+    myMenuMainXmlAbsolutePath = path.resolve(MENU_MAIN_XML_RELATIVE_PATH);
+    myIcSearchBlack24dpXmlAbsolutePath = path.resolve(IC_SEARCH_BLACK_24DP_XML_RELATIVE_PATH);
+
     myEditor = myGuiTest.ideFrame().getEditor();
-    myMenuPath = FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "menu_main.xml");
   }
 
   @Test
   public void dragCastButtonIntoActionBar() throws IOException {
-    writeSettingsActionMenu();
+    GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(myMenuPath);
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
     dragAndDrop("Cast Button", new Point(320, 121));
-    MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
 
+    MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
     myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
     String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -79,14 +105,14 @@ public final class MenuTest {
                       "        app:showAsAction=\"always\" />\n" +
                       "</menu>\n";
 
-    myEditor.open(myMenuPath, Tab.EDITOR);
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
   @Test
   public void dragMenuItemIntoActionBar() {
-    myEditor.open(myMenuPath);
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
     dragAndDrop("Menu Item", new Point(380, 120));
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
     String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -103,16 +129,16 @@ public final class MenuTest {
                       "        app:showAsAction=\"never\" />\n" +
                       "</menu>\n";
 
-    myEditor.open(myMenuPath, Tab.EDITOR);
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
-    writeSettingsActionMenu();
+    GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(myMenuPath);
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
     dragAndDrop("Search Item", new Point(330, 120));
+    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
     @SuppressWarnings("XmlUnusedNamespaceDeclaration")
@@ -131,29 +157,20 @@ public final class MenuTest {
                       "        app:showAsAction=\"always\" />\n" +
                       "</menu>\n";
 
-    myEditor.open(myMenuPath, Tab.EDITOR);
     assertEquals(expected, myEditor.getCurrentFileContents());
-  }
+    assertTrue(Files.exists(myIcSearchBlack24dpXmlAbsolutePath));
 
-  private void writeSettingsActionMenu() throws IOException {
-    @Language("XML")
-    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
-    String xml = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
-                 "    <item\n" +
-                 "        android:id=\"@+id/action_settings\"\n" +
-                 "        android:title=\"@string/action_settings\"\n" +
-                 "        app:showAsAction=\"always\" />\n" +
-                 "</menu>\n";
+    myEditor.invokeAction(EditorAction.UNDO);
 
-    GuiTestFileUtils.writeAndReloadDocument(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
+    assertEquals(MENU_MAIN_XML_CONTENTS, myEditor.getCurrentFileContents());
+    assertFalse(Files.exists(myIcSearchBlack24dpXmlAbsolutePath));
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
-    NlEditorFixture layoutEditor = myEditor.getLayoutEditor(false);
-    layoutEditor.waitForRenderToFinish();
-    layoutEditor.getPaletteItemList(0).drag(item);
-    layoutEditor.getSurface().drop(point);
+    NlEditorFixture editor = myEditor.getLayoutEditor(false);
+
+    editor.waitForRenderToFinish();
+    editor.getPaletteItemList(0).drag(item);
+    editor.getSurface().drop(point);
   }
 }

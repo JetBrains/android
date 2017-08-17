@@ -16,21 +16,21 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.intellij.openapi.command.WriteCommandAction;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.util.Collections;
@@ -57,7 +57,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(350, 50, 0);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(700, 100, 0, InsertType.MOVE_INTO));
+    handler.commit(700, 100, 0, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 
@@ -86,7 +86,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(300, 50, 0);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(600, 100, 0, InsertType.MOVE_INTO));
+    handler.commit(600, 100, 0, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 
@@ -112,7 +112,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(370, 50, 16);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(740, 100, 16, InsertType.MOVE_INTO));
+    handler.commit(740, 100, 16, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 
@@ -141,6 +141,8 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     NlModel mockModel = Mockito.mock(NlModel.class);
     Mockito.when(mockModel.getFacet()).thenReturn(model.getFacet());
+    Mockito.when(mockModel.canAddComponents(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(true);
+
     Mockito.when(editor.getModel()).thenReturn(mockModel);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);

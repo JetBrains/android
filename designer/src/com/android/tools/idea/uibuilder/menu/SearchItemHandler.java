@@ -33,11 +33,7 @@ public final class SearchItemHandler extends MenuHandler {
     return (DRAWABLE_PREFIX + SEARCH_ICON).equals(item.getAndroidAttribute(ATTR_ICON));
   }
 
-  @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
-                              @NotNull NlComponent newChild,
-                              @NotNull InsertType type) {
+  static void onChildInserted(@NotNull ViewEditor editor) {
     if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
       editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
     }
