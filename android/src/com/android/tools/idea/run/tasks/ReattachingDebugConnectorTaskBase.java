@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.run.test;
+package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
