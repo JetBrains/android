@@ -211,7 +211,7 @@ public class GradleDependencyManager {
     return true;
   }
 
-  private static boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
+  public static boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
     String libraryNames = StringUtil.join(missing, GradleCoordinate::getArtifactId, ", ");
     String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
                                    pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
@@ -219,10 +219,10 @@ public class GradleDependencyManager {
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
-  private static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
-                                                   @NotNull Module module,
-                                                   @NotNull List<GradleCoordinate> coordinates,
-                                                   @Nullable Runnable callback) {
+  public static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
+                                                  @NotNull Module module,
+                                                  @NotNull List<GradleCoordinate> coordinates,
+                                                  @Nullable Runnable callback) {
     assert !coordinates.isEmpty();
 
     Project project = module.getProject();
