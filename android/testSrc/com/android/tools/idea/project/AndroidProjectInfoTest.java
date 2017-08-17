@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,6 +84,13 @@ public class AndroidProjectInfoTest extends IdeaTestCase {
 
   public void testIsApkProject() {
     createAndAddApkFacet(getModule());
+    assertTrue(myProjectInfo.isApkProject());
+    assertTrue(ApkDebugging.isMarkedAsApkDebuggingProject(getProject()));
+  }
+
+  public void testIsApkProjectWithoutApkModules() {
+    // Similar to the case causing http://b/64766060
+    ApkDebugging.markAsApkDebuggingProject(getProject());
     assertTrue(myProjectInfo.isApkProject());
   }
 
