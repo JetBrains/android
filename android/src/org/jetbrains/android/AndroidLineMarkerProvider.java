@@ -16,6 +16,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ConstantFunction;
+import com.intellij.xml.util.XmlTagUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,9 +57,9 @@ public class AndroidLineMarkerProvider implements LineMarkerProvider {
     final PsiElement anchor = info.myElement;
     final String tooltip = info.myTooltip;
 
-    return new LineMarkerInfo<PsiElement>(
+    return new LineMarkerInfo<>(
       anchor, anchor.getTextOffset(), info.myIcon, Pass.LINE_MARKERS,
-      new ConstantFunction<PsiElement, String>(tooltip), new MyNavigationHandler(info));
+      new ConstantFunction<>(tooltip), new MyNavigationHandler(info));
   }
 
   @Nullable
@@ -88,8 +89,11 @@ public class AndroidLineMarkerProvider implements LineMarkerProvider {
     else {
       final XmlTag rootTag = ((XmlFile)element).getRootTag();
       final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile((XmlFile)element, facet);
-      return computable != null ? new MyMarkerInfo(rootTag != null ? rootTag : element, computable,
-                                                   "Related context Java file", AllIcons.Nodes.Class) : null;
+      PsiElement anchor = rootTag != null ? XmlTagUtil.getStartTagNameElement(rootTag) : element;
+      if (anchor != null) {
+        return computable != null ? new MyMarkerInfo(anchor, computable,
+                                                     "Related context Java file", AllIcons.Nodes.Class) : null;
+      }
     }
     return null;
   }
