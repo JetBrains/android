@@ -25,6 +25,9 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
@@ -72,18 +75,19 @@ public class ApkFacetConfiguration implements FacetConfiguration {
     return paths;
   }
 
-  public Map<String, File> getExplicitModuleSymbolMap(@NotNull Abi abi) {
-    Map<String, File> moduleToSymbols = new HashMap<>();
+  public @NotNull Map<File, File> getExplicitModuleSymbolMap(@NotNull final Abi abi) {
+    Map<File, File> moduleToSymbols = new HashMap<>();
     for (NativeLibrary library : NATIVE_LIBRARIES) {
+      VirtualFile lib = library.sharedObjectFilesByAbi.get(abi);
       DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi);
-      if (sharedObjectFile != null) {
-        File sym_path = toSystemDependentPath(sharedObjectFile.path);
-        if (sym_path.exists()) {
-          moduleToSymbols.put(library.name, sym_path);
+      if (sharedObjectFile != null && lib != null) {
+        File libFile = VfsUtilCore.virtualToIoFile(lib);
+        File symFile = toSystemDependentPath(sharedObjectFile.path);
+        if (libFile.exists() && symFile.exists()) {
+          moduleToSymbols.put(libFile, symFile);
         }
       }
     }
-
     return moduleToSymbols;
   }
 
