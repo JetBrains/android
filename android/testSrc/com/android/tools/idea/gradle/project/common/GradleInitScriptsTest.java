@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import com.intellij.idea.IdeaTestApplication;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,6 +40,11 @@ import static org.mockito.Mockito.when;
  */
 public class GradleInitScriptsTest {
   private File myInitScriptPath;
+
+  @Before
+  public void setUp() {
+    IdeaTestApplication.getInstance();
+  }
 
   @After
   public void tearDown() {
