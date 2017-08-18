@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlin
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.List;
@@ -52,6 +53,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     try {
       assertNotNull(myOriginalAndroidSdks);
       IdeComponents.replaceService(AndroidSdks.class, myOriginalAndroidSdks);
+      Mockito.reset(myAndroidSdks);
     }
     finally {
       super.tearDown();
