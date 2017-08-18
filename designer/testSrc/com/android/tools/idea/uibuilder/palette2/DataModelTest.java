@@ -57,10 +57,10 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myItemListModel.getSize()).isEqualTo(0);
 
     myDataModel.categorySelectionChanged(DataModel.COMMON);
-    assertThat(myItemListModel.getSize()).isEqualTo(5);
+    assertThat(myItemListModel.getSize()).isEqualTo(29);
     assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Button");
     assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ToggleButton");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("RadioButton");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("CheckBox");
   }
 
   public void testTextLayoutGroup() {

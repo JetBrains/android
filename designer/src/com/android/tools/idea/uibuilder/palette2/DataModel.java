@@ -165,8 +165,7 @@ public class DataModel {
     }
     else {
       myPalette.accept(item -> {
-        // TODO: Add data to the palette about common widgets and use that data. For now simulate by selecting all Buttons.
-        if (item.getTagName().endsWith("Button")) {
+        if (item.isSuggested()) {
           items.add(item);
         }
       });

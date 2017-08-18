@@ -15,13 +15,14 @@
   -->
 <palette>
   <group name="Widgets">
-    <item tag="Button"/>
-    <item tag="ToggleButton"/>
-    <item tag="CheckBox"/>
-    <item tag="RadioButton"/>
+    <item tag="Button" suggested="true"/>
+    <item tag="ToggleButton" suggested="true"/>
+    <item tag="CheckBox" suggested="true"/>
+    <item tag="RadioButton" suggested="true"/>
     <item tag="CheckedTextView"/>
     <item tag="Spinner"/>
     <item tag="ProgressBar"
+          suggested="true"
           title="ProgressBar">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -35,6 +36,7 @@
     </item>
     <item tag="ProgressBar"
           id="HorizontalProgressBar"
+          suggested="true"
           icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
           title="ProgressBar (Horizontal)">
       <xml reuse="drag-preview">
@@ -47,7 +49,7 @@
           ]]>
       </xml>
     </item>
-    <item tag="SeekBar"/>
+    <item tag="SeekBar" suggested="true"/>
     <item tag="SeekBar"
           id="DiscreteSeekBar"
           icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
@@ -66,13 +68,13 @@
     </item>
     <item tag="QuickContactBadge"/>
     <item tag="RatingBar"/>
-    <item tag="Switch"/>
+    <item tag="Switch" suggested="true"/>
     <item tag="Space"/>
   </group>
 
   <group name="Text">
-    <item tag="TextView"/>
-    <item tag="EditText" title="Plain Text"
+    <item tag="TextView" suggested="true"/>
+    <item tag="EditText" title="Plain Text" suggested="true"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -234,7 +236,7 @@
   </group>
 
   <group name="Layouts">
-    <item tag="android.support.constraint.ConstraintLayout"/>
+    <item tag="android.support.constraint.ConstraintLayout" suggested="true"/>
     <item tag="GridLayout"/>
     <!--
     TODO: Uncomment this once flag for Flexbox is enabled
@@ -243,6 +245,7 @@
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
+          suggested="true"
           icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ">
       <xml>
         <![CDATA[
@@ -256,6 +259,7 @@
     </item>
     <item tag="LinearLayout"
           title="LinearLayout (vertical)"
+          suggested="true"
           icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT">
       <xml>
         <![CDATA[
@@ -281,18 +285,18 @@
     <item tag="ScrollView"/>
     <item tag="HorizontalScrollView"/>
     <item tag="TabHost"/>
-    <item tag="WebView"/>
+    <item tag="WebView" suggested="true"/>
     <item tag="SearchView"/>
     <item tag="android.support.v4.view.ViewPager"/>
   </group>
   <group name="Images">
-    <item tag="ImageButton"/>
-    <item tag="ImageView"/>
+    <item tag="ImageButton" suggested="true"/>
+    <item tag="ImageView" suggested="true"/>
     <item tag="VideoView"/>
   </group>
   <group name="Date">
-    <item tag="TimePicker"/>
-    <item tag="DatePicker"/>
+    <item tag="TimePicker" suggested="true"/>
+    <item tag="DatePicker" suggested="true"/>
     <item tag="CalendarView"/>
     <item tag="Chronometer"/>
     <item tag="TextClock"/>
@@ -316,23 +320,23 @@
     <item tag="NumberPicker"/>
   </group>
   <group name="Google">
-    <item tag="com.google.android.gms.ads.AdView"/>
-    <item tag="com.google.android.gms.maps.MapView"/>
+    <item tag="com.google.android.gms.ads.AdView" suggested="true"/>
+    <item tag="com.google.android.gms.maps.MapView" suggested="true"/>
   </group>
   <group name="Design">
-    <item tag="android.support.design.widget.CoordinatorLayout"/>
-    <item tag="android.support.design.widget.AppBarLayout"/>
-    <item tag="android.support.design.widget.TabLayout"/>
+    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
+    <item tag="android.support.design.widget.TabLayout" suggested="true"/>
     <item tag="android.support.design.widget.TabItem"/>
-    <item tag="android.support.v4.widget.NestedScrollView"/>
-    <item tag="android.support.design.widget.FloatingActionButton"/>
-    <item tag="android.support.design.widget.TextInputLayout"/>
+    <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
+    <item tag="android.support.design.widget.FloatingActionButton" suggested="true"/>
+    <item tag="android.support.design.widget.TextInputLayout" suggested="true"/>
     <!-- Tabs -->
   </group>
   <group name="AppCompat">
-    <item tag="android.support.v7.widget.CardView"/>
+    <item tag="android.support.v7.widget.CardView" suggested="true"/>
     <item tag="android.support.v7.widget.GridLayout"/>
-    <item tag="android.support.v7.widget.RecyclerView"/>
-    <item tag="android.support.v7.widget.Toolbar"/>
+    <item tag="android.support.v7.widget.RecyclerView" suggested="true"/>
+    <item tag="android.support.v7.widget.Toolbar" suggested="true"/>
   </group>
 </palette>
