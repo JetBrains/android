@@ -23,7 +23,7 @@
     <item tag="Spinner"/>
     <item tag="ProgressBar"
           title="ProgressBar">
-      <xml reuse="preview,drag-preview">
+      <xml reuse="drag-preview">
         <![CDATA[
             <ProgressBar
               style="?android:attr/progressBarStyle"
@@ -36,9 +36,8 @@
     <item tag="ProgressBar"
           id="HorizontalProgressBar"
           icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
-          title="ProgressBar (Horizontal)"
-          scale="2.0">
-      <xml reuse="preview,drag-preview">
+          title="ProgressBar (Horizontal)">
+      <xml reuse="drag-preview">
         <![CDATA[
             <ProgressBar
               style="?android:attr/progressBarStyleHorizontal"
@@ -53,7 +52,7 @@
           id="DiscreteSeekBar"
           icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
           title="SeekBar (Discrete)">
-      <xml reuse="preview,drag-preview">
+      <xml reuse="drag-preview">
         <![CDATA[
             <SeekBar
               style="@style/Widget.AppCompat.SeekBar.Discrete"
@@ -66,7 +65,7 @@
       </xml>
     </item>
     <item tag="QuickContactBadge"/>
-    <item tag="RatingBar" scale="0.4"/>
+    <item tag="RatingBar"/>
     <item tag="Switch"/>
     <item tag="Space"/>
   </group>
@@ -86,15 +85,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:text="abc"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Password" title="Password"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD">
@@ -108,17 +98,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Password"
-              android:inputType="textPassword"
-              android:text="••••••••"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD">
@@ -132,17 +111,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <!-- android:inputType="numberPassword" not used here to allow digits in preview only -->
-            <EditText
-              android:id="@+id/PasswordNumeric"
-              android:text="1•••2•••3"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Email" title="E-mail"
       icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
@@ -156,17 +124,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Email"
-              android:inputType="textEmailAddress"
-              android:text="user@domain.com"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Phone" title="Phone"
           icon="StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD">
@@ -180,17 +137,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Phone"
-              android:inputType="phone"
-              android:text="(555) 123 0100"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="PostalAddress" title="Postal Address"
           icon="StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD">
@@ -204,17 +150,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/PostalAddress"
-              android:inputType="textPostalAddress"
-              android:text="Address"
-              android:layout_width="200dip"
-              android:layout_height="100dip">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="MultilineText" title="Multiline Text"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE">
@@ -228,17 +163,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/MultilineText"
-              android:inputType="textMultiLine"
-              android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
-              android:layout_width="200dip"
-              android:layout_height="100dip">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Time" title="Time"
           icon="StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD">
@@ -252,17 +176,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Time"
-              android:inputType="time"
-              android:text="12:00am"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Date" title="Date"
       icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
@@ -276,17 +189,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Date"
-              android:inputType="date"
-              android:text="1/1/2011"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Number" title="Number"
           icon="StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD">
@@ -300,17 +202,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Number"
-              android:inputType="number"
-              android:text="42"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="SignedNumber" title="Number (Signed)"
       icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
@@ -324,17 +215,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/SignedNumber"
-              android:inputType="numberSigned"
-              android:text="-42"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
       icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
@@ -348,17 +228,6 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/DecimalNumber"
-              android:inputType="numberDecimal"
-              android:text="42.0"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="AutoCompleteTextView"/>
     <item tag="MultiAutoCompleteTextView"/>
@@ -422,7 +291,7 @@
     <item tag="VideoView"/>
   </group>
   <group name="Date">
-    <item tag="TimePicker" render-separately="true"/>
+    <item tag="TimePicker"/>
     <item tag="DatePicker"/>
     <item tag="CalendarView"/>
     <item tag="Chronometer"/>
@@ -464,6 +333,6 @@
     <item tag="android.support.v7.widget.CardView"/>
     <item tag="android.support.v7.widget.GridLayout"/>
     <item tag="android.support.v7.widget.RecyclerView"/>
-    <item tag="android.support.v7.widget.Toolbar" render-separately="true"/>
+    <item tag="android.support.v7.widget.Toolbar"/>
   </group>
 </palette>
