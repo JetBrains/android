@@ -249,8 +249,6 @@ public final class VectorAsset extends BaseAsset {
 
     finalWidth = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalWidth);
     finalHeight = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalHeight);
-    finalWidth = Math.min(VdPreview.MAX_PREVIEW_IMAGE_SIZE, finalWidth);
-    finalHeight = Math.min(VdPreview.MAX_PREVIEW_IMAGE_SIZE, finalHeight);
 
     VdOverrideInfo overrideInfo = new VdOverrideInfo(finalWidth, finalHeight, myOpacity.get(), myAutoMirrored.get());
     return VdPreview.overrideXmlContent(vdDocument, overrideInfo, errorBuffer);
