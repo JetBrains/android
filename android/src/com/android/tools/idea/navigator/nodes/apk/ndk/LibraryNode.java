@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.intellij.icons.AllIcons.Modules.Library;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 
 public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @NotNull final NativeLibrary myLibrary;
@@ -108,7 +108,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   protected void update(PresentationData presentation) {
-    presentation.setIcon(Library);
+    presentation.setIcon(LIBRARY_MODULE);
     presentation.addText(myLibraryName, REGULAR_ATTRIBUTES);
 
     String abis = Joiner.on(", ").join(myLibrary.abis);

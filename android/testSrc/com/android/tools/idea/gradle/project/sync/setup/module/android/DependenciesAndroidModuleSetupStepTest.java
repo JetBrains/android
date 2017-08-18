@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -31,6 +34,7 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -41,6 +45,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -56,29 +61,30 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
   @Mock private AndroidModuleDependenciesSetup myDependenciesSetup;
 
   private DependenciesAndroidModuleSetupStep mySetupStep;
+  private VirtualFile myBuildFolder;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
     mySetupStep = new DependenciesAndroidModuleSetupStep(myDependenciesExtractor, myDependenciesSetup);
+    myBuildFolder = createFolder(getModuleFolder(myModule), "build");
   }
 
-  public void testUpdateLibraryDependencyWithLibraryInModule() throws IOException {
-    Module module = getModule();
-    createContentRoot(module);
+  public void testUpdateLibraryDependencyWithPlugin2dot3() throws IOException {
+    updateLibraryDependency("2.3.0", true);
+  }
 
-    VirtualFile moduleFolder = getModuleFolder(module);
+  public void testUpdateLibraryDependencyWithPlugin3dot0() throws IOException {
+    updateLibraryDependency("3.0.0", false);
+  }
 
-    // Create "build" folder inside the module.
-    String name = "build";
-    VirtualFile buildFolder = createFolder(moduleFolder, name);
-
-    AndroidProject androidProject = mock(AndroidProject.class);
-    when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
+  private void updateLibraryDependency(@NotNull String modelVersion, boolean exported) throws IOException {
+    // Create gradle facet and mock AndroidModuleModel.
+    AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
 
     // Create "jars" folder inside the module's "build" folder.
-    VirtualFile jarsFolder = createFolder(buildFolder, "jars");
+    VirtualFile jarsFolder = createFolder(myBuildFolder, "jars");
     File jarsFolderPath = virtualToIoFile(jarsFolder);
 
     // We simulate the dependency to set up being inside the "jars" folder. We expect the "jars" folder to be excluded to avoid unnecessary
@@ -87,13 +93,30 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    mySetupStep.updateLibraryDependency(module, modelsProvider, dependency, androidProject);
+    mySetupStep.updateLibraryDependency(myModule, modelsProvider, dependency, moduleModel);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(module, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
-                                                       dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION));
+    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
+                                                       dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), exported);
+  }
+
+  @NotNull
+  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) throws IOException {
+    // Create mock IdeAndroidProject.
+    createContentRoot(myModule);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(myBuildFolder));
+
+    // Create mock AndroidModuleModel.
+    AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
+    AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
+    GradleVersion version = GradleVersion.parse(modelVersion);
+    when(moduleModel.getFeatures()).thenReturn(new AndroidModelFeatures(version));
+    androidFacet.setAndroidModel(moduleModel);
+    when(moduleModel.getAndroidProject()).thenReturn(androidProject);
+    return moduleModel;
   }
 
   private static void createContentRoot(@NotNull Module module) {
@@ -123,24 +146,31 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     return moduleFile.getParent();
   }
 
-  public void testUpdateModuleDependency() throws IOException {
+  public void testUpdateModuleDependencyWithPlugin2dot3() throws IOException {
+    // Verify that module dependency is exported for plugin 2.3.
+    updateModuleDependency("2.3.0", true);
+  }
+
+  public void testUpdateModuleDependencyWithPlugin3dot0() throws IOException {
+    // Verify that module dependency is not exported for plugin 3.0.
+    updateModuleDependency("3.0.0", false);
+  }
+
+  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) throws IOException {
     String libModulePath = "mylib";
     // Create a lib module.
     Module libModule = createModule(libModulePath);
     GradleFacet facet = createAndAddGradleFacet(libModule);
     facet.getConfiguration().GRADLE_PROJECT_PATH = libModulePath;
 
-    // Create mock AndroidProject.
-    createContentRoot(myModule);
-    VirtualFile buildFolder = createFolder(getModuleFolder(myModule), "build");
-    AndroidProject androidProject = mock(AndroidProject.class);
-    when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
+    // Create gradle facet and mock AndroidModuleModel.
+    AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
 
     // Create module dependency on lib module.
     ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    mySetupStep.updateModuleDependency(myModule, modelsProvider, dependency, androidProject);
+    mySetupStep.updateModuleDependency(myModule, modelsProvider, dependency, moduleModel);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Verify that there's only one module dependency.
@@ -149,7 +179,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
     // Verify that module dependency is not exported. b/62265305.
     ModuleOrderEntry orderEntry = moduleOrderEntries.get(0);
-    assertFalse(orderEntry.isExported());
+    assertEquals(exported, orderEntry.isExported());
   }
 
   @NotNull

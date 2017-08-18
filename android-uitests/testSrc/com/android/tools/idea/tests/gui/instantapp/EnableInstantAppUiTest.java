@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -22,42 +23,23 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
-import com.android.tools.adtui.ASGallery;
 import org.fest.swing.fixture.JListFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class EnableInstantAppUiTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Test
-  public void testNewProjectInstantAppUIHidden() {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject()
-      .clickNext();
-
-    newProjectWizard
-      .getConfigureFormFactorStep()
-      .findInstantAppCheckbox(MOBILE)
-      .requireNotVisible();
-
-    newProjectWizard
-      .clickCancel();
-  }
 
   @Test
   public void testNewProjectInstantAppUIShown() {
-    SdkReplacer.replaceSdkLocationAndActivate(null, true);
 
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
@@ -70,29 +52,10 @@ public class EnableInstantAppUiTest {
 
     newProjectWizard
       .clickCancel();
-
-    SdkReplacer.putBack();
-  }
-
-  @Test
-  public void testNewModuleInstantAppUIHidden() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    NewModuleWizardFixture wizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
-
-    JListFixture listFixture =
-      new JListFixture(guiTest.robot(), guiTest.robot().finder().findByType(wizardFixture.target(), ASGallery.class));
-    List<String> listContents = Arrays.asList(listFixture.contents());
-    assertThat(listContents).doesNotContain("Instant App");
-    assertThat(listContents).doesNotContain("Feature Module");
-
-    wizardFixture.clickCancel();
   }
 
   @Test
   public void testNewModuleInstantAppUIShown() throws IOException {
-    SdkReplacer.replaceSdkLocationAndActivate(null, true);
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -104,6 +67,5 @@ public class EnableInstantAppUiTest {
     listFixture.selectItem("Feature Module");
 
     wizardFixture.clickCancel();
-    SdkReplacer.putBack();
   }
 }

@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLibraries.computeResolvedCoordinate;
+
 /**
  * Creates a deep copy of a {@link Library}.
  */
@@ -37,8 +39,7 @@ public abstract class IdeLibrary extends IdeModel implements Library {
 
   protected IdeLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
     super(library, modelCache);
-    myResolvedCoordinates = modelCache.computeIfAbsent(library.getResolvedCoordinates(),
-                                                       coordinates -> new IdeMavenCoordinates(coordinates, modelCache));
+    myResolvedCoordinates = computeResolvedCoordinate(library, modelCache);
     myProject = copyNewProperty(library::getProject, null);
     myName = copyNewProperty(library::getName, null); // Library.getName() was added in 2.2
     myProvided = copyNewProperty(library::isProvided, null);

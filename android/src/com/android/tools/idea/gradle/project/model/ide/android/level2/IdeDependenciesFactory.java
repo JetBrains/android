@@ -37,7 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.level2.Library.*;
-import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.computeAddress;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLibraries.computeAddress;
 
 /**
  * Creates {@link IdeDependencies} from {@link BaseArtifact}.
