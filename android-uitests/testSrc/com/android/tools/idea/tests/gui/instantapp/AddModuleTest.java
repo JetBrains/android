@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRunner.class)
-public class AddFeatureModuleTest {
+public class AddModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
@@ -65,5 +65,40 @@ public class AddFeatureModuleTest {
 
     ProjectViewFixture.PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
     androidPane.clickPath("mylibrary");
+  }
+
+  /**
+   * Verifies that user is able to add a instant app module through the
+   * new module wizard.
+   *
+   * <p>TT ID: 6da70326-4b89-4f9b-9e08-573939bebfe5
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Import simple application project
+   *   2. Go to File -> New module to open the new module dialog wizard.
+   *   3. Follow through the wizard to add a new instant module, accepting defaults.
+   *   4. Complete the wizard and wait for the build to complete.
+   *   Verify:
+   *   1. The new instant module's library is shown in the project explorer pane.
+   * </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void addInstantModule() throws Exception {
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+
+    ideFrame.invokeMenuPath("File", "New", "New Module...");
+
+    NewModuleDialogFixture.find(ideFrame)
+      .chooseModuleType("Instant App")
+      .clickNextToStep("Configure your new module")
+      .clickFinish();
+
+    ideFrame.waitForGradleProjectSyncToFinish();
+
+    ideFrame.getProjectView()
+      .selectAndroidPane()
+      .clickPath("instantapp");
   }
 }
