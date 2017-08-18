@@ -35,7 +35,6 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
 
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
-  @NotNull private final Map<String, String> myFlavorSelections;
   @NotNull private final Collection<File> myProguardFiles;
   @NotNull private final Collection<File> myConsumerProguardFiles;
   @NotNull private final Map<String, Object> myManifestPlaceholders;
@@ -54,21 +53,8 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
     myApplicationIdSuffix = config.getApplicationIdSuffix();
     myVersionNameSuffix = copyNewProperty(config::getVersionNameSuffix, null);
     myMultiDexEnabled = copyNewProperty(config::getMultiDexEnabled, null);
-    myFlavorSelections = copyFlavorSelections(config);
 
     myHashCode = calculateHashCode();
-  }
-
-  @NotNull
-  private static Map<String, String> copyFlavorSelections(@NotNull BaseConfig config) {
-    try {
-      return ImmutableMap.copyOf(config.getFlavorSelections());
-    }
-    catch (UnsupportedMethodException e) {
-      // This method was introduced in 3.0.0 canary 4.
-      // TODO check for plugin version instead of "try/catch" once 3.0.0 final is released.
-      return ImmutableMap.of();
-    }
   }
 
   @Override
@@ -87,12 +73,6 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @NotNull
   public Map<String, ClassField> getResValues() {
     return myResValues;
-  }
-
-  @Override
-  @NotNull
-  public Map<String, String> getFlavorSelections() {
-    return myFlavorSelections;
   }
 
   @Override
@@ -167,7 +147,6 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
     return config.canEqual(this) &&
            Objects.equals(myName, config.myName) &&
            Objects.deepEquals(myResValues, config.myResValues) &&
-           Objects.deepEquals(myFlavorSelections, config.myFlavorSelections) &&
            Objects.deepEquals(myProguardFiles, config.myProguardFiles) &&
            Objects.deepEquals(myConsumerProguardFiles, config.myConsumerProguardFiles) &&
            Objects.deepEquals(myManifestPlaceholders, config.myManifestPlaceholders) &&
@@ -187,7 +166,7 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   }
 
   protected int calculateHashCode() {
-    return Objects.hash(myName, myResValues, myFlavorSelections, myProguardFiles, myConsumerProguardFiles, myManifestPlaceholders,
+    return Objects.hash(myName, myResValues, myProguardFiles, myConsumerProguardFiles, myManifestPlaceholders,
                         myApplicationIdSuffix, myVersionNameSuffix, myMultiDexEnabled);
   }
 
@@ -195,7 +174,6 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   public String toString() {
     return "myName='" + myName + '\'' +
            ", myResValues=" + myResValues +
-           ", myFlavorSelections=" + myFlavorSelections +
            ", myProguardFiles=" + myProguardFiles +
            ", myConsumerProguardFiles=" + myConsumerProguardFiles +
            ", myManifestPlaceholders=" + myManifestPlaceholders +

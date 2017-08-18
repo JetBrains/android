@@ -31,7 +31,6 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @NotNull private final String myName;
   @NotNull private final Map<String,ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
-  @NotNull private final Map<String, String> myFlavorSelections;
   @NotNull private final Collection<File> myProguardFiles;
   @NotNull private final Collection<File> myConsumerProguardFiles;
   @NotNull private final Collection<File> myTestProguardFiles;
@@ -68,7 +67,6 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
     myName = name;
     myBuildConfigFields = buildConfigFields;
     myResValues = resValues;
-    myFlavorSelections = flavorSelections;
     myProguardFiles = proguardFiles;
     myConsumerProguardFiles = consumerProguardFiles;
     myTestProguardFiles = testProguardFiles;
@@ -97,12 +95,6 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @NotNull
   public Map<String, ClassField> getResValues() {
     return myResValues;
-  }
-
-  @Override
-  @NotNull
-  public Map<String, String> getFlavorSelections() {
-    return myFlavorSelections;
   }
 
   @Override
@@ -170,7 +162,6 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
     return "BaseConfigStub{" +
            "myName='" + myName + '\'' +
            ", myResValues=" + myResValues +
-           ", myFlavorSelections=" + myFlavorSelections +
            ", myProguardFiles=" + myProguardFiles +
            ", myConsumerProguardFiles=" + myConsumerProguardFiles +
            ", myManifestPlaceholders=" + myManifestPlaceholders +
