@@ -157,7 +157,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertThat(urls).hasLength(1);
     assertEquals(pathToIdeaUrl(jarFilePath), urls[0]);
 
-    assertAbout(libraryDependencies()).that(getModule()).contains(libraryName, COMPILE);
+    assertAbout(libraryDependencies()).that(getModule()).hasDependency(libraryName, COMPILE, true);
   }
 
   @NotNull

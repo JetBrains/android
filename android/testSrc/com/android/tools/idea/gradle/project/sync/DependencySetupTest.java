@@ -131,7 +131,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).hasDependency("library-debug-unspecified", COMPILE, false);
   }
 
   public void testWithLocalJarsArModules() throws Exception {
@@ -143,14 +143,14 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local", COMPILE);
+    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("localJarAsModule.local", COMPILE, true);
   }
 
   public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
-    assertAbout(moduleDependencies()).that(appModule).contains("library2", COMPILE);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
@@ -160,7 +160,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching("guava-.*", COMPILE, PROVIDED);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "guava-.*", COMPILE, PROVIDED);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -170,7 +170,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching("commons-io-.*", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "commons-io-.*", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -180,7 +180,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(appModule).contains("library1", COMPILE);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("library1", COMPILE, false);
   }
 
   public void testJavaLibraryModuleDependencies() throws Exception {
@@ -188,7 +188,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).contains("lib", COMPILE);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
   }
 
@@ -204,11 +204,11 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-    assertAbout(libraryDependencies()).that(library2Module).contains("fakelib", COMPILE);
+    assertAbout(libraryDependencies()).that(library2Module).hasDependency("fakelib", COMPILE, false);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("fakelib", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).hasDependency("fakelib", COMPILE, false);
   }
 }
