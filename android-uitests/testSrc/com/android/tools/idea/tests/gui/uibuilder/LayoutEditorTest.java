@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAs
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.MouseButton;
-import org.fest.swing.exception.WaitTimedOutError;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -139,14 +138,11 @@ public class LayoutEditorTest {
 
     assetStudioWizardFixture.useLocalFile(
       findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/call.svg"), true));
-    try {
-      GuiTests.waitUntilShowing(guiTest.robot(),
-                                assetStudioWizardFixture.target(),
-                                Matchers.byText(JLabel.class, invalidTip).andIsShowing());
-      throw new RuntimeException("Failed to identify a valid SVG");
-    } catch (WaitTimedOutError e) {
-      // Expected
-    }
+    // The invalid tip will show there before parsing an image finishes.
+    // So, we should wait until the invalid tip is not shown.
+    GuiTests.waitUntilGone(guiTest.robot(),
+                           assetStudioWizardFixture.target(),
+                           Matchers.byText(JLabel.class, invalidTip).andIsShowing());
 
     assetStudioWizardFixture.useLocalFile(
       findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true));
