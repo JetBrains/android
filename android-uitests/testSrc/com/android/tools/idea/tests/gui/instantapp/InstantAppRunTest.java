@@ -132,7 +132,7 @@ public class InstantAppRunTest {
     File adbBinary = new File(sdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
     File prebuiltApks = new File(ideFrame.getProjectPath(), "prebuilt");
 
-    AndroidDebugBridge adb = AndroidDebugBridge.getBridge();
+    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(adbBinary.getAbsolutePath(), false);
     Wait.seconds(120)
       .expecting("emulator to start")
       .until(() -> adb.getDevices().length > 0);
