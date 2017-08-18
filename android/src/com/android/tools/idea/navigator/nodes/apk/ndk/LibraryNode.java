@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -57,7 +58,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Nullable
   protected VirtualFile getFirstFile() {
-    List<VirtualFile> files = myLibrary.sharedObjectFiles;
+    List<VirtualFile> files = myLibrary.getSharedObjectFiles();
     return files.isEmpty() ? null : files.get(0);
   }
 
@@ -103,7 +104,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return myLibrary.sharedObjectFiles.contains(file);
+    return myLibrary.sharedObjectFilesByAbi.containsValue(file);
   }
 
   @Override
