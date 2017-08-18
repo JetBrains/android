@@ -31,17 +31,17 @@ android {
 
     productFlavors {
         free {
-            flavorDimension   "group1"
+            dimension = "group1"
         }
         pro {
-            flavorDimension   "group1"
+            dimension = "group1"
         }
 
         arm {
-            flavorDimension   "group2"
+            dimension = "group2"
         }
         x86 {
-            flavorDimension   "group2"
+            dimension = "group2"
         }
     }
 }
