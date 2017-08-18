@@ -70,8 +70,8 @@ public class PaletteTest extends PaletteTestCase {
   private static final String PALETTE =
     "<palette>\n" +
     "  <group name=\"Widgets\">\n" +
-    "    <item tag=\"TextView\"/>\n" +
-    "    <item tag=\"LinearLayout\" " +
+    "    <item tag=\"TextView\" suggested=\"true\"/>\n" +
+    "    <item tag=\"LinearLayout\" suggested=\"true\"" +
     "          title=\"LinearLayout (horizontal)\">\n" +
     "      <xml>\n" +
     "        <![CDATA[\n" +
@@ -84,6 +84,7 @@ public class PaletteTest extends PaletteTestCase {
     "      </xml>\n" +
     "    </item>\n" +
     "    <item tag=\"ProgressBar\"\n" +
+    "          suggested=\"true\"" +
     "          title=\"ProgressBar\">\n" +
     "      <xml reuse=\"preview,drag-preview\">\n" +
     "        <![CDATA[\n" +
@@ -99,7 +100,7 @@ public class PaletteTest extends PaletteTestCase {
     "  <group name=\"Advanced\">\n" +
     "    <group name=\"Distinct\">\n" +
     "      <item tag=\"include\"/>\n" +
-    "      <item tag=\"android.support.design.widget.CoordinatorLayout\"/>\n" +
+    "      <item tag=\"android.support.design.widget.CoordinatorLayout\" suggested=\"true\"/>\n" +
     "    </group>\n" +
     "  </group>\n" +
     "</palette>\n";

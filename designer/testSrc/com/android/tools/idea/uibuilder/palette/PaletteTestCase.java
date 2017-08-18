@@ -46,6 +46,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final ViewHandler STANDARD_TEXT = new TextViewHandler();
   private static final ViewHandler STANDARD_LAYOUT = new ViewGroupHandler();
   private static final Splitter SPLITTER = Splitter.on("\n").trimResults();
+  private static final boolean SUGGESTED = true;
 
   @NotNull
   public static Palette.Item findItem(@NotNull Palette palette, @NotNull String tagName) {
@@ -69,27 +70,27 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertTextViewItem(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM);
+    assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertButton(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, BUTTON, IN_PLATFORM);
+    assertStandardTextView(item, BUTTON, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertToggleButton(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, TOGGLE_BUTTON, IN_PLATFORM);
+    assertStandardTextView(item, TOGGLE_BUTTON, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertCheckBox(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, CHECK_BOX, IN_PLATFORM);
+    assertStandardTextView(item, CHECK_BOX, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertRadioButton(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, RADIO_BUTTON, IN_PLATFORM);
+    assertStandardTextView(item, RADIO_BUTTON, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertCheckedTextView(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, CHECKED_TEXT_VIEW, IN_PLATFORM);
+    assertStandardTextView(item, CHECKED_TEXT_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   @Language("XML")
@@ -99,7 +100,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\" />\n";
 
   public void assertSpinner(@NotNull Palette.BaseItem item) {
-    checkItem(item, SPINNER, "Spinner", StudioIcons.LayoutEditor.Palette.SPINNER, SPINNER_XML, SPINNER_XML, IN_PLATFORM);
+    checkItem(item, SPINNER, "Spinner", StudioIcons.LayoutEditor.Palette.SPINNER, SPINNER_XML, SPINNER_XML, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(SPINNER), "Spinner", StudioIcons.LayoutEditor.Palette.SPINNER);
   }
 
@@ -113,7 +114,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertNormalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, SUGGESTED);
     checkComponent(createMockComponent("ProgressBar"), "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR);
   }
 
@@ -127,14 +128,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertHorizontalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL,
-              HORIZONTAL_PROGRESS_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM);
+              HORIZONTAL_PROGRESS_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM, SUGGESTED);
     NlComponent component = createMockComponent("ProgressBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Horizontal");
     checkComponent(component, "ProgressBar (Horizontal)", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL);
   }
 
   public void assertSeekBar(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, SEEK_BAR, IN_PLATFORM);
+    assertStandardView(item, SEEK_BAR, IN_PLATFORM, SUGGESTED);
     checkComponent(createMockComponent("SeekBar"), "SeekBar", StudioIcons.LayoutEditor.Palette.SEEK_BAR);
   }
 
@@ -150,7 +151,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
     checkItem(item, "SeekBar", "SeekBar (Discrete)", StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE, DISCRETE_SEEK_BAR_XML,
-              DISCRETE_SEEK_BAR_XML, IN_PLATFORM);
+              DISCRETE_SEEK_BAR_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent("SeekBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
     checkComponent(component, "SeekBar (Discrete)", StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE);
@@ -165,20 +166,20 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertQuickContactBadge(@NotNull Palette.BaseItem item) {
     checkItem(item, QUICK_CONTACT_BADGE, "QuickContactBadge", StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE, QUICK_CONTACT_BADGE_XML,
-              QUICK_CONTACT_BADGE_XML, IN_PLATFORM);
+              QUICK_CONTACT_BADGE_XML, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(QUICK_CONTACT_BADGE), "QuickContactBadge", StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE);
   }
 
   public void assertRatingBar(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "RatingBar", IN_PLATFORM);
+    assertStandardView(item, "RatingBar", IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertSwitch(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, SWITCH, IN_PLATFORM);
+    assertStandardTextView(item, SWITCH, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertSpace(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, SPACE, IN_PLATFORM);
+    assertNoPreviewView(item, SPACE, IN_PLATFORM, !SUGGESTED);
   }
 
   @Language("XML")
@@ -193,7 +194,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPlainTextEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Plain Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPersonName");
     checkComponent(component, "EditText (Plain Text)", StudioIcons.LayoutEditor.Palette.TEXTFIELD);
@@ -214,7 +215,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPasswordEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Password", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD, PASSWORD_EDIT_TEXT_XML,
-              PASSWORD_EDIT_TEXT_XML, IN_PLATFORM);
+              PASSWORD_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPassword");
     checkComponent(component, "EditText (Password)", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD);
@@ -231,7 +232,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPasswordNumericEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Password (Numeric)", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD,
-              PASSWORD_NUMERIC_EDIT_TEXT_XML, PASSWORD_NUMERIC_EDIT_TEXT_XML, IN_PLATFORM);
+              PASSWORD_NUMERIC_EDIT_TEXT_XML, PASSWORD_NUMERIC_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberPassword");
     checkComponent(component, "EditText (Password (Numeric))", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD);
@@ -248,7 +249,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertEmailEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "E-mail", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD, EMAIL_EDIT_TEXT_XML,
-              EMAIL_EDIT_TEXT_XML, IN_PLATFORM);
+              EMAIL_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textEmailAddress");
     checkComponent(component, "EditText (E-mail)", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD);
@@ -265,7 +266,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPhoneEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Phone", StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD, PHONE_EDIT_TEXT_XML, PHONE_EDIT_TEXT_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("phone");
     checkComponent(component, "EditText (Phone)", StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD);
@@ -282,7 +283,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPostalAddressEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Postal Address", StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD, POSTAL_ADDRESS_EDIT_TEXT_XML,
-              POSTAL_ADDRESS_EDIT_TEXT_XML, IN_PLATFORM);
+              POSTAL_ADDRESS_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textPostalAddress");
     checkComponent(component, "EditText (Postal Address)", StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD);
@@ -299,7 +300,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertMultilineTextEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Multiline Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE, MULTILINE_TEXT_EDIT_TEXT_XML,
-              MULTILINE_TEXT_EDIT_TEXT_XML, IN_PLATFORM);
+              MULTILINE_TEXT_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("textMultiLine");
     checkComponent(component, "EditText (Multiline Text)", StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE);
@@ -316,7 +317,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertTimeEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Time", StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD, TIME_EDIT_TEXT_XML, TIME_EDIT_TEXT_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("time");
     checkComponent(component, "EditText (Time)", StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD);
@@ -333,7 +334,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertDateEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Date", StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD, DATE_EDIT_TEXT_XML, DATE_EDIT_TEXT_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("date");
     checkComponent(component, "EditText (Date)", StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD);
@@ -350,7 +351,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertNumberEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Number", StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD, NUMBER_EDIT_TEXT_XML, NUMBER_EDIT_TEXT_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("number");
     checkComponent(component, "EditText (Number)", StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD);
@@ -367,7 +368,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertNumberSignedEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Number (Signed)", StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD, NUMBER_SIGNED_EDIT_TEXT_XML,
-              NUMBER_SIGNED_EDIT_TEXT_XML, IN_PLATFORM);
+              NUMBER_SIGNED_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberSigned");
     checkComponent(component, "EditText (Number (Signed))", StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD);
@@ -384,26 +385,26 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertNumberDecimalEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Number (Decimal)", StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD, NUMBER_DECIMAL_EDIT_TEXT_XML,
-              NUMBER_DECIMAL_EDIT_TEXT_XML, IN_PLATFORM);
+              NUMBER_DECIMAL_EDIT_TEXT_XML, IN_PLATFORM, !SUGGESTED);
     NlComponent component = createMockComponent(EDIT_TEXT);
     when(component.getAttribute(ANDROID_URI, ATTR_INPUT_TYPE)).thenReturn("numberDecimal");
     checkComponent(component, "EditText (Number (Decimal))", StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD);
   }
 
   final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "android.support.constraint.ConstraintLayout", CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertStandardLayout(item, "android.support.constraint.ConstraintLayout", CONSTRAINT_LAYOUT_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertGridLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM);
+    assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertFlexboxLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, FLEXBOX_LAYOUT, FLEXBOX_LAYOUT_LIB_ARTIFACT);
+    assertStandardLayout(item, FLEXBOX_LAYOUT, FLEXBOX_LAYOUT_LIB_ARTIFACT, !SUGGESTED);
   }
 
   public void assertFrameLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM);
+    assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM, !SUGGESTED);
   }
 
   @Language("XML")
@@ -416,7 +417,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ,
-              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM);
+              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM, SUGGESTED);
     checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
   }
 
@@ -430,33 +431,33 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertVerticalLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT,
-              VERTICAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM);
+              VERTICAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM, SUGGESTED);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
     when(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
     checkComponent(component, "LinearLayout (vertical)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT);
   }
 
   public void assertRelativeLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, RELATIVE_LAYOUT, IN_PLATFORM);
+    assertStandardLayout(item, RELATIVE_LAYOUT, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTableLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, TABLE_LAYOUT, IN_PLATFORM);
+    assertStandardLayout(item, TABLE_LAYOUT, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTableRow(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, TABLE_ROW, IN_PLATFORM);
+    assertStandardLayout(item, TABLE_ROW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertFragment(@NotNull Palette.BaseItem item) {
     checkItem(item, VIEW_FRAGMENT, "<fragment>", StudioIcons.LayoutEditor.Palette.FRAGMENT,
-              STANDARD_VIEW.getXml(VIEW_FRAGMENT, XmlType.COMPONENT_CREATION), NO_PREVIEW, IN_PLATFORM);
+              STANDARD_VIEW.getXml(VIEW_FRAGMENT, XmlType.COMPONENT_CREATION), NO_PREVIEW, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(VIEW_FRAGMENT), "<fragment>", StudioIcons.LayoutEditor.Palette.FRAGMENT);
   }
 
   public void assertRadioGroup(@NotNull Palette.BaseItem item) {
     checkItem(item, RADIO_GROUP, "RadioGroup", StudioIcons.LayoutEditor.Palette.RADIO_GROUP,
-              STANDARD_VIEW.getXml(RADIO_GROUP, XmlType.COMPONENT_CREATION), NO_PREVIEW, IN_PLATFORM);
+              STANDARD_VIEW.getXml(RADIO_GROUP, XmlType.COMPONENT_CREATION), NO_PREVIEW, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(RADIO_GROUP), "RadioGroup (horizontal)", StudioIcons.LayoutEditor.Palette.RADIO_GROUP);
   }
 
@@ -476,12 +477,13 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:dividerHeight=\"1px\" />\n";
 
   public void assertListView(@NotNull Palette.BaseItem item) {
-    checkItem(item, LIST_VIEW, "ListView", StudioIcons.LayoutEditor.Palette.LIST_VIEW, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, IN_PLATFORM);
+    checkItem(item, LIST_VIEW, "ListView", StudioIcons.LayoutEditor.Palette.LIST_VIEW, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, IN_PLATFORM,
+              !SUGGESTED);
     checkComponent(createMockComponent(LIST_VIEW), "ListView", StudioIcons.LayoutEditor.Palette.LIST_VIEW);
   }
 
   public void assertGridView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, GRID_VIEW, IN_PLATFORM);
+    assertStandardLayout(item, GRID_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   @Language("XML")
@@ -501,16 +503,16 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertExpandableListView(@NotNull Palette.BaseItem item) {
     checkItem(item, EXPANDABLE_LIST_VIEW, "ExpandableListView", StudioIcons.LayoutEditor.Palette.EXPANDABLE_LIST_VIEW,
-              EXPANDABLE_LIST_VIEW_XML, EXPANDABLE_LIST_VIEW_PREVIEW_XML, IN_PLATFORM);
+              EXPANDABLE_LIST_VIEW_XML, EXPANDABLE_LIST_VIEW_PREVIEW_XML, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(EXPANDABLE_LIST_VIEW), "ExpandableListView", StudioIcons.LayoutEditor.Palette.EXPANDABLE_LIST_VIEW);
   }
 
   public void assertScrollView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, SCROLL_VIEW, IN_PLATFORM);
+    assertStandardLayout(item, SCROLL_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertHorizontalScrollView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, HORIZONTAL_SCROLL_VIEW, IN_PLATFORM);
+    assertStandardLayout(item, HORIZONTAL_SCROLL_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   @Language("XML")
@@ -553,20 +555,20 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</TabHost>\n";
 
   public void assertTabHost(@NotNull Palette.BaseItem item) {
-    checkItem(item, TAB_HOST, "TabHost", StudioIcons.LayoutEditor.Palette.TAB_HOST, TAB_HOST_XML, TAB_HOST_XML, IN_PLATFORM);
+    checkItem(item, TAB_HOST, "TabHost", StudioIcons.LayoutEditor.Palette.TAB_HOST, TAB_HOST_XML, TAB_HOST_XML, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(TAB_HOST), "TabHost", StudioIcons.LayoutEditor.Palette.TAB_HOST);
   }
 
   public void assertWebView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, WEB_VIEW, IN_PLATFORM);
+    assertStandardLayout(item, WEB_VIEW, IN_PLATFORM, SUGGESTED);
   }
 
   public void assertSearchView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "SearchView", IN_PLATFORM);
+    assertStandardLayout(item, "SearchView", IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertViewPager(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "android.support.v4.view.ViewPager", SUPPORT_LIB_ARTIFACT);
+    assertStandardLayout(item, "android.support.v4.view.ViewPager", SUPPORT_LIB_ARTIFACT, !SUGGESTED);
   }
 
   @Language("XML")
@@ -578,7 +580,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertImageButton(@NotNull Palette.BaseItem item) {
     checkItem(item, IMAGE_BUTTON, "ImageButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML,
-              IN_PLATFORM);
+              IN_PLATFORM, SUGGESTED);
     checkComponent(createMockComponent(IMAGE_BUTTON), "ImageButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON);
   }
 
@@ -590,120 +592,122 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertImageView(@NotNull Palette.BaseItem item) {
-    checkItem(item, IMAGE_VIEW, "ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM);
+    checkItem(item, IMAGE_VIEW, "ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM,
+              SUGGESTED);
     checkComponent(createMockComponent(IMAGE_VIEW), "ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW);
   }
 
   public void assertVideoView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, "VideoView", IN_PLATFORM);
+    assertNoPreviewView(item, "VideoView", IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTimePicker(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "TimePicker", IN_PLATFORM);
+    assertStandardView(item, "TimePicker", IN_PLATFORM, SUGGESTED);
   }
 
   public void assertDatePicker(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "DatePicker", IN_PLATFORM);
+    assertStandardView(item, "DatePicker", IN_PLATFORM, SUGGESTED);
   }
 
   public void assertCalendarView(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, CALENDAR_VIEW, IN_PLATFORM);
+    assertStandardView(item, CALENDAR_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertChronometer(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, CHRONOMETER, IN_PLATFORM);
+    assertStandardView(item, CHRONOMETER, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTextClock(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, TEXT_CLOCK, IN_PLATFORM);
+    assertStandardView(item, TEXT_CLOCK, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertImageSwitcher(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, IMAGE_SWITCHER, IN_PLATFORM);
+    assertStandardLayout(item, IMAGE_SWITCHER, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertAdapterViewFlipper(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "AdapterViewFlipper", IN_PLATFORM);
+    assertStandardLayout(item, "AdapterViewFlipper", IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertStackView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, STACK_VIEW, IN_PLATFORM);
+    assertStandardLayout(item, STACK_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTextSwitcher(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, TEXT_SWITCHER, IN_PLATFORM);
+    assertStandardLayout(item, TEXT_SWITCHER, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertViewAnimator(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, VIEW_ANIMATOR, IN_PLATFORM);
+    assertStandardLayout(item, VIEW_ANIMATOR, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertViewFlipper(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, VIEW_FLIPPER, IN_PLATFORM);
+    assertStandardLayout(item, VIEW_FLIPPER, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertViewSwitcher(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, VIEW_SWITCHER, IN_PLATFORM);
+    assertStandardLayout(item, VIEW_SWITCHER, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertIncludeItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, IN_PLATFORM);
+    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, IN_PLATFORM,
+              !SUGGESTED);
     checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE);
   }
 
   public void assertRequestFocus(@NotNull Palette.BaseItem item) {
     checkItem(item, REQUEST_FOCUS, "<requestFocus>", StudioIcons.LayoutEditor.Palette.REQUEST_FOCUS, "<requestFocus/>\n", NO_PREVIEW,
-              IN_PLATFORM);
+              IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(REQUEST_FOCUS), "<requestFocus>", StudioIcons.LayoutEditor.Palette.REQUEST_FOCUS);
   }
 
   public void assertViewTag(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_TAG, "<view>", StudioIcons.LayoutEditor.Palette.VIEW, "<view/>\n", NO_PREVIEW, IN_PLATFORM);
+    checkItem(item, VIEW_TAG, "<view>", StudioIcons.LayoutEditor.Palette.VIEW, "<view/>\n", NO_PREVIEW, IN_PLATFORM, !SUGGESTED);
     checkComponent(createMockComponent(VIEW_TAG), "<view>", StudioIcons.LayoutEditor.Palette.VIEW);
   }
 
   public void assertViewStub(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, VIEW_STUB, IN_PLATFORM);
+    assertNoPreviewView(item, VIEW_STUB, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertTextureView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, TEXTURE_VIEW, IN_PLATFORM);
+    assertNoPreviewView(item, TEXTURE_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertSurfaceView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, SURFACE_VIEW, IN_PLATFORM);
+    assertNoPreviewView(item, SURFACE_VIEW, IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertNumberPicker(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, "NumberPicker", IN_PLATFORM);
+    assertNoPreviewView(item, "NumberPicker", IN_PLATFORM, !SUGGESTED);
   }
 
   public void assertAdView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, AD_VIEW, ADS_ARTIFACT);
+    assertNoPreviewView(item, AD_VIEW, ADS_ARTIFACT, SUGGESTED);
   }
 
   public void assertMapView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, MAP_VIEW, MAPS_ARTIFACT);
+    assertNoPreviewView(item, MAP_VIEW, MAPS_ARTIFACT, SUGGESTED);
   }
 
   public void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, COORDINATOR_LAYOUT, DESIGN_LIB_ARTIFACT);
+    assertStandardLayout(item, COORDINATOR_LAYOUT, DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertAppBarLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, APP_BAR_LAYOUT, DESIGN_LIB_ARTIFACT);
+    assertStandardLayout(item, APP_BAR_LAYOUT, DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertTabLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, TAB_LAYOUT, DESIGN_LIB_ARTIFACT);
+    assertStandardLayout(item, TAB_LAYOUT, DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertTabItem(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT);
+    assertNoPreviewView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT, !SUGGESTED);
   }
 
   public void assertNestedScrollViewItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, NESTED_SCROLL_VIEW, SUPPORT_LIB_ARTIFACT);
+    assertStandardLayout(item, NESTED_SCROLL_VIEW, SUPPORT_LIB_ARTIFACT, SUGGESTED);
   }
 
   @Language("XML")
@@ -716,26 +720,26 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertFloatingActionButtonItem(@NotNull Palette.BaseItem item) {
     checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON,
-              FLOATING_ACTION_BUTTON_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT);
+              FLOATING_ACTION_BUTTON_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT, SUGGESTED);
     checkComponent(createMockComponent(FLOATING_ACTION_BUTTON), "FloatingActionButton",
                    StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON);
   }
 
   public void assertTextInputLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, TEXT_INPUT_LAYOUT, STANDARD_VIEW.getTitle(TEXT_INPUT_LAYOUT), STANDARD_LAYOUT.getIcon(TEXT_INPUT_LAYOUT),
-              TEXT_INPUT_LAYOUT_XML, NO_PREVIEW, DESIGN_LIB_ARTIFACT);
+              TEXT_INPUT_LAYOUT_XML, NO_PREVIEW, DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertCardView(@NotNull Palette.BaseItem item) {
-    assertLimitedHeightLayout(item, CARD_VIEW, CARD_VIEW_LIB_ARTIFACT);
+    assertLimitedHeightLayout(item, CARD_VIEW, CARD_VIEW_LIB_ARTIFACT, SUGGESTED);
   }
 
   public void assertGridLayoutV7(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, GRID_LAYOUT_V7, GRID_LAYOUT_LIB_ARTIFACT);
+    assertStandardLayout(item, GRID_LAYOUT_V7, GRID_LAYOUT_LIB_ARTIFACT, !SUGGESTED);
   }
 
   public void assertRecyclerView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, RECYCLER_VIEW, RECYCLER_VIEW_LIB_ARTIFACT);
+    assertStandardLayout(item, RECYCLER_VIEW, RECYCLER_VIEW_LIB_ARTIFACT, SUGGESTED);
   }
 
   @Language("XML")
@@ -793,35 +797,39 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertToolbarV7(@NotNull Palette.BaseItem item) {
     checkItem(item, TOOLBAR_V7, "Toolbar", StudioIcons.LayoutEditor.Palette.TOOLBAR, TOOLBAR_XML, TOOLBAR_PREVIEW_XML,
-              APPCOMPAT_LIB_ARTIFACT);
+              APPCOMPAT_LIB_ARTIFACT, SUGGESTED);
     checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", StudioIcons.LayoutEditor.Palette.TOOLBAR);
   }
 
   private void assertStandardView(@NotNull Palette.BaseItem item,
                                   @NotNull String tag,
-                                  @NotNull String expectedGradleCoordinate) {
+                                  @NotNull String expectedGradleCoordinate,
+                                  boolean expectedInSuggested) {
     @Language("XML")
     String xml = STANDARD_VIEW.getXml(tag, XmlType.COMPONENT_CREATION);
-    checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag), xml, xml, expectedGradleCoordinate);
+    checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag), xml, xml, expectedGradleCoordinate, expectedInSuggested);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag));
   }
 
-  private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
+  private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
+                                    boolean expectedInSuggested) {
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), STANDARD_LAYOUT.getXml(tag, XmlType.COMPONENT_CREATION),
-              NO_PREVIEW, expectedGradleCoordinate);
+              NO_PREVIEW, expectedGradleCoordinate, expectedInSuggested);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
   }
 
-  private void assertNoPreviewView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
+  private void assertNoPreviewView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
+                                   boolean expectedInSuggested) {
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag), STANDARD_VIEW.getXml(tag, XmlType.COMPONENT_CREATION),
-              NO_PREVIEW, expectedGradleCoordinate);
+              NO_PREVIEW, expectedGradleCoordinate, expectedInSuggested);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag));
   }
 
-  private void assertStandardTextView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
+  private void assertStandardTextView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
+                                      boolean expectedInSuggested) {
     @Language("XML")
     String xml = STANDARD_TEXT.getXml(tag, XmlType.COMPONENT_CREATION);
-    checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, expectedGradleCoordinate);
+    checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, expectedGradleCoordinate, expectedInSuggested);
     NlComponent component = createMockComponent(tag);
     checkComponent(component, String.format("%1$s", tag), STANDARD_TEXT.getIcon(tag));
 
@@ -829,7 +837,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(component, String.format("%1$s - \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
   }
 
-  private void assertLimitedHeightLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
+  private void assertLimitedHeightLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
+                                         boolean expectedInSuggested) {
     @Language("XML")
     String xml = new XmlBuilder()
       .startTag(tag)
@@ -838,7 +847,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
       .endTag(tag)
       .toString();
 
-    checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), xml, NO_PREVIEW, expectedGradleCoordinate);
+    checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), xml, NO_PREVIEW, expectedGradleCoordinate,
+              expectedInSuggested);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
   }
 
@@ -848,7 +858,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
                                 @NotNull Icon expectedIcon,
                                 @NotNull @Language("XML") String expectedXml,
                                 @NotNull @Language("XML") String expectedDragPreviewXml,
-                                @NotNull String expectedGradleCoordinateId) {
+                                @NotNull String expectedGradleCoordinateId,
+                                boolean expectedInSuggested) {
     assertTrue(base instanceof Palette.Item);
     Palette.Item item = (Palette.Item)base;
 
@@ -858,6 +869,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
     assertEquals(expectedTag + ".DragPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
     assertEquals(expectedTag + ".GradleCoordinateId", expectedGradleCoordinateId, item.getGradleCoordinateId());
+    assertEquals(expectedInSuggested, item.isSuggested());
   }
 
   private void checkComponent(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull Icon expectedIcon) {

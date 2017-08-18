@@ -243,6 +243,10 @@ public class Palette {
     @Nullable
     private String myHandlerClass;
 
+    @XmlAttribute(name = "suggested")
+    @Nullable
+    private Boolean mySuggested;
+
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
 
@@ -321,6 +325,13 @@ public class Palette {
         return myGradleCoordinateId;
       }
       return myHandler.getGradleCoordinateId(myTagName);
+    }
+
+    public boolean isSuggested() {
+      if (mySuggested != null) {
+        return mySuggested;
+      }
+      return false;
     }
 
     @NotNull
