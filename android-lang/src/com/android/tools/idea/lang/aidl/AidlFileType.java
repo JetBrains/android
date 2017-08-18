@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.aidl;
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import icons.AndroidIcons;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +46,7 @@ public class AidlFileType extends LanguageFileType {
   @Override
   @NotNull
   public String getDescription() {
-    return AndroidBundle.message("aidl.filetype.description");
+    return "Android IDL files";
   }
 
   @Override

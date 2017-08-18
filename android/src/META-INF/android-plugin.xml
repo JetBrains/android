@@ -1327,18 +1327,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
   </extensions>
 
-  <!-- Android IDL support -->
-  <extensions defaultExtensionNs="com.intellij">
-    <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory key="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
-    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
-    <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
-
-    <!--
-    <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
-    -->
-  </extensions>
-
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>

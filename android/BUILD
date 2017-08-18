@@ -96,6 +96,7 @@ iml_module(
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/apkanalyzer[module]",
+        "//tools/adt/idea/android-lang[module]",
     ],
 )
 

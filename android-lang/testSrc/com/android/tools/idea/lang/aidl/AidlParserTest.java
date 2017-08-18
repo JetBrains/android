@@ -15,17 +15,24 @@
  */
 package com.android.tools.idea.lang.aidl;
 
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.testFramework.ParsingTestCase;
-import org.jetbrains.android.AndroidTestBase;
+
+import java.io.File;
 
 public class AidlParserTest extends ParsingTestCase {
   public AidlParserTest() {
-    super("/lang/aidl/parser", AidlFileType.DEFAULT_ASSOCIATED_EXTENSION, new AidlParserDefinition());
+    super("testData/lang/aidl/parser", AidlFileType.DEFAULT_ASSOCIATED_EXTENSION, new AidlParserDefinition());
   }
 
   @Override
   protected String getTestDataPath() {
-    return AndroidTestBase.getTestDataPath();
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/android-lang";
+    if (new File(adtPath).exists()) {
+      return adtPath;
+    }
+    return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
   }
 
   @Override

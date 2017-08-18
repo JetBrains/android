@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.lang.aidl.psi;
 
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 
 /**
  * A util class to provide implementations of methods declared in bnf file.

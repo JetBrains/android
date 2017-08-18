@@ -98,5 +98,6 @@
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="project-system" />
     <orderEntry type="module" module-name="apkanalyzer" />
+    <orderEntry type="module" module-name="android-lang" />
   </component>
 </module>
