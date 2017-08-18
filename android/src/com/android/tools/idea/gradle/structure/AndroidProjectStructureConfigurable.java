@@ -40,7 +40,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.CommonBundle;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -77,6 +76,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -593,7 +593,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         public Icon getIconFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
             Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
-            return module.isDisposed() ? AllIcons.Nodes.Module : GradleUtil.getModuleIcon(module);
+            return module.isDisposed() ? StudioIcons.Shell.Filetree.ANDROID_MODULE : GradleUtil.getModuleIcon(module);
           }
           return null;
         }

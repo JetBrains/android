@@ -22,6 +22,7 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
+import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
@@ -40,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -193,6 +196,13 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s (Android)", getModule().getName());
+  }
+
+  @Override
+  public void update(@NotNull PresentationData presentation) {
+    super.update(presentation);
+    // Use Android Studio Icons
+    presentation.setIcon(getModuleIcon(getModule()));
   }
 
   @Override

@@ -29,17 +29,20 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuild;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder.isCompositeBuild;
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
+import static com.android.tools.idea.testing.Facets.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -214,5 +217,29 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     Module module = getModule();
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
+  }
+
+  public void testIsCompositeBuildWithoutCompositeModule() {
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    projectSettings.setExternalProjectPath(myProject.getBaseDir().getPath());
+    // Populate projectSettings with empty composite build.
+    projectSettings.setCompositeBuild(new CompositeBuild());
+    GradleSettings.getInstance(myProject).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+
+    assertFalse(isCompositeBuild(myModule));
+  }
+
+  public void testIsCompositeBuildWithCompositeModule() {
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    projectSettings.setExternalProjectPath(myProject.getBaseDir().getPath());
+    // Set current module as composite build.
+    CompositeBuild compositeBuild = new CompositeBuild();
+    BuildParticipant participant = new BuildParticipant();
+    participant.setProjects(Collections.singleton(myModule.getModuleFile().getParent().getPath()));
+    compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
+    projectSettings.setCompositeBuild(compositeBuild);
+    GradleSettings.getInstance(myProject).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+
+    assertTrue(isCompositeBuild(myModule));
   }
 }

@@ -25,6 +25,7 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +63,7 @@ public class InstantAppSdks {
     return androidSdkHandler.getLocalPackage(INSTANT_APP_SDK_PATH, new StudioLoggerProgressIndicator(InstantAppSdks.class));
   }
 
-  private static void installSdkIfNeeded() {
+  public static void installSdkIfNeeded() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       int result = Messages.showYesNoDialog(
         "Required Instant App SDK components not installed. Do you want to install it now?", "Instant Apps", null);
@@ -76,18 +77,40 @@ public class InstantAppSdks {
   }
 
   /**
-   * Used to determine if instant app features should be shown or not.
-   * If the instant app sdk is downloaded it returns true.
+   * Since instant app SDK is already public and available, it should be always enabled.
+   * However this method can still be mocked in tests.
    */
   public boolean isInstantAppSdkEnabled() {
-    return getInstantAppLocalPackage() != null;
+    return true;
   }
 
-  public int getMinTargetSdk() throws InstantAppSdkException {
-    return Metadata.getInstance(getInstantAppSdk(false)).getMinApiLevelSupported();
+  public int getMinTargetSdk() {
+    try {
+      File iappSdk = getInstantAppSdk(false);
+      if (iappSdk != null) {
+        return Metadata.getInstance(iappSdk).getMinApiLevelSupported();
+      }
+    }
+    catch (InstantAppSdkException ex) {
+      getLogger().error(ex);
+    }
+    return 21; // If there is any exception return the default value
   }
 
-  public long getCompatApiMinVersion() throws InstantAppSdkException {
-    return Metadata.getInstance(getInstantAppSdk(false)).getAiaCompatApiMinVersion();
+  public long getCompatApiMinVersion() {
+    try {
+      File iappSdk = getInstantAppSdk(false);
+      if (iappSdk != null) {
+        return Metadata.getInstance(iappSdk).getAiaCompatApiMinVersion();
+      }
+    }
+    catch (InstantAppSdkException ex) {
+      getLogger().error(ex);
+    }
+    return 1; // If there is any exception return the default value
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(InstantApps.class);
   }
 }

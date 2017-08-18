@@ -47,14 +47,7 @@ public class InstantAppActivityDefaultsTest {
   public void before() {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, TEST_DOMAIN);
-    SdkReplacer.replaceSdkLocationAndActivate(null, true);
   }
-
-  @After
-  public void after() {
-    SdkReplacer.putBack();
-  }
-
 
   @Test
   public void testDefaultUrlParamsPopulated() {

@@ -315,6 +315,24 @@ public class NlPreviewTest {
       .waitUntilNotShowing();
   }
 
+  @Test
+  public void closeLayoutShouldNotClosePreviewForAnotherLayout() throws Exception {
+    // Regression test for b/64288544
+    EditorFixture editor = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+    editor
+      .getLayoutPreview(true)
+      .waitForRenderToFinish();
+    int updateCountBeforeClose = editor.getPreviewUpdateCount();
+    editor.closeFile("app/src/main/res/layout/frames.xml");
+
+    Wait.seconds(2).expecting("preview to update")
+      .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
+    assertTrue(editor.isPreviewShowing());
+  }
+
   private static void navigateEditor(@NotNull EditorFixture editor,
                                      @NotNull TextEditorFixture selectedEditor, int firstOffset, int lastOffset,
                                      @NotNull TextEditorFixture otherEditor, int expectedOffset) {
