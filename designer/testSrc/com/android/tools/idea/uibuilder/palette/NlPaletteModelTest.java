@@ -231,7 +231,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertThat(item.getTitle()).isEqualTo("FakeCustomView");
     assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
     assertThat(item.getXml()).isEqualTo(getXml(tag));
-    assertThat(item.getPreviewXml()).isEqualTo(getPreviewXml(tag));
 
     ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(tag);
     assertThat(handler).isNotNull();
@@ -270,7 +269,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +
                                         "    android:layout_width=\"wrap_content\"\n" +
                                         "    android:layout_height=\"wrap_content\" />\n");
-    assertThat(item.getPreviewXml()).isEmpty();
   }
 
   @Nullable

@@ -239,14 +239,6 @@ public class Palette {
     @Nullable
     private String myGradleCoordinateId;
 
-    @XmlAttribute(name = "scale")
-    @Nullable
-    private Double myPreviewScale;
-
-    @XmlAttribute(name = "render-separately")
-    @Nullable
-    private Boolean myPreviewRenderSeparately;
-
     @XmlAttribute(name = "handler-class")
     @Nullable
     private String myHandlerClass;
@@ -257,11 +249,6 @@ public class Palette {
     @Language("XML")
     @Nullable
     private String myXml;
-
-    @XmlElement(name = "preview")
-    @Language("XML")
-    @Nullable
-    private String myPreviewXml;
 
     @XmlElement(name = "drag-preview")
     @Language("XML")
@@ -347,34 +334,11 @@ public class Palette {
 
     @NotNull
     @Language("XML")
-    public String getPreviewXml() {
-      if (myPreviewXml != null) {
-        return myPreviewXml;
-      }
-      return myHandler.getXml(myTagName, XmlType.PREVIEW_ON_PALETTE);
-    }
-
-    @NotNull
-    @Language("XML")
     public String getDragPreviewXml() {
       if (myDragPreviewXml != null) {
         return myDragPreviewXml;
       }
       return myHandler.getXml(myTagName, XmlType.DRAG_PREVIEW);
-    }
-
-    public double getPreviewScale() {
-      if (myPreviewScale != null) {
-        return myPreviewScale;
-      }
-      return myHandler.getPreviewScale(myTagName);
-    }
-
-    public boolean isPreviewRenderedSeparately() {
-      if (myPreviewRenderSeparately != null) {
-        return myPreviewRenderSeparately;
-      }
-      return false;
     }
 
     @Override
@@ -396,9 +360,6 @@ public class Palette {
     private void resolve() {
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
-        if (myPreviewXml == null && myXmlValuePart.reuseForPreview()) {
-          myPreviewXml = addId(myXml);  // The preview must have an ID for custom XML
-        }
         if (myDragPreviewXml == null && myXmlValuePart.reuseForDragPreview()) {
           myDragPreviewXml = myXml;
         }
@@ -428,20 +389,6 @@ public class Palette {
       }
     }
 
-    @Language("XML")
-    @Nullable
-    private String addId(@Nullable @Language("XML") String xml) {
-      if (xml == null || myId == null) {
-        return xml;
-      }
-      int index = xml.indexOf("<" + myTagName);
-      if (index < 0) {
-        return xml;
-      }
-      index += 1 + myTagName.length();
-      return xml.substring(0, index) + "\n  android:id=\"@+id/" + getId() + "\"\n" + xml.substring(index);
-    }
-
     @NotNull
     @Override
     public String toString() {
@@ -465,16 +412,8 @@ public class Palette {
       return myValue;
     }
 
-    private boolean reuseFor(@NotNull String part) {
-      return myReuse != null && Splitter.on(",").trimResults().splitToList(myReuse).contains(part);
-    }
-
-    public boolean reuseForPreview() {
-      return reuseFor("preview");
-    }
-
     public boolean reuseForDragPreview() {
-      return reuseFor("drag-preview");
+      return myReuse != null && Splitter.on(",").trimResults().splitToList(myReuse).contains("drag-preview");
     }
   }
 }
