@@ -171,6 +171,8 @@ public class StudioIcons {
       public static final Icon MAP_VIEW_LARGE = load("/studio/icons/layout-editor/palette/map-view_large.png"); // 24x24
       public static final Icon MENU = load("/studio/icons/layout-editor/palette/menu.png"); // 16x16
       public static final Icon MENU_LARGE = load("/studio/icons/layout-editor/palette/menu_large.png"); // 24x24
+      public static final Icon MERGE = load("/studio/icons/layout-editor/palette/merge.png"); // 16x16
+      public static final Icon MERGE_LARGE = load("/studio/icons/layout-editor/palette/merge_large.png"); // 24x24
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view.png"); // 16x16
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW_LARGE = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view_large.png"); // 24x24
       public static final Icon NESTED_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/nested-scroll-view.png"); // 16x16
@@ -261,6 +263,8 @@ public class StudioIcons {
       public static final Icon TOGGLE_BUTTON_LARGE = load("/studio/icons/layout-editor/palette/toggle-button_large.png"); // 24x24
       public static final Icon TOOLBAR = load("/studio/icons/layout-editor/palette/toolbar.png"); // 16x16
       public static final Icon TOOLBAR_LARGE = load("/studio/icons/layout-editor/palette/toolbar_large.png"); // 24x24
+      public static final Icon UNKNOWN_VIEW = load("/studio/icons/layout-editor/palette/unknown-view.png"); // 16x16
+      public static final Icon UNKNOWN_VIEW_LARGE = load("/studio/icons/layout-editor/palette/unknown-view_large.png"); // 24x24
       public static final Icon VIDEO_VIEW = load("/studio/icons/layout-editor/palette/video-view.png"); // 16x16
       public static final Icon VIDEO_VIEW_LARGE = load("/studio/icons/layout-editor/palette/video-view_large.png"); // 24x24
       public static final Icon VIEW_ANIMATOR = load("/studio/icons/layout-editor/palette/view-animator.png"); // 16x16
@@ -481,6 +485,7 @@ public class StudioIcons {
 
   public static class Shell {
     public static class Filetree {
+      public static final Icon ANDROID_BUILD_ARTIFACT = load("/studio/icons/shell/filetree/android-build-artifact.png"); // 16x16
       public static final Icon ANDROID_FILE = load("/studio/icons/shell/filetree/android-file.png"); // 16x16
       public static final Icon ANDROID_MODULE = load("/studio/icons/shell/filetree/android-module.png"); // 16x16
       public static final Icon ANDROID_PROJECT = load("/studio/icons/shell/filetree/android-project.png"); // 16x16
