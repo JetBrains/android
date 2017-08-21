@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*;
@@ -48,9 +49,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
 
-  static final int DEFAULT_HEAP_ID = 0;
   static final String DEFAULT_HEAP_NAME = "default";
-  static final int DEFAULT_CLASSLOADER_ID = -1;
+  static final String IMAGE_HEAP_NAME = "image";
+  static final String ZYGOTE_HEAP_NAME = "zygote";
+  static final String APP_HEAP_NAME = "app";
 
   @Nullable private MemoryProfilerStage myStage;
 
@@ -65,7 +67,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final Common.Session mySession;
   private final int myProcessId;
   private final long myCaptureStartTime;
-  private final HeapSet myDefaultHeapSet;
+  private final List<HeapSet> myHeapSets;
   private final AspectObserver myAspectObserver;
 
   private long myEventsEndTimeNs;
@@ -100,9 +102,13 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     mySession = session;
     myProcessId = processId;
     myCaptureStartTime = captureStartTime;
-    myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
     myStage = stage;
+
+    myHeapSets = Arrays.asList(new HeapSet(this, DEFAULT_HEAP_NAME, 0),  // default
+                               new HeapSet(this, IMAGE_HEAP_NAME, 1),  // image
+                               new HeapSet(this, ZYGOTE_HEAP_NAME, 2),  // zygote
+                               new HeapSet(this, APP_HEAP_NAME, 3)); // app
 
     myEventsEndTimeNs = Long.MIN_VALUE;
     myContextEndTimeNs = Long.MIN_VALUE;
@@ -159,26 +165,22 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
-    return ImmutableList.of(myDefaultHeapSet);
+    return myHeapSets;
   }
 
-  @NotNull
   @Override
-  public String getHeapName(int heapId) {
-    return DEFAULT_HEAP_NAME;
-  }
-
   @Nullable
-  @Override
   public HeapSet getHeapSet(int heapId) {
-    assert heapId == DEFAULT_HEAP_ID;
-    return myDefaultHeapSet;
+    // Android Runtime guarantees continuity of heap IDs starting from 0. There are only four at the moment (default, image, zygote, app)
+    // and are unlikely to change.
+    assert heapId >= 0 && heapId <= 3;
+    return myHeapSets.get(heapId);
   }
 
   @NotNull
   @Override
   public Stream<InstanceObject> getInstances() {
-    return myDefaultHeapSet.getInstancesStream();
+    return getHeapSets().stream().map(ClassifierSet::getInstancesStream).flatMap(Function.identity());
   }
 
   @Override
@@ -237,7 +239,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
         // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
         LiveAllocationInstanceObject instance =
-          new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE);
+          new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE, MemoryObject.INVALID_VALUE);
         instance.setAllocationTime(myCaptureStartTime);
         myClassMap.put(entry, instance);
         // TODO figure out what to do with java.lang.Class instance objects
@@ -333,7 +335,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               AllocationEvent.Allocation allocation = event.getAllocData();
               LiveAllocationInstanceObject instance =
                 getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
-                                          allocation.getSize());
+                                          allocation.getSize(), allocation.getHeapId());
               if (insideCurrentRange) {
                 instance.setAllocationTime(event.getTimestamp());
                 setAllocationList.add(instance);
@@ -347,8 +349,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               AllocationEvent.Deallocation deallocation = event.getFreeData();
               LiveAllocationInstanceObject instance =
                 getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
-                                          deallocation.getThreadId(),
-                                          deallocation.getSize());
+                                          deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
               if (insideCurrentRange) {
                 instance.setDeallocTime(event.getTimestamp());
                 setDeallocationList.add(instance);
@@ -372,22 +373,22 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           if (clear ||
               setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
             if (clear) {
-              myDefaultHeapSet.clearClassifierSets();
+              myHeapSets.forEach(heap -> heap.clearClassifierSets());
               if (myStage.getSelectedClassSet() != null) {
                 myStage.selectClassSet(ClassSet.EMPTY_SET);
               }
             }
             setAllocationList.forEach(instance -> {
-              myDefaultHeapSet.addInstanceObject(instance);
+              myHeapSets.get(instance.getHeapId()).addInstanceObject(instance);
             });
             setDeallocationList.forEach(instance -> {
-              myDefaultHeapSet.freeInstanceObject(instance);
+              myHeapSets.get(instance.getHeapId()).freeInstanceObject(instance);
             });
             resetAllocationList.forEach(instance -> {
-              myDefaultHeapSet.removeAddingInstanceObject(instance);
+              myHeapSets.get(instance.getHeapId()).removeAddingInstanceObject(instance);
             });
             resetDeallocationList.forEach(instance -> {
-              myDefaultHeapSet.removeFreeingInstanceObject(instance);
+              myHeapSets.get(instance.getHeapId()).removeFreeingInstanceObject(instance);
             });
             myStage.refreshSelectedHeap();
           }
@@ -401,7 +402,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   @NotNull
-  private LiveAllocationInstanceObject getOrCreateInstanceObject(int tag, int classTag, int stackId, int threadId, long size) {
+  private LiveAllocationInstanceObject getOrCreateInstanceObject(int tag, int classTag, int stackId, int threadId, long size, int heapId) {
     LiveAllocationInstanceObject instance = myInstanceMap.get(tag);
     if (instance == null) {
       ClassDb.ClassEntry entry = myClassDb.getEntry(classTag);
@@ -416,7 +417,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         assert myThreadIdMap.containsKey(threadId);
         thread = myThreadIdMap.get(threadId);
       }
-      instance = new LiveAllocationInstanceObject(this, entry, myClassMap.get(entry), thread, callstack, size);
+      instance = new LiveAllocationInstanceObject(this, entry, myClassMap.get(entry), thread, callstack, size, heapId);
       myInstanceMap.put(tag, instance);
     }
 

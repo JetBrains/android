@@ -208,12 +208,6 @@ public class CaptureObjectLoaderTest {
       return Collections.emptyList();
     }
 
-    @NotNull
-    @Override
-    public String getHeapName(int heapId) {
-      return INVALID_HEAP_NAME;
-    }
-
     @Nullable
     @Override
     public HeapSet getHeapSet(int heapId) {

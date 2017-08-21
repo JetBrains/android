@@ -33,6 +33,7 @@ import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SortOrder.DESCENDING;
 
 public interface CaptureObject extends MemoryObject {
+  int DEFAULT_HEAP_ID = 0;
   int DEFAULT_CLASSLOADER_ID = -1;
   String INVALID_HEAP_NAME = "INVALID";
 
@@ -130,9 +131,6 @@ public interface CaptureObject extends MemoryObject {
 
   @NotNull
   Collection<HeapSet> getHeapSets();
-
-  @NotNull
-  String getHeapName(int heapId);
 
   @Nullable
   HeapSet getHeapSet(int heapId);

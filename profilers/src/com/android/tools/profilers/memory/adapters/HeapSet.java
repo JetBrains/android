@@ -29,8 +29,8 @@ public class HeapSet extends ClassifierSet {
   @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
 
-  public HeapSet(@NotNull CaptureObject captureObject, int id) {
-    super(captureObject.getHeapName(id));
+  public HeapSet(@NotNull CaptureObject captureObject, @NotNull String heapName, int id) {
+    super(heapName);
     myCaptureObject = captureObject;
     myId = id;
     setClassGrouping(ClassGrouping.ARRANGE_BY_CLASS);
