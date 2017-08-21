@@ -347,7 +347,8 @@ public class InteractionManager {
         return;
       }
 
-      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1) {
+      // If shift is down, the user is multi-selecting the component, no need to navigate XML file in this case.
+      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
         NlComponent component = getComponentAt(x, y);
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
