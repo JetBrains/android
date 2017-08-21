@@ -44,7 +44,7 @@ public class MinSdkForInstantAppTest {
       .getConfigureFormFactorStep()
       .selectMinimumSdkApi(MOBILE, "20")
       .selectInstantAppSupport(MOBILE)
-      .waitForErrorMessageToContain("Phone and Tablet must have a Minimum SDK >= 21 for Instant App Support.");
+      .waitForErrorMessageToContain("Phone and Tablet must have a Minimum SDK >= 23 for Instant App Support.");
 
     newProjectWizard
       .clickCancel();
