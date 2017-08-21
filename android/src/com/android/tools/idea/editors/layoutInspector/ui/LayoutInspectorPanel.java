@@ -21,6 +21,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import org.intellij.images.editor.ImageZoomModel;
 import org.intellij.images.editor.actionSystem.ImageEditorActions;
 import org.intellij.images.editor.actions.ActualSizeAction;
+import org.intellij.images.editor.actions.ToggleGridAction;
 import org.intellij.images.editor.actions.ZoomInAction;
 import org.intellij.images.editor.actions.ZoomOutAction;
 import org.intellij.images.options.EditorOptions;
@@ -42,7 +43,7 @@ import java.util.Objects;
  * The middle section of Layout Inspector that displays active ViewNode selected by the Layout Tree.
  */
 public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageComponentDecorator {
-  private final Class[] SUPPORTED_IMAGE_ACTIONS = new Class[]{ZoomInAction.class, ZoomOutAction.class, ActualSizeAction.class};
+  private final Class[] SUPPORTED_IMAGE_ACTIONS = new Class[]{ToggleGridAction.class, ZoomInAction.class, ZoomOutAction.class, ActualSizeAction.class};
 
   @NotNull private final JScrollPane myScrollPane;
 
@@ -135,12 +136,12 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
 
   @Override
   public void setGridVisible(boolean visible) {
-
+    myPreview.setGridVisible(visible);
   }
 
   @Override
   public boolean isGridVisible() {
-    return false;
+    return myPreview.isGridVisible();
   }
 
   @Override

@@ -20,6 +20,8 @@ import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.editors.theme.MaterialColors;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.intellij.util.ui.UIUtil;
+import org.intellij.images.options.GridOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ import java.util.List;
  * image that listens to hover/click and fires events for listeners to respond.
  */
 public class ViewNodeActiveDisplay extends JComponent {
+  private static final double SHOW_GRID_LEVEL = 3;
 
   private static final Color DEFAULT_COLOR = Color.GRAY;
   private static final Color HOVER_COLOR = MaterialColors.DEEP_ORANGE_900;
@@ -64,6 +67,7 @@ public class ViewNodeActiveDisplay extends JComponent {
   private ViewNode mHoverNode;
   @Nullable
   private ViewNode mSelectedNode;
+  private boolean mGridVisible = false;
 
   public ViewNodeActiveDisplay(@NotNull ViewNode root, @Nullable Image preview) {
     mRoot = root;
@@ -180,13 +184,22 @@ public class ViewNodeActiveDisplay extends JComponent {
     g.translate(mDrawShiftX, mDrawShiftY);
 
     if (mPreview != null) {
-      if (Float.compare(mZoomFactor, 1.0f) != 0) {
+      RenderingHints oldHints = g.getRenderingHints();
+      g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+      if (Float.compare(mZoomFactor, 1.0f) < 0) {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      } else {
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
       }
       g.drawImage(mPreview, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
                   0, 0, mPreview.getWidth(null), mPreview.getHeight(null), null);
+      g.setRenderingHints(oldHints);
+
+      if (isGridVisible() && mZoomFactor >= SHOW_GRID_LEVEL) {
+        paintGrid(g, mPreview);
+      }
     }
 
     g.clipRect(0, 0, mRoot.previewBox.width, mRoot.previewBox.height);
@@ -290,6 +303,32 @@ public class ViewNodeActiveDisplay extends JComponent {
     // when zoom factor changes, change the size. more zoomed in = bigger size and vice versa.
     setPreferredSize(new Dimension((int)(rootWidth * mZoomFactor), (int)(rootHeight * mZoomFactor)));
     revalidate();
+  }
+
+  public void setGridVisible(boolean gridVisible) {
+    mGridVisible = gridVisible;
+    repaint();
+  }
+
+  public boolean isGridVisible() {
+    return mGridVisible;
+  }
+
+  private void paintGrid(@NotNull Graphics g, @NotNull Image image) {
+    Dimension size = getSize();
+    int imageWidth = image.getWidth(null);
+    int imageHeight = image.getHeight(null);
+    double zoomX = (double)size.width / (double)imageWidth;
+    double zoomY = (double)size.height / (double)imageHeight;
+
+    g.setColor(GridOptions.DEFAULT_LINE_COLOR);
+    int lineSpan = GridOptions.DEFAULT_LINE_SPAN;
+    for (int dx = lineSpan; dx < imageWidth; dx += lineSpan) {
+      UIUtil.drawLine(g, (int)((double)dx * zoomX), 0, (int)((double)dx * zoomX), size.height);
+    }
+    for (int dy = lineSpan; dy < imageHeight; dy += lineSpan) {
+      UIUtil.drawLine(g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
+    }
   }
 
   private class MyMouseAdapter extends MouseAdapter {
