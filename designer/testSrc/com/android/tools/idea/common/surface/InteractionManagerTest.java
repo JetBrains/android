@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
@@ -40,6 +41,8 @@ import org.mockito.Mockito;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
@@ -109,6 +112,40 @@ public class InteractionManagerTest extends LayoutTestCase {
     assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }
 
+  public void testSelectSingleComponent() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+  }
+
+  public void testMultiSelectComponent() throws Exception {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
+
+    SceneComponent button = screenView.getScene().getSceneComponent("button");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, button.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, button.getCenterY()), KeyEvent.SHIFT_DOWN_MASK);
+
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(2, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+    assertEquals(button.getNlComponent(), selections.get(1));
+  }
+
   public void testLinearLayoutCursorHoverComponent() throws Exception {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
@@ -161,7 +198,14 @@ public class InteractionManagerTest extends LayoutTestCase {
           .id("@+id/textView")
           .text("Hello World")
           .wrapContentWidth()
-          .wrapContentHeight())).build();
+          .wrapContentHeight(),
+        component(BUTTON)
+          .id("@+id/button")
+          .withBounds(50, 50, 50, 50)
+          .text("Button")
+          .wrapContentWidth()
+          .wrapContentHeight()
+        )).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
