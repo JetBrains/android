@@ -116,7 +116,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   private JBLoadingPanel getLoadingPanel() {
     if (myLoadingPanel == null) {
-      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject, 20);
+      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 20);
       myLoadingPanel.add(getContentPanel());
     }
     return myLoadingPanel;
