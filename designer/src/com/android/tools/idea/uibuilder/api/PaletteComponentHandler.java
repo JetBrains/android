@@ -143,15 +143,13 @@ public abstract class PaletteComponentHandler {
   @NotNull
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
-    // TODO: add UNKNOWN_VIEW to StudioIcons.
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.VIEW;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
   }
 
   @NotNull
   protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getLargeIconForViewTag(getSimpleTagName(tagName));
-    // TODO: add UNKNOWN_VIEW_LARGE to StudioIcons.
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.VIEW_LARGE;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW_LARGE;
   }
 
   @NotNull
