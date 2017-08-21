@@ -97,7 +97,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected void onEntering() {
     // Request user to install Instant App SDK, if not installed yet
-    InstantAppSdks.getInstance().installSdkIfNeeded();
+    InstantAppSdks.getInstance().getInstantAppSdk(true);
   }
 
   @Override

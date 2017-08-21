@@ -48,11 +48,6 @@ public class SdkReplacer {
       }
 
       @Override
-      public void installSdkIfNeeded() {
-        // Don't install
-      }
-
-      @Override
       public boolean isInstantAppSdkEnabled() {
         return activate;
       }
