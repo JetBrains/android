@@ -94,6 +94,7 @@ iml_module(
         "//tools/idea/platform/lang-api[module]",
         "//tools/adt/idea/observable-ui[module]",
         "//tools/adt/idea/artwork[module]",
+        "//tools/adt/idea/project-system[module]",
     ],
 )
 
