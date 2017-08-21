@@ -64,7 +64,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     mySession = session;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
-    myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
+    myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
     myLabel = "Allocations" +
               (myStartTimeNs != Long.MAX_VALUE ?
                " from " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
@@ -210,13 +210,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @Override
   public Collection<HeapSet> getHeapSets() {
     return Collections.singletonList(myFakeHeapSet);
-  }
-
-  @NotNull
-  @Override
-  public String getHeapName(int heapId) {
-    assert heapId == DEFAULT_HEAP_ID;
-    return DEFAULT_HEAP_NAME;
   }
 
   @Override

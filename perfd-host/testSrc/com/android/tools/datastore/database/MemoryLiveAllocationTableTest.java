@@ -45,6 +45,8 @@ public class MemoryLiveAllocationTableTest {
     .build();
 
   // Live allocation test data
+  private final int HEAP0 = 0;
+  private final int HEAP1 = 1;
   private final int STACK1 = 1;
   private final int STACK2 = 2;
   private final long METHOD1 = 10;
@@ -75,7 +77,6 @@ public class MemoryLiveAllocationTableTest {
   private final String JNI_KLASS3_NAME = "[[[Ljava/lang/Klass3;";
   private final String JAVA_KLASS1_NAME = "java.lang.Klass1";
   private final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
-  private final String JAVA_KLASS3_NAME = "java.lang.Klass3[][][]";
   private final long CLASS1_TIME = 10;
   private final long CLASS2_TIME = 15;
   private final long STACK1_TIME = 12;
@@ -125,16 +126,19 @@ public class MemoryLiveAllocationTableTest {
     // A klass1 instance allocation event (t = 0)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
       .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1))
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
       .setTimestamp(0).build();
     // A klass1 instance deallocation event (t = 7)
     AllocationEvent dealloc1 = AllocationEvent.newBuilder()
       .setFreeData(
-        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1))
+        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1)
+          .setHeapId(HEAP0))
       .setTimestamp(7).build();
     // A klass2 instance allocation event (t = 6)
     AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2).setHeapId(HEAP1))
+      .setTimestamp(6).build();
 
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
       .addEvents(alloc1)

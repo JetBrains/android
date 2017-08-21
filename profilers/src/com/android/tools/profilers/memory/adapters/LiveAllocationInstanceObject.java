@@ -34,6 +34,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   private long myAllocTime = Long.MIN_VALUE;
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
+  private final int myHeapId;
   @Nullable private AllocationStack myCallstack;
   @Nullable private final ThreadId myThreadId;
 
@@ -42,11 +43,13 @@ public class LiveAllocationInstanceObject implements InstanceObject {
                                       @Nullable LiveAllocationInstanceObject classObject,
                                       @Nullable ThreadId threadId,
                                       @Nullable AllocationStack callstack,
-                                      long size) {
+                                      long size,
+                                      int heapId) {
     myCaptureObject = captureObject;
     myClassEntry = classEntry;
     myClassObject = classObject;
     mySize = size;
+    myHeapId = heapId;
     myThreadId = threadId == null ? ThreadId.INVALID_THREAD_ID : threadId;
     myCallstack = callstack;
     if ("java.lang.String".equals(classEntry.getClassName())) {
@@ -103,7 +106,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   @Override
   public int getHeapId() {
-    return LiveAllocationCaptureObject.DEFAULT_HEAP_ID;
+    return myHeapId;
   }
 
   @Override

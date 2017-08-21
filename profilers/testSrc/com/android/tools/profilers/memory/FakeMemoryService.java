@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   private static long US_TO_NS = TimeUnit.MICROSECONDS.toNanos(1);
@@ -203,7 +205,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       AllocationEvent event = AllocationEvent.newBuilder()
         .setAllocData(
           AllocationEvent.Allocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
-            .setStackId(contextId).build())
+            .setStackId(contextId).setHeapId(DEFAULT_HEAP_ID).build())
         .setTimestamp(i).build();
       sampleBuilder.addEvents(event);
       timestamp = i;
@@ -220,7 +222,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       AllocationEvent event = AllocationEvent.newBuilder()
         .setFreeData(
           AllocationEvent.Deallocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
-            .setStackId(contextId).build())
+            .setStackId(contextId).setHeapId(DEFAULT_HEAP_ID).build())
         .setTimestamp(i).build();
       sampleBuilder.addEvents(event);
     }
