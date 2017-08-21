@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
@@ -48,20 +46,6 @@ public final class MergeHandler extends FrameLayoutHandler {
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
     return "<merge>";
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull String tagName) {
-    // TODO: add new icon to StudioIcons and replace this icon
-    return AndroidIcons.Views.Merge;
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon(@NotNull NlComponent component) {
-    // TODO: add new icon to StudioIcons and replace this icon
-    return AndroidIcons.Views.Merge;
   }
 
   @Override

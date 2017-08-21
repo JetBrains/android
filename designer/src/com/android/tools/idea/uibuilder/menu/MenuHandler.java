@@ -55,6 +55,6 @@ public class MenuHandler extends ViewGroupHandler {
   @Override
   protected final Icon loadBuiltinIcon(@NotNull String tagName) {
     return MoreObjects.firstNonNull(IconLoader.findIcon("StudioIcons.LayoutEditor.Palette." + tagName, getClass()),
-                                    StudioIcons.LayoutEditor.Palette.VIEW);
+                                    StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW);
   }
 }
