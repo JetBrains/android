@@ -9,8 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="project-system" />
-    <orderEntry type="module" module-name="project-system-gradle" />
     <orderEntry type="module" module-name="sdk-updates" />
     <orderEntry type="module" module-name="designer" />
     <orderEntry type="module" module-name="profilers-android" />

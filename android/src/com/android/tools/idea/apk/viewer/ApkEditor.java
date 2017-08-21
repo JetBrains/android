@@ -113,7 +113,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
       myArchive = Archives.open(copyOfApk);
-      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
+      myApkViewPanel = new ApkViewPanel(new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());
       selectionChanged(null);
