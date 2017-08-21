@@ -200,6 +200,7 @@ public class FileTreeModel implements TreeModel {
    * This is a no-op if the given path already exists within the tree.
    */
   public void addFile(@NotNull File f, @Nullable Icon ic) {
+    if (FileUtil.filesEqual(f, myRoot)) return;
     String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
     if (s != null) {
       List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
