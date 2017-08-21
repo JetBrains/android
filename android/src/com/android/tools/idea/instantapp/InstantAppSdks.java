@@ -94,7 +94,7 @@ public class InstantAppSdks {
     catch (InstantAppSdkException ex) {
       getLogger().error(ex);
     }
-    return 21; // If there is any exception return the default value
+    return 23; // If there is any exception return the default value
   }
 
   public long getCompatApiMinVersion() {
