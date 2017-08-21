@@ -21,8 +21,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -35,7 +33,6 @@ import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
@@ -68,7 +65,6 @@ public class ApkViewPanel implements TreeSelectionListener {
   private AnimatedIcon mySizeAsyncIcon;
   private JButton myCompareWithButton;
   private Tree myTree;
-  private Project myProject;
 
   private DefaultTreeModel myTreeModel;
   private Listener myListener;
@@ -80,9 +76,8 @@ public class ApkViewPanel implements TreeSelectionListener {
     void selectApkAndCompare();
   }
 
-  public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser) {
+  public ApkViewPanel(@NotNull ApkParser apkParser) {
     myApkParser = apkParser;
-    myProject = project;
     // construct the main tree along with the uncompressed sizes
     Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
       @Override
@@ -120,7 +115,6 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
 
-    Path pathToAapt = ProjectSystemUtil.getInstance(myProject).getPathToAapt();
     //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
@@ -128,7 +122,7 @@ public class ApkViewPanel implements TreeSelectionListener {
       Futures.transformAsync(apkParser.constructTreeStructure(),
                              input -> {
                                assert input != null;
-                               return apkParser.getApplicationInfo(pathToAapt, Archives.getFirstManifestArchive(input));
+                               return apkParser.getApplicationInfo(Archives.getFirstManifestArchive(input));
                              }, PooledThreadExecutor.INSTANCE);
 
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {

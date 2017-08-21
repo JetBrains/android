@@ -18,8 +18,6 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.apk.analyzer.AaptInvoker;
 import com.android.tools.apk.analyzer.AndroidApplicationInfo;
 import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.Archives;
@@ -31,8 +29,6 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,14 +152,9 @@ public class GradleApkProvider implements ApkProvider {
     return result;
   }
 
-  private static Path getPathToAapt() {
-    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    return AaptInvoker.getPathToAapt(handler, new LogWrapper(GradleApkProvider.class));
-  }
-
   private static String getPackageId(@NotNull File fileApk) throws ApkProvisionException {
     try (Archive archive = Archives.open(fileApk.toPath())) {
-      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(getPathToAapt(), archive);
+      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(archive);
       if(applicationInfo == AndroidApplicationInfo.UNKNOWN) {
         throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName());
       } else {

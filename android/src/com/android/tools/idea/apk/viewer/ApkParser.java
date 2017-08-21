@@ -16,10 +16,8 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.ide.common.process.ProcessException;
 import com.android.tools.apk.analyzer.*;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Function;
@@ -33,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 public class ApkParser {
@@ -88,8 +85,8 @@ public class ApkParser {
   }
 
   @NotNull
-  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(Path pathToAapt, @Nullable Archive archive) {
-    return ourExecutorService.submit(() -> getAppInfo(pathToAapt, archive));
+  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(@Nullable Archive archive) {
+    return ourExecutorService.submit(() -> getAppInfo(archive));
   }
 
   @NotNull
@@ -117,12 +114,12 @@ public class ApkParser {
   }
 
   @NotNull
-  public static AndroidApplicationInfo getAppInfo(@NonNull Path pathToAapt, @Nullable Archive archive) {
+  public static AndroidApplicationInfo getAppInfo(@Nullable Archive archive) {
     if (archive == null){
       return AndroidApplicationInfo.UNKNOWN;
     }
     try {
-      AaptInvoker invoker = new AaptInvoker(pathToAapt, new LogWrapper(ApkParser.class));
+      AaptInvoker invoker = new AaptInvoker(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(ApkParser.class));
 
       List<String> xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
       return AndroidApplicationInfo.parse(xmlTree);
