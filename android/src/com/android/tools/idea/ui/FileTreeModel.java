@@ -204,6 +204,7 @@ public class FileTreeModel implements TreeModel {
    */
   @Nullable
   public Node addFile(@NotNull File f, @Nullable Icon ic) {
+    if (FileUtil.filesEqual(f, myRoot)) return null;
     String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
     if (s != null) {
       List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
