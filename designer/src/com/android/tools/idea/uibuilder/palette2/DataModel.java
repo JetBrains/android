@@ -84,6 +84,10 @@ public class DataModel {
     update();
   }
 
+  public int getMatchCount() {
+    return myListModel.getMatchCountAt(0);
+  }
+
   public void categorySelectionChanged(@NotNull Palette.Group selectedGroup) {
     if (myItemFilter.getPattern().isEmpty()) {
       createUnFilteredItems(selectedGroup);

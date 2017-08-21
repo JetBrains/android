@@ -182,7 +182,7 @@ public class NlPaletteModel implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
+  public Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
     myTypeToPalette.put(type, palette);
     return palette;
