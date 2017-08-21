@@ -65,4 +65,12 @@ public class LayoutInspectorPanelZoomTest extends AndroidTestCase {
     newFactor = zoom.getZoomFactor();
     assertTrue(initialFactor != newFactor);
   }
+
+  // test grid is not visible by default
+  public void testShowGrid() {
+    assertFalse(myPanel.isGridVisible());
+
+    myPanel.setGridVisible(true);
+    assertTrue(myPanel.isGridVisible());
+  }
 }
