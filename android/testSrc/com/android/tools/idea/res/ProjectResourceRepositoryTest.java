@@ -195,11 +195,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Now remove one of the modules, which should automatically cause the repo to have different roots.
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> removeModuleDependency(myModule, modules.getModule("plib2").getName()));
-    DumbService.getInstance(getProject()).runWhenSmart(() -> {
+    DumbService dumbService = DumbService.getInstance(getProject());
+    dumbService.runWhenSmart(() -> {
       assertEquals(originalChildren.size() - 1, resources.getChildren().size());
       assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
     });
-    DumbService.getInstance(getProject()).waitForSmartMode();
+    if (dumbService.isDumb())
+      dumbService.waitForSmartMode();
   }
 
   public void testHasResourcesOfType() {
