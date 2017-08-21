@@ -63,7 +63,7 @@ public class InstantAppSdks {
     return androidSdkHandler.getLocalPackage(INSTANT_APP_SDK_PATH, new StudioLoggerProgressIndicator(InstantAppSdks.class));
   }
 
-  public void installSdkIfNeeded() {
+  private static void installSdkIfNeeded() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       int result = Messages.showYesNoDialog(
         "Required Instant App SDK components not installed. Do you want to install it now?", "Instant Apps", null);
