@@ -25,19 +25,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.SearchTextField;
-import com.intellij.util.ThrowableRunnable;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.junit.runners.model.Statement;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -52,23 +49,13 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@RunsInEdt
 @RunWith(JUnit4.class)
 public class AttachedToolWindowTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
   @Rule
-  public TestRule myEdtRule = new TestRule() {
-    @NotNull
-    @Override
-    public Statement apply(@NotNull Statement base, @NotNull Description description) {
-      return new Statement() {
-        @Override
-        public void evaluate() throws Throwable {
-          UIUtil.invokeAndWaitIfNeeded((ThrowableRunnable)() -> base.evaluate());
-        }
-      };
-    }
-  };
+  public EdtRule edtRule = new EdtRule();
   @Mock
   private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock
