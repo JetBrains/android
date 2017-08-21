@@ -37,8 +37,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     // O+ Allocation Tracking
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
-      "INSERT OR IGNORE INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId) " +
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO Memory_AllocationEvents " +
+      "(Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
     INSERT_METHOD("INSERT OR IGNORE INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ENCODED_STACK("INSERT OR IGNORE INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, StackData) VALUES (?, ?, ?, ?, ?)"),
     INSERT_THREAD_INFO("INSERT OR IGNORE INTO Memory_ThreadInfos (Pid, Session, ThreadId, AllocTime, ThreadName) VALUES (?, ?, ?, ?, ?)"),
@@ -46,10 +47,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
-    QUERY_ALLOC_BY_ALLOC_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId FROM Memory_AllocationEvents " +
-                              "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
-    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId FROM Memory_AllocationEvents " +
-                             "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
+    QUERY_ALLOC_BY_ALLOC_TIME(
+      "SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
+      "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_ALLOC_BY_FREE_TIME(
+      "SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
+      "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
     QUERY_ENCODED_STACK_INFO_BY_TIME(
       "Select StackData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
@@ -98,7 +101,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                   "AllocTime INTEGER", "Name TEXT", "PRIMARY KEY(Pid, Session, Tag)");
       createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "Size INTEGER", "Length INTEGER", "ThreadId INTEGER",
-                  "StackId INTEGER", "PRIMARY KEY(Pid, Session, Tag)");
+                  "StackId INTEGER", "HeapId INTEGER", "PRIMARY KEY(Pid, Session, Tag)");
       createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
                   "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
       createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "AllocTime INTEGER",
@@ -147,7 +150,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
             .setAllocData(
               MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
                 .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7))
-                .setStackId(allocResult.getInt(8)).build())
+                .setStackId(allocResult.getInt(8)).setHeapId(allocResult.getInt(9)).build())
             .setTimestamp(allocTime).build();
           sampleBuilder.addEvents(event);
           timestamp = Math.max(timestamp, allocTime);
@@ -162,7 +165,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
             .setFreeData(
               MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2))
                 .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7))
-                .setStackId(freeResult.getInt(8)).build())
+                .setStackId(freeResult.getInt(8)).setHeapId(freeResult.getInt(9)).build())
             .setTimestamp(freeTime).build();
           sampleBuilder.addEvents(event);
           timestamp = Math.max(timestamp, freeTime);
@@ -273,7 +276,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
             AllocationEvent.Allocation allocation = event.getAllocData();
             applyParams(currentStatement, pid, session, allocation.getTag(), allocation.getClassTag(),
                         event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), allocation.getThreadId(),
-                        allocation.getStackId());
+                        allocation.getStackId(), allocation.getHeapId());
             break;
           case FREE_DATA:
             assert currentStatement != null;

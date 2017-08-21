@@ -26,8 +26,6 @@ import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 public final class FakeCaptureObject implements CaptureObject {
-  public static final int DEFAULT_HEAP_ID = 0;
-
   @NotNull private final String myCaptureName;
   @NotNull private final List<ClassifierAttribute> myClassifierAttributes;
   @NotNull private final List<InstanceAttribute> myInstanceAttributes;
@@ -100,7 +98,10 @@ public final class FakeCaptureObject implements CaptureObject {
     myInstanceObjects.addAll(instanceObjects);
     myHeapSets.clear();
     for (InstanceObject instanceObject : myInstanceObjects) {
-      HeapSet set = myHeapSets.computeIfAbsent(instanceObject.getHeapId(), id -> new HeapSet(this, id));
+      HeapSet set = myHeapSets.computeIfAbsent(instanceObject.getHeapId(), id -> {
+        String heapName = myHeapIdToName.containsKey(id) ? myHeapIdToName.get(id) : INVALID_HEAP_NAME;
+        return new HeapSet(this, heapName, id);
+      });
       set.addInstanceObject(instanceObject);
     }
   }
@@ -109,15 +110,6 @@ public final class FakeCaptureObject implements CaptureObject {
   @Override
   public Collection<HeapSet> getHeapSets() {
     return myHeapSets.values();
-  }
-
-  @NotNull
-  @Override
-  public String getHeapName(int heapId) {
-    if (!myHeapIdToName.containsKey(heapId)) {
-      return INVALID_HEAP_NAME;
-    }
-    return myHeapIdToName.get(heapId);
   }
 
   @Nullable
