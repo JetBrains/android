@@ -34,7 +34,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -67,7 +66,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -80,6 +78,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
+  private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
+  private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
+  private boolean myAreListenersRegistered = false;
   private static final Object PROGRESS_LOCK = new Object();
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private final Object myRenderingQueueLock = new Object();
@@ -153,20 +154,11 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public Scene build() {
     Scene scene = super.build();
+
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
+
     NlModel model = getModel();
-    ConfigurationListener listener = (flags) -> {
-      if ((flags & CFG_DEVICE) != 0) {
-        int newDpi = model.getConfiguration().getDensity().getDpiValue();
-        if (myDpi != newDpi) {
-          // Update from the model to update the dpi
-          update();
-        }
-      }
-      return true;
-    };
-    model.getConfiguration().addListener(listener);
-    Disposer.register(model, () -> model.getConfiguration().removeListener(listener));
+    model.getConfiguration().addListener(myConfigurationChangeListener);
 
     List<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
@@ -179,7 +171,10 @@ public class LayoutlibSceneManager extends SceneManager {
       addTargets(root);
       scene.setAnimated(previous);
     }
-    model.addListener(new ModelChangeListener());
+
+    model.addListener(myModelChangeListener);
+    myAreListenersRegistered = true;
+
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
 
@@ -188,6 +183,13 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   public void dispose() {
+    if (myAreListenersRegistered) {
+      NlModel model = getModel();
+      getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
+      model.getConfiguration().removeListener(myConfigurationChangeListener);
+      model.removeListener(myModelChangeListener);
+    }
+
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
     ApplicationManager.getApplication().invokeLater(() -> {
@@ -275,17 +277,23 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void modelChanged(@NotNull NlModel model) {
       requestModelUpdate();
-      ApplicationManager.getApplication().invokeLater(() -> mySelectionChangeListener
-        .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection()));
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (!Disposer.isDisposed(LayoutlibSceneManager.this)) {
+          mySelectionChangeListener
+            .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+        }
+      });
     }
 
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
       UIUtil.invokeLaterIfNeeded(() -> {
-        boolean previous = getScene().isAnimated();
-        getScene().setAnimated(animate);
-        update();
-        getScene().setAnimated(previous);
+        if (!Disposer.isDisposed(LayoutlibSceneManager.this)) {
+          boolean previous = getScene().isAnimated();
+          getScene().setAnimated(animate);
+          update();
+          getScene().setAnimated(previous);
+        }
       });
     }
 
@@ -364,6 +372,20 @@ public class LayoutlibSceneManager extends SceneManager {
         return this.equals(update);
       }
     });
+  }
+
+  private class ConfigurationChangeListener implements ConfigurationListener {
+    @Override
+    public boolean changed(int flags) {
+      if ((flags & CFG_DEVICE) != 0) {
+        int newDpi = getModel().getConfiguration().getDensity().getDpiValue();
+        if (myDpi != newDpi) {
+          // Update from the model to update the dpi
+          LayoutlibSceneManager.this.update();
+        }
+      }
+      return true;
+    }
   }
 
   @Override
@@ -697,7 +719,11 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
-    UIUtil.invokeLaterIfNeeded(this::update);
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if (!Disposer.isDisposed(this)) {
+        update();
+      }
+    });
     fireRenderListeners();
   }
 
@@ -860,4 +886,5 @@ public class LayoutlibSceneManager extends SceneManager {
       updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent);
     }
   }
+
 }

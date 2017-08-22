@@ -42,6 +42,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
@@ -66,7 +68,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * <p>
  * Methods in this class must be called in the dispatch thread.
  */
-public class Scene implements SelectionListener {
+public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
   private static final int DRAG_THRESHOLD = JBUI.scale(10);
@@ -113,10 +115,17 @@ public class Scene implements SelectionListener {
 
   private FilterType myFilterTarget = FilterType.NONE;
 
-  public Scene(@NotNull DesignSurface surface) {
+  public Scene(@NotNull Disposable parentDisposable, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
     mySceneManager = myDesignSurface.getSceneManager();
     myDesignSurface.getSelectionModel().addListener(this);
+
+    Disposer.register(parentDisposable, this);
+  }
+
+  @Override
+  public void dispose() {
+    myDesignSurface.getSelectionModel().removeListener(this);
   }
 
   @NotNull
