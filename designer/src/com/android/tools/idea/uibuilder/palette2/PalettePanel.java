@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -54,9 +55,7 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -69,7 +68,8 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
  * Top level Palette UI.
  */
 public class PalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
-  private static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
+  @VisibleForTesting
+  static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
   private static final int DEFAULT_CATEGORY_WIDTH = 100;
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
@@ -77,6 +77,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
   private final DependencyManager myDependencyManager;
   private final DataModel myDataModel;
+  private final ComponentsSplitter mySplitter;
   private final CopyProvider myCopyProvider;
   private final CategoryList myCategoryList;
   private final ItemList myItemList;
@@ -104,18 +105,18 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
 
     // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
-    ComponentsSplitter splitter = new ComponentsSplitter(false, true);
-    Disposer.register(this, splitter);
-    splitter.setFirstComponent(createScrollPane(myCategoryList));
-    splitter.setInnerComponent(createScrollPane(myItemList));
-    splitter.setHonorComponentsMinimumSize(true);
-    splitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
-    splitter.setFocusCycleRoot(false);
-
-    add(splitter, BorderLayout.CENTER);
+    mySplitter = new ComponentsSplitter(false, true);
+    Disposer.register(this, mySplitter);
+    mySplitter.setFirstComponent(createScrollPane(myCategoryList));
+    mySplitter.setInnerComponent(createScrollPane(myItemList));
+    mySplitter.setHonorComponentsMinimumSize(true);
+    mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
+    mySplitter.setFocusCycleRoot(false);
+    add(mySplitter, BorderLayout.CENTER);
 
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
+    myCategoryList.addComponentListener(createCategoryWidthUpdater());
 
     PreviewProvider provider = new PreviewProvider(() -> myDesignSurface, myDependencyManager);
     Disposer.register(this, provider);
@@ -166,6 +167,17 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
   }
 
+  @NotNull
+  private ComponentListener createCategoryWidthUpdater() {
+    return new ComponentAdapter() {
+      @Override
+      public void componentResized(@NotNull ComponentEvent event) {
+        PropertiesComponent.getInstance()
+          .setValue(PALETTE_CATEGORY_WIDTH, String.valueOf(AdtUiUtils.unscale(mySplitter.getFirstSize())));
+      }
+    };
+  }
+
   private void categorySelectionChanged() {
     Palette.Group group = myCategoryList.getSelectedValue();
     if (group == null) {
@@ -185,6 +197,18 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @NotNull
   @Override
   public JComponent getFocusedComponent() {
+    return myCategoryList;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  ComponentsSplitter getSplitter() {
+    return mySplitter;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  CategoryList getCategoryList() {
     return myCategoryList;
   }
 
