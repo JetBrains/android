@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
@@ -54,7 +55,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
-    myService = BuildSystemService.getInstance(myProject);
+    myService = BuildSystemServiceUtil.getInstance(myProject);
   }
 
   @Override
@@ -72,11 +73,11 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
 
   public void testIsNotGradleBuildSystemService() {
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(false);
-    assertThat(BuildSystemService.getInstance(myProject)).isNotInstanceOf(GradleBuildSystemService.class);
+    assertThat(BuildSystemServiceUtil.getInstance(myProject)).isNotInstanceOf(GradleBuildSystemService.class);
   }
 
   public void testSyncProject() {
-    myService.syncProject(myProject);
+    myService.syncProject();
     verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
   }
 
@@ -97,12 +98,12 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     // http://b/62543184
     when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
 
-    myService.syncProject(myProject);
+    myService.syncProject();
     verify(mySyncInvoker, never()).requestProjectSyncAndSourceGeneration(same(project), any(), any());
   }
 
   public void testBuildProject() {
-    myService.buildProject(myProject);
+    myService.buildProject();
     verify(GradleProjectBuilder.getInstance(myProject)).compileJava();
   }
 

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -653,15 +654,15 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   @NotNull String destinationContents,
                                   @NotNull Project project,
                                   @Nullable String supportLibVersionFilter) {
-      BuildSystemService buildSystemService = BuildSystemService.getInstance(project);
+      BuildSystemService buildSystemService = BuildSystemServiceUtil.getInstance(project);
       assert buildSystemService != null;
-      return buildSystemService.mergeBuildFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      return buildSystemService.mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter);
     }
 
     public void requestSync(@NotNull Project project) {
-      BuildSystemService buildSystemService = BuildSystemService.getInstance(project);
+      BuildSystemService buildSystemService = BuildSystemServiceUtil.getInstance(project);
       assert buildSystemService != null;
-      buildSystemService.syncProject(project);
+      buildSystemService.syncProject();
     }
   }
 

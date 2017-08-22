@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.templates.Parameter;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,7 +44,7 @@ public final class AndroidSourceSet {
    * Convenience method to get {@link AndroidSourceSet}s from the current project.
    */
   public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
-    BuildSystemService service = BuildSystemService.getInstance(facet.getModule().getProject());
+    BuildSystemService service = BuildSystemServiceUtil.getInstance(facet.getModule().getProject());
     assert service != null;
     return service.getSourceSets(facet, targetDirectory);
   }

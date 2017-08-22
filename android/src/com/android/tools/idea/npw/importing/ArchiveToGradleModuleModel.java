@@ -21,6 +21,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -92,7 +93,7 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
       getContainingModule(new File(myArchive.get()), myProject)).execute();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      BuildSystemService.getInstance(myProject).syncProject(myProject);
+      BuildSystemServiceUtil.getInstance(myProject).syncProject();
     }
   }
 
