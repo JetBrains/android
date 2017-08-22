@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -23,10 +24,12 @@ import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +37,8 @@ import org.mockito.ArgumentCaptor;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -50,6 +55,7 @@ public class PalettePanelTest extends AndroidTestCase {
     myCopyPasteManager = mock(CopyPasteManager.class);
     myDependencyManager = mock(DependencyManager.class);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     myPanel = new PalettePanel(myDependencyManager);
   }
 
@@ -119,6 +125,23 @@ public class PalettePanelTest extends AndroidTestCase {
     verify(myDependencyManager, never()).ensureLibraryIsIncluded(any(Palette.Item.class));
   }
 
+  public void testInitialCategoryWidthIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
+    Disposer.dispose(myPanel);
+    myPanel = new PalettePanel(myDependencyManager);
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
+  }
+
+  public void testCategoryResize() {
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    setCategoryWidth(388);
+    fireComponentResize(myPanel.getCategoryList());
+    assertThat(PropertiesComponent.getInstance().getValue(PalettePanel.PALETTE_CATEGORY_WIDTH)).isEqualTo("388");
+  }
+
   @NotNull
   private NlDesignSurface createDesignSurface() {
     Configuration configuration = mock(Configuration.class);
@@ -136,5 +159,20 @@ public class PalettePanelTest extends AndroidTestCase {
         doLayout((JComponent)component);
       }
     }
+  }
+
+  private static void fireComponentResize(@NotNull JComponent component) {
+    ComponentEvent event = mock(ComponentEvent.class);
+    for (ComponentListener listener : component.getComponentListeners()) {
+      listener.componentResized(event);
+    }
+  }
+
+  private int getCategoryWidth() {
+    return myPanel.getSplitter().getFirstSize();
+  }
+
+  private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
+    myPanel.getSplitter().setFirstSize(width);
   }
 }
