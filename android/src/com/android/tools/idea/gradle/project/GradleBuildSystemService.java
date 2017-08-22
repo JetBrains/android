@@ -40,19 +40,26 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
-public class GradleBuildSystemService extends BuildSystemService {
+public class GradleBuildSystemService implements BuildSystemService {
+
+  private Project project;
+
+  public GradleBuildSystemService(@NotNull Project project) {
+    this.project = project;
+  }
+
   @Override
-  public boolean isApplicable(@NotNull Project project) {
+  public boolean isApplicable() {
     return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   @Override
-  public void buildProject(@NotNull Project project) {
+  public void buildProject() {
     GradleProjectBuilder.getInstance(project).compileJava();
   }
 
   @Override
-  public void syncProject(@NotNull Project project) {
+  public void syncProject() {
     if (project.isInitialized()) {
       BuildVariantView.getInstance(project).projectImportStarted();
       // TODO Can this be called directly by the user? If yes, then need to add something to tell what triggered sync
@@ -90,7 +97,6 @@ public class GradleBuildSystemService extends BuildSystemService {
   @Override
   public String mergeBuildFiles(@NotNull String dependencies,
                                 @NotNull String destinationContents,
-                                @NotNull Project project,
                                 @Nullable String supportLibVersionFilter) {
     if (project.isInitialized()) {
       return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);

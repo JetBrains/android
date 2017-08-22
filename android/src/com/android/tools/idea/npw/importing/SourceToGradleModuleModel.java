@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -53,7 +54,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      BuildSystemService.getInstance(myProject).syncProject(myProject);
+      BuildSystemServiceUtil.getInstance(myProject).syncProject();
     });
   }
 

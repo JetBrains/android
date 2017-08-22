@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -766,7 +767,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
               Project project = facet.getModule().getProject();
-              BuildSystemService.getInstance(project).syncProject(project);
+              BuildSystemServiceUtil.getInstance(project).syncProject();
             }
           }.execute();
         }
@@ -789,7 +790,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
             Project project = facet.getModule().getProject();
-            BuildSystemService.getInstance(project).syncProject(project);
+            BuildSystemServiceUtil.getInstance(project).syncProject();
           }
         }.execute();
       }
