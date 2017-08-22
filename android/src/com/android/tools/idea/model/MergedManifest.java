@@ -76,6 +76,7 @@ public class MergedManifest {
   private Document myDocument;
   private List<VirtualFile> myManifestFiles;
   private ModulePermissions myPermissionHolder;
+  private boolean myApplicationHasCode = true;
 
   /**
    * Constructs a new MergedManifest
@@ -299,6 +300,14 @@ public class MergedManifest {
   }
 
   /**
+   * Returns the value for the hasCode flag set in the manifest. Returns true if not set
+   */
+  public boolean getApplicationHasCode() {
+    sync();
+    return myApplicationHasCode;
+  }
+
+  /**
    * Returns the target SDK version
    *
    * @return the target SDK version
@@ -429,6 +438,9 @@ public class MergedManifest {
 
             String debuggable = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_DEBUGGABLE);
             myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
+
+            String hasCode = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_HASCODE);
+            myApplicationHasCode = hasCode == null ? true : VALUE_TRUE.equals(hasCode);
 
             Node child = node.getFirstChild();
             while (child != null) {
