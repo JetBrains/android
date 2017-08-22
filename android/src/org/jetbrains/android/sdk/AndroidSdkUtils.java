@@ -29,8 +29,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.OSProcessManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.ide.util.PropertiesComponent;
@@ -56,10 +54,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
-import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +72,6 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.actions.AndroidEnableAdbServiceAction.setAdbServiceEnabled;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
@@ -429,50 +423,6 @@ public final class AndroidSdkUtils {
       return platform != null ? platform.getSdkData() : null;
     }
     return null;
-  }
-
-  public static boolean activateDdmsIfNecessary(@NotNull Project project) {
-    if (AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
-      AndroidDebugBridge bridge = getDebugBridge(project);
-      if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
-        LOG.info("DDMLIB is corrupted and will be restarted");
-        File adb = getAdb(project);
-        if (adb == null) {
-          throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
-        }
-        AdbService.getInstance().restartDdmlib(adb);
-      }
-    }
-    else {
-      OSProcessHandler ddmsProcessHandler = AndroidRunDdmsAction.getDdmsProcessHandler();
-      if (ddmsProcessHandler != null) {
-        String message = "Monitor will be closed to enable ADB integration. Continue?";
-        int result = Messages.showYesNoDialog(project, message, "ADB Integration", Messages.getQuestionIcon());
-        if (result != Messages.YES) {
-          return false;
-        }
-
-        Runnable destroyingRunnable = () -> {
-          if (!ddmsProcessHandler.isProcessTerminated()) {
-            OSProcessManager.getInstance().killProcessTree(ddmsProcessHandler.getProcess());
-            ddmsProcessHandler.waitFor();
-          }
-        };
-        if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(destroyingRunnable, "Closing Monitor", true, project)) {
-          return false;
-        }
-        setAdbServiceEnabled(project, true);
-        return true;
-      }
-
-      int result = Messages.showYesNoDialog(project, AndroidBundle.message("android.ddms.disabled.error"),
-                                            AndroidBundle.message("android.ddms.disabled.dialog.title"), Messages.getQuestionIcon());
-      if (result != Messages.YES) {
-        return false;
-      }
-      setAdbServiceEnabled(project, true);
-    }
-    return true;
   }
 
   public static boolean isAndroidSdkAvailable() {

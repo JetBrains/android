@@ -9,7 +9,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.StudioIcons;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
@@ -36,10 +35,6 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     assert project != null;
-
-    if (!AndroidSdkUtils.activateDdmsIfNecessary(project)) {
-      return;
-    }
 
     AndroidProcessChooserDialog dialog = new AndroidProcessChooserDialog(project, false);
     dialog.show();
