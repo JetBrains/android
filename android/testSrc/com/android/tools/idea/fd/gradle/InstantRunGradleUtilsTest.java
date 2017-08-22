@@ -41,4 +41,9 @@ public class InstantRunGradleUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_HAS_CODE + "/AndroidManifestHasCodeFalse.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertFalse(InstantRunGradleUtils.appHasCode(myFacet));
   }
+
+  public void testAppManifestNoApplicationTag() throws Exception {
+    myFixture.copyFileToProject(RUN_CONFIG_HAS_CODE + "/AndroidManifestNoApplicationTag.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    assertTrue(InstantRunGradleUtils.appHasCode(myFacet));
+  }
 }
