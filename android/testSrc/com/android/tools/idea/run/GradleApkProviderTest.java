@@ -96,7 +96,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
-    ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.test"))
+    ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.testmodule"))
       .findFirst().orElse(null);
     assertThat(testApk).isNotNull();
 
