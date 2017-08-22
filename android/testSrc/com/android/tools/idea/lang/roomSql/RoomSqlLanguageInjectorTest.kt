@@ -31,18 +31,25 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
     val host = myFixture.findElementByText(text, PsiLanguageInjectionHost::class.java)!!
     var injectionsCount = 0
 
-    InjectedLanguageUtil.enumerate(
-        host,
-        { injectedPsi, places ->
-          assertEquals("More than one injection", 0, injectionsCount++)
-          block(injectedPsi, places)
-        })
+    InjectedLanguageUtil.enumerate(host) { injectedPsi, places ->
+      assertEquals("More than one injection", 0, injectionsCount++)
+      block.invoke(injectedPsi, places)
+    }
   }
 
   fun testSanityCheck() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
-        """interface UserDao { @com.example.MadeUp("select * from User") List<User> findAll(); }""")
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Query;
+
+        interface UserDao {
+          @com.example.MadeUp("select * from User")
+          List<User> findAll();
+        }""".trimIndent()
+    )
 
     checkNoInjection("* from User")
   }
@@ -50,7 +57,16 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
   fun testSimpleQuery() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
-        """interface UserDao { @android.arch.persistence.room.Query("select * from User") List<User> findAll(); }""")
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Query;
+
+        interface UserDao {
+          @Query("select * from User")
+        List<User> findAll();
+      }""".trimIndent()
+    )
 
     checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
@@ -62,13 +78,18 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
         """
+        package com.example;
+
+        import android.arch.persistence.room.Query;
+
         interface UserDao {
           String TABLE = "User";
 
-          @android.arch.persistence.room.Query("select * from " + TABLE + " where id = :id")
+          @Query("select * from " + TABLE + " where id = :id")
           User findById(int id);
         }
-        """)
+        """.trimIndent()
+    )
 
     checkInjection("* from") { psi, places ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
@@ -81,14 +102,19 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
         """
+        package com.example;
+
+        import android.arch.persistence.room.Query;
+
         interface UserDao {
           String ENTITY = "User";
           String TABLE = ENTITY + "Table";
 
-          @android.arch.persistence.room.Query("select * from " + TABLE)
+          @Query("select * from " + TABLE)
           List<User> findAll();
         }
-        """)
+        """.trimIndent()
+    )
 
     checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
@@ -100,12 +126,39 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
         """
+        package com.example;
+
+        import android.arch.persistence.room.Query;
+
         class Util {
           void f(android.database.sqlite.SQLiteDatabase db) {
             db.execSQL("delete from User");
           }
         }
-        """)
+        """.trimIndent()
+    )
+
+    checkInjection("delete from") { psi, _ ->
+      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertEquals("delete from User", psi.text)
+    }
+  }
+
+  fun testSupportSqliteDatabase() {
+    myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        """
+        package com.example;
+
+        import android.arch.persistence.db.SupportSQLiteDatabase;
+
+        class Util {
+          void f(SupportSQLiteDatabase db) {
+            db.execSQL("delete from User");
+          }
+        }
+        """.trimIndent()
+    )
 
     checkInjection("delete from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
@@ -117,26 +170,36 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
         """
+        package com.example;
+
+        import android.database.sqlite.SQLiteDatabase;
+
         class Util {
-          void f(android.database.sqlite.SQLiteDatabase db) {
+          void f(SQLiteDatabase db) {
             db.execSQL(getQuery("foo"));
           }
         }
-        """)
+        """.trimIndent()
+    )
 
-      checkNoInjection("foo")
+    checkNoInjection("foo")
   }
 
   fun testSqliteDatabase_wrongArgument() {
     myFixture.configureByText(
         JavaFileType.INSTANCE,
         """
+        package com.example;
+
+        import android.database.sqlite.SQLiteDatabase;
+
         class Util {
-          void f(android.database.sqlite.SQLiteDatabase db) {
+          void f(SQLiteDatabase db) {
             db.rawQueryWithFactory(null, "select * from User", null, "tableName", null);
           }
         }
-        """)
+        """.trimIndent()
+    )
 
     checkInjection("* from") { psi, _ ->
       assertSame(ROOM_SQL_LANGUAGE, psi.language)
@@ -144,4 +207,5 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
 
     checkNoInjection("tableName")
   }
+
 }

@@ -24,9 +24,13 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
 
 private const val QUERY_ANNOTATION_NAME = "android.arch.persistence.room.Query"
-private const val SQLITE_DATABASE_CLASS_NAME = "android.database.sqlite.SQLiteDatabase"
 
-/** Maps methods in SQLiteDatabase that take a query string to the index of the argument that is the query. */
+private val SQLITE_DATABASE_CLASS_NAMES = setOf(
+    "android.database.sqlite.SQLiteDatabase",
+    "android.arch.persistence.db.SupportSQLiteDatabase"
+)
+
+/** Maps methods in `SQLiteDatabase` that take a query string to the index of the argument that is the query. */
 private val SQLITE_DATABASE_METHODS =
     mapOf("execSQL" to 0, "compileStatement" to 0, "rawQuery" to 0, "rawQueryWithFactory" to 1, "validateSql" to 0)
 
@@ -77,13 +81,13 @@ class RoomSqlLanguageInjector : ConcatenationAwareInjector {
 
     // Now check it's the right argument of the right method.
     val sqlArgumentIndex = SQLITE_DATABASE_METHODS[targetMethod.name] ?: return false
-    return targetMethod.containingClass?.qualifiedName == SQLITE_DATABASE_CLASS_NAME
-        && PsiTreeUtil.isAncestor(methodCall.argumentList.expressions[sqlArgumentIndex], element, false)
+    return targetMethod.containingClass?.qualifiedName in SQLITE_DATABASE_CLASS_NAMES &&
+        PsiTreeUtil.isAncestor(methodCall.argumentList.expressions[sqlArgumentIndex], element, false)
   }
 
   private fun insideRoomQuery(element: PsiElement): Boolean {
     val annotation = PsiTreeUtil.getParentOfType(element, PsiAnnotation::class.java) ?: return false
-    return annotation.qualifiedName == QUERY_ANNOTATION_NAME
-        && annotation.findDeclaredAttributeValue(PsiAnnotation.DEFAULT_REFERENCED_METHOD_NAME) != null
+    return annotation.qualifiedName == QUERY_ANNOTATION_NAME &&
+        annotation.findDeclaredAttributeValue(PsiAnnotation.DEFAULT_REFERENCED_METHOD_NAME) != null
   }
 }
