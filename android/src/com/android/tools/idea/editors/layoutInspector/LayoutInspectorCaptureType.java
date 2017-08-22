@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LayoutInspectorCaptureType extends FileCaptureType {
   protected LayoutInspectorCaptureType() {
-    super("Layout Inspector Snapshot", StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR, LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR);
+    super("Layout Inspector Snapshot", StudioIcons.Shell.Menu.LAYOUT_INSPECTOR, LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR);
   }
 
   @NotNull

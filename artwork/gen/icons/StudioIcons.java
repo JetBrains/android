@@ -504,6 +504,14 @@ public class StudioIcons {
       public static final Icon RENDER_SCRIPT = load("/studio/icons/shell/filetree/render-script.png"); // 16x16
     }
 
+    public static class Menu {
+      public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/menu/android-preview.png"); // 16x16
+      public static final Icon AVD_MANAGER = load("/studio/icons/shell/menu/avd-manager.png"); // 16x16
+      public static final Icon LAYOUT_INSPECTOR = load("/studio/icons/shell/menu/layout-inspector.png"); // 16x16
+      public static final Icon PROFILER = load("/studio/icons/shell/menu/profiler.png"); // 16x16
+      public static final Icon THEME_EDITOR = load("/studio/icons/shell/menu/theme-editor.png"); // 16x16
+    }
+
     public static class ToolWindows {
       public static final Icon ANDROID_MODEL = load("/studio/icons/shell/tool-windows/android-model.png"); // 13x13
       public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/tool-windows/android-preview.png"); // 13x13
@@ -528,21 +536,17 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
-      public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/toolbar/android-preview.png"); // 16x16
       public static final Icon ATTACH_DEBUGGER = load("/studio/icons/shell/toolbar/attach-debugger.png"); // 16x16
-      public static final Icon AVD_MANAGER = load("/studio/icons/shell/toolbar/avd-manager.png"); // 16x16
       public static final Icon BUILD = load("/studio/icons/shell/toolbar/build.png"); // 16x16
       public static final Icon DEBUG = load("/studio/icons/shell/toolbar/debug.png"); // 16x16
       public static final Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.png"); // 16x16
       public static final Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.png"); // 16x16
-      public static final Icon LAYOUT_INSPECTOR = load("/studio/icons/shell/toolbar/layout-inspector.png"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.png"); // 16x16
       public static final Icon PROJECT_STRUCTURE = load("/studio/icons/shell/toolbar/project-structure.png"); // 16x16
       public static final Icon RUN_WITH_COVERAGE = load("/studio/icons/shell/toolbar/run-with-coverage.png"); // 16x16
       public static final Icon RUN = load("/studio/icons/shell/toolbar/run.png"); // 16x16
       public static final Icon SDK_MANAGER = load("/studio/icons/shell/toolbar/sdk-manager.png"); // 16x16
       public static final Icon STOP = load("/studio/icons/shell/toolbar/stop.png"); // 16x16
-      public static final Icon THEME_EDITOR = load("/studio/icons/shell/toolbar/theme-editor.png"); // 16x16
       public static final Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.png"); // 16x16
       public static final Icon VIRTUAL_DEVICES = load("/studio/icons/shell/toolbar/virtual-devices.png"); // 16x16
     }

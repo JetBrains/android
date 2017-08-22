@@ -40,7 +40,7 @@ public class LayoutInspectorAction extends AbstractClientAction {
     super(deviceContext,
           AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-          StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR);
+          StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
     myProject = project;
   }
 
