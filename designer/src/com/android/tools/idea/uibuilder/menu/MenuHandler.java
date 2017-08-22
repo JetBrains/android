@@ -18,13 +18,9 @@ package com.android.tools.idea.uibuilder.menu;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
-import com.google.common.base.MoreObjects;
-import com.intellij.openapi.util.IconLoader;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
@@ -59,12 +55,5 @@ public class MenuHandler extends ViewGroupHandler {
     newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
 
     return true;
-  }
-
-  @NotNull
-  @Override
-  protected final Icon loadBuiltinIcon(@NotNull String tagName) {
-    return MoreObjects.firstNonNull(IconLoader.findIcon("StudioIcons.LayoutEditor.Palette." + tagName, getClass()),
-                                    StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW);
   }
 }
