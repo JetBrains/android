@@ -18,5 +18,7 @@
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
+    <orderEntry type="module" module-name="ninepatch" />
+    <orderEntry type="module" module-name="sdklib" />
   </component>
 </module>

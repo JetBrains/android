@@ -22,13 +22,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.BeforeClass;
@@ -99,7 +96,7 @@ public class DeviceArtPainterTest {
 
   @Test
   public void testCroppedRendering() throws Exception {
-    File deviceArtPath = new File(AndroidTestBase.getAbsoluteTestDataPath(), FileUtil.join("..", "device-art-resources"));
+    File deviceArtPath = DeviceArtDescriptor.getBundledDescriptorsFolder();
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
 
     DeviceArtDescriptor wear_square = findDescriptor(descriptors, "wear_square");
