@@ -103,7 +103,10 @@ public class GradleApkProvider implements ApkProvider {
     if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP || projectType == PROJECT_TYPE_TEST) {
       // The APK file for instant apps is actually a zip file
       File apk = getApk(selectedVariant, device, myFacet, false);
-      apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
+      String pkgName = projectType == PROJECT_TYPE_TEST
+                       ? myApplicationIdProvider.getTestPackageName()
+                       : myApplicationIdProvider.getPackageName();
+      apkList.add(new ApkInfo(apk, pkgName));
     }
 
     apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
@@ -308,7 +311,10 @@ public class GradleApkProvider implements ApkProvider {
 
       // TODO: use the applicationIdProvider to get the applicationId (we might not know it by sync time for Instant Apps)
       String applicationId = targetVariant.getMergedFlavor().getApplicationId();
-      assert applicationId != null;
+      if (applicationId == null) {
+        // If can't find applicationId in model, get it directly from manifest
+        applicationId = ApkProviderUtil.computePackageName(targetFacet);
+      }
       targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 

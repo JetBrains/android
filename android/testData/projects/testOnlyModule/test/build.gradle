@@ -22,7 +22,8 @@ android {
   defaultConfig {
     minSdkVersion 15
     targetSdkVersion 19
-    testApplicationId 'com.example.android.app.test'
+    // For testing, append something different of .test to make sure it is got from here and not app applicationId + ".test"
+    testApplicationId 'com.example.android.app.testmodule'
   }
 
   targetProjectPath ':app'
