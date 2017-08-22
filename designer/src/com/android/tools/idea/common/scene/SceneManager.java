@@ -46,7 +46,6 @@ abstract public class SceneManager implements Disposable {
   private Scene myScene;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
-
   public SceneManager(NlModel model, DesignSurface surface) {
     myModel = model;
     myDesignSurface = surface;
@@ -64,7 +63,7 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public Scene build() {
     assert myScene == null;
-    myScene = new Scene(myDesignSurface);
+    myScene = new Scene(this, myDesignSurface);
     return myScene;
   }
 
