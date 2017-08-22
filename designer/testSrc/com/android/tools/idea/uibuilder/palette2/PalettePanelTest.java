@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -30,21 +31,26 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseEvent;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class PalettePanelTest extends AndroidTestCase {
   private CopyPasteManager myCopyPasteManager;
+  private DependencyManager myDependencyManager;
   private PalettePanel myPanel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myCopyPasteManager = mock(CopyPasteManager.class);
+    myDependencyManager = mock(DependencyManager.class);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
-    myPanel = new PalettePanel(getProject());
+    myPanel = new PalettePanel(myDependencyManager);
   }
 
   @Override
@@ -52,6 +58,7 @@ public class PalettePanelTest extends AndroidTestCase {
     try {
       Disposer.dispose(myPanel);
       myCopyPasteManager = null;
+      myDependencyManager = null;
       myPanel = null;
     }
     finally {
@@ -90,6 +97,28 @@ public class PalettePanelTest extends AndroidTestCase {
     assertThat(component.getRepresentation()).startsWith(("<Button"));
   }
 
+  public void testDownloadClick() {
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    myPanel.setToolContext(createDesignSurface());
+    myPanel.setFilter("floating");
+
+    ItemList itemList = myPanel.getItemList();
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, 690, 10, 1, false));
+    verify(myDependencyManager).ensureLibraryIsIncluded(eq(itemList.getSelectedValue()));
+  }
+
+  public void testClickOutsideDownloadIconDoesNotCauseNewDependency() {
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    myPanel.setToolContext(createDesignSurface());
+    myPanel.setFilter("floating");
+
+    ItemList itemList = myPanel.getItemList();
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, 0, 400, 10, 1, false));
+    verify(myDependencyManager, never()).ensureLibraryIsIncluded(any(Palette.Item.class));
+  }
+
   @NotNull
   private NlDesignSurface createDesignSurface() {
     Configuration configuration = mock(Configuration.class);
@@ -98,5 +127,14 @@ public class PalettePanelTest extends AndroidTestCase {
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
     when(surface.getConfiguration()).thenReturn(configuration);
     return surface;
+  }
+
+  private static void doLayout(@NotNull JComponent parent) {
+    parent.doLayout();
+    for (Component component : parent.getComponents()) {
+      if (component instanceof JComponent) {
+        doLayout((JComponent)component);
+      }
+    }
   }
 }

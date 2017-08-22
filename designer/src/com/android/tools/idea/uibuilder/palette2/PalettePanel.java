@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -53,6 +54,9 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -67,6 +71,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public class PalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   private static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
   private static final int DEFAULT_CATEGORY_WIDTH = 100;
+  private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
@@ -81,8 +86,13 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private Runnable myCloseAutoHideCallback;
 
   public PalettePanel(@NotNull Project project) {
+    this(new DependencyManager(project));
+  }
+
+  @VisibleForTesting
+  PalettePanel(@NotNull DependencyManager dependencyManager) {
     super(new BorderLayout());
-    myDependencyManager = new DependencyManager(project);
+    myDependencyManager = dependencyManager;
     myDependencyManager.registerDependencyUpdates(this, this);
     myDataModel = new DataModel(myDependencyManager);
     myCopyProvider = new CopyProviderImpl();
@@ -114,6 +124,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     if (!GraphicsEnvironment.isHeadless()) {
       myItemList.setDragEnabled(true);
     }
+    myItemList.addMouseListener(createDependencyAdditionOnMouseClick());
 
     myLayoutType = NlLayoutType.UNKNOWN;
   }
@@ -125,6 +136,25 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     scrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     return scrollPane;
+  }
+
+  @NotNull
+  private MouseListener createDependencyAdditionOnMouseClick() {
+    return new MouseAdapter() {
+      // We really should handle mouseClick instead of mouseReleased events.
+      // However on Mac with "Show Scroll bars: When scrolling" is set we are not receiving mouseClick events.
+      // The mouseReleased events however are received every time we want to recognize the mouse click.
+      @Override
+      public void mouseReleased(@NotNull MouseEvent event) {
+        if (event.getX() < myItemList.getWidth() - DOWNLOAD_WIDTH || event.getX() >= myItemList.getWidth()) {
+          // Ignore mouse clicks that are outside the download button
+          return;
+        }
+        int index = myItemList.locationToIndex(event.getPoint());
+        Palette.Item item = myItemList.getModel().getElementAt(index);
+        myDependencyManager.ensureLibraryIsIncluded(item);
+      }
+    };
   }
 
   private static int getInitialCategoryWidth() {
@@ -156,6 +186,12 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @Override
   public JComponent getFocusedComponent() {
     return myCategoryList;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  ItemList getItemList() {
+    return myItemList;
   }
 
   @Override

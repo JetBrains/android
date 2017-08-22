@@ -84,6 +84,15 @@ public class DependencyManager {
     }, parentDisposable);
   }
 
+  public void ensureLibraryIsIncluded(@NotNull Palette.Item item) {
+    if (needsLibraryLoad(item)) {
+      List<GradleCoordinate> dependencies =
+        Collections.singletonList(GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+"));
+      GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
+      manager.ensureLibraryIsIncluded(myModule, dependencies, null);
+    }
+  }
+
   @NotNull
   private static Set<String> fromGradleCoordinatesToIds(@NotNull Collection<GradleCoordinate> coordinates) {
     return coordinates.stream()
