@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/wizard[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/adt/idea/artwork[module]",
+        "//tools/adt/idea/android-common[module]",
     ],
 )
 
