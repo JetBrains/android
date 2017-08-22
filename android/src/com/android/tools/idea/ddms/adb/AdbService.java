@@ -26,7 +26,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
  *
  * <p>Actions that require a handle to the debug bridge should invoke {@link #getDebugBridge(File)} to obtain the debug bridge.
- * This bridge is only valid at the time it is obtained, and could go stale in the future (e.g. user disables
- * adb integration via {@link AndroidEnableAdbServiceAction}, or launches monitor via
- * {@link org.jetbrains.android.actions.AndroidRunDdmsAction}).
+ * This bridge is only valid at the time it is obtained, and could go stale in the future.
  *
  * <p>Components that need to keep a handle to the bridge for longer durations (such as tool windows that monitor device state) should do so
  * by first invoking {@link #getDebugBridge(File)} to obtain the bridge, and implementing
@@ -176,8 +173,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
     @Override
     public BridgeConnectionResult call() throws Exception {
-      boolean clientSupport = AndroidEnableAdbServiceAction.isAdbServiceEnabled();
-      LOG.info("Initializing adb using: " + myAdb.getAbsolutePath() + ", client support = " + clientSupport);
+      LOG.info("Initializing adb using: " + myAdb.getAbsolutePath());
 
       ImmutableMap<String, String> env;
       if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
@@ -193,7 +189,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       Log.addLogger(toStringLogger);
       try {
         synchronized (ADB_INIT_LOCK) {
-          AndroidDebugBridge.init(clientSupport, AdbOptionsService.getInstance().shouldUseLibusb(), env);
+          AndroidDebugBridge.init(true, AdbOptionsService.getInstance().shouldUseLibusb(), env);
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
         }
 

@@ -63,10 +63,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jdom.Element;
-import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -262,9 +260,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
-      if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
-        throw new ExecutionException("Unable to obtain debug bridge. Please check if there is a different tool using adb that is active.");
-      }
       debug = true;
     }
 
@@ -345,10 +340,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
 
       if (gradleSupport == SUPPORTED) {
-        if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
-          throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
-        }
-
         InstantRunUtils.setInstantRunEnabled(env, true);
         instantRunContext = InstantRunGradleUtils.createGradleProjectContext(facet);
       }
