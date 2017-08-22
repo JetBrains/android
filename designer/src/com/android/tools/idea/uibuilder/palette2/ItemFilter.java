@@ -43,6 +43,9 @@ public class ItemFilter implements Condition<Palette.Item> {
 
   @Override
   public boolean value(@NotNull Palette.Item item) {
-    return myPattern.isEmpty() || myComparator.matchingFragments(myPattern, item.getTitle()) != null;
+    return myPattern.isEmpty() ||
+           myComparator.matchingFragments(myPattern, item.getTitle()) != null ||
+           !item.getTitle().equals(item.getTagName()) && myComparator.matchingFragments(myPattern, item.getTagName()) != null ||
+           item.getMetaTags().stream().anyMatch(meta -> myComparator.matchingFragments(myPattern, meta) != null);
   }
 }
