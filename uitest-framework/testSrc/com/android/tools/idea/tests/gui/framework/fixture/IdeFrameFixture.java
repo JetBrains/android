@@ -246,6 +246,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return findActionButtonByText("Apply Changes");
   }
 
+  @NotNull
+  public ActionButtonFixture findAttachDebuggerToAndroidProcessButton() {
+    return findActionButtonByText("Attach debugger to Android process");
+  }
+
   public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
     findDebugApplicationButton().click();

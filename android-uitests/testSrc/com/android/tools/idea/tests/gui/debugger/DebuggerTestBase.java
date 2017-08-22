@@ -54,6 +54,7 @@ public class DebuggerTestBase {
       editor.moveBetween("", line);
       editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
     }
+    editor.close();
   }
 
   void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
