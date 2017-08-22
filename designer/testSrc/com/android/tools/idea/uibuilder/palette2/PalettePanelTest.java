@@ -81,7 +81,7 @@ public class PalettePanelTest extends AndroidTestCase {
   }
 
   public void testCopy() throws Exception {
-    myPanel.setToolContext(createDesignSurface());
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
 
     DataContext context = mock(DataContext.class);
     CopyProvider provider = (CopyProvider)myPanel.getData(PlatformDataKeys.COPY_PROVIDER.getName());
@@ -106,7 +106,7 @@ public class PalettePanelTest extends AndroidTestCase {
   public void testDownloadClick() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
-    myPanel.setToolContext(createDesignSurface());
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
@@ -117,7 +117,7 @@ public class PalettePanelTest extends AndroidTestCase {
   public void testClickOutsideDownloadIconDoesNotCauseNewDependency() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
-    myPanel.setToolContext(createDesignSurface());
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
     myPanel.setFilter("floating");
 
     ItemList itemList = myPanel.getItemList();
@@ -142,12 +142,26 @@ public class PalettePanelTest extends AndroidTestCase {
     assertThat(PropertiesComponent.getInstance().getValue(PalettePanel.PALETTE_CATEGORY_WIDTH)).isEqualTo("388");
   }
 
+  public void testLayoutTypes() {
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
+    assertThat(isCategoryListVisible()).isTrue();
+
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.MENU));
+    assertThat(isCategoryListVisible()).isFalse();
+
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.PREFERENCE_SCREEN));
+    assertThat(isCategoryListVisible()).isTrue();
+
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.STATE_LIST));
+    assertThat(isCategoryListVisible()).isFalse();
+  }
+
   @NotNull
-  private NlDesignSurface createDesignSurface() {
+  private NlDesignSurface createDesignSurface(@NotNull NlLayoutType layoutType) {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getModule()).thenReturn(myModule);
     NlDesignSurface surface = mock(NlDesignSurface.class);
-    when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
+    when(surface.getLayoutType()).thenReturn(layoutType);
     when(surface.getConfiguration()).thenReturn(configuration);
     return surface;
   }
@@ -159,6 +173,10 @@ public class PalettePanelTest extends AndroidTestCase {
         doLayout((JComponent)component);
       }
     }
+  }
+
+  private boolean isCategoryListVisible() {
+    return myPanel.getSplitter().getFirstComponent().isVisible();
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
