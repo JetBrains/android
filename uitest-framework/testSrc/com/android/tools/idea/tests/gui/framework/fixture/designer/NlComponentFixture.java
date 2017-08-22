@@ -135,6 +135,14 @@ public class NlComponentFixture {
   }
 
   @NotNull
+  public NlComponentFixture moveBy(int xBy, int yBy) {
+    Point point = getMidPoint();
+    myDragAndDrop.drag(mySurface, point);
+    myDragAndDrop.drop(mySurface, new Point(((int)point.getX()) + xBy, ((int)point.getY()) + yBy));
+    return this;
+  }
+
+  @NotNull
   public int getWidth() {
     return mySceneComponent.getDrawWidth();
   }
