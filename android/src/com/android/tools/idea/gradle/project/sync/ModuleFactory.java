@@ -101,12 +101,12 @@ class ModuleFactory {
     }
 
     @Override
-    public Object visitModuleOrderEntry(ModuleOrderEntry orderEntry, Object value) {
+    public Object visitModuleOrderEntry(@NotNull ModuleOrderEntry orderEntry, Object value) {
       return remove(orderEntry, value);
     }
 
     @Override
-    public Object visitLibraryOrderEntry(LibraryOrderEntry orderEntry, Object value) {
+    public Object visitLibraryOrderEntry(@NotNull LibraryOrderEntry orderEntry, Object value) {
       return remove(orderEntry, value);
     }
 
