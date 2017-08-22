@@ -113,4 +113,33 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myItemListModel.getSize()).isEqualTo(1);
     assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("FloatingActionButton");
   }
+
+  public void testMetaSearch() {
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    myDataModel.setFilterPattern("material");
+
+    assertThat(myCategoryListModel.getSize()).isEqualTo(2);
+    assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.RESULTS);
+    assertThat(myCategoryListModel.getMatchCountAt(0)).isEqualTo(6);
+    assertThat(myCategoryListModel.getElementAt(1).getName()).isEqualTo("Design");
+    assertThat(myCategoryListModel.getMatchCountAt(1)).isEqualTo(6);
+
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
+    assertThat(myItemListModel.getSize()).isEqualTo(6);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("CoordinatorLayout");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("AppBarLayout");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("TabLayout");
+    assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("TabItem");
+    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
+    assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("TextInputLayout");
+
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
+    assertThat(myItemListModel.getSize()).isEqualTo(6);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("CoordinatorLayout");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("AppBarLayout");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("TabLayout");
+    assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("TabItem");
+    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
+    assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("TextInputLayout");
+  }
 }

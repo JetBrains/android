@@ -324,13 +324,13 @@
     <item tag="com.google.android.gms.maps.MapView" suggested="true"/>
   </group>
   <group name="Design">
-    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true"/>
-    <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
-    <item tag="android.support.design.widget.TabLayout" suggested="true"/>
-    <item tag="android.support.design.widget.TabItem"/>
+    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true"  meta="material, toolbar"/>
+    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.TabItem" meta="material"/>
     <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
-    <item tag="android.support.design.widget.FloatingActionButton" suggested="true"/>
-    <item tag="android.support.design.widget.TextInputLayout" suggested="true"/>
+    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
     <!-- Tabs -->
   </group>
   <group name="AppCompat">

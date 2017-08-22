@@ -32,10 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A {@link Palette} contains a list of palette groups and items.
@@ -247,6 +244,10 @@ public class Palette {
     @Nullable
     private Boolean mySuggested;
 
+    @XmlAttribute(name = "meta")
+    @Nullable
+    private String myMeta;
+
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
 
@@ -261,6 +262,8 @@ public class Palette {
 
     @Nullable
     private Group myParent;
+
+    private List<String> myMetaTags;
 
     private PaletteComponentHandler myHandler;
 
@@ -335,6 +338,11 @@ public class Palette {
     }
 
     @NotNull
+    public List<String> getMetaTags() {
+      return myMetaTags;
+    }
+
+    @NotNull
     @Language("XML")
     public String getXml() {
       if (myXml != null) {
@@ -375,6 +383,17 @@ public class Palette {
           myDragPreviewXml = myXml;
         }
         myXmlValuePart = null; // No longer used
+      }
+      if (myMetaTags == null) {
+        if (myMeta == null || myMeta.trim().isEmpty()) {
+          myMetaTags = Collections.emptyList();
+        }
+        else if (myMeta.indexOf(',') < 0) {
+          myMetaTags = Collections.singletonList(myMeta.trim());
+        }
+        else {
+          myMetaTags = Splitter.on(",").trimResults().splitToList(myMeta);
+        }
       }
     }
 
