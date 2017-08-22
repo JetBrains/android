@@ -50,7 +50,7 @@ public class LayoutInspectorFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR;
+    return StudioIcons.Shell.Menu.LAYOUT_INSPECTOR;
   }
 
   @Override

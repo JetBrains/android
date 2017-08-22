@@ -16,7 +16,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
     super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-          StudioIcons.Shell.Toolbar.LAYOUT_INSPECTOR);
+          StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
 
   @Override
