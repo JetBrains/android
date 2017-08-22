@@ -248,9 +248,22 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
       assert facet != null;
       myLayoutType = designSurface.getLayoutType();
       myDataModel.setLayoutType(facet, myLayoutType);
-      myCategoryList.setSelectedIndex(0);
+      if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
+        setCategoryListVisible(true);
+        myCategoryList.setSelectedIndex(0);
+      }
+      else {
+        setCategoryListVisible(false);
+        myDataModel.categorySelectionChanged(DataModel.COMMON);
+        myItemList.setSelectedIndex(0);
+      }
     }
     myDesignSurface = designSurface;
+  }
+
+  private void setCategoryListVisible(boolean visible) {
+    //noinspection ConstantConditions
+    mySplitter.getFirstComponent().setVisible(visible);
   }
 
   @Nullable

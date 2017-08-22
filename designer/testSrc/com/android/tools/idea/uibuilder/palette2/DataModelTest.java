@@ -142,4 +142,18 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
     assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("TextInputLayout");
   }
+
+  public void testMenuType() {
+    myDataModel.setLayoutType(myFacet, NlLayoutType.MENU);
+
+    assertThat(myCategoryListModel.getSize()).isEqualTo(1);
+    myDataModel.categorySelectionChanged(DataModel.COMMON);
+    assertThat(myItemListModel.getSize()).isEqualTo(6);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Cast Button");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("Menu Item");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("Search Item");
+    assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("Switch Item");
+    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("Menu");
+    assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("Group");
+  }
 }

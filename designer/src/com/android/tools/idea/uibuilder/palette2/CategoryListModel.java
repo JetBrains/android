@@ -50,6 +50,11 @@ public class CategoryListModel extends AbstractListModel<Palette.Group> {
     return myGroups.size();
   }
 
+  public boolean hasExplicitGroups() {
+    // The DataModel will always add 1 group: Common or Result
+    return getSize() > 1;
+  }
+
   @Override
   public Palette.Group getElementAt(int index) {
     return myGroups.get(index);

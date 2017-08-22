@@ -167,6 +167,9 @@ public class DataModel {
     if (selectedGroup != COMMON && selectedGroup != RESULTS) {
       selectedGroup.accept(items::add);
     }
+    else if (myListModel.getSize() <= 1) {
+      myPalette.accept(items::add);
+    }
     else {
       myPalette.accept(item -> {
         if (item.isSuggested()) {
