@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.AutoHide;
@@ -155,6 +156,19 @@ public class NlPreviewForm implements Disposable, CaretListener {
           if (views.isEmpty()) {
             views = screenView.getModel().getComponents();
           }
+
+          // When previewing PreferenceScreen and the caret is on intent tag, change selection to its parent
+          if (mySurface.isPreviewSurface() && views.size() == 1) {
+            NlComponent selectedComponent = views.get(0);
+            if (SdkConstants.PreferenceTags.INTENT.equals(selectedComponent.getTagName()) &&
+                SdkConstants.PreferenceTags.PREFERENCE_SCREEN.equals(selectedComponent.getRoot().getTagName())) {
+              NlComponent parent = selectedComponent.getParent();
+              if (parent != null) {
+                views = ImmutableList.of(parent);
+              }
+            }
+          }
+
           try {
             myIgnoreListener = true;
             SelectionModel selectionModel = screenView.getSelectionModel();
