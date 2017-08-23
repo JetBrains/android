@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -37,9 +38,7 @@ import org.mockito.ArgumentCaptor;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -156,6 +155,23 @@ public class PalettePanelTest extends AndroidTestCase {
     assertThat(isCategoryListVisible()).isFalse();
   }
 
+  public void testTypingInTreeStartsFilteringInCategoryList() {
+    checkTypingStartsFiltering(myPanel.getCategoryList());
+  }
+
+  public void testTypingInTreeStartsFilteringInItemList() {
+    checkTypingStartsFiltering(myPanel.getItemList());
+  }
+
+  private void checkTypingStartsFiltering(@NotNull JComponent component) {
+    StartFiltering filtering = new StartFiltering();
+    myPanel.setStartFiltering(filtering);
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyTyped(new KeyEvent(component, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, 'u'));
+    }
+    assertThat(filtering.getChar()).isEqualTo('u');
+  }
+
   @NotNull
   private NlDesignSurface createDesignSurface(@NotNull NlLayoutType layoutType) {
     Configuration configuration = mock(Configuration.class);
@@ -192,5 +208,18 @@ public class PalettePanelTest extends AndroidTestCase {
 
   private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
     myPanel.getSplitter().setFirstSize(width);
+  }
+
+  private static class StartFiltering implements StartFilteringListener {
+    private char myChar;
+
+    @Override
+    public void startFiltering(char character) {
+      myChar = character;
+    }
+
+    public char getChar() {
+      return myChar;
+    }
   }
 }
