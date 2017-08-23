@@ -191,17 +191,8 @@ public class NlDesignSurface extends DesignSurface {
           zoomToFit();
         }
       }
-      // do request a render, as if coming from the blueprint mode we might not have the latest rendered image
-      if (screenMode != ScreenMode.BLUEPRINT_ONLY) {
-        SceneManager manager = getSceneManager();
 
-        if (manager != null) {
-          manager.requestRender();
-        }
-      }
-      else {
-        repaint();
-      }
+      repaint();
     }
   }
 
