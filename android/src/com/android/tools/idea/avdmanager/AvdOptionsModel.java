@@ -27,6 +27,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
@@ -131,6 +133,9 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdDeviceData = new AvdDeviceData();
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
+    }
+    else {
+      updateValuesFromHardwareProperties();
     }
     myDevice.addListener(sender -> {
       if (myDevice.get().isPresent()) {
@@ -477,6 +482,21 @@ public final class AvdOptionsModel extends WizardModel {
     myHostGpuMode.setValue(GpuMode.fromGpuSetting(modeString));
 
     myIsInEditMode.set(true);
+  }
+
+  /**
+   * Set the initial internal storage size and sd card storage size, using values from hardware-properties.ini
+   */
+  private void updateValuesFromHardwareProperties() {
+    AvdManagerConnection conn = AvdManagerConnection.getDefaultAvdManagerConnection();
+    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties());
+    if (storage != null) {
+      mySdCardStorage.setValue(storage);
+    }
+    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties());
+    if (storage != null) {
+      myInternalStorage.set(storage);
+    }
   }
 
   /**

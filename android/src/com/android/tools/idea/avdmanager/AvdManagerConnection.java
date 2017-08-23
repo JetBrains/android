@@ -184,6 +184,16 @@ public class AvdManagerConnection {
     return true;
   }
 
+  public String getSdCardSizeFromHardwareProperties() {
+    assert mySdkHandler != null;
+    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
+  }
+
+  public String getInternalStorageSizeFromHardwareProperties() {
+    assert mySdkHandler != null;
+    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
+  }
+
   private File getBinaryLocation(String filename) {
     assert mySdkHandler != null;
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
