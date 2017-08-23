@@ -24,6 +24,7 @@ import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
@@ -89,11 +90,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private StartFilteringListener myStartFilteringCallback;
 
   public PalettePanel(@NotNull Project project) {
-    this(new DependencyManager(project));
+    this(project, new DependencyManager(project));
   }
 
   @VisibleForTesting
-  PalettePanel(@NotNull DependencyManager dependencyManager) {
+  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
     super(new BorderLayout());
     myDependencyManager = dependencyManager;
     myDependencyManager.registerDependencyUpdates(this, this);
@@ -132,6 +133,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
     myItemList.addMouseListener(createDependencyAdditionOnMouseClick());
     myItemList.addKeyListener(keyListener);
+    addComponentHelp(project);
 
     myLayoutType = NlLayoutType.UNKNOWN;
   }
@@ -174,6 +176,14 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         }
       }
     };
+  }
+
+  private void addComponentHelp(@NotNull Project project) {
+    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+      Palette.Item item = myItemList.getSelectedValue();
+      return item != null ? item.getTagName() : null;
+    });
+    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, myItemList);
   }
 
   private static int getInitialCategoryWidth() {
