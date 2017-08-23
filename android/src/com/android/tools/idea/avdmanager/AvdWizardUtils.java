@@ -98,6 +98,7 @@ public class AvdWizardUtils {
   public static final String HOST_GPU_MODE_KEY = AvdManager.AVD_INI_GPU_MODE;
 
   public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+  public static final String COLD_BOOT_ONCE_VALUE = AvdManager.AVD_INI_COLD_BOOT_ONCE;
   public static final String FEATURE_FAST_BOOT = "FastSnapshotV1"; // Emulator feature support
 
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
