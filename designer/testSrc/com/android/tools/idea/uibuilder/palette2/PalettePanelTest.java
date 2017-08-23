@@ -24,12 +24,16 @@ import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.util.JavaDocViewer;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.PsiClass;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -40,12 +44,14 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class PalettePanelTest extends AndroidTestCase {
   private CopyPasteManager myCopyPasteManager;
   private DependencyManager myDependencyManager;
+  private JavaDocViewer myJavaDocViewer;
   private PalettePanel myPanel;
 
   @Override
@@ -53,9 +59,11 @@ public class PalettePanelTest extends AndroidTestCase {
     super.setUp();
     myCopyPasteManager = mock(CopyPasteManager.class);
     myDependencyManager = mock(DependencyManager.class);
+    myJavaDocViewer = mock(JavaDocViewer.class);
+    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    myPanel = new PalettePanel(myDependencyManager);
+    myPanel = new PalettePanel(getProject(), myDependencyManager);
   }
 
   @Override
@@ -64,6 +72,7 @@ public class PalettePanelTest extends AndroidTestCase {
       Disposer.dispose(myPanel);
       myCopyPasteManager = null;
       myDependencyManager = null;
+      myJavaDocViewer = null;
       myPanel = null;
     }
     finally {
@@ -127,7 +136,7 @@ public class PalettePanelTest extends AndroidTestCase {
   public void testInitialCategoryWidthIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
     Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(myDependencyManager);
+    myPanel = new PalettePanel(getProject(), myDependencyManager);
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
@@ -161,6 +170,24 @@ public class PalettePanelTest extends AndroidTestCase {
 
   public void testTypingInTreeStartsFilteringInItemList() {
     checkTypingStartsFiltering(myPanel.getItemList());
+  }
+
+  public void testShiftHelpOnPaletteItem() throws Exception {
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    myPanel.setToolContext(createDesignSurface(NlLayoutType.LAYOUT));
+
+    AnAction action = findActionForKey(myPanel.getItemList(), KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
+    assertThat(action).isNotNull();
+
+    DataContext context = mock(DataContext.class);
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getDataContext()).thenReturn(context);
+    ArgumentCaptor<PsiClass> psiClassCaptor = ArgumentCaptor.forClass(PsiClass.class);
+
+    action.actionPerformed(event);
+    verify(myJavaDocViewer).showExternalJavaDoc(psiClassCaptor.capture(), eq(context));
+    assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
   }
 
   private void checkTypingStartsFiltering(@NotNull JComponent component) {
