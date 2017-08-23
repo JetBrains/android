@@ -294,7 +294,6 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
-  @Ignore // http://b/62493006
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -304,10 +303,11 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture
       .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      .findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String output = contentFixture.getOutput();
 
     ideFrameFixture
       .getRunToolWindow()
@@ -315,10 +315,8 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture
-      .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
   }
 
   private void clickButtonAndWaitForVerification(IdeFrameFixture ideFrameFixtures, String[] expectedPatterns) {
