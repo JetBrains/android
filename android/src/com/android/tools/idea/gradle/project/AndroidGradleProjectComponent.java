@@ -123,7 +123,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyStateChanged();
     }
-    if (IdeInfo.getInstance().isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !isApkProject(myProject)) {
+    if (isLegacyIdeaAndroidProject(myProject) && !isApkProject(myProject)) {
       trackLegacyIdeaAndroidProject();
       if (shouldShowMigrateToGradleNotification()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
