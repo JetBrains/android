@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.idea.avdmanager.AvdWizardUtils.COLD_BOOT_ONCE_VALUE
 import com.android.tools.idea.avdmanager.AvdWizardUtils.USE_COLD_BOOT
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.icons.AllIcons
@@ -36,7 +37,7 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
 
     val coldBootProperties = mutableMapOf<String, String>()
     coldBootProperties.putAll(origAvdInfo.properties)
-    coldBootProperties.put(USE_COLD_BOOT, "yes")
+    coldBootProperties.put(USE_COLD_BOOT, COLD_BOOT_ONCE_VALUE)
     val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath,
         origSystemImage, coldBootProperties)
     AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.project, coldBootAvdInfo)
