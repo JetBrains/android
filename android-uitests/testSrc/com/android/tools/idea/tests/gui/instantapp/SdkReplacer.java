@@ -54,7 +54,7 @@ public class SdkReplacer {
 
       @Override
       public int getMinTargetSdk() {
-        return 21;
+        return 23;
       }
 
       @Override
