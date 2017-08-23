@@ -34,6 +34,15 @@ interface AndroidProjectSystem {
   fun isApplicable(): Boolean
 
   /**
+   * Uique ID for this type of project system. Each implementation should supply a different
+   * id. This will be serialized with the project and should remain stable even if the implementation
+   * class name changes. The empty string is reserved for the "default implementation" which will be
+   * used if no other project system is applicable. All other implementations must use a non-empty
+   * ID string.
+   */
+  val id: String
+
+  /**
    * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
    */
@@ -49,9 +58,10 @@ private val EP_NAME = ExtensionPointName<AndroidProjectSystem>("com.android.proj
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
- * Throws an exception if none.
  */
 fun getInstance(project: Project): AndroidProjectSystem {
-  return EP_NAME.getExtensions(project).find { it.isApplicable() }?:
-      throw IllegalStateException("No AndroidProjectSystem found for project " + project.name)
+  val extensions = EP_NAME.getExtensions(project)
+  return extensions.find { it.isApplicable() }
+      ?: extensions.find { it.id == "" }
+      ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
 }

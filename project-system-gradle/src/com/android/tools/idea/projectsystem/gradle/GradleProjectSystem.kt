@@ -29,6 +29,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
+  val ID = "com.android.tools.idea.GradleProjectSystem"
+
+  override val id: String
+    get() = ID
+
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
   }
