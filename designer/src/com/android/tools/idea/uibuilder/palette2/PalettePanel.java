@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette2;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.NlLayoutType;
@@ -85,6 +86,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private DesignSurface myDesignSurface;
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
+  private StartFilteringListener myStartFilteringCallback;
 
   public PalettePanel(@NotNull Project project) {
     this(new DependencyManager(project));
@@ -114,9 +116,12 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     mySplitter.setFocusCycleRoot(false);
     add(mySplitter, BorderLayout.CENTER);
 
+    KeyListener keyListener = createStartSearchOnKeyTyped();
+
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
     myCategoryList.addComponentListener(createCategoryWidthUpdater());
+    myCategoryList.addKeyListener(keyListener);
 
     PreviewProvider provider = new PreviewProvider(() -> myDesignSurface, myDependencyManager);
     Disposer.register(this, provider);
@@ -126,6 +131,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
       myItemList.setDragEnabled(true);
     }
     myItemList.addMouseListener(createDependencyAdditionOnMouseClick());
+    myItemList.addKeyListener(keyListener);
 
     myLayoutType = NlLayoutType.UNKNOWN;
   }
@@ -154,6 +160,18 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         int index = myItemList.locationToIndex(event.getPoint());
         Palette.Item item = myItemList.getModel().getElementAt(index);
         myDependencyManager.ensureLibraryIsIncluded(item);
+      }
+    };
+  }
+
+  @NotNull
+  private KeyListener createStartSearchOnKeyTyped() {
+    return new KeyAdapter() {
+      @Override
+      public void keyTyped(@NotNull KeyEvent event) {
+        if (myStartFilteringCallback != null) {
+          myStartFilteringCallback.startFiltering(event.getKeyChar());
+        }
       }
     };
   }
@@ -226,6 +244,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @Override
   public void setCloseAutoHideWindow(@NotNull Runnable runnable) {
     myCloseAutoHideCallback = runnable;
+  }
+
+  @Override
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myStartFilteringCallback = listener;
   }
 
   @Override
