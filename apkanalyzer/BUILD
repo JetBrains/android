@@ -26,5 +26,6 @@ iml_module(
         "//tools/idea:compiler-impl_and_others[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/smali[module]",
+        "//tools/adt/idea/android-lang[module]",
     ],
 )

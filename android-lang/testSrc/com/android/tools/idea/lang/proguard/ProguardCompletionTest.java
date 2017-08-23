@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.lang.proguard;
 
+import com.android.tools.idea.lang.LangTestDataKt;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.lookup.LookupElement;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-public class ProguardCompletionTest extends AndroidTestCase {
-
-  private static final String TEST_FOLDER = "lang/proguard";
+public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
+  private static final String TEST_FOLDER = FileUtil.join(LangTestDataKt.getTestDataPath(), "lang/proguard");
 
   @Override
-  protected boolean providesCustomManifest() {
-    return true;
+  protected String getTestDataPath() {
+    return TEST_FOLDER;
   }
 
   public void testSingleFlagNameCompletionSingle() throws Throwable {
@@ -81,7 +83,7 @@ public class ProguardCompletionTest extends AndroidTestCase {
   protected void performTestCompletion(String fileBefore, String fileAfter) throws IOException {
     copyFileToProject(fileBefore);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(TEST_FOLDER + '/' + fileAfter);
+    myFixture.checkResultByFile(fileAfter);
   }
 
   /**
@@ -113,7 +115,6 @@ public class ProguardCompletionTest extends AndroidTestCase {
   }
 
   private void copyFileToProject(String path) throws IOException {
-    myFixture.configureFromExistingVirtualFile(
-      myFixture.copyFileToProject(TEST_FOLDER + '/' + path, path));
+    myFixture.configureFromExistingVirtualFile(myFixture.copyFileToProject(TEST_FOLDER + '/' + path, path));
   }
 }
