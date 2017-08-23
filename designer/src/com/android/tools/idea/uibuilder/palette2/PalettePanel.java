@@ -370,7 +370,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
       Transferable transferable = new ItemTransferable(new DnDTransferItem(dndComponent));
 
-      myCloseAutoHideCallback.run();
+      if (myCloseAutoHideCallback != null) {
+        myCloseAutoHideCallback.run();
+      }
       return transferable;
     }
 
