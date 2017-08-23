@@ -146,6 +146,8 @@ public class AvdWizardUtils {
 
   private static Map<String, String> ourEmuAdvFeatures; // Advanced Emulator features
 
+  private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
+
   private static Logger getLog() {
     return Logger.getInstance(AvdWizardUtils.class);
   }
@@ -196,6 +198,28 @@ public class AvdWizardUtils {
    */
   public static int getMaxCpuCores() {
     return Runtime.getRuntime().availableProcessors() / 2;
+  }
+  /**
+   * Get the default value of hardware property from hardware-properties.ini.
+   *
+   * @param name the name of the requested hardware property
+   * @return the default value
+   */
+  @Nullable
+  public static String getHardwarePropertyDefaultValue(String name, @Nullable AndroidSdkHandler sdkHandler) {
+    if (ourHardwareProperties == null && sdkHandler != null) {
+      // get the list of possible hardware properties
+      // The file is in the emulator component
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+      if (emulatorPackage != null) {
+        File hardwareDefs = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_HARDWARE_INI);
+        FileOp fop = sdkHandler.getFileOp();
+        ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
+          new FileOpFileWrapper(hardwareDefs, fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+      }
+    }
+    HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
+    return (hwProp == null) ? null : hwProp.getDefault();
   }
 
   /**

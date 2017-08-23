@@ -256,6 +256,12 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
   }
 
+  public void testGetHardwareProperties() {
+    recordEmulatorHardwareProperties(mFileOp);
+    assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
+    assertEquals("2G", mAvdManagerConnection.getInternalStorageSizeFromHardwareProperties());
+  }
+
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
     fop.recordExistingFile("/sdk/system-images/android-23/google_apis/x86_64/system.img");
@@ -291,5 +297,18 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   private static void recordEmulatorSupportsFastBoot(MockFileOp fop) {
     fop.recordExistingFile("/sdk/emulator/lib/advancedFeatures.ini",
                            "FastSnapshotV1=on\n");
+  }
+
+  private static void recordEmulatorHardwareProperties(MockFileOp fop) {
+    fop.recordExistingFile("/sdk/emulator/lib/hardware-properties.ini",
+                           "name        = sdcard.size\n"
+                           + "type        = diskSize\n"
+                           + "default     = 800M\n"
+                           + "abstract    = SD Card Image Size\n"
+                           + "# Data partition size.\n"
+                           + "name        = disk.dataPartition.size\n"
+                           + "type        = diskSize\n"
+                           + "default     = 2G\n"
+                           + "abstract    = Ideal size of data partition\n");
   }
 }
