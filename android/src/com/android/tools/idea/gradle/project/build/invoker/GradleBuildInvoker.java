@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -51,9 +51,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -609,20 +607,22 @@ public class GradleBuildInvoker {
       }
       Request that = (Request)o;
       // We only care about this fields because 'equals' is used for testing only. Production code does not care.
-      return Objects.equals(myGradleTasks, that.myGradleTasks) &&
+      return Objects.equals(myBuildFilePath, that.myBuildFilePath ) &&
+             Objects.equals(myGradleTasks, that.myGradleTasks) &&
              Objects.equals(myJvmArguments, that.myJvmArguments) &&
              Objects.equals(myCommandLineArguments, that.myCommandLineArguments);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(myGradleTasks, myJvmArguments, myCommandLineArguments);
+      return Objects.hash(myBuildFilePath, myGradleTasks, myJvmArguments, myCommandLineArguments);
     }
 
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "myGradleTasks=" + myGradleTasks +
+             "myBuildFilePath=" + myBuildFilePath +
+             ", myGradleTasks=" + myGradleTasks +
              ", myJvmArguments=" + myJvmArguments +
              ", myCommandLineArguments=" + myCommandLineArguments +
              '}';
