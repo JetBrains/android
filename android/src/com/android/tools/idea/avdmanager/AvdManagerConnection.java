@@ -469,7 +469,12 @@ public class AvdManagerConnection {
     // Control fast boot
     if (AvdWizardUtils.emulatorSupportsFastBoot(mySdkHandler)) {
       if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+        // Do not fast boot and do not store a snapshot on exit
         commandLine.addParameter("-no-snapstorage");
+      }
+      else if (AvdWizardUtils.COLD_BOOT_ONCE_VALUE.equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+        // No fast boot now, but do store a snapshot on exit for next time
+        commandLine.addParameter("-no-snapshot-load");
       }
       // We could use "-snapstorage" for the "no" case, but don't bother. It is the default.
     }
