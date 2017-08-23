@@ -34,7 +34,7 @@ public class SelectionModel {
   @NotNull
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
-  private ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
+  private final ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private Map<NlComponent, SelectionHandles> myHandles;
 
   @NotNull
