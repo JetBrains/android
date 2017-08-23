@@ -47,7 +47,6 @@ public abstract class DragHandler {
   @AndroidDpCoordinate protected int startY;
   @AndroidDpCoordinate protected int lastX;
   @AndroidDpCoordinate protected int lastY;
-  protected int lastModifiers;
 
   /**
    * Constructs a new drag handler for the given view handler
@@ -107,7 +106,6 @@ public abstract class DragHandler {
   public void start(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
     startX = x;
     startY = y;
-    lastModifiers = modifiers;
   }
 
   /**
@@ -123,7 +121,6 @@ public abstract class DragHandler {
   public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
     lastX = x;
     lastY = y;
-    lastModifiers = modifiers;
     return null;
   }
 

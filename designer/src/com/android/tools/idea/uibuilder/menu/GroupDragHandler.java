@@ -99,6 +99,7 @@ final class GroupDragHandler extends DragHandler {
 
   private void updateActionBarGroupOrderInCategoryAttributes(int order) {
     if (lastX >= myActiveItem.getCenterX()) {
+      // noinspection AssignmentToMethodParameter
       order++;
     }
 
@@ -110,6 +111,7 @@ final class GroupDragHandler extends DragHandler {
 
   private void updateOverflowGroupOrderInCategoryAttributes(int order) {
     if (lastY >= myActiveItem.getCenterY()) {
+      // noinspection AssignmentToMethodParameter
       order++;
     }
 
