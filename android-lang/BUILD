@@ -22,5 +22,6 @@ iml_module(
         "//tools/idea:java-analysis-impl[module]",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/idea:compiler-impl_and_others[module]",
     ],
 )

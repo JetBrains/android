@@ -444,23 +444,14 @@
     <!--<frameworkSupport implementation="org.jetbrains.android.facet.AndroidSupportProvider"/>-->
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
-    <lang.parserDefinition language="Renderscript"
-                           implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
+
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
-
-    <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
-    <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
-
-    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
-
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
@@ -493,7 +484,6 @@
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
     <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
-    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>

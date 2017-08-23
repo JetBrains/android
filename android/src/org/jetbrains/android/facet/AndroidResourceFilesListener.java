@@ -18,7 +18,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

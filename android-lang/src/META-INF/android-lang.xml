@@ -14,11 +14,24 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <!-- Android IDL support -->
   <extensions defaultExtensionNs="com.intellij">
+    <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighterFactory key="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
+
+    <!-- Proguard support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
+    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
+    <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
+    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
+    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
+
+    <!-- Renderscript -->
+    <lang.parserDefinition language="Renderscript"
+                           implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+
   </extensions>
 </idea-plugin>

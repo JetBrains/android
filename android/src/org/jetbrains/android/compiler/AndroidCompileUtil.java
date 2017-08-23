@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;

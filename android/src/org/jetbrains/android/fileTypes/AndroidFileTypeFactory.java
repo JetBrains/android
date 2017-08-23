@@ -18,7 +18,7 @@ package org.jetbrains.android.fileTypes;
 import com.android.tools.idea.apk.ApkFileType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.fileTypes.PhotoshopFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.adtui.webp.WebpMetadata;
