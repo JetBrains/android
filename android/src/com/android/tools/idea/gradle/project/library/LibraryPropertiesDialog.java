@@ -152,6 +152,7 @@ public class LibraryPropertiesDialog extends DialogWrapper {
       super(library, null);
     }
 
+    @NotNull
     @Override
     public String[] getUrls(@NotNull OrderRootType rootType) {
       if (isIgnored(rootType)) {
