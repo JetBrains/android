@@ -67,8 +67,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
       }
       else {
         // Note that pgrep matches up to 15 characters.
-        Runtime.getRuntime().exec("pkill -9 qemu").waitFor();
-        Runtime.getRuntime().exec("pkill -9 emulator64-cra").waitFor();
+        Runtime.getRuntime().exec("pkill qemu").waitFor();
+        Runtime.getRuntime().exec("pkill emulator64-cra").waitFor();
       }
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
