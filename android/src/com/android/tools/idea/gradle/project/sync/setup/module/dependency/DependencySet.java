@@ -50,6 +50,7 @@ public class DependencySet {
   void add(@NotNull LibraryDependency dependency) {
     String originalName = dependency.getName();
     Collection<LibraryDependency> allStored = myLibrariesByName.get(originalName);
+    allStored = allStored == null ? null : ImmutableSet.copyOf(allStored);
     if (allStored == null || allStored.isEmpty()) {
       myLibrariesByName.put(originalName, dependency);
       return;
