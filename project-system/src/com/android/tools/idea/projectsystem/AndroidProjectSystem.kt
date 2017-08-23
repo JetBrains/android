@@ -60,6 +60,10 @@ private val EP_NAME = ExtensionPointName<AndroidProjectSystem>("com.android.proj
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
  */
 fun getInstance(project: Project): AndroidProjectSystem {
+  return project.getComponent(ProjectSystemComponent::class.java).projectSystem
+}
+
+internal fun detectProjectSystem(project: Project): AndroidProjectSystem {
   val extensions = EP_NAME.getExtensions(project)
   return extensions.find { it.isApplicable() }
       ?: extensions.find { it.id == "" }

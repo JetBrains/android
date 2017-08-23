@@ -19,4 +19,9 @@
                     interface="com.android.tools.idea.projectsystem.AndroidProjectSystem"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.projectsystem.ProjectSystemComponent</implementation-class>
+    </component>
+  </project-components>
 </idea-plugin>
