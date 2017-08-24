@@ -157,7 +157,7 @@ public class AndroidImportProjectAction extends AnAction {
       return null;
     }
     VirtualFile file = files[0];
-    if (isSelectedFileValid(project, file)) return null;
+    if (!isSelectedFileValid(project, file)) return null;
 
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
     return createImportWizard(file);
@@ -170,10 +170,10 @@ public class AndroidImportProjectAction extends AnAction {
       boolean isError = result.getSeverity() == Validator.Severity.ERROR;
       Messages.showInfoMessage(project, result.getMessage(), isError ? "Cannot Import Project" : "Project Import Warning");
       if (isError) {
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   @Nullable
