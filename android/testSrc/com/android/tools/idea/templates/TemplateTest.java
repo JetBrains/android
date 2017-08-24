@@ -19,6 +19,11 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.LoggedUsage;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -48,6 +53,8 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.*;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -124,6 +131,11 @@ import static org.mockito.Mockito.mock;
  */
 @SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
 public class TemplateTest extends AndroidGradleTestCase {
+  /**
+   * A UsageTracker implementation that allows introspection of logged metrics in tests.
+   */
+  private TestUsageTracker myUsageTracker;
+
   /**
    * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
    * template combinations, and when the flag is set on the build server, a much more comprehensive battery of
@@ -207,6 +219,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
+    myUsageTracker = new TestUsageTracker(new AnalyticsSettings(), scheduler);
+    UsageTracker.setInstanceForTest(myUsageTracker);
     myApiSensitiveTemplate = true;
     if (!ourValidatedTemplateManager) {
       ourValidatedTemplateManager = true;
@@ -248,6 +263,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       myIdeComponents.restore();
     }
     finally {
+      myUsageTracker.close();
+      UsageTracker.cleanAfterTesting();
       super.tearDown();
     }
   }
@@ -1386,7 +1403,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private static void createProject(@NotNull final TestNewProjectWizardState projectState, @NotNull Project project,
+  private void createProject(@NotNull final TestNewProjectWizardState projectState, @NotNull Project project,
                                     @Nullable AndroidIconGenerator assetGenerator) {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     List<String> errors = Lists.newArrayList();
@@ -1406,19 +1423,26 @@ public class TemplateTest extends AndroidGradleTestCase {
         final RenderingContext projectContext =
           createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
         projectTemplate.render(projectContext);
+        // check usage tracker after project render
+        verifyLastLoggedUsage(Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()), projectContext.getParamMap());
         AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
 
-        final RenderingContext context =
+        final RenderingContext moduleContext =
           createRenderingContext(moduleState.getTemplate(), project, projectRoot, moduleRoot, moduleState.getParameters());
-        moduleState.getTemplate().render(context);
+        Template moduleTemplate = moduleState.getTemplate();
+        moduleTemplate.render(moduleContext);
+        // check usage tracker after module render
+        verifyLastLoggedUsage(Template.titleToTemplateRenderer(moduleTemplate.getMetadata().getTitle()), moduleContext.getParamMap());
         if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TestTemplateWizardState activityTemplateState = projectState.getActivityTemplateState();
-          Template template = activityTemplateState.getTemplate();
-          assert template != null;
+          Template activityTemplate = activityTemplateState.getTemplate();
+          assert activityTemplate != null;
           final RenderingContext activityContext =
-            createRenderingContext(template, project, moduleRoot, moduleRoot, activityTemplateState.getParameters());
-          template.render(activityContext);
-          context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
+            createRenderingContext(activityTemplate, project, moduleRoot, moduleRoot, activityTemplateState.getParameters());
+          activityTemplate.render(activityContext);
+          // check usage tracker after activity render
+          verifyLastLoggedUsage(Template.titleToTemplateRenderer(activityTemplate.getMetadata().getTitle()), activityContext.getParamMap());
+          moduleContext.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }
       }
       else {
@@ -1536,6 +1560,29 @@ public class TemplateTest extends AndroidGradleTestCase {
   @NotNull
   private static Template getDefaultModuleTemplate() {
     return Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
+  }
+
+  /**
+   * Checks that the most recent log in myUsageTracker is a AndroidStudioEvent.EventKind.TEMPLATE_RENDER event with expected info.
+   *
+   * @param templateRenderer the expected value of usage.getStudioEvent().getTemplateRenderer(),
+   *                         where usage is the most recent logged usage
+   * @param paramMap         the paramMap, containing kotlin support info for template render event
+   */
+  private void verifyLastLoggedUsage(@NotNull AndroidStudioEvent.TemplateRenderer templateRenderer, @NotNull Map<String, Object> paramMap) {
+    List<LoggedUsage> usages = myUsageTracker.getUsages();
+    assertTrue(!usages.isEmpty());
+    // get last logged usage
+    LoggedUsage usage = usages.get(usages.size() - 1);
+    assertEquals(AndroidStudioEvent.EventKind.TEMPLATE_RENDER, usage.getStudioEvent().getKind());
+    assertEquals(templateRenderer, usage.getStudioEvent().getTemplateRenderer());
+    assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_SUPPORT, false) instanceof Boolean);
+    assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown") instanceof String);
+    assertEquals(
+      KotlinSupport.newBuilder()
+        .setIncludeKotlinSupport((Boolean)paramMap.getOrDefault(ATTR_KOTLIN_SUPPORT, false))
+        .setKotlinSupportVersion((String)paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown")).build(),
+      usage.getStudioEvent().getKotlinSupport());
   }
 
   //--- Interfaces ---
