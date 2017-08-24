@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
@@ -463,33 +462,19 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   /**
    * Insert the component at the position of the target
    *
-   * @param component         The component to insert
-   * @param separatorTarget   The separator where the component will be inserted
-   * @param isDragFromPalette
+   * @param component       The component to insert
+   * @param separatorTarget The separator where the component will be inserted
    * @return true if the component was inserted, false otherwise.
    */
   public static boolean insertComponentAtTarget(@NotNull SceneComponent component,
-                                                @NotNull LinearSeparatorTarget separatorTarget,
-                                                boolean isDragFromPalette) {
+                                                @NotNull LinearSeparatorTarget separatorTarget) {
     SceneComponent sceneParent = component.getParent();
     if (sceneParent == null) {
       return false;
     }
     NlComponent parent = sceneParent.getNlComponent();
-
-    String id = component.getNlComponent().getId();
-    String name = (isDragFromPalette ? "Insert" : "Move") + ' ' +
-                  (id != null ? id : component.getNlComponent().getTagName());
-
-    NlWriteCommandAction.run(component.getNlComponent(), name, () -> {
-      ImmutableList<NlComponent> nlComponentImmutableList = ImmutableList.of(component.getNlComponent());
-      parent.getModel().addComponents(
-        nlComponentImmutableList,
-        parent,
-        !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null,
-        isDragFromPalette ? InsertType.CREATE : InsertType.MOVE_WITHIN);
-    });
-
+    NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
+    parent.getModel().addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN);
     return true;
   }
 

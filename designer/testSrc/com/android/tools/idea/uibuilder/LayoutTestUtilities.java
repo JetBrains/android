@@ -48,6 +48,7 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetListener;
@@ -131,6 +132,10 @@ public class LayoutTestUtilities {
   }
 
   public static void dragDrop(InteractionManager manager, int x1, int y1, int x2, int y2, Transferable transferable) {
+    dragDrop(manager, x1, y1, x2, y2, transferable, DnDConstants.ACTION_COPY);
+  }
+
+  public static void dragDrop(InteractionManager manager, int x1, int y1, int x2, int y2, Transferable transferable, int dropAction) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof DropTargetListener);
     DropTargetListener dropListener = (DropTargetListener)listener;
@@ -141,14 +146,15 @@ public class LayoutTestUtilities {
     double ySlope = (y2 - y) / frames;
 
     DropTargetContext context = createDropTargetContext();
-    dropListener.dragEnter(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).build());
+    dropListener.dragEnter(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build());
     for (int i = 0; i < frames + 1; i++) {
-      dropListener.dragOver(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).build());
+      dropListener.dragOver(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build());
       x += xSlope;
       y += ySlope;
     }
 
-    DropTargetDropEvent dropEvent = new DropTargetDropEventBuilder(context, (int)x, (int)y, transferable).build();
+    DropTargetDropEvent dropEvent =
+      new DropTargetDropEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build();
     dropListener.drop(dropEvent);
 
     verify(dropEvent, times(1)).acceptDrop(anyInt());
