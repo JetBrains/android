@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
@@ -39,7 +38,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.function.Function;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_GRAPH;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
 import static org.mockito.Mockito.when;
 
 // TODO: in most cases this probably doesn't need to extend AndroidGradleTestCase/doesn't need to load the project.
@@ -122,28 +125,35 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   @NotNull
   protected NavigationComponentDescriptor navigationComponent(@NotNull String id) {
     NavigationComponentDescriptor descriptor = new NavigationComponentDescriptor();
-    descriptor.id("@id/" + id);
+    descriptor.id("@+id/" + id);
+    return descriptor;
+  }
+
+  @NotNull
+  protected IncludeComponentDescriptor includeComponent(@NotNull String graphId) {
+    IncludeComponentDescriptor descriptor = new IncludeComponentDescriptor();
+    descriptor.withAttribute(AUTO_URI, ATTR_GRAPH, "@navigation/" + graphId);
     return descriptor;
   }
 
   @NotNull
   protected FragmentComponentDescriptor fragmentComponent(@NotNull String id) {
     FragmentComponentDescriptor descriptor = new FragmentComponentDescriptor();
-    descriptor.id("@id/" + id);
+    descriptor.id("@+id/" + id);
     return descriptor;
   }
 
   @NotNull
   protected ActionComponentDescriptor actionComponent(@NotNull String id) {
     ActionComponentDescriptor descriptor = new ActionComponentDescriptor();
-    descriptor.id("@id/" + id);
+    descriptor.id("@+id/" + id);
     return descriptor;
   }
 
   @NotNull
   protected ActivityComponentDescriptor activityComponent(@NotNull String id) {
     ActivityComponentDescriptor descriptor = new ActivityComponentDescriptor();
-    descriptor.id("@id/" + id);
+    descriptor.id("@+id/" + id);
     return descriptor;
   }
 
@@ -154,13 +164,13 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
 
     @NotNull
     public NavigationComponentDescriptor withStartDestinationAttribute(@NotNull String startDestination) {
-      withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/" + startDestination);
+      withAttribute(AUTO_URI, ATTR_START_DESTINATION, "@id/" + startDestination);
       return this;
     }
 
     @NotNull
     public NavigationComponentDescriptor withLabelAttribute(@NotNull String label) {
-      withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, label);
+      withAttribute(ANDROID_URI, ATTR_LABEL, label);
       return this;
     }
   }
@@ -172,19 +182,19 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
 
     @NotNull
     public FragmentComponentDescriptor withLayoutAttribute(@NotNull String layout) {
-      withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/" + layout);
+      withAttribute(TOOLS_URI, ATTR_LAYOUT, "@layout/" + layout);
       return this;
     }
   }
 
   protected static class ActionComponentDescriptor extends ComponentDescriptor {
     public ActionComponentDescriptor() {
-      super(NavigationSchema.TAG_ACTION);
+      super(TAG_ACTION);
     }
 
     @NotNull
     public ActionComponentDescriptor withDestinationAttribute(@NotNull String destination) {
-      withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/" + destination);
+      withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/" + destination);
       return this;
     }
   }
@@ -192,6 +202,12 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   protected static class ActivityComponentDescriptor extends ComponentDescriptor {
     public ActivityComponentDescriptor() {
       super("activity");
+    }
+  }
+
+  protected static class IncludeComponentDescriptor extends ComponentDescriptor {
+    public IncludeComponentDescriptor() {
+      super("include");
     }
   }
 }

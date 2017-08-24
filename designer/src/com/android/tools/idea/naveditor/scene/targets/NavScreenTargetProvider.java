@@ -16,13 +16,13 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,7 +60,8 @@ public class NavScreenTargetProvider implements TargetProvider {
       if (sibling == sceneComponent) {
         continue;
       }
-      sibling.flatten().forEach(component -> groupMap.put(component.getId(), sibling));
+      sibling.flatten().forEach(
+        component -> groupMap.put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
     }
     sceneComponent.getNlComponent().flatten()
       .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))

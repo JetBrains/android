@@ -99,6 +99,37 @@ public class NavSceneTest extends NavigationTestCase {
                  "UNClip\n", list.serialize());
   }
 
+  public void testInclude() {
+    ComponentDescriptor root = rootComponent()
+      .unboundedChildren(
+        fragmentComponent("fragment1")
+          .unboundedChildren(
+            actionComponent("action1")
+              .withDestinationAttribute("nav")),
+        includeComponent("navigation"));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+
+    SyncNlModel model = modelBuilder.build();
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    assertEquals("Clip,0,0,460,420\n" +
+                 "DrawComponentFrame,50,50,192,320,1,false\n" +
+                 "DrawAction,21,NORMAL,50x50x192x320,310x50x100x25,NORMAL\n" +
+                 "DrawActionHandle,24,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,22,50,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
+                 "\n" +
+                 "DrawComponentBackground,310,50,100,25,1,true\n" +
+                 "DrawTextRegion,310,50,100,25,0,17,true,false,4,4,30,0.5,\"myCoolLabel\"\n" +
+                 "DrawComponentFrame,310,50,100,25,1,true\n" +
+                 "DrawActionHandle,24,410,62,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,22,310,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],\n" +
+                 "\n" +
+                 "UNClip\n", list.serialize());
+  }
+
   public void testNegativePositions() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment1")

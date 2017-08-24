@@ -19,13 +19,8 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.editor.NavActionManager;
-import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -33,6 +28,12 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.NavComponentHelper;
+import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -43,6 +44,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +55,7 @@ import java.awt.*;
 import java.io.File;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 
 /**
  * {@link DesignSurface} for the navigation editor.
@@ -104,6 +107,20 @@ public class NavDesignSurface extends DesignSurface {
       mySchema = NavigationSchema.getOrCreateSchema(model.getFacet());
     }
     return mySchema;
+  }
+
+  @Override
+  @NotNull
+  public NlComponent createComponent(@NotNull XmlTag tag) {
+    return createComponent(tag, getModel());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
+    NlComponent result = DesignSurface.createComponent(tag, model);
+    NavComponentHelper.INSTANCE.registerComponent(result);
+    return result;
   }
 
   @NotNull
@@ -250,38 +267,51 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
-    if (getSchema().getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
-       setCurrentNavigation(component);
+    String tagName = component.getTagName();
+    String id = null;
+    if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
+      if (tagName.equals(TAG_INCLUDE)) {
+        id = component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH);
+        if (id == null) {
+          // includes are always supposed to have a graph specified, but if not, give up.
+          return;
+        }
+      }
+      else {
+        setCurrentNavigation(component);
+        return;
+      }
     }
     else {
-      String layout = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
-      if (layout != null) {
-        Configuration configuration = getConfiguration();
-        ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
-        ResourceValue value = resolver != null ? resolver.findResValue(layout, false) : null;
-        String fileName = value != null ? value.getValue() : null;
-        if (fileName != null) {
-          File file = new File(fileName);
-          if (file.exists()) {
-            VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
-            if (virtualFile != null) {
-              FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
-              return;
-            }
+      id = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
+    }
+    if (id != null) {
+      Configuration configuration = getConfiguration();
+      ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
+      ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
+      String fileName = value != null ? value.getValue() : null;
+      if (fileName != null) {
+        File file = new File(fileName);
+        if (file.exists()) {
+          VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+          if (virtualFile != null) {
+            FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            return;
           }
         }
       }
-      String className = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME);
-      if (className != null) {
-        PsiClass psiClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.allScope(getProject()));
-        if (psiClass != null) {
-          PsiFile file = psiClass.getContainingFile();
-          if (file != null) {
-            VirtualFile virtualFile = file.getVirtualFile();
-            if (virtualFile != null) {
-              FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
-              return;
-            }
+    }
+
+    String className = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME);
+    if (className != null) {
+      PsiClass psiClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.allScope(getProject()));
+      if (psiClass != null) {
+        PsiFile file = psiClass.getContainingFile();
+        if (file != null) {
+          VirtualFile virtualFile = file.getVirtualFile();
+          if (virtualFile != null) {
+            FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            return;
           }
         }
       }

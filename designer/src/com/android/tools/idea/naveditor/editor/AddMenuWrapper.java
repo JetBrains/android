@@ -319,20 +319,26 @@ public class AddMenuWrapper extends DropDownAction {
     myKindPopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
       // TODO: print different text for different (custom) navigators?
       NavigationSchema.DestinationType type = mySchema.getDestinationType(value);
-      String text;
-      if (type == NAVIGATION) {
-        text = "Nested Graph";
-      }
-      else if (type == FRAGMENT) {
-        text = "Fragment (default)";
-      }
-      else if (type == ACTIVITY) {
-        text = "Activity";
-      }
-      else if (TAG_INCLUDE.equals(value)) {
+      String text = null;
+      if (TAG_INCLUDE.equals(value)) {
         text = "Include Graph";
       }
       else {
+        if (type == NAVIGATION) {
+          text = "Nested Graph";
+        }
+        else if (type == FRAGMENT) {
+          text = "Fragment";
+        }
+        else if (type == ACTIVITY) {
+          text = "Activity";
+        }
+        if (type != null && !value.equals(mySchema.getTag(type))) {
+          // If it's a custom tag, show it
+          text += " (" + value + ")";
+        }
+      }
+      if (text == null) {
         text = value;
       }
       RENDERER_COMPONENT.setText(text);
@@ -345,7 +351,6 @@ public class AddMenuWrapper extends DropDownAction {
         }
       }
     }
-    myKindPopup.addItem(TAG_INCLUDE);
 
     myKindPopup.addItemListener(itemEvent -> {
       myClassLabel.setVisible(false);

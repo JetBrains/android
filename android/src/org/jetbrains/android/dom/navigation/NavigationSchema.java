@@ -52,6 +52,7 @@ public class NavigationSchema implements Disposable {
   public static final String ANNOTATION_NAV_TAG_NAME = "android.arch.navigation.Navigator.Name";
   public static final String ATTR_NAV_TYPE = "navType";
   public static final String ATTR_START_DESTINATION = "startDestination";
+  public static final String ATTR_GRAPH = "graph";
 
   // TODO: get these from the xml metadata once supported by platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
@@ -170,6 +171,10 @@ public class NavigationSchema implements Disposable {
           }
         }
       }
+      // Doesn't come from library, so have to add manually.
+      tagToType.put(TAG_INCLUDE, DestinationType.NAVIGATION);
+      result.get(DestinationType.NAVIGATION).put(TAG_INCLUDE, null);
+
       myNavTagToClass = result;
       myTagToDestinationType = tagToType;
 
@@ -178,7 +183,7 @@ public class NavigationSchema implements Disposable {
       for (String tag : myTagToDestinationType.keySet()) {
         DestinationType type = myTagToDestinationType.get(tag);
         PsiClass psiClass = myNavTagToClass.get(type).get(tag);
-        if (!typeToBestClass.containsKey(type) || typeToBestClass.get(type).isInheritor(psiClass, true)) {
+        if (psiClass != null && (!typeToBestClass.containsKey(type) || typeToBestClass.get(type).isInheritor(psiClass, true))) {
           typeToBestClass.put(type, psiClass);
           typeToTag.put(type, tag);
         }
@@ -192,15 +197,17 @@ public class NavigationSchema implements Disposable {
   public Multimap<Class<? extends AndroidDomElement>, String> getDestinationSubtags(@NotNull String tagName) {
     initIfNeeded();
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
-    if (myTagToDestinationType.get(tagName) == DestinationType.NAVIGATION) {
-      for (Map<String, PsiClass> typeMap : getTypeTagClassMap().values()) {
-        for (String subTag : typeMap.keySet()) {
-          result.put(NavDestinationElement.class, subTag);
+    if (!tagName.equals(TAG_INCLUDE)) {
+      if (myTagToDestinationType.get(tagName) == DestinationType.NAVIGATION) {
+        for (Map<String, PsiClass> typeMap : getTypeTagClassMap().values()) {
+          for (String subTag : typeMap.keySet()) {
+            result.put(NavDestinationElement.class, subTag);
+          }
         }
       }
+      result.put(NavActionElement.class, TAG_ACTION);
+      // TODO: other tags
     }
-    result.put(NavActionElement.class, TAG_ACTION);
-    // TODO: other tags
     return result;
   }
 
