@@ -17,12 +17,14 @@ package com.android.tools.idea.naveditor.editor;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -34,6 +36,8 @@ import sun.awt.image.ToolkitImage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -318,5 +322,16 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     menu = new AddMenuWrapper(mySurface, ImmutableList.of(dest));
     menu.createCustomComponentPopup();
     assertNull(menu.myLoadingPanel);
+  }
+
+  public void testKindPopup() throws Exception {
+    ComboBox<String> popup = myMenu.myKindPopup;
+    ListCellRenderer<? super String> renderer = popup.getRenderer();
+    Set<String> result = new HashSet<>();
+    for (int i = 0; i < popup.getItemCount(); i++) {
+      result.add(((JLabel)renderer.getListCellRendererComponent(null, popup.getItemAt(i), i, false, false)).getText());
+    }
+    assertEquals(ImmutableSet.of("Include Graph", "Nested Graph", "Fragment", "Activity"), result);
+    assertEquals("fragment", popup.getSelectedItem());
   }
 }

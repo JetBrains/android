@@ -32,7 +32,8 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
     "fragment", "activity", "fragment_sub", "activity_sub", "fragment_sub_sub", "other_1", "other_2"
   };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
-  private static final String[] ALL = Stream.concat(Arrays.stream(LEAVES), Arrays.stream(GROUPS)).toArray(String[]::new);
+  private static final String[] ALL =
+    Stream.concat(Stream.concat(Arrays.stream(LEAVES), Arrays.stream(GROUPS)), Stream.of("include")).toArray(String[]::new);
 
   @Override
   public void setUp() throws Exception {
@@ -57,6 +58,8 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
       subtags = schema.getDestinationSubtags(group);
       assertEquals(group, expected, subtags);
     }
+
+    assertTrue(schema.getDestinationSubtags(NavigationSchema.TAG_INCLUDE).isEmpty());
   }
 
   public void testDestinationClassByTag() {
