@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
@@ -39,6 +40,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
@@ -115,7 +117,12 @@ public class GradleSyncInvoker {
       ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
       try {
         if (prepareProject(project, request, listener)) {
-          sync(project, request, listener);
+          if (StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
+            DumbService.getInstance(project).runWhenSmart(() -> sync(project, request, listener));
+          }
+          else {
+            sync(project, request, listener);
+          }
         }
       }
       catch (ConfigurationException e) {

@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.project.IndexingSuspender;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -61,6 +63,8 @@ public class GradleSyncState {
   @VisibleForTesting
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
+  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
+
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
@@ -69,7 +73,9 @@ public class GradleSyncState {
   @NotNull private final GradleSyncSummary mySummary;
   @NotNull private final GradleFiles myGradleFiles;
 
-  private final Object myLock = new Object();
+  @NotNull private final Object myLock = new Object();
+  @NotNull private final Object myIndexingLock = new Object();
+  private boolean myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
 
   @GuardedBy("myLock")
   private boolean mySyncNotificationsEnabled;
@@ -169,7 +175,10 @@ public class GradleSyncState {
       }
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
+      myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
+      ensureNoIndexingDuringSync();
     }
+
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
     setSyncStartedTimeStamp(System.currentTimeMillis(), trigger);
@@ -186,6 +195,13 @@ public class GradleSyncState {
     UsageTracker.getInstance().log(event);
 
     return true;
+  }
+
+  private void ensureNoIndexingDuringSync() {
+    if (myFlagIsIndexingAware) {
+      IndexingSuspender.queue(myProject, "Gradle Sync", myIndexingLock,
+                              this::isSyncInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);
+    }
   }
 
   @VisibleForTesting
@@ -327,6 +343,15 @@ public class GradleSyncState {
     synchronized (myLock) {
       mySyncInProgress = false;
       mySyncSkipped = false;
+      unblockIndexing();
+    }
+  }
+
+  private void unblockIndexing() {
+    if (myFlagIsIndexingAware) {
+      synchronized (myIndexingLock) {
+        myIndexingLock.notifyAll();
+      }
     }
   }
 
