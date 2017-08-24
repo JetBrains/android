@@ -16,14 +16,21 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.res.ResourceHelper
 
 /*
  * Extensions to NlComponent used by the navigation editor
  */
 
-val NlComponent.uiName: String
-  get() = getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
-      getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?:
-      NlComponent.stripId(getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) ?:
+fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
+  val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
+      resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?:
+      NlComponent.stripId(resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) ?:
       tagName
+  return when {
+    resourceResolver != null -> ResourceHelper.resolveStringValue(resourceResolver, name)
+    else -> name
+  }
+}

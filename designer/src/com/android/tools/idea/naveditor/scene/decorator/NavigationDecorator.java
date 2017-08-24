@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.draw.DrawCommand;
-import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
-import com.android.tools.idea.common.scene.draw.DrawTextRegion;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.scene.draw.*;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -61,13 +55,8 @@ public class NavigationDecorator extends SceneDecorator {
 
     Rectangle bounds = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null));
     // TODO: baseline based on text size
-    String label = component.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
-    if (label == null) {
-      label = NlComponent.stripId(component.getId());
-    }
-    if (label == null) {
-      label = "navigation";
-    }
+    // TODO: add resource resolver here?
+    String label = NavComponentHelperKt.getUiName(component.getNlComponent(), null);
     double scale = sceneContext.getScale();
     list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
                                 (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
