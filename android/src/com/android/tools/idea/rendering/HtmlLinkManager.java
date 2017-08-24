@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -350,10 +351,7 @@ public class HtmlLinkManager {
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
-    BuildSystemService service = BuildSystemServiceUtil.getInstance(project);
-    if (service != null) {
-      service.buildProject();
-    }
+    ProjectSystemUtil.getInstance(project).buildProject();
   }
 
   public String createSyncProjectUrl() {

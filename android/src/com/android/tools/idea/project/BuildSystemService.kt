@@ -38,14 +38,6 @@ interface BuildSystemService {
    */
   fun isApplicable(): Boolean
 
-  /**
-   * Initiates an incremental build of the entire project. Blocks the caller until the build
-   * is completed.
-   *
-   * TODO: Make this asynchronous and return something like a ListenableFuture.
-   */
-  fun buildProject()
-
   /** The result of a sync request */
   enum class SyncResult(val successful: Boolean) {
     /** The user cancelled the sync */

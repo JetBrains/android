@@ -97,11 +97,6 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
   }
 
-  public void testBuildProject() {
-    myService.buildProject();
-    verify(GradleProjectBuilder.getInstance(myProject)).compileJava();
-  }
-
   public void testAddDependency() {
     String artifact = "com.android.foo:bar";
     myService.addDependency(getModule(), artifact);

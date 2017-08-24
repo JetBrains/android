@@ -37,4 +37,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun isApplicable() = false
+
+  override fun buildProject() {
+  }
 }

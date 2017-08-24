@@ -23,7 +23,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.layoutlib-api[module]",
         "//tools/adt/idea/adt-ui[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/idea:platform-impl_and_others[module, test]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/ninepatch:studio.ninepatch[module]",
         "//tools/base/sdklib:studio.sdklib[module]",
     ],

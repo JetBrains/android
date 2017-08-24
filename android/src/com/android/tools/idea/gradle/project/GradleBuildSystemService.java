@@ -56,11 +56,6 @@ public class GradleBuildSystemService implements BuildSystemService {
   }
 
   @Override
-  public void buildProject() {
-    GradleProjectBuilder.getInstance(project).compileJava();
-  }
-
-  @Override
   @NotNull
   public ListenableFuture<SyncResult> syncProject(@NotNull SyncReason reason, boolean requireSourceGeneration) {
     SettableFuture<SyncResult> syncResult = SettableFuture.create();

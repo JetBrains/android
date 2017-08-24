@@ -202,6 +202,7 @@ iml_module(
         "//tools/adt/idea/android-common[module, test]",
         "//tools/adt/idea/apkanalyzer[module, test]",
         "//tools/idea/.idea/libraries:sqlite",
+        "//tools/adt/idea/project-system[module, test]",
     ],
 )
 
