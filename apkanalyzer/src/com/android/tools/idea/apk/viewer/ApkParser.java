@@ -50,6 +50,10 @@ public class ApkParser {
     myApkSizeCalculator = sizeCalculator;
   }
 
+  public Archive getArchive() {
+    return myArchive;
+  }
+
   public synchronized void cancelAll(){
     ListenableFuture[] futures = new ListenableFuture[]{
       myTreeStructureWithDownloadSizes,
