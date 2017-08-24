@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
@@ -28,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
+import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
@@ -231,11 +233,18 @@ public class Template {
 
     String title = myMetadata.getTitle();
     if (title != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.TEMPLATE)
-                                     .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-                                     .setTemplateRenderer(titleToTemplateRenderer(title))
-      );
+      Map<String, Object> paramMap = context.getParamMap();
+      Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
+      Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);
+      UsageTracker.getInstance().log(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.TEMPLATE)
+          .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
+          .setTemplateRenderer(titleToTemplateRenderer(title))
+          .setKotlinSupport(
+            KotlinSupport.newBuilder()
+              .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
+              .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown")));
     }
 
     if (context.shouldReformat()) {
@@ -248,7 +257,8 @@ public class Template {
     return success;
   }
 
-  private static TemplateRenderer titleToTemplateRenderer(String title) {
+  @VisibleForTesting
+  static TemplateRenderer titleToTemplateRenderer(String title) {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
