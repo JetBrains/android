@@ -38,7 +38,6 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -238,7 +237,6 @@ public class ConstraintLayoutTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  @Ignore("http://b/64843832")
   public void layoutPreviewRendering() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
