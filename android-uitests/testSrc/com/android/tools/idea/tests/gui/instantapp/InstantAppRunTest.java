@@ -57,9 +57,9 @@ public class InstantAppRunTest {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   /**
-   * Verify instant apps can be deployed to an emulator running API 26 or newer.
+   * Verify imported instant apps can be deployed to an emulator running API 26 or newer.
    *
-   * <p>TT ID: 84f8150d-0319-4e7e-b510-8227890aca3f
+   * <p>TT ID: 56be2a70-25a2-4b1f-9887-c19073874aa2
    *
    * <pre>
    *   Test steps:
@@ -73,9 +73,9 @@ public class InstantAppRunTest {
    */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void runSimpleInstantApp() throws Exception {
-    String runConfigName = "instantapp";
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleInstantApp");
+  public void importAndRunInstantApp() throws Exception {
+    String runConfigName = "topekabundle";
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
