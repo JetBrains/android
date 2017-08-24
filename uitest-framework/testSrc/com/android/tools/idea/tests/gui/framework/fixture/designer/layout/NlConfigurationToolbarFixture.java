@@ -19,12 +19,15 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +156,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public ThemeSelectionDialogFixture openThemeSelectionDialog() {
-    new ActionButtonFixture(myRobot, findToolbarButton("Theme in Editor")).click();
+    // We directly perform the action here because ActionButton of Theme may be collapsed and cannot be found by finder.
+    AnAction themeMenuAction = myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
+    ApplicationManager.getApplication().invokeLater(() -> themeMenuAction.actionPerformed(null));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 
