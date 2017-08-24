@@ -1228,6 +1228,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       moduleState.put(ATTR_IS_LIBRARY_MODULE, true);
       activityState.put(ATTR_IS_LIBRARY_MODULE, true);
       activityState.put(ATTR_HAS_APPLICATION_THEME, false);
+      // For a library project a theme doesn't exist. This is derived in the IDE using FmgetApplicationThemeMethod
+      moduleState.put(ATTR_THEME_EXISTS, false);
       checkProjectNow(projectName + "_lib", projectState, activityState);
     }
   }
@@ -1301,8 +1303,9 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (getTestName(false).endsWith("WithKotlin")) {
         Path rootPath = projectDir.toPath();
         // Note: Files.walk() stream needs to be closed (or consumed completly), otherwise it will leave locked directories on Windows
-        assertFalse(Files.walk(rootPath).collect(toList()).stream().anyMatch(path -> path.toString().endsWith(".java")));
-        assertTrue(Files.walk(rootPath).collect(toList()).stream().anyMatch(path -> path.toString().endsWith(".kt")));
+        List<Path> allPaths = Files.walk(rootPath).collect(toList());
+        assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
+        assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
       }
 
       GradleConnector connector = GradleConnector.newConnector();
