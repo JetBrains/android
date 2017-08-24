@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -88,8 +89,7 @@ public class LicensesLocator {
   @NotNull
   private List<Path> getIdeWideThirdPartyLibLicenses() {
     try {
-      return Files.list(myIdeHome.resolve("license"))
-        .collect(Collectors.toList());
+      return Files.list(myIdeHome.resolve("license")).collect(Collectors.toList());
     }
     catch (IOException e) {
       Logger.getInstance(LicensesLocator.class).error(e);
@@ -102,7 +102,9 @@ public class LicensesLocator {
     Path pluginLicenseFolder = Paths.get(myIdeHome.toString(), "plugins", plugin, "lib", "licenses");
     if (Files.isDirectory(pluginLicenseFolder)) {
       try {
-        return Files.list(pluginLicenseFolder).collect(Collectors.toList());
+        List<Path> paths = Files.list(pluginLicenseFolder).collect(Collectors.toList());
+        paths.sort(Comparator.naturalOrder());
+        return paths;
       }
       catch (IOException e) {
         Logger.getInstance(LicensesLocator.class).warn(e);
