@@ -19,7 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.internal.AndroidArtifact;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
+import com.android.tools.apk.analyzer.internal.ZipArtifact;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -106,13 +108,6 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
     }, EdtExecutor.INSTANCE);
 
-    mySizeComponent.setToolTipText(
-      "1. The <b>raw size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after "
-      + "installation.\n"
-      + "2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed "
-      + "version of the file).\n"
-      + "For application updates, Google Play serves patches that are typically much smaller.\n"
-      + "The installation size may be higher than the raw size depending on various other factors.");
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     myCompareWithButton.addActionListener(e -> {
@@ -293,9 +288,23 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
 
     mySizeComponent.setIcon(AllIcons.General.BalloonInformation);
-    mySizeComponent.append("Raw File Size: ");
-    mySizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    mySizeComponent.append(", Download Size: ");
+    if (myApkParser.getArchive() instanceof AndroidArtifact) {
+      mySizeComponent.append("APK size: ");
+      mySizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      mySizeComponent.append(", Download Size: ");
+      mySizeComponent.setToolTipText(
+        "1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after "
+        + "installation.\n"
+        + "2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed "
+        + "version of the file).\n"
+        + "For application updates, Google Play serves patches that are typically much smaller.\n"
+        + "The installation size may be higher than the APK size depending on various other factors.");
+    } else if (myApkParser.getArchive() instanceof ZipArtifact) {
+      mySizeComponent.append("Zip file size: ");
+      mySizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n");
+    } else {
+      mySizeComponent.append("Raw File Size: ");
+    }
     mySizeComponent.append(getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
