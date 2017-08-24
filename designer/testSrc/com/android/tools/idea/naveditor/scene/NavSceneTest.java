@@ -88,7 +88,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenLabel,22,310,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,21,NORMAL,98x50x192x320,310x50x192x320,NORMAL\n\n" +
                  "DrawComponentBackground,570,50,100,25,1,true\n" +
-                 "DrawTextRegion,570,50,100,25,0,17,true,false,4,4,30,0.5,\"navigation\"\n" +
+                 "DrawTextRegion,570,50,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
                  "DrawComponentFrame,570,50,100,25,1,true\n" +
                  "DrawAction,21,NORMAL,570x50x100x25,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,24,670,62,0,0,ffc0c0c0,fafafa\n" +
@@ -351,7 +351,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenLabel,22,100,88,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment2\n" +
                  "DrawAction,21,NORMAL,-304x100x384x640,100x100x384x640,NORMAL\n\n" +
                  "DrawComponentBackground,1140,100,200,50,1,true\n" +
-                 "DrawTextRegion,1140,100,200,50,0,35,true,false,4,4,30,1.0,\"navigation\"\n" +
+                 "DrawTextRegion,1140,100,200,50,0,35,true,false,4,4,30,1.0,\"subnav\"\n" +
                  "DrawComponentFrame,1140,100,200,50,1,true\n" +
                  "DrawAction,21,NORMAL,1140x100x200x50,620x100x384x640,NORMAL\n" +
                  "DrawActionHandle,24,1340,124,0,0,ffc0c0c0,fafafa\n" +

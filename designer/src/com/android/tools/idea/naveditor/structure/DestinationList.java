@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
-import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
@@ -96,13 +94,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
                                                     final boolean cellHasFocus) {
         final Component result = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         NlComponent component = (NlComponent)value;
-        String label = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL);
-        if (label != null) {
-          label = ResourceHelper.resolveStringValue(myResourceResolver, label);
-        }
-        if (label == null) {
-          label = component.getId();
-        }
+        String label = NavComponentHelperKt.getUiName(component, myResourceResolver);
         setText(label);
         Icon icon = AndroidIcons.NavEditorIcons.Destination;
         if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
@@ -246,7 +238,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     else {
       myBackPanel.setVisible(true);
       NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
-      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent));
+      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent, myResourceResolver));
     }
   }
 
