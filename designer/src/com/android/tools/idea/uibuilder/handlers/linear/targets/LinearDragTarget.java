@@ -135,7 +135,7 @@ public class LinearDragTarget extends DragBaseTarget {
     parent.updateTargets(true);
     if (myClosest != null) {
       myClosest.setHighlight(false);
-      if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest, myIsDragFromPalette)) {
+      if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest)) {
         myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
         return;
       }
@@ -155,5 +155,10 @@ public class LinearDragTarget extends DragBaseTarget {
     if (myClosest != null) {
       myClosest.setHighlight(false);
     }
+  }
+
+  @Nullable
+  public LinearSeparatorTarget getClosest() {
+    return myClosest;
   }
 }
