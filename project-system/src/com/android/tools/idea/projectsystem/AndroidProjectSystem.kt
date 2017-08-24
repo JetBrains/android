@@ -52,6 +52,14 @@ interface AndroidProjectSystem {
    * Returns the absolute filesystem path to the aapt executable being used for the given project.
    */
   fun getPathToAapt(): Path
+
+  /**
+   * Initiates an incremental build of the entire project. Blocks the caller until the build
+   * is completed.
+   *
+   * TODO: Make this asynchronous and return something like a ListenableFuture.
+   */
+  fun buildProject()
 }
 
 private val EP_NAME = ExtensionPointName<AndroidProjectSystem>("com.android.project.projectsystem")
