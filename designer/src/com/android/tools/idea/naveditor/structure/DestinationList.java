@@ -21,7 +21,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.naveditor.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.scene.SceneContext;
