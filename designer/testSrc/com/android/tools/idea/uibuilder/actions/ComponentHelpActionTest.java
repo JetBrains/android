@@ -15,33 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.util.JavaDocViewer;
+import com.android.SdkConstants;
+import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.psi.PsiClass;
 import org.jetbrains.android.AndroidTestCase;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {
   @Mock
   private DataContext myDataContext;
   @Mock
-  private JavaDocViewer myJavaDocViewer;
+  private BrowserLauncher myBrowserLauncher;
   @Mock
   private AnActionEvent myEvent;
-  @Captor
-  private ArgumentCaptor<PsiClass> myPsiClassCaptor;
-  @Captor
-  private ArgumentCaptor<DataContext> myContextCaptor;
   private ComponentHelpAction myAction;
   private String myTagName;
 
@@ -51,7 +43,7 @@ public class ComponentHelpActionTest extends AndroidTestCase {
     MockitoAnnotations.initMocks(this);
     when(myEvent.getDataContext()).thenReturn(myDataContext);
     myAction = new ComponentHelpAction(getProject(), () -> myTagName);
-    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
+    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
   }
 
   @Override
@@ -60,10 +52,8 @@ public class ComponentHelpActionTest extends AndroidTestCase {
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myDataContext = null;
-      myJavaDocViewer = null;
+      myBrowserLauncher = null;
       myEvent = null;
-      myPsiClassCaptor = null;
-      myContextCaptor = null;
       myAction = null;
       myTagName = null;
     }
@@ -75,40 +65,48 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testNullTagName() {
     myTagName = null;
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myJavaDocViewer);
+    verifyZeroInteractions(myBrowserLauncher);
   }
 
   public void testUnknownTagName() {
     myTagName = "UnknownComponentTagName";
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myJavaDocViewer);
+    verifyZeroInteractions(myBrowserLauncher);
   }
 
   public void testButton() {
     myTagName = "Button";
     myAction.actionPerformed(myEvent);
-    verify(myJavaDocViewer).showExternalJavaDoc(myPsiClassCaptor.capture(), eq(myDataContext));
-    assertThat(myPsiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
   }
 
   public void testTextureView() {
     myTagName = "TextureView";
     myAction.actionPerformed(myEvent);
-    verify(myJavaDocViewer).showExternalJavaDoc(myPsiClassCaptor.capture(), eq(myDataContext));
-    assertThat(myPsiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.view.TextureView");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/TextureView.html"), isNull());
   }
 
   public void testWebView() {
     myTagName = "WebView";
     myAction.actionPerformed(myEvent);
-    verify(myJavaDocViewer).showExternalJavaDoc(myPsiClassCaptor.capture(), eq(myDataContext));
-    assertThat(myPsiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.webkit.WebView");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/webkit/WebView.html"), isNull());
   }
 
   public void testFullyQualifiedButton() {
     myTagName = "android.widget.Button";
     myAction.actionPerformed(myEvent);
-    verify(myJavaDocViewer).showExternalJavaDoc(myPsiClassCaptor.capture(), eq(myDataContext));
-    assertThat(myPsiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
+  }
+
+  public void testSupportLibraryTag() {
+    myTagName = SdkConstants.CONSTRAINT_LAYOUT;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/support/constraint/ConstraintLayout.html"), isNull());
+  }
+
+  public void testGoogleLibraryTag() {
+    myTagName = SdkConstants.AD_VIEW;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/com/google/android/gms/ads/AdView.html"), isNull());
   }
 }

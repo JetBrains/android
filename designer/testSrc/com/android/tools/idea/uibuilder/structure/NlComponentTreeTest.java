@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.util.JavaDocViewer;
-import com.android.tools.idea.common.util.NlTreeDumper;
+import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import javax.swing.tree.TreePath;
@@ -64,7 +62,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @Mock
   private CopyPasteManager myCopyPasteManager;
   @Mock
-  private JavaDocViewer myJavaDocViewer;
+  private BrowserLauncher myBrowserLauncher;
+
   private SyncNlModel myModel;
   private NlComponentTree myTree;
   private NlComponent myRelativeLayout;
@@ -82,7 +81,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
-    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
+    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
 
     myRelativeLayout = findFirst(RELATIVE_LAYOUT);
     myLinearLayout = findFirst(LINEAR_LAYOUT);
@@ -119,7 +118,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myCopyPasteManager = null;
-      myJavaDocViewer = null;
+      myBrowserLauncher = null;
       myRelativeLayout = null;
       myLinearLayout = null;
       myButton = null;
@@ -408,12 +407,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
     DataContext context = mock(DataContext.class);
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getDataContext()).thenReturn(context);
-    ArgumentCaptor<PsiClass> psiClassCaptor = ArgumentCaptor.forClass(PsiClass.class);
 
     myModel.getSelectionModel().toggle(myTextView);
     action.actionPerformed(event);
-    verify(myJavaDocViewer).showExternalJavaDoc(psiClassCaptor.capture(), eq(context));
-    assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.TextView");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
   }
 
   private void copy(@NotNull NlComponent... components) {

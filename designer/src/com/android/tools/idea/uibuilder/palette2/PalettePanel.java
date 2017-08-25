@@ -21,29 +21,36 @@ import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.utils.Pair;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -83,6 +90,10 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private final CopyProvider myCopyProvider;
   private final CategoryList myCategoryList;
   private final ItemList myItemList;
+  private final AddToDesignAction myAddToDesignAction;
+  private final AndroidDocAction myAndroidDocAction;
+  private final MaterialDocAction myMaterialDocAction;
+  private final JPopupMenu myItemMenu;
 
   private DesignSurface myDesignSurface;
   private NlLayoutType myLayoutType;
@@ -90,11 +101,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private StartFilteringListener myStartFilteringCallback;
 
   public PalettePanel(@NotNull Project project) {
-    this(project, new DependencyManager(project));
+    this(project, new DependencyManager(project), new JBPopupMenu());
   }
 
   @VisibleForTesting
-  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
+  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager, @NotNull JPopupMenu itemPopupMenu) {
     super(new BorderLayout());
     myDependencyManager = dependencyManager;
     myDependencyManager.registerDependencyUpdates(this, this);
@@ -103,6 +114,10 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
     myCategoryList = new CategoryList();
     myItemList = new ItemList(myDependencyManager);
+    myAddToDesignAction = new AddToDesignAction();
+    myAndroidDocAction = new AndroidDocAction(project);
+    myMaterialDocAction = new MaterialDocAction();
+    myItemMenu = addItemPopupMenuItems(itemPopupMenu);
 
     myCategoryList.setBackground(UIUtil.getPanelBackground());
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
@@ -117,7 +132,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     mySplitter.setFocusCycleRoot(false);
     add(mySplitter, BorderLayout.CENTER);
 
-    KeyListener keyListener = createStartSearchOnKeyTyped();
+    KeyListener keyListener = createKeyListener();
 
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
@@ -131,9 +146,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     if (!GraphicsEnvironment.isHeadless()) {
       myItemList.setDragEnabled(true);
     }
-    myItemList.addMouseListener(createDependencyAdditionOnMouseClick());
+    myItemList.addMouseListener(createItemListMouseListener());
     myItemList.addKeyListener(keyListener);
-    addComponentHelp(project);
+    registerKeyboardActions();
 
     myLayoutType = NlLayoutType.UNKNOWN;
   }
@@ -148,13 +163,29 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   }
 
   @NotNull
-  private MouseListener createDependencyAdditionOnMouseClick() {
+  private MouseListener createItemListMouseListener() {
     return new MouseAdapter() {
+      @Override
+      public void mousePressed(@NotNull MouseEvent event) {
+        if (event.isPopupTrigger()) {
+          showPopupMenu(event);
+        }
+      }
+
       // We really should handle mouseClick instead of mouseReleased events.
       // However on Mac with "Show Scroll bars: When scrolling" is set we are not receiving mouseClick events.
       // The mouseReleased events however are received every time we want to recognize the mouse click.
       @Override
       public void mouseReleased(@NotNull MouseEvent event) {
+        if (event.isPopupTrigger()) {
+          showPopupMenu(event);
+        }
+        else if (SwingUtilities.isLeftMouseButton(event) && !event.isControlDown()) {
+          mouseClick(event);
+        }
+      }
+
+      private void mouseClick(@NotNull MouseEvent event) {
         if (event.getX() < myItemList.getWidth() - DOWNLOAD_WIDTH || event.getX() >= myItemList.getWidth()) {
           // Ignore mouse clicks that are outside the download button
           return;
@@ -163,27 +194,58 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         Palette.Item item = myItemList.getModel().getElementAt(index);
         myDependencyManager.ensureLibraryIsIncluded(item);
       }
+
+      private void showPopupMenu(@NotNull MouseEvent event) {
+        myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
+        updateMenu();
+        myItemMenu.show(myItemList, event.getX(), event.getY());
+      }
+
+      private void updateMenu() {
+        for (MenuElement element : myItemMenu.getSubElements()) {
+          if (element instanceof JMenuItem) {
+            JMenuItem item = (JMenuItem)element;
+            item.setEnabled(item.getAction().isEnabled());
+          }
+        }
+      }
     };
   }
 
   @NotNull
-  private KeyListener createStartSearchOnKeyTyped() {
+  private KeyListener createKeyListener() {
     return new KeyAdapter() {
       @Override
       public void keyTyped(@NotNull KeyEvent event) {
-        if (myStartFilteringCallback != null) {
+        if (event.getKeyChar() >= KeyEvent.VK_0 && myStartFilteringCallback != null) {
           myStartFilteringCallback.startFiltering(event.getKeyChar());
         }
       }
     };
   }
 
-  private void addComponentHelp(@NotNull Project project) {
-    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
-      Palette.Item item = myItemList.getSelectedValue();
-      return item != null ? item.getTagName() : null;
-    });
-    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, myItemList);
+  private void registerKeyboardActions() {
+    myItemList.registerKeyboardAction(event -> myAddToDesignAction.actionPerformed(null),
+                                      KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    myItemList.registerKeyboardAction(event -> myAndroidDocAction.actionPerformed(null),
+                                      KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK),
+                                      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    myAddToDesignAction.putValue(Action.ACCELERATOR_KEY,
+                                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+    myAndroidDocAction.putValue(Action.ACCELERATOR_KEY,
+                                KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK));
+  }
+
+  @NotNull
+  private JPopupMenu addItemPopupMenuItems(@NotNull JPopupMenu menu) {
+    menu.add(new JBMenuItem(myAddToDesignAction));
+    menu.addSeparator();
+    menu.add(new JBMenuItem(myAndroidDocAction));
+    menu.add(new JBMenuItem(myMaterialDocAction));
+    return menu;
   }
 
   private static int getInitialCategoryWidth() {
@@ -410,6 +472,112 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         Logger.getInstance(NlPaletteTreeGrid.class).warn("Could not un-serialize a transferable", ex);
       }
       return null;
+    }
+  }
+
+  private class AddToDesignAction extends AbstractAction {
+
+    public AddToDesignAction() {
+      super("Add to Design");
+    }
+
+    @Override
+    public void actionPerformed(@Nullable ActionEvent event) {
+      addComponentToModel(false /* checkOnly */);
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return addComponentToModel(true /* checkOnly */);
+    }
+
+    private boolean addComponentToModel(boolean checkOnly) {
+      Palette.Item item = myItemList.getSelectedValue();
+      if (item == null) {
+        return false;
+      }
+      if (myDesignSurface == null) {
+        return false;
+      }
+      NlModel model = myDesignSurface.getModel();
+      if (model == null) {
+        return false;
+      }
+      List<NlComponent> roots = model.getComponents();
+      if (roots.isEmpty()) {
+        return false;
+      }
+      SceneView sceneView = myDesignSurface.getCurrentSceneView();
+      if (sceneView == null) {
+        return false;
+      }
+      DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
+      DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
+      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
+
+      List<NlComponent> toAdd = NlModelHelperKt.createComponents(model, sceneView, dndItem, insertType);
+
+      NlComponent root = roots.get(0);
+      if (!model.canAddComponents(toAdd, root, null)) {
+        return false;
+      }
+      if (!checkOnly) {
+        model.addComponents(toAdd, root, null, insertType);
+      }
+      return true;
+    }
+  }
+
+  private class AndroidDocAction extends AbstractAction {
+    private AnAction myHelpAction;
+
+    private AndroidDocAction(@NotNull Project project) {
+      super("Android Documentation");
+      myHelpAction = new ComponentHelpAction(project, this::getSelectedTagName);
+    }
+
+    @Nullable
+    private String getSelectedTagName() {
+      Palette.Item item = myItemList.getSelectedValue();
+      return item != null ? item.getTagName() : null;
+    }
+
+    @Override
+    public void actionPerformed(@Nullable ActionEvent event) {
+      myHelpAction.actionPerformed(null);
+    }
+  }
+
+  private class MaterialDocAction extends AbstractAction {
+    private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
+
+    public MaterialDocAction() {
+      super("Material Guidelines");
+    }
+
+    @Override
+    public void actionPerformed(@Nullable ActionEvent event) {
+      String reference = getReference();
+      if (!reference.isEmpty()) {
+        BrowserUtil.browse(reference);
+      }
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return !getReference().isEmpty();
+    }
+
+    private String getReference() {
+      Palette.Item item = myItemList.getSelectedValue();
+      if (item == null) {
+        return "";
+      }
+      String reference = item.getMaterialReference();
+      if (reference == null) {
+        reference = MATERIAL_DEFAULT_REFERENCE;
+      }
+      return StringUtil.notNullize(reference);
     }
   }
 }

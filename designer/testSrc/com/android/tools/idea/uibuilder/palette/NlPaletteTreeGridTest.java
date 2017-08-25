@@ -18,26 +18,24 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.StartFilteringListener;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.util.JavaDocViewer;
+import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.JBUI;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentCaptor;
 
 import javax.swing.*;
 import javax.xml.ws.Holder;
@@ -68,7 +66,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
   private Runnable myCloseToolWindowCallback;
   private NlPaletteTreeGrid myPanel;
   private IconPreviewFactory myIconPreviewFactory;
-  private JavaDocViewer myJavaDocViewer;
+  private BrowserLauncher myBrowserLauncher;
   private NlUsageTracker myUsageTracker;
 
   @Override
@@ -78,8 +76,8 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     SyncNlModel model = createModel();
     ScreenView screenView = createScreen(model);
     mySurface = (NlDesignSurface)screenView.getSurface();
-    myJavaDocViewer = mock(JavaDocViewer.class);
-    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
+    myBrowserLauncher = mock(BrowserLauncher.class);
+    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     myCloseToolWindowCallback = mock(Runnable.class);
     myIconPreviewFactory = new IconPreviewFactory();
@@ -278,11 +276,9 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     DataContext context = mock(DataContext.class);
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getDataContext()).thenReturn(context);
-    ArgumentCaptor<PsiClass> psiClassCaptor = ArgumentCaptor.forClass(PsiClass.class);
 
     action.actionPerformed(event);
-    verify(myJavaDocViewer).showExternalJavaDoc(psiClassCaptor.capture(), eq(context));
-    assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
   }
 
   public void testDefaultInitialCategoryWidth() {

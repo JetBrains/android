@@ -16,9 +16,11 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.util.JavaDocViewer;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -30,6 +32,8 @@ import java.util.function.Supplier;
 import static com.android.SdkConstants.*;
 
 public class ComponentHelpAction extends AnAction {
+  private static final String DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/";
+
   private final Project myProject;
   private final Supplier<String> myTagNameSupplier;
 
@@ -40,12 +44,21 @@ public class ComponentHelpAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
+  public void actionPerformed(@Nullable AnActionEvent event) {
     String tagName = myTagNameSupplier.get();
     if (tagName == null) {
       return;
     }
-    PsiClass psiClass = findClassOfTagName(tagName);
+    String className = findClassName(tagName);
+    if (className == null) {
+      return;
+    }
+    String reference = computeReferenceFromClassName(className);
+    if (reference != null) {
+      BrowserUtil.browse(reference);
+      return;
+    }
+    PsiClass psiClass = findClassByClassName(className);
     if (psiClass == null) {
       return;
     }
@@ -53,24 +66,35 @@ public class ComponentHelpAction extends AnAction {
   }
 
   @Nullable
-  private PsiClass findClassOfTagName(@NotNull String tagName) {
+  private String findClassName(@NotNull String tagName) {
     if (tagName.indexOf('.') != -1) {
-      return findClassByClassName(tagName);
+      return tagName;
     }
-    PsiClass psiClass = findClassByClassName(ANDROID_WIDGET_PREFIX + tagName);
-    if (psiClass != null) {
-      return psiClass;
+    if (findClassByClassName(ANDROID_WIDGET_PREFIX + tagName) != null) {
+      return ANDROID_WIDGET_PREFIX + tagName;
     }
-    psiClass = findClassByClassName(ANDROID_VIEW_PKG + tagName);
-    if (psiClass != null) {
-      return psiClass;
+    if (findClassByClassName(ANDROID_VIEW_PKG + tagName) != null) {
+      return ANDROID_VIEW_PKG + tagName;
     }
-    return findClassByClassName(ANDROID_WEBKIT_PKG + tagName);
+    if (findClassByClassName(ANDROID_WEBKIT_PKG + tagName) != null) {
+      return ANDROID_WEBKIT_PKG + tagName;
+    }
+    return null;
   }
 
   @Nullable
   private PsiClass findClassByClassName(@NotNull String fullyQualifiedClassName) {
     JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(myProject);
     return javaFacade.findClass(fullyQualifiedClassName, GlobalSearchScope.allScope(myProject));
+  }
+
+  @Nullable
+  private static String computeReferenceFromClassName(@NotNull String className) {
+    if (className.startsWith(ANDROID_PKG_PREFIX) ||
+        className.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
+        className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
+      return DEFAULT_ANDROID_REFERENCE_PREFIX + StringUtil.replaceChar(className, '.', '/') + ".html";
+    }
+    return null;
   }
 }
