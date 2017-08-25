@@ -302,10 +302,12 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
             if (matches != null) {
               for (ResourceItem match : matches) {
                 PsiElement target = getResourceDefinition(match);
-                if (myResourceRefSet.add(match)) {
-                  myVisitQueue.offer(target);
+                if (target != null) {
+                  if (myResourceRefSet.add(match)) {
+                    myVisitQueue.offer(target);
+                  }
+                  myGraphBuilder.markReference(mySource, target);
                 }
-                myGraphBuilder.markReference(mySource, target);
               }
             }
           }
@@ -350,10 +352,12 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
               if (matches != null) {
                 for (ResourceItem match : matches) {
                   PsiElement target = getResourceDefinition(match);
-                  if (myResourceRefSet.add(match)) {
-                    myVisitQueue.offer(target);
+                  if (target != null) {
+                    if (myResourceRefSet.add(match)) {
+                      myVisitQueue.offer(target);
+                    }
+                    myGraphBuilder.markReference(mySource, target);
                   }
-                  myGraphBuilder.markReference(mySource, target);
                 }
               }
             }
