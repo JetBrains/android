@@ -663,8 +663,8 @@ public final class AvdOptionsModel extends WizardModel {
       }
       hasSdCard = storage != null && storage.getSize() > 0;
     }
-    else if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
-      sdCard = existingSdLocation.get();
+    else if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+      sdCard = myExternalSdCardLocation.get();
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
     }
