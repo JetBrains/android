@@ -19,9 +19,9 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
-import com.android.tools.idea.testartifacts.junit.*;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -41,8 +41,6 @@ import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
@@ -53,16 +51,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
-import java.util.List;
 
 import static com.android.SdkConstants.EXT_JAR;
-import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
-import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -74,17 +70,11 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
  * </p>
  */
 public class AndroidStudioInitializer implements Runnable {
-
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
-
-  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
-                                                                                "org.intellij.plugins.xpathView.XPathConfigurable",
-                                                                                "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl");
 
   @Override
   public void run() {
     checkInstallation();
-    removeIdeSettings();
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
@@ -172,16 +162,6 @@ public class AndroidStudioInitializer implements Runnable {
     }
 
     return false;
-  }
-
-  private static void removeIdeSettings() {
-    try {
-      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable = Extensions.getRootArea().getExtensionPoint(APPLICATION_CONFIGURABLE);
-      cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
-    }
-    catch (Throwable e) {
-      LOG.info("Failed to clean up IDE preferences", e);
-    }
   }
 
   // Remove popup actions that we don't use
