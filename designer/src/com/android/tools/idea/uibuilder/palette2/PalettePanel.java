@@ -98,6 +98,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private final AndroidDocAction myAndroidDocAction;
   private final MaterialDocAction myMaterialDocAction;
   private final JPopupMenu myItemMenu;
+  private final KeyListener myFilterKeyListener;
 
   private DesignSurface myDesignSurface;
   private NlLayoutType myLayoutType;
@@ -137,6 +138,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     mySplitter.setFocusCycleRoot(false);
     add(mySplitter, BorderLayout.CENTER);
 
+    myFilterKeyListener = createFilterKeyListener();
     KeyListener keyListener = createKeyListener();
 
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
@@ -344,6 +346,25 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     Palette.Group newSelection = myDataModel.getCategoryListModel().contains(myLastSelectedGroup) ? myLastSelectedGroup : null;
     myCategoryList.clearSelection();
     myCategoryList.setSelectedValue(newSelection, true);
+  }
+
+  @Override
+  @NotNull
+  public KeyListener getFilterKeyListener() {
+    return myFilterKeyListener;
+  }
+
+  @NotNull
+  private KeyListener createFilterKeyListener() {
+    return new KeyAdapter() {
+      @Override
+      public void keyPressed(@NotNull KeyEvent event) {
+        if (!myDataModel.getFilterPattern().isEmpty() && event.getKeyCode() == KeyEvent.VK_ENTER && event.getModifiers() == 0 &&
+            myItemList.getModel().getSize() == 1) {
+          myItemList.requestFocus();
+        }
+      }
+    };
   }
 
   @Override

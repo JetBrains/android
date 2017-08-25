@@ -84,6 +84,11 @@ public class DataModel {
     update();
   }
 
+  @NotNull
+  public String getFilterPattern() {
+    return myItemFilter.getPattern();
+  }
+
   public int getMatchCount() {
     return myListModel.getMatchCountAt(0);
   }

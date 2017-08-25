@@ -100,4 +100,32 @@ public class NlPaletteTest {
     assertThat(categoryList.selection()).asList().containsExactly("All Results");
     assertThat(itemList.contents()).isEqualTo(new String[]{"SearchView"});
   }
+
+  @Test
+  public void testEnterInSearchBoxCausesItemListToGainFocus() throws Exception {
+    myGuiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    NlPaletteFixture palette = layout.getPalette();
+
+    // Start typing in the palette brings focus to the SearchTextField on the ToolWindow header
+    JListFixture itemList = palette.getItemList("Layouts");
+    itemList.pressAndReleaseKeys(KeyEvent.VK_C);
+
+    // Continue typing in search field to select ConstraintLayout
+    SearchTextFieldFixture searchTextFieldFixture = palette.getSearchTextField();
+    searchTextFieldFixture.enterText("onstraintL");
+
+    // Press enter in search field. Expect the focus to move to the item list.
+    searchTextFieldFixture.pressAndReleaseKeys(KeyEvent.VK_ENTER);
+
+    // Test:
+    assertThat(itemList.selection()).asList().containsExactly("ConstraintLayout");
+    assertThat(itemList.target().hasFocus()).isTrue();
+  }
 }
