@@ -16,21 +16,22 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.SystemProperties;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
@@ -330,5 +331,60 @@ public class LaunchAndroidApplicationTest {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     debugToolWindow.pressResumeProgram();
+  }
+
+  /**
+   * To verify that build cache can be turned off successfully and ensure that android.dexOptions.preDexLibraries is either true or false
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 73c60c6c-6228-41ad-87b1-2f0708bbb50e
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. <user-home-directory>/.android/build-cache delete the existing build-cache directory.
+   *   3. Open the gradle.properties and don't do any modification
+   *   4. Build the project (verify 1)
+   *   5. Repeat 1 to 4 with below modifications
+   *   On (3),add android.enableBuildCache=false (verify 2)
+   *   On (3),add android.enableBuildCache=true (verify 3)
+   *   Verify:
+   *   1. You should be able to see build-cache generated with cached data in <user-home-directory>/.android/build-cache . Build cache will be enalbed by default
+   *   2. You should see that build-cache is not generated.
+   *   3. Verify that build-cache is generated.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void turnOnOrOffBuildCache() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+
+    File homeDir = new File(SystemProperties.getUserHome());
+    File androidHomeDir = new File(homeDir, ".android");
+    File buildCacheDir = new File(androidHomeDir, "build-cache");
+    FileUtil.delete(buildCacheDir);
+
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isTrue();
+
+    FileUtil.delete(buildCacheDir);
+    ideFrameFixture.getEditor()
+      .open("gradle.properties")
+      .moveBetween("true", "")
+      .enterText("\nandroid.enableBuildCache=false");
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isFalse();
+
+    ideFrameFixture.getEditor()
+      .open("gradle.properties")
+      .select("(false)")
+      .enterText("true");
+    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(REBUILD);
+    assertThat(buildCacheDir.exists()).isTrue();
   }
 }
