@@ -84,12 +84,10 @@ public class ApkViewerTest {
    *   3. Double click an apk to open Apk Analyzer in AS project view.
    *   4. Click around (classes.dex, resources.asrc, etc).
    *   5. Close tab.
-   *   6. Try to delete the file (either via AS or Windows Explorer).
-   *   Verification
-   *   1. Should be able to delete the file successfully.
+   *   6. Make some changes in source code, and re-build APK and verify the build is successful.
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/64681296
+  @RunIn(TestGroup.QA)
   @Test
   public void testFileHandleRelease() throws Exception {
     final String SIMPLE_APP = "SimpleApplication";
@@ -118,19 +116,15 @@ public class ApkViewerTest {
     apkViewer.clickApkEntry("AndroidManifest.xml");
     editor.close();
 
-    paneFixture
-      .clickPath(MouseButton.RIGHT_BUTTON, SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME)
-      .invokeMenuPath("Delete...");
-    DeleteDialogFixture.find(ideFrame.robot(), "Delete")
-      .safe(false)
-      .clickOk()
-      .waitUntilNotShowing();
+    // Open source code and make some changes, then trigger a build.
+    // Build should be successful.
+    ideFrame.getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .moveBetween("setContentView(R.layout.activity_my);", "")
+      .enterText("\nSystem.out.println(\"Hello.\");")
+      .close();
 
-    // After deletion, check the apk file doesn't exist any more by trying to open it.
-    try {
-      editor.open(APK_FILE_PATH);
-      throw new IllegalStateException();
-    } catch (junit.framework.AssertionFailedError e) {
-    }
+    ideFrame.invokeMenuPath("Build", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE);
   }
 }
