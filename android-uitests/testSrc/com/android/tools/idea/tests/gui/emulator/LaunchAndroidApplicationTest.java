@@ -52,6 +52,24 @@ public class LaunchAndroidApplicationTest {
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
 
+
+  /**
+   * Verifies that a project can be deployed on an emulator
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 579892c4-e1b6-48f7-a5a2-69a12c12ce83
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. Add a few layout elements to the default activity
+   *   3. Click Run
+   *   4. From the device chooser dialog, select the running emulator and click Ok
+   *   Verify:
+   *   Project builds successfully and runs on the emulator
+   *   </pre>
+   */
   @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws Exception {
@@ -73,6 +91,24 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.stopApp();
   }
 
+  /**
+   * Verifies that debugger can be invoked on an application by setting breakpoints
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: b9daba2b-067f-434b-91b2-c02197ac1521
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. Open the default activity class file
+   *   3. In the OnCreate method, add a breakpoint
+   *   4. Click on Debug project
+   *   5. Select a running emulator
+   *   Verify:
+   *   The application is deployed on the emulator/device and the breakpoint is hit when the first screen loads
+   *   </pre>
+   */
   @RunIn(TestGroup.QA)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
