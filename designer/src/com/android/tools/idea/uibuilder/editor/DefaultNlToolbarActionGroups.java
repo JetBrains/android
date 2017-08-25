@@ -30,15 +30,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.util.Disposer;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
-
-  private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
-                                                        ConfigurationListener.CFG_DEVICE;
 
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
@@ -70,25 +65,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.addSeparator();
 
     group.add(new LocaleMenuAction(mySurface::getConfiguration));
-    addConfigurationListener();
     return group;
-  }
-
-  /**
-   * Add a configuration listener to update the toolbars on some config event
-   */
-  private void addConfigurationListener() {
-    Configuration configuration = mySurface.getConfiguration();
-    if (configuration != null) {
-      ConfigurationListener listener = flags -> {
-        if ((flags & CONFIGURATION_UPDATE_FLAGS) >= 0) {
-          ActionToolbarImpl.updateAllToolbarsImmediately();
-        }
-        return true;
-      };
-      configuration.addListener(listener);
-      Disposer.register(mySurface, () -> configuration.removeListener(listener));
-    }
   }
 
   @NotNull
