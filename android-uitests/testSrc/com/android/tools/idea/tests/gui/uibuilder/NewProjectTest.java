@@ -18,10 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -321,6 +318,38 @@ public class NewProjectTest {
       .open("app/src/main/res/layout/content_main.xml")
       .open("app/src/main/res/layout/activity_main.xml")
       .open("app/src/main/java/com/test/project/MainActivity.java");
+  }
+
+  /**
+   * Verifies studio adds latest support library while DND layouts (RecyclerView)
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: c4fafea8-9560-4c40-92c1-58b72b2caaa0
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a new project with empty activity with min SDK 26
+   *   2. Drag and Drop RecyclerView (Verify)
+   *   Verify:
+   *   Dependency should be added to build.gradle with latest version from maven
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void latestSupportLibraryWhileDndLayouts() throws Exception {
+    IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk("26").create(guiTest);
+
+    ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true)
+      .dragComponentToSurface("AppCompat", "android.support.v7.widget.RecyclerView")
+      .waitForRenderToFinish();
+
+    String contents = ideFrameFixture.getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(contents).contains("compile \'com.android.support:recyclerview-v7:");
   }
 
   @Test
