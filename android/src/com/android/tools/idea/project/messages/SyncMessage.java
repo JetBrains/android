@@ -16,7 +16,7 @@
 package com.android.tools.idea.project.messages;
 
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.util.PositionInFile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
