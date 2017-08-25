@@ -922,7 +922,7 @@ public class Scene implements SelectionListener {
     if (myHitTarget instanceof ActionHandleTarget) {
       // TODO: Refactor this so explicit cast not required
       SceneComponent closestComponent = myHitListener.getClosestComponent();
-      if (closestComponent != null) {
+      if (closestComponent != null && closestComponent != myRoot) {
         ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
         actionHandleTarget.createAction(closestComponent);
       }
