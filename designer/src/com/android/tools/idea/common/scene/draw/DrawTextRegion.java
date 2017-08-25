@@ -88,7 +88,7 @@ public class DrawTextRegion extends DrawRegion {
 
   @NotNull
   private static Font getFont(int size, float scale) {
-    String key = String.format("%d %f", size, scale);
+    String key = String.valueOf(size) + ' ' + scale;
 
     // Convert to swing size font
     try {

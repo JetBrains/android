@@ -71,7 +71,7 @@ public class AttributesTransaction implements NlAttributesHolder {
 
   @NotNull
   private static String attributeKey(@Nullable String namespace, @NotNull String attribute) {
-    return String.format("%s:%s", namespace, attribute);
+    return namespace + ':' + attribute;
   }
 
   /**
