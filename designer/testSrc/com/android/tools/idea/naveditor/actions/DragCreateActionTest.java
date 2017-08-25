@@ -91,10 +91,17 @@ public class DragCreateActionTest extends NavigationTestCase {
     Scene scene = initializeScene(surface);
     InteractionManager interactionManager = initializeInteractionManager(surface);
 
-    SceneComponent component = scene.getSceneComponent(FRAGMENT1);
-    Rectangle rect = component.fillRect(null);
+    SceneComponent root = scene.getRoot();
+    Rectangle rootRect = root.fillRect(null);
 
-    dragFromActionHandle(interactionManager, component, component.getCenterX(), rect.y + rect.height + 100);
+    SceneComponent component = scene.getSceneComponent(FRAGMENT1);
+    Rectangle componentRect = component.fillRect(null);
+
+    // make sure the top of the component is lower than the top of the root
+    assertTrue(rootRect.y < componentRect.y);
+
+    // drag release to a point over the root and verify no action is created
+    dragFromActionHandle(interactionManager, component, component.getCenterX(), (rootRect.y + componentRect.y) / 2 );
 
     String expected = "NlComponent{tag=<navigation>, instance=0}\n" +
                       "    NlComponent{tag=<fragment>, instance=1}";
