@@ -30,6 +30,8 @@ import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.mac.foundation.MacUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +70,18 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void performCut(@NotNull DataContext dataContext) {
+    {// TODO Remove this dirty fix
+      // The Mac AWT copy paste manager is wrappring the Transferable into a ProxyTransferable that just delegate
+      // method call to its delegate without giving access to it so it is impossible to use the CopyCutTransferable
+      // For now, we just use the old way that was half broken
+      //
+      if (SystemInfo.isMac) {
+        performCopy(dataContext);
+        deleteElement(dataContext);
+        return;
+      }
+    }
+
     NlModel model = mySurface.getModel();
     if (model == null) {
       return;
@@ -158,15 +172,26 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       }
     }
 
-    CopyCutTransferable item = getClipboardData(checkOnly);
-    DnDTransferItem dndTransferItem = item != null ? item.getDndTransferItem() : null;
-    if (dndTransferItem == null) {
-      return false;
-    }
+    DnDTransferItem dndTransferItem;
+    InsertType insertType;
+    DragType dragType;
 
-    InsertType insertType = model.determineInsertType(
-      item.isCut() ? DragType.MOVE : DragType.PASTE,
-      dndTransferItem, checkOnly);
+    if (!SystemInfo.isMac) {
+      CopyCutTransferable item = getClipboardData(checkOnly);
+      dndTransferItem = item != null ? item.getDndTransferItem() : null;
+      if (dndTransferItem == null) {
+        return false;
+      }
+      dragType = item.isCut() ? DragType.MOVE : DragType.PASTE;
+    }
+    else {
+      dragType = DragType.PASTE;
+      dndTransferItem = getMacClipboardData();
+      if (dndTransferItem == null) {
+        return false;
+      }
+    }
+    insertType = model.determineInsertType(dragType, dndTransferItem, checkOnly);
 
     // TODO: support nav editor
     List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, dndTransferItem, insertType);
@@ -197,6 +222,20 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       return new CopyCutTransferable(transferItem.myTransferable, true);
     }
     return transferItem;
+  }
+
+  @Nullable
+  private static DnDTransferItem getMacClipboardData() {
+    try {
+      Object data = CopyPasteManager.getInstance().getContents(ItemTransferable.DESIGNER_FLAVOR);
+      if (!(data instanceof DnDTransferItem)) {
+        return null;
+      }
+      return (DnDTransferItem)data;
+    }
+    catch (Exception e) {
+      return null;
+    }
   }
 
   private static class CopyCutTransferable implements Transferable {
