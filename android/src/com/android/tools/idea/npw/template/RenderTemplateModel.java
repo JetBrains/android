@@ -30,12 +30,17 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.ide.scratch.ScratchFileService;
+import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -253,6 +258,13 @@ public final class RenderTemplateModel extends WizardModel {
         return false;
       }
 
+      if (!dryRun && StudioFlags.NPW_DUMP_TEMPLATE_VARS.get() && filesToOpen != null) {
+        VirtualFile result = toScratchFile(project);
+        if (result != null) {
+          filesToOpen.add(VfsUtilCore.virtualToIoFile(result));
+        }
+      }
+
       // @formatter:off
     final RenderingContext context = RenderingContext.Builder.newContext(template, project)
       .withCommandName(myCommandName)
@@ -266,6 +278,20 @@ public final class RenderTemplateModel extends WizardModel {
     // @formatter:on
       return template.render(context);
     }
+  }
+
+  // For ease of debugging add a scratch file containing the template values.
+  private VirtualFile toScratchFile(@Nullable Project project) {
+    StringBuilder templateVars = new StringBuilder();
+    String lineSeparator = System.lineSeparator();
+    for (Map.Entry<String, Object> entry : myTemplateValues.entrySet()) {
+      templateVars.append(entry.getKey())
+        .append("=").append(entry.getValue())
+        .append(lineSeparator);
+    }
+    return ScratchRootType.getInstance()
+      .createScratchFile(project, "templateVars.txt", PlainTextLanguage.INSTANCE,
+                         templateVars.toString(), ScratchFileService.Option.create_new_always);
   }
 
   /**

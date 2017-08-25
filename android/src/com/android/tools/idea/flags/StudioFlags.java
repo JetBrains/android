@@ -55,6 +55,11 @@ public final class StudioFlags {
     "Use the new wizard framework for the \"New > New Project...\" wizard flow.",
     true);
 
+  public static final Flag<Boolean> NPW_DUMP_TEMPLATE_VARS = Flag.create(
+    NPW, "dump.template.vars", "Dump template variables to a scratch file",
+    "Dump the variables used in creating a template to a scrach file that is opened after creating the project.",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
   public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
     PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
