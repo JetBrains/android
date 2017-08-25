@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -41,7 +42,10 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
           return text != null && text.startsWith(formFactorName);
         }
       }));
-    checkBox.requireEnabled().select();
+    Wait.seconds(5)
+      .expecting("form factor checkbox to be enabled")
+      .until(checkBox::isEnabled);
+    checkBox.select();
 
     if (formFactor != FormFactor.CAR) {
       ApiLevelComboBoxFixture apiLevelComboBox =

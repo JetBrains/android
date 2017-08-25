@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities;
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -32,6 +33,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
@@ -65,7 +67,7 @@ public class InstantAppRunTest {
    *   Test steps:
    *   1. Import an instant app project.
    *   2. Set up an emulator running API 26.
-   *   3. Run the instantapp run configuration.
+   *   3. Run the instant app configuration.
    *   Verify:
    *   1. Check if the run tool window appears.
    *   2. Check if the "Connected to process" message appears in the run tool window.
@@ -76,6 +78,62 @@ public class InstantAppRunTest {
   public void importAndRunInstantApp() throws Exception {
     String runConfigName = "topekabundle";
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
+
+    emulator.createAVD(
+      ideFrame.invokeAvdManager(),
+      "x86 Images",
+      new ChooseSystemImageStepFixture.SystemImage("O", "26", "x86", "Android 8.0 (Google APIs)"),
+      O_AVD_NAME
+    );
+
+    ideFrame.runApp(runConfigName)
+      .selectDevice(O_AVD_NAME)
+      .clickOk();
+
+    Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
+
+    ExecutionToolWindowFixture.ContentFixture runWindow = ideFrame.getRunToolWindow().findContent(runConfigName);
+    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), TimeUnit.MINUTES.toSeconds(2));
+
+    runWindow.waitForStopClick();
+  }
+
+
+  /**
+   * Verify created instant apps can be deployed to an emulator running API 26 or newer.
+   *
+   * <p>TT ID: 84f8150d-0319-4e7e-b510-8227890aca3f
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Create an instant app project.
+   *   2. Set up an emulator running API 26.
+   *   3. Run the instantapp run configuration.
+   *   Verify:
+   *   1. Check if the run tool window appears.
+   *   2. Check if the "Connected to process" message appears in the run tool window.
+   * </pre>
+   */
+  @Test
+  @RunIn(TestGroup.QA)
+  public void createAndRunInstantApp() throws Exception {
+    String runConfigName = "instantapp";
+    NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
+
+    newProj.clickNext();
+    newProj.getConfigureFormFactorStep()
+      .selectMinimumSdkApi(FormFactor.MOBILE, "23")
+      .findInstantAppCheckbox(FormFactor.MOBILE)
+      .select();
+
+    newProj.clickNext()
+      .clickNext()
+      .clickNext()
+      .clickFinish();
+
+    guiTest.waitForBackgroundTasks();
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
