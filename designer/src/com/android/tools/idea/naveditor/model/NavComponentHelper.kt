@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor
+package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
@@ -27,5 +27,3 @@ val NlComponent.uiName: String
       getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?:
       NlComponent.stripId(getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) ?:
       tagName
-
-

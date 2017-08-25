@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.ide.common.rendering.api.RenderResources;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
@@ -388,41 +384,14 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable
   public String resolveAttribute(@NotNull String namespace, @NotNull String attribute) {
-    String attributeValue = getAttribute(namespace, attribute);
-
-    if (attributeValue != null) {
-      return attributeValue;
+    String value = getAttribute(namespace, attribute);
+    if (value != null) {
+      return value;
     }
-
-    String styleAttributeValue = getAttribute(null, "style");
-
-    if (styleAttributeValue == null) {
-      return null;
+    if (getMixin() != null) {
+      return getMixin().getAttribute(namespace, attribute);
     }
-
-    RenderResources resources = myModel.getConfiguration().getResourceResolver();
-
-    if (resources == null) {
-      return null;
-    }
-
-    // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    ResourceValue tmpResourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.STYLE, myTagName),
-                                                       styleAttributeValue);
-
-    ResourceValue styleResourceValue = resources.resolveResValue(tmpResourceValue);
-
-    if (!(styleResourceValue instanceof StyleResourceValue)) {
-      return null;
-    }
-
-    ResourceValue itemResourceValue = resources.findItemInStyle((StyleResourceValue)styleResourceValue, attribute, true);
-
-    if (itemResourceValue == null) {
-      return null;
-    }
-
-    return itemResourceValue.getValue();
+    return null;
   }
 
   @NotNull
@@ -628,6 +597,11 @@ public class NlComponent implements NlAttributesHolder {
     @NotNull
     protected NlComponent getComponent() {
       return myComponent;
+    }
+
+    @Nullable
+    public String getAttribute(@NotNull String namespace, @NotNull String attribute) {
+      return null;
     }
 
     @Override
