@@ -69,7 +69,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
                  "<resources>\n" +
                  "    <string name=\"app_name\">My Library</string>\n" +
                  "    <string name=\"hello\">@string/hello_string</string>\n" +
-                 "    <string name=\"hello_string\">Hello World!</string>\n" +
+                 "    <string name=\"hello_string\">@string/dynamic_hello_world</string>\n" +
                  "</resources>\n",
                  getTextForFile("library/src/main/res/values/strings.xml"));
 
