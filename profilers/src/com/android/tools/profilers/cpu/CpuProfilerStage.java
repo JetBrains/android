@@ -718,7 +718,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     Profiler.Device selectedDevice = getStudioProfilers().getDevice();
     boolean selectedDeviceSupportsSimpleperf = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
     if (!selectedDeviceSupportsSimpleperf || !getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
-      Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLE_PERF;
+      Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF;
       savedConfigs = savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
       defaultConfigs = defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
     }

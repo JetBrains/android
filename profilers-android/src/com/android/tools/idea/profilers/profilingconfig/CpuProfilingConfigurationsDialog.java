@@ -152,7 +152,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       for (ProfilingConfiguration configuration : CpuProfilingConfigService.getInstance(myProject).getConfigurations()) {
         // We don't check for device API when listing the configurations. The user should be able to view and the simpleperf configurations,
         // besides the fact they can't select them to profile devices older than O.
-        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF
+        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF
             && !StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
           continue; // Don't add simpleperf configurations if flag is disabled.
         }
@@ -162,7 +162,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       // Add default configurations
       int defaultConfigCount = 0;
       for (ProfilingConfiguration configuration : ProfilingConfiguration.getDefaultProfilingConfigurations()) {
-        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF
+        if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF
             && !StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
           continue; // Don't add simpleperf default configurations if flag is disabled.
         }

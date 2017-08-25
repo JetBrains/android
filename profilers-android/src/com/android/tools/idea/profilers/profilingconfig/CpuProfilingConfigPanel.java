@@ -193,7 +193,7 @@ public class CpuProfilingConfigPanel {
         getLogger().warn("Invalid trace technology detected.");
       }
     }
-    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
+    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
       assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
       mySimpleperfButton.setSelected(true);
       setEnabledSamplingIntervalPanel(true);
@@ -294,7 +294,7 @@ public class CpuProfilingConfigPanel {
         setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
-        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
     }
