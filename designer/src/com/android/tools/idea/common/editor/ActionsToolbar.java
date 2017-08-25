@@ -23,6 +23,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -43,7 +45,11 @@ import java.util.List;
  * The actions toolbar updates dynamically based on the component selection, their
  * parents (and if no selection, the root layout)
  */
-public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener {
+public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener, ConfigurationListener {
+
+  private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
+                                                        ConfigurationListener.CFG_DEVICE;
+
   private final DesignSurface mySurface;
   private NlModel myModel;
   private JComponent myToolbarComponent;
@@ -61,6 +67,10 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     mySurface.removePanZoomListener(this);
     mySurface.removeListener(this);
+    Configuration configuration = mySurface.getConfiguration();
+    if (configuration != null) {
+      configuration.removeListener(this);
+    }
   }
 
   @NotNull
@@ -70,6 +80,10 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
       mySurface.addListener(this);
       mySurface.addPanZoomListener(this);
+      Configuration configuration;
+      if ((configuration = mySurface.getConfiguration()) != null) {
+        configuration.addListener(this);
+      }
 
       updateActions();
     }
@@ -227,5 +241,16 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @Override
   public void panningChanged(@NotNull AdjustmentEvent event) {
+  }
+
+  @Override
+  public boolean changed(int flags) {
+    if ((flags & CONFIGURATION_UPDATE_FLAGS) > 0) {
+      if (myNorthToolbar != null) {
+        // the North toolbar is the one holding the Configuration Actions
+        myNorthToolbar.updateActionsImmediately();
+      }
+    }
+    return true;
   }
 }
