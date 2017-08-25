@@ -15,13 +15,14 @@
   -->
 <palette>
   <group name="Widgets">
-    <item tag="Button" suggested="true"/>
-    <item tag="ToggleButton" suggested="true"/>
-    <item tag="CheckBox" suggested="true"/>
-    <item tag="RadioButton" suggested="true"/>
-    <item tag="CheckedTextView"/>
+    <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
+    <item tag="ToggleButton" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html#buttons-toggle-buttons"/>
+    <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="Spinner"/>
     <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
           suggested="true"
           title="ProgressBar">
       <xml reuse="drag-preview">
@@ -35,6 +36,7 @@
       </xml>
     </item>
     <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
           id="HorizontalProgressBar"
           suggested="true"
           icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
@@ -49,8 +51,9 @@
           ]]>
       </xml>
     </item>
-    <item tag="SeekBar" suggested="true"/>
+    <item tag="SeekBar" suggested="true" materialReference="https://material.io/guidelines/components/sliders.html"/>
     <item tag="SeekBar"
+          materialReference="components/sliders.html"
           id="DiscreteSeekBar"
           icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
           title="SeekBar (Discrete)">
@@ -67,14 +70,16 @@
       </xml>
     </item>
     <item tag="QuickContactBadge"/>
-    <item tag="RatingBar"/>
-    <item tag="Switch" suggested="true"/>
+    <item tag="RatingBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="Switch" suggested="true"
+          materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
     <item tag="Space"/>
   </group>
 
   <group name="Text">
-    <item tag="TextView" suggested="true"/>
+    <item tag="TextView" suggested="true" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="EditText" title="Plain Text" suggested="true"
+          materialReference="https://material.io/guidelines/components/text-fields.html"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -89,6 +94,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Password" title="Password"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -102,6 +108,7 @@
       </xml>
     </item>
     <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -115,7 +122,8 @@
       </xml>
     </item>
     <item tag="EditText" id="Email" title="E-mail"
-      icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -128,6 +136,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Phone" title="Phone"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -141,6 +150,7 @@
       </xml>
     </item>
     <item tag="EditText" id="PostalAddress" title="Postal Address"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -154,6 +164,7 @@
       </xml>
     </item>
     <item tag="EditText" id="MultilineText" title="Multiline Text"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -167,6 +178,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Time" title="Time"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -180,7 +192,8 @@
       </xml>
     </item>
     <item tag="EditText" id="Date" title="Date"
-      icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -193,6 +206,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Number" title="Number"
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
           icon="StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -206,7 +220,8 @@
       </xml>
     </item>
     <item tag="EditText" id="SignedNumber" title="Number (Signed)"
-      icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -219,7 +234,8 @@
       </xml>
     </item>
     <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
-      icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -231,13 +247,14 @@
           ]]>
       </xml>
     </item>
-    <item tag="AutoCompleteTextView"/>
-    <item tag="MultiAutoCompleteTextView"/>
+    <item tag="AutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
   </group>
 
   <group name="Layouts">
-    <item tag="android.support.constraint.ConstraintLayout" suggested="true"/>
-    <item tag="GridLayout"/>
+    <item tag="android.support.constraint.ConstraintLayout" suggested="true"
+          materialReference="https://material.io/guidelines/layout/principles.html"/>
+    <item tag="GridLayout" materialReference="https://material.io/guidelines/layout/principles.html"/>
     <!--
     TODO: Uncomment this once flag for Flexbox is enabled
     <item tag="com.google.android.flexbox.FlexboxLayout"/>
@@ -278,7 +295,7 @@
   </group>
 
   <group name="Containers">
-    <item tag="RadioGroup"/>
+    <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
     <item tag="ListView"/>
     <item tag="GridView"/>
     <item tag="ExpandableListView"/>
@@ -295,8 +312,8 @@
     <item tag="VideoView"/>
   </group>
   <group name="Date">
-    <item tag="TimePicker" suggested="true"/>
-    <item tag="DatePicker" suggested="true"/>
+    <item tag="TimePicker" suggested="true" materialReference="https://material.io/guidelines/components/pickers.html#pickers-time-pickers"/>
+    <item tag="DatePicker" suggested="true" materialReference="https://material.io/guidelines/components/pickers.html#pickers-date-pickers"/>
     <item tag="CalendarView"/>
     <item tag="Chronometer"/>
     <item tag="TextClock"/>
@@ -324,19 +341,23 @@
     <item tag="com.google.android.gms.maps.MapView" suggested="true"/>
   </group>
   <group name="Design">
-    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true" meta="material"/>
-    <item tag="android.support.design.widget.AppBarLayout" suggested="true"  meta="material, toolbar"/>
-    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/android/catalog/coordinator-layout/"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true"  meta="material, toolbar"
+          materialReference="https://material.io/guidelines/layout/structure.html#structure-app-bar"/>
+    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="android.support.design.widget.TabItem" meta="material"/>
     <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
-    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
     <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
     <!-- Tabs -->
   </group>
   <group name="AppCompat">
-    <item tag="android.support.v7.widget.CardView" suggested="true"/>
-    <item tag="android.support.v7.widget.GridLayout"/>
-    <item tag="android.support.v7.widget.RecyclerView" suggested="true"/>
-    <item tag="android.support.v7.widget.Toolbar" suggested="true"/>
+    <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
+    <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
+    <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
   </group>
 </palette>

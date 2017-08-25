@@ -248,6 +248,10 @@ public class Palette {
     @Nullable
     private String myMeta;
 
+    @XmlAttribute(name = "materialReference")
+    @Nullable
+    private String myMaterialReference;
+
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
 
@@ -340,6 +344,11 @@ public class Palette {
     @NotNull
     public List<String> getMetaTags() {
       return myMetaTags;
+    }
+
+    @Nullable
+    public String getMaterialReference() {
+      return myMaterialReference;
     }
 
     @NotNull
