@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.util;
 
 import com.google.common.base.Charsets;
 import org.jetbrains.annotations.NotNull;
