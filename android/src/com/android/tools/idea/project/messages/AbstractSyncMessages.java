@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.project.messages;
 
-import com.android.tools.idea.gradle.notification.QuickFixNotificationListener;
+import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.ide.errorTreeView.NewEditableErrorTreeViewPanel;

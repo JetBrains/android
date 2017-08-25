@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.hyperlink;
+package com.android.tools.idea.ui;
 
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
