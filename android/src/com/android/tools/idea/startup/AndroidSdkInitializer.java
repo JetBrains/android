@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;

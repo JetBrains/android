@@ -9,7 +9,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.gradle.util.PropertiesFiles;
+import com.android.tools.idea.util.PropertiesFiles;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;

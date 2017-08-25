@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 
 /**
  * Represents a gradle.properties file.

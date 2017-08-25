@@ -27,8 +27,8 @@ import java.util.Properties;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;

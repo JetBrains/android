@@ -29,7 +29,7 @@ import java.util.Properties;
 
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;

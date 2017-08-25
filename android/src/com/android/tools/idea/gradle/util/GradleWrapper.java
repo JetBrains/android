@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.util.PropertiesFiles;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -33,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
