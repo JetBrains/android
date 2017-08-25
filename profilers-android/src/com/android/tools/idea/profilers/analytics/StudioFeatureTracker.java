@@ -299,7 +299,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           case ART:
             cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
             break;
-          case SIMPLE_PERF:
+          case SIMPLEPERF:
             cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
             break;
           case UNSPECIFIED_PROFILER:

@@ -98,7 +98,7 @@ class CpuCaptureParserTest {
 
     // Create and parse a simpleperf trace
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
-    val futureCapture = parser.parse(ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.SIMPLE_PERF)!!
+    val futureCapture = parser.parse(ANY_TRACE_ID, traceBytes, CpuProfiler.CpuProfilerType.SIMPLEPERF)!!
 
     // Parsing should create a valid CpuCapture object
     checkValidCapture(futureCapture.get())

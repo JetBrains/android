@@ -138,11 +138,11 @@ threads {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
-        <Message>profiler_type: SIMPLE_PERF
+        <Message>profiler_type: SIMPLEPERF
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
-        <message>profiler_type: SIMPLE_PERF
+        <message>profiler_type: SIMPLEPERF
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartResponse">
@@ -152,11 +152,11 @@ threads {
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest">
-        <Message>profiler_type: SIMPLE_PERF
+        <Message>profiler_type: SIMPLEPERF
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
-        <message>profiler_type: SIMPLE_PERF
+        <message>profiler_type: SIMPLEPERF
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">

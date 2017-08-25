@@ -120,7 +120,7 @@ public class CpuCaptureTest {
   public void parsingTraceWithWrongProfilerTypeShouldFail() throws IOException, ExecutionException, InterruptedException {
     try {
       // Try to create a capture by passing an ART trace and simpleperf profiler type
-      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace() /* Valid ART trace */, CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace() /* Valid ART trace */, CpuProfiler.CpuProfilerType.SIMPLEPERF);
       fail();
     } catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.

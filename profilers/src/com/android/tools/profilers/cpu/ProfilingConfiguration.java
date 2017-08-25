@@ -121,7 +121,7 @@ public class ProfilingConfiguration {
                                                                           CpuProfiler.CpuProfilerType.ART,
                                                                           CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
-                                                                     CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                     CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                      CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf);
     }

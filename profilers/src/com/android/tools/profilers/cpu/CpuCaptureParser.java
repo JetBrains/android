@@ -126,7 +126,7 @@ public class CpuCaptureParser {
       if (profilerType == CpuProfiler.CpuProfilerType.ART) {
         parser = new ArtTraceParser();
       }
-      else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
+      else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
         parser = new SimplePerfTraceParser();
       }
       else {

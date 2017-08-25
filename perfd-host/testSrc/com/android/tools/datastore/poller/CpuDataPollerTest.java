@@ -236,7 +236,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void traceProfilerTypeShouldBeCorrectlySet() {
-    CpuProfiler.CpuProfilerType traceType = CpuProfiler.CpuProfilerType.SIMPLE_PERF;
+    CpuProfiler.CpuProfilerType traceType = CpuProfiler.CpuProfilerType.SIMPLEPERF;
     CpuProfiler.CpuProfilingAppStartRequest startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setProfilerType(traceType)
       .build();

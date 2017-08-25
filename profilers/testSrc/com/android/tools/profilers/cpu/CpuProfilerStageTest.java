@@ -595,7 +595,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
     assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
     // Third configuration should be simpleperf
-    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(realConfigs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
   }
@@ -653,12 +653,12 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void stopProfilerIsConsistentToStartProfiler() throws InterruptedException, IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     myStage.setProfilingConfiguration(config1);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     captureSuccessfully();
-    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
 
     ProfilingConfiguration config2 = new ProfilingConfiguration("My Config 2",
                                                                 CpuProfiler.CpuProfilerType.ART,
@@ -679,7 +679,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException, InterruptedException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     myStage.setProfilingConfiguration(config1);
     startCapturingSuccess();
@@ -700,12 +700,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Stop profiler should be the same as the one passed in the start request
-    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
 
     // Make sure we tracked the correct configuration
     ProfilingConfiguration trackedConfig =
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
-    assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
   }
 
