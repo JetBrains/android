@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -61,9 +62,11 @@ public class ScreenLabelTarget extends NavBaseTarget {
       text = "";
     }
 
+    ColorSet colorset = sceneContext.getColorSet();
+
     list.add(new DrawScreenLabel(getSwingLeft(sceneContext),
                                  getSwingTop(sceneContext),
-                                 getFrameColor(sceneContext),
+                                 getComponent().isSelected() ? colorset.getSelectedText() : colorset.getSubduedText(),
                                  new Font(FONT_NAME, FONT_STYLE, (int)(sceneContext.getScale() * FONT_SIZE)),
                                  text));
   }

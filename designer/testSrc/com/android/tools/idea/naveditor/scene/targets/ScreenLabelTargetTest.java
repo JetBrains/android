@@ -34,8 +34,8 @@ public class ScreenLabelTargetTest extends TestCase {
   private static int Y = 5;
   private static String TEXT = "TEXT";
   private static Color FRAMES = Color.RED;
-  private static Color SELECTEDFRAMES = Color.GREEN;
-  private static Color HIGHLIGHTEDFRAMES = Color.BLUE;
+  private static Color SELECTEDTEXT = Color.GREEN;
+  private static Color SUBDUEDTEXT = Color.BLUE;
 
   private ColorSet myColorSet;
   private SceneContext mySceneContext;
@@ -49,8 +49,8 @@ public class ScreenLabelTargetTest extends TestCase {
 
     myColorSet = mock(ColorSet.class);
     when(myColorSet.getFrames()).thenReturn(FRAMES);
-    when(myColorSet.getSelectedFrames()).thenReturn(SELECTEDFRAMES);
-    when(myColorSet.getHighlightedFrames()).thenReturn(HIGHLIGHTEDFRAMES);
+    when(myColorSet.getSelectedText()).thenReturn(SELECTEDTEXT);
+    when(myColorSet.getSubduedText()).thenReturn(SUBDUEDTEXT);
 
     mySceneContext = mock(SceneContext.class);
     when(mySceneContext.getColorSet()).thenReturn(myColorSet);
@@ -68,23 +68,23 @@ public class ScreenLabelTargetTest extends TestCase {
 
   public void testScreenLabelTarget() {
     setup();
-    verifyDrawCommands(FRAMES, ScreenLabelTarget.FONT_SIZE);
+    verifyDrawCommands(SUBDUEDTEXT, ScreenLabelTarget.FONT_SIZE);
 
     // hover over component
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
-    verifyDrawCommands(HIGHLIGHTEDFRAMES, ScreenLabelTarget.FONT_SIZE);
+    verifyDrawCommands(SUBDUEDTEXT, ScreenLabelTarget.FONT_SIZE);
 
     // select component
     when(mySceneComponent.isSelected()).thenReturn(true);
-    verifyDrawCommands(SELECTEDFRAMES, ScreenLabelTarget.FONT_SIZE);
+    verifyDrawCommands(SELECTEDTEXT, ScreenLabelTarget.FONT_SIZE);
 
     // zoom out
     when(mySceneContext.getScale()).thenReturn(2.0);
-    verifyDrawCommands(SELECTEDFRAMES, (int)(ScreenLabelTarget.FONT_SIZE * 2.0));
+    verifyDrawCommands(SELECTEDTEXT, (int)(ScreenLabelTarget.FONT_SIZE * 2.0));
 
     // zoom in
     when(mySceneContext.getScale()).thenReturn(1.0);
-    verifyDrawCommands(SELECTEDFRAMES, (ScreenLabelTarget.FONT_SIZE));
+    verifyDrawCommands(SELECTEDTEXT, (ScreenLabelTarget.FONT_SIZE));
   }
 
   private void verifyDrawCommands(Color color, int fontSize) {

@@ -224,6 +224,9 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       myList.addMouseListener(myMouseListener);
       myModel.addListener(myModelListener);
       myResourceResolver = toolContext.getConfiguration().getResourceResolver();
+
+      ColorSet colorSet = SceneContext.get(toolContext.getCurrentSceneView()).getColorSet();
+      myList.setBackground(colorSet.getSubduedBackground());
     }
     updateComponentList(toolContext);
   }

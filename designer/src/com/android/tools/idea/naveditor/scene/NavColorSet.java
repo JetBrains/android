@@ -36,10 +36,13 @@ public class NavColorSet extends ColorSet {
     mSelectedFrames = new JBColor(0x1886f7, 0x9ccdff);
     mSelectedText = mSelectedFrames;
 
-    mBackground = new JBColor(0xfdfdfd, 0x2d2f31);
-    mComponentBackground = mBackground;
+    mBackground = new JBColor(0xf5f5f5, 0x2d2f31);
+    mComponentBackground = new Color(0xfdfdfd);
+    mComponentHighlightedBackground = mComponentBackground;
 
     mText = JBColor.BLACK;
-    mSubduedBackground = new Color(0xfc, 0xfc, 0xfc); // TODO: Darkula color?
+
+    mSubduedText = new JBColor(Color.BLACK.getRGB(), 0x888888);
+    mSubduedBackground = new JBColor(0xfcfcfc, 0x313435);
   }
 }
