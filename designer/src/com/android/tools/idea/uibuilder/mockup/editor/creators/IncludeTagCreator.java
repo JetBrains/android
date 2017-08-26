@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -61,7 +62,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
    */
   public IncludeTagCreator(@NotNull Mockup mockup,
                            @NotNull NlModel model,
-                           @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+                           @NotNull SceneView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
   }
 

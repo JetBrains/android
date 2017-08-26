@@ -189,7 +189,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     if (surface instanceof NlDesignSurface) {
       builder.setMode(((NlDesignSurface)surface).isPreviewSurface() ? Mode.PREVIEW_MODE : Mode.DESIGN_MODE);
 
-      switch (((NlDesignSurface)surface).getScreenMode()) {
+      switch (((NlDesignSurface)surface).getSceneMode()) {
         case SCREEN_ONLY:
           builder.setSurfaces(LayoutEditorState.Surfaces.SCREEN_SURFACE);
           break;

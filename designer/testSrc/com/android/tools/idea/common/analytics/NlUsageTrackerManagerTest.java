@@ -21,8 +21,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -34,6 +32,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -400,7 +399,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
 
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getScreenMode()).thenReturn(NlDesignSurface.ScreenMode.BOTH);
+    when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);

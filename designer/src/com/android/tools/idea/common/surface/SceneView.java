@@ -24,12 +24,13 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.sherpa.drawing.ColorSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +49,7 @@ public abstract class SceneView {
   protected final NlModel myModel;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
+  protected boolean myIsSecondary;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
@@ -61,6 +63,7 @@ public abstract class SceneView {
 
   /**
    * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
@@ -140,7 +143,9 @@ public abstract class SceneView {
     return getSurface().getSelectionModel();
   }
 
-  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
+  /**
+   * Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc)
+   */
   @Nullable
   public Shape getScreenShape() {
     Device device = getConfiguration().getDevice();
@@ -161,7 +166,8 @@ public abstract class SceneView {
     if (chin == 0) {
       // Plain circle
       return new Ellipse2D.Double(originX, originY, size.width, size.height);
-    } else {
+    }
+    else {
       int height = size.height * chin / screen.getYDimension();
       Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
       Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
@@ -224,9 +230,20 @@ public abstract class SceneView {
    * Sets the tool tip to be shown
    */
   public void setToolTip(String toolTip) {
-     mySurface.setDesignToolTip(toolTip);
+    mySurface.setDesignToolTip(toolTip);
   }
 
   @NotNull
-  public abstract Color getBgColor();
+  public ImmutableList<Layer> getLayers() {
+    return ImmutableList.of();
+  }
+
+  public void setSecondary(boolean isSecondary) {
+    myIsSecondary = isSecondary;
+  }
+
+  @NotNull
+  public Color getBgColor() {
+    return Color.BLACK;
+  }
 }

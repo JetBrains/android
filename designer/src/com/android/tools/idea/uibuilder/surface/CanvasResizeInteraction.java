@@ -32,6 +32,7 @@ import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -100,7 +101,7 @@ public class CanvasResizeInteraction extends Interaction {
   private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
     @Override
     public void run() {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -151,10 +152,12 @@ public class CanvasResizeInteraction extends Interaction {
     if (HardwareConfigHelper.isWear(myOriginalDevice)) {
       devicesToShow = configManager.getDevices().stream().filter(
         d -> HardwareConfigHelper.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
-    } else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
+    }
+    else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
       // There are only two devices and they have the same dip sizes, so just use one of them
       devicesToShow = Collections.singletonList(configManager.getDeviceById("tv_1080p"));
-    } else {
+    }
+    else {
       devicesToShow = Lists.newArrayListWithExpectedSize(DEVICES_TO_SHOW.length);
       for (String id : DEVICES_TO_SHOW) {
         devicesToShow.add(configManager.getDeviceById(id));
@@ -200,7 +203,7 @@ public class CanvasResizeInteraction extends Interaction {
       return;
     }
 
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
+    SceneView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -224,7 +227,7 @@ public class CanvasResizeInteraction extends Interaction {
    */
   @SuppressWarnings("SuspiciousNameCombination")
   @NotNull
-  private Area coveredAreaForConfig(@NotNull FolderConfiguration config, @NotNull ScreenView screenView) {
+  private Area coveredAreaForConfig(@NotNull FolderConfiguration config, @NotNull SceneView screenView) {
     int x0 = screenView.getX();
     int y0 = screenView.getY();
     JComponent layeredPane = myDesignSurface.getLayeredPane();
@@ -337,7 +340,7 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
+    SceneView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -348,7 +351,8 @@ public class CanvasResizeInteraction extends Interaction {
       int deltaY = y - myStartY;
       if (deltaX > deltaY) {
         y = myStartY + deltaX;
-      } else {
+      }
+      else {
         x = myStartX + deltaY;
       }
     }
@@ -378,7 +382,7 @@ public class CanvasResizeInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
 
-    ScreenView screenView = myDesignSurface.getCurrentSceneView();
+    SceneView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -452,7 +456,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -482,7 +486,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -545,7 +549,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -557,7 +561,7 @@ public class CanvasResizeInteraction extends Interaction {
       int x = Coordinates.getSwingX(screenView, isDevicePortrait ? mySmallDimension : myBigDimension);
       int y = Coordinates.getSwingY(screenView, isDevicePortrait ? myBigDimension : mySmallDimension);
 
-      Graphics2D graphics = (Graphics2D) g2d.create();
+      Graphics2D graphics = (Graphics2D)g2d.create();
       graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
       graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
@@ -585,7 +589,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -677,7 +681,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public synchronized void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentSceneView();
+      SceneView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -754,7 +758,7 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     @NotNull
-    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull ScreenView screenView, boolean isDevicePortrait) {
+    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull SceneView screenView, boolean isDevicePortrait) {
       int x0 = screenView.getX();
       int y0 = screenView.getY();
       int dpi = screenView.getConfiguration().getDensity().getDpiValue();

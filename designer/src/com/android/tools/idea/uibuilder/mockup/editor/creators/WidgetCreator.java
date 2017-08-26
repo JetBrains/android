@@ -20,6 +20,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
@@ -85,7 +86,7 @@ public abstract class WidgetCreator {
 
   private static final String COLORS_XML = "colors.xml";
   private final NlModel myModel;
-  private final ScreenView myScreenView;
+  private final SceneView myScreenView;
   @NotNull private Mockup myMockup;
   @Nullable private NlComponent myComponent;
   @Nullable private ViewGroupAttributesManager myViewGroupAttributesManager;
@@ -98,7 +99,7 @@ public abstract class WidgetCreator {
    * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates
    */
-  protected WidgetCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView) {
+  protected WidgetCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull SceneView screenView) {
     myMockup = mockup;
     myModel = model;
     myScreenView = screenView;
@@ -168,7 +169,7 @@ public abstract class WidgetCreator {
    * @return the screen view associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
   @NotNull
-  public ScreenView getScreenView() {
+  public SceneView getScreenView() {
     return myScreenView;
   }
 

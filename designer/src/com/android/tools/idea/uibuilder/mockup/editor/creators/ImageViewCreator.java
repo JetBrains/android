@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -60,7 +61,7 @@ public class ImageViewCreator extends SimpleViewCreator {
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */
-  public ImageViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+  public ImageViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull SceneView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
     mySelection = selection;
     myRemoveBackgroundPanel = new RemoveBackgroundPanel();

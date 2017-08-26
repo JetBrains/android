@@ -16,13 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.*;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -35,21 +34,17 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.update.Update;
@@ -60,12 +55,13 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.annotations.VisibleForTesting.*;
+import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
@@ -73,48 +69,12 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface {
-  public enum ScreenMode {
-    SCREEN_ONLY,
-    BLUEPRINT_ONLY,
-    BOTH;
 
-    @VisibleForTesting
-    @NotNull
-    static final ScreenMode DEFAULT_SCREEN_MODE = BOTH;
+  @NotNull private static SceneMode
+    ourDefaultSceneMode = SceneMode.Companion.loadPreferredMode();
 
-    @NotNull
-    public ScreenMode next() {
-      ScreenMode[] values = values();
-      return values[(ordinal() + 1) % values.length];
-    }
-
-    @VisibleForTesting
-    static final String SCREEN_MODE_PROPERTY = "NlScreenMode";
-
-    @NotNull
-    public static ScreenMode loadPreferredMode() {
-      String modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name());
-      try {
-        return valueOf(modeName);
-      }
-      catch (IllegalArgumentException e) {
-        // If the code reach here, that means some of unexpected ScreenMode is saved as user's preference.
-        // In this case, return the default mode instead.
-        Logger.getInstance(NlDesignSurface.class)
-          .warn("The mode " + modeName + " is not recognized, use default mode " + SCREEN_MODE_PROPERTY + " instead");
-        return DEFAULT_SCREEN_MODE;
-      }
-    }
-
-    public static void savePreferredMode(@NotNull ScreenMode mode) {
-      PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name());
-    }
-  }
-
-  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadPreferredMode();
-
-  @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
-  @Nullable private ScreenView myBlueprintView;
+  @NotNull private SceneMode mySceneMode = ourDefaultSceneMode;
+  @Nullable private SceneView mySecondarySceneView;
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
@@ -122,7 +82,7 @@ public class NlDesignSurface extends DesignSurface {
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
-  @Nullable private ScreenView myScreenView;
+  @Nullable private SceneView myPrimarySceneView;
   private final boolean myInPreview;
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
@@ -165,28 +125,28 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @NotNull
-  public ScreenMode getScreenMode() {
-    return myScreenMode;
+  public SceneMode getSceneMode() {
+    return mySceneMode;
   }
 
-  public void setScreenMode(@NotNull ScreenMode screenMode, boolean setAsDefault) {
+  public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
     if (setAsDefault) {
-      if (ourDefaultScreenMode != screenMode) {
+      if (ourDefaultSceneMode != sceneMode) {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourDefaultScreenMode = screenMode;
+        ourDefaultSceneMode = sceneMode;
 
-        ScreenMode.savePreferredMode(screenMode);
+        SceneMode.Companion.savePreferredMode(sceneMode);
       }
     }
 
-    if (screenMode != myScreenMode) {
+    if (sceneMode != mySceneMode) {
       // If we're going from 1 screens to 2 or back from 2 to 1, must adjust the zoom
       // to-fit the screen(s) in the surface
-      boolean adjustZoom = screenMode == ScreenMode.BOTH || myScreenMode == ScreenMode.BOTH;
-      myScreenMode = screenMode;
+      boolean adjustZoom = sceneMode == SceneMode.BOTH || mySceneMode == SceneMode.BOTH;
+      mySceneMode = sceneMode;
 
       createSceneViews();
-      if (myScreenView != null) {
+      if (myPrimarySceneView != null) {
         if (adjustZoom) {
           zoomToFit();
         }
@@ -196,66 +156,30 @@ public class NlDesignSurface extends DesignSurface {
     }
   }
 
+  public boolean isDeviceFrameVisible() {
+    return myDeviceFrames;
+  }
+
   @NotNull
   @Override
   protected SceneManager createSceneManager(@NotNull NlModel model) {
     return new LayoutlibSceneManager(model, this);
   }
 
+  @Nullable
+  @Override
+  public LayoutlibSceneManager getSceneManager() {
+    return (LayoutlibSceneManager)super.getSceneManager();
+  }
+
   private void setLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    builder.add(new MyBottomLayer());
-
-    switch (myScreenMode) {
-      case SCREEN_ONLY:
-        assert myScreenView != null;
-        builder.addAll(getScreenLayers(this, myScreenView));
-        break;
-      case BLUEPRINT_ONLY:
-        assert myScreenView != null;
-        builder.addAll(getBlueprintLayers(this, myScreenView));
-        break;
-      case BOTH:
-        assert myScreenView != null && myBlueprintView != null;
-        builder.addAll(getScreenLayers(this, myScreenView));
-        builder.addAll(getBlueprintLayers(this, myBlueprintView));
-        break;
-      default:
-        assert false : myScreenMode;
+    assert myPrimarySceneView != null;
+    builder.addAll(myPrimarySceneView.getLayers());
+    if (mySecondarySceneView != null) {
+      builder.addAll(mySecondarySceneView.getLayers());
     }
-
     setLayers(builder.build());
-  }
-
-  @NotNull
-  private static ImmutableList<Layer> getScreenLayers(@NotNull NlDesignSurface surface, @NotNull ScreenView screenView) {
-    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-
-    builder.add(new ScreenViewLayer(screenView));
-    builder.add(new SelectionLayer(screenView));
-
-    if (screenView.getModel().getType().isLayout()) {
-      builder.add(new ConstraintsLayer(surface, screenView, true));
-    }
-
-    SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
-    sceneLayer.setAlwaysShowSelection(true);
-    builder.add(new WarningLayer(screenView));
-    builder.add(sceneLayer);
-    if (surface.getLayoutType().isSupportedByDesigner()) {
-      builder.add(new CanvasResizeLayer(surface, screenView));
-    }
-
-    return builder.build();
-  }
-
-  @NotNull
-  private static ImmutableList<Layer> getBlueprintLayers(@NotNull NlDesignSurface surface, @NotNull ScreenView view) {
-    return ImmutableList.of(
-      new SelectionLayer(view),
-      new MockupLayer(view),
-      new CanvasResizeLayer(surface, view),
-      new SceneLayer(surface, view, true));
   }
 
   /**
@@ -281,18 +205,18 @@ public class NlDesignSurface extends DesignSurface {
 
   @Nullable
   @Override
-  public ScreenView getCurrentSceneView() {
-    return myScreenView;
+  public SceneView getCurrentSceneView() {
+    return myPrimarySceneView;
   }
 
   @Override
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     // Currently only a single screen view active in the canvas.
-    if (myBlueprintView != null && x >= myBlueprintView.getX() && y >= myBlueprintView.getY()) {
-      return myBlueprintView;
+    if (mySecondarySceneView != null && x >= mySecondarySceneView.getX() && y >= mySecondarySceneView.getY()) {
+      return mySecondarySceneView;
     }
-    return myScreenView;
+    return myPrimarySceneView;
   }
 
   /**
@@ -302,16 +226,16 @@ public class NlDesignSurface extends DesignSurface {
    */
   @Nullable
   @Override
-  public ScreenView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (myBlueprintView != null
-        && x >= myBlueprintView.getX() && x <= myBlueprintView.getX() + myBlueprintView.getSize().width
-        && y >= myBlueprintView.getY() && y <= myBlueprintView.getY() + myBlueprintView.getSize().height) {
-      return myBlueprintView;
+  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (mySecondarySceneView != null
+        && x >= mySecondarySceneView.getX() && x <= mySecondarySceneView.getX() + mySecondarySceneView.getSize().width
+        && y >= mySecondarySceneView.getY() && y <= mySecondarySceneView.getY() + mySecondarySceneView.getSize().height) {
+      return mySecondarySceneView;
     }
-    if (myScreenView != null
-        && x >= myScreenView.getX() && x <= myScreenView.getX() + myScreenView.getSize().width
-        && y >= myScreenView.getY() && y <= myScreenView.getY() + myScreenView.getSize().height) {
-      return myScreenView;
+    if (myPrimarySceneView != null
+        && x >= myPrimarySceneView.getX() && x <= myPrimarySceneView.getX() + myPrimarySceneView.getSize().width
+        && y >= myPrimarySceneView.getY() && y <= myPrimarySceneView.getY() + myPrimarySceneView.getSize().height) {
+      return myPrimarySceneView;
     }
     return null;
   }
@@ -323,21 +247,21 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Nullable
-  public ScreenView getBlueprintView() {
-    return myBlueprintView;
+  public SceneView getSecondarySceneView() {
+    return mySecondarySceneView;
   }
 
   @Override
   public Dimension getScrolledAreaSize() {
-    if (myScreenView == null) {
+    if (myPrimarySceneView == null) {
       return null;
     }
-    Dimension size = myScreenView.getSize();
+    Dimension size = myPrimarySceneView.getSize();
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
     Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
                                         size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    if (myScreenMode == ScreenMode.BOTH) {
+    if (mySceneMode == SceneMode.BOTH) {
       if (isStackVertically()) {
         dimension.setSize(dimension.getWidth(),
                           dimension.getHeight() + size.height + SCREEN_DELTA);
@@ -382,10 +306,10 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void layoutContent() {
-    if (myScreenView == null) {
+    if (myPrimarySceneView == null) {
       return;
     }
-    Dimension screenViewSize = myScreenView.getSize();
+    Dimension screenViewSize = myPrimarySceneView.getSize();
 
     // Position primary screen
     int availableWidth = myScrollPane.getWidth();
@@ -396,14 +320,14 @@ public class NlDesignSurface extends DesignSurface {
     if (!myIsCanvasResizing) {
       if (myCentered && availableWidth > 10 && availableHeight > 10) {
         int requiredWidth = screenViewSize.width;
-        if (myScreenMode == ScreenMode.BOTH && !myStackVertically) {
+        if (mySceneMode == SceneMode.BOTH && !myStackVertically) {
           requiredWidth += SCREEN_DELTA;
           requiredWidth += screenViewSize.width;
         }
         myScreenX = Math.max((availableWidth - requiredWidth) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X);
 
         int requiredHeight = screenViewSize.height;
-        if (myScreenMode == ScreenMode.BOTH && myStackVertically) {
+        if (mySceneMode == SceneMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
         }
@@ -420,26 +344,26 @@ public class NlDesignSurface extends DesignSurface {
         }
       }
     }
-    myScreenView.setLocation(myScreenX, myScreenY);
+    myPrimarySceneView.setLocation(myScreenX, myScreenY);
 
     // Position blueprint view
-    if (myBlueprintView != null) {
+    if (mySecondarySceneView != null) {
 
       if (myStackVertically) {
         // top/bottom stacking
-        myBlueprintView.setLocation(myScreenX, myScreenY + screenViewSize.height + SCREEN_DELTA);
+        mySecondarySceneView.setLocation(myScreenX, myScreenY + screenViewSize.height + SCREEN_DELTA);
       }
       else {
         // left/right ordering
-        myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
+        mySecondarySceneView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
     }
-    if (myScreenView != null) {
-      Scene scene = myScreenView.getScene();
+    if (myPrimarySceneView != null) {
+      Scene scene = myPrimarySceneView.getScene();
       scene.needsRebuildList();
     }
-    if (myBlueprintView != null) {
-      Scene scene = myBlueprintView.getScene();
+    if (mySecondarySceneView != null) {
+      Scene scene = mySecondarySceneView.getScene();
       scene.needsRebuildList();
     }
   }
@@ -462,8 +386,8 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void doCreateSceneViews() {
-    myScreenView = null;
-    myBlueprintView = null;
+    myPrimarySceneView = null;
+    mySecondarySceneView = null;
 
     if (myModel == null) {
       return;
@@ -477,48 +401,37 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     if (type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
-      myScreenMode = ScreenMode.SCREEN_ONLY;
+      mySceneMode = SceneMode.SCREEN_ONLY;
     }
 
-    switch (myScreenMode) {
-      case SCREEN_ONLY:
-        myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
-        break;
-      case BLUEPRINT_ONLY:
-        myScreenView = new ScreenView(this, ScreenViewType.BLUEPRINT, myModel);
-        break;
-      case BOTH:
-        myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
-
-        myBlueprintView = new ScreenView(this, ScreenViewType.BLUEPRINT, myModel);
-        myBlueprintView.setLocation(myScreenX + myScreenView.getPreferredSize().width + 10, myScreenY);
-
-        break;
+    myPrimarySceneView = mySceneMode.createPrimarySceneView(this, myModel);
+    mySecondarySceneView = mySceneMode.createSecondarySceneView(this, myModel);
+    if (mySecondarySceneView != null) {
+      mySecondarySceneView.setLocation(myScreenX + myPrimarySceneView.getPreferredSize().width + 10, myScreenY);
     }
 
     updateErrorDisplay();
-    getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
+    getLayeredPane().setPreferredSize(myPrimarySceneView.getPreferredSize());
 
     setLayers();
     layoutContent();
   }
 
   private void doCreateSceneViewsForMenu() {
-    myScreenMode = ScreenMode.SCREEN_ONLY;
+    mySceneMode = SceneMode.SCREEN_ONLY;
     XmlTag tag = myModel.getFile().getRootTag();
 
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
-      myScreenView = new NavigationViewSceneView(this, myModel);
-      setLayers(ImmutableList.of(new ScreenViewLayer(myScreenView)));
+      myPrimarySceneView = new NavigationViewSceneView(this, myModel);
     }
     else {
-      myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
-      setLayers(getScreenLayers(this, myScreenView));
+      myPrimarySceneView = new ScreenView(this, myModel);
     }
 
+    setLayers(myPrimarySceneView.getLayers());
     updateErrorDisplay();
-    getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
+    getLayeredPane().setPreferredSize(myPrimarySceneView.getPreferredSize());
     layoutContent();
   }
 
@@ -528,18 +441,18 @@ public class NlDesignSurface extends DesignSurface {
     if (dimension == null) {
       dimension = new Dimension();
     }
-    if (myScreenMode == ScreenMode.BOTH
-        && myScreenView != null && myBlueprintView != null) {
+    if (mySceneMode == SceneMode.BOTH
+        && myPrimarySceneView != null && mySecondarySceneView != null) {
       if (isStackVertically()) {
         dimension.setSize(
-          myScreenView.getSize().getWidth(),
-          myScreenView.getSize().getHeight() + myBlueprintView.getSize().getHeight()
+          myPrimarySceneView.getSize().getWidth(),
+          myPrimarySceneView.getSize().getHeight() + mySecondarySceneView.getSize().getHeight()
         );
       }
       else {
         dimension.setSize(
-          myScreenView.getSize().getWidth() + myBlueprintView.getSize().getWidth(),
-          myScreenView.getSize().getHeight()
+          myPrimarySceneView.getSize().getWidth() + mySecondarySceneView.getSize().getWidth(),
+          myPrimarySceneView.getSize().getHeight()
         );
       }
     }
@@ -560,12 +473,12 @@ public class NlDesignSurface extends DesignSurface {
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    assert myScreenView != null;
-    Dimension preferredSize = myScreenView.getPreferredSize();
+    assert myPrimarySceneView != null;
+    Dimension preferredSize = myPrimarySceneView.getPreferredSize();
 
     int requiredWidth = preferredSize.width;
     int requiredHeight = preferredSize.height;
-    if (myScreenMode == ScreenMode.BOTH) {
+    if (mySceneMode == SceneMode.BOTH) {
       if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
         requiredHeight *= 2;
         requiredHeight += SCREEN_DELTA;
@@ -600,61 +513,6 @@ public class NlDesignSurface extends DesignSurface {
       handler.onActivateInDesignSurface(editor, component, x, y);
     }
     super.notifyComponentActivate(component, x, y);
-  }
-
-  private class MyBottomLayer extends Layer {
-
-    private boolean myPaintedFrame;
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      Composite oldComposite = g2d.getComposite();
-
-      assert myScreenView != null;
-      RenderResult result = myScreenView.getResult();
-
-      myPaintedFrame = false;
-      if (myDeviceFrames && result != null && result.hasImage()) {
-        Configuration configuration = myScreenView.getConfiguration();
-        Device device = configuration.getDevice();
-        State deviceState = configuration.getDeviceState();
-        DeviceArtPainter painter = DeviceArtPainter.getInstance();
-        if (device != null && painter.hasDeviceFrame(device) && deviceState != null) {
-          myPaintedFrame = true;
-          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
-          painter.paintFrame(g2d, device, deviceState.getOrientation(), true, myScreenX, myScreenY,
-                             (int)(myScale * result.getRenderedImage().getHeight()));
-        }
-      }
-
-      g2d.setComposite(oldComposite);
-
-      if (!getLayoutType().isSupportedByDesigner()) {
-        return;
-      }
-
-      if (!myPaintedFrame) {
-        // Only show bounds dashed lines when there's no device
-        paintBorder(g2d);
-      }
-    }
-
-    private void paintBorder(Graphics2D g2d) {
-      if (myScreenView == null) {
-        return;
-      }
-
-      Shape screenShape = myScreenView.getScreenShape();
-      if (screenShape != null) {
-        g2d.draw(screenShape);
-        return;
-      }
-
-      ScreenView.BorderPainter.paint(g2d, myScreenView);
-      if (myScreenMode == ScreenMode.BOTH) {
-        ScreenView.BorderPainter.paint(g2d, myBlueprintView);
-      }
-    }
   }
 
   public void setMockupVisible(boolean mockupVisible) {
@@ -740,7 +598,8 @@ public class NlDesignSurface extends DesignSurface {
       @Override
       public void run() {
         // Look up *current* result; a newer one could be available
-        final RenderResult result = getCurrentSceneView() != null ? getCurrentSceneView().getResult() : null;
+        LayoutlibSceneManager sceneManager = getSceneManager();
+        RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
         if (result == null) {
           return;
         }
@@ -770,7 +629,7 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected boolean useSmallProgressIcon() {
-    return getCurrentSceneView() != null && getCurrentSceneView().getResult() != null;
+    return getCurrentSceneView() != null && getSceneManager().getRenderResult() != null;
   }
 
   @Override

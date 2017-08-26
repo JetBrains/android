@@ -29,7 +29,8 @@ public class CanvasResizeLayer extends Layer {
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean oldHovering = myIsHovering;
     Dimension size = myScreenView.getSize();
-    Rectangle resizeZone = new Rectangle(myScreenView.getX() + size.width, myScreenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+    Rectangle resizeZone =
+      new Rectangle(myScreenView.getX() + size.width, myScreenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
     myIsHovering = resizeZone.contains(x, y);
     if (myIsHovering != oldHovering) {
       myDesignSurface.repaint();
@@ -38,19 +39,15 @@ public class CanvasResizeLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D g2d) {
-    if (myDesignSurface.getScreenMode() != NlDesignSurface.ScreenMode.BOTH || myScreenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
-      Dimension size = myScreenView.getSize();
-      int x = myScreenView.getX();
-      int y = myScreenView.getY();
+    Dimension size = myScreenView.getSize();
+    int x = myScreenView.getX();
+    int y = myScreenView.getY();
 
-      Graphics2D graphics = (Graphics2D)g2d.create();
-      graphics.setStroke(SOLID_STROKE);
-      graphics.setColor(myIsHovering ? RESIZING_CORNER_COLOR : RESIZING_CUE_COLOR);
-      graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 4, x + size.width + 4, y + size.height + BOUNDS_RECT_DELTA);
-      graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 12, x + size.width + 12, y + size.height + BOUNDS_RECT_DELTA);
-      graphics.dispose();
-    }
+    Graphics2D graphics = (Graphics2D)g2d.create();
+    graphics.setStroke(SOLID_STROKE);
+    graphics.setColor(myIsHovering ? RESIZING_CORNER_COLOR : RESIZING_CUE_COLOR);
+    graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 4, x + size.width + 4, y + size.height + BOUNDS_RECT_DELTA);
+    graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 12, x + size.width + 12, y + size.height + BOUNDS_RECT_DELTA);
+    graphics.dispose();
   }
-
-
 }

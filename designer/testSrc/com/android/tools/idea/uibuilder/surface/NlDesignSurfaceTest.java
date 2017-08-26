@@ -20,6 +20,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -61,27 +62,27 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
   public void testScreenMode() {
     // Just in case, cleanup current preference to make testing environment consistence.
-    PropertiesComponent.getInstance().unsetValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY);
+    PropertiesComponent.getInstance().unsetValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY());
 
     // Test the default behavior when there is no setting.
-    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test the save and load functions
-    NlDesignSurface.ScreenMode[] modes = NlDesignSurface.ScreenMode.values();
-    for (NlDesignSurface.ScreenMode mode : modes) {
-      NlDesignSurface.ScreenMode.savePreferredMode(mode);
+    SceneMode[] modes = SceneMode.values();
+    for (SceneMode mode : modes) {
+      SceneMode.Companion.savePreferredMode(mode);
       // The loaded mode should be same as the saved mode
-      assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), mode);
+      assertEquals(SceneMode.Companion.loadPreferredMode(), mode);
     }
 
     // Test when the illegal mode is setup. (This happens when removing old mode or renaming the exist mode)
-    PropertiesComponent.getInstance().setValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY, "_illegalMode");
-    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+    PropertiesComponent.getInstance().setValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY(), "_illegalMode");
+    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(NlDesignSurface.ScreenMode.SCREEN_ONLY.next(), NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
-    assertEquals(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY.next(), NlDesignSurface.ScreenMode.BOTH);
-    assertEquals(NlDesignSurface.ScreenMode.BOTH.next(), NlDesignSurface.ScreenMode.SCREEN_ONLY);
+    assertEquals(SceneMode.SCREEN_ONLY.next(), SceneMode.BLUEPRINT_ONLY);
+    assertEquals(SceneMode.BLUEPRINT_ONLY.next(), SceneMode.BOTH);
+    assertEquals(SceneMode.BOTH.next(), SceneMode.SCREEN_ONLY);
   }
 
   public void testEmptyRenderSuccess() {
@@ -94,10 +95,10 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().hasRenderError());
   }
 
@@ -120,7 +121,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
 
@@ -157,20 +158,20 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager().getRenderResult());
 
-    mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getCurrentSceneView());
-    assertNull(mySurface.getBlueprintView());
+    assertNull(mySurface.getSecondarySceneView());
 
-    mySurface.setScreenMode(NlDesignSurface.ScreenMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.BOTH, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
-    ScreenView screenView = mySurface.getCurrentSceneView();
-    ScreenView blueprintView = mySurface.getBlueprintView();
+    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView blueprintView = mySurface.getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
 

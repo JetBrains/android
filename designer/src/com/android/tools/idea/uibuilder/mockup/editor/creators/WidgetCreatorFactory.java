@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -46,7 +47,7 @@ public final class WidgetCreatorFactory {
   public static WidgetCreator create(@NotNull String tagName,
                                      @NotNull Mockup mockup,
                                      @NotNull NlModel model,
-                                     @NotNull ScreenView screenView,
+                                     @NotNull SceneView screenView,
                                      @NotNull Rectangle selection) {
     @NotNull final WidgetCreator creator;
     switch (tagName) {

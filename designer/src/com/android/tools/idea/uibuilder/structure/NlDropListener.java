@@ -19,6 +19,7 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -112,7 +113,7 @@ public class NlDropListener extends DropTargetAdapter {
   @Nullable
   private InsertType captureDraggedComponents(@NotNull NlDropEvent event, boolean isPreview) {
     clearDraggedComponents();
-    ScreenView screenView = myTree.getScreenView();
+    SceneView screenView = myTree.getScreenView();
     if (screenView == null) {
       return null;
     }
@@ -206,7 +207,7 @@ public class NlDropListener extends DropTargetAdapter {
    */
   private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
-      ScreenView view = myTree.getScreenView();
+      SceneView view = myTree.getScreenView();
       ViewEditor editor = view != null ? ViewEditorImpl.getOrCreate(view) : null;
       model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, editor);
 
