@@ -27,6 +27,7 @@ import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -138,7 +139,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                                @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
@@ -208,7 +209,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   @Override
   public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
                          @NotNull List<NlComponent> newSelection, boolean toolbar) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null || (parent == null && component == null)) {
       return;
     }

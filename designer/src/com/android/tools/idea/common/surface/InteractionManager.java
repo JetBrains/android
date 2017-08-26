@@ -667,7 +667,7 @@ public class InteractionManager {
       else if (keyChar == 'b') {
         // TODO: find a way to move layout-specific logic elsewhere.
         if (mySurface instanceof NlDesignSurface) {
-          NlDesignSurface.ScreenMode nextMode = ((NlDesignSurface)mySurface).getScreenMode().next();
+          SceneMode nextMode = ((NlDesignSurface)mySurface).getSceneMode().next();
           ((NlDesignSurface)mySurface).setScreenMode(nextMode, true);
         }
       }

@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixt
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
@@ -126,7 +126,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return this;
   }
 
-  public void waitForScreenMode(@NotNull ScreenMode mode) {
+  public void waitForScreenMode(@NotNull SceneMode mode) {
     Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
   }
 

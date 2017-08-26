@@ -15,186 +15,111 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.rendering.RenderResult;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG_COLOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
  */
-public class ScreenView extends SceneView {
-  private ScreenViewType myType;
-
-  public enum ScreenViewType {NORMAL, BLUEPRINT}
-
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+public class ScreenView extends ScreenViewBase {
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
     super(surface, model);
-    myType = type;
-  }
-
-  /**
-   * Returns the current type of this ScreenView
-   */
-  @NotNull
-  public ScreenViewType getScreenViewType() {
-    return myType;
-  }
-
-  /**
-   * Set the type of this ScreenvVew
-   *
-   * @param type ScreenViewType (NORMAL or BLUEPRINT)
-   */
-  public void setType(ScreenViewType type) {
-    myType = type;
-  }
-
-  /**
-   * Returns the current preferred size for the view.
-   *
-   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-   *                  returned.
-   */
-  @Override
-  @NotNull
-  public Dimension getPreferredSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
-    }
-
-    Configuration configuration = getConfiguration();
-    Device device = configuration.getDevice();
-    State state = configuration.getDeviceState();
-    if (device != null && state != null) {
-      HardwareConfig config =
-        new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
-
-      dimension.setSize(config.getScreenWidth(), config.getScreenHeight());
-    }
-
-    return dimension;
   }
 
   @Override
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (getScreenViewType() == ScreenViewType.NORMAL) {
-      Rectangle resizeZone =
-        new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(x, y)) {
-        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-        return;
-      }
+    Rectangle resizeZone =
+      new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+    if (resizeZone.contains(x, y)) {
+      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+      return;
     }
     super.updateCursor(x, y);
   }
 
-  @Override
-  public LayoutlibSceneManager getSceneManager() {
-    return (LayoutlibSceneManager)super.getSceneManager();
-  }
-
   @NotNull
   @Override
-  public Color getBgColor() {
-    return getScreenViewType() == ScreenViewType.BLUEPRINT ? BLUEPRINT_BG_COLOR : Color.WHITE;
+  public ImmutableList<Layer> getLayers() {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+
+    builder.add(new MyBottomLayer(this));
+    builder.add(new ScreenViewLayer(this));
+    builder.add(new SelectionLayer(this));
+
+    NlDesignSurface surface = (NlDesignSurface)mySurface;
+    if (myModel.getType().isLayout()) {
+      builder.add(new ConstraintsLayer(surface, this, true));
+    }
+
+    SceneLayer sceneLayer = new SceneLayer(surface, this, false);
+    sceneLayer.setAlwaysShowSelection(true);
+    builder.add(new WarningLayer(this));
+    builder.add(sceneLayer);
+    if (surface.getLayoutType().isSupportedByDesigner()) {
+      builder.add(new CanvasResizeLayer(surface, this));
+    }
+
+    return builder.build();
   }
 
-  @Nullable
-  public RenderResult getResult() {
-    return getSceneManager().getRenderResult();
-  }
+  private static class MyBottomLayer extends Layer {
 
-  public static class BorderPainter {
+    private final ScreenViewBase myScreenView;
+    private boolean myPaintedFrame;
 
-    private static final int SHADOW_SIZE = JBUI.scale(6);
-    private static final Color COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR;
-    private static final Color COLOR_INSIDE = new JBColor(new Color(70, 70, 70, 10), new Color(10, 10, 10, 20));
-    private static final Paint GRAD_LEFT = new GradientPaint(0, 0, COLOR_OUTSIDE, SHADOW_SIZE, 0, COLOR_INSIDE);
-    private static final Paint GRAD_TOP = new GradientPaint(0, 0, COLOR_OUTSIDE, 0, SHADOW_SIZE, COLOR_INSIDE);
-    private static final Paint GRAD_RIGHT = new GradientPaint(0, 0, COLOR_INSIDE, SHADOW_SIZE, 0, COLOR_OUTSIDE);
-    private static final Paint GRAD_BOTTOM = new GradientPaint(0, 0, COLOR_INSIDE, 0, SHADOW_SIZE, COLOR_OUTSIDE);
-    private static final Paint GRAD_CORNER =
-      new RadialGradientPaint(SHADOW_SIZE, SHADOW_SIZE, SHADOW_SIZE, new float[]{0, 1}, new Color[]{COLOR_INSIDE, COLOR_OUTSIDE});
+    public MyBottomLayer(@NotNull ScreenViewBase screenView) {
+      myScreenView = screenView;
+    }
 
-    public static void paint(Graphics2D g2d, ScreenView screenView) {
-      Dimension size = screenView.getSize();
-      int x = screenView.getX();
-      int y = screenView.getY();
+    @Override
+    public void paint(@NotNull Graphics2D g2d) {
+      Composite oldComposite = g2d.getComposite();
+      RenderResult result = myScreenView.getResult();
 
-      RenderingHints hints = g2d.getRenderingHints();
-      AffineTransform tx = g2d.getTransform();
-      Paint paint = g2d.getPaint();
+      myPaintedFrame = false;
+      if (myScreenView.getSurface().isDeviceFrameVisible() && result != null && result.hasImage()) {
+        Configuration configuration = myScreenView.getConfiguration();
+        Device device = configuration.getDevice();
+        State deviceState = configuration.getDeviceState();
+        DeviceArtPainter painter = DeviceArtPainter.getInstance();
+        if (device != null && painter.hasDeviceFrame(device) && deviceState != null) {
+          myPaintedFrame = true;
+          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+          painter.paintFrame(g2d, device, deviceState.getOrientation(), true, myScreenView.getX(), myScreenView.getY(),
+                             (int)(myScreenView.getScale() * result.getRenderedImage().getHeight()));
+        }
+      }
 
-      // Left
-      g2d.translate(x - SHADOW_SIZE, y);
-      g2d.scale(1, size.height / (double)SHADOW_SIZE);
-      g2d.setPaint(GRAD_LEFT);
-      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+      g2d.setComposite(oldComposite);
 
-      // Right
-      g2d.translate(size.width + SHADOW_SIZE, 0);
-      g2d.setPaint(GRAD_RIGHT);
-      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+      if (!myPaintedFrame) {
+        // Only show bounds dashed lines when there's no device
+        paintBorder(g2d);
+      }
+    }
 
-      // Reset transform scale and translate to upper left corner
-      g2d.translate(-size.width, 0);
-      g2d.scale(1, SHADOW_SIZE / (double)size.height);
-
-      // Top
-      g2d.translate(0, -SHADOW_SIZE);
-      g2d.scale(size.width / (double)SHADOW_SIZE, 1);
-      g2d.setPaint(GRAD_TOP);
-      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
-
-      // Bottom
-      g2d.translate(0, size.height + SHADOW_SIZE);
-      g2d.setPaint(GRAD_BOTTOM);
-      g2d.fillRect(0, 0, SHADOW_SIZE, SHADOW_SIZE);
-
-      // Reset the transform
-      g2d.setTransform(tx);
-
-      // Smoothen the corner shadows
-      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-      // Paint the corner shadows
-      g2d.setPaint(GRAD_CORNER);
-      // Top Left
-      g2d.translate(x - SHADOW_SIZE, y - SHADOW_SIZE);
-      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 90, 90);
-      // Top Right
-      g2d.translate(size.width, 0);
-      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 0, 90);
-      // Bottom Right
-      g2d.translate(0, size.height);
-      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 270, 90);
-      // Bottom Left
-      g2d.translate(-size.width, 0);
-      g2d.fillArc(0, 0, SHADOW_SIZE * 2, SHADOW_SIZE * 2, 180, 90);
-
-      g2d.setTransform(tx);
-      g2d.setRenderingHints(hints);
-      g2d.setPaint(paint);
+    private void paintBorder(Graphics2D g2d) {
+      Shape screenShape = myScreenView.getScreenShape();
+      if (screenShape != null) {
+        g2d.draw(screenShape);
+        return;
+      }
+      myScreenView.paintBorder(g2d);
     }
   }
 }
+

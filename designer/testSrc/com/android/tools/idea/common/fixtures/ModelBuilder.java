@@ -187,17 +187,11 @@ public class ModelBuilder {
 
   @NotNull
   private static ScreenView mockSceneView(SyncNlModel model, DesignSurface surface) {
-    return new ScreenView(((NlDesignSurface)surface), ScreenView.ScreenViewType.NORMAL, model) {
+    return new ScreenView(((NlDesignSurface)surface), model) {
       @NotNull
       @Override
       public Dimension getPreferredSize(@Nullable Dimension dimension) {
         return new Dimension(1000, 1000);
-      }
-
-      @NotNull
-      @Override
-      public Color getBgColor() {
-        return Color.BLACK;
       }
     };
   }

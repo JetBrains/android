@@ -51,7 +51,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode.*;
+import static com.android.tools.idea.uibuilder.surface.SceneMode.*;
 
 /**
  * UI component for Navigator Panel showing a miniature representation of the NlDesignSurface
@@ -354,8 +354,8 @@ public class PanZoomPanel extends JPanel
    */
   private void updateScreenNumber(@Nullable NlDesignSurface surface) {
     if (surface != null) {
-      myXScreenNumber = !surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
-      myYScreenNumber = surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
+      myXScreenNumber = !surface.isStackVertically() && surface.getSceneMode() == BOTH ? 2 : 1;
+      myYScreenNumber = surface.isStackVertically() && surface.getSceneMode() == BOTH ? 2 : 1;
     }
   }
 
@@ -526,7 +526,7 @@ public class PanZoomPanel extends JPanel
 
       // If there is twoSceneViews displayed,
       // we compute the offset of the secondSceneView
-      if (myDesignSurface.getScreenMode() == BOTH) {
+      if (myDesignSurface.getSceneMode() == BOTH) {
         if (myDesignSurface.isStackVertically()) {
           mySecondScreenOffset.setLocation(0, deviceSize.getHeight() * myDeviceScale + myScaledScreenSpace);
         }
@@ -616,7 +616,7 @@ public class PanZoomPanel extends JPanel
       assert myDesignSurface != null;
 
       NlDesignSurface nlDesignSurface = myDesignSurface;
-      if (nlDesignSurface.getScreenMode() == BOTH) {
+      if (nlDesignSurface.getSceneMode() == BOTH) {
         gc.drawRect(
           (int)Math.round(mySecondScreenOffset.x + NlComponentHelperKt.getX(component) * componentRatio),
           (int)Math.round(mySecondScreenOffset.y + NlComponentHelperKt.getY(component) * componentRatio),
@@ -627,7 +627,7 @@ public class PanZoomPanel extends JPanel
     }
 
     /**
-     * Draw the needed screen view depending on the current {@link NlDesignSurface.ScreenMode}.
+     * Draw the needed screen view depending on the current {@link SceneMode}.
      *
      * @param gc the {@link Graphics2D} to draw on
      */
@@ -638,17 +638,17 @@ public class PanZoomPanel extends JPanel
       assert myDesignSurface != null;
 
       // Draw the first screen view
-      NlDesignSurface.ScreenMode screenMode = myDesignSurface.getScreenMode();
+      SceneMode sceneMode = myDesignSurface.getSceneMode();
       int scaledDeviceWidth = (int)Math.round(myDeviceSize.getWidth() * myDeviceScale);
       int scaledDeviceHeight = (int)Math.round(myDeviceSize.getHeight() * myDeviceScale);
 
-      if (screenMode == SCREEN_ONLY) {
+      if (sceneMode == SCREEN_ONLY) {
         drawNormalScreenView(gc, currentSceneView, myCenterOffset.x, myCenterOffset.y, scaledDeviceWidth, scaledDeviceHeight);
       }
-      else if (screenMode == BLUEPRINT_ONLY) {
+      else if (sceneMode == BLUEPRINT_ONLY) {
         drawBlueScreenView(gc, myCenterOffset.x, myCenterOffset.y, scaledDeviceWidth, scaledDeviceHeight);
       }
-      else if (screenMode == BOTH) {
+      else if (sceneMode == BOTH) {
         drawNormalScreenView(gc, currentSceneView, myCenterOffset.x, myCenterOffset.y, scaledDeviceWidth, scaledDeviceHeight);
         drawBlueScreenView(gc, mySecondScreenOffset.x, mySecondScreenOffset.y, scaledDeviceWidth, scaledDeviceHeight
         );

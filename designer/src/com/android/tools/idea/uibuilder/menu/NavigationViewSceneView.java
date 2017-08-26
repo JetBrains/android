@@ -35,7 +35,7 @@ public final class NavigationViewSceneView extends ScreenView {
   public static final String SHOW_IN_ATTRIBUTE_VALUE = "navigation_view";
 
   public NavigationViewSceneView(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    super(surface, ScreenViewType.NORMAL, model);
+    super(surface, model);
   }
 
   /**

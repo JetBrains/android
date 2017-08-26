@@ -23,7 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
@@ -258,19 +258,19 @@ public class NlPreviewTest {
       .getLayoutPreview(true)
       .waitForRenderToFinish()
       .showOnlyBlueprintView()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY);
+      .waitForScreenMode(SceneMode.SCREEN_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .switchToTab("activity_my.xml")
       .getLayoutPreview(false)
       .waitForRenderToFinish()
-      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
   @Test

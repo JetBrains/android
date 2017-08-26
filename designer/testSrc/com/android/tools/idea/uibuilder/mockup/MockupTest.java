@@ -244,7 +244,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
+    final ScreenView screenView = new ScreenView(mockSurface, model);
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
@@ -261,7 +261,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
+    final ScreenView screenView = new ScreenView(mockSurface, model);
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
     assertEquals(new Rectangle(0, 0, NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)), destinationRectangle);
   }

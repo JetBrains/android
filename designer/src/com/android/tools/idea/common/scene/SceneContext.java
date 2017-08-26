@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
@@ -147,11 +148,9 @@ public class SceneContext {
     if (sceneView.getModel().getType() == NlLayoutType.NAV) {
       colorSet = new NavColorSet();
     }
-    else if (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) {
-      colorSet = new BlueprintColorSet();
-    }
     else {
-      colorSet = new AndroidColorSet();
+      // TEMP hack corrected in the next CL
+      colorSet = ((ScreenView)sceneView).getColorSet();
     }
     sceneViewTransform.myColorSet = colorSet;
 

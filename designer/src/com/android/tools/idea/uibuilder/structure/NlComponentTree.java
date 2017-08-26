@@ -89,7 +89,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final CopyPasteManager myCopyPasteManager;
   private final NlTreeBadgeHandler myBadgeHandler;
 
-  private ScreenView myScreenView;
+  private SceneView myScreenView;
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
@@ -162,13 +162,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
-  private void setScreenView(@Nullable ScreenView screenView) {
+  private void setScreenView(@Nullable SceneView screenView) {
     myScreenView = screenView;
     setModel(screenView != null ? screenView.getModel() : null);
   }
 
   @Nullable
-  public ScreenView getScreenView() {
+  public SceneView getScreenView() {
     return myScreenView;
   }
 

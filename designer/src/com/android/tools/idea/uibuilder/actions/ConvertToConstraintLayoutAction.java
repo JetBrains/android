@@ -19,20 +19,18 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -90,7 +88,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -116,7 +114,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   }
 
   @Nullable
-  private static NlComponent findTarget(@Nullable ScreenView screenView) {
+  private static NlComponent findTarget(@Nullable SceneView screenView) {
     if (screenView != null) {
       List<NlComponent> selection = screenView.getSelectionModel().getSelection();
       if (selection.size() == 1) {
@@ -134,7 +132,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -207,7 +205,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {
     private static final boolean DIRECT_INFERENCE = true;
-    private final ScreenView myScreenView;
+    private final SceneView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
     private final boolean myIncludeCustomViews;
@@ -216,7 +214,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private NlComponent myRoot;
     private NlComponent myLayout;
 
-    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
+    public ConstraintLayoutConverter(@NotNull SceneView screenView,
                                      @NotNull NlComponent target,
                                      boolean flatten,
                                      boolean includeIds,

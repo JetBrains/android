@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +34,11 @@ public class BlueprintModeAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY;
+    return mySurface.getSceneMode() == SceneMode.BLUEPRINT_ONLY;
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    mySurface.setScreenMode(ScreenMode.BLUEPRINT_ONLY, true);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, true);
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.common.surface.SceneView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public final class TreeTransferHandler extends TransferHandler {
   protected Transferable createTransferable(JComponent c) {
     NlComponentTree tree = (NlComponentTree)c;
     setDragImage(getDragImageOfSelection(tree));
-    ScreenView screenView = tree.getScreenView();
+    SceneView screenView = tree.getScreenView();
     if (screenView != null && !screenView.getSurface().getSelectionModel().isEmpty()) {
       return screenView.getSurface().getSelectionAsTransferable();
     }

@@ -174,9 +174,8 @@ public class LayoutTestUtilities {
     when(screenView.getScale()).thenReturn(scale);
     when(screenView.getSize()).thenReturn(new Dimension());
     DesignSurface surface = model.getSurface();
-    //SelectionModel selectionModel = surface.getSelectionModel();  // Mockito requires this to be a separate variable
     when(screenView.getSelectionModel()).thenCallRealMethod();
-    when(screenView.getSurface()).thenReturn(surface);
+    when(screenView.getSurface()).thenReturn((NlDesignSurface)surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
 

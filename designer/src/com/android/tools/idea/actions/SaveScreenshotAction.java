@@ -17,9 +17,11 @@ package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -56,9 +58,9 @@ public class SaveScreenshotAction extends AnAction {
 
   @Nullable
   private BufferedImage getImage() {
-    ScreenView currentScreenView = mySurface.getCurrentSceneView();
-    if (currentScreenView != null) {
-      RenderResult result = currentScreenView.getResult();
+    LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
+    if (sceneManager != null) {
+      RenderResult result = sceneManager.getRenderResult();
       return result != null ? result.getRenderedImage().getCopy() : null;
     }
     return null;
