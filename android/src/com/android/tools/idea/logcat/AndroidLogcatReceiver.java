@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
  * 1+ lines of log text below, for each log message).
  */
-final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
+public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
 
   private final LogCatMessageParser myParser = new LogCatMessageParser();
 
