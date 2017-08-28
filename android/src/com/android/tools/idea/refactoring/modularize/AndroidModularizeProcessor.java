@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -22,10 +23,12 @@ import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
@@ -66,6 +69,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
   private final Set<PsiElement> myManifestEntries;
   private final AndroidCodeAndResourcesGraph myReferenceGraph;
   private Module myTargetModule;
+  private boolean myShouldSelectAllReferences;
 
   protected AndroidModularizeProcessor(@NotNull Project project,
                                        @NotNull PsiElement[] roots,
@@ -83,6 +87,27 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   public void setTargetModule(@NotNull Module module) {
     myTargetModule = module;
+
+    // Tune default selection behavior: it's safe to select all references only if the target module is depended on (downstream dependency).
+    myShouldSelectAllReferences = true;
+    for (PsiElement root : myRoots) {
+      AndroidFacet facet = AndroidFacet.getInstance(root);
+      if (facet != null) {
+        if (!collectModulesClosure(facet.getModule(), Sets.newHashSet()).contains(myTargetModule)) {
+          myShouldSelectAllReferences = false;
+          break;
+        }
+      }
+    }
+  }
+
+  private static Set<Module> collectModulesClosure(@NotNull Module module, Set<Module> result) {
+    if (result.add(module)) {
+      for (Module depModule : ModuleRootManager.getInstance(module).getDependencies()) {
+        collectModulesClosure(depModule, result);
+      }
+    }
+    return result;
   }
 
   public int getClassesCount() {
@@ -91,6 +116,16 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   public int getResourcesCount() {
     return myResources.size();
+  }
+
+  @VisibleForTesting
+  AndroidCodeAndResourcesGraph getReferenceGraph() {
+    return myReferenceGraph;
+  }
+
+  @VisibleForTesting
+  boolean shouldSelectAllReferences() {
+    return myShouldSelectAllReferences;
   }
 
   @NotNull
@@ -179,7 +214,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void previewRefactoring(@NotNull UsageInfo[] usages) {
-    PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages);
+    PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages, myShouldSelectAllReferences);
     if (previewDialog.showAndGet()) {
       TransactionGuard.getInstance().submitTransactionAndWait(() -> execute(previewDialog.getSelectedUsages()));
     }
@@ -384,10 +419,11 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
     private final AndroidModularizePreviewPanel myPanel;
 
-    protected PreviewDialog(@Nullable Project project, @NotNull AndroidCodeAndResourcesGraph graph, @NotNull UsageInfo[] infos) {
+    protected PreviewDialog(@Nullable Project project, @NotNull AndroidCodeAndResourcesGraph graph, @NotNull UsageInfo[] infos,
+                            boolean shouldSelectAllReferences) {
       super(project, true);
 
-      myPanel = new AndroidModularizePreviewPanel(graph, infos);
+      myPanel = new AndroidModularizePreviewPanel(graph, infos, shouldSelectAllReferences);
       setTitle("Modularize: Preview Classes and Resources to Be Moved");
       init();
     }
