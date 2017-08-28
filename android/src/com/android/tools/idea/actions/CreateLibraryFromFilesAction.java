@@ -212,7 +212,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
           }
         }
       });
-      BuildSystemServiceUtil.getInstance(myProject).syncProject();
+      BuildSystemServiceUtil.getInstance(myProject).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
 
       super.doOKAction();
     }

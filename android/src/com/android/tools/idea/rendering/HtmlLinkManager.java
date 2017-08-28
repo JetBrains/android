@@ -364,7 +364,8 @@ public class HtmlLinkManager {
     assert url.equals(URL_SYNC) : url;
     BuildSystemService service = BuildSystemServiceUtil.getInstance(project);
     if (service != null) {
-      service.syncProject();
+      service.syncProject(project.isInitialized()? BuildSystemService.SyncReason.PROJECT_MODIFIED:
+                          BuildSystemService.SyncReason.PROJECT_LOADED, true);
     }
   }
 
