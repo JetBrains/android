@@ -288,7 +288,11 @@ public class ScoutChainsArrange {
 
 
   private static void insertInChain(NlComponent component, boolean vertical) {
-    List<NlComponent> children = component.getParent().getChildren();
+    NlComponent parent = component.getParent();
+    if (parent == null) {
+      return;
+    }
+    List<NlComponent> children = parent.getChildren();
     int distSqr = Integer.MAX_VALUE;
     if (isInChain(component, vertical)) {
       return;
@@ -557,7 +561,11 @@ public class ScoutChainsArrange {
    * @return
    */
   private static int distanceToChain(NlComponent component, boolean vertical) {
-    List<NlComponent> children = component.getParent().getChildren();
+    NlComponent parent = component.getParent();
+    if (parent == null) {
+      return Integer.MAX_VALUE;
+    }
+    List<NlComponent> children = parent.getChildren();
     int distSqr = Integer.MAX_VALUE;
     if (isInChain(component, vertical)) {
       return distSqr; // if we are already in return false
@@ -570,7 +578,6 @@ public class ScoutChainsArrange {
         distSqr = Math.min(distSqr, d);
       }
     }
-    System.out.println((vertical ? "vertical " : " horizontal ") + " min = " + distSqr);
     return distSqr;
   }
 
