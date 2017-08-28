@@ -41,14 +41,14 @@ public class SourceCodeFilter implements PsiFileSystemItemFilter {
       PsiDirectory psiFolder = (PsiDirectory)item;
       VirtualFile folder = psiFolder.getVirtualFile();
       String folderPath = virtualToIoFile(folder).toString();
-      return contains(folderPath);
+      return isValidPath(folderPath);
     }
     return true;
   }
 
-  private boolean contains(@NotNull String path) {
+  private boolean isValidPath(@NotNull String path) {
     for (String existing : mySourceFolderPaths) {
-      if (existing.contains(path)) {
+      if (existing.contains(path) /* 'path' is parent */ || path.contains(existing) /* 'path' is child */) {
         return true;
       }
     }
