@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -66,19 +67,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
   @Override
   public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
-    CodeAndResourcesReferenceCollector scanner = new CodeAndResourcesReferenceCollector(project);
-
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(
-      () -> ApplicationManager.getApplication().runReadAction(
-        () -> scanner.accumulate(elements)), "Computing References", false, project);
-
-    AndroidModularizeProcessor processor =
-      new AndroidModularizeProcessor(project,
-                                     elements,
-                                     scanner.getClassReferences(),
-                                     scanner.getResourceReferences(),
-                                     scanner.getManifestReferences(),
-                                     scanner.getReferenceGraph());
+    AndroidModularizeProcessor processor = createProcessor(project, elements);
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       Module targetModule = TARGET_MODULE.getData(dataContext);
@@ -108,6 +97,22 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       AndroidModularizeDialog dialog = new AndroidModularizeDialog(project, suitableModules, processor);
       dialog.show();
     }
+  }
+
+  @VisibleForTesting
+  AndroidModularizeProcessor createProcessor(@NotNull Project project, @NotNull PsiElement[] elements) {
+    CodeAndResourcesReferenceCollector scanner = new CodeAndResourcesReferenceCollector(project);
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      () -> ApplicationManager.getApplication().runReadAction(
+        () -> scanner.accumulate(elements)), "Computing References", false, project);
+
+    return new AndroidModularizeProcessor(project,
+                                          elements,
+                                          scanner.getClassReferences(),
+                                          scanner.getResourceReferences(),
+                                          scanner.getManifestReferences(),
+                                          scanner.getReferenceGraph());
   }
 
 
