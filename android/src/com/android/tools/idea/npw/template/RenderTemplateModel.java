@@ -239,7 +239,7 @@ public final class RenderTemplateModel extends WizardModel {
     }
 
     private boolean isKotlinTemplate() {
-      return StudioFlags.NPW_KOTLIN.get() && (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false);
+      return (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false);
     }
 
     private boolean renderTemplate(boolean dryRun,

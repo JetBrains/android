@@ -85,7 +85,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myBindings.bindTwoWay(new TextProperty(myCompanyDomain), model.companyDomain());
     myBindings.bindTwoWay(new SelectedProperty(myCppSupportCheck), model.enableCppSupport());
 
-    myKotlinSupportCheck.setVisible(StudioFlags.NPW_KOTLIN.get());
     myBindings.bindTwoWay(new SelectedProperty(myKotlinSupportCheck), model.enableKotlinSupport());
 
     myProjectLocation.addActionListener(event -> {

@@ -283,9 +283,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private boolean displayLanguageChoice(TemplateMetadata templateMetadata) {
-    if (!StudioFlags.NPW_KOTLIN.get()) {
-      return false;
-    }
     // Note: For new projects we have a different UI.
     if (getModel().getProject().getValueOrNull() == null) {
       return false;

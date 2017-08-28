@@ -55,11 +55,6 @@ public final class StudioFlags {
     "Use the new wizard framework for the \"New > New Project...\" wizard flow.",
     true);
 
-  public static final Flag<Boolean> NPW_KOTLIN = Flag.create(
-    NPW, "kotlin", "Enable Kotlin projects",
-    "Add an option in the new wizard flow to create a Kotlin project.",
-    true);
-
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
   public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
     PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
