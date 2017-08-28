@@ -54,7 +54,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      BuildSystemServiceUtil.getInstance(myProject).syncProject();
+      BuildSystemServiceUtil.getInstance(myProject).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
     });
   }
 

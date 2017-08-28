@@ -767,7 +767,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
               Project project = facet.getModule().getProject();
-              BuildSystemServiceUtil.getInstance(project).syncProject();
+              BuildSystemServiceUtil.getInstance(project).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
             }
           }.execute();
         }
@@ -790,7 +790,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
             Project project = facet.getModule().getProject();
-            BuildSystemServiceUtil.getInstance(project).syncProject();
+            BuildSystemServiceUtil.getInstance(project).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
           }
         }.execute();
       }

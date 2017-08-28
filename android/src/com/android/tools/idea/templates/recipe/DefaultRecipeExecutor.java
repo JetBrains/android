@@ -662,7 +662,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     public void requestSync(@NotNull Project project) {
       BuildSystemService buildSystemService = BuildSystemServiceUtil.getInstance(project);
       assert buildSystemService != null;
-      buildSystemService.syncProject();
+      buildSystemService.syncProject(project.isInitialized()? BuildSystemService.SyncReason.PROJECT_MODIFIED:
+                                     BuildSystemService.SyncReason.PROJECT_LOADED, true);
     }
   }
 

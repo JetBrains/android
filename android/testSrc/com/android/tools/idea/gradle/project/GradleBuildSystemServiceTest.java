@@ -76,11 +76,6 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     assertThat(BuildSystemServiceUtil.getInstance(myProject)).isNotInstanceOf(GradleBuildSystemService.class);
   }
 
-  public void testSyncProject() {
-    myService.syncProject();
-    verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
-  }
-
   public void testSyncProjectWithUninitializedProject() {
     Project project = getProject();
     StartupManagerEx startupManager = new StartupManagerImpl(project) {
@@ -98,8 +93,8 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     // http://b/62543184
     when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
 
-    myService.syncProject();
-    verify(mySyncInvoker, never()).requestProjectSyncAndSourceGeneration(same(project), any(), any());
+    myService.syncProject(BuildSystemService.SyncReason.PROJECT_LOADED, true);
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
   }
 
   public void testBuildProject() {

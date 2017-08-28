@@ -93,7 +93,7 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
       getContainingModule(new File(myArchive.get()), myProject)).execute();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      BuildSystemServiceUtil.getInstance(myProject).syncProject();
+      BuildSystemServiceUtil.getInstance(myProject).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
     }
   }
 
