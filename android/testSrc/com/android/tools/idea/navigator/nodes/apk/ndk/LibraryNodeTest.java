@@ -17,21 +17,19 @@ package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -50,19 +48,20 @@ public class LibraryNodeTest extends IdeaTestCase {
 
     LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
     List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
-    assertThat(children).hasSize(7);
+    assertThat(children).hasSize(2);
 
     assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
 
     // Verify folder nodes are sorted.
-    List<String> folderNames = children.subList(1, 7).stream().map(node -> {
-      if (node instanceof SourceFolderNode) {
-        SourceFolderNode sourceFolderNode = (SourceFolderNode)node;
-        return sourceFolderNode.getValue().getName();
-      }
-      return null;
-    }).collect(Collectors.toList());
-    assertEquals(Arrays.asList("a", "b", "c", "x", "y", "z"), folderNames);
+    AbstractTreeNode node = children.get(1);
+    assertThat(node).isInstanceOf(PsiDirectoryNode.class);
+    VirtualFile folder = ((PsiDirectoryNode)node).getVirtualFile();
+    String path = virtualToIoFile(folder).getPath();
+
+    String firstSourceFolder = sourceFolderPaths.get(0);
+    // Verify that the root node is the root folder for the source paths.
+    // PsiDirectoryNode will take care of populate its children.
+    assertThat(firstSourceFolder).contains(path);
   }
 
   @NotNull
