@@ -84,6 +84,21 @@ public class NewActivityTest {
     setSavedRenderSourceLanguage(Language.JAVA);
   }
 
+  /**
+   * Verifies that a new activity can be created through the Wizard
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 9ab45c50-1eb0-44aa-95fb-17835baf2274
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Right click on the application module and select New > Activity > Basic Activity
+   *   2. Enter activity and package name. Click Finish
+   *   Verify:
+   *   Activity class and layout.xml files are created. The activity previews correctly in layout editor.
+   *   </pre>
+   */
   @RunIn(TestGroup.QA)
   @Test
   public void createDefaultActivity() {
