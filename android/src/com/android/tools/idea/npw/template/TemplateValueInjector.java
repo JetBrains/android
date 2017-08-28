@@ -316,11 +316,9 @@ public final class TemplateValueInjector {
   }
 
   private void addKotlinVersion() {
-    if (StudioFlags.NPW_KOTLIN.get()) {
-      // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
-      final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-      myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
-    }
+    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
+    final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
+    myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {
