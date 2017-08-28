@@ -164,7 +164,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @Override
-  public boolean configureTask(RunConfiguration runConfiguration, MakeBeforeRunTask task) {
+  public boolean configureTask(@NotNull RunConfiguration runConfiguration, @NotNull MakeBeforeRunTask task) {
     GradleEditTaskDialog dialog = new GradleEditTaskDialog(myProject);
     dialog.setGoal(task.getGoal());
     dialog.setAvailableGoals(createAvailableTasks());
@@ -201,7 +201,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @Override
-  public boolean canExecuteTask(RunConfiguration configuration, MakeBeforeRunTask task) {
+  public boolean canExecuteTask(@NotNull RunConfiguration configuration, @NotNull MakeBeforeRunTask task) {
     return task.isValid();
   }
 
