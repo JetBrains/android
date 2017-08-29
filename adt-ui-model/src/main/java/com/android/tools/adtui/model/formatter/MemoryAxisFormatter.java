@@ -29,7 +29,7 @@ public final class MemoryAxisFormatter extends BaseAxisFormatter {
   public static final MemoryAxisFormatter DEFAULT = new MemoryAxisFormatter(4, 10, 5);
 
   public MemoryAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
-    super(maxMinorTicks, maxMajorTicks, switchThreshold);
+    super(maxMinorTicks, maxMajorTicks, switchThreshold, true);
   }
 
   @Override

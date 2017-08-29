@@ -34,6 +34,7 @@ import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -433,23 +434,23 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myService.setMemoryData(memoryData);
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
-    assertEquals("Java", legends.getJavaLegend().getName());
-    assertEquals("10KB", legends.getJavaLegend().getValue());
+    Truth.assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
+    Truth.assertThat(legends.getJavaLegend().getValue()).isEqualTo("10 KB");
 
-    assertEquals("Native", legends.getNativeLegend().getName());
-    assertEquals("20KB", legends.getNativeLegend().getValue());
+    Truth.assertThat(legends.getNativeLegend().getName()).isEqualTo("Native");
+    Truth.assertThat(legends.getNativeLegend().getValue()).isEqualTo("20 KB");
 
-    assertEquals("Graphics", legends.getGraphicsLegend().getName());
-    assertEquals("30KB", legends.getGraphicsLegend().getValue());
+    Truth.assertThat(legends.getGraphicsLegend().getName()).isEqualTo("Graphics");
+    Truth.assertThat(legends.getGraphicsLegend().getValue()).isEqualTo("30 KB");
 
-    assertEquals("Stack", legends.getStackLegend().getName());
-    assertEquals("40KB", legends.getStackLegend().getValue());
+    Truth.assertThat(legends.getStackLegend().getName()).isEqualTo("Stack");
+    Truth.assertThat(legends.getStackLegend().getValue()).isEqualTo("40 KB");
 
-    assertEquals("Code", legends.getCodeLegend().getName());
-    assertEquals("50KB", legends.getCodeLegend().getValue());
+    Truth.assertThat(legends.getCodeLegend().getName()).isEqualTo("Code");
+    Truth.assertThat(legends.getCodeLegend().getValue()).isEqualTo("50 KB");
 
-    assertEquals("Others", legends.getOtherLegend().getName());
-    assertEquals("60KB", legends.getOtherLegend().getValue());
+    Truth.assertThat(legends.getOtherLegend().getName()).isEqualTo("Others");
+    Truth.assertThat(legends.getOtherLegend().getValue()).isEqualTo("60 KB");
   }
 
   @Test
