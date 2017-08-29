@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifact;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
@@ -923,14 +925,25 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createAddDependencyUrl(String artifact) {
-    return URL_ADD_DEPENDENCY + artifact;
+  public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
+    return URL_ADD_DEPENDENCY + artifactId.getCommonName();
   }
 
   private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
+    String artifactCommonName = url.substring(URL_ADD_DEPENDENCY.length());
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(module.getProject());
-    String dependency = url.substring(URL_ADD_DEPENDENCY.length());
-    projectSystem.addDependency(module, dependency);
+    GoogleMavenArtifactId matchingId = GoogleMavenArtifactId.getIdByCommonName(artifactCommonName);
+
+    if (matchingId == null) {
+      throw new UnsupportedOperationException("Artifact " + artifactCommonName + " is not a known dependency!");
+    }
+
+    // Should probably let the user know what happenned if the dependency can't be added.
+    // TODO add user confirmationfor adding dependencies.
+    GoogleMavenArtifact dependency = projectSystem.findArtifact(matchingId);
+    if (dependency != null && module.getModuleFile() != null) {
+      projectSystem.addDependency(module.getModuleFile(), dependency);
+    }
   }
 }

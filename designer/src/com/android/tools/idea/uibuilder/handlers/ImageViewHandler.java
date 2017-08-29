@@ -22,8 +22,9 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -32,6 +33,7 @@ import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
@@ -149,8 +151,12 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   private static boolean moduleDependsOnAppCompat(@NotNull NlModel model) {
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(model.getProject());
-    return manager.dependsOn(model.getModule(), APPCOMPAT_LIB_ARTIFACT);
+    VirtualFile modelFile = model.getFile().getVirtualFile();
+    if (modelFile != null) {
+      return ProjectSystemUtil.getProjectSystem(model.getProject())
+               .getDependency(modelFile, GoogleMavenArtifactId.APPCOMPAT_V7) != null;
+    }
+    return false;
   }
 
   private static boolean currentActivityIsDerivedFromAppCompatActivity(@NotNull NlModel model) {
