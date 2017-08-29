@@ -40,12 +40,18 @@ public interface RoomTableConstraint extends PsiElement {
   List<RoomIndexedColumn> getIndexedColumnList();
 
   @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
   PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
 
   @Nullable
   PsiElement getIdentifier();
 
   @Nullable
-  PsiElement getStringLiteral();
+  PsiElement getSingleQuoteStringLiteral();
 
 }

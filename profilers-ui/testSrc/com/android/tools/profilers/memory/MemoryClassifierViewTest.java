@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.analyzer.Capture;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
@@ -733,6 +734,7 @@ public class MemoryClassifierViewTest {
     myStage.getSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
+    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
     // Changed to group by package so we can test nested node cases.
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
 
@@ -841,6 +843,7 @@ public class MemoryClassifierViewTest {
     myStage.getSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
+    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
     // Changed to group by package so we can test nested node cases.
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
 

@@ -23,10 +23,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.intellij.openapi.actionSystem.ActionButtonComponent;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -78,8 +76,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
-    new ActionButtonFixture(myRobot, findToolbarButton("API Version in Editor")).click();
-    clickPopupMenuItemMatching(new ApiLevelPredicate(apiLevel), myToolBar.getComponent(), myRobot);
+    selectDropDownActionButtonItem("API Version in Editor", new ApiLevelPredicate(apiLevel));
     return this;
   }
 
@@ -108,14 +105,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    new ActionButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
-    clickPopupMenuItemMatching(new DeviceNamePredicate(label), myToolBar.getComponent(), myRobot);
+    selectDropDownActionButtonItem("Device in Editor", new DeviceNamePredicate(label));
     return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
-    new ActionButtonFixture(myRobot, findToolbarButton("Orientation in Editor")).click();
-    clickPopupMenuItemMatching(Predicate.isEqual(layoutVariant), myToolBar.getComponent(), myRobot);
+    selectDropDownActionButtonItem("Orientation in Editor", Predicate.isEqual(layoutVariant));
   }
 
   /**
@@ -123,8 +118,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDensity(@NotNull String density) {
-    new ActionButtonFixture(myRobot, findToolbarButton("Device Screen Density")).click();
-    clickPopupMenuItem(density, myToolBar.getComponent(), myRobot);
+    selectDropDownActionButtonItem("Device Screen Density", item -> item.startsWith(density));
     return this;
   }
 
@@ -149,8 +143,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseShape(@NotNull String shape) {
-    new ActionButtonFixture(myRobot, findToolbarButton("Adaptive Icon Shape")).click();
-    clickPopupMenuItem(shape, myToolBar.getComponent(), myRobot);
+    selectDropDownActionButtonItem("Adaptive Icon Shape", item -> item.startsWith(shape));
     return this;
   }
 
@@ -179,80 +172,25 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
-  /**
-   * Click on the "Show Design" button if not selected
-   */
-  public NlConfigurationToolbarFixture<ParentFixture> showDesign() {
-    ActionButtonFixture fixture = getToggleDesignButton();
-    if (fixture.target().getPopState() != ActionButtonComponent.PUSHED) {
-      fixture.click();
-    }
-    return this;
+  public void selectDesign() {
+    selectDropDownActionButtonItem("Select Design Surface", Predicate.isEqual("Design"));
   }
 
-  /**
-   * Click on the "Show Design" if it is selected
-   */
-  public NlConfigurationToolbarFixture<ParentFixture> hideDesign() {
-    ActionButtonFixture fixture = getToggleDesignButton();
-    if (fixture.target().getPopState() == ActionButtonComponent.PUSHED) {
-      fixture.click();
-    }
-    return this;
-  }
-
-  @NotNull
-  private ActionButtonFixture getToggleDesignButton() {
-    ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton component) {
-        return "Show Design".equals(component.getAction().getTemplatePresentation().getDescription());
-      }
-    });
-    return new ActionButtonFixture(myRobot, button);
-  }
-
-  /**
-   * Click on the "Show Blueprint" button if not selected
-   */
-  public NlConfigurationToolbarFixture<ParentFixture> showBlueprint() {
-    ActionButtonFixture fixture = getBlueprintButton();
-    if (fixture.target().getPopState() != ActionButtonComponent.PUSHED) {
-      fixture.click();
-    }
-    return this;
-  }
-
-  /**
-   * Click on the "Show Blueprint" button if not selected
-   */
-  public NlConfigurationToolbarFixture<ParentFixture> hideBlueprint() {
-    ActionButtonFixture fixture = getBlueprintButton();
-    if (fixture.target().getPopState() == ActionButtonComponent.PUSHED) {
-      fixture.click();
-    }
-    return this;
-  }
-
-  @NotNull
-  private ActionButtonFixture getBlueprintButton() {
-    ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton component) {
-        return "Show Blueprint".equals(component.getAction().getTemplatePresentation().getDescription());
-      }
-    });
-    return new ActionButtonFixture(myRobot, button);
+  public void selectBlueprint() {
+    selectDropDownActionButtonItem("Select Design Surface", Predicate.isEqual("Blueprint"));
   }
 
   /**
    * Click on the "Orientation in Editor" button
    */
   public NlConfigurationToolbarFixture<ParentFixture> switchOrientation() {
-    ActionButtonFixture button = new ActionButtonFixture(myRobot, findToolbarButton("Orientation in Editor"));
-    button.click();
-    clickPopupMenuItemMatching(s -> s.matches("Switch to (Landscape|Portrait)"), button.target(), myRobot);
+    selectDropDownActionButtonItem("Orientation in Editor", item -> item.matches("Switch to (Landscape|Portrait)"));
     return this;
+  }
+
+  private void selectDropDownActionButtonItem(@NotNull String tooltip, @NotNull Predicate<String> predicate) {
+    new ActionButtonFixture(myRobot, findToolbarButton(tooltip)).click();
+    clickPopupMenuItemMatching(predicate, myToolBar.getComponent(), myRobot);
   }
 
   @NotNull

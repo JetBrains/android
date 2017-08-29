@@ -67,7 +67,7 @@ public class GradleProjectBuilder {
     if (myAndroidProjectInfo.requiresAndroidModel()) {
       if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        myBuildInvoker.compileJava(modules, TestCompileType.NONE);
+        myBuildInvoker.compileJava(modules, TestCompileType.ALL);
         return;
       }
       buildProjectWithJps(COMPILE_JAVA);

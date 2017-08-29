@@ -40,13 +40,21 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 
 WHITE_SPACE=\s+
 
-BRACKET_LITERAL=\[[^\]]*\]
 COMMENT="/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
 IDENTIFIER=([:letter:]|_)([:letter:]|[:digit:]|_)*
 LINE_COMMENT=--[^\r\n]*
 NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
 PARAMETER_NAME=:{IDENTIFIER}
-STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
+
+// Unterminated strings are BAD_CHARACTER tokens.
+STRING_BAD_SINGLE=X?\'(\'\'|[^\'])*
+SINGLE_QUOTE_STRING_LITERAL={STRING_BAD_SINGLE} \'
+STRING_BAD_DOUBLE=X?\"(\"\"|[^\"])*
+DOUBLE_QUOTE_STRING_LITERAL={STRING_BAD_DOUBLE} \"
+BACKTICK_LITERAL_BAD=\`(\`\`|[^\`])*
+BACKTICK_LITERAL={BACKTICK_LITERAL_BAD} \`
+BRACKET_LITERAL_BAD=\[[^\]]*
+BRACKET_LITERAL={BRACKET_LITERAL_BAD} \]
 
 %%
 <YYINITIAL> {
@@ -200,14 +208,20 @@ STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
   "||"                                { return CONCAT; }
   "~"                                 { return TILDE; }
 
+  {BACKTICK_LITERAL}                  { return BACKTICK_LITERAL; }
   {BRACKET_LITERAL}                   { return BRACKET_LITERAL; }
   {COMMENT}                           { return COMMENT; }
+  {DOUBLE_QUOTE_STRING_LITERAL}       { return DOUBLE_QUOTE_STRING_LITERAL; }
   {IDENTIFIER}                        { return IDENTIFIER; }
   {LINE_COMMENT}                      { return LINE_COMMENT; }
   {NUMERIC_LITERAL}                   { return NUMERIC_LITERAL; }
   {PARAMETER_NAME}                    { return PARAMETER_NAME; }
-  {STRING_LITERAL}                    { return STRING_LITERAL; }
+  {SINGLE_QUOTE_STRING_LITERAL}       { return SINGLE_QUOTE_STRING_LITERAL; }
 
 }
 
+{STRING_BAD_SINGLE} { return BAD_CHARACTER; }
+{STRING_BAD_DOUBLE} { return BAD_CHARACTER; }
+{BRACKET_LITERAL_BAD} { return BAD_CHARACTER; }
+{BACKTICK_LITERAL_BAD} { return BAD_CHARACTER; }
 [^] { return BAD_CHARACTER; }

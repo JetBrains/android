@@ -34,6 +34,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -253,7 +254,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
   @NotNull
   private JComponent createBackPanel(@NotNull DesignSurface context) {
     myBackPanel = new JPanel(new BorderLayout());
-    myBackLabel = new JLabel("", AndroidIcons.NeleIcons.BackArrow, SwingConstants.LEFT);
+    myBackLabel = new JLabel("", StudioIcons.Common.BACK_ARROW, SwingConstants.LEFT);
     ColorSet colorSet = SceneContext.get(context.getCurrentSceneView()).getColorSet();
     myBackPanel.setBackground(colorSet.getSubduedBackground());
     myBackPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, colorSet.getFrames()),

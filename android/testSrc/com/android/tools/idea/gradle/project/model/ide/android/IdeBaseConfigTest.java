@@ -41,19 +41,6 @@ public class IdeBaseConfigTest {
   }
 
   @Test
-  public void modelOlderThan3_0() {
-    BaseConfigStub original = new BaseConfigStub() {
-      @Override
-      @NotNull
-      public Map<String, String> getFlavorSelections() {
-        throw new UnsupportedMethodException("Unsupported method: AndroidLibrary.getSymbolFile()");
-      }
-    };
-    IdeBaseConfig copy = new IdeBaseConfig(original, new ModelCache()) {};
-    Truth.assertThat(copy.getFlavorSelections()).isEmpty();
-  }
-
-  @Test
   public void equalsAndHashCode() {
     createEqualsVerifier(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class).verify();
     createEqualsVerifier(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class).verify();

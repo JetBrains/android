@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
@@ -30,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.util.Disposer;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
@@ -46,10 +49,15 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new RefreshRenderAction(mySurface));
-    group.addSeparator();
-    group.add(new DesignModeAction((NlDesignSurface)mySurface));
-    group.add(new BlueprintModeAction((NlDesignSurface)mySurface));
+    DropDownAction designSurfaceMenu = new DropDownAction("", "Select Design Surface",
+                                                          StudioIcons.LayoutEditor.Toolbar.BLUEPRINT_MODE_INACTIVE);
+    designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addSeparator();
+    designSurfaceMenu.addAction(new RefreshRenderAction(mySurface));
+    group.add(designSurfaceMenu);
+
     group.addSeparator();
 
     group.add(new OrientationMenuAction(mySurface::getConfiguration, mySurface));

@@ -89,7 +89,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitColumnName(@NotNull RoomColumnName o) {
-    visitPsiElement(o);
+    visitNameElement(o);
   }
 
   public void visitColumnRefExpr(@NotNull RoomColumnRefExpr o) {
@@ -341,7 +341,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitTableName(@NotNull RoomTableName o) {
-    visitPsiElement(o);
+    visitNameElement(o);
   }
 
   public void visitTableOrIndexName(@NotNull RoomTableOrIndexName o) {
@@ -381,6 +381,10 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitWithClause(@NotNull RoomWithClause o) {
+    visitPsiElement(o);
+  }
+
+  public void visitNameElement(@NotNull RoomNameElement o) {
     visitPsiElement(o);
   }
 

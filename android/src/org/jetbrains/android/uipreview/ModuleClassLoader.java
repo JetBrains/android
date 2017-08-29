@@ -255,7 +255,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
     VirtualFile classFile = null;
-    if (vOutFolder == null) {
+    if (vOutFolder != null) {
+      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
+    }
+
+    if (classFile == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel()) {
         AndroidModel androidModel = facet.getAndroidModel();
@@ -263,9 +267,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
           classFile = androidModel.getClassJarProvider().findModuleClassFile(name, module);
         }
       }
-    } else {
-      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
     }
+
     if (classFile != null) {
       return loadClassFile(name, classFile);
     }

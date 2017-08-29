@@ -29,6 +29,7 @@ import java.util.Collections;
 
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +74,13 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
       // Get the package name declared in the manifest
       assertEquals("com.example.instantapp", provider.getPackageName());
     }
+  }
+
+  public void testGetPackageNameForTestOnlyModule() throws Exception {
+    loadProject(TEST_ONLY_MODULE, "test");
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    assertEquals("com.example.android.app", provider.getPackageName());
+    assertEquals("com.example.android.app.testmodule", provider.getTestPackageName());
   }
 
   private static InstantAppProjectBuildOutput createInstantAppProjectBuildOutputMock(@NotNull String variant, @NotNull String applicationId) {

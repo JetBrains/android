@@ -152,20 +152,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
     return myHeapSets.values();
   }
 
-  @NotNull
-  @Override
-  public String getHeapName(int heapId) {
-    Snapshot snapshot = mySnapshot;
-    if (snapshot == null) {
-      return INVALID_HEAP_NAME;
-    }
-    Heap heap = snapshot.getHeap(heapId);
-    if (heap == null) {
-      return INVALID_HEAP_NAME;
-    }
-    return heap.getName();
-  }
-
   @Override
   @Nullable
   public HeapSet getHeapSet(int heapId) {
@@ -239,7 +225,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     Map<Heap, HeapSet> heapSets = new HashMap<>(snapshot.getHeaps().size());
     InstanceObject javaLangClassObject = null;
     for (Heap heap : snapshot.getHeaps()) {
-      HeapSet heapSet = new HeapSet(this, heap.getId());
+      HeapSet heapSet = new HeapSet(this, heap.getName(), heap.getId());
       heapSets.put(heap, heapSet);
       if (javaLangClassObject == null) {
         ClassObj javaLangClass =

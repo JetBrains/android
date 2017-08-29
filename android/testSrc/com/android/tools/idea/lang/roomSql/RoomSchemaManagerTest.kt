@@ -46,8 +46,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_tableNameOverride_expression() {
@@ -65,8 +65,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses_table")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses_table")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_addEntity() {
@@ -124,8 +124,8 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
-    assertThat(entity.tableName).isEqualTo("addresses")
-    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
+    assertThat(entity.name).isEqualTo("addresses")
+    assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testDatabases_single() {
@@ -236,5 +236,92 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
     }
 
     assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isNull()
+  }
+
+  fun testColums() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
+
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    name = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", false)!!, "name"),
+                        Column(userClass.findFieldByName("age", false)!!, "age")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
+
+  fun testColums_ignore() {
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+        import android.arch.persistence.room.Ignore;
+
+        @Entity
+        public class User {
+          private String name;
+          @Ignore private int age;
+        }
+        """.trimIndent())
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    name = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", false)!!, "name")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
+
+  fun testColums_inheritance() {
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+
+        public abstract class NamedBase {
+          private String name;
+        }
+        """.trimIndent())
+
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+
+        @Entity
+        public class User extends NamedBase {
+          private int age;
+        }
+        """.trimIndent())
+
+    val userClass = myFixture.findClass("com.example.User")
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    userClass,
+                    name = "User",
+                    columns = setOf(
+                        Column(userClass.findFieldByName("name", true)!!, "name"),
+                        Column(userClass.findFieldByName("age", false)!!, "age")))),
+            databases = emptySet(),
+            daos = emptySet()))
   }
 }

@@ -220,12 +220,6 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
-  public Map<String, String> getFlavorSelections() {
-    return Collections.emptyMap();
-  }
-
-  @Override
-  @NotNull
   public List<File> getProguardFiles() {
     return Collections.emptyList();
   }

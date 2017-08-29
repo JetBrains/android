@@ -117,12 +117,6 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   @NotNull
-  public Map<String, String> getFlavorSelections() {
-    return Collections.emptyMap();
-  }
-
-  @Override
-  @NotNull
   public Collection<File> getProguardFiles() {
     return Collections.emptyList();
   }
