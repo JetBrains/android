@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.GraphicGeneratorContext;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;

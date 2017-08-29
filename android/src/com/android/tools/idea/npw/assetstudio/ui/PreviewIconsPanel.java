@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.assetstudiolib.GeneratedIcon;
-import com.android.assetstudiolib.GeneratedIcons;
-import com.android.assetstudiolib.GeneratedImageIcon;
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcons;
+import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
