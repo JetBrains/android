@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
 public class MockDdmlibDevice {
+  @NotNull private static final Logger LOGGER = Logger.getInstance(MockDdmlibDevice.class);
+
   @NotNull private final IDevice myDevice;
   @NotNull private final MockSyncService myMockSyncService;
   @NotNull private String myName = "[GenericMockDevice]";
@@ -38,6 +41,7 @@ public class MockDdmlibDevice {
   @NotNull private IDevice.DeviceState myState = IDevice.DeviceState.ONLINE;
   @NotNull private TestShellCommands myShellCommands = new TestShellCommands();
   @NotNull private Map<String, Long> myRemoteFiles = new HashMap<>();
+  @NotNull private Map<String, Long> myRemoteRestrictedAccessFiles = new HashMap<>();
 
   public MockDdmlibDevice() throws Exception {
     myMockSyncService = new MockSyncService();
@@ -111,6 +115,11 @@ public class MockDdmlibDevice {
     return this;
   }
 
+  public MockDdmlibDevice addRemoteRestrictedAccessFile(@NotNull String path, long size) {
+    myRemoteRestrictedAccessFiles.put(path, size);
+    return this;
+  }
+
   public class MockSyncService {
     @NotNull private final SyncService mySyncService;
 
@@ -144,6 +153,11 @@ public class MockDdmlibDevice {
 
     private void pushFile(String local, String remote, SyncService.ISyncProgressMonitor monitor)
       throws SyncException, IOException, TimeoutException {
+      LOGGER.info(String.format("pushFile: \"%s\" -> \"%s\"", local, remote));
+      // Pushing to system protected files is not allowed
+      if (myRemoteRestrictedAccessFiles.containsKey(remote)) {
+        throw new SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR);
+      }
       long size = new File(local).length();
       monitor.start(0);
       int chunkSize = 1024;
@@ -156,6 +170,11 @@ public class MockDdmlibDevice {
 
     private void pullFile(String remote, String local, SyncService.ISyncProgressMonitor monitor)
       throws TimeoutException, IOException, SyncException {
+      LOGGER.info(String.format("pullFile: \"%s\" -> \"%s\"", remote, local));
+      // Pulling system protected files returns a specific error
+      if (myRemoteRestrictedAccessFiles.containsKey(remote)) {
+        throw new SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR);
+      }
       if(!myRemoteFiles.containsKey(remote)) {
         throw new SyncException(SyncException.SyncError.NO_REMOTE_OBJECT);
       }
