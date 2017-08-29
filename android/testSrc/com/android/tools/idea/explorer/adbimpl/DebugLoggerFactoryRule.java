@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.rules.ExternalResource;
 
@@ -67,12 +68,22 @@ public class DebugLoggerFactoryRule extends ExternalResource {
   }
 
   private static class MyDebugLoggerFactory implements Logger.Factory {
+    @NotNull
     @Override
-    public Logger getLoggerInstance(String category) {
+    public Logger getLoggerInstance(@NotNull String category) {
       return new DefaultLogger(category) {
         @Override
         public boolean isDebugEnabled() {
           return true;
+        }
+
+        @Override
+        public boolean isTraceEnabled() {
+          return false;
+        }
+
+        @Override
+        public void trace(String message) {
         }
 
         @Override

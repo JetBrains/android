@@ -59,7 +59,7 @@ public class TestShellCommands {
       throw error;
     }
 
-    LOGGER.debug(String.format("Test command found: %s", command));
+    LOGGER.info(String.format("executeShellCommand: %s", command));
     if (commandResult.getError() != null) {
       throw commandResult.getError();
     }
