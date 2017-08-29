@@ -20,7 +20,6 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**
@@ -35,7 +34,7 @@ public class ProfilerLayout {
 
   public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
-  public static final float TOOLTIP_FONT_SIZE = 12.5f;
+  public static final float TOOLTIP_FONT_SIZE = 11f;
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
@@ -47,6 +46,16 @@ public class ProfilerLayout {
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
 
   public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
+
+  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
+
+  /**
+   * Space on the right for all legends when inside a profiler. Chosen so it lines up with the right axis units.
+   */
+  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
+
+  // TODO: Add support for column cells reading their border style from their column headers and using it
+  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(2, 3, 2, 3);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
