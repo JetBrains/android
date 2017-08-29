@@ -18,12 +18,16 @@ package com.android.tools.idea.common.model;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -43,11 +47,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -361,11 +367,10 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
-    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    List<GradleCoordinate> expectedDependencies =
-      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
-    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    TestProjectSystem testProjectSystem = new TestProjectSystem();
+    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       testProjectSystem, getTestRootDisposable());
+    testProjectSystem.addStubAvailableArtifact(GoogleMavenArtifactId.RECYCLER_VIEW, new GradleVersion(1, 1));
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
@@ -374,10 +379,8 @@ public class NlModelTest extends LayoutTestCase {
       () -> NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
-      .thenReturn(true);
 
-    verify(gradleDependencyManager, atLeastOnce()).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    assertTrue(testProjectSystem.hasStubDependency(model.getFile().getVirtualFile(), GoogleMavenArtifactId.RECYCLER_VIEW));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -402,20 +405,18 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
-    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
+    TestProjectSystem testProjectSystem = new TestProjectSystem();
+    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       testProjectSystem, getTestRootDisposable());
+    testProjectSystem.addStubAvailableArtifact(GoogleMavenArtifactId.RECYCLER_VIEW, new GradleVersion(1, 1));
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     NlComponent recyclerView =
       NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
-    List<GradleCoordinate> expectedDependencies =
-      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
-      .thenReturn(true);
 
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
-    verify(gradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    assertTrue(testProjectSystem.hasStubDependency(model.getFile().getVirtualFile(), GoogleMavenArtifactId.RECYCLER_VIEW));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +

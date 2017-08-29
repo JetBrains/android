@@ -130,9 +130,30 @@ interface AndroidProjectSystem {
   fun mergeBuildFiles(dependencies: String,
                       destinationContents: String,
                       supportLibVersionFilter: String?): String
+
+  /**
+   * Finds an artifact of the matching id that could be added as a dependency.
+   * Returns null when there are no available artifacts that match the given id.
+   */
+  fun findArtifact(artifactId: GoogleMavenArtifactId): GoogleMavenArtifact?
+
+  /**
+   * Adds an artifact to be available to the source context as a dependency.
+   * @param sourceContext  The depender that requires the dependency (e.g. a source file, layout xml, etc)
+   * @param artifact  The artifact needed by the depender.
+   * @throws DependencyManagementException if an error occurs when trying to add the dependency.
+   */
+  fun addDependency(sourceContext: VirtualFile, artifact: GoogleMavenArtifact)
+
+  /**
+   * Returns the existing dependency artifact for given artifact id at the depender's sourceContext.
+   * Returns null if a dependency for artifact at location does not exist.
+   * @throws DependencyManagementException if an error occurs when trying to locate dependencies.
+   */
+  fun getDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId): GoogleMavenArtifact?
 }
 
-private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
+val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.

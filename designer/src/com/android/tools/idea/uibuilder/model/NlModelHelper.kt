@@ -16,32 +16,32 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.SdkConstants.*
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.InsertType
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.editor.NlEditorProvider
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.util.XmlTagUtil.createTag
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.tools.idea.uibuilder.api.InsertType
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.api.ViewHandler
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -275,21 +275,29 @@ fun NlModel.createComponent(sceneView: SceneView,
 
 /**
  * Make sure the dependencies of the components being added are present in the module.
- * If they are not: ask the user if they can be added now.
+ * If they are not: ask the user if they can be added now.  The NlComponent's dependencies
+ * should always be one of the supported artifacts by project system.  An exception will
+ * be thrown if this assumption is violated.
  * Return true if the dependencies are present now (they may have just been added).
  */
 fun NlModel.addDependencies(toAdd: List<NlComponent>?, insertType: InsertType): Boolean {
   if (toAdd == null || insertType.isMove) {
     return true
   }
-  val artifacts = HashSet<String>()
-  toAdd.forEach { it.getDependencies(artifacts) }
-  val dependencies = artifacts.asSequence()
-      .map({ artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") })
-      .filter({ Objects.nonNull(it) })
-      .toList()
-  val manager = GradleDependencyManager.getInstance(project)
-  return manager.ensureLibraryIsIncluded(module, dependencies, null)
+
+  val projectSystem = project.getProjectSystem()
+  val modelFile = file.virtualFile ?: return false // TODO what should we do in this case?
+
+  toAdd.fold(HashSet<String>()) {set, comp -> comp.getDependencies(set); set }
+      .map {
+        GoogleMavenArtifactId.getIdByArtifactString(it) ?:
+            throw Exception("Trying to add a dependency that's unknown to AndroidProjectSystem!")
+      }
+      .distinct()
+      .mapNotNull { projectSystem.findArtifact(it) }
+      .forEach{ projectSystem.addDependency(modelFile, it) }
+
+  return true
 }
 
 fun NlModel.createComponents(sceneView: SceneView,
