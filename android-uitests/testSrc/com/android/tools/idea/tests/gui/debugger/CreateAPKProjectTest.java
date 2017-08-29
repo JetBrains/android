@@ -185,7 +185,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // Bug: http://b/65172343
   public void debugLocallyBuiltApk() throws Exception {
     File projectRoot = buildApkLocally("ApkDebug");
 
