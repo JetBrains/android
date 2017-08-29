@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
@@ -86,6 +87,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final StackTraceModel myStackTraceModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
+  private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
   private long myPendingCaptureStartTime = INVALID_START_TIME;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
@@ -164,6 +166,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStats);
+    getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -184,6 +187,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStats);
+    getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
     selectCaptureDuration(null, null);
     myLoader.stop();
 
@@ -361,6 +365,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public boolean isTrackingAllocations() {
     return myTrackingAllocations;
+  }
+
+  public long getAllocationTrackingElapsedTimeNs() {
+    if (myTrackingAllocations) {
+      Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+        .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+      return timeResponse.getTimestampNs() - myPendingCaptureStartTime;
+    }
+    return INVALID_START_TIME;
   }
 
   public boolean useLiveAllocationTracking() {
@@ -636,6 +649,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
       else {
         remove(myObjectsLegend);
+      }
+    }
+  }
+
+  private class CaptureElapsedTimeUpdatable implements Updatable {
+    @Override
+    public void update(long elapsedNs) {
+      if (myTrackingAllocations) {
+        myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
       }
     }
   }

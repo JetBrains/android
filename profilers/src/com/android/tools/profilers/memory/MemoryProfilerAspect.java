@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 public enum MemoryProfilerAspect {
   TRACKING_ENABLED,
   CLASS_GROUPING,
+  CURRENT_CAPTURE_ELAPSED_TIME,
   CURRENT_LOADING_CAPTURE,
   CURRENT_LOADED_CAPTURE,
   CURRENT_HEAP,
