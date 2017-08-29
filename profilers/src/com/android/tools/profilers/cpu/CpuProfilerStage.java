@@ -363,6 +363,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myCaptureStartTimeNs = currentTimeNs();
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+      // We should jump to live data when start recording.
+      getStudioProfilers().getTimeline().setStreaming(true);
     }
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
@@ -555,19 +557,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getStudioProfilers().getTimeline().setStreaming(false);
     }
 
-    boolean selectionIntersectsWithCapture = false;
     List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {
-        selectionIntersectsWithCapture = true;
         setCapture(info.value.getTraceId());
         break; // No need to check other captures if one is already selected
       }
-    }
-    // Selection range doesn't contain any captures. Set capture to null.
-    if (!selectionIntersectsWithCapture) {
-      setCapture(null);
     }
   }
 

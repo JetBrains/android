@@ -20,6 +20,7 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
+import com.intellij.util.ui.JBEmptyBorder;
 import icons.StudioIcons;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -151,6 +152,7 @@ public class StudioProfilersView extends AspectObserver {
 
     JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
+    rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
     close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
@@ -191,13 +193,16 @@ public class StudioProfilersView extends AspectObserver {
     myGoLive = new FlatToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
     myGoLive.setToolTipText("See realtime profiler data");
+    myGoLive.setFont(myGoLive.getFont().deriveFont(13.f));
+    myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
+    myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
+    myGoLive.setBorder(new JBEmptyBorder(3, 8, 3, 7));
+    myGoLive.setIconTextGap(JBUI.scale(8));
     myGoLive.addActionListener(event -> {
       timeline.toggleStreaming();
       myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
     });
     timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
-
-    myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
     rightToolbar.add(myGoLive);
 
     Runnable toggleToolButtons = () -> {
