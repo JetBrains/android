@@ -313,7 +313,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     // Check if the element is an argument of a method call.
     if (element.getParent() instanceof PsiExpressionList) {
       PsiExpressionList expressionList = (PsiExpressionList)element.getParent();
-      int index = Arrays.asList(expressionList.getExpressions()).indexOf(element);
+      int index = Arrays.asList(expressionList.getExpressions()).indexOf((PsiExpression)element);
 
       PsiElement prevSibling = expressionList.getPrevSibling();
       if (prevSibling != null && prevSibling.getReference() != null) {
@@ -453,12 +453,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     }
 
     return null;
-  }
-
-
-  @Override
-  public boolean startInWriteAction() {
-    return true;
   }
 
   private static class MyVarOfTypeExpression extends VariableOfTypeMacro {
