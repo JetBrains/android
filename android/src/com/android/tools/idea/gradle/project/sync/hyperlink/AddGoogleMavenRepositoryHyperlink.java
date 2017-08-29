@@ -24,7 +24,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.addGoogleRepository;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.*;
+import static com.android.tools.idea.gradle.util.GradleVersions.isGradle4OrNewer;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
@@ -48,15 +49,18 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
+    addGoogleRepository(project);
+  }
+
+  private void addGoogleRepository(@NotNull Project project) {
     GradleBuildModel buildModel = parseBuildFile(myBuildFile, project);
-    addGoogleRepository(buildModel.repositories(), project);
-    runWriteCommandAction(project, buildModel::applyChanges);
-    GradleBuildModel buildModelProject = GradleBuildModel.get(project);
-    // Also add to buildscript
-    if (buildModelProject != null) {
-      addGoogleRepository(buildModelProject.buildscript().repositories(), project);
-      runWriteCommandAction(project, buildModelProject::applyChanges);
+    if (isGradle4OrNewer(project)) {
+      buildModel.buildscript().repositories().addRepositoryByMethodName(GOOGLE_METHOD_NAME);
     }
+    else {
+      buildModel.buildscript().repositories().addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
+    }
+    runWriteCommandAction(project, buildModel::applyChanges);
     if (mySyncAfterFix) {
       GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
     }
@@ -64,7 +68,7 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
 
   @NotNull
   private static String getText(boolean syncAfterFix) {
-    String text = "Add Google Maven repository";
+    String text = "Add Google Maven repository to buildscript";
     if (syncAfterFix) {
       text += " and sync project";
     }

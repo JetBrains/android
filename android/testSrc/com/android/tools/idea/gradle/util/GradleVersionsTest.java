@@ -120,23 +120,23 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     GradleVersions spyVersions = spy(myGradleVersions);
     myIdeComponents.replaceService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,0));
-    assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
 
     // Check by component
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(5,0,0));
-    assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,1,0));
-    assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,1));
-    assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
 
     // lower
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(3,5));
-    assertFalse(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertFalse(GradleVersions.isGradle4OrNewer(project));
 
     // Null
     when(spyVersions.getGradleVersion(project)).thenReturn(null);
-    assertFalse(GradleVersions.getInstance().isGradle4OrNewer(project));
+    assertFalse(GradleVersions.isGradle4OrNewer(project));
   }
 
   @NotNull

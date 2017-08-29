@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
@@ -56,8 +55,7 @@ public class BuildScriptModel extends GradleDslBlockModel {
   /**
    * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
    */
-  @TestOnly
-  public void removeRepositoriesBlocks() {
+  public void removeAllRepositories() {
     myDslElement.removeProperty(REPOSITORIES_BLOCK_NAME);
   }
 }
