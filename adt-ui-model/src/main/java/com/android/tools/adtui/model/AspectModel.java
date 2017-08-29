@@ -37,7 +37,7 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
    * When an {@link AspectObserver} object is collected, all its {@link Dependency}s are collected,
    * and are removed from the {@link AspectModel}
    */
-  public Dependency addDependency(@NotNull AspectObserver observer) {
+  public Dependency<T> addDependency(@NotNull AspectObserver observer) {
     Dependency<T> dependency = new Dependency<>();
     observer.addDependency(dependency);
     myDependencies.add(dependency);
