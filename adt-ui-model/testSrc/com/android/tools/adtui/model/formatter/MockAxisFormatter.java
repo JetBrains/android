@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +32,10 @@ public class MockAxisFormatter extends BaseAxisFormatter {
 
   public MockAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
+  }
+
+  public MockAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator) {
+    super(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator);
   }
 
   @Override

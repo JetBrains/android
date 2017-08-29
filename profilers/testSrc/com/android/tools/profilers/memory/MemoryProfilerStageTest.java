@@ -442,22 +442,22 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
     Truth.assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
-    Truth.assertThat(legends.getJavaLegend().getValue()).isEqualTo("10KB");
+    Truth.assertThat(legends.getJavaLegend().getValue()).isEqualTo("10 KB");
 
     Truth.assertThat(legends.getNativeLegend().getName()).isEqualTo("Native");
-    Truth.assertThat(legends.getNativeLegend().getValue()).isEqualTo("20KB");
+    Truth.assertThat(legends.getNativeLegend().getValue()).isEqualTo("20 KB");
 
     Truth.assertThat(legends.getGraphicsLegend().getName()).isEqualTo("Graphics");
-    Truth.assertThat(legends.getGraphicsLegend().getValue()).isEqualTo("30KB");
+    Truth.assertThat(legends.getGraphicsLegend().getValue()).isEqualTo("30 KB");
 
     Truth.assertThat(legends.getStackLegend().getName()).isEqualTo("Stack");
-    Truth.assertThat(legends.getStackLegend().getValue()).isEqualTo("40KB");
+    Truth.assertThat(legends.getStackLegend().getValue()).isEqualTo("40 KB");
 
     Truth.assertThat(legends.getCodeLegend().getName()).isEqualTo("Code");
-    Truth.assertThat(legends.getCodeLegend().getValue()).isEqualTo("50KB");
+    Truth.assertThat(legends.getCodeLegend().getValue()).isEqualTo("50 KB");
 
     Truth.assertThat(legends.getOtherLegend().getName()).isEqualTo("Others");
-    Truth.assertThat(legends.getOtherLegend().getValue()).isEqualTo("60KB");
+    Truth.assertThat(legends.getOtherLegend().getValue()).isEqualTo("60 KB");
   }
 
   @Test
