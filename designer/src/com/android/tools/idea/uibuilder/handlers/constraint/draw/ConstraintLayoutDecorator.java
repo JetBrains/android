@@ -16,15 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -36,55 +37,55 @@ import java.util.List;
  * TODO: move to the ConstraintLayout handler
  */
 public class ConstraintLayoutDecorator extends SceneDecorator {
-  final static String[] LEFT_DIR = {
+  private final static String[] LEFT_DIR = {
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
   };
-  final static String[] RIGHT_DIR = {
+  private final static String[] RIGHT_DIR = {
     SdkConstants.ATTR_LAYOUT_END_TO_END_OF, SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
     SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
   };
-  final static String[] TOP_DIR = {
+  private final static String[] TOP_DIR = {
     SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
   };
-  final static String[] BOTTOM_DIR = {
+  private final static String[] BOTTOM_DIR = {
     SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF
   };
-  final static String[] LEFT_DIR_RTL = {
+  private final static String[] LEFT_DIR_RTL = {
     SdkConstants.ATTR_LAYOUT_END_TO_END_OF, SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
   };
-  final static String[] RIGHT_DIR_RTL = {
+  private final static String[] RIGHT_DIR_RTL = {
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
   };
 
-  final static String[][] ourConnections = {LEFT_DIR, RIGHT_DIR, TOP_DIR, BOTTOM_DIR};
-  final static String[][] ourConnections_rtl = {LEFT_DIR_RTL, RIGHT_DIR_RTL, TOP_DIR, BOTTOM_DIR};
+  private final static String[][] ourConnections = {LEFT_DIR, RIGHT_DIR, TOP_DIR, BOTTOM_DIR};
+  private final static String[][] ourConnections_rtl = {LEFT_DIR_RTL, RIGHT_DIR_RTL, TOP_DIR, BOTTOM_DIR};
 
-  final static String BASELINE = "BASELINE";
-  final static String[] BASELINE_DIR = new String[]{SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF};
-  final static String BASELINE_TYPE = "BASELINE_TYPE";
+  private final static String BASELINE = "BASELINE";
+  private final static String[] BASELINE_DIR = new String[]{SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF};
+  private final static String BASELINE_TYPE = "BASELINE_TYPE";
 
-  final static String[][] MARGIN_ATTR_LTR = {
+  private final static String[][] MARGIN_ATTR_LTR = {
     {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
     {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  final static String[][] MARGIN_ATTR_RTL = {
+  private final static String[][] MARGIN_ATTR_RTL = {
     {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
     {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  final static String[] BIAS_ATTR = {
+  private final static String[] BIAS_ATTR = {
     SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
     SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
     SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
     SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS
   };
-  final static boolean[] FLIP_BIAS = {
+  private final static boolean[] FLIP_BIAS = {
     true, false, false, true,
   };
 
@@ -92,22 +93,22 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     SAME, BACKWARD
   }
 
-  final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD, ConnectionType.SAME, ConnectionType.BACKWARD};
-  final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
-  final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
-  final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
-  final static boolean[] isLeftRight = {true, true, false, false};
-  final static int[] ourOppositeDirection = {1, 0, 3, 2};
+  private final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD, ConnectionType.SAME, ConnectionType.BACKWARD};
+  private final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
+  private final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
+  private final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
+  private final static boolean[] isLeftRight = {true, true, false, false};
+  private final static int[] ourOppositeDirection = {1, 0, 3, 2};
 
-  private void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
+  private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingX(rect.x);
     rect.y = sceneContext.getSwingY(rect.y);
     rect.width = sceneContext.getSwingDimension(rect.width);
     rect.height = sceneContext.getSwingDimension(rect.height);
   }
 
-  private void gatherProperties(@NotNull SceneComponent component,
-                                @NotNull SceneComponent child) {
+  private static void gatherProperties(@NotNull SceneComponent component,
+                                       @NotNull SceneComponent child) {
     boolean rtl = component.getScene().isInRTL();
     String[][] connections = ((rtl) ? ourConnections_rtl : ourConnections);
     for (int i = 0; i < ourDirections.length; i++) {
@@ -125,7 +126,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
    * @param dir
    * @param dirType
    */
-  private void getConnection(SceneComponent component, SceneComponent child, String[] atributes, String dir, String dirType) {
+  private static void getConnection(SceneComponent component, SceneComponent child, String[] atributes, String dir, String dirType) {
     String id = null;
     ConnectionType type = ConnectionType.SAME;
     for (int i = 0; i < atributes.length; i++) {
@@ -237,7 +238,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     void getConnectionInfo(NlComponent c, boolean isSelected) {
       componentPrevState = DecoratorUtilities.getTimedChange_prev(c, DecoratorUtilities.VIEW);
       componentCurrentState = DecoratorUtilities.getTimedChange_value(c, DecoratorUtilities.VIEW);
-      componentChangeStateTime = (Long)DecoratorUtilities.getTimedChange_time(c, "drawState");
+      componentChangeStateTime = DecoratorUtilities.getTimedChange_time(c, "drawState");
       mSelected = isSelected;
       for (int i = 0; i < connectTypes.length; i++) {
         String type = connectTypes[i];
@@ -296,18 +297,12 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   /**
    * This is used to build the display list of Constraints hanging off of of each child.
    * This assume all children have been pre-processed to cache the connections to other SceneComponents
-   *
-   * @param list
-   * @param time
-   * @param screenView
-   * @param constraintComponent
-   * @param child
    */
-  public void buildListConnections(@NotNull DisplayList list,
-                                   long time,
-                                   @NotNull SceneContext sceneContext,
-                                   @NotNull SceneComponent constraintComponent,
-                                   @NotNull SceneComponent child) {
+  private static void buildListConnections(@NotNull DisplayList list,
+                                           long time,
+                                           @NotNull SceneContext sceneContext,
+                                           @NotNull SceneComponent constraintComponent,
+                                           @NotNull SceneComponent child) {
     Rectangle dest_rect = new Rectangle();
     Rectangle source_rect = new Rectangle();
     child.fillDrawRect(time, source_rect);
@@ -326,10 +321,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     }
 
     boolean viewSelected = selection.contains(child.getNlComponent());
-    int mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
-    NlComponent c = child.getNlComponent();
-    long changeStart = 0;
-    int modeFrom = 0;
+    long changeStart;
     connectStatus.getConnectionInfo(child.getNlComponent(), viewSelected);
 
     // Extract Scene Components constraints from cache (Table speeds up next step)
@@ -353,8 +345,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
         }
-        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())
-                 || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(sc.getComponentClassName())) {
+        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
+              || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;
@@ -476,7 +468,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     }
   }
 
-  static int getX(Rectangle rectangle, int direction) {
+  private static int getX(Rectangle rectangle, int direction) {
     switch (direction) {
       case DrawConnection.DIR_LEFT:
         return rectangle.x;
@@ -490,7 +482,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     return 0;
   }
 
-  static int getY(Rectangle rectangle, int direction) {
+  private static int getY(Rectangle rectangle, int direction) {
     switch (direction) {
       case DrawConnection.DIR_LEFT:
         return rectangle.y + rectangle.height / 2;

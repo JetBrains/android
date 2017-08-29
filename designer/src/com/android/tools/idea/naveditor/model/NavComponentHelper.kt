@@ -69,6 +69,11 @@ class NavComponentMixin(component: NlComponent)
 
     return null
   }
+
+  override fun getTooltipText(): String? {
+    // TODO
+    return null
+  }
 }
 
 object NavComponentHelper {

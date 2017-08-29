@@ -109,14 +109,7 @@ public abstract class BaseTarget implements Target {
 
   @Override
   public String getToolTipText() {
-    String str = myComponent.getNlComponent().getId();
-    if (str == null) {
-      str = myComponent.getComponentClassName();
-      if (str != null) {
-        str = str.substring(str.lastIndexOf('.') + 1);
-      }
-    }
-    return str;
+    return myComponent.getNlComponent().getTooltipText();
   }
 
   /**
