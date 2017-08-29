@@ -28,7 +28,6 @@ iml_module(
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/idea/java/java-psi-impl[module]",
         "//tools/idea/java/java-indexing-api[module]",
-        "//tools/base/asset-studio:studio.assetstudio[module]",
         "//tools/adt/idea/adt-ui[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",

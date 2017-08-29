@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.ActionBarIconGenerator;
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.ObjectProperty;

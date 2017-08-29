@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.GeneratedIcons;
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcons;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import org.jetbrains.annotations.NotNull;
 
 public class IconGeneratorResult {

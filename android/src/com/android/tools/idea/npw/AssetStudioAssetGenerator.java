@@ -18,13 +18,12 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.assetstudiolib.*;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.Density;
-import com.android.tools.idea.npw.assetstudio.AssetStudioGraphicGeneratorContext;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.assetstudiolib.*;
 import com.android.ide.common.util.AssetUtil;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;

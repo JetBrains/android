@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.NotificationIconGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import org.jetbrains.annotations.NotNull;
 

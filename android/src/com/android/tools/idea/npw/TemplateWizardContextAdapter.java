@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
