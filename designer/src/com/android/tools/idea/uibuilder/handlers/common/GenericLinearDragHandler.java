@@ -18,14 +18,15 @@ package com.android.tools.idea.uibuilder.handlers.common;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -372,7 +373,7 @@ public class GenericLinearDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    insertComponents(myInsertPos, insertType);
+    editor.insertChildren(layout.getNlComponent(), components, myInsertPos, insertType);
     Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
     scene.removeComponent(myComponent);
   }

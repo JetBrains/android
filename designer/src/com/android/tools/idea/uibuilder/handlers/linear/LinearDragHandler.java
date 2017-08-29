@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
-import com.android.tools.idea.common.scene.target.Target;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +114,7 @@ class LinearDragHandler extends DragHandler {
       scene.removeComponent(myComponent);
       LinearSeparatorTarget closest = myDragTarget.getClosest();
       int index = closest != null ? closest.getInsertionIndex() : -1;
-      insertComponents(index, insertType);
+      editor.insertChildren(layout.getNlComponent(), components, index, insertType);
       scene.checkRequestLayoutStatus();
     }
   }

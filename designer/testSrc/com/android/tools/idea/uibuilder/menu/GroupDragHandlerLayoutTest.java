@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
@@ -131,26 +130,28 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   }
 
   @NotNull
-  private DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
+  private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     SyncNlModel model = (SyncNlModel)menu.getModel();
-    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    ViewEditor editor = editor(screenFixture.getScreen());
+
     LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
-
-    NlModel mockModel = Mockito.mock(NlModel.class);
-    Mockito.when(mockModel.getFacet()).thenReturn(model.getFacet());
-    Mockito.when(mockModel.canAddComponents(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(true);
-
-    Mockito.when(editor.getModel()).thenReturn(mockModel);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {
       sceneComponent = builder.createTemporaryComponent(item);
     }
     List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
-    return new GroupDragHandler(editor, new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList,
-                                DragType.MOVE);
+    return new GroupDragHandler(mockViewEditor(model), new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList, DragType.MOVE);
+  }
+
+  @NotNull
+  private static ViewEditor mockViewEditor(@NotNull NlModel model) {
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
+
+    Mockito.when(editor.canInsertChildren(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.anyInt())).thenReturn(true);
+    Mockito.when(editor.getModel()).thenReturn(model);
+
+    return editor;
   }
 }

@@ -121,7 +121,7 @@ public class ConstraintDragHandler extends DragHandler {
         }
       }
     }
-    insertComponents(-1, insertType);
+    editor.insertChildren(layout.getNlComponent(), components, -1, insertType);
     scene.removeComponent(myComponent);
     scene.checkRequestLayoutStatus();
   }

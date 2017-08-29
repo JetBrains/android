@@ -19,12 +19,12 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
@@ -181,4 +182,23 @@ public abstract class ViewEditor {
    * @see RenderResources#findResValue(String, boolean)
    */
   public abstract boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @NotNull VirtualFile currentFile);
+
+  /**
+   * If the children have dependencies that are not met by the project, this method will add them after asking the developer.
+   *
+   * @return true if the children can be inserted into the parent
+   */
+  public abstract boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index);
+
+  /**
+   * Inserts the children into the parent. This method will add missing dependencies without prompting the developer. Call canInsertChildren
+   * if you want to ask first.
+   *
+   * @param index the index at which to insert the children or -1 to insert them at the end. If existing children are being moved to a new
+   *              position, the index is based on the state before the move.
+   */
+  public abstract void insertChildren(@NotNull NlComponent parent,
+                                      @NotNull List<NlComponent> children,
+                                      int index,
+                                      @NotNull InsertType insertType);
 }

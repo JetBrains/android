@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * Handler involved in drag &amp; drop operations. Subclassed and returned by
@@ -93,7 +86,7 @@ public abstract class DragHandler {
    * @param modifiers the modifier key state
    */
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    insertComponents(-1, insertType);
+    editor.insertChildren(layout.getNlComponent(), components, -1, insertType);
   }
 
   /**
@@ -130,82 +123,5 @@ public abstract class DragHandler {
    * @param graphics the graphics to buildDisplayList to
    */
   public void paint(@NotNull NlGraphics graphics) {
-  }
-
-  /**
-   * If the components have dependencies that are not met by the project, this method will add them after asking the developer.
-   *
-   * @return true if the dragged components can be inserted into this layout
-   */
-  // TODO Move this to ViewEditor
-  protected final boolean canInsertComponents(int insertIndex, @NotNull InsertType insertType) {
-    NlModel model = editor.getModel();
-
-    if (!model.canAddComponents(components, layout.getNlComponent(), getChild(insertIndex))) {
-      return false;
-    }
-
-    Collection<GradleCoordinate> dependencies = getMissingDependencies(components);
-
-    if (dependencies.isEmpty()) {
-      return true;
-    }
-
-    return GradleDependencyManager.userWantToAddDependencies(model.getModule(), dependencies);
-  }
-
-  /**
-   * Inserts the dragged components into this layout. This method will add missing dependencies without prompting the developer. Call
-   * canInsertComponents if you want to ask first.
-   *
-   * @param insertIndex the position to drop the dragged components at, or -1 to append them at the end.
-   *                    The index refers to the position of the children <b>before</b> the drag, which
-   *                    matters if some of the existing children in the layout are being dragged.
-   * @param insertType  the type of move/insert
-   */
-  // TODO Move this to ViewEditor
-  protected final void insertComponents(int insertIndex, @NotNull InsertType insertType) {
-    addMissingDependencies();
-    editor.getModel().addComponents(components, layout.getNlComponent(), getChild(insertIndex), insertType);
-  }
-
-  private void addMissingDependencies() {
-    List<GradleCoordinate> dependencies = getMissingDependencies(components);
-
-    if (dependencies.isEmpty()) {
-      return;
-    }
-
-    Module module = editor.getModel().getModule();
-    GradleBuildModel model = GradleBuildModel.get(module);
-
-    if (model == null) {
-      return;
-    }
-
-    GradleDependencyManager.addDependenciesInTransaction(model, module, dependencies, null);
-  }
-
-  @Nullable
-  private NlComponent getChild(int i) {
-    return 0 <= i && i < layout.getChildCount() ? layout.getNlComponent().getChild(i) : null;
-  }
-
-  @NotNull
-  private List<GradleCoordinate> getMissingDependencies(@NotNull Iterable<NlComponent> components) {
-    Set<String> artifacts = new HashSet<>();
-    components.forEach(component -> NlComponentHelperKt.getDependencies(component, artifacts));
-
-    List<GradleCoordinate> dependencies = artifacts.stream()
-      .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-
-    if (dependencies.isEmpty()) {
-      return dependencies;
-    }
-
-    Module module = editor.getModel().getModule();
-    return GradleDependencyManager.getInstance(module.getProject()).findMissingDependencies(module, dependencies);
   }
 }
