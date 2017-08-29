@@ -16,13 +16,10 @@
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
-import com.android.tools.idea.apk.paths.PathNode;
-import com.android.tools.idea.apk.paths.PathTree;
 import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -36,13 +33,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
-import static java.io.File.separatorChar;
 
 public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @NotNull final NativeLibrary myLibrary;
@@ -76,48 +72,18 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
     List<String> sourceFolderPaths = new ArrayList<>(myLibrary.getSourceFolderPaths());
     if (!sourceFolderPaths.isEmpty()) {
-      // Organize source folders in a tree.
-      PathTree tree = new PathTree();
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (String path : sourceFolderPaths) {
-        tree.addPath(path, separatorChar);
-      }
-
-      // Only add the root nodes. PsiDirectoryNode will populate the children automatically.
-      List<PathNode> rootNodes = new ArrayList<>();
-      removeEmptyRoots(tree.getChildren(), rootNodes);
-
-      // This filter will ensure only the folders that are considered "source folders" show up in the tree.
-      SourceCodeFilter filter = new SourceCodeFilter(sourceFolderPaths);
-
-      for (PathNode pathNode : rootNodes) {
-        String path = pathNode.getPath();
-        PsiDirectory psiFolder = findDirectory(path);
-        if (psiFolder != null) {
-          children.add(new PsiDirectoryNode(myProject, psiFolder, settings, filter));
+        VirtualFile folder = fileSystem.findFileByPath(path);
+        if (folder != null) {
+          PsiDirectory psiFolder = PsiManager.getInstance(myProject).findDirectory(folder);
+          if (psiFolder != null) {
+            children.add(new SourceFolderNode(myProject, psiFolder, settings));
+          }
         }
       }
     }
     return children;
-  }
-
-  private static void removeEmptyRoots(@NotNull Collection<PathNode> nodes, @NotNull List<PathNode> rootNodes) {
-    for (PathNode node : nodes) {
-      String path = node.getPath();
-      if (isNotEmpty(path)) {
-        rootNodes.add(node);
-        continue;
-      }
-      removeEmptyRoots(node.getChildren(), rootNodes);
-    }
-  }
-
-  @Nullable
-  private PsiDirectory findDirectory(@NotNull String path) {
-    VirtualFile folder = LocalFileSystem.getInstance().findFileByPath(path);
-    if (folder != null) {
-      return PsiManager.getInstance(myProject).findDirectory(folder);
-    }
-    return null;
   }
 
   @Override
