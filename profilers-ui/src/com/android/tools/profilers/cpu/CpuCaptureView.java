@@ -70,11 +70,12 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
+  // Note the order of the values in the map defines the order of the tabs in UI.
   private static final Map<CaptureModel.Details.Type, String> TABS = ImmutableMap.of(
-    CaptureModel.Details.Type.TOP_DOWN, "Top Down",
-    CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up",
     CaptureModel.Details.Type.CALL_CHART, "Call Chart",
-    CaptureModel.Details.Type.FLAME_CHART, "Flame Chart");
+    CaptureModel.Details.Type.FLAME_CHART, "Flame Chart",
+    CaptureModel.Details.Type.TOP_DOWN, "Top Down",
+    CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up");
 
   private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
     CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
