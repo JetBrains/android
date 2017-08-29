@@ -358,6 +358,9 @@ fun NlComponent.getDependencies(artifacts: MutableSet<String>) {
   children?.forEach { it.getDependencies(artifacts) }
 }
 
+val NlComponent.componentClassName: String?
+  get() = viewInfo?.className
+
 private val NlComponent.nlComponentData: NlComponentData
   get() {
     val mixin = this.mixin
@@ -398,6 +401,12 @@ class NlComponentMixin(component: NlComponent)
     val itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
 
     return itemResourceValue.value
+  }
+
+  override fun getTooltipText(): String? {
+    component.id?.let { return it }
+    val str = component.componentClassName ?: return null
+    return str.substring(str.lastIndexOf('.') + 1)
   }
 }
 

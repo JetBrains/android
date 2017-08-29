@@ -583,6 +583,15 @@ public class NlComponent implements NlAttributesHolder {
     return newId;
   }
 
+  @Nullable
+  public String getTooltipText() {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.getTooltipText();
+    }
+    return null;
+  }
+
   public boolean isSelected() {
     return getModel().getSelectionModel().isSelected(this);
   }
@@ -607,6 +616,11 @@ public class NlComponent implements NlAttributesHolder {
     @Override
     public String toString() {
       return String.format("<%s>", myComponent.getTagName());
+    }
+
+    @Nullable
+    public String getTooltipText() {
+      return null;
     }
   }
 }

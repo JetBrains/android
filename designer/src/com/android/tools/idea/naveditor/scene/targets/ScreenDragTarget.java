@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,11 +85,6 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   @Override
   public Cursor getMouseCursor() {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-  }
-
-  @Override
-  public String getToolTipText(){
-    return "Screen";
   }
 
   //endregion
