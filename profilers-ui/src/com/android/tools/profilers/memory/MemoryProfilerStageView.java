@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -40,8 +41,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
@@ -63,10 +66,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Nullable private LoadingPanel myCaptureLoadingPanel;
   @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
-  @NotNull private JButton myAllocationButton;
   @NotNull private JButton myHeapDumpButton;
-
-  @NotNull private MemoryStageTooltipView myTooltipView;
+  @NotNull private JButton myAllocationButton;
+  @NotNull private final JLabel myCaptureElapsedTime;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -101,7 +103,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
     });
 
+    myCaptureElapsedTime = new JLabel("");
+    myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    myCaptureElapsedTime.setBorder(new EmptyBorder(0, 5, 0, 0));
+    myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
+
     myAllocationButton = new FlatButton();
+    myAllocationButton.setText("");
     myAllocationButton
       .addActionListener(e -> {
         if (getStage().isTrackingAllocations()) {
@@ -114,7 +122,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
     captureObjectChanged();
     allocationTrackingChanged();
@@ -134,6 +143,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
+    toolBar.add(myCaptureElapsedTime);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
@@ -203,19 +213,32 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return myInstanceDetailsView;
   }
 
+  @VisibleForTesting
+  @NotNull
+  JLabel getCaptureElapsedTimeLabel() {
+    return myCaptureElapsedTime;
+  }
+
   private void allocationTrackingChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
-      myAllocationButton.setText("");
       myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
       myAllocationButton.setToolTipText("Stop recording");
+      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
     }
     else {
-      myAllocationButton.setText("");
+      myCaptureElapsedTime.setText("");
       myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myAllocationButton.setToolTipText("Record memory allocations");
+    }
+  }
+
+  private void updateCaptureElapsedTime() {
+    if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
+      long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
+      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
     }
   }
 
@@ -316,10 +339,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       overlay.addDurationDataRenderer(allocationRenderer);
     }
 
-    myTooltipView = new MemoryStageTooltipView(getStage());
+    MemoryStageTooltipView tooltipView = new MemoryStageTooltipView(getStage());
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                myTooltipView.createComponent());
+                                tooltipView.createComponent());
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);
@@ -357,7 +380,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
     legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
     legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
-
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
