@@ -29,11 +29,10 @@ import static org.jetbrains.android.util.AndroidCommonUtils.isInstrumentationTes
 import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
 
 public abstract class TestCompileType {
-  public static final TestCompileType NONE = new TestCompileType() {
-    @Override
+  public static final TestCompileType ALL = new TestCompileType() {
     @NotNull
+    @Override
     public Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant) {
-      // TestCompileType.NONE means clean / compile all / rebuild all, so we need use all test artifacts.
       return variant.getTestArtifacts();
     }
   };
@@ -53,6 +52,13 @@ public abstract class TestCompileType {
       return testArtifact != null ? Collections.singleton(testArtifact) : Collections.emptySet();
     }
   };
+  public static final TestCompileType NONE = new TestCompileType() {
+    @NotNull
+    @Override
+    public Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant) {
+      return Collections.emptySet();
+    }
+  };
 
   @NotNull
   public abstract Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant);
@@ -67,6 +73,6 @@ public abstract class TestCompileType {
         return UNIT_TESTS;
       }
     }
-    return NONE;
+    return ALL;
   }
 }

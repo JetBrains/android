@@ -45,8 +45,8 @@ public class NativeLibrary {
   // Paths of .so files inside APK.
   @NotNull private List<String> mySharedObjectFilePaths = new ArrayList<>();
 
-  // .so files inside the APK.
-  @Transient @NotNull public final List<VirtualFile> sharedObjectFiles = new ArrayList<>();
+  // .so files inside the APK. (LinkedHashMap to preserve insertion order in values, important for tests)
+  @Transient @NotNull public final Map<Abi, VirtualFile> sharedObjectFilesByAbi = new LinkedHashMap<>();
 
   // ABIs supported by the APK.
   @Transient @NotNull public final List<Abi> abis = new ArrayList<>();
@@ -70,6 +70,9 @@ public class NativeLibrary {
     return mySharedObjectFilePaths;
   }
 
+  @NotNull
+  public List<VirtualFile> getSharedObjectFiles() { return new ArrayList<>(sharedObjectFilesByAbi.values()); }
+
   // This is being invoked when NativeLibrary is deserialized from XML.
   public void setSharedObjectFilePaths(@NotNull List<String> sharedObjectFilePaths) {
     mySharedObjectFilePaths = sharedObjectFilePaths;
@@ -79,8 +82,9 @@ public class NativeLibrary {
     for (String path : sharedObjectFilePaths) {
       VirtualFile file = fileSystem.findFileByPath(path);
       if (file != null) {
-        this.sharedObjectFiles.add(file);
-        abis.add(extractAbiFrom(file));
+        Abi abi = extractAbiFrom(file);
+        this.sharedObjectFilesByAbi.put(abi, file);
+        abis.add(abi);
         continue;
       }
       nonExistingPaths.add(path);
@@ -138,8 +142,9 @@ public class NativeLibrary {
   }
 
   private void doAddSharedObjectFile(@NotNull VirtualFile file) {
-    sharedObjectFiles.add(file);
-    abis.add(extractAbiFrom(file));
+    Abi abi = extractAbiFrom(file);
+    sharedObjectFilesByAbi.put(abi, file);
+    abis.add(abi);
     mySharedObjectFilePaths.add(file.getPath());
   }
 

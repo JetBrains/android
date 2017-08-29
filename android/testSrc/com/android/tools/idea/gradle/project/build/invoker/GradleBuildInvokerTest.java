@@ -74,7 +74,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanUp() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(originalTasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
     myBuildInvoker.cleanProject();
 
@@ -87,7 +87,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanAndGenerateSources() {
     List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(originalTasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(originalTasks);
 
     myBuildInvoker.cleanAndGenerateSources();
 
@@ -100,7 +100,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testGenerateSources() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.ALL)).thenReturn(tasks);
 
     myBuildInvoker.generateSources();
 
@@ -113,9 +113,9 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCompileJava() {
     List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.NONE)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(tasks);
 
-    myBuildInvoker.compileJava(myModules, TestCompileType.NONE);
+    myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
@@ -126,9 +126,9 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssemble() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.NONE)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
 
-    myBuildInvoker.assemble(myModules, TestCompileType.NONE);
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
@@ -139,11 +139,11 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testAssembleWithCommandLineArgs() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.NONE)).thenReturn(tasks);
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(tasks);
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 
-    myBuildInvoker.assemble(myModules, TestCompileType.NONE, commandLineArgs);
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);

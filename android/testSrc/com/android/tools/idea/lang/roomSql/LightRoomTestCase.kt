@@ -50,22 +50,56 @@ abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
 
           public @interface Query { String value(); }
           """.trimIndent())
+
+    myFixture.addClass(
+        """
+          package android.arch.persistence.room;
+
+          public @interface Ignore {}
+          """.trimIndent())
+
+    myFixture.addClass(
+        """
+          package android.arch.persistence.room;
+
+          public @interface ColumnInfo { String name() default ""; }
+          """.trimIndent())
   }
 
-  protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, tableNameOverride: String? = null): PsiClass {
+  protected data class FieldDefinition(val name: String, val type: String, val columnName: String? = null)
+
+  protected infix fun String.ofType(type: String): FieldDefinition = FieldDefinition(this, type)
+
+  protected fun JavaCodeInsightTestFixture.findField(qualifiedClassName: String, fieldName: String) =
+      findClass(qualifiedClassName).findFieldByName(fieldName, false)!!
+
+  protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, vararg fields: FieldDefinition) =
+      addRoomEntity(qualifiedClassName, tableNameOverride = null, fields = *fields)
+
+  protected fun JavaCodeInsightTestFixture.addRoomEntity(
+      qualifiedClassName: String,
+      tableNameOverride: String?,
+      vararg fields: FieldDefinition
+  ) : PsiClass {
     val packageName = qualifiedClassName.substringBeforeLast('.', "")
     val className = qualifiedClassName.substringAfterLast('.')
     val packageLine = if (packageName.isEmpty()) "" else "package $packageName;"
     val annotationArguments = if (tableNameOverride == null) "" else "(tableName = \"$tableNameOverride\")"
+
+    val fieldsSnippet = fields.joinToString(prefix = "\n", postfix = "\n", separator = "\n") { (name, type, columnName) ->
+      val annotation = if (columnName == null) "" else "@ColumnInfo(name = \"$columnName\")"
+      "$annotation $type $name;"
+    }
 
     return addClass(
         """
         $packageLine
 
         import android.arch.persistence.room.Entity;
+        import android.arch.persistence.room.ColumnInfo;
 
         @Entity$annotationArguments
-        public class $className {}
+        public class $className { $fieldsSnippet }
         """.trimIndent())
   }
 }

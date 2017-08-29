@@ -27,7 +27,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +46,7 @@ public class TargetMenuAction extends DropDownAction {
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
    */
   public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
-    super("", "API Version in Editor", AndroidIcons.NeleIcons.Api);
+    super("", "API Version in Editor", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();

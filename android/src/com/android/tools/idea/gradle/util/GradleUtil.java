@@ -27,7 +27,10 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -49,7 +52,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -69,8 +71,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -92,6 +93,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
@@ -182,13 +184,27 @@ public final class GradleUtil {
   public static Icon getModuleIcon(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      int projectType = androidModel.getAndroidProject().getProjectType();
-      if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
-        return AndroidIcons.AppModule;
-      }
-      return AndroidIcons.LibraryModule;
+      return getAndroidModuleIcon(androidModel);
     }
-    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : ANDROID_MODULE;
+  }
+
+  @NotNull
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
+    switch(androidModuleModel.getAndroidProject().getProjectType()) {
+      case  PROJECT_TYPE_APP:
+        return ANDROID_MODULE;
+      case PROJECT_TYPE_FEATURE:
+        return FEATURE_MODULE;
+      case PROJECT_TYPE_INSTANTAPP:
+        return INSTANT_APPS;
+      case PROJECT_TYPE_LIBRARY:
+        return LIBRARY_MODULE;
+      case PROJECT_TYPE_TEST:
+        return ANDROID_TEST_ROOT;
+      default:
+        return ANDROID_MODULE;
+    }
   }
 
   @Nullable

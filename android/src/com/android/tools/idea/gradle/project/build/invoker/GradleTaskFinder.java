@@ -61,6 +61,23 @@ public class GradleTaskFinder {
   }
 
   @NotNull
+  public List<String> findTasksToExecuteForTest(@NotNull Module[] testedModules,
+                                                @NotNull Module[] modules,
+                                                @NotNull BuildMode buildMode,
+                                                @NotNull TestCompileType testCompileType) {
+    List<String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+    List<String> testedModulesTasks = findTasksToExecute(testedModules, buildMode, testCompileType);
+
+    // Add testedModulesTasks to allTasks without duplicate
+    for (String task : testedModulesTasks) {
+      if (!allTasks.contains(task)) {
+        allTasks.add(task);
+      }
+    }
+    return allTasks;
+  }
+
+  @NotNull
   public List<String> findTasksToExecute(@NotNull Module[] modules,
                                          @NotNull BuildMode buildMode,
                                          @NotNull TestCompileType testCompileType) {
@@ -139,7 +156,7 @@ public class GradleTaskFinder {
           addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TASK_NAME);
 
           // Add assemble tasks for tests.
-          if (testCompileType != TestCompileType.NONE) {
+          if (testCompileType != TestCompileType.ALL) {
             if (androidModel != null) {
               for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());

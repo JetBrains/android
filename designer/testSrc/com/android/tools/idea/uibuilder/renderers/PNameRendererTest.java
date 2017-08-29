@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.util.ui.CenteredIcon;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,25 +89,25 @@ public class PNameRendererTest extends AndroidTestCase {
 
   public void testStarState() {
     assertThat(renderStarIcon(myTextItem, false, false, 0)).isNull();
-    assertThat(renderStarIcon(myStyleItem, false, false, 1)).isEqualTo(AndroidIcons.NeleIcons.Favorites);
+    assertThat(renderStarIcon(myStyleItem, false, false, 1)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES);
     assertThat(renderStarIcon(myBackgroundItem, false, false, 2)).isNull();
   }
 
   public void testSelectedStarState() {
     assertThat(renderStarIcon(myTextItem, true, false, 0)).isNull();
-    assertThat(renderStarIcon(myStyleItem, true, false, 1)).isEqualTo(AndroidIcons.NeleIcons.FavoritesSelected);
+    assertThat(renderStarIcon(myStyleItem, true, false, 1)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES_SELECTED);
     assertThat(renderStarIcon(myBackgroundItem, true, false, 2)).isNull();
   }
 
   public void testHoveringStarState() {
-    assertThat(renderStarIconWhileHovering(myTextItem, false, false, 0)).isEqualTo(AndroidIcons.NeleIcons.FavoritesHoverOutline);
-    assertThat(renderStarIconWhileHovering(myStyleItem, false, false, 1)).isEqualTo(AndroidIcons.NeleIcons.Favorites);
+    assertThat(renderStarIconWhileHovering(myTextItem, false, false, 0)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES_HOVER);
+    assertThat(renderStarIconWhileHovering(myStyleItem, false, false, 1)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES);
     assertThat(renderStarIconWhileHovering(myBackgroundItem, false, false, 2)).isNull();
   }
 
   public void testHoveringOverSelectedStarState() {
-    assertThat(renderStarIconWhileHovering(myTextItem, true, false, 0)).isEqualTo(AndroidIcons.NeleIcons.FavoritesHoverOutline);
-    assertThat(renderStarIconWhileHovering(myStyleItem, true, false, 1)).isEqualTo(AndroidIcons.NeleIcons.FavoritesSelected);
+    assertThat(renderStarIconWhileHovering(myTextItem, true, false, 0)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES_HOVER);
+    assertThat(renderStarIconWhileHovering(myStyleItem, true, false, 1)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES_SELECTED);
     assertThat(renderStarIconWhileHovering(myBackgroundItem, true, false, 2)).isNull();
   }
 

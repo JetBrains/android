@@ -77,7 +77,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     // Make sure no repository is listed
     GradleBuildModel buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    buildModel.buildscript().removeAllRepositories();
+    buildModel.buildscript().removeRepositoriesBlocks();
     assertTrue(buildModel.isModified());
     runWriteCommandAction(project, buildModel::applyChanges);
     assertFalse(buildModel.isModified());
@@ -100,7 +100,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     // Make sure no repository is listed
     GradleBuildModel buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    buildModel.buildscript().removeAllRepositories();
+    buildModel.buildscript().removeRepositoriesBlocks();
     assertTrue(buildModel.isModified());
     runWriteCommandAction(project, buildModel::applyChanges);
     assertFalse(buildModel.isModified());
@@ -120,7 +120,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     // Make sure no repository is listed
     GradleBuildModel buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    buildModel.buildscript().removeAllRepositories();
+    buildModel.buildscript().removeRepositoriesBlocks();
     assertTrue(buildModel.isModified());
     runWriteCommandAction(project, buildModel::applyChanges);
     assertFalse(buildModel.isModified());

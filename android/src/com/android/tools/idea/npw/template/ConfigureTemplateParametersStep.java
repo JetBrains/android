@@ -598,7 +598,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     if (myFacet == null) {
       // If we don't have an AndroidFacet, we must have the Android Sdk info
-      templateInjector.setBuildVersion(getModel().androidSdkInfo().getValue(), null);
+      templateInjector.setBuildVersion(getModel().androidSdkInfo().getValue(), getModel().getProject().getValueOrNull());
     }
     else {
       templateInjector.setFacet(myFacet);

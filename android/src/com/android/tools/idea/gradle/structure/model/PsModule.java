@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Artifac
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.EventDispatcher;
@@ -34,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.EventListener;
 import java.util.List;
+
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public abstract class PsModule extends PsChildModel {
   @Nullable private String myGradlePath;
@@ -126,7 +127,7 @@ public abstract class PsModule extends PsChildModel {
 
   @Override
   public Icon getIcon() {
-    return AllIcons.Nodes.Module;
+    return ANDROID_MODULE;
   }
 
   @NotNull

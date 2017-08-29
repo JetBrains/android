@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +54,7 @@ public class BackNavigationComponent extends JPanel {
     super(new FlowLayout(FlowLayout.LEFT));
     setName(BACK_NAVIGATION_COMPONENT_NAME);
     mySurfaceListener = createDesignSurfaceListener();
-    myBackLabel = new JLabel(AndroidIcons.NeleIcons.BackArrow);
+    myBackLabel = new JLabel(StudioIcons.Common.BACK_ARROW);
     myBackLabel.setIconTextGap(8);
     myMouseAdapter = new BackNavigationListener();
     addMouseListener(myMouseAdapter);

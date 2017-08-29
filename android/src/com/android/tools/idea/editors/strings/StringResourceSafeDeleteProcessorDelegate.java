@@ -18,11 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.safeDelete.NonCodeUsageSearchInfo;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
@@ -34,10 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.TAG_STRING;
 
 /**
  * Enables the Safe Delete refactoring for Android string resource elements (&lt;string>...&lt;/string>)
@@ -49,19 +43,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   }
 
   static boolean handlesElementImpl(@NotNull PsiElement element) {
-    if (element instanceof XmlTag) {
-      // The string element: what we actually want to delete
-      return AndroidResourceUtil.isStringResource((XmlTag)element);
-    }
-    else if (element instanceof XmlAttributeValue) {
-      // The value of the string element's name attribute. Extracted from the string element and added to the list of PsiElements to search
-      // for in the getElementsToSearch method below.
-      PsiNamedElement attribute = (PsiNamedElement)element.getParent();
-      return ATTR_NAME.equals(attribute.getName()) && TAG_STRING.equals(((PsiNamedElement)attribute.getParent()).getName());
-    }
-    else {
-      return false;
-    }
+    return element instanceof XmlTag && AndroidResourceUtil.isStringResource((XmlTag)element);
   }
 
   @NotNull
@@ -69,31 +51,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   public Collection<? extends PsiElement> getElementsToSearch(@NotNull PsiElement element,
                                                               @Nullable Module module,
                                                               @NotNull Collection<PsiElement> elementsToDelete) {
-    if (element instanceof XmlTag) {
-      XmlTag tag = (XmlTag)element;
-
-      XmlAttribute attribute = tag.getAttribute(ATTR_NAME);
-      assert attribute != null;
-
-      Collection<PsiElement> elements = new ArrayList<>();
-
-      // Find usages of the string element's name attribute value, such as @string/string_name references in XML files
-      elements.add(attribute.getValueElement());
-
-      // R.string.string_name references in Java files that are not LightElements
-      Collection<PsiField> fields = Arrays.stream(AndroidResourceUtil.findResourceFieldsForValueResource(tag, true))
-        .filter(field -> !(field instanceof LightElement))
-        .collect(Collectors.toList());
-
-      elements.addAll(fields);
-      return elements;
-    }
-    else if (element instanceof XmlAttributeValue) {
-      return getElementsToSearch(element.getParent().getParent(), module, elementsToDelete);
-    }
-    else {
-      return Collections.emptyList();
-    }
+    return Collections.singletonList(element);
   }
 
   @NotNull
@@ -101,7 +59,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
                                                               @NotNull Collection<PsiElement> elementsToDelete,
                                                               boolean askUser) {
-    return element instanceof XmlAttributeValue ? Collections.singletonList(element.getParent().getParent()) : Collections.emptyList();
+    return Collections.emptyList();
   }
 
   @NotNull
@@ -109,8 +67,17 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element,
                                            @NotNull PsiElement[] elementsToDelete,
                                            @NotNull List<UsageInfo> result) {
-    SafeDeleteProcessor.findGenericElementUsages(element, result, elementsToDelete);
-    return new NonCodeUsageSearchInfo(SafeDeleteProcessor.getDefaultInsideDeletedCondition(elementsToDelete), element);
+    Collection<PsiElement> elements = new ArrayList<>();
+
+    XmlTag tag = (XmlTag)element;
+    XmlAttribute attribute = tag.getAttribute(ATTR_NAME);
+    assert attribute != null;
+
+    elements.add(attribute.getValueElement());
+    elements.addAll(Arrays.asList(AndroidResourceUtil.findResourceFieldsForValueResource(tag, true)));
+    elements.forEach(e -> SafeDeleteProcessor.findGenericElementUsages(e, result, elementsToDelete));
+
+    return new NonCodeUsageSearchInfo(SafeDeleteProcessor.getDefaultInsideDeletedCondition(elementsToDelete), elements);
   }
 
   @NotNull

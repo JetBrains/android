@@ -60,17 +60,15 @@ import java.text.Collator;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static icons.AndroidIcons.AppModule;
-import static icons.AndroidIcons.LibraryModule;
 import static java.awt.BorderLayout.NORTH;
 import static java.awt.BorderLayout.SOUTH;
 import static java.awt.event.InputEvent.CTRL_MASK;
@@ -654,7 +652,7 @@ public class ModulesToImportDialog extends DialogWrapper {
         DataNode<AndroidModuleModel> child = getFirstItem(children);
         if (child != null) {
           AndroidModuleModel androidModel = child.getData();
-          return androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP ? AppModule : LibraryModule;
+          return getAndroidModuleIcon(androidModel);
         }
       }
       return PpJdk;

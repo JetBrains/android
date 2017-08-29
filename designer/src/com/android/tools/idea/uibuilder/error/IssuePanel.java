@@ -29,7 +29,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -487,7 +487,7 @@ public class IssuePanel extends JPanel implements Disposable {
     private static final String DESCRIPTION = "Hide the render errors panel";
 
     private MinimizeAction() {
-      super(DESCRIPTION, DESCRIPTION, AndroidIcons.NeleIcons.Close);
+      super(DESCRIPTION, DESCRIPTION, StudioIcons.Common.CLOSE);
     }
 
     @Override

@@ -29,7 +29,7 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-private val KEYWORDS = TokenSet.create(
+val KEYWORDS = TokenSet.create(
     ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, ASC, ATTACH, AUTOINCREMENT, BEFORE, BEGIN, BETWEEN, BY, CASCADE, CASE, CAST,
     CHECK, COLLATE, COLUMN, COMMIT, CONFLICT, CONSTRAINT, CREATE, CROSS, DATABASE, DEFAULT, DEFERRABLE, DEFERRED, DELETE, DESC, DETACH,
     DISTINCT, DROP, EACH, ELSE, END, ESCAPE, EXCEPT, EXCLUSIVE, EXISTS, EXPLAIN, FAIL, FOR, FOREIGN, FROM, GLOB, GROUP, HAVING, IF, IGNORE,
@@ -38,10 +38,15 @@ private val KEYWORDS = TokenSet.create(
     REINDEX, RELEASE, RENAME, REPLACE, RESTRICT, ROLLBACK, ROW, ROWID, SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN, TO,
     TRANSACTION, TRIGGER, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW, VIRTUAL, WHEN, WHERE, WITH, WITHOUT)
 
-private val OPERATORS =
+val OPERATORS =
     TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
 
-private val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+
+val IDENTIFIERS = TokenSet.create(IDENTIFIER, BRACKET_LITERAL, BACKTICK_LITERAL)
+val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
+val COMMENTS = TokenSet.create(COMMENT, LINE_COMMENT)
+val STRING_LITERALS = TokenSet.create(SINGLE_QUOTE_STRING_LITERAL, DOUBLE_QUOTE_STRING_LITERAL)
 
 private enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
@@ -57,9 +62,10 @@ private enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   COMMA(DefaultLanguageHighlighterColors.COMMA),
   SEMICOLON(DefaultLanguageHighlighterColors.SEMICOLON),
   CONSTANT(DefaultLanguageHighlighterColors.CONSTANT),
+  IDENTIFIER(DefaultLanguageHighlighterColors.IDENTIFIER),
   ;
 
-  val key = TextAttributesKey.createTextAttributesKey("ROOM_SQL_${name}", fallback)
+  val key = TextAttributesKey.createTextAttributesKey("ROOM_SQL_$name", fallback)
   val keys = arrayOf(key)
 }
 
@@ -72,7 +78,8 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
     in KEYWORDS -> RoomSqlTextAttributes.KEYWORD.keys
     in OPERATORS -> RoomSqlTextAttributes.OPERATOR.keys
     in CONSTANTS -> RoomSqlTextAttributes.CONSTANT.keys
-    STRING_LITERAL, BRACKET_LITERAL -> RoomSqlTextAttributes.STRING.keys
+    in STRING_LITERALS -> RoomSqlTextAttributes.STRING.keys
+    in IDENTIFIERS -> RoomSqlTextAttributes.IDENTIFIER.keys
     NUMERIC_LITERAL -> RoomSqlTextAttributes.NUMBER.keys
     PARAMETER_NAME -> RoomSqlTextAttributes.PARAMETER.keys
     LINE_COMMENT -> RoomSqlTextAttributes.LINE_COMMENT.keys
@@ -90,3 +97,4 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
 class RoomSqlSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
   override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?) = RoomSqlSyntaxHighlighter()
 }
+

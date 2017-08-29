@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 
 import java.util.Locale;
 
@@ -33,7 +33,7 @@ public class TogglePanningDialogAction extends ToggleAction {
   public TogglePanningDialogAction(NlDesignSurface surface) {
     mySurface = surface;
     String title = String.format(Locale.US, "%s %s", PanZoomPanel.TITLE, PanZoomPanel.HINT);
-    getTemplatePresentation().setIcon(AndroidIcons.NeleIcons.Pan);
+    getTemplatePresentation().setIcon(StudioIcons.LayoutEditor.Toolbar.PAN_TOOL);
     getTemplatePresentation().setDescription(title);
     getTemplatePresentation().setText(title);
   }

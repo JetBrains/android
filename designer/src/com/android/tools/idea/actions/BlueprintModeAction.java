@@ -17,11 +17,8 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,17 +28,17 @@ public class BlueprintModeAction extends ToggleAction {
   private final NlDesignSurface mySurface;
 
   public BlueprintModeAction(@NotNull NlDesignSurface surface) {
-    super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
+    super("Blueprint", "Show Blueprint Surface", null);
     mySurface = surface;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY || mySurface.getScreenMode() == ScreenMode.BOTH;
+    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY;
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    mySurface.setScreenMode(state ? ScreenMode.BOTH : ScreenMode.SCREEN_ONLY, true);
+    mySurface.setScreenMode(ScreenMode.BLUEPRINT_ONLY, true);
   }
 }

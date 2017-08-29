@@ -47,6 +47,7 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -316,6 +317,14 @@ public class GradleBuildModel extends GradleFileModel {
     }
     myToBeAppliedPlugins.clear();
     super.applyChanges();
+  }
+
+  /**
+   * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
+   */
+  @TestOnly
+  public void removeRepositoriesBlocks() {
+    myGradleDslFile.removeProperty(REPOSITORIES_BLOCK_NAME);
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {

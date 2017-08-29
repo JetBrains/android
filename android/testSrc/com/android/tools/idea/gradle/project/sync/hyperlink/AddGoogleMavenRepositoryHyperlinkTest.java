@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +68,46 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     verifyExecute("4.0", GoogleDefaultRepositoryModel.class);
   }
 
+  public void testExecuteWithModule() throws Exception {
+    // Check that quickfix adds google maven repository to mdoule when the repositories are defined in the module
+    loadProject(SIMPLE_APPLICATION);
+    Project project = getProject();
+    // Remove repositories from project and add a repository block to app
+    removeRepositories(project);
+    Module appModule = getModule("app");
+    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+    assertThat(buildModel).isNotNull();
+    buildModel.removeRepositoriesBlocks();
+    assertTrue(buildModel.isModified());
+    runWriteCommandAction(getProject(), buildModel::applyChanges);
+    buildModel.reparse();
+    assertFalse(buildModel.isModified());
+
+    // Verify that execute is applied to app build file
+    // Generate hyperlink and execute quick fix
+    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(buildModel.getVirtualFile(), /* no sync */ false);
+    hyperlink.execute(project);
+
+    // Verify it added the repository to app
+    buildModel = GradleBuildModel.get(appModule);
+    assertThat(buildModel).isNotNull();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
+
+    // verify it did not add repository to project
+    buildModel = GradleBuildModel.get(project);
+    assertThat(buildModel).isNotNull();
+    repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(0);
+
+    // Verify it was added in buildscript
+    GradleBuildModel buildModelProject = GradleBuildModel.get(project);
+    repositories = buildModelProject.buildscript().repositories().repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
+  }
+
   private void verifyExecute(@NotNull String version, @NotNull Class<? extends RepositoryModel> clazz) throws IOException {
     // Prepare project and mock version
     prepareProjectForImport(SIMPLE_APPLICATION);
@@ -87,7 +128,12 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     // Verify it added the repository
     buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    List<RepositoryModel> repositories = buildModel.buildscript().repositories().repositories();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0)).isInstanceOf(clazz);
+
+    // Verify it was added in buildscript
+    repositories = buildModel.buildscript().repositories().repositories();
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0)).isInstanceOf(clazz);
   }
@@ -95,13 +141,15 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   private void removeRepositories(@NotNull Project project) {
     GradleBuildModel buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
-    buildModel.buildscript().removeAllRepositories();
+    buildModel.removeRepositoriesBlocks();
+    buildModel.buildscript().removeRepositoriesBlocks();
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
     buildModel.reparse();
     assertFalse(buildModel.isModified());
     buildModel = GradleBuildModel.get(project);
     assertThat(buildModel).isNotNull();
+    assertThat(buildModel.repositories().repositories()).hasSize(0);
     assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0);
   }
 }

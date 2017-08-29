@@ -26,18 +26,28 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
 
-private const val ENTITY_ANNOTATION_NAME = "android.arch.persistence.room.Entity"
-private const val DATABASE_ANNOTATION_NAME = "android.arch.persistence.room.Database"
-private const val DAO_ANNOTATION_NAME = "android.arch.persistence.room.Dao"
+private const val ROOM_PACKAGE_NAME = "android.arch.persistence.room"
+private const val ENTITY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Entity"
+private const val DATABASE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Database"
+private const val DAO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Dao"
+private const val COLUMN_INFO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.ColumnInfo"
+private const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
-/** A class annotated with `@Database`. */
+interface SqlNameDefinition {
+  val name: String
+  val nameElement: PsiElement
+}
+
 data class Database(
+
     /** Annotated class. */
     val psiClass: PsiClass,
+
     /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
     val entities: Set<PsiClass>)
+
 
 data class Entity(
 
@@ -45,21 +55,42 @@ data class Entity(
     val psiClass: PsiClass,
 
     /** Name of the table: take from the class name or the annotation parameter. */
-    val tableName: String,
+    override val name: String,
 
     /**
      * [PsiElement] that determines the table name and should be the destination of references from SQL.
      *
      * This can be either the class itself or the annotation element.
      */
-    val tableNameElement: PsiElement = psiClass)
+    override val nameElement: PsiElement = psiClass,
+
+    /** Columns present in the table representing this entity. */
+    val columns: Set<Column> = emptySet()
+) : SqlNameDefinition
+
+
+data class Column(
+    /** Field that defines this column. */
+    val psiField: PsiField,
+
+    /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
+    override val name: String,
+
+    /** The [PsiElement] that defines the column name. */
+    override val nameElement: PsiElement = psiField
+) : SqlNameDefinition
+
 
 data class Dao(val psiClass: PsiClass)
+
 
 data class RoomSchema(
     val databases: Set<Database>,
     val entities: Set<Entity>,
-    val daos: Set<Dao>)
+    val daos: Set<Dao>) {
+  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass == psiClass }
+}
+
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */
 class RoomSchemaManager(val module: Module) {
@@ -74,7 +105,9 @@ class RoomSchemaManager(val module: Module) {
    */
   fun getSchema(): RoomSchema? =
       CachedValuesManager.getManager(module.project).getCachedValue(
-              module, { CachedValueProvider.Result(buildSchema(), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
+          module, { CachedValueProvider.Result(buildSchema(), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
+
+  private val constantEvaluationHelper = JavaPsiFacade.getInstance(module.project).constantEvaluationHelper
 
 
   /** Builds the schema using IJ indexes. */
@@ -95,17 +128,24 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun createEntity(psiClass: PsiClass): Entity? {
-    val tableNameElement: PsiElement? = psiClass.modifierList
-        ?.findAnnotation(ENTITY_ANNOTATION_NAME)
-        ?.findDeclaredAttributeValue("tableName")
+    val (tableName, tableNameElement) = getNameAndNameElement(
+        psiClass, annotationName = ENTITY_ANNOTATION_NAME, annotationAttributeName = "tableName") ?: return null
 
-    val tableName = tableNameElement
-        ?.let { JavaPsiFacade.getInstance(psiClass.project).constantEvaluationHelper.computeConstantExpression(it) }
-        ?.toString()
-        ?: psiClass.name
-        ?: return null
+    return Entity(psiClass, tableName, tableNameElement, findColumns(psiClass))
+  }
 
-    return Entity(psiClass, tableName, tableNameElement ?: psiClass)
+  private fun findColumns(psiClass: PsiClass): Set<Column> {
+    return psiClass.allFields
+        .mapNotNullTo(HashSet()) { psiField ->
+          if (psiField.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null) {
+            return@mapNotNullTo null
+          }
+
+          val (columnName, columnNameElement) = getNameAndNameElement(
+              psiField, annotationName = COLUMN_INFO_ANNOTATION_NAME, annotationAttributeName = "name") ?: return@mapNotNullTo null
+
+          Column(psiField, columnName, columnNameElement)
+        }
   }
 
   private fun createDatabase(psiClass: PsiClass): Database? {
@@ -126,5 +166,21 @@ class RoomSchemaManager(val module: Module) {
   private fun <T> annotationNotFound(name: String): T? {
     LOG.debug("Annotation ", name, " not found in module ", module.name)
     return null
+  }
+
+  private fun <T> getNameAndNameElement(element: T, annotationName: String, annotationAttributeName: String): Pair<String, PsiElement>?
+      where T : PsiModifierListOwner,
+            T : PsiNamedElement {
+    val nameAttribute = element.modifierList
+        ?.findAnnotation(annotationName)
+        ?.findDeclaredAttributeValue(annotationAttributeName)
+
+    val name = nameAttribute
+        ?.let { constantEvaluationHelper.computeConstantExpression(it) }
+        ?.toString()
+        ?: element.name
+        ?: return null
+
+    return Pair(name, nameAttribute ?: element)
   }
 }
