@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
-import com.android.assetstudiolib.TextRenderUtil;
+import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
 import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;

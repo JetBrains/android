@@ -16,9 +16,9 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.assetstudiolib.*;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.ui.*;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;

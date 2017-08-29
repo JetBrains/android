@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.*;
-import com.android.tools.idea.npw.assetstudio.AssetStudioGraphicGeneratorContext;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.observable.core.OptionalProperty;

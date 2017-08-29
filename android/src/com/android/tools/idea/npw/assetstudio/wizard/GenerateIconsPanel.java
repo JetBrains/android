@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.assetstudiolib.NotificationIconGenerator;
+import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;

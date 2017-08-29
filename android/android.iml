@@ -36,7 +36,6 @@
     <orderEntry type="module" module-name="manifest-merger" />
     <orderEntry type="library" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="images" />
-    <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="eclipse" />
     <orderEntry type="module" module-name="external-system-api" />
