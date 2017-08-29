@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -31,13 +38,12 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
@@ -71,7 +77,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 
@@ -81,6 +89,9 @@ import static com.android.SdkConstants.*;
  */
 public class ViewEditorImpl extends ViewEditor {
   private final SceneView mySceneView;
+
+  @VisibleForTesting
+  private Collection<ViewInfo> myRootViews;
 
   public ViewEditorImpl(@NotNull SceneView scene) {
     mySceneView = scene;
@@ -130,6 +141,10 @@ public class ViewEditorImpl extends ViewEditor {
   @NotNull
   @Override
   public Collection<ViewInfo> getRootViews() {
+    if (myRootViews != null) {
+      return myRootViews;
+    }
+
     RenderResult result = getSceneBuilder().getRenderResult();
 
     if (result == null) {
@@ -137,6 +152,11 @@ public class ViewEditorImpl extends ViewEditor {
     }
 
     return result.getRootViews();
+  }
+
+  @VisibleForTesting
+  public void setRootViews(@NotNull Collection<ViewInfo> rootViews) {
+    myRootViews = rootViews;
   }
 
   @Override
@@ -341,5 +361,68 @@ public class ViewEditorImpl extends ViewEditor {
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index) {
+    NlModel model = getModel();
+
+    if (!model.canAddComponents(children, parent, getChild(parent, index))) {
+      return false;
+    }
+
+    Collection<GradleCoordinate> dependencies = getMissingDependencies(children);
+
+    if (dependencies.isEmpty()) {
+      return true;
+    }
+
+    return GradleDependencyManager.userWantToAddDependencies(model.getModule(), dependencies);
+  }
+
+  @Override
+  public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
+    addMissingDependencies(children);
+    getModel().addComponents(children, parent, getChild(parent, index), insertType);
+  }
+
+  private void addMissingDependencies(@NotNull Iterable<NlComponent> components) {
+    List<GradleCoordinate> dependencies = getMissingDependencies(components);
+
+    if (dependencies.isEmpty()) {
+      return;
+    }
+
+    Module module = getModel().getModule();
+    GradleBuildModel model = GradleBuildModel.get(module);
+
+    if (model == null) {
+      return;
+    }
+
+    GradleDependencyManager.addDependenciesInTransaction(model, module, dependencies, null);
+  }
+
+  @Nullable
+  private static NlComponent getChild(@NotNull NlComponent parent, int index) {
+    return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
+  }
+
+  @NotNull
+  private List<GradleCoordinate> getMissingDependencies(@NotNull Iterable<NlComponent> components) {
+    Set<String> artifacts = new HashSet<>();
+    components.forEach(component -> NlComponentHelperKt.getDependencies(component, artifacts));
+
+    List<GradleCoordinate> dependencies = artifacts.stream()
+      .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+
+    if (dependencies.isEmpty()) {
+      return dependencies;
+    }
+
+    Module module = getModel().getModule();
+    return GradleDependencyManager.getInstance(module.getProject()).findMissingDependencies(module, dependencies);
   }
 }
