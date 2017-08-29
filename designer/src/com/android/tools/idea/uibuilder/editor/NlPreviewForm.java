@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -281,7 +282,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       // mySurface.setModel(null);
     }
 
-    if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
+    if (myContentPanel == null && GradleProjects.isBuildWithGradle(myProject)) {  // First time: Make sure we have compiled the project at least once...
       DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
     }
     else {
