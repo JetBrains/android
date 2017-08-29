@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -243,7 +242,7 @@ public class AdbFileOperations {
     return createTempFileRunAs(tempPath, null);
   }
 
-  @SuppressWarnings("SameParameterValue")
+  @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
   @NotNull
   public ListenableFuture<String> createTempFileRunAs(@NotNull String tempDirectoy, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
@@ -252,10 +251,7 @@ public class AdbFileOperations {
       //       * mktemp is not available on all API levels
       //       * mktemp creates a file with 600 permission, meaning the file is not
       //         accessible by processes running as "run-as"
-      //
-      // Note: UUID.randomUUID() uses SecureRandom with 128 bits entropy, which
-      //       is more than good enough for our requirements.
-      String tempFileName = String.format("tmp.%s", UUID.randomUUID().toString());
+      String tempFileName = UniqueFileNameGenerator.getInstance().getUniqueFileName("temp", "");
       String remotePath = AdbPathUtil.resolve(tempDirectoy, tempFileName);
       touchFileRunAs(remotePath, runAs);
       return remotePath;
