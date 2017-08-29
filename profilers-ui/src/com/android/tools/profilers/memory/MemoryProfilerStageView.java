@@ -409,12 +409,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.add(toolbar, BorderLayout.WEST);
 
-    toolbar = new JPanel(TOOLBAR_LAYOUT);
-    AutoCompleteTextField filterField =
-      getIdeComponents().createAutoCompleteTextField("Filter", "", new ArrayList<String>());
+    AutoCompleteTextField filterField = getIdeComponents().createAutoCompleteTextField("Filter", "", new ArrayList<>());
     filterField.addOnDocumentChange(() -> getStage().selectCaptureFilter(filterField.getText()));
-    filterField.getComponent().setPreferredSize(new Dimension(150, filterField.getComponent().getPreferredSize().height));
-    toolbar.add(filterField.getComponent());
+    toolbar = new JPanel(new TabularLayout("*,150px,4px", "*,Fit,*"));
+    toolbar.add(filterField.getComponent(), new TabularLayout.Constraint(1, 1));
     headingPanel.add(toolbar, BorderLayout.EAST);
 
     JPanel capturePanel = new JPanel(new BorderLayout());
