@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.library;
 
-import com.google.common.collect.Sets;
+import com.android.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.ExistingLibraryEditor;
-import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryRootsComponent;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -37,11 +35,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.ui.JBUI.Borders.customLine;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
@@ -57,6 +53,7 @@ public class LibraryPropertiesDialog extends DialogWrapper {
   private JBLabel myNameLabel;
 
   private LibraryRootsComponent myLibraryEditorComponent;
+  private SourcesAndDocsOnlyEditor myEditor;
 
   public LibraryPropertiesDialog(@NotNull Project project, @NotNull Library library) {
     super(project);
@@ -72,8 +69,8 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     myIconLabel.setIcon(AllIcons.Modules.Library);
     myNameLabel.setText(myLibrary.getName());
 
-    LibraryEditor editor = new SourcesAndDocsOnlyEditor(myLibrary);
-    myLibraryEditorComponent = new LibraryRootsComponent(myProject, editor) {
+    myEditor = new SourcesAndDocsOnlyEditor(myLibrary);
+    myLibraryEditorComponent = new LibraryRootsComponent(myProject, myEditor) {
       @Override
       public void updatePropertiesLabel() {
         JComponent c = getComponent();
@@ -119,32 +116,14 @@ public class LibraryPropertiesDialog extends DialogWrapper {
   }
 
   public void applyChanges() {
-    if (myLibraryEditorComponent != null) {
-      executeProjectChanges(myProject, new Runnable() {
-        @Override
-        public void run() {
-          LibraryEditor editor = myLibraryEditorComponent.getLibraryEditor();
-          Library.ModifiableModel libraryModel = myLibrary.getModifiableModel();
-          try {
-            addUrls(editor, libraryModel, SOURCES);
-            addUrls(editor, libraryModel, JavadocOrderRootType.getInstance());
-          }
-          finally {
-            libraryModel.commit();
-          }
-        }
-      });
+    if (myEditor != null) {
+      executeProjectChanges(myProject, myEditor::commit);
     }
   }
 
-  // Only shows and updates "source" and "Javadoc" attachments. "Class" attachments cannot be modified because they are set by Gradle.
-  private static void addUrls(@NotNull LibraryEditor editor, @NotNull Library.ModifiableModel libraryModel, @NotNull OrderRootType type) {
-    Set<String> existingUrls = Sets.newHashSet(libraryModel.getUrls(type));
-    for (String url : editor.getUrls(type)) {
-      if (!existingUrls.contains(url)) {
-        libraryModel.addRoot(url, type);
-      }
-    }
+  @VisibleForTesting
+  LibraryRootsComponent getLibraryEditorComponent() {
+    return myLibraryEditorComponent;
   }
 
   private static class SourcesAndDocsOnlyEditor extends ExistingLibraryEditor {
