@@ -51,7 +51,9 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
-  private static final JBColor DEFAULT_MARKER_COLOR = new JBColor(new Color(0, 0, 0, 127), new Color(255, 255, 255, 65));
+
+  private static final JBColor DEFAULT_VERT_AXIS_TICK_COLOR = new JBColor(new Color(0, 0, 0, 64), new Color(255, 255, 255, 102));
+  private static final JBColor DEFAULT_HORIZ_AXIS_TICK_COLOR = new JBColor(new Color(0xB9B9B9), new Color(0x656464));
 
   @Nullable private JLabel myLabel;
 
@@ -90,7 +92,7 @@ public final class AxisComponent extends AnimatedComponent {
    */
   @NotNull private final List<String> myMarkerLabels;
 
-  @NotNull private Color myMarkerColor = DEFAULT_MARKER_COLOR;
+  @NotNull private Color myMarkerColor;
 
   /**
    * Cached max marker lablels
@@ -131,6 +133,15 @@ public final class AxisComponent extends AnimatedComponent {
     myMinorMarkerPositions = new TFloatArrayList();
     myMarkerLabels = new ArrayList<>();
     myOrientation = orientation;
+
+    switch (myOrientation) {
+      case LEFT:
+      case RIGHT:
+        myMarkerColor = DEFAULT_VERT_AXIS_TICK_COLOR;
+        break;
+      default:
+        myMarkerColor = DEFAULT_HORIZ_AXIS_TICK_COLOR;
+    }
 
     // Only construct and show the axis label if it is set.
     if (!myModel.getLabel().isEmpty()) {
