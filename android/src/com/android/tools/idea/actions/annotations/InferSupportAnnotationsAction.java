@@ -20,12 +20,15 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -73,7 +76,6 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
@@ -286,14 +288,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-              TRIGGER_PROJECT_MODIFIED);
-            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
-              @Override
-              public void syncSucceeded(@NotNull Project project) {
-                restartAnalysis(project, scope);
-              }
-            });
+
+            syncAndRestartAnalysis(project, scope);
           }
         }.execute();
       }
@@ -302,6 +298,27 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       }
     }
     return false;
+  }
+
+  private void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+
+    ListenableFuture<AndroidProjectSystem.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
+      .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, false);
+
+    Futures.addCallback(syncResult, new FutureCallback<AndroidProjectSystem.SyncResult>() {
+      @Override
+      public void onSuccess(@Nullable AndroidProjectSystem.SyncResult syncResult) {
+        if (syncResult != null && syncResult.getSuccessful()) {
+          restartAnalysis(project, scope);
+        }
+      }
+
+      @Override
+      public void onFailure(@Nullable Throwable t) {
+        throw new RuntimeException(t);
+      }
+    });
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {

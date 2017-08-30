@@ -17,11 +17,13 @@ package com.android.tools.idea.startup;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.*;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
@@ -35,15 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-
 /**
  * Delay the initialization of various tasks until the build state is known.
  */
 public class DelayedInitialization {
   private final Project myProject;
   private final GradleSyncState mySyncState;
-  private final GradleSyncInvoker mySyncInvoker;
   private final GradleBuildState myBuildState;
   @GuardedBy("myLock")
   private final List<RunnablePair> myRunnables;
@@ -56,11 +55,9 @@ public class DelayedInitialization {
 
   public DelayedInitialization(@NotNull Project project,
                                @NotNull GradleSyncState syncState,
-                               @NotNull GradleSyncInvoker syncInvoker,
                                @NotNull GradleBuildState buildState) {
     myProject = project;
     mySyncState = syncState;
-    mySyncInvoker = syncInvoker;
     myBuildState = buildState;
     myRunnables = new ArrayList<>();
     GradleBuildState.subscribe(project, new BuildListener());
@@ -85,7 +82,9 @@ public class DelayedInitialization {
       case BUILDING:
         break;
       case BUILD_NEEDED:
-        mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
+        // Request a sync
+        ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
+          .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true));
         break;
       case BUILD_ERROR:
         if (buildFailure != null) {
