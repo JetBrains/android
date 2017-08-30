@@ -63,6 +63,10 @@ public class FmActivityToLayoutMethodTest extends TestCase {
     check("ActivityActivity", "activity_activity");
   }
 
+  public void testConvertActivityAsMiddleWord() throws Exception {
+    check("MainActivityTest1", "activity_main_test1");
+  }
+
   public void testConvertActivityActivityWithBaseName() throws Exception {
     check("BaseNameActivityActiv", "activity", "activity_base_name_activity");
   }
