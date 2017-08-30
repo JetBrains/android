@@ -39,7 +39,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   SceneComponent myGroup;
   @AndroidDpCoordinate
   Map<SceneComponent, Rectangle> myPreferenceToBoundsMap;
-  SceneComponent myActivePreference;
+  private SceneComponent myActivePreference;
 
   @AndroidDpCoordinate
   private int myDividerHeight;
@@ -173,7 +173,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   }
 
   @AndroidDpCoordinate
-  static int getMidpointY(@NotNull Rectangle bounds) {
+  private static int getMidpointY(@NotNull Rectangle bounds) {
     return bounds.y + bounds.height / 2;
   }
 }

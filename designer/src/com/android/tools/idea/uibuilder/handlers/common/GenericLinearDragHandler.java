@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -114,10 +115,10 @@ public class GenericLinearDragHandler extends DragHandler {
     boolean lastDragged = false;
     mySelfPos = -1;
     if (myVertical) {
-      layout.getChildren().sort((c1, c2) -> c1.getDrawY() - c2.getDrawY());
+      layout.getChildren().sort(Comparator.comparingInt(SceneComponent::getDrawY));
     }
     else {
-      layout.getChildren().sort((c1, c2) -> c1.getDrawX() - c2.getDrawX());
+      layout.getChildren().sort(Comparator.comparingInt(SceneComponent::getDrawX));
     }
     for (SceneComponent it : layout.getChildren()) {
       if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
@@ -352,7 +353,10 @@ public class GenericLinearDragHandler extends DragHandler {
    * @param offsetY   a vertical delta to add to the current bounds of the element when
    *                  drawing it
    */
-  public void drawElement(NlGraphics gc, SceneComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
+  private void drawElement(@NotNull NlGraphics gc,
+                           @NotNull SceneComponent component,
+                           @AndroidCoordinate int offsetX,
+                           @AndroidCoordinate int offsetY) {
     int w = editor.dpToPx(component.getDrawWidth());
     int h = editor.dpToPx(component.getDrawHeight());
     if (w > 0 && h > 0) {
