@@ -30,7 +30,7 @@ import java.awt.geom.Path2D;
  * A tooltip to be shown over some ranged chart with a vertical line to mark its horizontal position.
  */
 public final class RangeTooltipComponent extends AnimatedComponent {
-  public static final Color HIGHLIGHT_COLOR = new JBColor(0x4A81FF, 0x4A81FF);
+  public static final Color HIGHLIGHT_COLOR = new JBColor(0x4A81FF, 0x78B2FF);
 
   @NotNull
   private final Range myHighlightRange;
