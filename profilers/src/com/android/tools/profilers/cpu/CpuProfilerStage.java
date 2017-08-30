@@ -363,6 +363,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myCaptureStartTimeNs = currentTimeNs();
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+      // We should jump to live data when start recording.
+      getStudioProfilers().getTimeline().setStreaming(true);
     }
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
