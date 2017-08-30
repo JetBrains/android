@@ -41,8 +41,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
@@ -451,6 +453,29 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     Truth.assertThat(legends.getOtherLegend().getName()).isEqualTo("Others");
     Truth.assertThat(legends.getOtherLegend().getValue()).isEqualTo("60 KB");
+  }
+
+  @Test
+  public void testTooltipLegendsOrder() {
+    long time = TimeUnit.MICROSECONDS.toNanos(2);
+    MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
+      .setEndTimestamp(time)
+      .addMemSamples(MemoryProfiler.MemoryData.MemorySample.newBuilder()
+                       .setTimestamp(time)
+                       .setJavaMem(10)
+                       .setNativeMem(20)
+                       .setGraphicsMem(30)
+                       .setStackMem(40)
+                       .setCodeMem(50)
+                       .setOthersMem(60)).build();
+    myService.setMemoryData(memoryData);
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+
+    List<String> legendNames = legends.getLegends().stream()
+                                                   .map(legend -> legend.getName())
+                                                   .collect(Collectors.toList());
+    Truth.assertThat(legendNames).containsExactly("Others", "Code", "Stack", "Graphics", "Native",  "Java").inOrder();
   }
 
   @Test
