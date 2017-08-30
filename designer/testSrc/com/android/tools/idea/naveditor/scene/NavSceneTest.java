@@ -265,20 +265,21 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentBackground,310,50,192,320,1,false\n" +
                  "DrawNavScreen,23,311,51,191,319\n" +
                  "DrawComponentFrame,310,50,192,320,1,false\n" +
-                 "DrawAction,21,NORMAL,310x50x192x320,570x50x192x320,NORMAL\n" +
+                 "DrawAction,21,NORMAL,310x50x192x320,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,24,502,210,0,0,ffa7a7a7,fff5f5f5\n" +
                  "DrawScreenLabel,22,310,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "\n" +
-                 "DrawComponentBackground,570,50,192,320,1,false\n" +
-                 "DrawNavScreen,23,571,51,191,319\n" +
-                 "DrawComponentFrame,570,50,192,320,1,false\n" +
-                 "DrawActionHandle,24,762,210,0,0,ffa7a7a7,fff5f5f5\n" +
-                 "DrawScreenLabel,22,570,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
-                 "DrawAction,21,NORMAL,344x50x192x320,570x50x192x320,NORMAL\n\n" +
                  "DrawComponentBackground,50,50,192,320,1,false\n" +
+                 "DrawNavScreen,23,51,51,191,319\n" +
                  "DrawComponentFrame,50,50,192,320,1,false\n" +
                  "DrawActionHandle,24,242,210,0,0,ffa7a7a7,fff5f5f5\n" +
-                 "DrawScreenLabel,22,50,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment3\n" +
+                 "DrawScreenLabel,22,50,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
+                 "DrawAction,21,NORMAL,-176x50x192x320,50x50x192x320,NORMAL\n" +
+                 "\n" +
+                 "DrawComponentBackground,570,50,192,320,1,false\n" +
+                 "DrawComponentFrame,570,50,192,320,1,false\n" +
+                 "DrawActionHandle,24,762,210,0,0,ffa7a7a7,fff5f5f5\n" +
+                 "DrawScreenLabel,22,570,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }

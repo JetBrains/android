@@ -63,15 +63,27 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     positions.myPositions.put("fragment3", new ManualLayoutAlgorithm.Point(200, 200));
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
+    SceneComponent fragment2 = scene.getSceneComponent("fragment2");
+    doAnswer(invocation -> {
+      ((SceneComponent)invocation.getArgument(0)).setPosition(123, 456);
+      return null;
+    }).when(fallback).layout(fragment2);
     ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet), positions);
     scene.getRoot().flatten().forEach(algorithm::layout);
-    verify(fallback).layout(scene.getSceneComponent("fragment2"));
+    verify(fallback).layout(fragment2);
     verifyNoMoreInteractions(fallback);
 
     assertEquals(60, scene.getSceneComponent("fragment1").getDrawX());
     assertEquals(60, scene.getSceneComponent("fragment1").getDrawY());
+    assertEquals(123, scene.getSceneComponent("fragment2").getDrawX());
+    assertEquals(456, scene.getSceneComponent("fragment2").getDrawY());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawY());
+
+    algorithm.layout(fragment2);
+    verifyNoMoreInteractions(fallback);
+    assertEquals(123, scene.getSceneComponent("fragment2").getDrawX());
+    assertEquals(456, scene.getSceneComponent("fragment2").getDrawY());
   }
 
   public void testSave() throws Exception {
