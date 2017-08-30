@@ -80,6 +80,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     }
     else {
       getFallback().layout(component);
+      save(component);
     }
   }
 
