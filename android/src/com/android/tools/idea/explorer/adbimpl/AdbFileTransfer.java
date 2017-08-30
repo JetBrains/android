@@ -132,9 +132,13 @@ public class AdbFileTransfer {
     ListenableFuture<Void> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
       assert syncService != null;
       try {
+        long startTime = System.nanoTime();
         syncService.pullFile(remotePath,
                              localPath.toString(),
                              new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
+        long endTime = System.nanoTime();
+        LOGGER.info(String.format("Pull file took %,d ms to execute: \"%s\" -> \"%s\"",
+                                  (endTime - startTime) / 1_000_000, remotePath, localPath));
         return null;
       }
       finally {
@@ -148,7 +152,7 @@ public class AdbFileTransfer {
         // Simply forward cancellation as the cancelled exception
         return Futures.immediateCancelledFuture();
       }
-      LOGGER.info(String.format("Error pulling file \"%s\" from \"%s\"", localPath, remotePath), syncError);
+      LOGGER.info(String.format("Error pulling file from \"%s\" to \"%s\"", remotePath, localPath), syncError);
       return Futures.immediateFailedFuture(syncError);
     });
   }
@@ -164,9 +168,13 @@ public class AdbFileTransfer {
       assert syncService != null;
       try {
         long fileLength = localPath.toFile().length();
+        long startTime = System.nanoTime();
         syncService.pushFile(localPath.toString(),
                              remotePath,
                              new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
+        long endTime = System.nanoTime();
+        LOGGER.info(String.format("Push file took %,d ms to execute: \"%s\" -> \"%s\"",
+                                  (endTime - startTime) / 1_000_000, localPath, remotePath));
         return null;
       }
       finally {
@@ -180,7 +188,7 @@ public class AdbFileTransfer {
         // Simply forward cancellation as the cancelled exception
         return Futures.immediateCancelledFuture();
       }
-      LOGGER.info(String.format("Error pushing file \"%s\" to \"%s\"", localPath, remotePath), syncError);
+      LOGGER.info(String.format("Error pushing file from \"%s\" to \"%s\"", localPath, remotePath), syncError);
       return Futures.immediateFailedFuture(syncError);
     });
   }
