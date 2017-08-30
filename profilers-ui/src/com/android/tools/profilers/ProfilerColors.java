@@ -28,17 +28,17 @@ public class ProfilerColors {
   private ProfilerColors() {
   }
 
-  public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x386550);
+  public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x387362);
 
   public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);
 
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x363E46);
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x3C454E);
 
   public static final Color CPU_OTHER_USAGE_CAPTURED = new JBColor(0xC8E0E8, 0x455B75);
 
   public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
 
-  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x5E907A, 0x71D7A6);
+  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x558A71, 0x71D7A6);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
@@ -126,13 +126,13 @@ public class ProfilerColors {
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0x3F4142);
 
-  public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(new Color(0xB4E6A082, true), new Color(0x7FAC8C7E, true));
+  public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(new Color(0xEFC4B2), new Color(0x7D6B64));
 
-  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x6B98E7, 0x6895E5);
+  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x5882CC, 0x557CC1);
 
   public static final Color NETWORK_RECEIVING_SELECTED_COLOR = new JBColor(0x8ebdff, 0x8ebdff);
 
-  public static final Color NETWORK_SENDING_COLOR = new JBColor(0xF4AF6F, 0xF4AF6F);
+  public static final Color NETWORK_SENDING_COLOR = new JBColor(0xF4AF6F, 0xFFC187);
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
 
