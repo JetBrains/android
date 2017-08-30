@@ -16,9 +16,9 @@ public class StudioIcons {
   }
 
   public static class Avd {
-    public static final Icon DEVICE_AUTO_SELECTED = load("/studio/icons/avd/device-auto-selected.png"); // 16x16
-    public static final Icon DEVICE_AUTO = load("/studio/icons/avd/device-auto.png"); // 16x16
-    public static final Icon DEVICE_AUTO_LARGE = load("/studio/icons/avd/device-auto_large.png"); // 32x32
+    public static final Icon DEVICE_CAR_SELECTED = load("/studio/icons/avd/device-car-selected.png"); // 16x16
+    public static final Icon DEVICE_CAR = load("/studio/icons/avd/device-car.png"); // 16x16
+    public static final Icon DEVICE_CAR_LARGE = load("/studio/icons/avd/device-car_large.png"); // 32x32
     public static final Icon DEVICE_GLASS_SELECTED = load("/studio/icons/avd/device-glass-selected.png"); // 16x16
     public static final Icon DEVICE_GLASS = load("/studio/icons/avd/device-glass.png"); // 16x16
     public static final Icon DEVICE_GLASS_LARGE = load("/studio/icons/avd/device-glass_large.png"); // 32x32

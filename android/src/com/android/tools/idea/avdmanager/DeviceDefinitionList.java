@@ -37,7 +37,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -651,7 +651,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     @Nullable
     @Override
     public Icon valueOf(@NonNull Device device) {
-      return (device.hasPlayStore() ? AndroidIcons.PlayStore : null);
+      return (device.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : null);
     }
 
     @NotNull
