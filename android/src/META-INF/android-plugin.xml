@@ -221,6 +221,11 @@
             text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
     <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />

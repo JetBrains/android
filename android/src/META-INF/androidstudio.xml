@@ -34,11 +34,6 @@
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
     </action>
 
-    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="AndroidIcons.SdkManager">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
