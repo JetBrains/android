@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +60,12 @@ public class LibraryDependency extends Dependency {
     super(scope);
     myArtifactPath = artifactPath;
     setName(name);
+
+    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance();
+    File javadocJarPath = libraryFilePaths.findJavadocJarPath(artifactPath);
+    if (javadocJarPath != null) {
+      addPath(PathType.DOCUMENTATION, javadocJarPath);
+    }
   }
 
   @VisibleForTesting
