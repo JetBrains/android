@@ -36,7 +36,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.*;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -305,10 +305,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     String id = info.getTag().getId();
     String path;
     if (id != null && id.contains("android-")) {
-      path = String.format("/icons/formfactors/%s_32.png", id.substring("android-".length()));
+      path = String.format("/studio/icons/avd/device-%s_large.png", id.substring("android-".length()));
       return IconLoader.getIcon(path, AvdDisplayList.class);
     } else {
-      return AndroidIcons.FormFactors.Mobile_32;
+      return StudioIcons.Avd.DEVICE_MOBILE_LARGE;
     }
   }
 
@@ -335,7 +335,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Nullable
       @Override
       public Icon valueOf(AvdInfo avdInfo) {
-        return avdInfo.hasPlayStore() ? AndroidIcons.PlayStore : null;
+        return avdInfo.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : null;
       }
       @NotNull
       @Override
@@ -455,7 +455,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JBLabel label = new JBLabel((Icon)value);
-        if (value == AndroidIcons.PlayStore) {
+        if (value == StudioIcons.Avd.DEVICE_PLAY_STORE) {
           // (No accessible name for the Device Type column)
           AccessibleContextUtil.setName(label, "Play Store");
         }
