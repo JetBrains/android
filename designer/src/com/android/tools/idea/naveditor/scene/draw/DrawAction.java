@@ -30,6 +30,8 @@ import java.awt.geom.GeneralPath;
 import java.util.Map;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
+import static java.awt.BasicStroke.CAP_BUTT;
+import static java.awt.BasicStroke.JOIN_MITER;
 
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
@@ -45,7 +47,7 @@ public class DrawAction extends NavBaseDrawCommand {
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private Rectangle mySource = new Rectangle();
   @SwingCoordinate private Rectangle myDest = new Rectangle();
-  private static final Stroke BACKGROUND_STROKE = new BasicStroke(8.0f);
+  private static final Stroke BACKGROUND_STROKE = new BasicStroke(8.0f, CAP_BUTT, JOIN_MITER);
   private static final Stroke REGULAR_ACTION_STROKE = new BasicStroke(3.0f);
   private static final Stroke SELF_ACTION_STROKE = new BasicStroke(3.0f,
                                                                    BasicStroke.CAP_BUTT,

@@ -28,12 +28,13 @@ import java.util.stream.Stream;
  * Tests for {@link NavigationSchema}.
  */
 public class NavigationSchemaTest extends AndroidGradleTestCase {
-  private static final String[] LEAVES = new String[] {
-    "fragment", "activity", "fragment_sub", "activity_sub", "fragment_sub_sub", "other_1", "other_2"
+  private static final String[] LEAF_DESTINATIONS = new String[] {
+    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
   };
+  private static final String[] EMPTIES = new String[] {"activity", "activity_sub", "include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
   private static final String[] ALL =
-    Stream.concat(Stream.concat(Arrays.stream(LEAVES), Arrays.stream(GROUPS)), Stream.of("include")).toArray(String[]::new);
+    Stream.concat(Stream.concat(Arrays.stream(LEAF_DESTINATIONS), Arrays.stream(GROUPS)), Arrays.stream(EMPTIES)).toArray(String[]::new);
 
   @Override
   public void setUp() throws Exception {
@@ -48,7 +49,7 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
     expected.put(NavActionElement.class, "action");
-    for (String leaf : LEAVES) {
+    for (String leaf : LEAF_DESTINATIONS) {
       subtags = schema.getDestinationSubtags(leaf);
       assertEquals(leaf, expected, subtags);
     }
@@ -59,7 +60,9 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
       assertEquals(group, expected, subtags);
     }
 
-    assertTrue(schema.getDestinationSubtags(NavigationSchema.TAG_INCLUDE).isEmpty());
+    for (String empty : EMPTIES) {
+      assertTrue(schema.getDestinationSubtags(empty).isEmpty());
+    }
   }
 
   public void testDestinationClassByTag() {
