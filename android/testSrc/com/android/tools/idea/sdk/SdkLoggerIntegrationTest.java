@@ -56,6 +56,7 @@ public final class SdkLoggerIntegrationTest extends AndroidTestBase {
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override

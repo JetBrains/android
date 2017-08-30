@@ -66,6 +66,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assert jdkPath != null;
     myJdk = Jdks.getInstance().createJdk(jdkPath.getPath());
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
