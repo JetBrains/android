@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.VisibleForTesting;
+import freemarker.template.utility.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,6 +152,8 @@ public class AssetNameConverter {
         // used in layout names
         String layoutPrefix = getLayoutPrefixWithTrailingUnderscore();
         String layoutName = TemplateUtils.camelCaseToUnderlines(className);
+        // We are going to add layoutNamePrefix to the result, so make sure we don't have that string already.
+        layoutName = StringUtil.replace(layoutName, layoutPrefix, "", false, true);
         return layoutPrefix + layoutName;
 
       case RESOURCE:
