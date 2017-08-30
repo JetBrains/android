@@ -18,6 +18,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -142,6 +143,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override

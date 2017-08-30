@@ -100,6 +100,7 @@ public class IdeSdksTest extends IdeaTestCase {
 
     List<Sdk> sdks =
       ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
+    IdeSdks.removeJdksOn(getTestRootDisposable());
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);

@@ -45,6 +45,7 @@ public class SdkSyncTest extends IdeaTestCase {
     myIdeSdks = IdeSdks.getInstance();
     mySdkSync = new SdkSync(myIdeSdks);
     assertNull(myIdeSdks.getAndroidSdkPath());
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
