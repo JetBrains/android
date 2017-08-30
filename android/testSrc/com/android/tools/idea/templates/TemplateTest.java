@@ -448,6 +448,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithMasterDetailFlowWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "MasterDetailFlow", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewFullscreenActivity() throws Exception {
     checkCreateTemplate("activities", "FullscreenActivity", false);
   }
