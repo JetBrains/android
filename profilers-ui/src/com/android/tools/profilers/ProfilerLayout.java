@@ -46,6 +46,13 @@ public class ProfilerLayout {
 
   public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
 
+  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
+
+  /**
+   * Space on the right for all legends when inside a profiler. Chosen so it lines up with the right axis units.
+   */
+  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
+
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }

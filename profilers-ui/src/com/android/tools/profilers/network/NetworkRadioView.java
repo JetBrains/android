@@ -86,7 +86,8 @@ public class NetworkRadioView {
     legendModel.add(highLegend);
     legendModel.add(lowLegend);
 
-    LegendComponent legend = new LegendComponent(legendModel);
+    LegendComponent legend =
+      new LegendComponent.Builder(legendModel).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(wifiLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.WIFI)));
     legend.configure(highLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.HIGH)));
     legend.configure(lowLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.LOW)));
