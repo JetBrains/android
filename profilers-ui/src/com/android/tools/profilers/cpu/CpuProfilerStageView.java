@@ -160,7 +160,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
 
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
-    final LegendComponent legend = new LegendComponent(legends);
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
     legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
