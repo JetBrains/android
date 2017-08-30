@@ -75,7 +75,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
 
     MemoryMonitor.MemoryLegend legends = getMonitor().getMemoryLegend();
-    LegendComponent legend = new LegendComponent(legends);
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(MONITOR_LEGEND_RIGHT_PADDING).build();
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getTotalLegend(), new LegendConfig(memoryConfig));
 
