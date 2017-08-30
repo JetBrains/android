@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 public class ActionTargetTest extends NavigationTestCase {
   public void testSelect() throws Exception {
     ComponentDescriptor root = rootComponent()
-      .withStartDestinationAttribute("fragment2")
+      .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment2")
           .withLayoutAttribute("activity_main2"),

@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import org.jetbrains.android.dom.navigation.NavActionElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,9 @@ public class NavScreenTargetProvider implements TargetProvider {
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
     SceneComponent parent = sceneComponent.getParent();
-    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) == null || parent == null) {
+    NlComponent nlComponent = sceneComponent.getNlComponent();
+    NavigationSchema.DestinationType type = mySchema.getDestinationType(nlComponent.getTagName());
+    if (type == null || parent == null) {
       return result;
     }
 
@@ -60,7 +63,7 @@ public class NavScreenTargetProvider implements TargetProvider {
       sibling.flatten().forEach(
         component -> groupMap.put(NlComponent.stripId(component.getNlComponent().resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)), sibling));
     }
-    sceneComponent.getNlComponent().flatten()
+    nlComponent.flatten()
       .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))
       .forEach(nlChild -> {
         String destinationId = NlComponent.stripId(nlChild.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
@@ -72,7 +75,9 @@ public class NavScreenTargetProvider implements TargetProvider {
     if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
       result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
     }
-    result.add(new ActionHandleTarget(sceneComponent));
+    if (mySchema.getDestinationSubtags(nlComponent.getTagName()).containsKey(NavActionElement.class)) {
+      result.add(new ActionHandleTarget(sceneComponent));
+    }
     result.add(new ScreenLabelTarget(sceneComponent));
     NlComponent parentNlComponent = parent.getNlComponent();
     String startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);

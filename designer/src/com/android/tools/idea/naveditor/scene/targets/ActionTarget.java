@@ -224,11 +224,11 @@ public class ActionTarget extends BaseTarget {
   }
 
   private static int getConnectionX(@NotNull ConnectionDirection side, @NotNull Rectangle rect) {
-    return rect.x + (1 + side.getDeltaX()) * rect.width / 2;
+    return rect.x + side.getDeltaX() + (1 + side.getDeltaX()) * rect.width / 2;
   }
 
   private static int getConnectionY(@NotNull ConnectionDirection side, @NotNull Rectangle rect) {
-    return rect.y + (1 + side.getDeltaY()) * rect.height / 2;
+    return rect.y + side.getDeltaY() + (1 + side.getDeltaY()) * rect.height / 2;
   }
 
   public static int getDestinationDx(@NotNull ConnectionDirection side) {

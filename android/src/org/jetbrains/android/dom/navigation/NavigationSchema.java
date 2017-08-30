@@ -198,16 +198,20 @@ public class NavigationSchema implements Disposable {
   @NotNull
   public Multimap<Class<? extends AndroidDomElement>, String> getDestinationSubtags(@NotNull String tagName) {
     initIfNeeded();
+    DestinationType type = getDestinationType(tagName);
+    assert type != null : "Unknown tag " + tagName;
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
     if (!tagName.equals(TAG_INCLUDE)) {
-      if (myTagToDestinationType.get(tagName) == DestinationType.NAVIGATION) {
+      if (type == DestinationType.NAVIGATION) {
         for (Map<String, PsiClass> typeMap : getTypeTagClassMap().values()) {
           for (String subTag : typeMap.keySet()) {
             result.put(NavDestinationElement.class, subTag);
           }
         }
       }
-      result.put(NavActionElement.class, TAG_ACTION);
+      if (type != DestinationType.ACTIVITY) {
+        result.put(NavActionElement.class, TAG_ACTION);
+      }
       // TODO: other tags
     }
     return result;
