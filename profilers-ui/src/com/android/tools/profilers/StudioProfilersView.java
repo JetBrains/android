@@ -152,6 +152,7 @@ public class StudioProfilersView extends AspectObserver {
 
     JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
+    rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
     close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
