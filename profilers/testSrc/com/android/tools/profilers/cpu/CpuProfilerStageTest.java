@@ -785,7 +785,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture should be the same as the one obtained by myStage.getCapture(...),
     // because we should not parse the trace into another CpuCapture object.
     assertThat(myStage.getCapture()).isEqualTo(capture);
-
   }
 
   /**
@@ -929,6 +928,22 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+  }
+
+  @Test
+  public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    timeline.setStreaming(false);
+    assertThat(timeline.isStreaming()).isFalse();
+
+    startCapturingSuccess();
+    assertThat(timeline.isStreaming()).isTrue();
+    stopCapturing();
+
+    // Sanity test to check that start recording doesn't flip the status of isStreaming, but actually sets it to true
+    assertThat(timeline.isStreaming()).isTrue();
+    startCapturingSuccess();
+    assertThat(timeline.isStreaming()).isTrue();
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
