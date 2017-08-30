@@ -151,7 +151,9 @@ final class ConnectionsView {
 
   private void customizeConnectionsTable() {
     myConnectionsTable.setAutoCreateRowSorter(true);
+    myConnectionsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.SIZE.ordinal()).setCellRenderer(new SizeRenderer());
+    myConnectionsTable.getColumnModel().getColumn(Column.TYPE.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
