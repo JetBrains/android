@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -766,8 +767,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              Project project = facet.getModule().getProject();
-              ProjectSystemUtil.getProjectSystem(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+              requestSync(facet.getModule().getProject());
             }
           }.execute();
         }
@@ -789,8 +789,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
-            Project project = facet.getModule().getProject();
-            ProjectSystemUtil.getProjectSystem(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+            requestSync(facet.getModule().getProject());
           }
         }.execute();
       }
@@ -804,6 +803,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add(message);
     }
     return sb.getHtml();
+  }
+
+  private static void requestSync(Project project) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+    ProjectSystemUtil.getProjectSystem(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
   }
 
   private static void removePackageAttribute(XmlFile manifestFile) {

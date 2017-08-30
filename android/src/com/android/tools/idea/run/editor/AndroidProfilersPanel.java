@@ -20,25 +20,26 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * The configuration panel for the Android profiler settings.
  */
-public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListener {
+public class AndroidProfilersPanel implements HyperlinkListener {
 
   private static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.4.0";
   private static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
@@ -117,37 +118,29 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
     AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion);
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
-      // Request a sync
-      // TODO change to plugin upgrade trigger if it is created
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(
-        TRIGGER_PROJECT_MODIFIED);
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, this);
+      requestSync();
     } else {
       updateHyperlink("(Update failed)");
     }
   }
 
-  @Override
-  public void syncStarted(@NotNull Project project) {
-    updateHyperlink("(Syncing...)");
-  }
+  private void requestSync() {
+    SettableFuture<AndroidProjectSystem.SyncResult> syncResult = SettableFuture.create();
 
-  @Override
-  public void setupStarted(@NotNull Project project) {
-  }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      updateHyperlink("(Syncing...)");
 
-  @Override
-  public void syncSucceeded(@NotNull Project project) {
-    updateHyperlink("");
-  }
+      // TODO change trigger to plugin upgrade trigger if it is created
+      syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
+        .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true));
+    });
 
-  @Override
-  public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-    updateHyperlink("(Sync failed)");
-  }
-
-  @Override
-  public void syncSkipped(@NotNull Project project) {
-    updateHyperlink("");
+    // Block until sync finishes
+    if (Futures.getUnchecked(syncResult).getSuccessful()) {
+      updateHyperlink("");
+    }
+    else {
+      updateHyperlink("(Sync failed)");
+    }
   }
 }
