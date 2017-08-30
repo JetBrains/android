@@ -197,10 +197,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setLabelProvider(data -> "Recording in progress")
+        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .build();
+
+    inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+    inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE_CAPTURED)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+    inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_CAPTURED)
+      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+
     overlay.addDurationDataRenderer(inProgressTraceRenderer);
     lineChart.addCustomRenderer(inProgressTraceRenderer);
 
