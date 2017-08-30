@@ -34,6 +34,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Function;
@@ -123,9 +124,11 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   }
 
   @NotNull
-  protected NavigationComponentDescriptor navigationComponent(@NotNull String id) {
+  protected NavigationComponentDescriptor navigationComponent(@Nullable String id) {
     NavigationComponentDescriptor descriptor = new NavigationComponentDescriptor();
-    descriptor.id("@+id/" + id);
+    if (id != null) {
+      descriptor.id("@+id/" + id);
+    }
     return descriptor;
   }
 

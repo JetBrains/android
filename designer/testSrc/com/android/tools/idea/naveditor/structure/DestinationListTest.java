@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -25,12 +23,20 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
+import icons.AndroidIcons;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
+import static com.android.SdkConstants.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -108,7 +114,6 @@ public class DestinationListTest extends NavigationTestCase {
   }
 
   public void testSubflow() throws Exception {
-
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     list.setToolContext(myModel.getSurface());
@@ -210,5 +215,41 @@ public class DestinationListTest extends NavigationTestCase {
 
     assertTrue(list.myBackPanel.isVisible());
     assertEquals("sub nav", list.myBackLabel.getText());
+  }
+
+  public void testRendering() throws Exception {
+    SyncNlModel model = model("nav.xml",
+                              rootComponent().unboundedChildren(
+                                fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
+                                fragmentComponent("fragment2"),
+                                navigationComponent("subnav").withAttribute(ANDROID_URI, ATTR_NAME, "navName"),
+                                navigationComponent(null),
+                                includeComponent("navigation")))
+      .build();
+    DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
+    DestinationList list = (DestinationList)def.getFactory().create();
+    DesignSurface surface = model.getSurface();
+    SceneView sceneView = mock(SceneView.class);
+    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+    when(surface.getCurrentSceneView()).thenReturn(sceneView);
+    when(sceneView.getModel()).thenReturn(model);
+    list.setToolContext(surface);
+
+    assertEquals(5, list.myList.getItemsCount());
+
+    @SuppressWarnings("unchecked")
+    ListCellRenderer<NlComponent> renderer = (ListCellRenderer<NlComponent>)list.myList.getCellRenderer();
+    Map<String, Icon> result = new HashMap<>();
+    for (int i = 0; i < list.myList.getItemsCount(); i++) {
+      DefaultListCellRenderer component = (DefaultListCellRenderer)renderer
+        .getListCellRendererComponent(list.myList, list.myList.getModel().getElementAt(i), i, false, false);
+      result.put(component.getText(), component.getIcon());
+    }
+
+    assertEquals(result.get("fragmentLabel"), AndroidIcons.NavEditorIcons.Destination);
+    assertEquals(result.get("fragment2"), AndroidIcons.NavEditorIcons.Destination);
+    assertEquals(result.get("navName"), AndroidIcons.NavEditorIcons.DestinationGroup);
+    assertEquals(result.get("navigation"), AndroidIcons.NavEditorIcons.DestinationGroup);
+    assertEquals(result.get("myCoolLabel"), AndroidIcons.NavEditorIcons.DestinationInclude);
   }
 }

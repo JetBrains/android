@@ -194,6 +194,7 @@ public class AndroidIcons {
   public static class NavEditorIcons {
     public static final Icon Destination = load("/icons/naveditor/destination.png");
     public static final Icon DestinationGroup = load("/icons/naveditor/destination-group.png");
+    public static final Icon DestinationInclude = load("/icons/naveditor/include.png");
   }
 
   public static final class MenuIcons {

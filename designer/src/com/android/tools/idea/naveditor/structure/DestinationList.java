@@ -97,7 +97,10 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
         String label = NavComponentHelperKt.getUiName(component, myResourceResolver);
         setText(label);
         Icon icon = AndroidIcons.NavEditorIcons.Destination;
-        if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
+        if (component.getTagName().equals(NavigationSchema.TAG_INCLUDE)) {
+          icon = AndroidIcons.NavEditorIcons.DestinationInclude;
+        }
+        else if (mySchema.getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
           icon = AndroidIcons.NavEditorIcons.DestinationGroup;
         }
         setIcon(icon);
