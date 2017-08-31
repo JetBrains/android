@@ -162,9 +162,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
     final LegendComponent legend = new LegendComponent(legends);
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    legend.configure(legends.getCpuLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getCpuSeries())));
-    legend.configure(legends.getOthersLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getOtherCpuSeries())));
-    legend.configure(legends.getThreadsLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getThreadsCountSeries())));
+    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
+    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
+    legend.configure(legends.getThreadsLegend(),
+                     new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
 
     final JLabel label = new JLabel(getStage().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
