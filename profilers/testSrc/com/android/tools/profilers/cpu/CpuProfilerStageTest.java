@@ -754,19 +754,17 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void selectARangeWithNoCapturesShouldSetCaptureToNull() throws InterruptedException {
+  public void selectARangeWithNoCapturesShouldKeepCurrentCaptureSelected() throws InterruptedException {
+    assertThat(myStage.getCapture()).isNull();
     captureSuccessfully();
     assertThat(myStage.getCapture()).isNotNull();
     CpuCapture capture = myStage.getCapture();
 
     Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-    // Select an are before the capture.
+    // Select an area before the capture.
     selectionRange.set(capture.getRange().getMin() - 20, capture.getRange().getMin() - 10);
-    assertThat(myStage.getCapture()).isNull();
-
-    // Now select an area that includes the capture
-    selectionRange.set(-Double.MAX_VALUE, Double.MAX_VALUE);
-    assertThat(myStage.getCapture()).isNotNull();
+    // Last selected capture should remain selected.
+    assertThat(myStage.getCapture()).isEqualTo(capture);
   }
 
   /**
