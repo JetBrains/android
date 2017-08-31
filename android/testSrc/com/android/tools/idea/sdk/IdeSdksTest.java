@@ -71,6 +71,16 @@ public class IdeSdksTest extends IdeaTestCase {
     myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      AndroidTestCaseHelper.removeExistingAndroidSdks();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testCreateAndroidSdkPerAndroidTarget() {
     List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
@@ -100,7 +110,6 @@ public class IdeSdksTest extends IdeaTestCase {
 
     List<Sdk> sdks =
       ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
-    IdeSdks.removeJdksOn(getTestRootDisposable());
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
