@@ -89,24 +89,25 @@ public class NewInstantAppModuleTest {
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
     guiTest.importSimpleApplication();
-    addNewFeatureModule("feature1");
+    addNewFeatureModule(null, null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
-    addNewFeatureModule("feature2");
+    addNewFeatureModule(null, null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
     // Check that the modules are correctly added to the project
-    assertValidFeatureModule(ideFrame.getModule("feature1"));
-    assertValidFeatureModule(ideFrame.getModule("feature2"));
+    assertValidFeatureModule(ideFrame.getModule("base"));
+    assertValidFeatureModule(ideFrame.getModule("feature"));
+    assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
     ideFrame.getEditor()
-      .open("feature1/src/main/AndroidManifest.xml")
+      .open("base/src/main/AndroidManifest.xml")
       .moveBetween("android:label=", "")
       .moveBetween("android:theme=", "");
 
     ideFrame.getEditor()
-      .open("feature2/src/main/AndroidManifest.xml")
+      .open("feature/src/main/AndroidManifest.xml")
       .moveBetween("<application>", "");
   }
 
