@@ -177,6 +177,7 @@ final class ConnectionsView {
     myConnectionsTable.setShowVerticalLines(true);
     myConnectionsTable.setShowHorizontalLines(false);
     int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
+    myConnectionsTable.setRowMargin(0);
     myConnectionsTable.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
 
     myConnectionsTable.addComponentListener(new ComponentAdapter() {
@@ -313,13 +314,19 @@ final class ConnectionsView {
       ConnectionsStateChart chart = myConnectionsCharts.get(myTable.convertRowIndexToModel(row));
       chart.getColors().setColorIndex(isSelected ? 1 : 0);
       JPanel panel = new JBPanel(new TabularLayout("*", "*"));
+
       if (row == 0) {
-        AxisComponent axis = createAxis();
-        axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
-        axis.setMarkerColor(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
-        panel.add(axis, new TabularLayout.Constraint(0, 0));
+        // Show timeline labels in front of the chart components
+        AxisComponent axisLabels = createAxis();
+        axisLabels.setMarkerLengths(0, 0);
+        panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
       }
       panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
+      // Show timeline lines behind chart components
+      AxisComponent axisTicks = createAxis();
+      axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
+      axisTicks.setShowLabels(false);
+      panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
 
       return panel;
     }
@@ -342,6 +349,7 @@ final class ConnectionsView {
       model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
+      axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
 
       model.update(1);
       return axis;
