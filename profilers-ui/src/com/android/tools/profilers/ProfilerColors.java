@@ -142,9 +142,7 @@ public class ProfilerColors {
 
   public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
 
-  public static final Color NETWORK_TABLE_AXIS = new JBColor(Gray._103, Gray._120);
-
-  public static final Color NETWORK_TABLE_AXIS_SELECTED = JBColor.BLACK;
+  public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
   public static final Color NETWORK_THREADS_TABLE_SENDING = new JBColor(0xF1B34D, 0xF1B34D);
 
