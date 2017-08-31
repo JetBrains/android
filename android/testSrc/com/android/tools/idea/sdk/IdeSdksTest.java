@@ -69,6 +69,7 @@ public class IdeSdksTest extends IdeaTestCase {
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
     myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   @Override
