@@ -19,8 +19,6 @@ import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**
@@ -35,7 +33,7 @@ public class ProfilerLayout {
 
   public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
-  public static final float TOOLTIP_FONT_SIZE = 12.5f;
+  public static final float TOOLTIP_FONT_SIZE = 11f;
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there

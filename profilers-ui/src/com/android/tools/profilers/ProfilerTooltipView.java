@@ -43,8 +43,9 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myTitle = title;
 
     myLabel = new JLabel();
+    myLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 12, 0));
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
     myMaximumLabelWidth = 0;
   }
@@ -71,7 +72,8 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(myLabel, BorderLayout.NORTH);
     panel.add(tooltip, BorderLayout.CENTER);
-    panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    panel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     timeChanged();
     return panel;
