@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -29,7 +30,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
-class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
+class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
   val ID = "com.android.tools.idea.GradleProjectSystem"
 
   override val id: String
@@ -56,4 +57,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun buildProject() {
     GradleProjectBuilder.getInstance(project).compileJava()
   }
+
+  override val projectSystem = this
 }

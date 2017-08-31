@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,7 +28,7 @@ import java.nio.file.Path
  * This implementation of AndroidProjectSystem is used for projects where the build system is not
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
-class DefaultProjectSystem(val project: Project) : AndroidProjectSystem {
+class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
   override val id: String = ""
 
   override fun getDefaultApkFile(): VirtualFile? = null
@@ -40,4 +41,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun buildProject() {
   }
+
+  override val projectSystem = this
 }
