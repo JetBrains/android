@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -50,10 +52,10 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
@@ -660,10 +662,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     public void requestSync(@NotNull Project project) {
-      BuildSystemService buildSystemService = BuildSystemServiceUtil.getInstance(project);
-      assert buildSystemService != null;
-      buildSystemService.syncProject(project.isInitialized()? BuildSystemService.SyncReason.PROJECT_MODIFIED:
-                                     BuildSystemService.SyncReason.PROJECT_LOADED, true);
+      ProjectSystemUtil.getInstance(project).syncProject(project.isInitialized() ? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED :
+                                                         AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
     }
   }
 

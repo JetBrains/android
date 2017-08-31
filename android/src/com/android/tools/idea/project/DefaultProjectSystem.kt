@@ -20,6 +20,8 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.sdk.AndroidSdks
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
@@ -40,6 +42,10 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun isApplicable() = false
 
   override fun buildProject() {
+  }
+
+  override fun syncProject(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
+    return Futures.immediateFuture(AndroidProjectSystem.SyncResult.FAILURE)
   }
 
   override val projectSystem = this

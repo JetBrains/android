@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
@@ -360,11 +361,8 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    BuildSystemService service = BuildSystemServiceUtil.getInstance(project);
-    if (service != null) {
-      service.syncProject(project.isInitialized()? BuildSystemService.SyncReason.PROJECT_MODIFIED:
-                          BuildSystemService.SyncReason.PROJECT_LOADED, true);
-    }
+    ProjectSystemUtil.getInstance(project).syncProject(project.isInitialized()? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED:
+                                                       AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
   }
 
   public String createEditClassPathUrl() {
