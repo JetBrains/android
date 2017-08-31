@@ -117,7 +117,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testGetLibraryRevision() throws Exception {
     // Check missing Maven metadata file. We should fall back to scanning the files.
-    assertEquals("26.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.2", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** Checks {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
@@ -156,7 +156,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testGetLibraryRevision_offlineIndex() throws Exception {
     myFileOp.deleteFileOrFolder(SDK_DIR);
-    assertEquals("26.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.2", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** @see com.android.ide.common.repository.MavenRepositories#isPreview(GradleCoordinate) */
@@ -210,7 +210,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
     assertNotNull(coordinate);
-    assertEquals("26.0.1", resolveDynamicCoordinateVersion(coordinate));
+    assertEquals("26.0.2", resolveDynamicCoordinateVersion(coordinate));
 
     // Make sure already resolved coordinates are handled correctly
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
