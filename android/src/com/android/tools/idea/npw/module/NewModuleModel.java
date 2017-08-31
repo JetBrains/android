@@ -222,6 +222,7 @@ public final class NewModuleModel extends WizardModel {
       if (myIsInstantApp.get()) {
         myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
 
+        boolean hasInstantAppWrapper = false;
         if (renderTemplateValues != null) {
           renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
 
@@ -234,6 +235,7 @@ public final class NewModuleModel extends WizardModel {
           if (myCreateInExistingProject) {
             Module baseFeature = InstantApps.findBaseFeature(project);
             if (baseFeature == null) {
+              hasInstantAppWrapper = true;
               baseModuleRoot = new File(projectRoot, myModuleName.get());
               baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
               renderTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
@@ -262,7 +264,7 @@ public final class NewModuleModel extends WizardModel {
 
         if (myCreateInExistingProject) {
           myTemplateValues.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
-          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
+          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, hasInstantAppWrapper);
         }
       }
 
