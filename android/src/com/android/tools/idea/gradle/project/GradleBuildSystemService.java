@@ -70,7 +70,6 @@ public class GradleBuildSystemService implements BuildSystemService {
                                                    + "GradleSyncState.isSyncInProgress to detect this scenario."));
 
     } else if (project.isInitialized()) {
-      BuildVariantView.getInstance(project).projectImportStarted();
       requestSync(reason, requireSourceGeneration, syncResult);
 
     } else {
@@ -121,6 +120,10 @@ public class GradleBuildSystemService implements BuildSystemService {
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setTrigger(trigger)
       .setGenerateSourcesOnSuccess(requireSourceGeneration).setRunInBackground(true);
+
+    if (GradleProjectInfo.getInstance(project).isNewOrImportedProject()) {
+      request.setNewOrImportedProject();
+    }
 
     try {
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
