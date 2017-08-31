@@ -171,4 +171,8 @@ public class ProfilerColors {
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
   public static final Color MONITORS_HEADER_TEXT = new JBColor(0x545454, 0xCACACA);
+
+  public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
+
+  public static final Color TOOLTIP_TEXT = new JBColor(0x545454, 0xCACACA);
 }
