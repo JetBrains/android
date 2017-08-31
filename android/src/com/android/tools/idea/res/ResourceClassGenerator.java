@@ -21,7 +21,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Computable;
 import gnu.trove.TObjectIntHashMap;
 import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -175,7 +177,8 @@ public class ResourceClassGenerator {
    */
   @NotNull
   private static List<AttrResourceValue> getStyleableAttributes(@NotNull ResourceItem item) {
-    ResourceValue resourceValue = item.getResourceValue(false);
+    ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
+      (Computable<ResourceValue>)() -> item.getResourceValue(false));
     assert resourceValue instanceof DeclareStyleableResourceValue;
     DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
     return dv.getAllAttributes();
