@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.testing.IdeComponents;
@@ -32,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
 
 /**
@@ -40,7 +37,6 @@ import static org.mockito.Mockito.*;
  */
 public class GradleBuildSystemServiceTest extends IdeaTestCase {
   private IdeComponents myIdeComponents;
-  private GradleSyncInvoker mySyncInvoker;
   private BuildSystemService myService;
   private GradleProjectInfo myGradleProjectInfo;
 
@@ -49,8 +45,6 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     super.setUp();
     myIdeComponents = new IdeComponents(myProject);
 
-    mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
-    myIdeComponents.mockProjectService(GradleProjectBuilder.class);
     myIdeComponents.mockProjectService(GradleDependencyManager.class);
     myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
@@ -74,27 +68,6 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
   public void testIsNotGradleBuildSystemService() {
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(false);
     assertThat(BuildSystemServiceUtil.getInstance(myProject)).isNotInstanceOf(GradleBuildSystemService.class);
-  }
-
-  public void testSyncProjectWithUninitializedProject() {
-    Project project = getProject();
-    StartupManagerEx startupManager = new StartupManagerImpl(project) {
-      @Override
-      public boolean startupActivityPassed() {
-        return false; // this will make Project.isInitialized return false;
-      }
-
-      @Override
-      public void runWhenProjectIsInitialized(@NotNull Runnable action) {
-        action.run();
-      }
-    };
-    IdeComponents.replaceService(project, StartupManager.class, startupManager);
-    // http://b/62543184
-    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
-
-    myService.syncProject(BuildSystemService.SyncReason.PROJECT_LOADED, true);
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
   }
 
   public void testAddDependency() {

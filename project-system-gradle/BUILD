@@ -16,5 +16,6 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/idea/platform/lang-api[module]",
+        "//tools/analytics-library/protos:analytics-protos[module]",
     ],
 )

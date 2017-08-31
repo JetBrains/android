@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -212,7 +212,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
           }
         }
       });
-      BuildSystemServiceUtil.getInstance(myProject).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
+      ProjectSystemUtil.getInstance(myProject).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
 
       super.doOKAction();
     }

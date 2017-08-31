@@ -29,8 +29,8 @@ import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -767,7 +767,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
               Project project = facet.getModule().getProject();
-              BuildSystemServiceUtil.getInstance(project).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
+              ProjectSystemUtil.getInstance(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
             }
           }.execute();
         }
@@ -790,7 +790,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
             Project project = facet.getModule().getProject();
-            BuildSystemServiceUtil.getInstance(project).syncProject(BuildSystemService.SyncReason.PROJECT_MODIFIED, true);
+            ProjectSystemUtil.getInstance(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
           }
         }.execute();
       }

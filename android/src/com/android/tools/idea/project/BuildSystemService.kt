@@ -18,7 +18,6 @@
 package com.android.tools.idea.project
 
 import com.android.tools.idea.npw.project.AndroidSourceSet
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -37,42 +36,6 @@ interface BuildSystemService {
    * is discarded and no further methods are invoked.
    */
   fun isApplicable(): Boolean
-
-  /** The result of a sync request */
-  enum class SyncResult(val successful: Boolean) {
-    /** The user cancelled the sync */
-    CANCELLED(false),
-    /** Sync failed */
-    FAILURE(false),
-    /** The user has compilation errors or errors in build system files */
-    PARTIAL_SUCCESS(true),
-    /** The project state was loaded from a cache instead of performing an actual sync */
-    SKIPPED(true),
-    /** Sync succeeded */
-    SUCCESS(true);
-  }
-
-  /** The requestor's reason for syncing the project */
-  enum class SyncReason {
-    /** The project is being loaded */
-    PROJECT_LOADED,
-    /** The project has been modified */
-    PROJECT_MODIFIED,
-    /** The user requested the sync directly (by pushing the button) */
-    USER_REQUEST;
-  }
-
-  /**
-   * Triggers synchronizing the IDE model with the build system model of the project. Source generation
-   * may be triggered regardless of the value of {@code requireSourceGeneration}, though implementing classes may
-   * use this flag for optimization.
-   *
-   * @param reason the caller's reason for requesting a sync
-   * @param requireSourceGeneration a hint to the underlying project system to optionally generate sources after a successful sync
-   *
-   * @return the future result of the sync request
-   */
-  fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
 
   /**
    * Adds a dependency to the given module.
