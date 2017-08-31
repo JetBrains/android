@@ -78,8 +78,8 @@ public final class NewModuleModel extends WizardModel {
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
-    myIsLibrary.addListener(sender -> myApplicationName.set(
-      message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
+    myIsLibrary.addListener(sender -> updateApplicationName());
+    myIsInstantApp.addListener(sender -> updateApplicationName());
 
     myMultiTemplateRenderer = new MultiTemplateRenderer();
   }
@@ -313,6 +313,18 @@ public final class NewModuleModel extends WizardModel {
       // @formatter:on
       return template.render(context);
     }
+  }
+
+  private void updateApplicationName() {
+    String msgId;
+    if (myIsInstantApp.get()) {
+      boolean isNewBaseFeature = myProject.get().isPresent() && InstantApps.findBaseFeature(myProject.getValue()) == null;
+      msgId = isNewBaseFeature ? "android.wizard.module.config.new.base.feature": "android.wizard.module.config.new.feature";
+    }
+    else {
+      msgId = myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application";
+    }
+    myApplicationName.set(message(msgId));
   }
 
   @NotNull
