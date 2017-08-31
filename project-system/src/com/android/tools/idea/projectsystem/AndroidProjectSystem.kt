@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ProjectSystemUtil")
+
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.project.Project
@@ -22,26 +23,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
 /**
- * Interface to be implemented by extensions to the com.android.tools.idea.projectsystem extension
- * point. Implementations of this interface will receive a {@link Project} instance in their constructor.
+ * Provides a build-system-agnostic interface to the build system. Instances of this interface
+ * only apply to a specific [Project].
  */
 interface AndroidProjectSystem {
-  /**
-   * Returns true if this instance is applicable to the project. Note that {@link AndroidProjectSystem}
-   * instances may be constructed for projects they do not apply to. Such instances should return false
-   * from this method, and they will be discarded.
-   */
-  fun isApplicable(): Boolean
-
-  /**
-   * Uique ID for this type of project system. Each implementation should supply a different
-   * id. This will be serialized with the project and should remain stable even if the implementation
-   * class name changes. The empty string is reserved for the "default implementation" which will be
-   * used if no other project system is applicable. All other implementations must use a non-empty
-   * ID string.
-   */
-  val id: String
-
   /**
    * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
@@ -62,7 +47,7 @@ interface AndroidProjectSystem {
   fun buildProject()
 }
 
-private val EP_NAME = ExtensionPointName<AndroidProjectSystem>("com.android.project.projectsystem")
+private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
@@ -73,7 +58,8 @@ fun getInstance(project: Project): AndroidProjectSystem {
 
 internal fun detectProjectSystem(project: Project): AndroidProjectSystem {
   val extensions = EP_NAME.getExtensions(project)
-  return extensions.find { it.isApplicable() }
+  val provider = extensions.find { it.isApplicable() }
       ?: extensions.find { it.id == "" }
       ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
+  return provider.projectSystem
 }

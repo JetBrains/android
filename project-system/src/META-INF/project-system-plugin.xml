@@ -16,7 +16,7 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.project.projectsystem"
-                    interface="com.android.tools.idea.projectsystem.AndroidProjectSystem"
+                    interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
   <project-components>
