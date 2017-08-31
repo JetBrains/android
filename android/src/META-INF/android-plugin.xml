@@ -1353,7 +1353,6 @@
                            implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition" />
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
-    <concatenationAwareInjector implementation="com.android.tools.idea.lang.roomSql.RoomSqlLanguageInjector" />
     <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSchemaManager"/>
     <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomTableNameImpl"
@@ -1364,6 +1363,9 @@
                              implementationClass="com.android.tools.idea.lang.roomSql.RoomFindUsagesProvider"/>
     <referencesSearch implementation="com.android.tools.idea.lang.roomSql.RoomReferenceSearchExecutor"/>
     <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.RoomUsageTypeProvider"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.intellij.intelliLang">
+    <injectionConfig config="injections/roomSqlInjections.xml"/>
   </extensions>
 
 </idea-plugin>

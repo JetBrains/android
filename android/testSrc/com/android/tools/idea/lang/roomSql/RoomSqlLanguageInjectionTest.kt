@@ -22,7 +22,7 @@ import com.intellij.psi.PsiLanguageInjectionHost.Shred
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import org.jetbrains.android.AndroidTestCase
 
-class RoomSqlLanguageInjectorTest : AndroidTestCase() {
+class RoomSqlLanguageInjectionTest : AndroidTestCase() {
   private fun checkNoInjection(text: String) {
     assertFalse(InjectedLanguageUtil.hasInjections(myFixture.findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
   }
@@ -128,10 +128,10 @@ class RoomSqlLanguageInjectorTest : AndroidTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Query;
+        import android.database.sqlite.SQLiteDatabase;
 
         class Util {
-          void f(android.database.sqlite.SQLiteDatabase db) {
+          void f(SQLiteDatabase db) {
             db.execSQL("delete from User");
           }
         }
