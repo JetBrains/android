@@ -17,22 +17,34 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
+import java.util.concurrent.atomic.AtomicReference
 
 internal class ProjectSystemComponent(val project: Project) : AbstractProjectComponent(project) {
-  private var cachedProjectSystem: AndroidProjectSystem? = null
+  private val cachedProjectSystem = AtomicReference<AndroidProjectSystem?>()
 
   val projectSystem: AndroidProjectSystem
     get() {
-      var cache = cachedProjectSystem
+      // We need to guarantee that the project system remains unique until the next time the project
+      // is closed. This method may be called by multiple threads in parallel, and the projectClosed
+      // method might be invoked while it is running.
+      var cache = cachedProjectSystem.get()
+
       if (cache == null) {
+        // The call to detectProjectSystem invokes unknown non-local code loaded from an extension
+        // point, so we can't hold any locks or be inside a synchronized block while invoking it or
+        // it would be a deadlock risk.
         cache = detectProjectSystem(project)
-        cachedProjectSystem = cache
+        cachedProjectSystem.compareAndSet(null, cache)
+        cache = cachedProjectSystem.get()!!
+        // Can't return null since we've set it to a non-null value earlier in the method and there
+        // is no code that ever sets it back to null once set to a non-null value. However, it's
+        // possible that another thread initialized it to a different non-null value, so we should
+        // use the result of get rather than our local cache variable.
       }
       return cache
     }
 
   override fun projectClosed() {
     super.projectClosed()
-    cachedProjectSystem = null
   }
 }
