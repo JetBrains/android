@@ -19,6 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.target.ActionTarget;
@@ -147,6 +149,17 @@ public class Scene implements SelectionListener, Disposable {
       return false;
     }
     return qualifier.getValue() == LayoutDirection.RTL;
+  }
+
+  public int getRenderedApiLevel() {
+    Configuration configuration = myDesignSurface.getConfiguration();
+    if (configuration != null) {
+      IAndroidTarget target = configuration.getTarget();
+      if (target != null) {
+        return target.getVersion().getApiLevel();
+      }
+    }
+    return AndroidVersion.VersionCodes.BASE;
   }
 
   //region Accessors
