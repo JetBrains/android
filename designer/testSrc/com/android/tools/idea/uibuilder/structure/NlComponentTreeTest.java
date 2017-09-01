@@ -243,7 +243,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCopyVisible(context)).isTrue();
     assertThat(myTree.isCopyEnabled(context)).isTrue();
     myTree.performCopy(context);
-    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
+    verify(myCopyPasteManager).setContents(notNull());
   }
 
   public void testPasteIsNotPossibleWhenMultipleComponentsAreSelected() {
@@ -316,7 +316,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCopyVisible(context)).isTrue();
     assertThat(myTree.isCopyEnabled(context)).isTrue();
     myTree.performCopy(context);
-    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
+    verify(myCopyPasteManager).setContents(notNull());
   }
 
   public void testPasteMultipleIntoLayout() {
@@ -364,7 +364,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCutVisible(context)).isTrue();
     assertThat(myTree.isCutEnabled(context)).isTrue();
     myTree.performCut(context);
-    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
+    verify(myCopyPasteManager).setContents(notNull());
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
