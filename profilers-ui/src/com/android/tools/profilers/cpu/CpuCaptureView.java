@@ -250,6 +250,7 @@ class CpuCaptureView {
       .setTreeSorter(sorter)
       .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
+      .setShowVerticalLines(true)
       .build();
   }
 
