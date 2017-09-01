@@ -17,22 +17,18 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -78,7 +74,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     }
 
     setLoadingText("Waiting for build to finish...");
-    if (GradleProjects.isBuildWithGradle(project)) {
+    if (Projects.isBuildWithGradle(project)) {
       DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
     } else {
       initNeleModel();
