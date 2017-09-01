@@ -36,6 +36,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -45,6 +46,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -149,6 +151,37 @@ final class ConnectionsView {
     return myConnectionsTable;
   }
 
+  /**
+   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
+   *
+   * This should only be called after a table's columns are initialized.
+   */
+  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
+  private static void setTableHeaderBorder(@NotNull JTable table, @NotNull Border border) {
+    TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+    for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
+      TableColumn column = table.getColumnModel().getColumn(i);
+      column.setHeaderRenderer(new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                                                       Object value,
+                                                       boolean isSelected,
+                                                       boolean hasFocus,
+                                                       int row,
+                                                       int column) {
+          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          if (c instanceof JLabel) {
+            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
+          }
+          if (c instanceof JComponent) {
+            ((JComponent)c).setBorder(border);
+          }
+          return c;
+        }
+      });
+    }
+  }
+
   private void customizeConnectionsTable() {
     myConnectionsTable.setAutoCreateRowSorter(true);
     myConnectionsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
@@ -158,6 +191,8 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
+
+    setTableHeaderBorder(myConnectionsTable, TABLE_COLUMN_HEADER_BORDER);
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {

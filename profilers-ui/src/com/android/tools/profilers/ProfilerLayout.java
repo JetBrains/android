@@ -19,6 +19,7 @@ import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
@@ -52,6 +53,9 @@ public class ProfilerLayout {
    * Space on the right for all legends when inside a profiler. Chosen so it lines up with the right axis units.
    */
   public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
+
+  // TODO: Add support for column cells reading their border style from their column headers and using it
+  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(2, 3, 2, 3);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
