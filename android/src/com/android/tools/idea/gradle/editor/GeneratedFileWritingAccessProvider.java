@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.editor;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.WritingAccessProvider;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +35,11 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
  */
 public class GeneratedFileWritingAccessProvider extends WritingAccessProvider {
   @NotNull private final GradleProjectInfo myProjectInfo;
+  @NotNull private final ProjectFileIndex myProjectFileIndex;
 
-  public GeneratedFileWritingAccessProvider(@NotNull GradleProjectInfo projectInfo) {
+  public GeneratedFileWritingAccessProvider(@NotNull GradleProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
     myProjectInfo = projectInfo;
+    myProjectFileIndex = projectFileIndex;
   }
 
   @Override
@@ -45,7 +48,7 @@ public class GeneratedFileWritingAccessProvider extends WritingAccessProvider {
     List<VirtualFile> readOnlyFiles = new ArrayList<>();
 
     for (VirtualFile file : files) {
-      if (isInBuildFolder(file)) {
+      if (isInBuildFolderAndNotSource(file)) {
         readOnlyFiles.add(file);
       }
     }
@@ -55,10 +58,15 @@ public class GeneratedFileWritingAccessProvider extends WritingAccessProvider {
 
   @Override
   public boolean isPotentiallyWritable(@NotNull VirtualFile file) {
-    return !isInBuildFolder(file);
+    return !isInBuildFolderAndNotSource(file);
   }
 
-  private boolean isInBuildFolder(@NotNull VirtualFile file) {
+  private boolean isInBuildFolderAndNotSource(@NotNull VirtualFile file) {
+    if (myProjectFileIndex.isInSource(file)) {
+      // The file might be in the "build" folder, but it can be in a folder that is marked as "generated source". Do not make read-only.
+      // See https://issuetracker.google.com/65032914
+      return false;
+    }
     AndroidModuleModel androidModel = myProjectInfo.findAndroidModelInModule(file, false /* include excluded files */);
     if (androidModel == null) {
       return false;
