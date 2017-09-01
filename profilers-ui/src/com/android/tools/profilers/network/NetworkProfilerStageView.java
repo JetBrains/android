@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -37,8 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.adtui.common.AdtUiUtils.*;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
@@ -64,9 +63,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myTooltipView = new NetworkStageTooltipView(stage);
     myThreadsView = new ThreadsView(this);
 
-    Splitter leftSplitter = new Splitter(true);
-    leftSplitter.setShowDividerIcon(false);
-    leftSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+    JBSplitter leftSplitter = new JBSplitter(true);
+    leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     leftSplitter.setFirstComponent(buildMonitorUi());
     myConnectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
@@ -103,11 +101,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
 
-    Splitter splitter = new Splitter(false, 0.6f);
+    JBSplitter splitter = new JBSplitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
     splitter.setHonorComponentsMinimumSize(true);
-    splitter.setShowDividerIcon(false);
     splitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
 
     getComponent().add(splitter, BorderLayout.CENTER);
