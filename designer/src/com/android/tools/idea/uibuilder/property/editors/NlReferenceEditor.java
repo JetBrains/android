@@ -154,7 +154,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
-        updateSliderVisibility();
+        updateSliderAndIconVisibility();
       }
     });
     myTextEditorWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
@@ -278,16 +278,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       if (myPropertyHasSlider) {
         myPanel.remove(myIconLabel);
         myPanel.add(mySlider, BorderLayout.LINE_START);
-        updateSliderVisibility();
       }
       else {
         myPanel.remove(mySlider);
         myPanel.add(myIconLabel, BorderLayout.LINE_START);
-        int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
-        Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
-        myIconLabel.setIcon(icon);
-        myIconLabel.setVisible(icon != null);
-        myIconLabel.setToolTipText("Pick a Resource");
       }
 
       String propValue = StringUtil.notNullize(myProperty.getValue());
@@ -298,17 +292,26 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       }
       Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
       myTextEditorWithAutoCompletion.setTextColor(color);
+
+      updateSliderAndIconVisibility();
     }
     finally {
       myUpdatingProperty = false;
     }
   }
 
-  private void updateSliderVisibility() {
+  private void updateSliderAndIconVisibility() {
     if (myPropertyHasSlider) {
       int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
       int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
       mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
+    }
+    else {
+      int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
+      Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
+      myIconLabel.setIcon(icon);
+      myIconLabel.setVisible(icon != null);
+      myIconLabel.setToolTipText("Pick a Resource");
     }
   }
 

@@ -47,19 +47,21 @@ public class NlXmlPropertyBuilderTest extends PropertyTestCase {
     NlXmlPropertyBuilder builder = createBuilder(myTextView);
     builder.build();
     int rows = myModel.getRowCount();
-    checkHeader(0, "layout/merge.xml");
-    checkProperty(1, ANDROID_URI, ATTR_ID);
-    checkProperty(2, ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    checkProperty(3, ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    checkProperty(4, ANDROID_URI, ATTR_ELEVATION);
-    checkProperty(5, ANDROID_URI, ATTR_TEXT);
-    checkProperty(6, ANDROID_URI, ATTR_PADDING_BOTTOM);
-    checkAddProperty(7);
-    checkHeader(8, "values/dimens.xml");
-    checkResourceItem(9, "bottom", "35dp");
-    checkHeader(10, "values/strings.xml");
-    checkResourceItem(11, "hello_world", "Hello World!");
-    assertThat(rows).isEqualTo(12);
+    int index = 0;
+    checkHeader(index++, "layout/merge.xml");
+    checkProperty(index++, ANDROID_URI, ATTR_ID);
+    checkProperty(index++, ANDROID_URI, ATTR_LAYOUT_WIDTH);
+    checkProperty(index++, ANDROID_URI, ATTR_LAYOUT_HEIGHT);
+    checkProperty(index++, ANDROID_URI, ATTR_TEXT_COLOR);
+    checkProperty(index++, ANDROID_URI, ATTR_ELEVATION);
+    checkProperty(index++, ANDROID_URI, ATTR_TEXT);
+    checkProperty(index++, ANDROID_URI, ATTR_PADDING_BOTTOM);
+    checkAddProperty(index++);
+    checkHeader(index++, "values/dimens.xml");
+    checkResourceItem(index++, "bottom", "35dp");
+    checkHeader(index++, "values/strings.xml");
+    checkResourceItem(index++, "hello_world", "Hello World!");
+    assertThat(rows).isEqualTo(index);
   }
 
   private void checkHeader(int rowIndex, @NotNull String expectedHeader) {
