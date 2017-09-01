@@ -392,7 +392,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public File getSdkHome() {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
       if (moduleSdk != null && moduleSdk.getSdkType() instanceof AndroidSdkType) {
         String path = moduleSdk.getHomePath();
@@ -410,17 +410,15 @@ public class LintIdeClient extends LintClient implements Disposable {
       return sdkHome;
     }
 
-    if (!myProject.isDisposed()) {
-      for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-        Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
-        if (moduleSdk != null) {
-          if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
-            String path = moduleSdk.getHomePath();
-            if (path != null) {
-              File home = new File(path);
-              if (home.exists()) {
-                return home;
-              }
+    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+      Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
+      if (moduleSdk != null) {
+        if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
             }
           }
         }
@@ -440,7 +438,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       AndroidSdkHandler localSdk = getLocalSdk(module);
       if (localSdk != null) {
         sdk = localSdk;
-      } else if (!myProject.isDisposed()) {
+      } else {
         for (Module m : ModuleManager.getInstance(myProject).getModules()) {
           localSdk = getLocalSdk(m);
           if (localSdk != null) {
@@ -460,7 +458,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   private static AndroidSdkHandler getLocalSdk(@Nullable Module module) {
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
@@ -478,7 +476,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public BuildToolInfo getBuildTools(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
       Module module = getModule();
-      if (module != null && !module.isDisposed()) {
+      if (module != null) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           GradleVersion version = model.getModelVersion();
@@ -513,7 +511,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public boolean isGradleProject(com.android.tools.lint.detector.api.Project project) {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && facet.requiresAndroidModel();
     }
@@ -702,14 +700,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
       return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
         final Module module = myState.getModule();
-        if (module.isDisposed()) {
-          return null;
-        }
         final Project project = module.getProject();
-        if (project.isDisposed()) {
-          return null;
-        }
-
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
 
         if (psiFile == null) {
@@ -738,9 +729,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     @Override
     public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
       Module module = myState.getModule();
-      if (module.isDisposed()) {
-        return super.getJavaSourceFolders(project);
-      }
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
       final List<File> result = new ArrayList<>(sourceRoots.length);
 
@@ -754,11 +742,9 @@ public class LintIdeClient extends LintClient implements Disposable {
     @Override
     public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
       Module module = myState.getModule();
-      if (!module.isDisposed()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          return LintIdeUtils.getResourceDirectories(facet);
-        }
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return LintIdeUtils.getResourceDirectories(facet);
       }
       return super.getResourceFolders(project);
     }
@@ -976,7 +962,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources != null) {
         ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();
