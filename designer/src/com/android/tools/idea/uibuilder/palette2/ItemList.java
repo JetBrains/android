@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -90,6 +91,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       myTextRenderer.getListCellRendererComponent(list, item, index, selected, hasFocus);
       myPanel.setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       myPanel.setForeground(UIUtil.getTreeForeground(selected, hasFocus));
+      myPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 3, 0, 3));
 
       ItemList itemList = (ItemList)list;
       myDownloadIcon.setVisible(itemList.displayDownloadIcon(item, index));
@@ -117,10 +119,10 @@ public class ItemList extends ListWithMargin<Palette.Item> {
         text = AdtUiUtils.getFittedString(list.getFontMetrics(list.getFont()), text, list.getWidth() - leftMargin - rightMargin, 1);
       }
 
-      setIcon(icon);
-      append(text);
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
+      setIcon(icon);
+      append(text);
     }
   }
 }

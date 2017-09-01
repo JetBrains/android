@@ -17,9 +17,7 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.ExpandableItemsHandler;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -109,17 +107,19 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
       myTextRenderer.getListCellRendererComponent(list, group, index, selected, hasFocus);
       myPanel.setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       myPanel.setForeground(UIUtil.getTreeForeground(selected, hasFocus));
+      myPanel.setBorder(IdeBorderFactory.createEmptyBorder(2, 3, 2, 3));
 
       CategoryList categoryList = (CategoryList)list;
       myMatchCount.setText(String.valueOf(categoryList.getMatchCountAt(index)));
       myMatchCount.setVisible(categoryList.displayMatchCounts(index));
-      myMatchCount.setForeground(JBColor.GRAY);
+      myMatchCount.setForeground(hasFocus ? UIUtil.getTreeSelectionForeground() : JBColor.GRAY);
 
       return myPanel;
     }
   }
 
   private static class TextCellRenderer extends ColoredListCellRenderer<Palette.Group> {
+    private static final SimpleTextAttributes SMALL_FONT = new SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, null);
 
     @Override
     protected void customizeCellRenderer(@NotNull JList<? extends Palette.Group> list,
@@ -134,9 +134,9 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
         int rightMargin = getIpad().right + (categoryList.displayMatchCounts(index) ? categoryList.getRightMarginWidth() : 0);
         text = AdtUiUtils.getFittedString(list.getFontMetrics(list.getFont()), text, list.getWidth() - leftMargin - rightMargin, 1);
       }
-      append(text);
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
+      append(text, SMALL_FONT);
     }
   }
 }
