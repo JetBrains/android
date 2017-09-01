@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,6 +44,7 @@ public class GeneratedFileWritingAccessProviderTest extends IdeaTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myAndroidProject;
   @Mock private GradleProjectInfo myProjectInfo;
+  @Mock private ProjectFileIndex myProjectFileIndex;
 
   private VirtualFile myGeneratedFile;
   private VirtualFile myRegularFile;
@@ -61,7 +63,7 @@ public class GeneratedFileWritingAccessProviderTest extends IdeaTestCase {
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
-    myAccessProvider = new GeneratedFileWritingAccessProvider(myProjectInfo);
+    myAccessProvider = new GeneratedFileWritingAccessProvider(myProjectInfo, myProjectFileIndex);
   }
 
   public void testRequestWritingInAndroidModule() {
@@ -80,6 +82,14 @@ public class GeneratedFileWritingAccessProviderTest extends IdeaTestCase {
     assertThat(readOnlyFiles).isEmpty();
 
     verifyThatModuleSearchIncludedAllFiles();
+  }
+
+  // See https://issuetracker.google.com/65032914
+  public void testIsPotentiallyWritableWithGeneratedSourceFile() {
+    when(myProjectFileIndex.isInSource(myGeneratedFile)).thenReturn(true);
+
+    assertTrue(myAccessProvider.isPotentiallyWritable(myRegularFile));
+    assertTrue(myAccessProvider.isPotentiallyWritable(myGeneratedFile));
   }
 
   public void testIsPotentiallyWritableInAndroidModule() {
