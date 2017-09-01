@@ -6,7 +6,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
-import com.intellij.database.dataSource.DataSourceNameComponent;
+import com.intellij.database.dataSource.DatabaseNameComponent;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.view.ui.DsUiDefaults;
 import com.intellij.facet.ProjectFacetManager;
@@ -43,15 +43,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements
-                                                                                                                           Disposable {
+public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
   private DefaultComboBoxModel<Object> myDeviceComboBoxModel = new DefaultComboBoxModel<>();
   private String myMissingDeviceIds;
 
-  private DataSourceNameComponent myNameComponent;
+  private DatabaseNameComponent myNameComponent;
 
   private ComboBox myDeviceComboBox;
   private ComboBox myPackageNameComboBox;
@@ -67,7 +66,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   private final AndroidDataSource myTempDataSource;
 
-  protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
+  protected AndroidDataSourceConfigurable(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
     myTempDataSource = dataSource.copy();
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
@@ -92,7 +91,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nullable
   @Override
   public JComponent createComponent() {
-    myNameComponent = new DataSourceNameComponent(this, myController);
+    myNameComponent = new DatabaseNameComponent(this, myController);
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 
@@ -336,7 +335,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   public void saveData(@NotNull AndroidDataSource dataSource) {
-    dataSource.setName(myNameComponent.getNameValue());
+    myNameComponent.apply(dataSource);
     AndroidDataSource.State state = dataSource.getState();
     state.deviceId = getSelectedDeviceId();
     state.packageName = getSelectedPackage();
@@ -361,7 +360,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Override
   protected void reset(@NotNull AndroidDataSource o) {
     AndroidDataSource.State state = o.getState();
-    myNameComponent.setNameValue(StringUtil.notNullize(o.getName()));
+    myNameComponent.reset(o);
 
     myInternalStorageRadioButton.setSelected(!state.external);
     myExternalStorageRadioButton.setSelected(state.external);

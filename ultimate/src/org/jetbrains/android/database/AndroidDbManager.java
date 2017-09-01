@@ -83,7 +83,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public Configurable createDataSourceEditor(DbDataSource template) {
     if (!(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     AndroidDataSource dataSource = (AndroidDataSource)template.getDelegate();
-    return new AndroidDataSourcePropertiesDialog(this, template.getProject(), dataSource);
+    return new AndroidDataSourceConfigurable(this, template.getProject(), dataSource);
   }
 
   @NotNull
