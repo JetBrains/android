@@ -835,6 +835,10 @@ public class AvdManagerConnection {
         return false;
       }
     }
+    // Delete the snapshots directory
+    File snapshotDirectory = new File(avdInfo.getDataFolderPath(), AvdManager.SNAPSHOTS_DIRECTORY);
+    myFileOp.deleteFileOrFolder(snapshotDirectory);
+
     return true;
   }
 
