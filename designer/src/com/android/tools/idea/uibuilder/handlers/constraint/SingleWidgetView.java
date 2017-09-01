@@ -133,7 +133,10 @@ public class SingleWidgetView extends JPanel {
 
     mTopKill.setToolTipText("Delete Top Constraint");
     mLeftKill.setToolTipText("Delete Left Constraint");
+
+    mRightKill.setName("deleteRightConstraintButton");
     mRightKill.setToolTipText("Delete Right Constraint");
+
     mBottomKill.setToolTipText("Delete Bottom Constraint");
     mBaselineKill.setToolTipText("Delete Baseline Constraint");
     mTopConnect.setToolTipText("Create a connection above");
@@ -593,7 +596,7 @@ public class SingleWidgetView extends JPanel {
   /**
    * Buttons that can kill the constraint
    */
-  static class KillButton extends JComponent {
+  public static class KillButton extends JComponent {
     boolean mMouseIn;
     boolean mShow = true;
     ColorSet mColorSet;

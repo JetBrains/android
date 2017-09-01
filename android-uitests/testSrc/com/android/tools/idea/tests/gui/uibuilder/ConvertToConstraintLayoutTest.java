@@ -36,8 +36,8 @@ import java.awt.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.UNRELIABLE)  // b/63164506
 @RunWith(GuiTestRunner.class)
@@ -82,7 +82,9 @@ public class ConvertToConstraintLayoutTest {
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:id=\"@+id/absoluteLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"match_parent\">\n" +
+                 "    android:layout_height=\"match_parent\"\n" +
+                 "    tools:layout_editor_absoluteX=\"<test>\"\n" +
+                 "    tools:layout_editor_absoluteY=\"<test>\">\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button\"\n" +
@@ -150,7 +152,7 @@ public class ConvertToConstraintLayoutTest {
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";
 
-    assertThat(wipeDimensions(editor.getCurrentFileContents())).isEqualTo(wipeDimensions(xml));
+    assertEquals(wipeDimensions(xml), wipeDimensions(editor.getCurrentFileContents()));
   }
 
   private static String wipeDimensions(@Language("XML") String xml) {
@@ -200,7 +202,9 @@ public class ConvertToConstraintLayoutTest {
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:id=\"@+id/linearLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"wrap_content\">\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    tools:layout_editor_absoluteX=\"<test>\"\n" +
+                 "    tools:layout_editor_absoluteY=\"<test>\">\n" +
                  "\n" +
                  "    <TextView\n" +
                  "        android:id=\"@+id/title\"\n" +
@@ -261,7 +265,8 @@ public class ConvertToConstraintLayoutTest {
                  "    </FrameLayout>\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n";
-    assertThat(wipeDimensions(editor.getCurrentFileContents())).isEqualTo(wipeDimensions(xml));
+
+    assertEquals(wipeDimensions(xml), wipeDimensions(editor.getCurrentFileContents()));
   }
 
   private void waitForScout() {
