@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -52,26 +51,21 @@ public class NlDropListener extends DropTargetAdapter {
   /**
    * Attributes that can safely be copied when morphing the view
    */
-  public static final HashSet<String> ourCopyableAttributes = new HashSet<>(Arrays.asList(
+  private static final HashSet<String> ourCopyableAttributes = new HashSet<>(Arrays.asList(
     ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_ID, ATTR_BACKGROUND
   ));
 
   private final List<NlComponent> myDragged;
   private final NlComponentTree myTree;
   private DnDTransferItem myTransferItem;
-  protected NlComponent myDragReceiver;
-  protected NlComponent myNextDragSibling;
+  private NlComponent myDragReceiver;
+  private NlComponent myNextDragSibling;
   private final NlDropInsertionPicker myInsertionPicker;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
-    this(tree, new NlDropInsertionPicker(tree));
-  }
-
-  @VisibleForTesting
-  NlDropListener(@NotNull NlComponentTree tree, @NotNull NlDropInsertionPicker insertionPicker) {
     myDragged = new ArrayList<>();
     myTree = tree;
-    myInsertionPicker = insertionPicker;
+    myInsertionPicker = new NlDropInsertionPicker(tree);
   }
 
   @Override
@@ -181,7 +175,7 @@ public class NlDropListener extends DropTargetAdapter {
     }
   }
 
-  protected void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
@@ -192,7 +186,7 @@ public class NlDropListener extends DropTargetAdapter {
     else if (!myDragReceiver.isRoot()
              && !NlComponentUtil.isDescendant(myDragReceiver, myDragged)
              && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
-      morphReceiverIntoViewGroup(model);
+      morphReceiverIntoViewGroup();
       performNormalDrop(event, insertType, model);
     }
     else {
@@ -233,10 +227,8 @@ public class NlDropListener extends DropTargetAdapter {
 
   /**
    * Morph the receiver into a constraint layout and add the dragged component to it.
-   *
-   * @param model {@link NlComponentTree#getDesignerModel()}
    */
-  private void morphReceiverIntoViewGroup(@NotNull NlModel model) {
+  private void morphReceiverIntoViewGroup() {
 
     final AttributesTransaction transaction = myDragReceiver.startAttributeTransaction();
     for (AttributeSnapshot attribute : myDragReceiver.getAttributes()) {
