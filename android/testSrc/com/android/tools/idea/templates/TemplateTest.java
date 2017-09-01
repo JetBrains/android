@@ -566,11 +566,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "GoogleMapsWearActivity", true);
   }
 
-  @TemplateCheck
-  public void testNewProjectWithGoogleMapsWearActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "GoogleMapsWearActivity", true, withKotlin);
-  }
-
   //--- Non-activity templates ---
 
   @TemplateCheck
