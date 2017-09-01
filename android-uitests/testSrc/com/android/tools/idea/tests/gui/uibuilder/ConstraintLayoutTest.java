@@ -31,12 +31,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
+import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
-import org.fest.swing.timing.Wait;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,18 +45,23 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
+import static org.junit.Assert.assertEquals;
 
 /**
  * UI tests for the constraint layout
  */
 @RunWith(GuiTestRunner.class)
 public class ConstraintLayoutTest {
+  private static final Path ACTIVITY_MAIN_XML_RELATIVE_PATH =
+    FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -546,7 +552,7 @@ public class ConstraintLayoutTest {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml"));
+    editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
 
@@ -556,7 +562,8 @@ public class ConstraintLayoutTest {
 
     editor.selectEditorTab(Tab.EDITOR);
 
-    Object expected =
+    @Language("XML")
+    String expected =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
@@ -568,7 +575,6 @@ public class ConstraintLayoutTest {
       "    <TextView\n" +
       "        android:layout_width=\"wrap_content\"\n" +
       "        android:layout_height=\"wrap_content\"\n" +
-      "        android:layout_marginStart=\"8dp\"\n" +
       "        android:text=\"Hello World!\"\n" +
       "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
       "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
@@ -577,8 +583,58 @@ public class ConstraintLayoutTest {
       "\n" +
       "</android.support.constraint.ConstraintLayout>\n";
 
-    Wait.seconds(2)
-      .expecting("editor current file contents to equal expected contents")
-      .until(() -> editor.getCurrentFileContents().equals(expected));
+    assertEquals(expected, editor.getCurrentFileContents());
+  }
+
+  @Test
+  public void cleanUpAttributes() throws IOException {
+    WizardUtils.createNewProject(guiTest);
+
+    @Language("XML")
+    String contents = "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    android:layout_width=\"match_parent\"\n" +
+                      "    android:layout_height=\"match_parent\">\n" +
+                      "\n" +
+                      "    <TextView\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:layout_marginStart=\"0dp\"\n" +
+                      "        android:text=\"Hello World!\"\n" +
+                      "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                      "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                      "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                      "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                      "</android.support.constraint.ConstraintLayout>";
+
+    GuiTestFileUtils.writeAndReloadDocument(guiTest.getProjectPath().toPath().resolve(ACTIVITY_MAIN_XML_RELATIVE_PATH), contents);
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
+
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    layoutEditor.waitForRenderToFinish();
+    layoutEditor.showOnlyDesignView();
+    layoutEditor.findView("TextView", 0).click();
+    layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().getDeleteRightConstraintButton().click();
+
+    editor.selectEditorTab(Tab.EDITOR);
+
+    @Language("XML")
+    String expected = "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    android:layout_width=\"match_parent\"\n" +
+                      "    android:layout_height=\"match_parent\">\n" +
+                      "\n" +
+                      "    <TextView\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"Hello World!\"\n" +
+                      "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                      "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                      "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+                      "</android.support.constraint.ConstraintLayout>";
+
+    assertEquals(expected, editor.getCurrentFileContents());
   }
 }

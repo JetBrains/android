@@ -16,7 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -39,5 +41,16 @@ public final class ConstraintLayoutViewInspectorFixture {
 
     GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, "marginStartComboBox");
     new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
+  }
+
+  @NotNull
+  public KillButtonFixture getDeleteRightConstraintButton() {
+    return new KillButtonFixture(myRobot, myTarget, "deleteRightConstraintButton");
+  }
+
+  public static final class KillButtonFixture extends JComponentFixture<KillButtonFixture, KillButton> {
+    private KillButtonFixture(@NotNull Robot robot, @NotNull Container ancestorTarget, @NotNull String name) {
+      super(KillButtonFixture.class, robot, (KillButton)robot.finder().findByName(ancestorTarget, name));
+    }
   }
 }

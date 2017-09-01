@@ -18,12 +18,14 @@ package com.android.tools.idea.common.command;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.intellij.openapi.application.BaseActionRunnable;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +35,16 @@ public final class NlWriteCommandAction implements Runnable {
   private final String myName;
   private final Runnable myRunnable;
 
+  private final NlModel myModel;
+
   public NlWriteCommandAction(@NotNull List<NlComponent> components, @NotNull String name, @NotNull Runnable runnable) {
     checkComponents(components);
 
     myComponents = components;
     myName = name;
     myRunnable = runnable;
+
+    myModel = myComponents.get(0).getModel();
   }
 
   private static void checkComponents(@NotNull List<NlComponent> components) {
@@ -72,33 +78,56 @@ public final class NlWriteCommandAction implements Runnable {
 
   @Override
   public void run() {
-    NlModel model = myComponents.get(0).getModel();
-    Project project = model.getProject();
+    new WriteCommandActionImpl().execute();
+  }
 
-    BaseActionRunnable<Void> action = new WriteCommandAction.Simple<Void>(project, myName, model.getFile()) {
-      @Override
-      protected void run() throws Throwable {
-        myRunnable.run();
+  private final class WriteCommandActionImpl extends WriteCommandAction.Simple<Void> {
+    private WriteCommandActionImpl() {
+      super(myModel.getProject(), myName, myModel.getFile());
+    }
 
-        for (NlComponent component : myComponents) {
-          PsiNamedElement tag = component.getTag();
+    @Override
+    protected void run() throws Throwable {
+      myRunnable.run();
 
-          // noinspection ConstantConditions
-          if (tag == null) {
-            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its tag is null");
-            continue;
-          }
+      // TODO caen is refactoring NlModel in a way that will likely break this. Revisit this when he finishes his refactor.
+      ViewEditor editor = myModel.getSurface().getViewEditor();
 
-          if (tag.getContainingFile().getVirtualFile() == null) {
-            Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its virtual file is null");
-            continue;
-          }
+      myComponents.forEach(component -> {
+        cleanUpAttributes(editor, component);
+        reformatAndRearrange(component);
+      });
+    }
 
-          TemplateUtils.reformatAndRearrange(project, tag);
-        }
+    private void cleanUpAttributes(@Nullable ViewEditor editor, @NotNull NlComponent component) {
+      if (editor == null) {
+        return;
       }
-    };
 
-    action.execute();
+      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
+
+      if (handler == null) {
+        return;
+      }
+
+      handler.cleanUpAttributes(editor, component);
+    }
+
+    private void reformatAndRearrange(@NotNull NlComponent component) {
+      PsiElement tag = component.getTag();
+
+      // noinspection ConstantConditions
+      if (tag == null) {
+        Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its tag is null");
+        return;
+      }
+
+      if (tag.getContainingFile().getVirtualFile() == null) {
+        Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its virtual file is null");
+        return;
+      }
+
+      TemplateUtils.reformatAndRearrange(getProject(), tag);
+    }
   }
 }
