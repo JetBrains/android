@@ -157,6 +157,15 @@ public class PalettePanelTest extends LayoutTestCase {
     assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
   }
 
+  public void testInitialCategoryWidthIsReadFromOptionsButOverriddenIfTooSmall() {
+    PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "0");
+    Disposer.dispose(myPanel);
+    myPanel = new PalettePanel(getProject(), myDependencyManager, myPopupMenu);
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(20));
+  }
+
   public void testCategoryResize() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);

@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
@@ -83,6 +84,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
+  private static final int MIN_CONTROL_WIDTH = 20;
 
   private final DependencyManager myDependencyManager;
   private final DataModel myDataModel;
@@ -159,6 +161,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     scrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     scrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    setMinimumWidth(scrollPane, JBUI.scale(MIN_CONTROL_WIDTH));
     return scrollPane;
   }
 
@@ -250,7 +253,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
   private static int getInitialCategoryWidth() {
     try {
-      return Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH, String.valueOf(DEFAULT_CATEGORY_WIDTH)));
+      int width =
+        Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH, String.valueOf(DEFAULT_CATEGORY_WIDTH)));
+      return Math.max(width, MIN_CONTROL_WIDTH);
     }
     catch (NumberFormatException unused) {
       return DEFAULT_CATEGORY_WIDTH;
