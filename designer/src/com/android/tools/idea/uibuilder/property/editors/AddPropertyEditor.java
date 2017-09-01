@@ -41,7 +41,7 @@ public class AddPropertyEditor extends NlReferenceEditor {
   }
 
   protected AddPropertyEditor(@NotNull Project project, @NotNull NlEditingListener listener) {
-    super(project, listener, null, false, false, VERTICAL_PADDING_FOR_SMALL_FONT);
+    super(project, listener, null, false, false, false, VERTICAL_PADDING_FOR_SMALL_FONT);
   }
 
   private JComponent startEditing(@NotNull AddPropertyItem item) {
