@@ -102,17 +102,24 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.createNewFile(userQemu);
     assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder,
                mFileOp.exists(userQemu));
+    // Also make a 'snapshots' sub-directory with a file
+    File snapshotsDir = new File(mAvdFolder, AvdManager.SNAPSHOTS_DIRECTORY);
+    String snapshotFile = snapshotsDir.getAbsolutePath() + "/aSnapShotFile.txt";
+    mFileOp.recordExistingFile(snapshotFile, "Some contents for the file");
+    assertTrue("Could not create " + snapshotFile,
+               mFileOp.exists(new File (snapshotFile)));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
 
     assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data",
-               mFileOp.exists(userQemu));
+                mFileOp.exists(userQemu));
+    assertFalse("wipe-data did not remove the '" + AvdManager.SNAPSHOTS_DIRECTORY + "' directory",
+                mFileOp.exists(snapshotsDir));
 
     File userData = new File(mAvdFolder, AvdManager.USERDATA_IMG);
     assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data",
                mFileOp.exists(userData));
-
   }
 
   public void testEmulatorVersionIsAtLeast() throws Exception {
