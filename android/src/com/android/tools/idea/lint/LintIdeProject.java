@@ -149,7 +149,7 @@ public class LintIdeProject extends Project {
     }
     client.setModuleMap(projectMap);
 
-    //noinspection ConstantConditions
+    //noinspection ConstantConditionsx
     return Pair.create(project, main);
   }
 
@@ -159,9 +159,6 @@ public class LintIdeProject extends Project {
     // Search for dependencies of this module
     Graph<Module> graph = ApplicationManager.getApplication().runReadAction((Computable<Graph<Module>>)() -> {
       com.intellij.openapi.project.Project project = module.getProject();
-      if (project.isDisposed()) {
-        return null;
-      }
       return ModuleManager.getInstance(project).moduleGraph();
     });
 
@@ -728,11 +725,7 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getMinSdkVersion() {
       if (myMinSdkVersion == null) {
-        if (!myFacet.isDisposed()) {
-          myMinSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion();
-        } else {
-          myMinSdkVersion = AndroidVersion.DEFAULT;
-        }
+        myMinSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion();
       }
       return myMinSdkVersion;
     }
@@ -741,11 +734,7 @@ public class LintIdeProject extends Project {
     @Override
     public AndroidVersion getTargetSdkVersion() {
       if (myTargetSdkVersion == null) {
-        if (!myFacet.isDisposed()) {
-          myTargetSdkVersion = AndroidModuleInfo.getInstance(myFacet).getTargetSdkVersion();
-        } else {
-          myTargetSdkVersion = new AndroidVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null);
-        }
+        myTargetSdkVersion = AndroidModuleInfo.getInstance(myFacet).getTargetSdkVersion();
       }
 
       return myTargetSdkVersion;
