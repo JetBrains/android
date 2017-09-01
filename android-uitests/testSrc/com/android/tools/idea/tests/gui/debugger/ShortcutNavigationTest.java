@@ -23,6 +23,7 @@ import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
@@ -59,7 +60,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
     Wait.seconds(10).expecting("Native file is opened for navigating to definition")
-      .until(() -> ideFrame.getEditor().getCurrentFileName().equals("hello-jni.c"));
+      .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
 
     String currentLine = ideFrame.getEditor().getCurrentLine();
     assertThat(currentLine.equals("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n")).isTrue();
