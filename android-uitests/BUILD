@@ -33,5 +33,6 @@ iml_module(
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/adt/idea/artwork[module, test]",
         "//tools/adt/idea/android-common[module, test]",
+        "//tools/idea/platform/xdebugger-api[module, test]",
     ],
 )

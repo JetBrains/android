@@ -269,6 +269,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture stepOver() {
+    return invokeMenuPath("Run", "Step Over");
+  }
+
+  @NotNull
+  public IdeFrameFixture smartStepInto() {
+    return invokeMenuPath("Run", "Smart Step Into");
+  }
+
+  @NotNull
+  public IdeFrameFixture resumeProgram() {
+    return invokeMenuPath("Run", "Resume Program");
+  }
+
+  @NotNull
   public RunToolWindowFixture getRunToolWindow() {
     return new RunToolWindowFixture(this);
   }
