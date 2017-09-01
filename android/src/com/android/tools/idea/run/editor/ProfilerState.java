@@ -20,7 +20,6 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -42,6 +41,9 @@ public class ProfilerState {
   private boolean PROFILING_OKHTTP_ENABLED = true;
   public static final String ENABLE_ADVANCED_OKHTTP_PROFILING_NAME = "android.profiler.okhttp.enabled";
 
+  private boolean PROFILING_IO_ENABLED = false;
+  public static final String ENABLE_IO_PROFILING_NAME = "android.profiler.io.enabled";
+
   private boolean myCheckAdvancedProfiling;
 
   /**
@@ -62,6 +64,7 @@ public class ProfilerState {
     Properties result = new Properties();
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
     result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
+    result.setProperty(ENABLE_IO_PROFILING_NAME, String.valueOf(PROFILING_IO_ENABLED));
     return result;
   }
 
