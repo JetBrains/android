@@ -146,7 +146,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
     GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
-    false);
+    true);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(

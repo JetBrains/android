@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
@@ -54,6 +54,19 @@ public class IndexingSuspender extends DumbModeTask {
                            @NotNull Object indexingLock,
                            @NotNull Supplier<Boolean> shouldWait,
                            int waitTimeoutMillis) {
+    if (ApplicationManager.getApplication().isUnitTestMode()
+        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      // IDEA DumbService executes dumb mode tasks on the same thread when in unittest/headless
+      // mode. This will lead to a deadlock during tests execution, so indexing suspender should
+      // be a no-op in this case. Also indexing implementation in unit test mode uses quite a few
+      // stubs, so we wouldn't get a real indexing behaviour if even threading model was the same
+      // as in production. This also means that the only way to reproduce the real production
+      // behaviour on CI is a UI test.
+      LOG.info(String.format("Indexing suspension omitted in unittest/headless mode (context: " +
+                             "'%1$s')", contextDescription));
+      return;
+    }
+
     DumbService.getInstance(project).queueTask(
       new IndexingSuspender(contextDescription, indexingLock, shouldWait, waitTimeoutMillis)
     );
