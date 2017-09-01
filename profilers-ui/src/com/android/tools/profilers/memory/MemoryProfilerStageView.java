@@ -34,6 +34,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import icons.StudioIcons;
@@ -46,7 +47,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -60,11 +61,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Nullable private CaptureObject myCaptureObject = null;
 
-  @NotNull private final Splitter myMainSplitter = new Splitter(false);
-  @NotNull private final Splitter myChartCaptureSplitter = new Splitter(true);
+  @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
+  @NotNull private final JBSplitter myChartCaptureSplitter = new JBSplitter(true);
   @NotNull private final JPanel myCapturePanel;
   @Nullable private LoadingPanel myCaptureLoadingPanel;
-  @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
+  @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
 
   @NotNull private JButton myHeapDumpButton;
   @NotNull private JButton myAllocationButton;
@@ -77,12 +78,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // capture object if an existing one has not been selected.
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
 
-    myMainSplitter.setShowDividerIcon(false);
     myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
-    myChartCaptureSplitter.setShowDividerIcon(false);
-    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
-    myInstanceDetailsSplitter.setShowDividerIcon(false);
-    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
