@@ -28,21 +28,21 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +55,7 @@ import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
@@ -71,7 +71,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
    */
-  @NotNull private final Splitter mySplitter;
+  @NotNull private final JBSplitter mySplitter;
 
   @NotNull private final LoadingPanel myCaptureViewLoading;
 
@@ -279,11 +279,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
-    mySplitter = new Splitter(true);
+    mySplitter = new JBSplitter(true);
     mySplitter.setFirstComponent(details);
     mySplitter.setSecondComponent(null);
-    mySplitter.setShowDividerIcon(false);
-    mySplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
     myCaptureButton = new FlatButton();
