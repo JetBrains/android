@@ -199,6 +199,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .id("@id/textView")
                                        .width("wrap_content")
                                        .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, ATTR_TEXT_COLOR, "#FF00FFFF")
                                        .withAttribute(ANDROID_URI, ATTR_ELEVATION, "2dp")
                                        .text("SomeText"),
                                      component(PROGRESS_BAR)

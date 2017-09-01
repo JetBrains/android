@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -148,14 +149,41 @@ public class NlReferenceEditorTest extends PropertyTestCase {
 
   public void testSliderHidesDependingOnTotalWidth() {
     myFixture
-      .setWidth(100)
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
+      .setWidth(100)
       .gainFocus()
       .expectSliderVisible(false)
       .setWidth(150)
       .expectSliderVisible(true)
       .setWidth(100)
       .expectSliderVisible(false);
+  }
+
+  public void testColorIconVisible() {
+    // TextView has textColor attribute
+    myFixture
+      .setProperty(getProperty(myTextView, ATTR_TEXT_COLOR))
+      .setWidth(100)
+      .gainFocus()
+      .expectIconVisible(true);
+
+    // Button doesn't have textColor attribute
+    myFixture
+      .setProperty(getProperty(myButton, ATTR_TEXT_COLOR))
+      .setWidth(100)
+      .gainFocus()
+      .expectIconVisible(false);
+
+    // test changing property
+    myFixture
+      .setWidth(100)
+      .gainFocus()
+      .setProperty(getProperty(myTextView, ATTR_TEXT_COLOR))
+      .expectIconVisible(true)
+      .setProperty(getProperty(myTextView, ATTR_WIDTH))
+      .expectIconVisible(false)
+      .setProperty(getProperty(myTextView, ATTR_TEXT_COLOR))
+      .expectIconVisible(true);
   }
 
   public void testSliderClicksAreNotImmediatelyRecognized() throws Exception {

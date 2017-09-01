@@ -42,6 +42,7 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
   private final NlReferenceEditor myComponentEditor;
   private final TextFieldWithCompletion myEditor;
   private final SliderWithTimeDelay mySlider;
+  private final JLabel myIconLabel;
   private final Instant myStartTime;
 
   private NlReferenceEditorFixture(@NotNull NlReferenceEditor editor) {
@@ -49,6 +50,7 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
     myStartTime = Instant.now();
     myComponentEditor = editor;
     myEditor = findSubComponent(myComponentEditor.getComponent(), TextFieldWithCompletion.class);
+    myIconLabel = findSubComponent(myComponentEditor.getComponent(), JLabel.class);
     mySlider = findSubComponent(myComponentEditor.getComponent(), SliderWithTimeDelay.class);
     mySlider.setUI(new MySliderUI(mySlider));
     mySlider.setClock(Clock.fixed(myStartTime, ZoneId.systemDefault()));
@@ -111,6 +113,12 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
   public NlReferenceEditorFixture expectSliderVisible(boolean expected) {
     boolean sliderVisible = mySlider.getParent() != null && mySlider.isVisible();
     assertThat(sliderVisible).isEqualTo(expected);
+    return this;
+  }
+
+  public NlReferenceEditorFixture expectIconVisible(boolean expected) {
+    boolean iconVisible = myIconLabel.getParent() != null && myIconLabel.isVisible();
+    assertThat(iconVisible).isEqualTo(expected);
     return this;
   }
 
