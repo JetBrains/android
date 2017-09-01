@@ -1188,8 +1188,6 @@
     <extensionPoint qualifiedName="com.android.project.buildSystemService"
                     interface="com.android.tools.idea.project.BuildSystemService"
                     area="IDEA_PROJECT"/>
-    <extensionPoint qualifiedName="com.android.project.featureEnableService"
-                    interface="com.android.tools.idea.project.FeatureEnableService" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
@@ -1278,7 +1276,6 @@
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
     <buildSystemService implementation="com.android.tools.idea.gradle.project.GradleBuildSystemService"/>
-    <featureEnableService implementation="com.android.tools.idea.gradle.project.GradleFeatureEnableService"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">
