@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -329,11 +328,6 @@ public class NlPreviewManager implements ProjectComponent {
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
     if (file != null && !file.equals(psiFile)) {
-      return false;
-    }
-
-    FeatureEnableService featureEnableService = FeatureEnableService.getInstance(myProject);
-    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(myProject)) {
       return false;
     }
 
