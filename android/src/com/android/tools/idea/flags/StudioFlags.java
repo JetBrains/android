@@ -132,6 +132,12 @@ public final class StudioFlags {
     "Enable the new Target architecture in relative layout",
     false);
 
+  private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle/IDE");
+  public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
+    GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
+    "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
+    false);
+
   private StudioFlags() {
   }
 }

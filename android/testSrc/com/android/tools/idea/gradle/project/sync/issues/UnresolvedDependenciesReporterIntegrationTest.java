@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository;
+import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -27,17 +30,18 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.ANDROID;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -149,15 +153,43 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertThat(quickFixes).hasSize(expectedSize);
 
     NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(InstallRepositoryHyperlink.class);
-
-    InstallRepositoryHyperlink hyperlink = (InstallRepositoryHyperlink)quickFix;
-    assertSame(ANDROID, hyperlink.getRepository());
-    assertEquals("com.android.support:appcompat-v7:24.1.1", hyperlink.getDependency());
+    assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+    }
+  }
+
+  public void testReportWithAppCompatAndGoogle() throws Exception {
+    loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
+    Module appModule = myModules.getAppModule();
+    // Add Google repository
+    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+    Project project = getProject();
+    GoogleMavenRepository.addGoogleRepository(buildModel.repositories(), project);
+    runWriteCommandAction(project, buildModel::applyChanges);
+
+    when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
+
+    myReporter.report(mySyncIssue, appModule, null);
+
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
+    assertNotNull(message);
+
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
+                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:24.1.1", 0);
+    // @formatter:on
+
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 1 : 0;
+    assertThat(quickFixes).hasSize(expectedSize);
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertThat(quickFixes.get(0)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
   }
 

@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.ndk;
+package google;
 
-import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter;
-import com.intellij.lang.Language;
-import com.intellij.psi.PsiFileSystemItem;
-import org.jetbrains.annotations.NotNull;
-
-/**
- * Forces nodes in the "Android" view to only display "native" code (e.g C/C++.)
- */
-public class NativeCodeFilter implements PsiFileSystemItemFilter {
-  @Override
-  public boolean shouldShow(@NotNull PsiFileSystemItem item) {
-    Language language = item.getLanguage();
-    return language.getID().equalsIgnoreCase("ObjectiveC");
+public class Other {
+  public static void main(String[] args) {
+    Util.MSG_ID;
   }
 }

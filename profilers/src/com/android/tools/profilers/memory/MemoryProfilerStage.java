@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.annotations.concurrency.Immutable;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -22,6 +23,7 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
@@ -34,6 +36,7 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,9 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -84,6 +85,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final StackTraceModel myStackTraceModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
+  private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
   private long myPendingCaptureStartTime = INVALID_START_TIME;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
@@ -119,8 +121,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.setClampToMajorTicks(true);
 
-    myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
-    myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange());
+    myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
+    myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
 
     myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
@@ -162,6 +164,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStats);
+    getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -182,6 +185,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStats);
+    getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
     selectCaptureDuration(null, null);
     myLoader.stop();
 
@@ -359,6 +363,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public boolean isTrackingAllocations() {
     return myTrackingAllocations;
+  }
+
+  public long getAllocationTrackingElapsedTimeNs() {
+    if (myTrackingAllocations) {
+      Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+        .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+      return timeResponse.getTimestampNs() - myPendingCaptureStartTime;
+    }
+    return INVALID_START_TIME;
   }
 
   public boolean useLiveAllocationTracking() {
@@ -550,7 +563,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myTotalLegend;
     @NotNull private final SeriesLegend myObjectsLegend;
 
-    public MemoryStageLegends(@NotNull StudioProfilers profilers, @NotNull DetailedMemoryUsage usage, @NotNull Range range) {
+    public MemoryStageLegends(@NotNull StudioProfilers profilers, @NotNull DetailedMemoryUsage usage, @NotNull Range range,
+                              boolean isTooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
@@ -562,14 +576,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range,
                                          Interpolatable.RoundedSegmentInterpolator);
 
-      add(myTotalLegend);
-      add(myJavaLegend);
-      add(myNativeLegend);
-      add(myGraphicsLegend);
-      add(myStackLegend);
-      add(myCodeLegend);
-      add(myOtherLegend);
-
+      List<SeriesLegend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
+                                                             myNativeLegend, myJavaLegend)
+                                             : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
+                                                             myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend);
+      legends.forEach(this::add);
       myProfilers = profilers;
       myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
       agentStatusChanged();
@@ -621,6 +632,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
       else {
         remove(myObjectsLegend);
+      }
+    }
+  }
+
+  private class CaptureElapsedTimeUpdatable implements Updatable {
+    @Override
+    public void update(long elapsedNs) {
+      if (myTrackingAllocations) {
+        myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
       }
     }
   }

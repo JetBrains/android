@@ -43,8 +43,6 @@ public class EmulatorTestRule extends ExternalResource {
 
   @Override
   protected void after() {
-    // Close a no-window emulator by calling 'adb emu kill'
-    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().killEmulatorProcesses();
     // Remove all AVDs
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {

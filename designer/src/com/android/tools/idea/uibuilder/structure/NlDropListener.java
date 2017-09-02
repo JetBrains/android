@@ -26,11 +26,9 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +38,8 @@ import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -136,13 +135,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         else {
           // TODO: support nav editor
-          Collection<NlComponent> captured = ApplicationManager.getApplication()
-            .runWriteAction(
-              (Computable<Collection<NlComponent>>)() -> NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType));
-
-          if (captured != null) {
-            myDragged.addAll(NlTreeUtil.keepOnlyAncestors(captured));
-          }
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType)));
         }
         return insertType;
       }

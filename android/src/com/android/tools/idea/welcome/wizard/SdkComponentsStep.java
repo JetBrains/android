@@ -28,13 +28,16 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -65,7 +68,7 @@ import java.util.Set;
 /**
  * Wizard page for selecting SDK components to download.
  */
-public class SdkComponentsStep extends FirstRunWizardStep {
+public class SdkComponentsStep extends FirstRunWizardStep implements Disposable {
   public static final String FIELD_SDK_LOCATION = "SDK location";
 
   @NotNull private final ComponentTreeNode myRootNode;
@@ -82,16 +85,20 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private JLabel myErrorMessage;
   private TextFieldWithBrowseButton myPath;
   @SuppressWarnings("unused") private JPanel myBody;
+  private JBLoadingPanel myContentPanel;
 
   private boolean myUserEditedPath = false;
   private ValidationResult mySdkDirectoryValidationResult;
   private boolean myWasVisible = false;
+  private boolean myLoading;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
-                           @NotNull FirstRunWizardMode mode) {
+                           @NotNull FirstRunWizardMode mode,
+                           @NotNull Disposable parent) {
     super("SDK Components Setup");
+    Disposer.register(parent, this);
     // Since we create and initialize a new AndroidSdkHandler/RepoManager for every (partial)
     // path that's entered, disallow direct editing of the path.
     myPath.setEditable(false);
@@ -120,6 +127,27 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     column.setCellRenderer(new SdkComponentRenderer());
     column.setCellEditor(new SdkComponentRenderer());
     setComponent(myContents);
+  }
+
+  @Override
+  public void dispose() {}
+
+  public void startLoading() {
+    myContentPanel.startLoading();
+    myLoading = true;
+    invokeUpdate(null);
+  }
+
+  public void stopLoading() {
+    myContentPanel.stopLoading();
+    myLoading = false;
+    invokeUpdate(null);
+  }
+
+  public void loadingError() {
+    myContentPanel.setLoadingText("Error loading components");
+    myLoading = false;
+    invokeUpdate(null);
   }
 
   @Nullable
@@ -230,6 +258,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     }
 
     setErrorHtml(myUserEditedPath ? message : null);
+    if (myLoading) {
+      return false;
+    }
     return !mySdkDirectoryValidationResult.isError();
   }
 
@@ -300,7 +331,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myComponentDescription = new JTextPane();
     splitter.setShowDividerIcon(false);
     splitter.setShowDividerControls(false);
-    splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myComponentsTable, false));
+    myContentPanel = new JBLoadingPanel(new BorderLayout(), this);
+    myContentPanel.add(myComponentsTable, BorderLayout.CENTER);
+
+    splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myContentPanel, false));
     splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myComponentDescription, false));
 
     myComponentDescription.setFont(UIUtil.getLabelFont());

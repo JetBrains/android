@@ -64,12 +64,17 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    NlWriteCommandAction.run(myItems.get(0), "", () -> {
+    int insertIndex = getInsertIndex();
+
+    if (!canInsertComponents(insertIndex, insertType)) {
+      return;
+    }
+
+    NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
+      insertComponents(insertIndex, insertType);
     });
-
-    insertComponents(getInsertIndex(), insertType);
   }
 
   private void updateOrderInCategoryAttributes() {

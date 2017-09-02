@@ -754,19 +754,17 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void selectARangeWithNoCapturesShouldSetCaptureToNull() throws InterruptedException {
+  public void selectARangeWithNoCapturesShouldKeepCurrentCaptureSelected() throws InterruptedException {
+    assertThat(myStage.getCapture()).isNull();
     captureSuccessfully();
     assertThat(myStage.getCapture()).isNotNull();
     CpuCapture capture = myStage.getCapture();
 
     Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-    // Select an are before the capture.
+    // Select an area before the capture.
     selectionRange.set(capture.getRange().getMin() - 20, capture.getRange().getMin() - 10);
-    assertThat(myStage.getCapture()).isNull();
-
-    // Now select an area that includes the capture
-    selectionRange.set(-Double.MAX_VALUE, Double.MAX_VALUE);
-    assertThat(myStage.getCapture()).isNotNull();
+    // Last selected capture should remain selected.
+    assertThat(myStage.getCapture()).isEqualTo(capture);
   }
 
   /**
@@ -785,7 +783,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture should be the same as the one obtained by myStage.getCapture(...),
     // because we should not parse the trace into another CpuCapture object.
     assertThat(myStage.getCapture()).isEqualTo(capture);
-
   }
 
   /**
@@ -929,6 +926,22 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+  }
+
+  @Test
+  public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    timeline.setStreaming(false);
+    assertThat(timeline.isStreaming()).isFalse();
+
+    startCapturingSuccess();
+    assertThat(timeline.isStreaming()).isTrue();
+    stopCapturing();
+
+    // Sanity test to check that start recording doesn't flip the status of isStreaming, but actually sets it to true
+    assertThat(timeline.isStreaming()).isTrue();
+    startCapturingSuccess();
+    assertThat(timeline.isStreaming()).isTrue();
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

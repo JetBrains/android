@@ -59,7 +59,7 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public Scene build() {
     assert myScene == null;
-    myScene = new Scene(myDesignSurface);
+    myScene = new Scene(this, myDesignSurface);
     return myScene;
   }
 

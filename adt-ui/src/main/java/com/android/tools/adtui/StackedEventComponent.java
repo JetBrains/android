@@ -46,6 +46,7 @@ public class StackedEventComponent extends MouseAdapterComponent {
   private static final float DEFAULT_LINE_THICKNESS = .5f;
   private static final float EXPANDED_LINE_THICKNESS = 1.2f;
   private static final float FONT_PADDING = 10;
+  private static final int FONT_SPACING = 7;
 
   @NotNull
   private final EventModel<StackedEventType> myModel;
@@ -128,7 +129,7 @@ public class StackedEventComponent extends MouseAdapterComponent {
       renderActivity();
       myRender = false;
     }
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(11f));
     drawActivity(g2d, dim);
   }
 
@@ -174,7 +175,7 @@ public class StackedEventComponent extends MouseAdapterComponent {
 
       g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
       float normalizedLineHeight = getRectangle(event).height - DEFAULT_LINE_THICKNESS;
-      g2d.drawString(text, startPosition, (SEGMENT_SPACING * 2) - normalizedLineHeight * (float)dim.getHeight());
+      g2d.drawString(text, startPosition, FONT_SPACING - normalizedLineHeight * (float)dim.getHeight());
     }
   }
 
