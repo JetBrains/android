@@ -1034,6 +1034,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Use includeSubdomains", "res/xml/network-config.xml", "xml");
   }
 
+  public void testDeleteRepeatedWords() throws Exception {
+    doTestWithFix(new AndroidLintTyposInspection(),
+                  "Delete repeated word", "res/values/strings.xml", "xml");
+
+  }
+
   public void testInvalidPinDigestAlg() throws Exception {
     createManifest();
     doTestWithFix(new AndroidLintNetworkSecurityConfigInspection(),

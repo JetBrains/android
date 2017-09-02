@@ -27,6 +27,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.DocumentUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
@@ -102,10 +103,19 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
     PsiFile file = startElement.getContainingFile();
     Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
     String newValue = getNewValue();
-    if (document != null && newValue != null) {
+    if (newValue == null) {
+      newValue = "";
+    }
+    if (document != null) {
       editBefore(document);
       TextRange range = getRange(startElement, endElement);
       if (range != null) {
+        if (whitespaceOnly(newValue)) {
+          // If we're replacing a text segment with just whitespace,
+          // and the line begins and ends with whitespace after making
+          // the adjustment, delete the whole line
+          range = includeFullLineIfOnlySpace(document, range);
+        }
         int startOffset = range.getStartOffset();
         int endOffset = range.getEndOffset();
         document.replaceString(startOffset, endOffset, newValue);
@@ -131,6 +141,34 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
           }
         }
       }
+    }
+  }
+
+  private static boolean whitespaceOnly(@NotNull String text) {
+    for (int i = 0; i < text.length(); i++) {
+      if (!Character.isWhitespace(text.charAt(i))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private static TextRange includeFullLineIfOnlySpace(@NotNull Document document, @NotNull TextRange range) {
+    int startOffset = range.getStartOffset();
+    int endOffset = range.getEndOffset();
+
+    // See if there's nothing left on the line; if so, delete the whole line
+    int lineStart = DocumentUtil.getLineStartOffset(startOffset, document);
+    int lineEnd = DocumentUtil.getLineEndOffset(startOffset, document);
+
+    String prefix = document.getText(new TextRange(lineStart, startOffset));
+    String suffix = document.getText(new TextRange(endOffset, lineEnd));
+
+    if (whitespaceOnly(prefix) && whitespaceOnly(suffix)) {
+      return new TextRange(lineStart, lineEnd + 1);
+    } else {
+      return range;
     }
   }
 
