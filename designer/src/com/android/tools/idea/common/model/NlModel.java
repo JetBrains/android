@@ -21,7 +21,6 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -175,7 +174,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future.
    *
    * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
-   *               {@link #deactivate(Object)}, the model will be really deactivated.
+   *               deactivate(Object), the model will be really deactivated.
    */
   public void deactivate(@NotNull Object source) {
     boolean shouldDeactivate;
@@ -331,7 +330,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myListeners.add(listener);
   }
 
-  public void removeListener(@Nullable ModelListener listener) {
+  public void removeListener(@NotNull ModelListener listener) {
     myListeners.remove(listener);
   }
 
@@ -469,7 +468,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         gatherTagsAndSnapshots(root, myTagToSnapshot);
       }
 
-      NlComponent rootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+      myModel.myRootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
         // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
         // form the old map
         mapOldToNew(newRoot);
@@ -489,8 +488,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         // Build up the new component tree
         return createTree(newRoot);
       });
-
-      myModel.myRootComponent = rootComponent;
 
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
@@ -769,6 +766,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (element instanceof XmlTag) {
         return findViewByTag((XmlTag)element);
       }
+      // noinspection AssignmentToMethodParameter
       element = element.getParent();
     }
 
@@ -791,7 +789,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyModified(ChangeType.DELETE);
   }
 
-  private void handleDeletion(@NotNull Collection<NlComponent> components) {
+  private static void handleDeletion(@NotNull Collection<NlComponent> components) {
     // Segment the deleted components into lists of siblings
     Multimap<NlComponent, NlComponent> siblingLists = NlComponentUtil.groupSiblings(components);
 
@@ -834,9 +832,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
       if (before != null) {
+        // noinspection AssignmentToMethodParameter
         tag = (XmlTag)parentTag.addBefore(tag, before.getTag());
       }
       else {
+        // noinspection AssignmentToMethodParameter
         tag = parentTag.addSubTag(tag, false);
       }
     }
@@ -852,7 +852,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Simply create a component. In most cases you probably want
-   * {@link #createComponent(SceneView, XmlTag, NlComponent, NlComponent, InsertType)}.
+   * {@link #createComponent(XmlTag, NlComponent, NlComponent)}.
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
     return mySurface.createComponent(tag);

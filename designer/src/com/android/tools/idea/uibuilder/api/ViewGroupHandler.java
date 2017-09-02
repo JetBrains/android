@@ -254,15 +254,17 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
 
   /**
    * Returns the number of children displayed in the component tree for this component
+   *
    * @param component the component tree element we are checking
    * @return number of children displayed in the component tree
    */
   public int getComponentTreeChildCount(@NotNull Object component) {
-    return ((NlComponent) component).getChildCount();
+    return ((NlComponent)component).getChildCount();
   }
 
   /**
    * Returns the child at position i in the given component
+   *
    * @param component
    * @param i
    * @return

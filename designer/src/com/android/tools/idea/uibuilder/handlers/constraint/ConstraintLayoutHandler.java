@@ -96,7 +96,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
-  public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
+  private static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
@@ -105,9 +105,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   // This is used to efficiently test if they are horizontal or vertical.
-  static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
+  private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   private ArrayList<ViewAction> myActions = new ArrayList<>();
-  private ArrayList<ViewAction> myGrayOnNoSelection = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -115,7 +114,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param icon
    * @return
    */
-  static Image iconToImage(Icon icon) {
+  private static Image iconToImage(Icon icon) {
     if (icon instanceof ImageIcon) {
       return ((ImageIcon)icon).getImage();
     }
@@ -185,6 +184,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
 
+    // noinspection unchecked
     actions.add(new NestedViewActionMenu("Align", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
@@ -200,6 +200,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add((new MarginSelector()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
+    // noinspection unchecked
     actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.newArrayList(
 
       Lists.newArrayList(
@@ -241,6 +242,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     });
 
+    // noinspection unchecked
     actions.add(new NestedViewActionMenu("Align", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED_CONSTRAINT, Lists.newArrayList(
       ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
       ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
@@ -258,7 +260,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     });
 
-
+    // noinspection unchecked
     actions
       .add(new NestedViewActionMenu("Guidelines", StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
         ConstraintViewActions.HELPER_ACTIONS)));
@@ -266,7 +268,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static boolean isConstraintLayoutChild(List<NlComponent> children) {
     for (NlComponent child : children) {
-      if (NlComponentHelperKt.isOrHasSuperclass(child.getParent(), CONSTRAINT_LAYOUT)) {
+      NlComponent parent = child.getParent();
+      assert parent != null;
+
+      if (NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT)) {
         return true;
       }
     }
@@ -291,7 +296,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    *
    * @param selection
    */
-  public void updateActions(List<NlComponent> selection) {
+  private void updateActions(List<NlComponent> selection) {
     if (myActions == null) {
       return;
     }
@@ -1001,6 +1006,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
+      // noinspection AssignmentToMethodParameter
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
       ensureLayersAreShown(editor, 1000);
