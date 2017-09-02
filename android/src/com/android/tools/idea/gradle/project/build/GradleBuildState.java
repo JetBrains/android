@@ -88,6 +88,11 @@ public class GradleBuildState {
   }
 
   private void ensureNoIndexingDuringBuild() {
+    // Although there won't be a deadlock in such a case per se, we must signal such a situation
+    // loudly because it most likely signifies an incorrect sequence of actions.
+    assert isBuildInProgress() : "Attempt to suspend indexing when gradle build is not in " +
+                                 "progress.";
+
     if (myFlagIsIndexingAware) {
       IndexingSuspender.queue(myProject, "Gradle Build", myIndexingLock,
                               this::isBuildInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);

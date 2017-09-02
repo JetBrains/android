@@ -42,7 +42,7 @@ import java.util.function.Supplier;
  * by calling DumbService.waitForSmartMode() or DumbService.runWhenSmart().
  */
 public class IndexingSuspender extends DumbModeTask {
-  private static final Logger LOG = Logger.getInstance(GradleBuildState.class);
+  private static final Logger LOG = Logger.getInstance(IndexingSuspender.class);
 
   @NotNull private final Object myIndexingLock;
   @NotNull private final String myContextDescription;
@@ -64,6 +64,12 @@ public class IndexingSuspender extends DumbModeTask {
       // behaviour on CI is a UI test.
       LOG.info(String.format("Indexing suspension omitted in unittest/headless mode (context: " +
                              "'%1$s')", contextDescription));
+      return;
+    }
+
+    if (!project.isInitialized()) {
+      LOG.error(String.format("Attempt to suspend indexing when project is not yet initialised; " +
+                              "ignoring (context: '%1$s').", contextDescription));
       return;
     }
 

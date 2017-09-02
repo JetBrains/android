@@ -108,7 +108,10 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       return;
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo));
+    startupManager.runWhenProjectIsInitialized(() -> {
+      GradleSyncState.getInstance(myProject).ensureNoIndexingDuringSync();
+      doPopulateProject(projectInfo);
+    });
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
