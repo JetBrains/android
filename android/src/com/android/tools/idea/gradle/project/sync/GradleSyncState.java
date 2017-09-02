@@ -31,6 +31,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -176,7 +177,9 @@ public class GradleSyncState {
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
       myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
-      ensureNoIndexingDuringSync();
+      if (myProject.isInitialized()) {
+        ensureNoIndexingDuringSync();
+      }
     }
 
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
@@ -197,7 +200,15 @@ public class GradleSyncState {
     return true;
   }
 
-  private void ensureNoIndexingDuringSync() {
+  /**
+   * In the context of gradle sync, request indexing suspension. Gradle sync must be in progress,
+   * and the project must be initialised in order for this to have the intended effect.
+   */
+  public void ensureNoIndexingDuringSync() {
+    // Although there won't be a deadlock in such a case per se, we must signal such a situation
+    // loudly because it most likely signifies an incorrect sequence of actions.
+    assert isSyncInProgress() : "Attempt to suspend indexing when gradle sync is not in progress.";
+
     if (myFlagIsIndexingAware) {
       IndexingSuspender.queue(myProject, "Gradle Sync", myIndexingLock,
                               this::isSyncInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);
@@ -440,7 +451,6 @@ public class GradleSyncState {
     setSyncSetupStartedTimeStamp(syncSetupTimestamp);
     addInfoToEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
-
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
     AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
     UsageTracker.getInstance().log(event);
