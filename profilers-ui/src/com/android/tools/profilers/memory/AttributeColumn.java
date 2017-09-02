@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.JBUI;
@@ -51,7 +52,7 @@ class AttributeColumn<T extends MemoryObject> {
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
       .setComparator(myComparator)
-      .setHeaderBorder(JBUI.Borders.empty(2, 3));
+      .setHeaderBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
   }
 
   public Comparator<MemoryObjectTreeNode<T>> getComparator() {

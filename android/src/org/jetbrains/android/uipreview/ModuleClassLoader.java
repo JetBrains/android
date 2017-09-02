@@ -20,6 +20,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -351,16 +353,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel()) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        return Stream.concat(
-          androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
-            .map(lib -> new File(lib.getJarFile())),
-          androidModuleModel.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream().map(Library::getArtifact));
+      AndroidModel model = facet.getAndroidModel();
+      if (model != null) {
+        return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
       }
     }
 
-    return AndroidRootUtil.getExternalLibraries(module).stream().map(f -> new File(f.getPath()));
+    return AndroidRootUtil.getExternalLibraries(module).stream().map(VfsUtilCore::virtualToIoFile);
   }
 
   private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {

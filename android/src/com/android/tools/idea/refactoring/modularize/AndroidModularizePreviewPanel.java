@@ -60,13 +60,15 @@ public class AndroidModularizePreviewPanel {
   private final Map<PsiElement, UsageInfo> myLookupMap;
   private final CheckedTreeNode myRootNode = new CheckedTreeNode();
   private CodeAndResourcesTreeTable myTreeView;
+  private final boolean myShouldSelectAllReferences;
 
-  public AndroidModularizePreviewPanel(@NotNull AndroidCodeAndResourcesGraph graph, UsageInfo[] infos) {
+  public AndroidModularizePreviewPanel(@NotNull AndroidCodeAndResourcesGraph graph, UsageInfo[] infos, boolean shouldSelectAllReferences) {
     myGraph = graph;
     myLookupMap = Maps.newHashMapWithExpectedSize(infos.length);
     for (UsageInfo info : infos) {
       myLookupMap.put(info.getElement(), info);
     }
+    myShouldSelectAllReferences = shouldSelectAllReferences;
   }
 
   @NotNull
@@ -172,7 +174,7 @@ public class AndroidModularizePreviewPanel {
 
       UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
       childrenNodes.add(childNode);
-      childNode.setChecked(!outsiders.contains(reference));
+      childNode.setChecked(myShouldSelectAllReferences || !outsiders.contains(reference));
 
       parentElements.add(reference);
       buildTree(childNode, reference, parentElements, outsiders);
@@ -185,13 +187,17 @@ public class AndroidModularizePreviewPanel {
 
       boolean checked = true;
       for (PsiElement reference : resourceGroups.get(resourceUrl)) {
+        if (!myShouldSelectAllReferences && outsiders.contains(reference)) {
+          checked = false;
+          break;
+        }
+      }
+
+      for (PsiElement reference : resourceGroups.get(resourceUrl)) {
         UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
         childNode.setEnabled(false); // We don't allow selecting only a subset of resource items, either they all move or none of them move.
+        childNode.setChecked(checked);
         urlTreeNode.add(childNode);
-        if (outsiders.contains(reference)) {
-          childNode.setChecked(false);
-          checked = false;
-        }
 
         parentElements.add(reference);
         buildTree(childNode, reference, parentElements, outsiders);

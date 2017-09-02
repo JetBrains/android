@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.npw;
 
-import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -24,13 +23,9 @@ import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -128,43 +123,6 @@ public class NewProjectWizardState {
   @NotNull
   public TemplateWizardState getModuleTemplateState() {
     return myModuleState;
-  }
-
-  /**
-   * Updates the dependencies stored in the parameters map, to include support libraries required by the extra features selected.
-   */
-  public void updateDependencies() {
-    @SuppressWarnings("unchecked")
-    SetMultimap<String, String> dependencies = (SetMultimap<String, String>)myModuleState.get(ATTR_DEPENDENCIES_MULTIMAP);
-    if (dependencies == null) {
-      dependencies = HashMultimap.create();
-    }
-
-    RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-
-    // Support Library
-    Object fragmentsExtra = myModuleState.get(ATTR_FRAGMENTS_EXTRA);
-    Object navigationDrawerExtra = myModuleState.get(ATTR_NAVIGATION_DRAWER_EXTRA);
-    if ((fragmentsExtra != null && Boolean.parseBoolean(fragmentsExtra.toString())) ||
-        (navigationDrawerExtra != null && Boolean.parseBoolean(navigationDrawerExtra.toString()))) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_V4, true));
-    }
-
-    // AppCompat Library
-    Object actionBarExtra = myModuleState.get(ATTR_ACTION_BAR_EXTRA);
-    if (actionBarExtra != null && Boolean.parseBoolean(actionBarExtra.toString())) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.APP_COMPAT_V7,
-                                                                                                        true));
-    }
-
-    // GridLayout Library
-    Object gridLayoutExtra = myModuleState.get(ATTR_GRID_LAYOUT_EXTRA);
-    if (gridLayoutExtra != null && Boolean.parseBoolean(gridLayoutExtra.toString())) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.GRID_LAYOUT_V7,
-                                                                                                        true));
-    }
-
-    myModuleState.put(ATTR_DEPENDENCIES_MULTIMAP, dependencies);
   }
 
   /**

@@ -63,8 +63,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private final JSlider mySlider;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private final BrowsePanel myBrowsePanel;
-  private final boolean myIsInspector;
   private final boolean myHasSliderSupport;
+  private final boolean myIsInspector;
 
   private NlProperty myProperty;
   private boolean myPropertyHasSlider;
@@ -76,25 +76,25 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, VERTICAL_PADDING), browsePanel);
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, VERTICAL_PADDING), browsePanel);
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, true, VERTICAL_SPACING);
+    return new NlReferenceEditor(project, listener, null, true, true, true, VERTICAL_SPACING);
   }
 
   @TestOnly
   public static NlReferenceEditor createForTableTesting(@NotNull Project project,
                                                         @NotNull NlEditingListener listener,
                                                         @NotNull BrowsePanel browsePanel) {
-    return new NlReferenceEditor(project, listener, browsePanel, false, true, VERTICAL_SPACING);
+    return new NlReferenceEditor(project, listener, browsePanel, false, true, false, VERTICAL_SPACING);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
     BrowsePanel.ContextDelegate delegate = new BrowsePanel.ContextDelegate();
     BrowsePanel browsePanel = new BrowsePanel(delegate, false);
-    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true, true, VERTICAL_SPACING);
+    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true, true, true, VERTICAL_SPACING);
     delegate.setEditor(editor);
     return editor;
   }
@@ -104,6 +104,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
                               @Nullable BrowsePanel browsePanel,
                               boolean includeBorder,
                               boolean includeSliderSupport,
+                              boolean isInspector,
                               int verticalSpacing) {
     super(listener);
     myPanel = new JPanel(new BorderLayout());
@@ -145,7 +146,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     });
 
     myBrowsePanel = browsePanel;
-    myIsInspector = (browsePanel == null);
     myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
       myBrowsePanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_COMPONENT_GAP));
@@ -177,6 +177,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     });
     myProperty = EmptyProperty.INSTANCE;
     myHasSliderSupport = includeSliderSupport;
+    myIsInspector = isInspector;
   }
 
   protected TextEditorWithAutoCompletion getTextEditor() {
