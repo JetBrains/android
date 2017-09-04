@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.google.common.base.Strings;
+import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
@@ -37,14 +38,14 @@ import java.io.File;
 public class PathMappingTableFixture extends JTableFixture {
   @NotNull
   public static PathMappingTableFixture find(@NotNull Robot robot, @NotNull Container ancestor) {
-    Component mappingTable = robot.finder().findByName(ancestor, "pathMappingTable", TableView.class);
-    return new PathMappingTableFixture(robot, (TableView) mappingTable);
+    Component mappingTable = robot.finder().findByName(ancestor, "pathMappingTable", TreeTableView.class);
+    return new PathMappingTableFixture(robot, (TreeTableView) mappingTable);
   }
 
   private static final int VALUE_COL_POSITION = 1;
 
 
-  private PathMappingTableFixture(@NotNull Robot robot, @NotNull TableView target) {
+  private PathMappingTableFixture(@NotNull Robot robot, @NotNull TreeTableView target) {
     super(robot, target);
   }
 
