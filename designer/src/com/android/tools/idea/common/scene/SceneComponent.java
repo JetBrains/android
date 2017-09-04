@@ -67,7 +67,7 @@ public class SceneComponent {
 
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
-  private boolean myDragging = false;
+  protected boolean myDragging = false;
   private boolean myIsModelUpdateAuthorized = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
