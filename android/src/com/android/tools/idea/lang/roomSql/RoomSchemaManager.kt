@@ -34,25 +34,28 @@ private const val COLUMN_INFO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.ColumnInfo"
 private const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
+private typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
+private typealias PsiFieldPointer = SmartPsiElementPointer<out PsiField>
+private typealias PsiElementPointer = SmartPsiElementPointer<out PsiElement>
 
 interface SqlNameDefinition {
   val name: String
-  val nameElement: PsiElement
+  val nameElement: PsiElementPointer
 }
 
 data class Database(
 
     /** Annotated class. */
-    val psiClass: PsiClass,
+    val psiClass: PsiClassPointer,
 
     /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
-    val entities: Set<PsiClass>)
+    val entities: Set<PsiClassPointer>)
 
 
 data class Entity(
 
     /** Annotated class. */
-    val psiClass: PsiClass,
+    val psiClass: PsiClassPointer,
 
     /** Name of the table: take from the class name or the annotation parameter. */
     override val name: String,
@@ -62,7 +65,7 @@ data class Entity(
      *
      * This can be either the class itself or the annotation element.
      */
-    override val nameElement: PsiElement = psiClass,
+    override val nameElement: PsiElementPointer = psiClass,
 
     /** Columns present in the table representing this entity. */
     val columns: Set<Column> = emptySet()
@@ -71,24 +74,24 @@ data class Entity(
 
 data class Column(
     /** Field that defines this column. */
-    val psiField: PsiField,
+    val psiField: PsiFieldPointer,
 
     /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
     override val name: String,
 
     /** The [PsiElement] that defines the column name. */
-    override val nameElement: PsiElement = psiField
+    override val nameElement: PsiElementPointer = psiField
 ) : SqlNameDefinition
 
 
-data class Dao(val psiClass: PsiClass)
+data class Dao(val psiClass: PsiClassPointer)
 
 
 data class RoomSchema(
     val databases: Set<Database>,
     val entities: Set<Entity>,
     val daos: Set<Dao>) {
-  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass == psiClass }
+  fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass.element == psiClass }
 }
 
 
@@ -99,7 +102,7 @@ class RoomSchemaManager(val module: Module) {
   }
 
   /**
-   * Returns all entities in the project, keyed by table name.
+   * Returns the [RoomSchema].
    *
    * Will return null if Room is not used in the project.
    */
@@ -119,22 +122,29 @@ class RoomSchemaManager(val module: Module) {
     val entityAnnotation = psiFacade.findClass(ENTITY_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Entity")
     val databaseAnnotation = psiFacade.findClass(DATABASE_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Database")
     val daoAnnotation = psiFacade.findClass(DAO_ANNOTATION_NAME, searchScope) ?: return annotationNotFound("Dao")
+    val pointerManager = SmartPointerManager.getInstance(module.project)
 
-    val entities = AnnotatedElementsSearch.searchPsiClasses(entityAnnotation, searchScope).mapNotNullTo(HashSet(), this::createEntity)
-    val databases = AnnotatedElementsSearch.searchPsiClasses(databaseAnnotation, searchScope).mapNotNullTo(HashSet(), this::createDatabase)
-    val daos = AnnotatedElementsSearch.searchPsiClasses(daoAnnotation, searchScope).mapTo(HashSet(), ::Dao)
+    val entities = AnnotatedElementsSearch.searchPsiClasses(entityAnnotation, searchScope).mapNotNullTo(HashSet()) { this.createEntity(it, pointerManager) }
+    val databases = AnnotatedElementsSearch.searchPsiClasses(databaseAnnotation, searchScope).mapNotNullTo(HashSet()) { this.createDatabase(it, pointerManager) }
+    val daos = AnnotatedElementsSearch.searchPsiClasses(daoAnnotation, searchScope)
+        .mapTo(HashSet()) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
 
     return RoomSchema(databases, entities, daos)
   }
 
-  private fun createEntity(psiClass: PsiClass): Entity? {
+  private fun createEntity(psiClass: PsiClass, pointerManager: SmartPointerManager): Entity? {
     val (tableName, tableNameElement) = getNameAndNameElement(
         psiClass, annotationName = ENTITY_ANNOTATION_NAME, annotationAttributeName = "tableName") ?: return null
 
-    return Entity(psiClass, tableName, tableNameElement, findColumns(psiClass))
+    return Entity(
+        pointerManager.createSmartPsiElementPointer(psiClass),
+        tableName,
+        pointerManager.createSmartPsiElementPointer(tableNameElement),
+        findColumns(psiClass, pointerManager)
+    )
   }
 
-  private fun findColumns(psiClass: PsiClass): Set<Column> {
+  private fun findColumns(psiClass: PsiClass, pointerManager: SmartPointerManager): Set<Column> {
     return psiClass.allFields
         .mapNotNullTo(HashSet()) { psiField ->
           if (psiField.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null) {
@@ -144,12 +154,16 @@ class RoomSchemaManager(val module: Module) {
           val (columnName, columnNameElement) = getNameAndNameElement(
               psiField, annotationName = COLUMN_INFO_ANNOTATION_NAME, annotationAttributeName = "name") ?: return@mapNotNullTo null
 
-          Column(psiField, columnName, columnNameElement)
+          Column(
+              pointerManager.createSmartPsiElementPointer(psiField),
+              columnName,
+              pointerManager.createSmartPsiElementPointer(columnNameElement)
+          )
         }
   }
 
-  private fun createDatabase(psiClass: PsiClass): Database? {
-    val entitiesElementValue =
+  private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager): Database? {
+    val entitiesElementValue: HashSet<PsiClassPointer>? =
         psiClass.modifierList
             ?.findAnnotation(DATABASE_ANNOTATION_NAME)
             ?.findDeclaredAttributeValue("entities")
@@ -158,9 +172,10 @@ class RoomSchemaManager(val module: Module) {
             ?.mapNotNullTo(HashSet()) {
               val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
               PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
+                  ?.let(pointerManager::createSmartPsiElementPointer)
             }
 
-    return Database(psiClass, entitiesElementValue ?: emptySet())
+    return Database(pointerManager.createSmartPsiElementPointer(psiClass), entitiesElementValue ?: emptySet())
   }
 
   private fun <T> annotationNotFound(name: String): T? {
