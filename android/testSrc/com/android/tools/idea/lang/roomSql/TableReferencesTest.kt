@@ -282,6 +282,36 @@ class TableReferencesTest : LightRoomTestCase() {
     """.trimIndent())
   }
 
+  fun testCodeCompletion_caseSensitivity() {
+    myFixture.addRoomEntity("com.example.User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM u<caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user") List<User> getAll();
+        }
+    """.trimIndent())
+  }
+
   fun testCodeCompletion_multiple() {
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "people")
     myFixture.addRoomEntity("com.example.Address")
