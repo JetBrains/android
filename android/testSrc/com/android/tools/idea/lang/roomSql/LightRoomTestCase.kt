@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.intellij.psi.PsiClass
+import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 
@@ -70,8 +71,14 @@ abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
 
   protected infix fun String.ofType(type: String): FieldDefinition = FieldDefinition(this, type)
 
-  protected fun JavaCodeInsightTestFixture.findField(qualifiedClassName: String, fieldName: String) =
-      findClass(qualifiedClassName).findFieldByName(fieldName, false)!!
+  protected fun JavaCodeInsightTestFixture.classPointer(qualifiedClassName: String) =
+      SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findClass(qualifiedClassName))
+
+  protected fun JavaCodeInsightTestFixture.findField(qualifiedClassName: String, fieldName: String, checkBases: Boolean = false) =
+      findClass(qualifiedClassName).findFieldByName(fieldName, checkBases)!!
+
+  protected fun JavaCodeInsightTestFixture.fieldPointer(qualifiedClassName: String, fieldName: String, checkBases: Boolean = false) =
+      SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findField(qualifiedClassName, fieldName, checkBases))
 
   protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, vararg fields: FieldDefinition) =
       addRoomEntity(qualifiedClassName, tableNameOverride = null, fields = *fields)

@@ -55,17 +55,17 @@ class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiRefere
           ?.asSequence()
           ?.flatMap { it.columns.asSequence() }
           ?.filter { it.name.equals(columnName.nameAsString, ignoreCase = true) }
-          ?.map { it.nameElement }
+          ?.mapNotNull { it.nameElement.element }
           ?.toList()
           .orEmpty())
 
   override fun getVariants(): Array<Any> =
       schema
           ?.entities
-          ?.flatMap { (psiClass, _, _ , columns) ->
+          ?.flatMap { (psiClassPointer, _, _ , columns) ->
             columns.map { (psiField, columnName) ->
               LookupElementBuilder.create(psiField, RoomSqlLexer.getValidName(columnName))
-                  .withTypeText(psiClass.qualifiedName, true)
+                  .withTypeText(psiClassPointer.element?.qualifiedName, true)
                   // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
                   // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
                   // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
@@ -96,14 +96,15 @@ class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReference
           ?.entities
           ?.asSequence()
           ?.filter { it.name.equals(tableName.nameAsString, ignoreCase = true) }
-          ?.map { it.nameElement }
+          ?.mapNotNull { it.nameElement.element }
           ?.toList()
           .orEmpty())
 
   override fun getVariants(): Array<Any> =
       schema
           ?.entities
-          ?.map { (psiClass, tableName) ->
+          ?.mapNotNull { (psiClassPointer, tableName) ->
+            val psiClass = psiClassPointer.element ?: return@mapNotNull null
             LookupElementBuilder.create(psiClass, RoomSqlLexer.getValidName(tableName))
                 .withTypeText(psiClass.qualifiedName, true)
                 // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
@@ -173,14 +174,22 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
-    val element = queryParameters.elementToSearch
+    val (word, nameElement) = ReadAction.compute<Pair<String, PsiElement>?, Throwable> {
+      getNameDefinition(queryParameters.elementToSearch)?.let(this::chooseWordAndElement)
+    } ?: return
 
-    val nameDefinition = when (element) {
-      is PsiClass -> getSchema(element)?.findEntity(element) ?: return
-      is PsiField -> getSchema(element)?.findEntity(element.containingClass ?: return)?.columns?.find { it.psiField == element } ?: return
-      else -> return
-    }
+    // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
+    // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a
+    // given text. Scheduled searches get merged and run later. We use the latter API, but:
+    //   - We search for the right word (as calculate above).
+    //   - We use `scopeDeterminedByUser`, not `effectiveScope`. Effective scope for a private field contains only the file in which it's
+    //     defined, which is not how Room works.
+    //   - We look for references to the right element: if a table/column name is overriden using annotations, the PSI references may not
+    //     point to the class/field itself, but we still want to show these references in "find usages".
+    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, nameElement)
+  }
 
+  private fun chooseWordAndElement(nameDefinition: SqlNameDefinition): Pair<String, PsiElement>? {
     val name = nameDefinition.name
 
     val word = when {
@@ -194,15 +203,19 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
       else -> name
     }
 
-    // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
-    // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a
-    // given text. Scheduled searches get merged and run later. We use the latter API, but:
-    //   - We search for the right word (as calculate above).
-    //   - We use `scopeDeterminedByUser`, not `effectiveScope`. Effective scope for a private field contains only the file in which it's
-    //     defined, which is not how Room works.
-    //   - We look for references to the right element: if a table/column name is overriden using annotations, the PSI references may not
-    //     point to the class/field itself, but we still want to show these references in "find usages".
-    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, nameDefinition.nameElement)
+    return nameDefinition.nameElement.element?.let { Pair(word, it) }
+  }
+
+  private fun getNameDefinition(element: PsiElement): SqlNameDefinition? {
+    return when (element) {
+      is PsiClass -> getSchema(element)?.findEntity(element) ?: return null
+      is PsiField -> getSchema(element)
+          ?.findEntity(element.containingClass ?: return null)
+          ?.columns
+          ?.find { it.psiField.element == element }
+          ?: return null
+      else -> return null
+    }
   }
 }
 
