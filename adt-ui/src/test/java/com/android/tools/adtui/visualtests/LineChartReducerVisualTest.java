@@ -107,15 +107,17 @@ public class LineChartReducerVisualTest extends VisualTest {
   }
 
   private void addData(int variance, int count) {
+    List<SeriesData<Long>> data = myData.getAllData();
+    long lastX = data.isEmpty() ? (long)(Math.random() * 4) : data.get(data.size() - 1).x;
+    long lastValue = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
+
     for (int i = 0; i < count; ++i) {
-      List<SeriesData<Long>> data = myData.getAllData();
-      long x = data.isEmpty() ? (long)(Math.random() * 4) : data.get(data.size() - 1).x + 1;
-      long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
+      lastX++;
       float delta = ((float)Math.random() - 0.5f) * variance;
-      // Make sure not to add negative numbers.
-      long current = Math.max(last + (long)delta, 0);
-      myData.add(x, current);
-      myViewXRange.setMax(x + 4);
+      lastValue = Math.max(lastValue + (long)delta, 0);
+
+      myData.add(lastX, lastValue);
+      myViewXRange.setMax(lastX + 4);
     }
   }
 
