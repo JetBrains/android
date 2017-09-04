@@ -41,7 +41,7 @@ class RelativeDragTarget : DragBaseTarget() {
    */
   private fun updateMarginOnX(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int) {
     val parent = myComponent.parent!!
-    if (myComponent.centerX < parent.drawX + parent.drawWidth / 2) {
+    if (myComponent.drawX + myComponent.drawWidth / 2 < parent.drawX + parent.drawWidth / 2) {
       // near to left side
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true")
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_START,
@@ -61,7 +61,7 @@ class RelativeDragTarget : DragBaseTarget() {
    */
   private fun updateMarginOnY(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int) {
     val parent = myComponent.parent!!
-    if (myComponent.centerY < parent.drawY + parent.drawHeight / 2) {
+    if (myComponent.drawY + myComponent.drawHeight / 2 < parent.drawY + parent.drawHeight / 2) {
       // near to top side
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true")
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,

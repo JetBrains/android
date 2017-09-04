@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Handler for the {@code <RelativeLayout>} layout
+ * Legacy Handler for the {@code <RelativeLayout>} layout
  */
 public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override

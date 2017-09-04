@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.DragType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
@@ -30,7 +31,6 @@ import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
-import java.awt.Graphics2D
 
 /**
  * Handler of New Target Architecture for the `<RelativeLayout>` layout
@@ -46,14 +46,12 @@ import java.awt.Graphics2D
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
-  // TODO: Remove this and migrate all delegated functions when this class is ready.
-  private val myLegacyHandler = RelativeLayoutHandler()
-
-  override fun paintConstraints(screenView: ScreenView, graphics: Graphics2D, component: NlComponent) =
-      myLegacyHandler.paintConstraints(screenView, graphics, component)
-
-  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType) =
-      myLegacyHandler.createDragHandler(editor, layout, components, type)
+  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler? {
+    if (layout.drawWidth == 0 || layout.drawHeight == 0) {
+      return null
+    }
+    return RelativeDragHandlerKt(editor, this, layout, components, type)
+  }
 
   override fun handlesPainting(): Boolean = true
 
