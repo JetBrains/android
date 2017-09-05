@@ -273,7 +273,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(timeAxisGuide, new TabularLayout.Constraint(2, 0));
     details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
 
-    AxisComponent timeAxis = buildTimeAxis(profilers);
+    JComponent timeAxis = buildTimeAxis(profilers);
     details.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
