@@ -58,7 +58,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int COMPONENT_HEIGHT_PX = 25;
 
-    private static final int COMPONENT_WIDTH_PX = 275;
+    private static final int COMPONENT_WIDTH_PX = 250;
 
     private LegendComponent myLegend;
 

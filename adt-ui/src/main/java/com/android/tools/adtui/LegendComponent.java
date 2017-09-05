@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.SwingUtilities2;
 
@@ -42,20 +41,19 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Space, in pixels, between vertical legends.
    */
-  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(10);
+  private static final int LEGEND_VERT_MARGIN_PX = 10;
 
   /**
    * Space, in pixels, between horizontal legends.
    */
-  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(12);
+  private final static int LEGEND_HORIZ_MARGIN_PX = 10;
 
   /**
    * Space between a legend icon and its text
    */
-  private static final int ICON_MARGIN_PX = JBUI.scale(7);
+  private static final int ICON_MARGIN_PX = 5;
 
-  private final int myLeftPadding;
-  private final int myRightPadding;
+  private final int myHorizontalPadding;
   private final int myVerticalPadding;
   private final LegendComponentModel myModel;
   /**
@@ -90,8 +88,7 @@ public class LegendComponent extends AnimatedComponent {
     myModel = builder.myModel;
     myConfigs = new HashMap<>();
     myOrientation = builder.myOrientation;
-    myLeftPadding = builder.myLeftPadding;
-    myRightPadding = builder.myRightPadding;
+    myHorizontalPadding = builder.myHorizontalPadding;
     myVerticalPadding = builder.myVerticalPadding;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
@@ -141,7 +138,7 @@ public class LegendComponent extends AnimatedComponent {
       height = Math.max(cursor.y + state.rowHeight, height);
     }
 
-    return new Dimension(width + myLeftPadding + myRightPadding, height + 2 * myVerticalPadding);
+    return new Dimension(width + 2 * myHorizontalPadding, height + 2 * myVerticalPadding);
   }
 
   @Override
@@ -153,7 +150,7 @@ public class LegendComponent extends AnimatedComponent {
   protected void draw(Graphics2D g2d, Dimension dim) {
     LegendState state = new LegendState(myInstructions);
     LegendCursor cursor = new LegendCursor();
-    LegendBounds bounds = new LegendBounds(myLeftPadding, myVerticalPadding);
+    LegendBounds bounds = new LegendBounds(myHorizontalPadding, myVerticalPadding);
     for (LegendInstruction instruction : myInstructions) {
       bounds.update(state, cursor, instruction.getSize());
       instruction.render(this, g2d, bounds);
@@ -218,12 +215,11 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   public static final class Builder {
-    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(5);
-    private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);
+    private static final int DEFAULT_PADDING_X_PX = 5;
+    private static final int DEFAULT_PADDING_Y_PX = 5;
 
     private final LegendComponentModel myModel;
-    private int myLeftPadding = DEFAULT_PADDING_X_PX;
-    private int myRightPadding = DEFAULT_PADDING_X_PX;
+    private int myHorizontalPadding = DEFAULT_PADDING_X_PX;
     private int myVerticalPadding = DEFAULT_PADDING_Y_PX;
     private Orientation myOrientation = Orientation.HORIZONTAL;
 
@@ -238,21 +234,8 @@ public class LegendComponent extends AnimatedComponent {
     }
 
     @NotNull
-    public Builder setLeftPadding(int leftPadding) {
-      myLeftPadding = leftPadding;
-      return this;
-    }
-
-    @NotNull
-    public Builder setRightPadding(int rightPadding) {
-      myRightPadding = rightPadding;
-      return this;
-    }
-
-    @NotNull
-    public Builder setHorizontalPadding(int padding) {
-      setLeftPadding(padding);
-      setRightPadding(padding);
+    public Builder setHorizontalPadding(int horizontalPadding) {
+      myHorizontalPadding = horizontalPadding;
       return this;
     }
 
@@ -359,7 +342,7 @@ public class LegendComponent extends AnimatedComponent {
     private static final int ICON_HEIGHT_PX = 15;
     private static final int LINE_THICKNESS = 3;
 
-    // Non-even size chosen because that centers well (e.g. (15 - 11) / 2, vs. (15 - 10) / 2)
+    // Odd size chosen because that centers well (e.g. (15 - 11) / 2, vs. (15 - 10) / 2)
     private static final LegendSize BOX_SIZE = new LegendSize(11, 11);
     private static final LegendSize BOX_BOUNDS = new LegendSize(11, ICON_HEIGHT_PX);
     private static final LegendSize LINE_SIZE = new LegendSize(12, LINE_THICKNESS);

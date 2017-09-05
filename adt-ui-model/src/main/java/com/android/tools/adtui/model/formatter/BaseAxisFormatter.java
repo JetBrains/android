@@ -34,8 +34,6 @@ public abstract class BaseAxisFormatter {
 
   private final int mSwitchThreshold;
 
-  private final boolean mHasSeparator;
-
   /**
    * @param maxMinorTicks   The maximum number of minor ticks in a major interval. Note that this
    *                        should be greater than zero.
@@ -47,17 +45,11 @@ public abstract class BaseAxisFormatter {
    *                        the next scale. e.g. On a time axis with a switchThreshold value of 5,
    *                        the axis will return millisecond intervals up to 5000ms before
    *                        transitioning to second intervals.
-   * @param hasSeparator    Whether there is a space separating the value and the unit (e.g. 10% vs 10 MB).
    */
-  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator) {
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     mMaxMinorTicks = Math.max(1, maxMinorTicks);
     mMaxMajorTicks = Math.max(1, maxMajorTicks);
     mSwitchThreshold = switchThreshold;
-    mHasSeparator = hasSeparator;
-  }
-
-  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
-    this(maxMinorTicks, maxMajorTicks, switchThreshold, false);
   }
 
   /**
@@ -73,11 +65,7 @@ public abstract class BaseAxisFormatter {
     // Otherwise, add up to two decimal places of value.
     DecimalFormat decimalFormat = new DecimalFormat("#.##");
     String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
-    if (!includeUnit) {
-      return formattedValue;
-    }
-    String pattern = mHasSeparator ? "%s %s" : "%s%s";
-    return String.format(pattern, formattedValue, getUnit(index));
+    return includeUnit ? String.format("%s%s", formattedValue, getUnit(index)) : formattedValue;
   }
 
   /**

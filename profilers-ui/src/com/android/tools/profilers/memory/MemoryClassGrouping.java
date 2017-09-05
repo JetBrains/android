@@ -18,12 +18,9 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 public class MemoryClassGrouping extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
@@ -35,9 +32,6 @@ public class MemoryClassGrouping extends AspectObserver {
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
     myComboBox = new FlatComboBox<>();
     myComboBox.setModel(new DefaultComboBoxModel<>(ClassGrouping.values()));
-    BasicComboBoxRenderer comboBoxRenderer = new BasicComboBoxRenderer();
-    comboBoxRenderer.setBorder(new JBEmptyBorder(UIUtil.getListCellPadding()));
-    myComboBox.setRenderer(comboBoxRenderer);
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
       if (item != null && item instanceof ClassGrouping) {

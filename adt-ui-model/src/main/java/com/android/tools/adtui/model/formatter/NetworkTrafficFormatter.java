@@ -28,7 +28,7 @@ public final class NetworkTrafficFormatter extends BaseAxisFormatter {
   public static final NetworkTrafficFormatter DEFAULT = new NetworkTrafficFormatter(4, 10, 2);
 
   public NetworkTrafficFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
-    super(maxMinorTicks, maxMajorTicks, switchThreshold, true);
+    super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
   @Override

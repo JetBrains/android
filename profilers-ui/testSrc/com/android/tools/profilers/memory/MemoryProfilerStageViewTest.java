@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +31,6 @@ import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -40,12 +40,11 @@ import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   private StudioProfilersView myProfilersView;
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myService);
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -149,37 +148,6 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(null, null);
     assertView(null, null, null, null, false);
-  }
-
-  @Test
-  public void testCaptureElapsedTime() throws Exception {
-    final int startTime = 1;
-    final int endTime = 5;
-    long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
-
-    assertFalse(myStage.isTrackingAllocations());
-
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
-    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(startTime));
-    assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());
-
-    myService.setExplicitAllocationsStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
-    myStage.trackAllocations(true);
-    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true),
-                 stageView.getCaptureElapsedTimeLabel().getText());
-
-    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(endTime));
-    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
-    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
-                 stageView.getCaptureElapsedTimeLabel().getText());
-
-    myService.setExplicitAllocationsStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(endTime), true);
-    myStage.trackAllocations(false);
-    assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());
   }
 
   @Test

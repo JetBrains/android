@@ -69,7 +69,7 @@ public class ConnectionDetailsView extends JPanel {
   private static final int HGAP = JBUI.scale(22);
   private static final int SCROLL_UNIT = JBUI.scale(10);
   private static final float TITLE_FONT_SIZE = 14.f;
-  private static final float FIELD_FONT_SIZE = 11.f;
+  private static final float FIELD_FONT_SIZE = 10.f;
   private static final LongFunction<String> TIME_FORMATTER =
     time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
@@ -84,7 +84,7 @@ public class ConnectionDetailsView extends JPanel {
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
-  private final FlatTabbedPane myTabsPanel;
+  private final JTabbedPane myTabsPanel;
 
   public ConnectionDetailsView(@NotNull NetworkProfilerStageView stageView) {
     super(new BorderLayout());
@@ -98,7 +98,6 @@ public class ConnectionDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
     myTabsPanel = new FlatTabbedPane();
-    myTabsPanel.getTabAreaInsets().top = -1;
 
     TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
     myResponsePanel = new JPanel(layout);
@@ -184,7 +183,7 @@ public class ConnectionDetailsView extends JPanel {
       myResponsePanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
 
       myHeadersPanel.add(createHeaderSection("Response Headers", httpData.getResponseHeaders()));
-      myHeadersPanel.add(createSeparator());
+      myHeadersPanel.add(new JSeparator());
       myHeadersPanel.add(createHeaderSection("Request Headers", httpData.getRequestHeaders()));
 
       myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, httpData.getStackTrace().getCodeLocations());
@@ -195,12 +194,6 @@ public class ConnectionDetailsView extends JPanel {
     setVisible(httpData != null);
     revalidate();
     repaint();
-  }
-
-  private static JSeparator createSeparator() {
-    JSeparator separator = new JSeparator();
-    separator.setForeground(UIManager.getColor("Table.gridColor"));
-    return separator;
   }
 
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
@@ -262,7 +255,7 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
     row++;
-    JSeparator separator = createSeparator();
+    JSeparator separator = new JSeparator();
     separator.setMinimumSize(separator.getPreferredSize());
     int gap = PAGE_VGAP - SECTION_VGAP - (int)separator.getPreferredSize().getHeight() / 2;
     JPanel separatorContainer = new JPanel(new VerticalFlowLayout(0, gap));
@@ -288,8 +281,7 @@ public class ConnectionDetailsView extends JPanel {
     Range range = new Range(httpData.getStartTimeUs(),
                             httpData.getEndTimeUs() > 0 ? httpData.getEndTimeUs() : httpData.getStartTimeUs() + 1);
     ConnectionsStateChart connectionsChart = new ConnectionsStateChart(httpData, range);
-    connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUI.scale(28)));
-    connectionsChart.setHeightGap(0);
+    connectionsChart.getComponent().setMinimumSize(new Dimension(0, 28));
     panel.add(connectionsChart.getComponent());
 
     long sentTime = -1;
@@ -310,8 +302,7 @@ public class ConnectionDetailsView extends JPanel {
     legendModel.add(receivedLegend);
 
     // TODO: Add waiting time in (currently hidden because it's always 0)
-    LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build();
-    legend.setFont(legend.getFont().deriveFont(FIELD_FONT_SIZE));
+    LegendComponent legend = new LegendComponent(legendModel);
     legend.configure(sentLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));
     legend.configure(receivedLegend,
@@ -409,7 +400,8 @@ public class ConnectionDetailsView extends JPanel {
       setLineWrap(true);
       setEditable(false);
       setBackground(UIUtil.getLabelBackground());
-      setFont(UIManager.getFont("Label.font").deriveFont(FIELD_FONT_SIZE).deriveFont(ImmutableMap.of(
+      setFont(getFont().deriveFont(ImmutableMap.of(
+        TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON,
         TextAttribute.FOREGROUND, PlatformColors.BLUE,
         TextAttribute.BACKGROUND, UIUtil.getLabelBackground())));
 

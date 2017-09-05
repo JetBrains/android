@@ -88,7 +88,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   protected void installDefaults() {
-    padding = JBUI.insets(0, 0, 0, 2);
+    padding = JBUI.insets(0, 4, 0, 2);
     squareButton = false;
   }
 

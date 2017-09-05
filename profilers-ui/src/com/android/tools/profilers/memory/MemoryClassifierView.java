@@ -277,7 +277,6 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
-    builder.setShowVerticalLines(true);
     myColumnTree = builder.build();
     myPanel.add(myColumnTree, BorderLayout.CENTER);
   }

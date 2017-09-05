@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.ui.JBSplitter;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -37,7 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.android.tools.adtui.common.AdtUiUtils.*;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
@@ -63,8 +64,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myTooltipView = new NetworkStageTooltipView(stage);
     myThreadsView = new ThreadsView(this);
 
-    JBSplitter leftSplitter = new JBSplitter(true);
-    leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    Splitter leftSplitter = new Splitter(true);
+    leftSplitter.setShowDividerIcon(false);
+    leftSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
     leftSplitter.setFirstComponent(buildMonitorUi());
     myConnectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
@@ -101,10 +103,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
 
-    JBSplitter splitter = new JBSplitter(false, 0.6f);
+    Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
     splitter.setHonorComponentsMinimumSize(true);
+    splitter.setShowDividerIcon(false);
     splitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
 
     getComponent().add(splitter, BorderLayout.CENTER);
@@ -184,7 +187,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     NetworkProfilerStage.NetworkStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent(legends);
     legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
     legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
     legend.configure(legends.getConnectionLegend(), new LegendConfig(lineChart.getLineConfig(usage.getConnectionSeries())));

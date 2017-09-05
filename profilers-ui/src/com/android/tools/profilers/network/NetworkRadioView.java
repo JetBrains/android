@@ -17,7 +17,6 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartConfig;
@@ -26,6 +25,8 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
+import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,12 +34,12 @@ import java.awt.*;
 import java.util.EnumMap;
 
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
 import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
 public class NetworkRadioView {
   private static final String LABEL = "RADIO";
+  private static final int MINIMUM_HEIGHT = JBUI.scale(45);
   private static final double STATE_CHART_HEIGHT_RATIO = .6;
   private static final double STATE_CHART_OVER_HEIGHT_RATIO = 1;
   private static final float STATE_CHART_OFFSET = .1f;
@@ -63,6 +64,8 @@ public class NetworkRadioView {
 
     myComponent = new JPanel();
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myComponent.setMinimumSize(new Dimension(0, MINIMUM_HEIGHT));
+    myComponent.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     myComponent.setBorder(MONITOR_BORDER);
 
     populateUI(myComponent);
@@ -75,7 +78,7 @@ public class NetworkRadioView {
 
   private void populateUI(@NotNull JComponent panel) {
     JLabel label = new JLabel(LABEL);
-    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setBorder(BorderFactory.createEmptyBorder(0, ProfilerLayout.MARKER_LENGTH, 0, 0));
     label.setVerticalAlignment(SwingConstants.TOP);
 
     LegendComponentModel legendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
@@ -86,8 +89,7 @@ public class NetworkRadioView {
     legendModel.add(highLegend);
     legendModel.add(lowLegend);
 
-    LegendComponent legend =
-      new LegendComponent.Builder(legendModel).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent(legendModel);
     legend.configure(wifiLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.WIFI)));
     legend.configure(highLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.HIGH)));
     legend.configure(lowLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.LOW)));
@@ -98,8 +100,8 @@ public class NetworkRadioView {
     topPane.add(label, BorderLayout.WEST);
     topPane.add(legend, BorderLayout.EAST);
 
-    panel.setLayout(new TabularLayout("*", "Fit,12px,8px"));
-    panel.add(topPane, new TabularLayout.Constraint(0, 0));
-    panel.add(myRadioChart, new TabularLayout.Constraint(1, 0));
+    panel.setLayout(new VerticalFlowLayout(true, true));
+    panel.add(topPane);
+    panel.add(myRadioChart);
   }
 }

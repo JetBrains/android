@@ -94,11 +94,11 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       JLabel disabledMessage = new JLabel(getDisabledMessage());
       disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
       disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
-      disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
+      disabledMessage.setFont(disabledMessage.getFont().deriveFont(21f));
       myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
       HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-      linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
+      linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration dialog", "");
       linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
         @Override
         protected void hyperlinkActivated(HyperlinkEvent e) {
@@ -106,7 +106,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
         }
       });
       myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
-      linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+      linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(13f));
     }
   }
 
