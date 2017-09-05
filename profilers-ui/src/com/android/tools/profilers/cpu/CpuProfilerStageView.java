@@ -36,12 +36,13 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -330,20 +331,42 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         }
       }
     });
-    myProfilingConfigurationCombo.setRenderer(new ListCellRendererWrapper<ProfilingConfiguration>() {
-      @Override
-      public void customize(JList list, ProfilingConfiguration value, int index, boolean selected, boolean hasFocus) {
-        if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
-          setIcon(AllIcons.Actions.EditSource);
-          setText("Edit configurations...");
-        } else if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
-          setSeparator();
-        }
-        else {
-          setText(value.getName());
-        }
+    myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
+  }
+
+  private static class ProfilingConfigurationRenderer extends ColoredListCellRenderer<ProfilingConfiguration> {
+    ProfilingConfigurationRenderer() {
+      super();
+      setIpad(new JBInsets(0, UIUtil.isUnderNativeMacLookAndFeel() ? 5 : UIUtil.getListCellHPadding(), 0, 0));
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<? extends ProfilingConfiguration> list,
+                                                  ProfilingConfiguration value,
+                                                  int index,
+                                                  boolean selected,
+                                                  boolean hasFocus) {
+      if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
+        TitledSeparator separator = new TitledSeparator("");
+        separator.setBorder(new EmptyBorder(0, TitledSeparator.SEPARATOR_LEFT_INSET * -1, 0, TitledSeparator.SEPARATOR_RIGHT_INSET * -1));
+        return separator;
       }
-    });
+      return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
+    }
+
+    @Override
+    protected void customizeCellRenderer(@NotNull JList<? extends ProfilingConfiguration> list,
+                                         ProfilingConfiguration value,
+                                         int index,
+                                         boolean selected,
+                                         boolean hasFocus) {
+      if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
+        setIcon(AllIcons.Actions.EditSource);
+        append("Edit configurations...");
+      } else {
+        append(value.getName());
+      }
+    }
   }
 
   @NotNull
@@ -434,6 +457,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
 
     toolbar.add(myProfilingConfigurationCombo);
+    toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
 
