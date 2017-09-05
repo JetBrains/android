@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.util.WhiteIconGenerator;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
@@ -33,15 +35,21 @@ import javax.swing.*;
  * Decorator for the structure pane tree control.
  */
 public class StructureTreeDecorator {
+  private static final WhiteIconGenerator ourWhiteIconGenerator = new WhiteIconGenerator();
+
   private StructureTreeDecorator() {
   }
 
   /**
    * Decorate a tree node with ID, title, and attributes of the current component.
    */
-  static void decorate(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
+  static void decorate(@NotNull ColoredTextContainer container, @NotNull NlComponent component, boolean hasFocus) {
     append(container, component);
-    container.setIcon(getViewHandler(component).getIcon(component));
+    Icon icon = getViewHandler(component).getIcon(component);
+    if (hasFocus && StudioFlags.NELE_NEW_PALETTE.get()) {
+      icon = ourWhiteIconGenerator.generateWhiteIcon(icon);
+    }
+    container.setIcon(icon);
   }
 
   static void decorate(@NotNull ColoredTextContainer container, @NotNull String text) {

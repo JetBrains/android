@@ -206,7 +206,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
 
         if (value instanceof NlComponent) {
-          StructureTreeDecorator.decorate(this, (NlComponent)value);
+          StructureTreeDecorator.decorate(this, (NlComponent)value, hasFocus);
         }
         else if (value instanceof String) {
           StructureTreeDecorator.decorate(this, (String)value);
