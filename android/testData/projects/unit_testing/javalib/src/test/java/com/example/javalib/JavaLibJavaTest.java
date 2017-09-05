@@ -2,12 +2,14 @@ package com.example.javalib;
 
 import org.junit.Test;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 public class JavaLibJavaTest {
@@ -45,5 +47,20 @@ public class JavaLibJavaTest {
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
         assertEquals("javalib test", s);
+    }
+
+    @Test
+    public void workingDir() {
+        assertTrue(new File("").getAbsolutePath().endsWith("javalib"));
+    }
+
+    @Test
+    public void assertions() {
+        try {
+            assert false;
+            fail("assertions disabled");
+        } catch (AssertionError e) {
+            // expected
+        }
     }
 }

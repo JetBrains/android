@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jdeferred.Deferred;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -225,4 +226,18 @@ public class AppJavaUnitTest {
         log.info("I can use commons-logging!");
     }
 
+    @Test
+    public void workingDir() {
+        assertTrue(new File("").getAbsolutePath().endsWith("app"));
+    }
+
+    @Test
+    public void assertions() {
+        try {
+            assert false;
+            fail("assertions disabled");
+        } catch (AssertionError e) {
+            // expected
+        }
+    }
 }

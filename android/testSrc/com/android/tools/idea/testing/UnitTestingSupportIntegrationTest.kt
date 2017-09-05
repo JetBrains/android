@@ -79,6 +79,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
         "com.example.app.AppJavaUnitTest",
         expectedTests = setOf(
             "java:test://com.example.app.AppJavaUnitTest.aarDependencies",
+            "java:test://com.example.app.AppJavaUnitTest.assertions",
             "java:test://com.example.app.AppJavaUnitTest.commonsLogging",
             "java:test://com.example.app.AppJavaUnitTest.enums",
             "java:test://com.example.app.AppJavaUnitTest.exceptions",
@@ -96,7 +97,8 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
             "java:test://com.example.app.AppJavaUnitTest.referenceLibraryCode",
             "java:test://com.example.app.AppJavaUnitTest.referenceLibraryKotlinCode",
             "java:test://com.example.app.AppJavaUnitTest.referenceProductionCode",
-            "java:test://com.example.app.AppJavaUnitTest.referenceProductionKotlinCode"
+            "java:test://com.example.app.AppJavaUnitTest.referenceProductionKotlinCode",
+            "java:test://com.example.app.AppJavaUnitTest.workingDir"
         )
     )
     // TODO(b/64667992): check AppKotlinUnitTest once the Kotlin setup works.
@@ -107,6 +109,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
         "com.example.lib.LibJavaUnitTest",
         expectedTests = setOf(
             "java:test://com.example.lib.LibJavaUnitTest.aarDependencies",
+            "java:test://com.example.lib.LibJavaUnitTest.assertions",
             "java:test://com.example.lib.LibJavaUnitTest.commonsLogging",
             "java:test://com.example.lib.LibJavaUnitTest.enums",
             "java:test://com.example.lib.LibJavaUnitTest.exceptions",
@@ -124,7 +127,8 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
             "java:test://com.example.lib.LibJavaUnitTest.referenceLibraryCode",
             "java:test://com.example.lib.LibJavaUnitTest.referenceLibraryKotlinCode",
             "java:test://com.example.lib.LibJavaUnitTest.referenceProductionCode",
-            "java:test://com.example.lib.LibJavaUnitTest.referenceProductionKotlinCode"
+            "java:test://com.example.lib.LibJavaUnitTest.referenceProductionKotlinCode",
+            "java:test://com.example.lib.LibJavaUnitTest.workingDir"
         )
     )
     // TODO(b/64667992): check LibKotlinUnitTest once the Kotlin setup works.
@@ -134,10 +138,12 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     checkTestClass(
         "com.example.javalib.JavaLibJavaTest",
         expectedTests = setOf(
+            "java:test://com.example.javalib.JavaLibJavaTest.assertions",
             "java:test://com.example.javalib.JavaLibJavaTest.javaResourcesOnClasspath",
             "java:test://com.example.javalib.JavaLibJavaTest.prodJavaResourcesOnClasspath",
             "java:test://com.example.javalib.JavaLibJavaTest.referenceJavaLibJavaClass",
-            "java:test://com.example.javalib.JavaLibJavaTest.referenceJavaLibKotlinClass"
+            "java:test://com.example.javalib.JavaLibJavaTest.referenceJavaLibKotlinClass",
+            "java:test://com.example.javalib.JavaLibJavaTest.workingDir"
         )
     )
     // TODO(b/64667992): check JavaLibKotlinTest once the Kotlin setup works.

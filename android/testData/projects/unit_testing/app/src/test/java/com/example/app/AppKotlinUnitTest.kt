@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory
 import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.*
+import java.io.File
 import java.nio.charset.StandardCharsets
 
 class AppKotlinUnitTest {
@@ -204,4 +205,18 @@ class AppKotlinUnitTest {
         log.info("I can use commons-logging!")
     }
 
+    @Test
+    fun workingDir() {
+      assertTrue(File("").absolutePath.endsWith("app"))
+    }
+
+    @Test
+    fun assertions() {
+        try {
+            assert(false)
+            fail("assertions disabled");
+        } catch (e: AssertionError) {
+            // expected
+        }
+    }
 }
