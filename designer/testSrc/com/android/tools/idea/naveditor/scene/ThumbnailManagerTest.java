@@ -66,7 +66,7 @@ public class ThumbnailManagerTest extends NavigationTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(surface, getTestRootDisposable(), myAndroidFacet, psiFile);
+    NlModel model = NlModel.create(getTestRootDisposable(), myAndroidFacet, psiFile);
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
@@ -103,7 +103,7 @@ public class ThumbnailManagerTest extends NavigationTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(surface, getTestRootDisposable(), myAndroidFacet, psiFile);
+    NlModel model = NlModel.create(getTestRootDisposable(), myAndroidFacet, psiFile);
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image.getCopy(), MAX_PERCENT_DIFFERENT);

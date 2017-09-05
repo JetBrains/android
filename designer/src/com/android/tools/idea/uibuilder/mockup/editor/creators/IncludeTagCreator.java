@@ -134,7 +134,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
 
     SceneManager manager = getScreenView().getSurface().getSceneManager();
     if (manager != null) {
-      NlModel model = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile);
+      NlModel model = NlModel.create(newFile.getProject(), facet, newFile);
       manager.addRenderListener(new RenderListener() {
         @Override
         public void onRenderCompleted() {

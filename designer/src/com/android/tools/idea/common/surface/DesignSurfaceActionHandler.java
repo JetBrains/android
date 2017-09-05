@@ -22,8 +22,11 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -201,7 +204,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
     if (checkOnly) {
       return true;
     }
-    model.addComponents(pasted, receiver, before, insertType);
+    model.addComponents(pasted, receiver, before, insertType, ViewEditorImpl.getOrCreate(sceneView));
     return true;
   }
 

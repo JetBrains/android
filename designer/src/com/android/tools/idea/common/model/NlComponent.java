@@ -16,13 +16,12 @@
 package com.android.tools.idea.common.model;
 
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -37,7 +36,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -276,23 +274,6 @@ public class NlComponent implements NlAttributesHolder {
     return null;
   }
 
-  /**
-   * Looks up the existing set of id's reachable from the given module
-   */
-  public static Collection<String> getIds(@NotNull NlModel model) {
-    AndroidFacet facet = model.getFacet();
-    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(facet);
-    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
-    Set<String> pendingIds = model.getPendingIds();
-    if (!pendingIds.isEmpty()) {
-      List<String> all = Lists.newArrayListWithCapacity(pendingIds.size() + ids.size());
-      all.addAll(ids);
-      all.addAll(pendingIds);
-      ids = all;
-    }
-    return ids;
-  }
-
   @Nullable
   public NlComponent getParent() {
     return myParent;
@@ -524,7 +505,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   public String assignId(@NotNull String baseName) {
-    return assignId(baseName, getIds(getModel()));
+    return assignId(baseName, NlModelHelperKt.getIds(getModel()));
   }
 
   /**

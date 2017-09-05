@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
@@ -699,7 +700,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
     List<NlComponent> components = ApplicationManager.getApplication().runWriteAction(
       (Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(myModel, myScreenView, item, InsertType.PASTE));
-    myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE);
+    myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE, ViewEditorImpl.getOrCreate(myScreenView));
   }
 
   private static class InsertSpecification {

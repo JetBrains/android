@@ -25,7 +25,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +61,7 @@ public class ConstraintDragHandler extends DragHandler {
     if (myComponent == null) {
       return;
     }
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.needsRebuildList();
     @AndroidDpCoordinate int dx = x - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
@@ -81,7 +80,7 @@ public class ConstraintDragHandler extends DragHandler {
     if (myComponent == null) {
       return "undefined";
     }
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     @AndroidDpCoordinate int dx = x - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
     myComponent.setPosition(dx, dy);
@@ -99,7 +98,7 @@ public class ConstraintDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     if (myComponent != null) {
       scene.removeComponent(myComponent);
     }
@@ -107,7 +106,7 @@ public class ConstraintDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
       NlWriteCommandAction.run(root, type.getDescription(), () -> root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI));

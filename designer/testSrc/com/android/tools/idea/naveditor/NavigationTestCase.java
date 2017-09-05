@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.naveditor;
 
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
@@ -40,10 +39,9 @@ import java.io.File;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.TAG_ACTION;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_GRAPH;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.*;
 import static org.mockito.Mockito.when;
 
 // TODO: in most cases this probably doesn't need to extend AndroidGradleTestCase/doesn't need to load the project.
@@ -115,7 +113,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
 
     return new ModelBuilder(myAndroidFacet, myFixture, name, root, managerFactory,
                             NavSceneManager::updateHierarchy, "nav", NavDesignSurface.class,
-                            (tag, model) -> DesignSurface.createComponent(tag, model));
+                            (tag, model) -> new NlComponent(model, tag));
   }
 
   @NotNull

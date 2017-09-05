@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.Density
+import com.android.resources.ResourceType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
@@ -26,7 +27,6 @@ import com.android.tools.idea.common.editor.NlEditorProvider
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
@@ -36,14 +36,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.InsertType
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.api.ViewHandler
+import com.android.tools.idea.res.AppResourceRepository
+import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Sets
+import com.google.common.collect.Lists
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -57,7 +55,6 @@ import java.util.*
  */
 
 const val CUSTOM_DENSITY_ID = "Custom Density"
-val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
 
 /**
  * Returns true if the current module depends on the specified library.
@@ -215,13 +212,13 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
  *
  * Note: The caller is responsible for calling [.notifyModified] if the creation completes successfully.
 
- * @param sceneView  The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+ * @param editor     A ViewEditor used to handle pixel to dp computations in view handlers, etc.
  * @param tag        The XmlTag for the component.
  * @param parent     The parent to add this component to.
  * @param before     The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
  */
-fun NlModel.createComponent(sceneView: SceneView,
+fun NlModel.createComponent(editor: ViewEditor,
                             tag: XmlTag,
                             parent: NlComponent?,
                             before: NlComponent?,
@@ -250,7 +247,6 @@ fun NlModel.createComponent(sceneView: SceneView,
   // Notify view handlers
   val viewHandlerManager = ViewHandlerManager.get(project)
   val childHandler = viewHandlerManager.getHandler(child)
-  val editor = ViewEditorImpl(sceneView)
 
   if (childHandler != null) {
     var ok = childHandler.onCreate(editor, parent, child, insertType)
@@ -306,7 +302,7 @@ fun NlModel.createComponents(sceneView: SceneView,
   val components = ArrayList<NlComponent>(item.components.size)
   for (dndComponent in item.components) {
     val tag = createTag(sceneView.model.project, dndComponent.representation)
-    val component = createComponent(sceneView, tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
+    val component = createComponent(ViewEditorImpl.getOrCreate(sceneView), tag, null, null, insertType) ?: return Collections.emptyList()  // User may have cancelled
     component.w = dndComponent.width
     component.h = dndComponent.height
     components.add(component)
@@ -314,35 +310,21 @@ fun NlModel.createComponents(sceneView: SceneView,
   return components
 }
 
-fun NlModel.handleAddition(added: List<NlComponent>, receiver: NlComponent, insertType: InsertType, surface: DesignSurface) {
-  var realInsertType = insertType
-  if (!receiver.hasNlComponentInfo) {
-    return
+/**
+ * Looks up the existing set of id's reachable from the given module
+ */
+fun getIds(model: NlModel): Collection<String> {
+  val facet = model.facet
+  val resources = AppResourceRepository.getOrCreateInstance(facet)
+  var ids = resources.getItemsOfType(ResourceType.ID)
+  val pendingIds = model.pendingIds
+  if (!pendingIds.isEmpty()) {
+    val all = Lists.newArrayListWithCapacity<String>(pendingIds.size + ids.size)
+    all.addAll(ids)
+    all.addAll(pendingIds)
+    ids = all
   }
-  val ids = Sets.newHashSet(NlComponent.getIds(this))
-  val groupHandler = (receiver.viewHandler as ViewGroupHandler?)!!
-
-  val view = surface.currentSceneView!!
-
-  val editor = ViewEditorImpl(view)
-
-  for (component: NlComponent in added) {
-    if (insertType.isMove) {
-      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
-    }
-    if (component.needsDefaultId() && !realInsertType.isMove) {
-      val id = component.id
-      if (id.isNullOrBlank()) {
-        ids.add(component.assignId(ids))
-      }
-      else {
-        BASE_ID_PATTERN.find(id!!)?.groups?.get(1)?.value?.let {
-          ids.add(component.assignId(it, ids))
-        }
-      }
-    }
-    groupHandler.onChildInserted(editor, receiver, component, realInsertType)
-  }
+  return ids
 }
 
 object NlModelHelper {

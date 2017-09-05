@@ -43,7 +43,7 @@ public class SyncNlModel extends NlModel {
   }
 
   private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
-    super(surface, parent, facet, file);
+    super(parent, facet, file);
     mySurface = surface;
   }
 

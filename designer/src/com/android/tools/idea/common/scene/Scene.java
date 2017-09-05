@@ -197,6 +197,11 @@ public class Scene implements SelectionListener, Disposable {
     return mySceneComponents.get(component);
   }
 
+  @NotNull
+  public DesignSurface getDesignSurface() {
+    return myDesignSurface;
+  }
+
   /**
    * Return the SceneComponent corresponding to the given component id, if found
    *

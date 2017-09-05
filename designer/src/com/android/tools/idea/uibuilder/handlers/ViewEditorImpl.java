@@ -24,6 +24,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -44,6 +46,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
@@ -88,54 +91,64 @@ import static com.android.SdkConstants.*;
  * to {@link ViewHandler} instances
  */
 public class ViewEditorImpl extends ViewEditor {
-  private final SceneView mySceneView;
+  private final Configuration myConfiguration;
+  private final NlModel myModel;
+  private final SceneManager mySceneManager;
+  private final Scene myScene;
 
   @VisibleForTesting
   private Collection<ViewInfo> myRootViews;
 
-  public ViewEditorImpl(@NotNull SceneView scene) {
-    mySceneView = scene;
+  public ViewEditorImpl(@NotNull SceneView sceneView) {
+    this(sceneView.getModel(), sceneView.getScene());
+  }
+
+  public ViewEditorImpl(@NotNull NlModel model, @NotNull Scene scene) {
+    myConfiguration = model.getConfiguration();
+    myModel = model;
+    mySceneManager = scene.getSceneManager();
+    myScene = scene;
   }
 
   @Override
   public int getDpi() {
-    return mySceneView.getConfiguration().getDensity().getDpiValue();
+    return myConfiguration.getDensity().getDpiValue();
   }
 
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getBuildSdkVersion();
+    return AndroidModuleInfo.getInstance(myModel.getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getMinSdkVersion();
+    return AndroidModuleInfo.getInstance(myModel.getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getTargetSdkVersion();
+    return AndroidModuleInfo.getInstance(myModel.getFacet()).getTargetSdkVersion();
   }
 
   @NotNull
   @Override
   public Configuration getConfiguration() {
-    return mySceneView.getConfiguration();
+    return myConfiguration;
   }
 
   @NotNull
   @Override
   public NlModel getModel() {
-    return mySceneView.getModel();
+    return myModel;
   }
 
   @NotNull
   @Override
   public LayoutlibSceneManager getSceneBuilder() {
-    return (LayoutlibSceneManager)mySceneView.getSceneManager();
+    return (LayoutlibSceneManager)mySceneManager;
   }
 
   @NotNull
@@ -161,7 +174,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
-    AndroidFacet facet = mySceneView.getModel().getFacet();
+    AndroidFacet facet = myModel.getFacet();
     return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name);
   }
 
@@ -181,7 +194,7 @@ public class ViewEditorImpl extends ViewEditor {
   public void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml) {
     String message = "Do you want to copy layout " + layout + " to your main module source set?";
 
-    if (Messages.showYesNoDialog(mySceneView.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
+    if (Messages.showYesNoDialog(myModel.getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
       return;
     }
 
@@ -210,7 +223,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   private VirtualFile getResourceDirectoryChild(@NotNull String child) throws IOException {
-    VirtualFile resourceDirectory = mySceneView.getModel().getFacet().getPrimaryResourceDir();
+    VirtualFile resourceDirectory = myModel.getFacet().getPrimaryResourceDir();
 
     if (resourceDirectory == null) {
       Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
@@ -241,7 +254,7 @@ public class ViewEditorImpl extends ViewEditor {
         tagToComponent.put(child.getTag(), child);
       }
 
-      NlModel model = mySceneView.getModel();
+      NlModel model = myModel;
       XmlFile xmlFile = model.getFile();
       AndroidFacet facet = model.getFacet();
       RenderService renderService = RenderService.getInstance(facet);
@@ -273,7 +286,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
-    NlModel model = mySceneView.getModel();
+    NlModel model = myModel;
     ChooseResourceDialog dialog = ChooseResourceDialog.builder()
       .setModule(model.getModule())
       .setTypes(types)
@@ -302,7 +315,7 @@ public class ViewEditorImpl extends ViewEditor {
   public String displayClassInput(@NotNull Set<String> superTypes,
                                   @Nullable final Predicate<PsiClass> filter,
                                   @Nullable String currentValue) {
-    Module module = mySceneView.getModel().getModule();
+    Module module = myModel.getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     Condition<PsiClass> psiFilter = psiClass -> {
@@ -332,9 +345,10 @@ public class ViewEditorImpl extends ViewEditor {
     return false;
   }
 
+  @Override
   @NotNull
-  public SceneView getSceneView() {
-    return mySceneView;
+  public Scene getScene() {
+    return myScene;
   }
 
   @Override
@@ -348,7 +362,7 @@ public class ViewEditorImpl extends ViewEditor {
     if (path != null) {
       VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(path);
       if (file != null) {
-        Project project = mySceneView.getModel().getProject();
+        Project project = myModel.getProject();
         if (currentFile != null) {
           return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file);
         }
@@ -383,7 +397,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
     addMissingDependencies(children);
-    getModel().addComponents(children, parent, getChild(parent, index), insertType);
+    getModel().addComponents(children, parent, getChild(parent, index), insertType, this);
   }
 
   private void addMissingDependencies(@NotNull Iterable<NlComponent> components) {
@@ -424,5 +438,15 @@ public class ViewEditorImpl extends ViewEditor {
 
     Module module = getModel().getModule();
     return GradleDependencyManager.getInstance(module.getProject()).findMissingDependencies(module, dependencies);
+  }
+
+  /**
+   * Try to get an existing View editor from the {@link ScreenView}'s {@link com.android.tools.idea.common.surface.DesignSurface}
+   * or create a new one using the provided {@link ScreenView} if it's null
+   */
+  @NotNull
+  public static ViewEditor getOrCreate(@NotNull SceneView screenView) {
+    ViewEditor editor = screenView.getSurface().getViewEditor();
+    return editor != null ? editor : new ViewEditorImpl(screenView);
   }
 }

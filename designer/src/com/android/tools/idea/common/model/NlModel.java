@@ -20,19 +20,13 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -71,19 +65,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
-  @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
-  private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
-    @Override
-    public boolean changed(int flags) {
-      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isLayoutDisabled()) {
-        mySurface.zoom(ZoomType.FIT_INTO);
-      }
 
-      return true;
-    }
-  };
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private NlComponent myRootComponent;
@@ -92,25 +76,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
+  private final SelectionModel mySelectionModel = new SelectionModel();
   private long myConfigurationModificationCount;
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
 
   @NotNull
-  public static NlModel create(@NotNull DesignSurface surface,
-                               @Nullable Disposable parent,
+  public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
                                @NotNull XmlFile file) {
-    return new NlModel(surface, parent, facet, file);
+    return new NlModel(parent, facet, file);
   }
 
   @VisibleForTesting
-  protected NlModel(@NotNull DesignSurface surface,
-                    @Nullable Disposable parent,
+  protected NlModel(@Nullable Disposable parent,
                     @NotNull AndroidFacet facet,
                     @NotNull XmlFile file) {
-    mySurface = surface;
     myFacet = facet;
     myFile = file;
     myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile.getVirtualFile());
@@ -138,7 +120,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     if (!wasActive) {
       // This was the first activation so enable listeners
-      myConfiguration.addListener(myConfigurationListener);
 
       // If the resources have changed or the configuration has been modified, request a model update
       if (myConfiguration.getModificationCount() != myConfigurationModificationCount) {
@@ -167,7 +148,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
     manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
-    myConfiguration.removeListener(myConfigurationListener);
   }
 
   /**
@@ -199,13 +179,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  public DesignSurface getSurface() {
-    return mySurface;
-  }
-
-  @NotNull
   public SelectionModel getSelectionModel() {
-    return mySurface.getSelectionModel();
+    return mySelectionModel;
   }
 
   @Nullable
@@ -221,7 +196,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  Set<String> getPendingIds() {
+  public Set<String> getPendingIds() {
     return myPendingIds;
   }
 
@@ -855,7 +830,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * {@link #createComponent(XmlTag, NlComponent, NlComponent)}.
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
-    return mySurface.createComponent(tag);
+    NlComponent component = new NlComponent(this, tag);
+    component.setMixin(new NlComponentMixin(component));
+    return component;
   }
 
   @NotNull
@@ -898,7 +875,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void addComponents(@Nullable List<NlComponent> toAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
-                            @NotNull InsertType insertType) {
+                            @NotNull InsertType insertType,
+                            @Nullable ViewEditor editor) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
@@ -907,7 +885,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     assert toAdd != null;
-    NlWriteCommandAction.run(toAdd, insertType.getDragType().getDescription(), () -> handleAddition(toAdd, receiver, before, insertType));
+    NlWriteCommandAction.run(toAdd, insertType.getDragType().getDescription(),
+                             () -> handleAddition(toAdd, receiver, before, insertType, editor));
 
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
@@ -949,11 +928,31 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private void handleAddition(@NotNull List<NlComponent> added,
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
-                              @NotNull InsertType insertType) {
-    // TODO: remove this
-    NlModelHelperKt.handleAddition(this, added, receiver, insertType, mySurface);
+                              @NotNull InsertType insertType,
+                              @Nullable ViewEditor editor) {
+    InsertType realInsertType = insertType;
+    HashSet<String> ids = Sets.newHashSet(NlModelHelperKt.getIds(this));
 
     for (NlComponent component : added) {
+
+      if (insertType.isMove()) {
+        realInsertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
+      }
+
+      // AssignId
+      if (NlComponentHelperKt.needsDefaultId(component) && !realInsertType.isMove()) {
+        String id = component.getId();
+        if (id == null || id.isEmpty()) {
+          ids.add(component.assignId(ids));
+        }
+        else {
+          String baseName = NlComponentHelperKt.getBaseIdName(component);
+          if (baseName != null && !baseName.isEmpty()) {
+            ids.add(component.assignId(baseName, ids));
+          }
+        }
+      }
+
       NlComponent parent = component.getParent();
       if (parent != null) {
         parent.removeChild(component);
@@ -972,7 +971,21 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           prev.delete();
         }
       }
+
+      if (editor != null) {
+        notifyViewHandler(receiver, realInsertType, component, editor);
+      }
       removeNamespaceAttributes(component);
+    }
+  }
+
+  private static void notifyViewHandler(@NotNull NlComponent receiver,
+                                        @NotNull InsertType insertType,
+                                        @NotNull NlComponent component,
+                                        @NotNull ViewEditor editor) {
+    ViewGroupHandler groupHandler = NlComponentHelperKt.getViewGroupHandler(receiver);
+    if (groupHandler != null) {
+      groupHandler.onChildInserted(editor, receiver, component, insertType);
     }
   }
 
@@ -1106,7 +1119,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           notifyModified(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
-          RefreshRenderAction.clearCache(mySurface);
+          RefreshRenderAction.clearCache(getConfiguration());
+          notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
