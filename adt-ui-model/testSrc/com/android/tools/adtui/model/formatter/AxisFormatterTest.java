@@ -31,13 +31,6 @@ public class AxisFormatterTest {
   }
 
   @Test
-  public void testFormatterSeparator() {
-    assertThat(myFormatter.getFormattedString(0, 100, true)).isEqualTo("100mm");
-    MockAxisFormatter formatterWithSeparator = new MockAxisFormatter(5, 10, 5, true);
-    assertThat(formatterWithSeparator.getFormattedString(0, 100, true)).isEqualTo("100 mm");
-  }
-
-  @Test
   public void testGetInterval() throws Exception {
     // maxMinorTicks is 5 so the smallest possible interval is 100 / 5 = 20
     // The axis is in base 10 which has factors: {1, 5, 10}, so the interval

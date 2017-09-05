@@ -105,11 +105,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       component.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseEntered(MouseEvent e) {
-          if (monitor.isEnabled()) {
-            stage.setTooltip(monitor);
-          } else {
-            stage.setTooltip(null);
-          }
+          stage.setTooltip(monitor);
         }
 
         @Override

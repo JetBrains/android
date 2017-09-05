@@ -102,7 +102,7 @@ final class ThreadsView {
 
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, timelineRenderer::updateRows);
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, timelineRenderer::repaint);
   }
 
   @NotNull
@@ -184,30 +184,23 @@ final class ThreadsView {
 
     @Override
     public void tableChanged(TableModelEvent e) {
-      updateRows();
+      repaint();
     }
 
-    private void updateRows() {
+    public void repaint() {
       myRows.clear();
       for (int index = 0; index < myTable.getModel().getRowCount(); ++index) {
         List<HttpData> data = (List<HttpData>)myTable.getModel().getValueAt(index, 1);
         assert !data.isEmpty();
-
-        AxisComponent axisTicks = createAxis();
-        axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
-        axisTicks.setShowLabels(false);
+        AxisComponent axis = createAxis();
+        axis.setMarkerLengths(myTable.getRowHeight(), 0);
+        // If it is the first row show labels.
+        axis.setShowLabels(index == 0);
 
         JPanel panel = new JPanel(new TabularLayout("*", "*"));
         panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), myTable.getRowHeight()));
-
-        if (index == 0) {
-          AxisComponent axisLabels = createAxis();
-          axisLabels.setMarkerLengths(0, 0);
-          axisLabels.setShowLabels(true);
-          panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
-        }
+        panel.add(axis, new TabularLayout.Constraint(0, 0));
         panel.add(new ConnectionsInfoComponent(myTable, data, myStage), new TabularLayout.Constraint(0, 0));
-        panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
         myRows.add(panel);
       }
     }
@@ -227,6 +220,7 @@ final class ThreadsView {
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
       axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
+      axis.setForeground(ProfilerColors.NETWORK_TABLE_AXIS);
       model.update(1);
       return axis;
     }

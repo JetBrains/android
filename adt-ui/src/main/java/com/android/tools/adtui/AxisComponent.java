@@ -51,16 +51,29 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
-
-  private static final JBColor DEFAULT_VERT_AXIS_TICK_COLOR = new JBColor(new Color(0, 0, 0, 64), new Color(255, 255, 255, 102));
-  private static final JBColor DEFAULT_HORIZ_AXIS_TICK_COLOR = new JBColor(new Color(0xB9B9B9), new Color(0x656464));
+  private static final JBColor DEFAULT_MARKER_COLOR = new JBColor(new Color(0, 0, 0, 127), new Color(255, 255, 255, 65));
 
   @Nullable private JLabel myLabel;
+
+  /**
+   * Interpolated/Animated min value.
+   */
+  private double myCurrentMinValueRelative;
 
   /**
    * Length of the axis in pixels - used for internal calculation.
    */
   private int myAxisLength;
+
+  /**
+   * Calculated - Interval value per minor marker.
+   */
+  private float myMinorInterval;
+
+  /**
+   * Calculated - Number of pixels per minor interval.
+   */
+  private float myMinorScale;
 
   /**
    * Cached major marker positions.
@@ -77,7 +90,7 @@ public final class AxisComponent extends AnimatedComponent {
    */
   @NotNull private final List<String> myMarkerLabels;
 
-  @NotNull private Color myMarkerColor;
+  @NotNull private Color myMarkerColor = DEFAULT_MARKER_COLOR;
 
   /**
    * Cached max marker lablels
@@ -112,21 +125,12 @@ public final class AxisComponent extends AnimatedComponent {
 
   private boolean myHideTickAtMin;
 
-  public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation) {
+  public AxisComponent(@NotNull AxisComponentModel model, AxisOrientation orientation) {
     myModel = model;
     myMajorMarkerPositions = new TFloatArrayList();
     myMinorMarkerPositions = new TFloatArrayList();
     myMarkerLabels = new ArrayList<>();
     myOrientation = orientation;
-
-    switch (myOrientation) {
-      case LEFT:
-      case RIGHT:
-        myMarkerColor = DEFAULT_VERT_AXIS_TICK_COLOR;
-        break;
-      default:
-        myMarkerColor = DEFAULT_HORIZ_AXIS_TICK_COLOR;
-    }
 
     // Only construct and show the axis label if it is set.
     if (!myModel.getLabel().isEmpty()) {
@@ -172,8 +176,8 @@ public final class AxisComponent extends AnimatedComponent {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
+    myCurrentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
 
-    double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
     double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
     double range = myModel.getRange().getLength();
     double labelRange = myModel.getGlobalRange() == null ? range : myModel.getGlobalRange().getLength();
@@ -182,29 +186,27 @@ public final class AxisComponent extends AnimatedComponent {
     // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that
     // should be used. Based on the interval values, cache the normalized marker positions which will be used during the draw call.
     float majorInterval = formatter.getMajorInterval(range);
-    float minorInterval = formatter.getMinorInterval(majorInterval);
-    float minorScale = range == 0.0f ? 1.0f : (float)(minorInterval / range);
+    myMinorInterval = formatter.getMinorInterval(majorInterval);
+    myMinorScale = (float)(myMinorInterval / range);
 
-    // Calculate the value and offset of the first major marker.
-    double firstMarkerValue = Math.floor(currentMinValueRelative / majorInterval) * majorInterval;
+    // Calculate the value and offset of the first major marker
+    double firstMarkerValue = Math.floor(myCurrentMinValueRelative / majorInterval) * majorInterval;
     // Percentage offset of first major marker.
-    float firstMarkerOffset = (float)(minorScale * (firstMarkerValue - currentMinValueRelative) / minorInterval);
+    float firstMarkerOffset = (float)(myMinorScale * (firstMarkerValue - myCurrentMinValueRelative) / myMinorInterval);
 
     // Calculate marker positions
-    int numMarkers = (int)Math.floor((currentMaxValueRelative - firstMarkerValue) / minorInterval) + 1;
-    int numMinorPerMajor = (int)(majorInterval / minorInterval);
-
-    // We always start from a major marker.
+    int numMarkers = (int)Math.floor((currentMaxValueRelative - firstMarkerValue) / myMinorInterval) + 1;
+    int numMinorPerMajor = (int)(majorInterval / myMinorInterval);
     for (int i = 0; i < numMarkers; i++) {
       // Discard negative values (TODO configurable?)
-      double markerValue = firstMarkerValue + i * minorInterval;
+      double markerValue = firstMarkerValue + i * myMinorInterval;
       if (markerValue < 0f) {
         continue;
       }
 
-      // Discard out of bound values, unless it is the major tick mark at the start.
-      float markerOffset = firstMarkerOffset + i * minorScale;
-      if ((markerOffset < 0 && i > 0) || markerOffset > 1f) {
+      // Discard out of bound values.
+      float markerOffset = firstMarkerOffset + i * myMinorScale;
+      if (markerOffset < 0f || markerOffset > 1f) {
         continue;
       }
 
@@ -218,7 +220,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (myShowMin) {
-      myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myShowUnitAtMax);
+      myMinLabel = formatter.getFormattedString(labelRange, myCurrentMinValueRelative, !myShowUnitAtMax);
     }
     if (myShowMax) {
       myMaxLabel = formatter.getFormattedString(labelRange, currentMaxValueRelative, true);
@@ -306,7 +308,7 @@ public final class AxisComponent extends AnimatedComponent {
       if (myShowMin && myMinLabel != null) {
         drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
       }
-      if (myShowMax && myMaxLabel != null && myMajorMarkerPositions.size() > 1) {
+      if (myShowMax && myMaxLabel != null) {
         drawMarkerLabel(g2d, myAxisLength, origin, myMaxLabel, true);
       }
     }
@@ -323,8 +325,7 @@ public final class AxisComponent extends AnimatedComponent {
       float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
       if (myShowLabels) {
-        boolean ignoreMinMaxBufferZone = !(myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0));
-        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), ignoreMinMaxBufferZone);
+        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), false);
       }
     }
   }
@@ -423,7 +424,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   public void setShowMin(boolean showMin) {
-    myShowMin = showMin;
+    myShowMin  = showMin;
   }
 
   public void setShowMax(boolean showMax) {

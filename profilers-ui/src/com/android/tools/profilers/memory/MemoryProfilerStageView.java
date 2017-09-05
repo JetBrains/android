@@ -20,7 +20,6 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -34,7 +33,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import icons.StudioIcons;
@@ -42,12 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -61,15 +56,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Nullable private CaptureObject myCaptureObject = null;
 
-  @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
-  @NotNull private final JBSplitter myChartCaptureSplitter = new JBSplitter(true);
+  @NotNull private final Splitter myMainSplitter = new Splitter(false);
+  @NotNull private final Splitter myChartCaptureSplitter = new Splitter(true);
   @NotNull private final JPanel myCapturePanel;
   @Nullable private LoadingPanel myCaptureLoadingPanel;
-  @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
+  @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
-  @NotNull private JButton myHeapDumpButton;
   @NotNull private JButton myAllocationButton;
-  @NotNull private final JLabel myCaptureElapsedTime;
+  @NotNull private JButton myHeapDumpButton;
+
+  @NotNull private MemoryStageTooltipView myTooltipView;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -78,9 +74,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // capture object if an existing one has not been selected.
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
 
+    myMainSplitter.setShowDividerIcon(false);
     myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
-    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    myChartCaptureSplitter.setShowDividerIcon(false);
+    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+    myInstanceDetailsSplitter.setShowDividerIcon(false);
+    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
@@ -101,13 +100,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
     });
 
-    myCaptureElapsedTime = new JLabel("");
-    myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
-    myCaptureElapsedTime.setBorder(new EmptyBorder(0, 5, 0, 0));
-    myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
-
     myAllocationButton = new FlatButton();
-    myAllocationButton.setText("");
     myAllocationButton
       .addActionListener(e -> {
         if (getStage().isTrackingAllocations()) {
@@ -120,8 +113,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
 
     captureObjectChanged();
     allocationTrackingChanged();
@@ -141,7 +133,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
-    toolBar.add(myCaptureElapsedTime);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
@@ -211,32 +202,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return myInstanceDetailsView;
   }
 
-  @VisibleForTesting
-  @NotNull
-  JLabel getCaptureElapsedTimeLabel() {
-    return myCaptureElapsedTime;
-  }
-
   private void allocationTrackingChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
+      myAllocationButton.setText("");
       myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
       myAllocationButton.setToolTipText("Stop recording");
-      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
     }
     else {
-      myCaptureElapsedTime.setText("");
+      myAllocationButton.setText("");
       myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.RECORD);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myAllocationButton.setToolTipText("Record memory allocations");
-    }
-  }
-
-  private void updateCaptureElapsedTime() {
-    if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
-      long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
-      myCaptureElapsedTime.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
     }
   }
 
@@ -337,10 +315,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       overlay.addDurationDataRenderer(allocationRenderer);
     }
 
-    MemoryStageTooltipView tooltipView = new MemoryStageTooltipView(getStage());
+    myTooltipView = new MemoryStageTooltipView(getStage());
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                tooltipView.createComponent());
+                                myTooltipView.createComponent());
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);
@@ -369,7 +347,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    final LegendComponent legend = new LegendComponent(legends);
     legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
     legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
     legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
@@ -378,6 +356,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
     legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
     legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
+
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);

@@ -25,11 +25,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -129,8 +127,8 @@ public class NetworkProfilerStageTest {
     assertEquals("Receiving", networkLegends.getRxLegend().getName());
     assertEquals("Sending", networkLegends.getTxLegend().getName());
     assertEquals("Connections", networkLegends.getConnectionLegend().getName());
-    assertEquals("2 B/S", networkLegends.getRxLegend().getValue());
-    assertEquals("1 B/S", networkLegends.getTxLegend().getValue());
+    assertEquals("2B/S", networkLegends.getRxLegend().getValue());
+    assertEquals("1B/S", networkLegends.getTxLegend().getValue());
     assertEquals("4", networkLegends.getConnectionLegend().getValue());
 
     assertEquals(3, networkLegends.getLegends().size());
@@ -146,8 +144,8 @@ public class NetworkProfilerStageTest {
     assertEquals("Received", networkLegends.getRxLegend().getName());
     assertEquals("Sent", networkLegends.getTxLegend().getName());
     assertEquals("Connections", networkLegends.getConnectionLegend().getName());
-    assertEquals("4 B/S", networkLegends.getRxLegend().getValue());
-    assertEquals("3 B/S", networkLegends.getTxLegend().getValue());
+    assertEquals("4B/S", networkLegends.getRxLegend().getValue());
+    assertEquals("3B/S", networkLegends.getTxLegend().getValue());
     assertEquals("6", networkLegends.getConnectionLegend().getValue());
 
     assertEquals(3, networkLegends.getLegends().size());

@@ -18,6 +18,7 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
@@ -150,6 +151,18 @@ public class LineChart extends AnimatedComponent {
     }
     return config;
   }
+
+  /**
+   * Creates a {@link LegendConfig} instance. The configuration will be derived based on the {@link LineConfig} associated
+   * with the input series used in this {@link LineChart} instance. If the series is not part of the LineChart, defaults will be chosen.
+   *
+   * @param series    the RangedContinuousSeries which the legend will query data from.
+   * @param formatter the BaseAxisFormatter which will be used to format the data coming from the series.
+   *                  TODO revisit - this can be potentially moved inside RangedContinuousSeries.
+   * @range range     the range object which the legend will use to gather data. Note that this does not have to be the same as the
+   * the range inside RangedContinuousSeries (e.g. if the legend needs to show the most recent data, or some data at
+   * a particular point in time)
+   */
 
   private void modelChanged() {
     myRedraw = true;

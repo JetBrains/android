@@ -101,7 +101,6 @@ public class ColumnTreeBuilder {
     myTableModel = new DefaultTableModel();
     myTable = new JBTable(myTableModel, tableColumnModel);
     myTable.setAutoCreateColumnsFromModel(true);
-    myTable.setShowVerticalLines(false);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myRowSorter = new TableRowSorter<>(myTable.getModel());
     myColumnBuilders = new LinkedList<>();
@@ -130,22 +129,17 @@ public class ColumnTreeBuilder {
     return this;
   }
 
-  public ColumnTreeBuilder setShowVerticalLines(boolean showVerticalLines) {
-    myTable.setShowVerticalLines(showVerticalLines);
-    return this;
-  }
-
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
-    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable));
+    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener));
 
     myTree.addPropertyChangeListener(evt-> {
       if (evt.getPropertyName().equals("UI")) {
         // We need to preserve ColumnTreeUI always,
         // Otherwise width of rows will be wrong and the table will lose its formatting.
         if (!(evt.getNewValue() instanceof ColumnTreeUI)) {
-          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable));
+          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener));
         }
       }
     });
@@ -347,20 +341,14 @@ public class ColumnTreeBuilder {
 
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
-    @Nullable private final JTable myTable;
 
     ColumnTreeUI() {
-      this(null, null, null);
+      this(null, null);
     }
 
-    /**
-     * @param table Used for rendering column grid lines, if {@link JTable#getShowVerticalLines()}
-     *              is {@code true}.
-     */
-    ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig, @Nullable JTable table) {
+    ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig) {
       myHoverColor = hoverColor != null ? hoverColor : new JBColor(new Color(0, 0, 0, 0), new Color(0, 0,0, 0));
       myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
-      myTable = table;
     }
 
     @Override
@@ -370,16 +358,6 @@ public class ColumnTreeBuilder {
         myWidth = c.getWidth();
       }
       super.paint(g, c);
-      if (myTable != null && myTable.getShowVerticalLines()) {
-        g.setColor(myTable.getGridColor());
-        int x = 0;
-        for (int i = 0; i < myTable.getColumnModel().getColumnCount() - 1; i++) {
-          TableColumn column = myTable.getColumnModel().getColumn(i);
-          x += column.getWidth();
-          // -1 so that the vertical line lines up with the header column lines
-          g.drawLine(x - 1, 0, x - 1, c.getHeight());
-        }
-      }
     }
 
     @Override
@@ -448,7 +426,7 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    private void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
+    public void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
 
