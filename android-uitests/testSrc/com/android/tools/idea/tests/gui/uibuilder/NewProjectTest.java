@@ -349,7 +349,8 @@ public class NewProjectTest {
     String contents = ideFrameFixture.getEditor()
       .open("app/build.gradle")
       .getCurrentFileContents();
-    assertThat(contents).contains("compile \'com.android.support:recyclerview-v7:");
+
+    assertThat(contents).contains("implementation \'com.android.support:recyclerview-v7:");
   }
 
   @Test
