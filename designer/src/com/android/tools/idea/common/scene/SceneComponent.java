@@ -84,7 +84,6 @@ public class SceneComponent {
   private int myCurrentBottom = 0;
 
   private boolean myShowBaseline = false;
-  private final boolean myAllowsFixedPosition;
 
   private Notch.Provider myNotchProvider;
 
@@ -109,7 +108,6 @@ public class SceneComponent {
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
-    myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
     setSelected(component.isSelected());
   }
 
@@ -278,10 +276,6 @@ public class SceneComponent {
     return false;
   }
 
-  public boolean allowsFixedPosition() {
-    return myAllowsFixedPosition;
-  }
-
   public boolean isSelected() {
     return myIsSelected;
   }
@@ -409,13 +403,9 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
-      if (isFromModel) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
-      }
-      else {
-        myScene.needsRebuildList();
-      }
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+      myScene.needsRebuildList();
     }
   }
 
@@ -452,14 +442,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setValue(width);
       myAnimatedDrawHeight.setValue(height);
-      // TODO: remove this
-      if (isFromModel && NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
         NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
         NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
       }
-      else {
-        myScene.needsRebuildList();
-      }
+      myScene.needsRebuildList();
     }
   }
 
@@ -525,7 +512,9 @@ public class SceneComponent {
     myIsToolLocked = locked;
   }
 
-  public boolean isToolLocked() { return myIsToolLocked; }
+  public boolean isToolLocked() {
+    return myIsToolLocked;
+  }
 
   @NotNull
   public Stream<SceneComponent> flatten() {

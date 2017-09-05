@@ -219,7 +219,7 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
     return new ArrayList<>();
   }
 
-  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
+  public void cleanUpAttributes(@NotNull NlComponent child) {
   }
 
   /**

@@ -422,15 +422,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
-    SceneComponent childSceneComponent = ((ViewEditorImpl)editor).getSceneView().getScene().getSceneComponent(child);
-
-    if (childSceneComponent == null) {
-      return;
-    }
-
+  public void cleanUpAttributes(@NotNull NlComponent child) {
     AttributesTransaction transaction = child.startAttributeTransaction();
-    ConstraintComponentUtilities.cleanup(transaction, childSceneComponent);
+    ConstraintComponentUtilities.cleanup(transaction, child);
     transaction.commit();
   }
 
