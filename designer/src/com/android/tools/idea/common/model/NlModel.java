@@ -200,6 +200,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
+  public DesignSurface getSurface() {
+    return mySurface;
+  }
+
+  @NotNull
   public SelectionModel getSelectionModel() {
     return mySurface.getSelectionModel();
   }

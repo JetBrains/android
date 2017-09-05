@@ -19,14 +19,15 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.xml.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.xml.XmlBuilder;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -216,6 +217,9 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
   @NotNull
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     return new ArrayList<>();
+  }
+
+  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
   }
 
   /**
