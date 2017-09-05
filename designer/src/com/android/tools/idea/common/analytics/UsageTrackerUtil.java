@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
@@ -117,6 +116,8 @@ public class UsageTrackerUtil {
     switch (groupName) {
       case "All":
         return ViewGroup.ALL_GROUPS;
+      case "Buttons":
+        return ViewGroup.WIDGETS;  // TODO: Add Buttons ViewGroup to Logging type
       case "Widgets":
         return ViewGroup.WIDGETS;
       case "Text":
@@ -139,6 +140,8 @@ public class UsageTrackerUtil {
         return ViewGroup.DESIGN;
       case "AppCompat":
         return ViewGroup.APP_COMPAT;
+      case "Legacy":
+        return ViewGroup.WIDGETS;  // TODO: Add Legacy ViewGroup to Logging type
       default:
         return ViewGroup.CUSTOM;
     }

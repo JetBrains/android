@@ -27,6 +27,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.xml.ws.Holder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,36 +78,36 @@ public class DependencyManagerTest extends AndroidTestCase {
   }
 
   public void testNeedsLibraryLoad() {
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, TEXT_VIEW))).isFalse();
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON))).isTrue();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, TEXT_VIEW))).isFalse();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, FLOATING_ACTION_BUTTON))).isTrue();
   }
 
   public void testCreateItemIconOfTextView() {
-    Icon icon = myManager.createItemIcon(PaletteTestCase.findItem(myPalette, TEXT_VIEW), myPanel);
+    Icon icon = myManager.createItemIcon(findItem(myPalette, TEXT_VIEW), myPanel);
     assertThat(icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW);
   }
 
   public void testCreateItemIconOfFloatingActionButton() {
-    Icon icon = myManager.createItemIcon(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON), myPanel);
+    Icon icon = myManager.createItemIcon(findItem(myPalette, FLOATING_ACTION_BUTTON), myPanel);
     // The FloatingActionButton is in support library which is not used. Thus FloatingActionButton should show an icons with download badge.
     assertThat(icon).isNotSameAs(StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON);
   }
 
   public void testCreateLargeItemIconOfTextView() {
-    Icon icon = myManager.createLargeItemIcon(PaletteTestCase.findItem(myPalette, TEXT_VIEW), myPanel);
+    Icon icon = myManager.createLargeItemIcon(findItem(myPalette, TEXT_VIEW), myPanel);
     assertThat(icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW_LARGE);
   }
 
   public void testGradleSynchronization() {
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON))).isTrue();
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, CARD_VIEW))).isTrue();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, FLOATING_ACTION_BUTTON))).isTrue();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, RECYCLER_VIEW))).isTrue();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, CARD_VIEW))).isTrue();
 
     simulateGradleSync();
 
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON))).isFalse();
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
-    assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, CARD_VIEW))).isFalse();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, FLOATING_ACTION_BUTTON))).isFalse();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, RECYCLER_VIEW))).isTrue();
+    assertThat(myManager.needsLibraryLoad(findItem(myPalette, CARD_VIEW))).isFalse();
 
     verify(myPanel).repaint();
   }
@@ -130,5 +131,19 @@ public class DependencyManagerTest extends AndroidTestCase {
     return Arrays.stream(artifacts)
       .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
       .collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static Palette.Item findItem(@NotNull Palette palette, @NotNull String tagName) {
+    Holder<Palette.Item> found = new Holder<>();
+    palette.accept(item -> {
+      if (item.getTagName().equals(tagName)) {
+        found.value = item;
+      }
+    });
+    if (found.value == null) {
+      throw new RuntimeException("The item: " + tagName + " was not found on the palette.");
+    }
+    return found.value;
   }
 }

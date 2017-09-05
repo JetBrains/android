@@ -88,7 +88,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
       .dragComponentToSurface("Text", "TextView")
-      .dragComponentToSurface("Widgets", "Button");
+      .dragComponentToSurface("Buttons", "Button");
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -104,8 +104,8 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true)
-      .dragComponentToSurface("Widgets", "Button")
-      .dragComponentToSurface("Widgets", "CheckBox")
+      .dragComponentToSurface("Buttons", "Button")
+      .dragComponentToSurface("Buttons", "CheckBox")
       .waitForRenderToFinish();
 
     // Find and click the first text view
@@ -167,7 +167,7 @@ public class NlEditorTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
-      .dragComponentToSurface("Design", "android.support.design.widget.TextInputLayout");
+      .dragComponentToSurface("Text", "android.support.design.widget.TextInputLayout");
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
@@ -194,7 +194,7 @@ public class NlEditorTest {
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       NlEditorFixture layout = editor.getLayoutEditor(true)
-        .dragComponentToSurface("Widgets", "Button")
+        .dragComponentToSurface("Buttons", "Button")
         .waitForRenderToFinish();
 
       // Test enter text manually

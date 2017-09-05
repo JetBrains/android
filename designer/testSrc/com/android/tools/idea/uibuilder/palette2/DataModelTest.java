@@ -52,58 +52,53 @@ public class DataModelTest extends AndroidTestCase {
 
   public void testCommonLayoutGroup() {
     myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(12);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(myItemListModel.getSize()).isEqualTo(0);
 
     myDataModel.categorySelectionChanged(DataModel.COMMON);
-    assertThat(myItemListModel.getSize()).isEqualTo(29);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Button");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ToggleButton");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("CheckBox");
+    assertThat(myItemListModel.getSize()).isEqualTo(30);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("TextView");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("Plain Text");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("TextInputLayout");
   }
 
   public void testTextLayoutGroup() {
     myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(12);
-    assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Text");
+    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
-    assertThat(myItemListModel.getSize()).isEqualTo(15);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("TextView");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("Plain Text");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("Password");
+    assertThat(myItemListModel.getSize()).isEqualTo(8);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Button");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ImageButton");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("CheckBox");
   }
 
   public void testSearch() {
     myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
-    myDataModel.setFilterPattern("bu");
+    myDataModel.setFilterPattern("ima");
 
     assertThat(myCategoryListModel.getSize()).isEqualTo(4);
     assertThat(myCategoryListModel.hasMatchCounts()).isTrue();
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.RESULTS);
-    assertThat(myCategoryListModel.getMatchCountAt(0)).isEqualTo(5);
-    assertThat(myCategoryListModel.getElementAt(1).getName()).isEqualTo("Widgets");
-    assertThat(myCategoryListModel.getMatchCountAt(1)).isEqualTo(3);
-    assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Images");
+    assertThat(myCategoryListModel.getMatchCountAt(0)).isEqualTo(3);
+    assertThat(myCategoryListModel.getElementAt(1).getName()).isEqualTo("Text");
+    assertThat(myCategoryListModel.getMatchCountAt(1)).isEqualTo(1);
+    assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.getMatchCountAt(2)).isEqualTo(1);
-    assertThat(myCategoryListModel.getElementAt(3).getName()).isEqualTo("Design");
+    assertThat(myCategoryListModel.getElementAt(3).getName()).isEqualTo("Widgets");
     assertThat(myCategoryListModel.getMatchCountAt(3)).isEqualTo(1);
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
-    assertThat(myItemListModel.getSize()).isEqualTo(5);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Button");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ToggleButton");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("RadioButton");
-    assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("ImageButton");
-    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
+    assertThat(myItemListModel.getSize()).isEqualTo(3);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Number (Decimal)");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ImageButton");
+    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("ImageView");
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
-    assertThat(myItemListModel.getSize()).isEqualTo(3);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Button");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("ToggleButton");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("RadioButton");
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("Number (Decimal)");
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     assertThat(myItemListModel.getSize()).isEqualTo(1);
@@ -111,36 +106,42 @@ public class DataModelTest extends AndroidTestCase {
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
     assertThat(myItemListModel.getSize()).isEqualTo(1);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("FloatingActionButton");
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("ImageView");
   }
 
   public void testMetaSearch() {
     myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
     myDataModel.setFilterPattern("material");
 
-    assertThat(myCategoryListModel.getSize()).isEqualTo(2);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(4);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.RESULTS);
-    assertThat(myCategoryListModel.getMatchCountAt(0)).isEqualTo(6);
-    assertThat(myCategoryListModel.getElementAt(1).getName()).isEqualTo("Design");
-    assertThat(myCategoryListModel.getMatchCountAt(1)).isEqualTo(6);
+    assertThat(myCategoryListModel.getMatchCountAt(0)).isEqualTo(4);
+    assertThat(myCategoryListModel.getElementAt(1).getName()).isEqualTo("Text");
+    assertThat(myCategoryListModel.getMatchCountAt(1)).isEqualTo(1);
+    assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
+    assertThat(myCategoryListModel.getMatchCountAt(2)).isEqualTo(1);
+    assertThat(myCategoryListModel.getElementAt(3).getName()).isEqualTo("Containers");
+    assertThat(myCategoryListModel.getMatchCountAt(3)).isEqualTo(2);
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
-    assertThat(myItemListModel.getSize()).isEqualTo(6);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("CoordinatorLayout");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("AppBarLayout");
+    assertThat(myItemListModel.getSize()).isEqualTo(4);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("TextInputLayout");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("FloatingActionButton");
     assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("TabLayout");
     assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("TabItem");
-    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
-    assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("TextInputLayout");
 
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
-    assertThat(myItemListModel.getSize()).isEqualTo(6);
-    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("CoordinatorLayout");
-    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("AppBarLayout");
-    assertThat(myItemListModel.getElementAt(2).getTitle()).isEqualTo("TabLayout");
-    assertThat(myItemListModel.getElementAt(3).getTitle()).isEqualTo("TabItem");
-    assertThat(myItemListModel.getElementAt(4).getTitle()).isEqualTo("FloatingActionButton");
-    assertThat(myItemListModel.getElementAt(5).getTitle()).isEqualTo("TextInputLayout");
+    assertThat(myItemListModel.getSize()).isEqualTo(1);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("TextInputLayout");
+
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
+    assertThat(myItemListModel.getSize()).isEqualTo(1);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("FloatingActionButton");
+
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
+    assertThat(myItemListModel.getSize()).isEqualTo(2);
+    assertThat(myItemListModel.getElementAt(0).getTitle()).isEqualTo("TabLayout");
+    assertThat(myItemListModel.getElementAt(1).getTitle()).isEqualTo("TabItem");
   }
 
   public void testMenuType() {

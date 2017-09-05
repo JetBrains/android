@@ -127,7 +127,7 @@ public class PalettePanelTest extends LayoutTestCase {
     DnDTransferItem dndItem = (DnDTransferItem)item;
     assertThat(dndItem.getComponents().size()).isEqualTo(1);
     DnDTransferComponent component = dndItem.getComponents().get(0);
-    assertThat(component.getRepresentation()).startsWith(("<Button"));
+    assertThat(component.getRepresentation()).startsWith(("<TextView"));
   }
 
   public void testDownloadClick() {
@@ -227,7 +227,7 @@ public class PalettePanelTest extends LayoutTestCase {
     ActionEvent event = mock(ActionEvent.class);
 
     listener.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
   }
 
   public void testDragAndDropAreLoggedForAnalytics() throws Exception {
@@ -239,7 +239,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
     myTrackingDesignSurface = setUpLayoutDesignSurface();
     myPanel.setToolContext(myTrackingDesignSurface);
-    myPanel.getItemList().setSelectedIndex(10); // Select ConstraintLayout (to avoid preview)
+    myPanel.getItemList().setSelectedIndex(15); // Select ConstraintLayout (to avoid preview)
     NlUsageTracker usageTracker = mockNlUsageTracker(myTrackingDesignSurface);
 
     MouseEvent event = mock(MouseEvent.class);
@@ -265,8 +265,8 @@ public class PalettePanelTest extends LayoutTestCase {
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,100:768x200, instance=1}\n" +
-      "    NlComponent{tag=<ProgressBar>, bounds=[768,100:2x40, instance=2}");
+      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
   public void testOpenContextPopupOnMousePressed() throws Exception {
@@ -310,8 +310,8 @@ public class PalettePanelTest extends LayoutTestCase {
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,100:768x200, instance=1}\n" +
-      "    NlComponent{tag=<ProgressBar>, bounds=[768,100:2x40, instance=2}");
+      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
   public void testOpenAndroidDocumentationFromPopup() throws Exception {
@@ -320,7 +320,7 @@ public class PalettePanelTest extends LayoutTestCase {
     JMenuItem item = (JMenuItem)myPopupMenu.getSubElements()[1];
     item.getAction().actionPerformed(null);
 
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/ProgressBar.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull());
   }
 
   public void testOpenMaterialDesignDocumentationFromPopup() throws Exception {
@@ -329,7 +329,7 @@ public class PalettePanelTest extends LayoutTestCase {
     JMenuItem item = (JMenuItem)myPopupMenu.getSubElements()[2];
     item.getAction().actionPerformed(null);
 
-    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/progress-activity.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull());
   }
 
   private static void imitateDrop(@NotNull TransferHandler handler, @NotNull JComponent component) throws Exception {
