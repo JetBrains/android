@@ -63,7 +63,14 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
     myTimeline.getDataRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
-    setUI(new RangeScrollBarUI());
+    ProfilerScrollbarUi scrollbarUi = new ProfilerScrollbarUi();
+    setUI(scrollbarUi);
+    addPropertyChangeListener(evt -> {
+      // preserve RangeScrollbarUI always, otherwise it reverts back to the default UI when switching themes.
+      if (evt.getPropertyName().equals("UI") && !(evt.getNewValue() instanceof RangeScrollBarUI)) {
+        setUI(scrollbarUi);
+      }
+    });
 
     addAdjustmentListener(e -> {
       if (!myUpdating) {
@@ -143,5 +150,13 @@ public final class ProfilerScrollbar extends JBScrollBar {
     BoundedRangeModel model = getModel();
     float snapPercentage = 1 - (STREAMING_POSITION_THRESHOLD_PX / (float)getWidth());
     return (model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage;
+  }
+
+  private class ProfilerScrollbarUi extends RangeScrollBarUI {
+    @Override
+    protected void doPaintTrack(Graphics g, JComponent c, Rectangle bounds) {
+      g.setColor(ProfilerColors.DEFAULT_BACKGROUND);
+      g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    }
   }
 }

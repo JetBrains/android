@@ -131,7 +131,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     ProfilerScrollbar sb = new ProfilerScrollbar(timeline, panel);
     panel.add(sb, new TabularLayout.Constraint(4, 0));
 
-    AxisComponent timeAxis = buildTimeAxis(profilers);
+    JComponent timeAxis = buildTimeAxis(profilers);
     panel.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
     EventMonitorView eventsView = new EventMonitorView(getProfilersView(), getStage().getEventMonitor());

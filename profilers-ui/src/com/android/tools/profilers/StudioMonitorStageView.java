@@ -132,7 +132,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     }
 
     StudioProfilers profilers = stage.getStudioProfilers();
-    AxisComponent timeAxis = buildTimeAxis(profilers);
+    JComponent timeAxis = buildTimeAxis(profilers);
 
     topPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     topPanel.add(monitors, new TabularLayout.Constraint(0, 0));
