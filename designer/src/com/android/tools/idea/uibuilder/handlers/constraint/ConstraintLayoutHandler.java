@@ -19,6 +19,16 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -26,18 +36,9 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.scene.ComponentProvider;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -376,6 +377,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       result.add(chainCycleTarget);
     }
     return result;
+  }
+
+  @Override
+  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
+    SceneComponent childSceneComponent = ((ViewEditorImpl)editor).getSceneView().getScene().getSceneComponent(child);
+
+    if (childSceneComponent == null) {
+      return;
+    }
+
+    AttributesTransaction transaction = child.startAttributeTransaction();
+    ConstraintComponentUtilities.cleanup(transaction, childSceneComponent);
+    transaction.commit();
   }
 
   /**
