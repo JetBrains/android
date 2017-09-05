@@ -32,7 +32,7 @@ public class ProfilerLayout {
    */
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
-  public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
+  public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
 
   public static final float TOOLTIP_FONT_SIZE = 11f;
 
