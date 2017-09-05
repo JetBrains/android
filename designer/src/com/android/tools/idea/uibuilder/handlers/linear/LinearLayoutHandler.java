@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.target.Target;
@@ -23,6 +24,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
@@ -474,7 +476,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
     NlComponent parent = sceneParent.getNlComponent();
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
-    parent.getModel().addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN);
+    NlModel model = parent.getModel();
+    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN,
+                        component.getScene().getDesignSurface().getViewEditor());
     return true;
   }
 

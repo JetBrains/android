@@ -774,20 +774,6 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
-  @NotNull
-  public NlComponent createComponent(@NotNull XmlTag tag) {
-    return createComponent(tag, getModel());
-  }
-
-  @NotNull
-  @VisibleForTesting
-  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
-    NlComponent result = DesignSurface.createComponent(tag, model);
-    NlComponentHelper.INSTANCE.registerComponent(result);
-    return result;
-  }
-
-  @Override
   protected double getMinScale() {
     return Math.min(getFitScale(false), 1);
   }

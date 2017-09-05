@@ -91,7 +91,7 @@ class LinearDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
     myDragTarget.cancel();
   }
@@ -108,7 +108,7 @@ class LinearDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     if (myComponent != null) {
       myDragTarget.cancel();
       scene.removeComponent(myComponent);

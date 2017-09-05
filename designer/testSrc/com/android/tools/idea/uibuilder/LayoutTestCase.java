@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -32,6 +35,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +52,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
 
   public LayoutTestCase() {
   }
+
 
   @Override
   protected void setUp() throws Exception {
@@ -81,7 +86,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model),
-                            "layout", NlDesignSurface.class, NlDesignSurface::createComponent);
+                            "layout", NlDesignSurface.class, LayoutTestCase::createComponent);
   }
 
   private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
@@ -117,5 +122,12 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
+  }
+  @NotNull
+  @VisibleForTesting
+  private static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
+    NlComponent result = new NlComponent(model, tag);
+    NlComponentHelper.INSTANCE.registerComponent(result);
+    return result;
   }
 }

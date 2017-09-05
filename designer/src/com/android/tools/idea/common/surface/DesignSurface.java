@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -42,6 +43,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -98,7 +100,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected NlModel myModel;
   protected Scene myScene;
   private SceneManager mySceneManager;
-  private final SelectionModel mySelectionModel;
+
   private ViewEditorImpl myViewEditor;
 
   private final IssueModel myIssueModel = new IssueModel();
@@ -107,6 +109,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
+
+  private final ConfigurationListener myConfigurationListener = flags -> {
+    if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
+      zoom(ZoomType.FIT_INTO);
+    }
+
+    return true;
+  };
+
 
   public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -118,7 +129,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
-    mySelectionModel = new SelectionModel();
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
@@ -214,7 +224,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+    return myModel.getSelectionModel();
   }
 
   protected final void createSceneViews() {
@@ -230,6 +240,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public void setModel(@Nullable NlModel model) {
+    if (model == myModel) {
+      return;
+    }
+
+    if (myModel != null) {
+      myModel.getConfiguration().removeListener(myConfigurationListener);
+    }
     myModel = model;
     SceneView sceneView = getCurrentSceneView();
     if (model == null && sceneView == null) {
@@ -253,6 +270,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (model != null) {
       model.addListener(myModelListener);
+      model.getConfiguration().addListener(myConfigurationListener);
       mySceneManager = createSceneManager(model);
       mySceneManager.addRenderListener(this::modelRendered);
       myScene = mySceneManager.build();
@@ -744,7 +762,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       getCurrentSceneView().getModel().activate(this);
     }
     myIsActive = true;
-
   }
 
   public void deactivate() {
@@ -1184,13 +1201,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public ViewEditor getViewEditor() {
-    SceneView currentSceneView = getCurrentSceneView();
-    if (currentSceneView == null) {
+    NlModel model = getModel();
+    Scene scene = getScene();
+    if (model == null || scene == null) {
+      String message = "Trying to get a view editor but the model (" + model + ") or scene (" + scene + ")are null: ";
+      Logger.getInstance(DesignSurface.class)
+        .warn(message);
+      assert false : message;
       return null;
     }
-
-    if (myViewEditor == null || myViewEditor.getSceneView() != currentSceneView) {
-      myViewEditor = new ViewEditorImpl(currentSceneView);
+    if (myViewEditor == null
+        || myViewEditor.getModel() != model
+        || myViewEditor.getScene() != scene) {
+      myViewEditor = new ViewEditorImpl(model, scene);
     }
     return myViewEditor;
   }
@@ -1245,18 +1268,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       float proportion = 1 - (height / (float)getHeight());
       myErrorPanelSplitter.setProportion(Math.max(0.5f, proportion));
     }
-  }
-
-  @NotNull
-  public NlComponent createComponent(@NotNull XmlTag tag) {
-    NlModel model = getModel();
-    assert model != null;
-    return createComponent(tag, model);
-  }
-
-  @VisibleForTesting
-  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
-    return new NlComponent(model, tag);
   }
 
   /**

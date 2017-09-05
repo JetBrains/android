@@ -662,7 +662,7 @@ public class InteractionManager {
       }
       else if (keyChar == 'r') {
         // Refresh layout
-        RefreshRenderAction.clearCache(mySurface);
+        RefreshRenderAction.clearCache(mySurface.getConfiguration());
       }
       else if (keyChar == 'b') {
         // TODO: find a way to move layout-specific logic elsewhere.

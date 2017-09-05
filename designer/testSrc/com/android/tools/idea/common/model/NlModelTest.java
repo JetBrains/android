@@ -17,12 +17,13 @@ package com.android.tools.idea.common.model;
 
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -32,17 +33,11 @@ import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -64,8 +59,7 @@ import java.util.function.Consumer;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import static org.mockito.Mockito.*;
 
 /**
@@ -376,7 +370,8 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
+      () -> NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, frameLayout, null, InsertType.CREATE
+      ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
 
@@ -413,9 +408,9 @@ public class NlModelTest extends LayoutTestCase {
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     NlComponent recyclerView =
-      NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
+      NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
     assertTrue(testProjectSystem.hasStubDependency(model.getFile().getVirtualFile(), GoogleMavenArtifactId.RECYCLER_VIEW));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
@@ -449,7 +444,7 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, new ViewEditorImpl(screen(model).getScreen()));
     verifyZeroInteractions(gradleDependencyManager);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +

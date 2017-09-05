@@ -98,7 +98,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     }
     AndroidFacet facet = AndroidFacet.getInstance(myFile);
     assert facet != null;
-    NlModel model = NlModel.create(mySurface, myEditor, facet, myFile);
+    NlModel model = NlModel.create(myEditor, facet, myFile);
     mySurface.setModel(model);
     Disposer.register(myEditor, mySurface);
 

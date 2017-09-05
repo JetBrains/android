@@ -26,6 +26,8 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.surface.SceneView;
 import com.google.common.util.concurrent.Futures;
@@ -118,9 +120,11 @@ public class IconPreviewFactory implements Disposable {
     }
 
     NlModel model = sceneView.getModel();
-
+    ViewEditor editor = ViewEditorImpl.getOrCreate(sceneView);
     NlComponent component = ApplicationManager.getApplication()
-      .runWriteAction((Computable<NlComponent>)() -> NlModelHelperKt.createComponent(model, sceneView, tag, null, null, InsertType.CREATE_PREVIEW));
+      .runWriteAction((Computable<NlComponent>)() -> NlModelHelperKt
+        .createComponent(model, editor, tag, null, null, InsertType.CREATE_PREVIEW
+        ));
 
     if (component == null) {
       return null;

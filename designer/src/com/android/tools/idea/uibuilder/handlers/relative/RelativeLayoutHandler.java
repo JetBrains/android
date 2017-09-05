@@ -115,7 +115,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           .stream()
           .filter(component -> component.getParent() != layout.getNlComponent())
           .collect(Collectors.toList());
-        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType);
+        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType, editor);
       }
     };
   }

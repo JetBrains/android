@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.intellij.lang.annotations.JdkConstants;
@@ -371,14 +370,14 @@ public class GenericLinearDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
   }
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     editor.insertChildren(layout.getNlComponent(), components, myInsertPos, insertType);
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
   }
 }

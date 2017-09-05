@@ -27,6 +27,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RefreshRenderAction extends AnAction {
   private final EditorDesignSurface mySurface;
@@ -38,12 +40,17 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    clearCache(mySurface);
+    clearCache(mySurface.getConfiguration());
+    mySurface.forceUserRequestedRefresh();
   }
 
-  public static void clearCache(EditorDesignSurface surface) {
+  public static void clearCacheAndRefreshSurface(@NotNull EditorDesignSurface surface) {
+    clearCache(surface.getConfiguration());
+    surface.forceUserRequestedRefresh();
+  }
+
+  public static void clearCache(@Nullable Configuration configuration) {
     ModuleClassLoader.clearCache();
-    Configuration configuration = surface.getConfiguration();
 
     if (configuration != null) {
       // Clear layoutlib bitmap cache (in case files have been modified externally)
@@ -66,7 +73,5 @@ public class RefreshRenderAction extends AnAction {
 
       configuration.updated(ConfigurationListener.MASK_RENDERING);
     }
-
-    surface.forceUserRequestedRefresh();
   }
 }

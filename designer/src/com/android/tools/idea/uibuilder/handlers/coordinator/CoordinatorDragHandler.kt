@@ -58,12 +58,12 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
   }
 
   override fun cancel() {
-    val scene = (editor as ViewEditorImpl).sceneView.scene
+    val scene = editor.scene
     scene.removeComponent(myComponent)
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    val scene = (editor as ViewEditorImpl).sceneView.scene
+    val scene = editor.scene
     scene.removeComponent(myComponent)
   }
 

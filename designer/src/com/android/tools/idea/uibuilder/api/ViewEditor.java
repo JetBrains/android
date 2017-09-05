@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
@@ -172,6 +173,9 @@ public abstract class ViewEditor {
   public abstract String displayClassInput(@NotNull Set<String> superTypes,
                                            @Nullable Predicate<PsiClass> filter,
                                            @Nullable String currentValue);
+
+  @NotNull
+  public abstract Scene getScene();
 
   /**
    * Opens the resource using the resource resolver in the configuration.

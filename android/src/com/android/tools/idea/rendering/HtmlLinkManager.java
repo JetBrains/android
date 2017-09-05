@@ -907,7 +907,7 @@ public class HtmlLinkManager {
       if (renderTask != null) {
         EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
-          RefreshRenderAction.clearCache(surface);
+          RefreshRenderAction.clearCache(surface.getConfiguration());
         }
       }
     }

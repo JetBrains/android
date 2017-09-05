@@ -20,10 +20,8 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
@@ -208,7 +206,9 @@ public class NlDropListener extends DropTargetAdapter {
    */
   private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
-      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType);
+      ScreenView view = myTree.getScreenView();
+      ViewEditor editor = view != null ? ViewEditorImpl.getOrCreate(view) : null;
+      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, editor);
 
       // This determines how the DnD source acts to a completed drop.
       // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
