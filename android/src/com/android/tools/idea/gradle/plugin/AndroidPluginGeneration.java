@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
@@ -111,7 +110,7 @@ public abstract class AndroidPluginGeneration {
     @Override
     @NotNull
     protected String getRecommendedVersion() {
-      return GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
+      return "";
     }
 
     @Override
