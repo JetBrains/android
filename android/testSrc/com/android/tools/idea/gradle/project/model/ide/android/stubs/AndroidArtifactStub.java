@@ -39,13 +39,14 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Nullable private final String mySigningConfigName;
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
+  @Nullable private final String myInstrumentedTestTaskName;
   private final boolean mySigned;
 
   public AndroidArtifactStub() {
     this(Lists.newArrayList(new AndroidArtifactOutputStub()), "applicationId", "sourceGenTaskName",
          ImmutableMap.of("buildConfigField", new ClassFieldStub()), ImmutableMap.of("resValue", new ClassFieldStub()), new InstantRunStub(),
          "signingConfigName", Sets.newHashSet("filter"), Lists.newArrayList(new NativeLibraryStub()),
-         Collections.emptyList(), new TestOptionsStub(), true);
+         Collections.emptyList(), new TestOptionsStub(), "instrumentedTestsTaskName", true);
   }
 
   public AndroidArtifactStub(@NotNull Collection<AndroidArtifactOutput> outputs,
@@ -59,11 +60,11 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
                              @Nullable Collection<NativeLibrary> libraries,
                              @NotNull Collection<File> apks,
                              @Nullable TestOptions testOptions,
+                             @Nullable String instrumentedTestTaskName,
                              boolean signed) {
     myOutputs = outputs;
     myApplicationId = applicationId;
     mySourceGenTaskName = sourceGenTaskName;
-
     myBuildConfigFields = buildConfigFields;
     myResValues = resValues;
     myInstantRun = run;
@@ -72,6 +73,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     myNativeLibraries = libraries;
     myAdditionalRuntimeApks = apks;
     myTestOptions = testOptions;
+    myInstrumentedTestTaskName = instrumentedTestTaskName;
     mySigned = signed;
   }
 
@@ -127,6 +129,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   public TestOptions getTestOptions() {
     return myTestOptions;
+  }
+
+  @Nullable
+  @Override
+  public String getInstrumentedTestTaskName() {
+    return myInstrumentedTestTaskName;
   }
 
   @Override
@@ -185,16 +193,17 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
            Objects.equals(getAbiFilters(), artifact.getAbiFilters()) &&
            Objects.equals(getAdditionalRuntimeApks(), artifact.getAdditionalRuntimeApks()) &&
            Objects.equals(getTestOptions(), artifact.getTestOptions()) &&
+           Objects.equals(getInstrumentedTestTaskName(), artifact.getInstrumentedTestTaskName()) &&
            Objects.equals(getNativeLibraries(), artifact.getNativeLibraries());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getName(), getCompileTaskName(), getAssembleTaskName(), getClassesFolder(), getJavaResourcesFolder(),
-            getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
-            getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getOutputs(), getApplicationId(),
-            getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
-            getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned(), getAdditionalRuntimeApks(), getTestOptions());
+                        getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
+                        getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getOutputs(), getApplicationId(),
+                        getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
+                        getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned(), getAdditionalRuntimeApks(), getTestOptions(), getInstrumentedTestTaskName());
   }
 
   @Override
@@ -211,6 +220,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
            ", myAbiFilters=" + myAbiFilters +
            ", myNativeLibraries=" + myNativeLibraries +
            ", mySigned=" + mySigned +
+           ", myInstrumentedTestTaskName=" + myInstrumentedTestTaskName +
            "} " + super.toString();
   }
 }
