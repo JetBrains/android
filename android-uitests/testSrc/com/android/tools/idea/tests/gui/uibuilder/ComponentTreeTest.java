@@ -58,7 +58,7 @@ public final class ComponentTreeTest {
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.getPalette().dragComponent("Images", "ImageView");
+    layoutEditor.getPalette().dragComponent("Widgets", "ImageView");
     // TODO This step takes around 10 s when this UI test does it (not when I do it manually). Make it faster.
     layoutEditor.getComponentTree().drop("android.support.constraint.ConstraintLayout");
 

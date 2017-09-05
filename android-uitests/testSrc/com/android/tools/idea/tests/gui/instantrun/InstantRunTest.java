@@ -554,7 +554,7 @@ public class InstantRunTest {
       .getEditor()
       .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button");
+      .dragComponentToSurface("Buttons", "Button");
 
     ideFrameFixture
       .getEditor()

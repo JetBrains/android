@@ -236,6 +236,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
+      case BOTTOM_NAVIGATION_VIEW:
+        return new BottomNavigationViewHandler();
       case BROWSE_FRAGMENT:
         return new BrowseFragmentHandler();
       case BUTTON:
@@ -257,6 +259,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ConstraintHelperHandler();
       case CLASS_CONSTRAINT_LAYOUT_LAYER:
         return new ConstraintLayoutLayerHandler();
+      case CONSTRAINT_LAYOUT_GUIDELINE:
+        return new ConstraintLayoutGuidelineHandler();
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:

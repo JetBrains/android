@@ -52,7 +52,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 import static com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid.DEFAULT_CATEGORY_WIDTH;
 import static com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid.PALETTE_CATEGORY_WIDTH;
-import static com.android.tools.idea.uibuilder.palette.PaletteTestCase.findItem;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.dnd.DnDConstants.ACTION_MOVE;
 import static java.awt.event.InputEvent.BUTTON1_DOWN_MASK;
@@ -157,13 +156,13 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     Holder<Palette.Item> lastSelectedItem = new Holder<>();
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
 
-    clickOnItem(2, 3);
+    clickOnItem(3, 2);
     assertThat(lastSelectedItem.value.getTagName()).isEqualTo(LINEAR_LAYOUT);
   }
 
   public void testClickOnItemMissingFromProject() {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
-    Palette.Item coordinatorLayout = findItem(palette, COORDINATOR_LAYOUT);
+    Palette.Item coordinatorLayout = findItem(palette, FLOATING_ACTION_BUTTON);
 
     myPanel.populateUiModel(palette, mySurface);
     when(myDependencyManager.needsLibraryLoad(eq(coordinatorLayout))).thenReturn(true);
@@ -171,21 +170,21 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     Holder<Palette.Item> lastSelectedItem = new Holder<>();
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
 
-    clickOnItem(9, 0);
+    clickOnItem(1, 7);
 
-    assertThat(lastSelectedItem.value.getTagName()).isEqualTo(COORDINATOR_LAYOUT);
+    assertThat(lastSelectedItem.value.getTagName()).isEqualTo(FLOATING_ACTION_BUTTON);
   }
 
   public void testSetFilter() {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(7);
     assertThat(getVisibleItems().size()).isGreaterThan(30);
 
     myPanel.setFilter("utt");
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
     assertThat(getVisibleTitles())
-      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
+      .containsExactly("Button", "ImageButton", "RadioButton", "ToggleButton", "FloatingActionButton").inOrder();
   }
 
   public void testSelectCategoryWithExistingFilter() {
@@ -196,13 +195,13 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Widgets"), false);
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
     assertThat(getVisibleTitles())
-      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
+      .containsExactly("Button", "ImageButton", "RadioButton", "ToggleButton", "FloatingActionButton").inOrder();
   }
 
   public void testSetFilterWithExistingSelectedCategory() {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Buttons"), false);
     myPanel.setFilter("utt");
 
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
@@ -213,11 +212,11 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.setFilter("utt");
-    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Buttons"), false);
 
     myPanel.setFilter("");
-    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
-    assertThat(getVisibleTitles()).containsExactly("ImageButton", "ImageView", "VideoView").inOrder();
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(7);
+    assertThat(getVisibleTitles()).containsExactly("Button", "ImageButton", "CheckBox", "RadioGroup", "RadioButton", "ToggleButton", "Switch", "FloatingActionButton").inOrder();
   }
 
   public void testTypingInTreeStartsFiltering() {
@@ -233,24 +232,24 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
   public void testSelectAllCategoriesWithExistingFilter() {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Buttons"), false);
     myPanel.setFilter("utt");
     myPanel.getCategoryList().clearSelection();
 
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
     assertThat(getVisibleTitles())
-      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
+      .containsExactly("Button", "ImageButton", "RadioButton", "ToggleButton", "FloatingActionButton").inOrder();
   }
 
   public void testRemoveFilterAfterClearingCategorySelection() {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Buttons"), false);
     myPanel.setFilter("utt");
     myPanel.getCategoryList().clearSelection();
     myPanel.setFilter("");
 
-    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(7);
     assertThat(getVisibleItems().size()).isGreaterThan(30);
   }
 
@@ -258,18 +257,18 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.setFilter("utt");
-    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
+    myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Buttons"), false);
     myPanel.setFilter("");
     myPanel.getCategoryList().clearSelection();
 
-    assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
+    assertThat(myPanel.getComponentTree().getLists()).hasSize(7);
     assertThat(getVisibleItems().size()).isGreaterThan(30);
   }
 
   public void testShiftHelpOnPaletteItem() throws Exception {
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    clickOnItem(0, 0);  // Select Button
+    clickOnItem(0, 0);  // Select TextView
     AnAction action = findActionForKey(myPanel.getComponentTree(), KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
     assertThat(action).isNotNull();
 
@@ -278,7 +277,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     when(event.getDataContext()).thenReturn(context);
 
     action.actionPerformed(event);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/Button.html"), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull());
   }
 
   public void testDefaultInitialCategoryWidth() {
@@ -316,7 +315,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
 
     Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    clickOnItem(0, 13);  // Select Space (to avoid preview)
+    clickOnItem(3, 7);  // Select Space (to avoid preview)
 
     JList<Palette.Item> list = myPanel.getComponentTree().getSelectedList();
     assertThat(list).isNotNull();
@@ -467,6 +466,20 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
                    .id("@id/linear")
                    .matchParentWidth()
                    .matchParentHeight()).build();
+  }
+
+  @NotNull
+  private static Palette.Item findItem(@NotNull Palette palette, @NotNull String tagName) {
+    Holder<Palette.Item> found = new Holder<>();
+    palette.accept(item -> {
+      if (item.getTagName().equals(tagName)) {
+        found.value = item;
+      }
+    });
+    if (found.value == null) {
+      throw new RuntimeException("The item: " + tagName + " was not found on the palette.");
+    }
+    return found.value;
   }
 
   private static class StartFiltering implements StartFilteringListener {

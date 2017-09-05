@@ -33,6 +33,8 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
 import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
@@ -48,8 +50,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
@@ -94,7 +95,7 @@ public class ConstraintLayoutTest {
 
     layoutEditor
       .showOnlyDesignView()
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createConstraintFromBottomToTopOf(layoutEditor.findView("TextView", 0))
       .createConstraintFromTopToTopOfLayout()
@@ -113,7 +114,7 @@ public class ConstraintLayoutTest {
 
     layoutEditor
       .showOnlyBlueprintView()
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createConstraintFromBottomToTopOf(layoutEditor.findView("TextView", 0))
       .createConstraintFromTopToTopOfLayout()
@@ -157,7 +158,7 @@ public class ConstraintLayoutTest {
     layoutEditor
       .waitForRenderToFinish()
       .showOnlyDesignView()
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
     String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
@@ -169,7 +170,7 @@ public class ConstraintLayoutTest {
 
     layoutEditor
       .showOnlyBlueprintView()
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
     layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
@@ -197,23 +198,32 @@ public class ConstraintLayoutTest {
   public void addAllLayoutItemsFromToolbar() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
-    String group = "Widgets";
-
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
       .getLayoutEditor(false);
 
-    List<String> widgets =
-      Arrays.asList("Button", "ToggleButton", "CheckBox", "RadioButton", "CheckedTextView",
-                    "Spinner", "ProgressBar", "SeekBar", "RatingBar", "Switch", "Space");
-    for (String widget : widgets) {
-      design.dragComponentToSurface(group, widget);
+    Multimap<String, String> widgets = ArrayListMultimap.create();
+    widgets.put("Buttons", "Button");
+    widgets.put("Buttons", "ToggleButton");
+    widgets.put("Buttons", "CheckBox");
+    widgets.put("Buttons", "RadioButton");
+    widgets.put("Buttons", "Switch");
+    widgets.put("Widgets", "ProgressBar");
+    widgets.put("Widgets", "SeekBar");
+    widgets.put("Widgets", "RatingBar");
+    widgets.put("Layouts", "Space");
+    widgets.put("Containers", "Spinner");
+    widgets.put("Text", "CheckedTextView");
+
+    for (Map.Entry<String, String> entry : widgets.entries()) {
+      design.dragComponentToSurface(entry.getKey(), entry.getValue());
     }
+
     String layoutXml = ideFrameFixture
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.EDITOR)
       .getCurrentFileContents();
-    for (String widget : widgets) {
+    for (String widget : widgets.values()) {
       assertThat(layoutXml).containsMatch("<" + widget);
     }
   }
@@ -357,6 +367,7 @@ public class ConstraintLayoutTest {
 
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
     colorCell.startEditing();
+    Thread.sleep(3000);
     resourceComponent.getSwatchButton().click();
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
     @SuppressWarnings("UseJBColor")
@@ -408,7 +419,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
     NlComponentFixture textView = design.findView("Button", 0);
@@ -446,7 +457,7 @@ public class ConstraintLayoutTest {
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
     String layoutContents = editor.selectEditorTab(Tab.EDITOR).getCurrentFileContents();
 
@@ -487,7 +498,7 @@ public class ConstraintLayoutTest {
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
     design.findView("Button", 0)
@@ -531,7 +542,7 @@ public class ConstraintLayoutTest {
       .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "Button")
+      .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
     design.findView("Button", 0)

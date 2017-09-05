@@ -14,68 +14,6 @@
   ~ limitations under the License.
   -->
 <palette>
-  <group name="Widgets">
-    <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
-    <item tag="ToggleButton" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html#buttons-toggle-buttons"/>
-    <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
-    <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
-    <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
-    <item tag="Spinner"/>
-    <item tag="ProgressBar"
-          materialReference="https://material.io/guidelines/components/progress-activity.html"
-          suggested="true"
-          title="ProgressBar">
-      <xml reuse="drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyle"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="ProgressBar"
-          materialReference="https://material.io/guidelines/components/progress-activity.html"
-          id="HorizontalProgressBar"
-          suggested="true"
-          icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
-          title="ProgressBar (Horizontal)">
-      <xml reuse="drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyleHorizontal"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="SeekBar" suggested="true" materialReference="https://material.io/guidelines/components/sliders.html"/>
-    <item tag="SeekBar"
-          materialReference="components/sliders.html"
-          id="DiscreteSeekBar"
-          icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
-          title="SeekBar (Discrete)">
-      <xml reuse="drag-preview">
-        <![CDATA[
-            <SeekBar
-              style="@style/Widget.AppCompat.SeekBar.Discrete"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:max="10"
-              android:progress="3"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="QuickContactBadge"/>
-    <item tag="RatingBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
-    <item tag="Switch" suggested="true"
-          materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
-    <item tag="Space"/>
-  </group>
-
   <group name="Text">
     <item tag="TextView" suggested="true" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="EditText" title="Plain Text" suggested="true"
@@ -249,17 +187,84 @@
     </item>
     <item tag="AutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
   </group>
-
+  <group name="Buttons">
+    <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
+    <item tag="ImageButton" suggested="true"/>
+    <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
+    <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="ToggleButton" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html#buttons-toggle-buttons"/>
+    <item tag="Switch" suggested="true"
+          materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
+    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
+  </group>
+  <group name="Widgets">
+    <item tag="View"/>
+    <item tag="ImageView" suggested="true"/>
+    <item tag="WebView" suggested="true"/>
+    <item tag="VideoView"/>
+    <item tag="CalendarView"/>
+    <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          suggested="true"
+          title="ProgressBar">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyle"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          id="HorizontalProgressBar"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
+          title="ProgressBar (Horizontal)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyleHorizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="SeekBar" suggested="true" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="SeekBar"
+          materialReference="https://material.io/guidelines/components/sliders.html"
+          id="DiscreteSeekBar"
+          icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
+          title="SeekBar (Discrete)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <SeekBar
+              style="@style/Widget.AppCompat.SeekBar.Discrete"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:max="10"
+              android:progress="3"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="RatingBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="SearchView"/>
+    <item tag="TextureView"/>
+    <item tag="SurfaceView"/>
+  </group>
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
-    <item tag="GridLayout" materialReference="https://material.io/guidelines/layout/principles.html"/>
-    <!--
-    TODO: Uncomment this once flag for Flexbox is enabled
-    <item tag="com.google.android.flexbox.FlexboxLayout"/>
-    -->
-    <item tag="FrameLayout"/>
+    <item tag="android.support.constraint.Guideline" suggested="true"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
           suggested="true"
@@ -288,76 +293,48 @@
           ]]>
       </xml>
     </item>
-    <item tag="RelativeLayout"/>
+    <item tag="FrameLayout"/>
     <item tag="TableLayout"/>
     <item tag="TableRow"/>
-    <item tag="fragment"/>
+    <item tag="Space"/>
+    <!--
+    TODO: Uncomment this once flag for Flexbox is enabled
+    <item tag="com.google.android.flexbox.FlexboxLayout"/>
+    -->
   </group>
-
   <group name="Containers">
-    <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
-    <item tag="ListView"/>
-    <item tag="GridView"/>
-    <item tag="ExpandableListView"/>
+    <item tag="Spinner"/>
+    <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
     <item tag="ScrollView"/>
-    <item tag="HorizontalScrollView"/>
-    <item tag="TabHost"/>
-    <item tag="WebView" suggested="true"/>
-    <item tag="SearchView"/>
+    <item tag="HorizontalScrollView" suggested="true"/>
+    <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
     <item tag="android.support.v4.view.ViewPager"/>
-  </group>
-  <group name="Images">
-    <item tag="ImageButton" suggested="true"/>
-    <item tag="ImageView" suggested="true"/>
-    <item tag="VideoView"/>
-  </group>
-  <group name="Date">
-    <item tag="TimePicker" suggested="true" materialReference="https://material.io/guidelines/components/pickers.html#pickers-time-pickers"/>
-    <item tag="DatePicker" suggested="true" materialReference="https://material.io/guidelines/components/pickers.html#pickers-date-pickers"/>
-    <item tag="CalendarView"/>
-    <item tag="Chronometer"/>
-    <item tag="TextClock"/>
-  </group>
-  <group name="Transitions">
-    <item tag="ImageSwitcher"/>
-    <item tag="AdapterViewFlipper"/>
-    <item tag="StackView"/>
-    <item tag="TextSwitcher"/>
-    <item tag="ViewAnimator"/>
-    <item tag="ViewFlipper"/>
-    <item tag="ViewSwitcher"/>
-  </group>
-  <group name="Advanced">
-    <item tag="include"/>
-    <item tag="requestFocus"/>
-    <item tag="view"/>
+    <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="android.support.v4.view.ViewPager"
+          title="Tabs"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
+    <item tag="android.support.design.widget.NavigationView" suggested="true"/>
+    <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>
+    <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
+    <item tag="android.support.design.widget.TabItem" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="ViewStub"/>
-    <item tag="TextureView"/>
-    <item tag="SurfaceView"/>
-    <item tag="NumberPicker"/>
+    <item tag="include"/>
+    <item tag="fragment"/>
+    <item tag="view"/>
+    <item tag="requestFocus"/>
   </group>
   <group name="Google">
     <item tag="com.google.android.gms.ads.AdView" suggested="true"/>
     <item tag="com.google.android.gms.maps.MapView" suggested="true"/>
   </group>
-  <group name="Design">
-    <item tag="android.support.design.widget.CoordinatorLayout" suggested="true" meta="material"
-          materialReference="https://material.io/guidelines/components/android/catalog/coordinator-layout/"/>
-    <item tag="android.support.design.widget.AppBarLayout" suggested="true"  meta="material, toolbar"
-          materialReference="https://material.io/guidelines/layout/structure.html#structure-app-bar"/>
-    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
-          materialReference="https://material.io/guidelines/components/tabs.html"/>
-    <item tag="android.support.design.widget.TabItem" meta="material"/>
-    <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
-    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
-          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
-    <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
-    <!-- Tabs -->
-  </group>
-  <group name="AppCompat">
-    <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+  <group name="Legacy">
     <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
-    <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
-    <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="ListView"/>
+    <item tag="TabHost"/>
+    <item tag="RelativeLayout"/>
+    <item tag="GridView"/>
   </group>
 </palette>

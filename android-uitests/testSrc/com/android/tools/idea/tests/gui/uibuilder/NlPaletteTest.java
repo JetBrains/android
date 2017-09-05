@@ -148,7 +148,7 @@ public class NlPaletteTest {
     NlPaletteFixture palette = layout.getPalette();
 
     // Click on the download icon next to the "FloatingActionButton"
-    palette.clickItem("Design", SdkConstants.FLOATING_ACTION_BUTTON, StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth() / 2);
+    palette.clickItem("Buttons", SdkConstants.FLOATING_ACTION_BUTTON, StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth() / 2);
 
     // Test: Check that the "Add Project Dependency" dialog is presented
     MessagesFixture dependencyDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency");

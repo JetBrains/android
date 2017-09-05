@@ -48,11 +48,11 @@ public class NlEditorMonkeyTest {
   private static final String[][] WIDGETS_BY_LIKEHOOD = {
     {
       "Text/TextView",
-      "Widgets/Button",
-      "Widgets/CheckBox"
+      "Buttons/Button",
+      "Buttons/CheckBox"
     },
     {
-      "Widgets/Switch",
+      "Buttons/Switch",
       "Widgets/ProgressBar",
     }
   };
