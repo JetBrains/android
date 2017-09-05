@@ -546,7 +546,7 @@ public class AnchorTarget extends BaseTarget {
       myConnectedX = myLastX;
       myConnectedY = myLastY;
     }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     myRenderingTemporaryConnection = true;
@@ -622,7 +622,7 @@ public class AnchorTarget extends BaseTarget {
   private void disconnectMe(NlComponent component) {
     AttributesTransaction attributes = component.startAttributeTransaction();
     clearMe(attributes);
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
     attributes.apply();
     NlWriteCommandAction.run(component, "Constraint Disconnected", attributes::commit);
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
