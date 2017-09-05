@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -69,6 +70,7 @@ public class NlComponent implements NlAttributesHolder {
   final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
+  private DependencyGraph myCachedDependencyGraph;
 
   /**
    * Current open attributes transaction or null if none is open
@@ -177,6 +179,19 @@ public class NlComponent implements NlAttributesHolder {
     return Stream.concat(
       Stream.of(this),
       getChildren().stream().flatMap(NlComponent::flatten));
+  }
+
+  /**
+   * Returns the {@link DependencyGraph} for the given relative layout widget
+   *
+   * @return a {@link DependencyGraph} for the layout
+   */
+  @NotNull
+  public DependencyGraph getDependencyGraph() {
+    if (myCachedDependencyGraph == null || myCachedDependencyGraph.isStale(this)) {
+      myCachedDependencyGraph = new DependencyGraph(this);
+    }
+    return myCachedDependencyGraph;
   }
 
   @Nullable
