@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDia
 import com.android.tools.idea.instantapp.ProvistionTasks;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -60,6 +61,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
 import java.util.*;
 
@@ -184,11 +186,7 @@ public class PostSyncProjectSetup {
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);
 
-    // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
-    // For IDEA, use regular "Make".
-    boolean androidStudio = myIdeInfo.isAndroidStudio();
-    String taskName = androidStudio ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
-    setMakeStepInJunitRunConfigurations(taskName);
+    modifyJUnitRunConfigurations();
 
     myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
@@ -258,10 +256,14 @@ public class PostSyncProjectSetup {
     conflicts.showSelectionConflicts();
   }
 
-  private void setMakeStepInJunitRunConfigurations(@NotNull String makeTaskName) {
+  private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
 
+    // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
+    // For IDEA, use regular "Make".
+    String makeTaskName = myIdeInfo.isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME
+                                                      : ExecutionBundle.message("before.launch.compile.step");
     BeforeRunTaskProvider targetProvider = null;
     for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
       if (makeTaskName.equals(provider.getName())) {
@@ -271,17 +273,19 @@ public class PostSyncProjectSetup {
     }
 
     if (targetProvider != null) {
-      // Set the correct "Make step" in the "JUnit Run Configuration" template.
+      // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
         RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
-        RunConfiguration runConfiguration = template.getConfiguration();
+        AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+        runConfiguration.setWorkingDirectory("$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$");
       }
 
-      // Set the correct "Make step" in existing JUnit Configurations.
+      // Fix existing JUnit Configurations.
       RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(junitConfigurationType);
       for (RunConfiguration runConfiguration : junitRunConfigurations) {
-        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+        AndroidJUnitConfiguration androidJUnitConfiguration = (AndroidJUnitConfiguration)runConfiguration;
+        setMakeStepInJUnitConfiguration(targetProvider, androidJUnitConfiguration);
       }
     }
   }
