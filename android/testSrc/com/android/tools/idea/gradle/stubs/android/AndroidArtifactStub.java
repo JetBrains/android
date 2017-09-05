@@ -40,6 +40,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   private InstantRun myInstantRun;
   private TestOptions myTestOptions;
+  @Nullable private final String myInstrumentedTestTaskName;
 
   public AndroidArtifactStub(@NotNull String name,
                              @NotNull String folderName,
@@ -50,6 +51,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
     myOutputs = Collections.singletonList(output);
     myIdeLevel2DependenciesStub = new IdeDependenciesStub();
+    myInstrumentedTestTaskName = "instrumentedTestsTaskName";
   }
 
   @Override
@@ -132,6 +134,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @Override
   public TestOptions getTestOptions() {
     return myTestOptions != null ? myTestOptions : mock(TestOptions.class);
+  }
+
+  @Nullable
+  @Override
+  public String getInstrumentedTestTaskName() {
+    return myInstrumentedTestTaskName;
   }
 
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {

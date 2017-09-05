@@ -112,7 +112,7 @@ public class IdeAndroidArtifactImplTest {
                             getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getApplicationId(),
                             getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
                             getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned(), getAdditionalRuntimeApks(),
-                            getTestOptions());
+                            getTestOptions(), getInstrumentedTestTaskName());
       }
     };
     IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
