@@ -20,12 +20,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.startup.StartupManagerEx;
-import com.intellij.ide.startup.impl.StartupManagerImpl;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
