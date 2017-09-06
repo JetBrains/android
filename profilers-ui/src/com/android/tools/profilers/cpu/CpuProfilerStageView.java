@@ -31,7 +31,6 @@ import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
@@ -417,17 +416,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  @VisibleForTesting
-  static String formatTime(long micro) {
-    // TODO unify with TimeAxisFormatter
-    long mil = (micro / 1000) % 1000;
-    long sec = (micro / (1000 * 1000)) % 60;
-    long min = (micro / (1000 * 1000 * 60)) % 60;
-    long hour = micro / (1000L * 1000L * 60L * 60L);
-
-    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, mil);
-  }
-
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
@@ -447,10 +435,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private String formatCaptureLabel(CpuTraceInfo info) {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
-
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
-    return formatTime(min) + " - " + formatTime(max);
+    return TimeAxisFormatter.DEFAULT.getClockFormattedString(min) + " - " + TimeAxisFormatter.DEFAULT.getClockFormattedString(max);
   }
 
   private void updateCaptureState() {

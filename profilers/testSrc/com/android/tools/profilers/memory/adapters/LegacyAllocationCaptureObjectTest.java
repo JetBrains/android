@@ -68,7 +68,7 @@ public class LegacyAllocationCaptureObjectTest {
     // Verify values associated with the AllocationsInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
-    assertEquals("Allocations from 3ms to 8ms", capture.getName());
+    assertEquals("Allocation Range: 00:00:00.003 - 00:00:00.008", capture.getName());
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);

@@ -65,15 +65,14 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_NAME, DEFAULT_HEAP_ID);
-    myLabel = "Allocations" +
-              (myStartTimeNs != Long.MAX_VALUE ?
-               " from " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myStartTimeNs))) :
-               "") +
-              (myEndTimeNs != Long.MIN_VALUE ?
-               " to " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs))) :
-               "");
+    TimeAxisFormatter formatter = TimeAxisFormatter.DEFAULT;
+    myLabel = "Allocation Range: " +
+              (myStartTimeNs != Long.MAX_VALUE
+               ? formatter.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myStartTimeNs)))
+               : "") +
+              (myEndTimeNs != Long.MIN_VALUE
+               ? " - " + formatter.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs)))
+               : "");
     myFeatureTracker = featureTracker;
   }
 

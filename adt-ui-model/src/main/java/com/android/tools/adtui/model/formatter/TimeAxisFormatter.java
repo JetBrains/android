@@ -15,8 +15,11 @@
  */
 package com.android.tools.adtui.model.formatter;
 
+import com.google.common.annotations.VisibleForTesting;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This formatter assumes a microsecond input value.
@@ -117,6 +120,16 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
       leadIndex--;
     }
     return builder.toString();
+  }
+
+  @NotNull
+  public String getClockFormattedString(long micro) {
+    long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
+    long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
+    long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
+    long hour = TimeUnit.MICROSECONDS.toHours(micro);
+
+    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, milli);
   }
 
   @Override
