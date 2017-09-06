@@ -34,7 +34,9 @@ public class DrawAnchor extends DrawRegion {
   public static final int TYPE_BASELINE = 1;
   public static final int NORMAL = 0;
   public static final int OVER = 1;
-  public static final int CAN_CONNECT = 2; // used during connection to say you CANNOT connect to me
+  public static final int CAN_CONNECT = 2; // used during connection to say you CAN connect to me
+  public static final int CANNOT_CONNECT = 3; // used during connection to say you CANNOT connect to me
+  public static final int DO_NOT_DRAW = 4; //
 
   private int myMode; // NORMAL, OVER, CAN_CONNECT
   boolean myIsConnected;
@@ -79,6 +81,7 @@ public class DrawAnchor extends DrawRegion {
       paintBaseline(g, sceneContext);
       return;
     }
+
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
     Color color = colorSet.getSelectedFrames();
@@ -112,6 +115,15 @@ public class DrawAnchor extends DrawRegion {
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
       g.setColor(colorSet.getAnchorConnectionCircle().darker());
+      g.fillRoundRect(x, y, width, height, width, height);
+      sceneContext.repaint();
+      g.setComposite(comp);
+    }
+    if (myMode == CANNOT_CONNECT) {
+      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
+      g.setColor(colorSet.getAnchorDisconnectionCircle());
       g.fillRoundRect(x, y, width, height, width, height);
       sceneContext.repaint();
       g.setComposite(comp);
