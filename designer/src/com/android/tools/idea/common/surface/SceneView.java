@@ -137,12 +137,7 @@ public abstract class SceneView {
 
   @NotNull
   public SelectionModel getSelectionModel() {
-    // For now, the selection model is tied to the model itself.
-    // This is deliberate: rather than having each view have its own
-    // independent selection, when a file is shown multiple times on the screen,
-    // selection is "synchronized" between the views by virtue of them all
-    // sharing the same selection model, currently stashed in the model itself.
-    return myModel.getSelectionModel();
+    return getSurface().getSelectionModel();
   }
 
   /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */

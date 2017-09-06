@@ -24,6 +24,7 @@ import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -171,10 +172,10 @@ public class LayoutTestUtilities {
     when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
     when(screenView.getModel()).thenReturn(model);
     when(screenView.getScale()).thenReturn(scale);
-    SelectionModel selectionModel = model.getSelectionModel();  // Mockito requires this to be a separate variable
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
     when(screenView.getSize()).thenReturn(new Dimension());
     DesignSurface surface = model.getSurface();
+    //SelectionModel selectionModel = surface.getSelectionModel();  // Mockito requires this to be a separate variable
+    when(screenView.getSelectionModel()).thenCallRealMethod();
     when(screenView.getSurface()).thenReturn(surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);

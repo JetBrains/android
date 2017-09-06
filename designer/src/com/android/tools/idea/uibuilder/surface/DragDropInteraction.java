@@ -252,7 +252,7 @@ public class DragDropInteraction extends Interaction {
         myDragHandler.commit(ax, ay, modifiers, insertType);
         model.notifyModified(NlModel.ChangeType.DND_COMMIT);
         // Select newly dropped components
-        model.getSelectionModel().setSelection(added);
+        myDesignSurface.getSelectionModel().setSelection(added);
       }
       mySceneView.getSurface().repaint();
     }

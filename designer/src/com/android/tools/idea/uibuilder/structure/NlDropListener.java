@@ -122,7 +122,7 @@ public class NlDropListener extends DropTargetAdapter {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.getSelectionModel().getSelection()));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(screenView.getSelectionModel().getSelection()));
         }
         else {
           // TODO: support nav editor

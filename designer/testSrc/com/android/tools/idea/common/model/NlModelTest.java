@@ -545,7 +545,7 @@ public class NlModelTest extends LayoutTestCase {
                                "</resources>");
     SyncNlModel model = createDefaultModelBuilder(true).build();
     SceneView sceneView = mock(SceneView.class);
-    SelectionModel selectionModel = model.getSelectionModel();
+    SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
     when(sceneView.getSurface()).thenReturn(model.getSurface());
     LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, model.getSurface());

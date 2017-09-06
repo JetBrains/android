@@ -111,7 +111,7 @@ public class ActionTarget extends BaseTarget {
 
   @Override
   public void mouseRelease(int x, int y, @Nullable List<Target> closestTargets) {
-    myNlComponent.getModel().getSelectionModel().setSelection(ImmutableList.of(myNlComponent));
+    myComponent.getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(myNlComponent));
   }
 
   @Override

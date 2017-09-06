@@ -48,7 +48,6 @@ public class SyncNlModel extends NlModel {
   }
 
   @NotNull
-  @Override
   public DesignSurface getSurface() {
     return mySurface;
   }

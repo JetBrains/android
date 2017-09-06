@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
@@ -76,7 +77,8 @@ public class NavigationSchema implements Disposable {
     OTHER
   }
 
-  private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
+  @VisibleForTesting
+  public static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
   public static boolean enableNavigationEditor() {
     return Boolean.getBoolean(ENABLE_NAV_PROPERTY);

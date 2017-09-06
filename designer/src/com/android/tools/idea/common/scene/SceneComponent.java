@@ -108,7 +108,7 @@ public class SceneComponent {
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
-    setSelected(component.isSelected());
+    setSelected(myScene.getDesignSurface().getSelectionModel().isSelected(component));
   }
 
   @Override

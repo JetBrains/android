@@ -73,7 +73,7 @@ public class ActionTargetTest extends NavigationTestCase {
     LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, x),
                                    Coordinates.getSwingYDip(view, y), 0);
 
-    assertEquals(model.find("action1"), model.getSelectionModel().getPrimary());
+    assertEquals(model.find("action1"), surface.getSelectionModel().getPrimary());
     interactionManager.unregisterListeners();
   }
 }

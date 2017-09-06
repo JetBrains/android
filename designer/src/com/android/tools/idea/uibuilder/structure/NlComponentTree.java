@@ -96,6 +96,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private int myRelativeDepthToInsertionRow = 0;
   @Nullable private Rectangle myInsertionRowBounds;
   @Nullable private Rectangle myInsertionReceiverBounds;
+  @Nullable private NlDesignSurface mySurface;
 
   public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     this(project, designSurface, CopyPasteManager.getInstance());
@@ -150,6 +151,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
+    if (mySurface != null) {
+      mySurface.getSelectionModel().removeListener(this);
+    }
+    mySurface = designSurface;
+    if (mySurface != null) {
+      mySurface.getSelectionModel().addListener(this);
+    }
     setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
@@ -167,13 +175,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private void setModel(@Nullable NlModel model) {
     if (myModel != null) {
       myModel.removeListener(this);
-      myModel.getSelectionModel().removeListener(this);
     }
     myModel = model;
     myBadgeHandler.setNlModel(myModel);
     if (myModel != null) {
       myModel.addListener(this);
-      myModel.getSelectionModel().addListener(this);
     }
 
     updateHierarchy();
@@ -186,9 +192,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void dispose() {
+    if (mySurface != null) {
+      mySurface.getSelectionModel().removeListener(this);
+    }
     if (myModel != null) {
       myModel.removeListener(this);
-      myModel.getSelectionModel().removeListener(this);
       myModel = null;
     }
     Disposer.dispose(myUpdateQueue);
@@ -312,8 +320,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
     try {
       clearSelection();
-      if (myModel != null) {
-        for (NlComponent component : myModel.getSelectionModel().getSelection()) {
+      if (mySurface != null) {
+        for (NlComponent component : mySurface.getSelectionModel().getSelection()) {
           addSelectionPath(newTreePath(component));
         }
       }
@@ -521,12 +529,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     private void handlePopup(MouseEvent e) {
       if (e.isPopupTrigger()) {
         TreePath path = getPathForLocation(e.getX(), e.getY());
-        if (path != null) {
+        if (path != null && mySurface != null) {
           Object component = path.getLastPathComponent();
 
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            myScreenView.getSurface().getActionManager().showPopup(e, (NlComponent)component);
+            mySurface.getActionManager().showPopup(e, (NlComponent)component);
           }
         }
       }
@@ -537,7 +545,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       int y = event.getY();
       TreePath path = getPathForLocation(x, y);
 
-      if (path == null) {
+      if (path == null || mySurface == null) {
         return;
       }
 
@@ -546,7 +554,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (!(component instanceof NlComponent)) {
         return;
       }
-      myScreenView.getSurface().notifyComponentActivate((NlComponent)component);
+      mySurface.notifyComponentActivate((NlComponent)component);
     }
   }
 
@@ -557,8 +565,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return;
       }
       try {
-        if (myModel != null) {
-          myModel.getSelectionModel().setSelection(getSelectedComponents());
+        if (mySurface != null) {
+          mySurface.getSelectionModel().setSelection(getSelectedComponents());
         }
       }
       finally {
@@ -600,7 +608,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-    return myModel != null && !myModel.getSelectionModel().isEmpty();
+    return myModel != null && !mySurface.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -610,17 +618,17 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    if (myModel == null || myModel.getSelectionModel().isEmpty()) {
+    if (mySurface == null || mySurface.getSelectionModel().isEmpty()) {
       return;
     }
-    myCopyPasteManager.setContents(myModel.getSelectionAsTransferable());
+    myCopyPasteManager.setContents(mySurface.getSelectionAsTransferable());
   }
 
   // ---- Implements CutProvider ----
 
   @Override
   public boolean isCutEnabled(@NotNull DataContext dataContext) {
-    return myModel == null || !myModel.getSelectionModel().isEmpty();
+    return myModel == null || !mySurface.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -643,7 +651,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
-    SelectionModel selectionModel = myScreenView.getSelectionModel();
+    SelectionModel selectionModel = mySurface.getSelectionModel();
     if (selectionModel.isEmpty()) {
       TreePath[] selectedPath = getSelectionModel().getSelectionPaths();
       if (selectedPath.length != 0) {
@@ -718,12 +726,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (myModel == null) {
       return null;
     }
-    int selectionCount = myModel.getSelectionModel().getSelection().size();
+    int selectionCount = mySurface.getSelectionModel().getSelection().size();
     if (selectionCount > 1) {
       return null;
     }
     else if (selectionCount == 1) {
-      NlComponent component = myModel.getSelectionModel().getSelection().get(0);
+      NlComponent component = mySurface.getSelectionModel().getSelection().get(0);
       if (NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler) {
         return new InsertSpecification(component, component.getChild(0));
       }

@@ -53,12 +53,8 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    NlModel model = mySurface.getModel();
-    if (model == null) {
-      return;
-    }
     CopyPasteManager.getInstance().setContents(
-      CopyCutTransferable.createCopyTransferable(model.getSelectionAsTransferable()));
+      CopyCutTransferable.createCopyTransferable(mySurface.getSelectionAsTransferable()));
   }
 
   @Override
@@ -90,7 +86,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       return;
     }
     CopyPasteManager.getInstance().setContents(
-      CopyCutTransferable.createCutTransferable(model.getSelectionAsTransferable()));
+      CopyCutTransferable.createCutTransferable(mySurface.getSelectionAsTransferable()));
     deleteElement(dataContext);
   }
 

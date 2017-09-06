@@ -193,7 +193,7 @@ public class PanZoomPanel extends JPanel
     // in the model or at least the component of the current model.
     computeOffsets(myDeviceSize, surface.getCurrentSceneView());
     if (model != null) {
-      List<NlComponent> selection = model.getSelectionModel().getSelection();
+      List<NlComponent> selection = surface.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         selection = model.getComponents();
       }

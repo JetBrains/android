@@ -253,7 +253,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     // Now set the parentTag property to a linear layout
     NlPropertyItem parentTag = createFrom(myMerge, ATTR_PARENT_TAG);
     SelectionListener selectionListener = mock(SelectionListener.class);
-    myModel.getSelectionModel().addListener(selectionListener);
+    myDesignSurface.getSelectionModel().addListener(selectionListener);
     parentTag.setValue(LINEAR_LAYOUT);
     UIUtil.dispatchAllInvocationEvents();
 

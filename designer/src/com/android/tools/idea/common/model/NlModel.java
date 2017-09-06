@@ -22,6 +22,7 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -51,7 +52,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.datatransfer.Transferable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -76,7 +76,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
-  private final SelectionModel mySelectionModel = new SelectionModel();
   private long myConfigurationModificationCount;
 
   // Variable to track what triggered the latest render (if known)
@@ -176,11 +175,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public NlLayoutType getType() {
     return myType;
-  }
-
-  @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
   }
 
   @Nullable
@@ -757,10 +751,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     };
     action.execute();
-
-    List<NlComponent> remaining = Lists.newArrayList(getSelectionModel().getSelection());
-    remaining.removeAll(components);
-    getSelectionModel().setSelection(remaining);
     notifyModified(ChangeType.DELETE);
   }
 
@@ -831,13 +821,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent component = new NlComponent(this, tag);
-    component.setMixin(new NlComponentMixin(component));
+    NlLayoutType layoutType = NlLayoutType.typeOf(getFile());
+    switch (layoutType) {
+      // TODO We should create a subclass of NlModel to differentiate NavEditor Behavior and Layout Editor Behaviors
+      // The difference was handled in DesignSurface before but we should not rely on the DesignSurface to add component, at
+      // least in the LayoutEditor, since it does already so many things.
+      case NAV:
+        NavComponentHelper.INSTANCE.registerComponent(component);
+        break;
+      case LAYOUT:
+      default:
+        NlComponentHelper.INSTANCE.registerComponent(component);
+        break;
+    }
     return component;
-  }
-
-  @NotNull
-  public Transferable getSelectionAsTransferable() {
-    return getSelectionModel().getTransferable(myId);
   }
 
   /**
@@ -1084,6 +1081,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       default:
         return InsertType.PASTE;
     }
+  }
+
+  public long getId() {
+    return myId;
   }
 
   @Override
