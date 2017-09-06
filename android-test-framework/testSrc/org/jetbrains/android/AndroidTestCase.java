@@ -28,8 +28,7 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.reference.RefEntity;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +56,7 @@ import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
@@ -182,7 +182,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  private static void initializeModuleFixtureBuilderWithSrcAndGen(AndroidModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+  public static void initializeModuleFixtureBuilderWithSrcAndGen(AndroidModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
     moduleFixtureBuilder.setModuleRoot(moduleRoot);
     moduleFixtureBuilder.addContentRoot(moduleRoot);
 
@@ -271,12 +271,19 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   private static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-
     if (attachSdk) {
       addLatestAndroidSdk(module);
     }
+    AndroidFacetType type = AndroidFacet.getFacetType();
+    String facetName = "Android";
+    AndroidFacet facet = addFacet(module, type, facetName);
+    return facet;
+  }
+
+  @NotNull
+  public static <T extends Facet> T addFacet(Module module, FacetType<T, ? extends FacetConfiguration> type, String facetName) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    T facet = facetManager.createFacet(type, facetName, null);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(facetModel::commit);
@@ -380,7 +387,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myProjectComponentStack.registerComponentImplementation(key, instance);
   }
 
-  protected static class MyAdditionalModuleData {
+  protected final static class MyAdditionalModuleData {
     final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
@@ -395,13 +402,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  interface AndroidModuleFixtureBuilder<T extends ModuleFixture> extends JavaModuleFixtureBuilder<T> {
+  public interface AndroidModuleFixtureBuilder<T extends ModuleFixture> extends JavaModuleFixtureBuilder<T> {
     void setModuleRoot(@NotNull String moduleRoot);
 
     void setModuleName(@NotNull String moduleName);
   }
 
-  private static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
+  public static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
     implements AndroidModuleFixtureBuilder<ModuleFixtureImpl> {
 
     private File myModuleRoot;

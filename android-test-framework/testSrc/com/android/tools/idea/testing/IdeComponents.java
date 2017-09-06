@@ -49,6 +49,10 @@ public final class IdeComponents {
     doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myUndoQueue);
   }
 
+  public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    doReplaceService(myProject, serviceType, newServiceInstance, myUndoQueue);
+  }
+
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
@@ -61,6 +65,7 @@ public final class IdeComponents {
     for (Runnable runnable : myUndoQueue) {
       runnable.run();
     }
+    myUndoQueue.clear();
   }
 
   @Override
