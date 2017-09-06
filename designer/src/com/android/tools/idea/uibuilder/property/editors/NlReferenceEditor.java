@@ -54,7 +54,7 @@ import java.util.Objects;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
-public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
+public class NlReferenceEditor extends NlBaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
   private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
