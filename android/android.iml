@@ -97,27 +97,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="lang-api" />
-    <orderEntry type="module-library">
-      <library name="Gradle">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-groovy-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-cli-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-core-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-logging-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-messaging-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-core-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-groovy-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-native-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-process-services-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-resources-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-tooling-api-3.3.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-wrapper-3.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
     <orderEntry type="module-library">
