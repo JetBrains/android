@@ -433,6 +433,7 @@ public class ColumnTreeBuilder {
     private String myName;
     private int myWidth;
     private int myHeaderAlignment;
+    private int myMinimumWidth;
     private Border myHeaderBorder;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
@@ -445,6 +446,11 @@ public class ColumnTreeBuilder {
 
     public ColumnBuilder setPreferredWidth(int width) {
       myWidth = width;
+      return this;
+    }
+
+    public ColumnBuilder setMinWidth(int width) {
+      myMinimumWidth = width;
       return this;
     }
 
@@ -465,6 +471,7 @@ public class ColumnTreeBuilder {
     private void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
+      column.setMinWidth(myMinimumWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
       column.setHeaderRenderer(new DefaultTableCellRenderer() {
