@@ -75,8 +75,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteY=\"494dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -123,8 +122,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -168,9 +166,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -215,8 +211,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"191dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -260,11 +255,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -307,10 +299,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -350,7 +339,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"50dp\" />");
+                 "        tools:layout_editor_absoluteX=\"50dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testVerticalPack() {
@@ -366,6 +356,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"375dp\" />");
   }
   public void testExpandHorizontally() {
@@ -381,7 +372,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"984dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"8dp\" />");
+                 "        tools:layout_editor_absoluteX=\"8dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testExpandVertically() {
@@ -397,6 +389,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"984dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"8dp\" />");
   }
 
@@ -412,7 +405,9 @@ public class ScoutArrangeTest2 extends SceneTest {
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
-                 "        android:layout_height=\"40dp\" />");
+                 "        android:layout_height=\"40dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"50dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"375dp\" />");
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -420,7 +415,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginTop=\"82dp\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteY=\"477dp\" />");
+                 "        tools:layout_editor_absoluteX=\"200dp\" />");
     myScreen.get("@+id/textview3")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview3\"\n" +
@@ -428,7 +423,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"50dp\"\n" +
                  "        android:layout_marginTop=\"83dp\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/textview2\"\n" +
-                 "        tools:layout_editor_absoluteY=\"575dp\" />");
+                 "        tools:layout_editor_absoluteX=\"325dp\" />");
   }
 
   public void testDistributeHorizontally() {
@@ -446,6 +441,6 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginStart=\"37dp\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"187dp\" />");
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 }

@@ -101,8 +101,7 @@ public class ScoutArrangeChainTest03 extends SceneTest {
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        app:layout_constraintBottom_toTopOf=\"@+id/a\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteY=\"69dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     list = new ArrayList<>(); // testing passing in an empty selection does not crash
     list.add(myScreen.get("@+id/b").getComponent());
@@ -115,8 +114,7 @@ public class ScoutArrangeChainTest03 extends SceneTest {
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/c\"\n" +
-                 "        app:layout_constraintTop_toBottomOf=\"@+id/a\"\n" +
-                 "        tools:layout_editor_absoluteY=\"69dp\" />");
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/a\" />");
 
     buildScene();
   }
@@ -142,8 +140,7 @@ public class ScoutArrangeChainTest03 extends SceneTest {
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        app:layout_constraintBottom_toTopOf=\"@+id/c\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/b\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteY=\"29dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
   }

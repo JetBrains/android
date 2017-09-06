@@ -74,9 +74,7 @@ public class ScoutTest6 extends SceneTest {
                  "        android:layout_height=\"40dp\"\n" +
                  "        android:layout_marginStart=\"200dp\"\n" +
                  "        app:layout_constraintBottom_toTopOf=\"@+id/textview2\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 }

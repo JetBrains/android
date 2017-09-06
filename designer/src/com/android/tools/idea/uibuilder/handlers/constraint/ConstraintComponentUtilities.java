@@ -608,8 +608,10 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
-    String position = String.format(VALUE_N_DP, value);
-    transaction.setAttribute(uri, attribute, position);
+    if (value != 0) {
+      String position = String.format(VALUE_N_DP, value);
+      transaction.setAttribute(uri, attribute, position);
+    }
   }
 
   public static void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
@@ -775,7 +777,7 @@ public final class ConstraintComponentUtilities {
   /**
    * Returns the X coordinate of the component relative to its parent
    */
-  @AndroidDpCoordinate
+  @AndroidCoordinate
   private static int getXfromParent(@NotNull NlComponent component) {
     return NlComponentHelperKt.getX(component) - (component.getParent() != null ? NlComponentHelperKt.getX(component.getParent()) : 0);
   }
@@ -783,7 +785,7 @@ public final class ConstraintComponentUtilities {
   /**
    * Returns the Y coordinate of the component relative to its parent
    */
-  @AndroidDpCoordinate
+  @AndroidCoordinate
   private static int getYfromParent(@NotNull NlComponent component) {
     return NlComponentHelperKt.getY(component) - (component.getParent() != null ? NlComponentHelperKt.getY(component.getParent()) : 0);
   }
@@ -959,7 +961,7 @@ public final class ConstraintComponentUtilities {
 
     if (!hasLeft && !hasRight && !hasStart && !hasEnd) {
       if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
-        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, getXfromParent(component));
+        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, pixelToDP(component, getXfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, null);
       }
     }
@@ -991,7 +993,7 @@ public final class ConstraintComponentUtilities {
     }
     if (!hasTop && !hasBottom && !hasBaseline) {
       if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
-        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, getYfromParent(component));
+        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, pixelToDP(component, getYfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, null);
       }
     }

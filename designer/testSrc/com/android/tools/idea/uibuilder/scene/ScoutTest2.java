@@ -64,8 +64,8 @@ public class ScoutTest2 extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"40dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
-    Scout.inferConstraintsAndCommit (myModel.getComponents());
+    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list, true);
+    Scout.inferConstraintsAndCommit(myModel.getComponents());
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -73,8 +73,6 @@ public class ScoutTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginTop=\"130dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toBottomOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/textview1\" />");
   }
 }

@@ -297,7 +297,10 @@ val NlComponent.viewHandler: ViewHandler?
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
   get() {
-    if (!tag.isValid) {
+    @Suppress("SENSELESS_COMPARISON")
+    // tag can be null for a mock component. To avoid the need of creating a fully functionnal mock XmlTag
+    // that passes all tests, we check the nullity.
+    if (tag == null || !tag.isValid) {
       return null
     }
     return ViewHandlerManager.get(tag.project).findLayoutHandler(this, false)

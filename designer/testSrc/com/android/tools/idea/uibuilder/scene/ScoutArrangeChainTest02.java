@@ -95,7 +95,8 @@ public class ScoutArrangeChainTest02 extends SceneTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
-                 "        app:layout_constraintStart_toEndOf=\"@+id/a\" />");
+                 "        app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
+                 "        tools:layout_editor_absoluteY=\"29dp\" />");
 
 
     buildScene();
