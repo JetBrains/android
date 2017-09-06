@@ -476,7 +476,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
-    updateActions(component.getModel().getSelectionModel().getSelection());
+    updateActions(screenView.getSelectionModel().getSelection());
     return false;
   }
 

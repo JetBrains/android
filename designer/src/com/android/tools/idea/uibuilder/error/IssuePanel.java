@@ -406,7 +406,7 @@ public class IssuePanel extends JPanel implements Disposable {
         }
         NlComponent source = issue.getSource();
         if (source != null) {
-          source.getModel().getSelectionModel().setSelection(Collections.singletonList(source));
+          mySurface.getSelectionModel().setSelection(Collections.singletonList(source));
         }
       }
     }

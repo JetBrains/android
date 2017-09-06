@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
@@ -25,7 +26,11 @@ import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -36,11 +41,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.TAG_ACTION;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
+import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.*;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +59,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   public static final String TAG_NAVIGATION = "navigation";
   protected CodeStyleSettings mySettings;
   private boolean myUseCustomSettings;
+  private VirtualFile myManifest;
 
   @Override
   public void setUp() throws Exception {
@@ -64,6 +73,29 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
     TestableThumbnailManager.register(myAndroidFacet);
+    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true");
+    createEmptyManifest();
+  }
+
+  private void createEmptyManifest() {
+    VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
+    assertThat(root).isNotNull();
+    if (Arrays.stream(root.getChildren()).noneMatch(file -> FN_ANDROID_MANIFEST_XML.equals(file.getName()))) {
+
+      // To check if a file is in the res/ directory. AndroidResourceUtil
+      // checks if the parent of res/ contains the AndroidManifest.xml file
+      myManifest = ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>() {
+        @Override
+        public VirtualFile compute() {
+          try {
+            return root.createChildData(this, FN_ANDROID_MANIFEST_XML);
+          }
+          catch (IOException e) {
+            return null;
+          }
+        }
+      });
+    }
   }
 
   private static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
@@ -80,10 +112,24 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
       mySettings = null;
+      deleteManifest();
     }
     finally {
       super.tearDown();
     }
+  }
+
+  private void deleteManifest() {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      if (myManifest != null) {
+        try {
+          myManifest.delete(this);
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    });
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
@@ -112,7 +158,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     };
 
     return new ModelBuilder(myAndroidFacet, myFixture, name, root, managerFactory,
-                            NavSceneManager::updateHierarchy, "nav", NavDesignSurface.class,
+                            NavSceneManager::updateHierarchy, "navigation", NavDesignSurface.class,
                             (tag, model) -> new NlComponent(model, tag));
   }
 

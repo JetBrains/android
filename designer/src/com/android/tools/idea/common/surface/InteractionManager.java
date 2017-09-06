@@ -849,7 +849,7 @@ public class InteractionManager {
       List<NlComponent> dragged = interaction.getDraggedComponents();
       List<NlComponent> components;
       if (insertType.isMove()) {
-        components = model.getSelectionModel().getSelection();
+        components = mySurface.getSelectionModel().getSelection();
       }
       else {
         // TODO: support nav editor

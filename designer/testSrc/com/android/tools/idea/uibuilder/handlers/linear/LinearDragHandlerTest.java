@@ -56,11 +56,11 @@ public class LinearDragHandlerTest extends LayoutTestCase {
                                               component("TextView")
                                                 .withBounds(20, 0, 10, 10)))).build();
     NlComponent button = model.find("button");
-    model.getSelectionModel().setSelection(ImmutableList.of(button));
     DesignSurface surface = LayoutTestUtilities.createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
+    surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
-    Transferable transferable = model.getSelectionAsTransferable();
+    Transferable transferable = surface.getSelectionModel().getTransferable(model.getId());
     InteractionManager manager = new InteractionManager(surface);
     manager.registerListeners();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 13, 0, transferable, DnDConstants.ACTION_MOVE);

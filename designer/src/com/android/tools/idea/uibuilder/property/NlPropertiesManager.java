@@ -345,7 +345,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (mySurface == null || mySceneView == null) {
       return;
     }
-    List<NlComponent> selection = mySceneView.getModel().getSelectionModel().getSelection();
+    List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
     componentSelectionChanged(mySurface, selection);
     myUpdateCount++;
   }

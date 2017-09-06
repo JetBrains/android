@@ -83,7 +83,7 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList list = (DestinationList)def.getFactory().create();
     list.setToolContext(myModel.getSurface());
     ImmutableList<NlComponent> selection = ImmutableList.of(myModel.find("fragment1"));
-    SelectionModel modelSelectionModel = myModel.getSelectionModel();
+    SelectionModel modelSelectionModel = myModel.getSurface().getSelectionModel();
     modelSelectionModel.setSelection(selection);
     SelectionModel listSelectionModel = list.mySelectionModel;
     assertEquals(selection, listSelectionModel.getSelection());
@@ -118,7 +118,7 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList list = (DestinationList)def.getFactory().create();
     list.setToolContext(myModel.getSurface());
     ImmutableList<NlComponent> selection = ImmutableList.of(myModel.find("subnav"));
-    SelectionModel modelSelectionModel = myModel.getSelectionModel();
+    SelectionModel modelSelectionModel = myModel.getSurface().getSelectionModel();
     modelSelectionModel.setSelection(selection);
     SelectionModel listSelectionModel = list.mySelectionModel;
     assertEquals(selection, listSelectionModel.getSelection());
@@ -158,7 +158,7 @@ public class DestinationListTest extends NavigationTestCase {
 
     // Verify that modifications that don't add or remove components don't cause the selection to change
     ImmutableList<NlComponent> fragment3 = ImmutableList.of(model.find("fragment3"));
-    model.getSelectionModel().setSelection(fragment3);
+    model.getSurface().getSelectionModel().setSelection(fragment3);
     assertEquals(fragment3, list.mySelectionModel.getSelection());
 
     model.notifyModified(NlModel.ChangeType.EDIT);
@@ -167,7 +167,7 @@ public class DestinationListTest extends NavigationTestCase {
 
   public void testDoubleClickActivity() throws Exception {
     NlComponent nlComponent = myModel.find("fragment2");
-    myModel.getSelectionModel().setSelection(ImmutableList.of(nlComponent));
+    myModel.getSurface().getSelectionModel().setSelection(ImmutableList.of(nlComponent));
     myList.myList.dispatchEvent(new MouseEvent(myList.myList, MouseEvent.MOUSE_CLICKED, 1, 0, 0, 0, 2, false));
     verify((NavDesignSurface)myModel.getSurface()).notifyComponentActivate(nlComponent);
   }
@@ -192,15 +192,15 @@ public class DestinationListTest extends NavigationTestCase {
 
     NlComponent root = model.getComponents().get(0);
     when(surface.getCurrentNavigation()).thenReturn(root);
-    model.getSelectionModel().setSelection(ImmutableList.of(root));
-    model.getSelectionModel().clear();
+    surface.getSelectionModel().setSelection(ImmutableList.of(root));
+    surface.getSelectionModel().clear();
 
     assertFalse(list.myBackPanel.isVisible());
 
     root = root.getChild(0);
     when(surface.getCurrentNavigation()).thenReturn(root);
-    model.getSelectionModel().setSelection(ImmutableList.of(root));
-    model.getSelectionModel().clear();
+    surface.getSelectionModel().setSelection(ImmutableList.of(root));
+    surface.getSelectionModel().clear();
 
     assertTrue(list.myBackPanel.isVisible());
     assertEquals(DestinationList.ROOT_NAME, list.myBackLabel.getText());
@@ -210,8 +210,8 @@ public class DestinationListTest extends NavigationTestCase {
 
     root = root.getChild(0);
     when(surface.getCurrentNavigation()).thenReturn(root);
-    model.getSelectionModel().setSelection(ImmutableList.of(root));
-    model.getSelectionModel().clear();
+    surface.getSelectionModel().setSelection(ImmutableList.of(root));
+    surface.getSelectionModel().clear();
 
     assertTrue(list.myBackPanel.isVisible());
     assertEquals("sub nav", list.myBackLabel.getText());

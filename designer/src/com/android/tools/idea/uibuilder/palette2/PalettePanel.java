@@ -555,7 +555,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType);
+        model.addComponents(toAdd, root, null, insertType, myDesignSurface.getViewEditor());
       }
       return true;
     }

@@ -109,7 +109,6 @@ public class NavDesignSurface extends DesignSurface {
     return mySchema;
   }
 
-  @Override
   @NotNull
   public NlComponent createComponent(@NotNull XmlTag tag) {
     return createComponent(tag, getModel());
@@ -118,7 +117,7 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @VisibleForTesting
   public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
-    NlComponent result = DesignSurface.createComponent(tag, model);
+    NlComponent result = new NlComponent(model, tag);
     NavComponentHelper.INSTANCE.registerComponent(result);
     return result;
   }

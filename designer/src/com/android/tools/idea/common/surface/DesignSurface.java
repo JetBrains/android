@@ -69,6 +69,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -97,10 +98,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
-  protected NlModel myModel;
+  @Nullable protected NlModel myModel;
   protected Scene myScene;
   private SceneManager mySceneManager;
-
+  private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
 
   private final IssueModel myIssueModel = new IssueModel();
@@ -129,6 +130,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
+    mySelectionModel = new SelectionModel();
+    mySelectionModel.addListener(mySelectionListener);
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
@@ -224,7 +227,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public SelectionModel getSelectionModel() {
-    return myModel.getSelectionModel();
+    return mySelectionModel;
+  }
+
+  @NotNull
+  public Transferable getSelectionAsTransferable() {
+    return getSelectionModel().getTransferable(myModel != null ? myModel.getId() : 0);
   }
 
   protected final void createSceneViews() {
@@ -262,10 +270,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (sceneView != null) {
       sceneView.getModel().removeListener(myModelListener);
-
-      SelectionModel selectionModel = sceneView.getSelectionModel();
-      selectionBefore = selectionModel.getSelection();
-      selectionModel.removeListener(mySelectionListener);
     }
 
     if (model != null) {
@@ -283,9 +287,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     createSceneViews();
 
     if (model != null) {
-      SelectionModel selectionModel = model.getSelectionModel();
-      selectionModel.addListener(mySelectionListener);
-      selectionAfter = selectionModel.getSelection();
       if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
         myInteractionManager.unregisterListeners();
       }

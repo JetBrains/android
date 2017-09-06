@@ -123,8 +123,8 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
    * Get the first selected component if there is one, else the root component of the model
    */
   private void initSelection() {
-    if (myModel != null) {
-      List<NlComponent> selection = myModel.getSelectionModel().getSelection();
+    if (mySurface != null && myModel != null) {
+      List<NlComponent> selection = mySurface.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         selection = myModel.getComponents();
       }
@@ -246,9 +246,9 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
       @Override
       public void mouseClicked(MouseEvent e) {
         if (myModel != null && mySurface != null) {
-          List<NlComponent> selection = myModel.getSelectionModel().getSelection();
+          List<NlComponent> selection = mySurface.getSelectionModel().getSelection();
           if (selection.isEmpty()) {
-            myModel.getSelectionModel().setSelection(myModel.getComponents());
+            mySurface.getSelectionModel().setSelection(myModel.getComponents());
           }
           if (!selection.isEmpty()) {
             MockupEditAction action = new MockupEditAction(mySurface);
@@ -344,11 +344,6 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     if (myModel != null) {
       myModel.addListener(myModelListener);
     }
-    List<NlComponent> selection = myModel != null
-                                  ? myModel.getSelectionModel().getSelection()
-                                  : Collections.emptyList();
-
-    selectionUpdated(myModel, selection);
   }
 
   /**
@@ -410,10 +405,11 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
   public void onRenderCompleted() {
     UIUtil.invokeLaterIfNeeded(
       () -> {
-        if (myModel != null) {
-          selectionUpdated(myModel, myModel.getSelectionModel().getSelection());
+        if (mySurface != null) {
+          selectionUpdated(myModel, mySurface.getSelectionModel().getSelection());
         }
-      });  }
+      });
+  }
 
   /**
    * A tool is an extension to the {@link MockupEditor}. Each tool is responsible to set
@@ -548,8 +544,6 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     }
 
     private void processModelChange(@NotNull NlModel model) {
-      UIUtil.invokeLaterIfNeeded(
-        () -> myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection()));
     }
   }
 }

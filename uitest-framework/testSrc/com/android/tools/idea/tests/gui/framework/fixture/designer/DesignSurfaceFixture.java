@@ -73,7 +73,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   @NotNull
   public List<NlComponent> getSelection() {
     SceneView view = target().getCurrentSceneView();
-    return view == null ? Collections.emptyList() : view.getModel().getSelectionModel().getSelection();
+    return view == null ? Collections.emptyList() : view.getSelectionModel().getSelection();
   }
 
   public double getScale() {

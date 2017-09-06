@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -165,7 +165,7 @@ public class ModelBuilder {
       DesignSurface surface = model.getSurface();
       when(surface.getModel()).thenReturn(model);
       SceneManager sceneManager = myManagerFactory.apply(model);
-      SelectionModel selectionModel = model.getSelectionModel();
+      SelectionModel selectionModel = surface.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       Scene scene = sceneManager.build();
