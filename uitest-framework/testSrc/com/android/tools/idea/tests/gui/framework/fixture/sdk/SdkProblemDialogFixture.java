@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture;
+package com.android.tools.idea.tests.gui.framework.fixture.sdk;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
