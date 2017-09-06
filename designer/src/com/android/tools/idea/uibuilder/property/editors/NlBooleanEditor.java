@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
@@ -28,6 +29,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
+  @VisibleForTesting static final String TIP_TEXT_DONT_CARE = "(No value)";
+  @VisibleForTesting static final String TIP_TEXT_NOT_SELECTED = "false";
+  @VisibleForTesting static final String TIP_TEXT_SELECTED = "true";
+
   private final JPanel myPanel;
   private final ThreeStateCheckBox myCheckbox;
   private final BrowsePanel myBrowsePanel;
@@ -75,6 +80,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
     myCheckbox.setState(state == null ? ThreeStateCheckBox.State.NOT_SELECTED : state);
+    updateTipText();
     if (myBrowsePanel != null) {
       myBrowsePanel.setProperty(property);
     }
@@ -95,5 +101,21 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   private void checkboxChanged(@SuppressWarnings("unused") ActionEvent event) {
     myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
     stopEditing(myValue);
+
+    updateTipText();
+  }
+
+  private void updateTipText() {
+    switch(myCheckbox.getState()) {
+      case DONT_CARE:
+        myCheckbox.setToolTipText(TIP_TEXT_DONT_CARE);
+        break;
+      case NOT_SELECTED:
+        myCheckbox.setToolTipText(TIP_TEXT_NOT_SELECTED);
+        break;
+      case SELECTED:
+        myCheckbox.setToolTipText(TIP_TEXT_SELECTED);
+        break;
+    }
   }
 }

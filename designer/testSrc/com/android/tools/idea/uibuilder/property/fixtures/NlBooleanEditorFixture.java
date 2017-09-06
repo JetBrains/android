@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertEquals;
 
 public class NlBooleanEditorFixture extends NlEditorFixtureBase {
   private final NlBooleanEditor myComponentEditor;
@@ -47,6 +48,12 @@ public class NlBooleanEditorFixture extends NlEditorFixtureBase {
   public NlBooleanEditorFixture expectValue(@Nullable Boolean expectedValue) {
     String expectedString = expectedValue != null ? expectedValue.toString() : null;
     assertThat(myComponentEditor.getProperty().getValue()).isEqualTo(expectedString);
+    return this;
+  }
+
+  public NlBooleanEditorFixture expectCheckboxTipText(@NotNull String expectedTipText) {
+    String actual = myCheckBox.getToolTipText();
+    assertEquals(expectedTipText, actual);
     return this;
   }
 
