@@ -52,6 +52,9 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
 
+  @VisibleForTesting
+  static final float REMOVE_MAJOR_TICK_DENSITY = 1.1f;
+
   private static final JBColor DEFAULT_VERT_AXIS_TICK_COLOR = new JBColor(new Color(0, 0, 0, 64), new Color(255, 255, 255, 102));
   private static final JBColor DEFAULT_HORIZ_AXIS_TICK_COLOR = new JBColor(new Color(0xB9B9B9), new Color(0x656464));
 
@@ -79,6 +82,8 @@ public final class AxisComponent extends AnimatedComponent {
 
   @NotNull private Color myMarkerColor;
 
+  private float myMarkerLabelDensity = 2.0f;
+
   /**
    * Cached max marker lablels
    */
@@ -93,7 +98,7 @@ public final class AxisComponent extends AnimatedComponent {
 
   @NotNull private final AxisOrientation myOrientation;
 
-  private boolean myRender;
+  private boolean myCalculateMarkers;
 
   private int myMajorMarkerLength = DEFAULT_MAJOR_MARKER_LENGTH;
   private int myMinorMarkerLength = DEFAULT_MINOR_MARKER_LENGTH;
@@ -153,7 +158,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private void modelChanged() {
-    myRender = true;
+    myCalculateMarkers = true;
     opaqueRepaint();
   }
 
@@ -168,7 +173,12 @@ public final class AxisComponent extends AnimatedComponent {
     return myOrientation;
   }
 
-  public void render() {
+  @VisibleForTesting
+  float getMarkerLabelDensity() {
+    return myMarkerLabelDensity;
+  }
+
+  void caluculateMarkers(@NotNull Dimension dimension) {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
@@ -193,6 +203,11 @@ public final class AxisComponent extends AnimatedComponent {
     // Calculate marker positions
     int numMarkers = (int)Math.floor((currentMaxValueRelative - firstMarkerValue) / minorInterval) + 1;
     int numMinorPerMajor = (int)(majorInterval / minorInterval);
+
+    // This is approximate.
+    int drawableHeight = dimension.height - myStartMargin - myEndMargin;
+    myMarkerLabelDensity =
+      (float)drawableHeight / ((float)numMarkers * (float)(mDefaultFontMetrics.getMaxAscent() + mDefaultFontMetrics.getMaxDescent()));
 
     // We always start from a major marker.
     for (int i = 0; i < numMarkers; i++) {
@@ -227,9 +242,9 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myRender) {
-      render();
-      myRender = false;
+    if (myCalculateMarkers) {
+      caluculateMarkers(dim);
+      myCalculateMarkers = false;
     }
     // Calculate drawing parameters.
     Point startPoint = new Point();
@@ -311,15 +326,26 @@ public final class AxisComponent extends AnimatedComponent {
       }
     }
 
+    // Determine whether or not to skip rendering of internal tick marks.
+    boolean skipRendering = (myOrientation == AxisOrientation.LEFT || myOrientation == AxisOrientation.RIGHT) && myMarkerLabelDensity < REMOVE_MAJOR_TICK_DENSITY;
+
     Line2D.Float line = new Line2D.Float();
-    // Draw minor ticks.
-    for (int i = 0; i < myMinorMarkerPositions.size(); i++) {
-      float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
-      drawMarkerLine(g2d, line, scaledPosition, origin, myMinorMarkerLength);
+
+    if (!skipRendering) {
+      // Draw minor ticks.
+      for (int i = 0; i < myMinorMarkerPositions.size(); i++) {
+        float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
+        drawMarkerLine(g2d, line, scaledPosition, origin, myMinorMarkerLength);
+      }
     }
 
     // Draw major ticks.
     for (int i = 0; i < myMajorMarkerPositions.size(); i++) {
+      if (i > 0 && i < myMajorMarkerPositions.size() - 1 && skipRendering) {
+        // Skip rendering for interior ticks.
+        continue;
+      }
+
       float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
       if (myShowLabels) {
@@ -329,8 +355,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
   }
 
-  private void drawMarkerLine(Graphics2D g2d, Line2D.Float line, float markerOffset,
-                              Point origin, int markerLength) {
+  private void drawMarkerLine(Graphics2D g2d, Line2D.Float line, float markerOffset, Point origin, int markerLength) {
     if (myHideTickAtMin && markerOffset == 0) {
       return;
     }
