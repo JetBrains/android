@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import org.fest.swing.fixture.JListFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,16 +44,16 @@ public final class DragMenuItemsFromPaletteToComponentTreeTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
 
-    JListFixture paletteItemList = layoutEditor.getPaletteItemList(0);
+    NlPaletteFixture palette = layoutEditor.getPalette();
     JTreeFixture componentTree = layoutEditor.getComponentTree();
 
-    paletteItemList.drag("Group");
+    palette.dragComponent("", "Group");
     componentTree.drop("menu");
 
-    paletteItemList.drag("Menu Item");
+    palette.dragComponent("", "Menu Item");
     componentTree.drop("menu/group");
 
-    paletteItemList.drag("Menu");
+    palette.dragComponent("", "Menu");
     componentTree.drop("menu/group/item");
 
     assertPathExists(componentTree, "menu/group/item/menu");

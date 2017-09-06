@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -32,7 +33,6 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -66,26 +66,26 @@ public class NlPreviewFixture extends ToolWindowFixture {
                                                toolbar);
   }
 
-  private void openPalette() {
-    // Check if the palette is already open
+  @NotNull
+  private NlPaletteFixture openPalette() {
+    NlPaletteFixture palette;
+    Container workBench = SwingUtilities.getAncestorOfClass(WorkBench.class, myDesignSurfaceFixture.target());
+
     try {
-      myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
+      // Check if the palette is already open
+      palette = NlPaletteFixture.create(myRobot, workBench);
     }
     catch (ComponentLookupException e) {
+      // The Palette was not showing. Open the palette by clicking on "Palette" tool window icon.
       new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette "))).click();
+      palette = NlPaletteFixture.create(myRobot, workBench);
     }
+    return palette;
   }
 
   @NotNull
   public NlPreviewFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
-    openPalette();
-    NlPaletteTreeGrid treeGrid = myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
-    Wait.seconds(5).expecting("the UI to be populated").until(() -> treeGrid.getCategoryList().getModel().getSize() > 0);
-    new JListFixture(myRobot, treeGrid.getCategoryList()).selectItem(group);
-
-    // Wait until the list has been expanded in UI (eliminating flakiness).
-    JList list = GuiTests.waitUntilShowing(myRobot, treeGrid, Matchers.byName(JList.class, group));
-    new JListFixture(myRobot, list).drag(item);
+    openPalette().dragComponent(group, item);
     myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
     return this;
   }

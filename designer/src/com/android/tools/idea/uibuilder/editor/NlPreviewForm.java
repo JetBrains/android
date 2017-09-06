@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
-import com.android.tools.adtui.workbench.AutoHide;
-import com.android.tools.adtui.workbench.Side;
-import com.android.tools.adtui.workbench.Split;
-import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlLayoutType;
@@ -34,6 +31,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
+import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -58,7 +56,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
+import java.util.*;
+import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
 
@@ -305,8 +304,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
     if (myContentPanel == null) {
       createContentPanel();
-      myWorkBench.init(myContentPanel, mySurface,
-                       Collections.singletonList(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+      List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
+      if (StudioFlags.NELE_NEW_PALETTE.get()) {
+        tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
+      }
+      else {
+        tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
+      }
+      myWorkBench.init(myContentPanel, mySurface, tools);
     }
     initNeleModel();
   }

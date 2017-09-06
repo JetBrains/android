@@ -44,11 +44,10 @@ public final class DragPreferencesFromPaletteToComponentTreeTest {
     layoutEditor.waitForRenderToFinish();
 
     JTreeFixture componentTree = layoutEditor.getComponentTree();
-
-    layoutEditor.getPaletteItemList(1).drag("PreferenceCategory");
+    layoutEditor.getPalette().dragComponent("Groups", "PreferenceCategory");
     componentTree.drop("PreferenceScreen");
 
-    layoutEditor.getPaletteItemList(0).drag("CheckBoxPreference");
+    layoutEditor.getPalette().dragComponent("Preferences", "CheckBoxPreference");
     componentTree.drop("PreferenceScreen/PreferenceCategory");
 
     assertPathExists(componentTree, "PreferenceScreen/PreferenceCategory/CheckBoxPreference");

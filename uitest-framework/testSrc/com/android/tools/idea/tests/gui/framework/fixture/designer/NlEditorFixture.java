@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
-import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -24,14 +24,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -39,7 +35,6 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -56,6 +51,7 @@ import java.util.List;
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
+  private NlPaletteFixture myPaletteFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
@@ -97,19 +93,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void waitForErrorPanelToContain(@NotNull String errorText) {
     myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
-  }
-
-  @NotNull
-  public JListFixture getPaletteItemList(int i) {
-    Robot robot = robot();
-
-    @SuppressWarnings("unchecked")
-    TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
-
-    JListFixture fixture = new JListFixture(robot, grid.getLists().get(i));
-    fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
-
-    return fixture;
   }
 
   @NotNull
@@ -172,13 +155,18 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
-  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
-    NlPaletteTreeGrid treeGrid = robot().finder().findByType(NlPaletteTreeGrid.class, true);
-    new JListFixture(robot(), treeGrid.getCategoryList()).selectItem(group);
+  public NlPaletteFixture getPalette() {
+    if (myPaletteFixture == null) {
+      Container workBench = SwingUtilities.getAncestorOfClass(WorkBench.class, myDesignSurfaceFixture.target());
+      myPaletteFixture = NlPaletteFixture.create(robot(), workBench);
+    }
+    return myPaletteFixture;
+  }
 
-    // Wait until the list has been expanded in UI (eliminating flakiness).
-    JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
-    new JListFixture(robot(), list).drag(item);
+  @NotNull
+  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+    getPalette().dragComponent(group, item);
+
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
     assert sceneView != null;
