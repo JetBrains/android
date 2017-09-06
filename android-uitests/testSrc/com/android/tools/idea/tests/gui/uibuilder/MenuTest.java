@@ -170,7 +170,7 @@ public final class MenuTest {
     NlEditorFixture editor = myEditor.getLayoutEditor(false);
 
     editor.waitForRenderToFinish();
-    editor.getPaletteItemList(0).drag(item);
+    editor.getPalette().dragComponent("", item);
     editor.getSurface().drop(point);
   }
 }

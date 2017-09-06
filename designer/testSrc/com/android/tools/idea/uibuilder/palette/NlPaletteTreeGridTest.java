@@ -158,7 +158,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
 
     clickOnItem(2, 3);
-    assertThat(lastSelectedItem.value.toString()).isEqualTo(LINEAR_LAYOUT);
+    assertThat(lastSelectedItem.value.getTagName()).isEqualTo(LINEAR_LAYOUT);
   }
 
   public void testClickOnItemMissingFromProject() {

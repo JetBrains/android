@@ -34,7 +34,6 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
-import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -42,7 +41,10 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
@@ -303,13 +305,13 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
   @NotNull
   @VisibleForTesting
-  CategoryList getCategoryList() {
+  public CategoryList getCategoryList() {
     return myCategoryList;
   }
 
   @NotNull
   @VisibleForTesting
-  ItemList getItemList() {
+  public ItemList getItemList() {
     return myItemList;
   }
 
@@ -474,7 +476,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         }
       }
       catch (UnsupportedFlavorException | IOException ex) {
-        Logger.getInstance(NlPaletteTreeGrid.class).warn("Could not un-serialize a transferable", ex);
+        Logger.getInstance(PalettePanel.class).warn("Could not un-serialize a transferable", ex);
       }
       return null;
     }
