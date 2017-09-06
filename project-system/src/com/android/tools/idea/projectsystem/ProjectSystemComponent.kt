@@ -25,8 +25,7 @@ internal class ProjectSystemComponent(val project: Project) : AbstractProjectCom
   val projectSystem: AndroidProjectSystem
     get() {
       // We need to guarantee that the project system remains unique until the next time the project
-      // is closed. This method may be called by multiple threads in parallel, and the projectClosed
-      // method might be invoked while it is running.
+      // is closed. This method may be called by multiple threads in parallel.
       var cache = cachedProjectSystem.get()
 
       if (cache == null) {
@@ -35,11 +34,11 @@ internal class ProjectSystemComponent(val project: Project) : AbstractProjectCom
         // it would be a deadlock risk.
         cache = detectProjectSystem(project)
         cachedProjectSystem.compareAndSet(null, cache)
-        cache = cachedProjectSystem.get()!!
         // Can't return null since we've set it to a non-null value earlier in the method and there
         // is no code that ever sets it back to null once set to a non-null value. However, it's
         // possible that another thread initialized it to a different non-null value, so we should
         // use the result of get rather than our local cache variable.
+        cache = cachedProjectSystem.get()!!
       }
       return cache
     }
