@@ -28,7 +28,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,7 +118,6 @@ public class IntegratedSdkManagerTest {
   }
 
   @Test
-  @Ignore // Checking if this test is locking the UI tests from finishing
   public void androidSdkManagerShowsFromOpenProject() throws Exception {
     setInvalidSdk(guiTest.importSimpleApplication())
       .openFromMenu(SdkProblemDialogFixture::find, "File", "New", "New Project...")
@@ -142,9 +140,12 @@ public class IntegratedSdkManagerTest {
 
   private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture) {
     setInvalidSdkPath();
-    // Gradle tries to set the sdkData after a sync, so we wait for the sync to finish before setting the sdkData to null
+    // Changing the SDK path triggers a gradle sync, and that will show a couple of dialogs to select/sync the SDK.
     fixture.waitForGradleProjectSyncToFail();
-    AndroidSdks.getInstance().setSdkData(null);
+    SelectSdkDialogFixture.find(fixture.robot())
+      .clickCancel();
+    SyncAndroidSdkDialogFixture.find(fixture.robot())
+      .clickNo();
     return fixture;
   }
 
@@ -152,12 +153,15 @@ public class IntegratedSdkManagerTest {
    * Its OK to call this method, and not set the Android SDK back on tear down. The value is reset every time a test starts by
    * a call to {@link GuiTests#setUpSdks()}
    */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   private static void setInvalidSdkPath() {
     ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
       () -> {
         File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath();
-        boolean ignored = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS).mkdirs();
+        File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
+        androidSdkPlatformPath.mkdirs();
         IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
+        androidSdkPlatformPath.delete(); // Simulate user removing the Android SDK
       }));
 
     AndroidSdks.getInstance().setSdkData(null);
