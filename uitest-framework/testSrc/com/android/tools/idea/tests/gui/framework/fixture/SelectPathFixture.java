@@ -70,8 +70,8 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
   @NotNull
   public IdeFrameFixture clickOK() {
     JButton button = GuiTests.waitUntilShowingAndEnabled(myRobot, myDialog, Matchers.byText(JButton.class, "OK"));
-    // Click the "OK" button pragmatically to eliminate the flakiness due to a possible click miss.
-    GuiTask.execute(() -> button.doClick());
+    // Click the "OK" button programmatically to eliminate the flakiness due to a possible click miss.
+    GuiTask.execute(button::doClick);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }
