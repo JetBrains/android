@@ -403,8 +403,10 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
-      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
-      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
+      }
       myScene.needsRebuildList();
     }
   }
@@ -424,7 +426,7 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setTarget(dx, time);
       myAnimatedDrawY.setTarget(dy, time);
-      if (isFromModel) {
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
         NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
         NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
       }
@@ -465,7 +467,7 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setTarget(width, time);
       myAnimatedDrawHeight.setTarget(height, time);
-      if (isFromModel) {
+      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
         NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
         NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
       }
