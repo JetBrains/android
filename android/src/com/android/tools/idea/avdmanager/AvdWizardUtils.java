@@ -128,9 +128,9 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG);
+                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
