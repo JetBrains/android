@@ -23,8 +23,10 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
 import com.android.tools.idea.uibuilder.palette2.PalettePanel;
 import com.intellij.ui.SearchTextField;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JListItemFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,6 +106,15 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
       mySearchField = new SearchTextFieldFixture(robot(), robot().finder().findByType(getMyPanel().getParent(), SearchTextField.class));
     }
     return mySearchField;
+  }
+
+  public void clickItem(@NotNull String group, @NotNull String itemValue, int fromRightEdge) {
+    JListFixture itemList = getItemList(group);
+    JListItemFixture item = itemList.item(itemValue);
+    Rectangle bounds = itemList.target().getCellBounds(item.index(), item.index());
+    Point pos = new Point(bounds.x + bounds.width - fromRightEdge, bounds.y + bounds.height / 2);
+    robot().waitForIdle();
+    robot().click(itemList.target(), pos, MouseButton.LEFT_BUTTON, 1);
   }
 
   @NotNull
