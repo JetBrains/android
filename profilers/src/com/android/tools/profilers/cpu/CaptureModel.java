@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DefaultHNode;
-import com.android.tools.adtui.model.HNode;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.*;
 import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -393,30 +391,62 @@ class CaptureModel {
   }
 
   public static class FlameChart implements Details {
-    @NotNull private final Range myRange;
-    @Nullable private final HNode<MethodModel> myNode;
-    @Nullable private final Range myCaptureRange;
+    public enum Aspect {
+      /**
+       * When the root changes.
+       */
+      NODE
+    }
 
-    public FlameChart(@NotNull Range range, @Nullable CaptureNode node) {
-      myRange = range;
-      if (node != null) {
-        myCaptureRange = new Range(node.getStart(), node.getEnd());
-        myNode = convertToHNode(new TopDownNode(node), node.getStart(), 0);
+    @NotNull private final Range myFlameRange;
+    @Nullable private HNode<MethodModel> myFlameNode;
+    @Nullable private final TopDownNode myTopDownNode;
+
+    @NotNull private final Range mySelectionRange;
+    @NotNull private final AspectModel<Aspect> myAspectModel;
+
+    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode) {
+      mySelectionRange = selectionRange;
+      myFlameRange = new Range();
+      myAspectModel = new AspectModel<>();
+
+      if (captureNode == null) {
+        myFlameNode = null;
+        myTopDownNode = null;
+        return;
       }
-      else {
-        myNode = null;
-        myCaptureRange = null;
+      myTopDownNode = new TopDownNode(captureNode);
+
+      selectionRange.addDependency(myAspectModel).onChange(Range.Aspect.RANGE, this::selectionRangeChanged);
+      selectionRangeChanged();
+    }
+
+    private void selectionRangeChanged() {
+      myTopDownNode.update(mySelectionRange);
+      if (myTopDownNode.getTotal() > 0) {
+        double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
+        myFlameNode = convertToHNode(myTopDownNode, start, 0);
+      } else {
+        myFlameNode = null;
       }
+
+      myFlameRange.set(mySelectionRange);
+      myAspectModel.changed(Aspect.NODE);
     }
 
     @NotNull
     public Range getRange() {
-      return myRange;
+      return myFlameRange;
     }
 
     @Nullable
     public HNode<MethodModel> getNode() {
-      return myNode;
+      return myFlameNode;
+    }
+
+    @NotNull
+    public AspectModel<Aspect> getAspect() {
+      return myAspectModel;
     }
 
     @Override
@@ -424,14 +454,19 @@ class CaptureModel {
       return Type.FLAME_CHART;
     }
 
+    /**
+     * Produces a HNode similar to {@link CallChart}, but the identical methods with the same sequence of callers
+     * are combined into one wider bar. It converts it from {@link TopDownNode} as it's similar to FlameChart and
+     * building a {@link TopDownNode} instance only on creation gives a performance improvement in every update.
+     */
     private DefaultHNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
-      assert myCaptureRange != null;
-      topDown.update(myCaptureRange);
-      DefaultHNode<MethodModel> node = new DefaultHNode<>(topDown.getNodes().get(0).getData(), (long)start, (long)(start + topDown.getTotal()));
+      assert topDown.getTotal() > 0;
+      DefaultHNode<MethodModel> node = new DefaultHNode<>(topDown.getNodes().get(0).getData(),
+                                                          (long)start, (long)(start + topDown.getTotal()));
       node.setDepth(depth);
 
       for (TopDownNode child : topDown.getChildren()) {
-        child.update(myCaptureRange);
+        child.update(mySelectionRange);
       }
 
       List<TopDownNode> sortedChildren = new ArrayList<>(topDown.getChildren());
@@ -441,6 +476,10 @@ class CaptureModel {
       sortedChildren.sort(Comparator.comparingDouble(TopDownNode::getTotal).reversed());
 
       for (TopDownNode child : sortedChildren) {
+        if (child.getTotal() == 0) {
+          // Sorted in descending order, so starting from now every child's total is zero.
+          break;
+        }
         node.addChild(convertToHNode(child, start, depth + 1));
         start += child.getTotal();
       }

@@ -135,8 +135,8 @@ class CpuCaptureView {
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);
     myBinder.bind(CaptureModel.BottomUp.class, BottomUpView::new);
-    myBinder.bind(CaptureModel.CallChart.class, this::createCallChartView);
-    myBinder.bind(CaptureModel.FlameChart.class, this::createFlameChartView);
+    myBinder.bind(CaptureModel.CallChart.class, CallChartView::new);
+    myBinder.bind(CaptureModel.FlameChart.class, FlameChartView::new);
     updateView();
   }
 
@@ -298,6 +298,25 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
+  private static HTreeChart<MethodModel> setUpChart(@NotNull Range range,
+                                                    @Nullable HNode<MethodModel> node,
+                                                    @NotNull HTreeChart.Orientation orientation,
+                                                    @NotNull CpuProfilerStageView stageView) {
+    HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
+    chart.setHRenderer(new SampledMethodUsageHRenderer());
+    chart.setHTree(node);
+    stageView.getIdeComponents()
+      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+        HNode<MethodModel> n = chart.getHoveredNode();
+        if (n == null || n.getData() == null) {
+          return null;
+        }
+        MethodModel method = n.getData();
+        return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
+      });
+    return chart;
+  }
+
   private static abstract class CaptureDetailsView {
     protected static final String CARD_EMPTY_INFO = "Empty content";
     protected static final String CARD_CONTENT = "Content";
@@ -434,77 +453,50 @@ class CpuCaptureView {
     }
   }
 
-  static class TreeChartView extends CaptureDetailsView {
+  static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
-    @Nullable private final HNode<MethodModel> myNode;
-    @NotNull private final Range myNodeRange;
+    @NotNull private final CaptureModel.CallChart myCallChart;
+    @NotNull protected HTreeChart<MethodModel> myChart;
 
     private AspectObserver myObserver;
 
-    /**
-     * @param stageView    - {@link CpuProfilerStageView} that contains this component.
-     * @param node         - a node to render. This is the root node of tree even though it may not be shown.
-     * @param nodeRange    - a range that represents portion of the {@param node} to render.
-     *                     If {@param node} starts at X and ends at (X + duration) and we only need to render the first half,
-     *                     the {@param nodeRange} should be [X..(X+duration)/2].
-     *                     Usually, in wall-clock time it's similar to the selection range.
-     *                     In thread time, there is a constant ratio between this range and the selection range,
-     *                     so that when the selection range represents the whole {@param node} in wall-clock time,
-     *                     the {@param nodeRange} will represent the whole {@param node} in thread time.
-     * @param captureRange - the capture range, i.e start timestamp and end timestamp of the corresponding trace.
-     * @param orientation  - the orientation of this chart.
-     */
-    private TreeChartView(@NotNull CpuProfilerStageView stageView,
-                          @Nullable HNode<MethodModel> node,
-                          @NotNull Range nodeRange,
-                          @NotNull Range captureRange,
-                          @NotNull HTreeChart.Orientation orientation) {
-      myNode = node;
-      myNodeRange = nodeRange;
+    private CallChartView(@NotNull CpuProfilerStageView stageView,
+                          @NotNull CaptureModel.CallChart callChart) {
+      myCallChart = callChart;
+      myChart = setUpChart(myCallChart.getRange(), myCallChart.getNode(), HTreeChart.Orientation.TOP_DOWN, stageView);
 
-      if (node == null) {
+      if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
       }
-
-      HTreeChart<MethodModel> chart = new HTreeChart<>(nodeRange, orientation);
-      chart.setHRenderer(new SampledMethodUsageHRenderer());
-      chart.setHTree(node);
 
       Range selectionRange = stageView.getTimeline().getSelectionRange();
       // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
       // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
       // capture range.
+      Range captureRange = stageView.getStage().getCapture().getRange();
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
       JPanel contentPanel = new JPanel(new BorderLayout());
-      contentPanel.add(chart, BorderLayout.CENTER);
-      contentPanel.add(new HTreeChartVerticalScrollBar<>(chart), BorderLayout.EAST);
-      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
 
-      stageView.getIdeComponents()
-        .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
-          HNode<MethodModel> n = chart.getHoveredNode();
-          if (n == null || n.getData() == null) {
-            return null;
-          }
-          MethodModel method = n.getData();
-          return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
-        });
+      contentPanel.add(myChart, BorderLayout.CENTER);
+      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), BorderLayout.EAST);
+      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
 
       myPanel = new JPanel(new CardLayout());
       myPanel.add(contentPanel, CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
       myObserver = new AspectObserver();
-      nodeRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::nodeRangeChanged);
-      nodeRangeChanged();
+      myCallChart.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::callChartRangeChanged);
+      callChartRangeChanged();
     }
 
-    private void nodeRangeChanged() {
-      assert myNode != null;
-      Range intersection = myNodeRange.getIntersection(new Range(myNode.getStart(), myNode.getEnd()));
+    private void callChartRangeChanged() {
+      HNode<MethodModel> node = myCallChart.getNode();
+      assert node != null;
+      Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
     }
 
@@ -515,18 +507,50 @@ class CpuCaptureView {
     }
   }
 
-  @NotNull
-  private TreeChartView createCallChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.CallChart callChart) {
-    assert myView.getStage().getCapture() != null;
-    Range captureRange = myView.getStage().getCapture().getRange();
-    return new TreeChartView(view, callChart.getNode(), callChart.getRange(), captureRange, HTreeChart.Orientation.TOP_DOWN);
-  }
+  static class FlameChartView extends CaptureDetailsView {
+    @NotNull private final JPanel myPanel;
+    @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final AspectObserver myObserver;
+    @NotNull private final CaptureModel.FlameChart myFlameChart;
 
-  @NotNull
-  private TreeChartView createFlameChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.FlameChart flameChart) {
-    assert myView.getStage().getCapture() != null;
-    Range captureRange = myView.getStage().getCapture().getRange();
-    return new TreeChartView(view, flameChart.getNode(), flameChart.getRange(), captureRange, HTreeChart.Orientation.BOTTOM_UP);
+    /**
+     * The range that is visible to the user. When the user zooms in/out or pans this range will be changed.
+     */
+    @NotNull private final Range myMasterRange;
+
+    public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
+      myFlameChart = flameChart;
+      myMasterRange = new Range(flameChart.getRange());
+      myChart = setUpChart(myMasterRange, myFlameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP, stageView);
+
+      RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
+      horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
+
+      JPanel contentPanel = new JPanel(new BorderLayout());
+      contentPanel.add(myChart, BorderLayout.CENTER);
+      contentPanel.add(new HTreeChartVerticalScrollBar<>(myChart), BorderLayout.EAST);
+      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
+
+      myPanel = new JPanel(new CardLayout());
+      myPanel.add(contentPanel, CARD_CONTENT);
+      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
+
+      myObserver = new AspectObserver();
+      myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureModel.FlameChart.Aspect.NODE, this::nodeChanged);
+      nodeChanged();
+    }
+
+    private void nodeChanged() {
+      switchCardLayout(myPanel, myFlameChart.getNode() == null);
+      myChart.setHTree(myFlameChart.getNode());
+      myMasterRange.set(myFlameChart.getRange());
+    }
+
+    @NotNull
+    @Override
+    JComponent getComponent() {
+      return myPanel;
+    }
   }
 
   private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
