@@ -68,7 +68,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   protected final ResourceFolderType myResourceFolderType;
   protected final String myResourcePresentableName;
-  protected final String myDefaultRootTag;
+  String myDefaultRootTag;
   private final boolean myValuesResourceFile;
   private boolean myChooseTagName;
 
