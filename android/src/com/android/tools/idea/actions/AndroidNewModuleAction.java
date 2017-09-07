@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -45,9 +46,16 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   }
 
   @Override
+  public void update(AnActionEvent e) {
+    Project project = e.getProject();
+    boolean isAvailable = project != null && BuildSystemServiceUtil.getInstance(project) != null;
+    e.getPresentation().setVisible(isAvailable);
+  }
+
+  @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null) {
+    if (project != null && BuildSystemServiceUtil.getInstance(project) != null) {
       if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
         SdkQuickfixUtils.showSdkMissingDialog();
         return;
