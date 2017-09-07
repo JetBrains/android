@@ -62,9 +62,9 @@ class CpuCaptureViewTest {
     stage.selectedThread = capture.mainThreadId
     stage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP)
 
-    ReferenceWalker(myStageView).assertNotReachable(CpuCaptureView.TreeChartView::class.java)
+    ReferenceWalker(myStageView).assertNotReachable(CpuCaptureView.CallChartView::class.java)
     stage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART)
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureModel.Details.Type.CALL_CHART)
-    ReferenceWalker(myStageView).assertReachable(CpuCaptureView.TreeChartView::class.java)
+    ReferenceWalker(myStageView).assertReachable(CpuCaptureView.CallChartView::class.java)
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,7 @@ public class FlameChartTest {
     main.getChildren().get(1).addChild(newNode("C", 21, 25));
     main.getChildren().get(1).addChild(newNode("C", 25, 30));
 
-    HNode<MethodModel> flameChartNode = new CaptureModel.FlameChart(new Range(0, 70), main).getNode();
+    HNode<MethodModel> flameChartNode = new CaptureModel.FlameChart(new Range(0, 71), main).getNode();
     // main [0..71]
     assertEquals(0, flameChartNode.getStart());
     assertEquals(71, flameChartNode.getEnd());
@@ -115,6 +116,63 @@ public class FlameChartTest {
     assertEquals(40, flameChartNode.getChildAt(2).getStart());
     assertEquals(60, flameChartNode.getChildAt(2).getEnd());
     assertEquals("C", flameChartNode.getChildAt(2).getData().getName());
+  }
+
+  @Test
+  public void changingTheSelectionTheNodeShouldBeRecalculated() {
+    CaptureNode main = newNode("main", 0, 100);
+    main.addChild(newNode("A", 0, 10));
+    main.addChild(newNode("B", 20, 25));
+    main.addChild(newNode("C", 50, 100));
+
+    Range selection = new Range(0, 100);
+    CaptureModel.FlameChart flameChart = new CaptureModel.FlameChart(selection, main);
+
+    HNode<MethodModel> root = flameChart.getNode();
+    assertEquals(root.duration(), 100);
+
+    AspectObserver observer = new AspectObserver();
+
+    Boolean[] nodeChanged = new Boolean[]{false};
+    flameChart.getAspect().addDependency(observer).onChange(CaptureModel.FlameChart.Aspect.NODE, () -> nodeChanged[0] = true);
+
+    // Range 19..25
+    nodeChanged[0] = false;
+    selection.set(19, 25);
+    assertTrue(nodeChanged[0]);
+
+    root = flameChart.getNode();
+    // main 19..25
+    assertEquals(19, root.getStart());
+    assertEquals(25, root.getEnd());
+    assertEquals(1, root.getChildCount());
+    // should "B" 19..24
+    assertEquals("B", root.getFirstChild().getData().getFullName());
+    assertEquals(19, root.getFirstChild().getStart());
+    assertEquals(24, root.getFirstChild().getEnd());
+
+    // Range 9..60
+    nodeChanged[0] = false;
+    selection.set(9, 60);
+    assertTrue(nodeChanged[0]);
+
+    root = flameChart.getNode();
+    // main 9..60
+    assertEquals(9, root.getStart());
+    assertEquals(60, root.getEnd());
+    assertEquals(3, root.getChildCount());
+    // C - 9..19
+    assertEquals("C", root.getFirstChild().getData().getFullName());
+    assertEquals(9, root.getFirstChild().getStart());
+    assertEquals(19, root.getFirstChild().getEnd());
+    // B - 19..24
+    assertEquals("B", root.getChildAt(1).getData().getFullName());
+    assertEquals(19, root.getChildAt(1).getStart());
+    assertEquals(24, root.getChildAt(1).getEnd());
+    // A - 24..25
+    assertEquals("A", root.getChildAt(2).getData().getFullName());
+    assertEquals(24, root.getChildAt(2).getStart());
+    assertEquals(25, root.getChildAt(2).getEnd());
   }
 
   @NotNull
