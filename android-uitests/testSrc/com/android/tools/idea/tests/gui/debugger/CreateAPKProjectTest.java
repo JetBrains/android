@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 @RunWith(GuiTestRunner.class)
@@ -99,10 +100,8 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     guiTest.waitForBackgroundTasks();
 
     List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
-    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
-    Assert.assertEquals(1, numCppFolders);
-    Assert.assertEquals(2, numIncludeFolders);
+    int numSourceFolders = countOccurrencesOfSourceFolders(srcNodes);
+    Assert.assertEquals(2, numSourceFolders);
   }
 
   /**
@@ -156,11 +155,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     waitForJavaFileToShow(editor);
 
     List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    int numCppFolders = countOccurrencesOfFolderNameIn(srcNodes, "cpp");
-    int numIncludeFolders = countOccurrencesOfFolderNameIn(srcNodes, "include");
-
-    Assert.assertEquals(1, numCppFolders);
-    Assert.assertEquals(2, numIncludeFolders);
+    Assert.assertEquals(2, srcNodes.size());
   }
 
   /**
@@ -330,14 +325,14 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     return filterSourceFolderChildren(libNode.getChildren());
   }
 
-  private int countOccurrencesOfFolderNameIn(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes, @NotNull String folderName) {
-    int numFolders = 0;
-    for (ProjectViewFixture.NodeFixture node : nodes) {
-      if(folderName.equals(node.getSourceFolderName())) {
-        numFolders++;
+  private int countOccurrencesOfSourceFolders(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes) {
+    Collection<ProjectViewFixture.NodeFixture> sourceFolders = ContainerUtil.newArrayList();
+    nodes.forEach(fixture -> {
+      if (fixture.isSourceFolder()) {
+        sourceFolders.add(fixture);
       }
-    }
-    return numFolders;
+    });
+    return sourceFolders.size();
   }
 
   private void profileOrDebugApk(@NotNull WelcomeFrameFixture welcomeFrame, @NotNull File apk) {
