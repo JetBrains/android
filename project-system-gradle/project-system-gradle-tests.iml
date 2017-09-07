@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="project-system" scope="TEST" />
+    <orderEntry type="module" module-name="project-system-gradle" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+    <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+  </component>
+</module>

@@ -19,3 +19,23 @@ iml_module(
         "//tools/analytics-library/protos:analytics-protos[module]",
     ],
 )
+
+iml_module(
+    name = "project-system-gradle-tests",
+    iml_files = ["project-system-gradle-tests.iml"],
+    tags = ["managed"],
+    test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/adt/idea/android[module, test]",
+        "//tools/adt/idea/project-system[module, test]",
+        "//tools/adt/idea/project-system-gradle[module, test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/idea:compiler-impl_and_others[module]",
+        "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
+    ],
+)

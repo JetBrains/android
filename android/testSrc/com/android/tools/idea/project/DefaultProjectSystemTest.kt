@@ -33,7 +33,6 @@ class DefaultProjectSystemTest {
 
   @Before
   fun setUp() {
-    val module = projectRule.module
     myProject = projectRule.project
   }
 
