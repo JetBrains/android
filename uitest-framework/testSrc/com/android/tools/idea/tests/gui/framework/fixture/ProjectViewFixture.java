@@ -286,7 +286,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public boolean isSourceFolder() {
-      return myNode instanceof SourceFolderNode;
+      return myNode instanceof PsiDirectoryNode;
     }
 
     @NotNull
