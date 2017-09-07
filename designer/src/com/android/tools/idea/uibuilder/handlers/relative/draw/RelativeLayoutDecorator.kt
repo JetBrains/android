@@ -49,7 +49,8 @@ class RelativeLayoutDecorator : SceneDecorator() {
 
       if (authNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_CENTER_IN_PARENT) == VALUE_TRUE) {
         buildCenterInParentDecoration(list, sceneContext, time, component, child)
-        return
+        child.buildDisplayList(time, list, sceneContext)
+        return@forEach
       }
 
       // build vertical decorations
