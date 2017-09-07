@@ -17,9 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
+import junit.framework.TestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.List;
@@ -28,29 +28,41 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class AssetRepositoryImplTest extends AndroidGradleTestCase {
 
-  @NotNull private AssetRepositoryImpl myAppRepo;
-  @NotNull private AssetRepositoryImpl myLibRepo;
+  private AssetRepositoryImpl myAppRepo;
+  private AssetRepositoryImpl myLibRepo;
+
+  private static <T extends Closeable> void withCloseable(T closeable, ConsumerWithIOException<T> consumer) throws IOException {
+    consumer.accept(closeable);
+
+    if (closeable != null) {
+      closeable.close();
+    }
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject(TestProjectPaths.DEPENDENT_MODULES);
+    // The testAarAsset project needs a different project configuration
+    loadProject("aarAsset".equals(getTestName(true)) ?
+                TestProjectPaths.LOCAL_AARS_AS_MODULES :
+                TestProjectPaths.DEPENDENT_MODULES);
     assertNotNull(myAndroidFacet);
+    myAppRepo = new AssetRepositoryImpl(myAndroidFacet);
+
 
     List<AndroidFacet> depedentFacets = AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), false);
-    // In DEPEDENT_MODUEL project, it only contains 1 dependent module caleld lib.
+    if (depedentFacets.isEmpty()) {
+      myLibRepo = null;
+      return;
+    }
+
+    // The DEPENDENT_MODULES project, it only contains 1 dependent module called lib.
     assertEquals(1, depedentFacets.size());
     AndroidFacet libFacet = depedentFacets.get(0);
     assertNotNull(libFacet);
 
-    myAppRepo = new AssetRepositoryImpl(myAndroidFacet);
     myLibRepo = new AssetRepositoryImpl(libFacet);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -65,38 +77,34 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     final String rawContentInLibModule = "I locate in lib module";
 
     // test opening app.asset.txt, should find the asset
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0)))) {
+    withCloseable(new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0))), br -> {
       String assetContent = br.readLine();
       assertEquals(appContentInAppModule, assetContent);
-    }
+    });
 
     // test opening lib.asset.txt in app module, should find the asset.
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0)))) {
+    withCloseable(new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0))), br -> {
       String assetContent = br.readLine();
       assertEquals(libContentInLibModule, assetContent);
-    }
+    });
 
-    // test opening raw.asset.txt, the content should be same as the one of app module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0)))) {
+    // test opening raw.asset.txt, the content should be the same as the one of app module
+    withCloseable(new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0))), br -> {
       String assetContent = br.readLine();
       assertEquals(rawContentInAppModule, assetContent);
-    }
+    });
 
-    // test opening raw.asset.txt in lib, the content should be same as the one of lib module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0)))) {
+    // test opening raw.asset.txt in lib, the content should be the same as in the lib module
+    withCloseable(new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0))), br -> {
       String assetContent = br.readLine();
       assertEquals(rawContentInLibModule, assetContent);
-    }
+    });
 
     // test opening app.asset.txt in lib, should not find the file.
-    try (InputStream is = myLibRepo.openAsset("app.asset.txt", 0)) {
-      assertNull(is);
-    }
+    withCloseable(myLibRepo.openAsset("app.asset.txt", 0), TestCase::assertNull);
 
     // test opening non-exist file
-    try (InputStream is = myAppRepo.openAsset("missing.txt", 0)) {
-      assertNull(is);
-    }
+    withCloseable(myAppRepo.openAsset("missing.txt", 0), TestCase::assertNull);
   }
 
   public void testOpenNonAsset() throws IOException {
@@ -113,38 +121,42 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     assertFalse(nonExistingFile.isFile());
 
     // check can find app.png in app module
-    try (InputStream is = myAppRepo.openNonAsset(0, imageFileInApp.getAbsolutePath(), 0)) {
-      assertNotNull(is);
-    }
+    withCloseable(myAppRepo.openNonAsset(0, imageFileInApp.getAbsolutePath(), 0),
+                  TestCase::assertNotNull);
 
     // check can find lib.png in app module
-    try (InputStream is = myAppRepo.openNonAsset(0, imageFileInLib.getAbsolutePath(), 0)) {
-      assertNotNull(is);
-    }
+    withCloseable(myAppRepo.openNonAsset(0, imageFileInLib.getAbsolutePath(), 0),
+                  TestCase::assertNotNull);
 
     // check cannot find app.png in lib module
-    try (InputStream is = myLibRepo.openNonAsset(0, imageFileInApp.getAbsolutePath(), 0)) {
-      assertNull(is);
-    }
+    withCloseable(myLibRepo.openNonAsset(0, imageFileInApp.getAbsolutePath(), 0),
+                  TestCase::assertNull);
 
     // check can find app_asset.txt in app module
-    try (InputStream is = myAppRepo.openNonAsset(0, nonAssetFileInApp.getAbsolutePath(), 0)) {
-      assertNotNull(is);
-    }
+    withCloseable(myAppRepo.openNonAsset(0, nonAssetFileInApp.getAbsolutePath(), 0),
+                  TestCase::assertNotNull);
 
     // check can find lib_asset.png in app module
-    try (InputStream is = myAppRepo.openNonAsset(0, nonAssetFileInLib.getAbsolutePath(), 0)) {
-      assertNotNull(is);
-    }
+    withCloseable(myAppRepo.openNonAsset(0, nonAssetFileInLib.getAbsolutePath(), 0),
+                  TestCase::assertNotNull);
 
     // check cannot find app_asset.png in lib module
-    try (InputStream is = myLibRepo.openNonAsset(0, nonAssetFileInApp.getAbsolutePath(), 0)) {
-      assertNull(is);
-    }
+    withCloseable(myLibRepo.openNonAsset(0, nonAssetFileInApp.getAbsolutePath(), 0),
+                  TestCase::assertNull);
 
     // check cannot find nonExistingFile in both module
-    try (InputStream is = myAppRepo.openNonAsset(0, nonExistingFile.getAbsolutePath(), 0)) {
-      assertNull(is);
-    }
+    withCloseable(myAppRepo.openNonAsset(0, nonExistingFile.getAbsolutePath(), 0),
+                  TestCase::assertNull);
+  }
+
+  public void testAarAsset() throws IOException {
+    withCloseable(myAppRepo.openAsset("raw.txt", 0),
+                  TestCase::assertNotNull);
+  }
+
+  @SuppressWarnings("NonExceptionNameEndsWithException")
+  @FunctionalInterface
+  interface ConsumerWithIOException<T> {
+    void accept(T t) throws IOException;
   }
 }
