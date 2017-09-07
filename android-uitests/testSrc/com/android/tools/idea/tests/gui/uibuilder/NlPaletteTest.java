@@ -19,9 +19,11 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
+import icons.StudioIcons;
 import org.fest.swing.fixture.JListFixture;
 import org.junit.After;
 import org.junit.Before;
@@ -127,5 +129,25 @@ public class NlPaletteTest {
     // Test:
     assertThat(itemList.selection()).asList().containsExactly("ConstraintLayout");
     assertThat(itemList.target().hasFocus()).isTrue();
+  }
+
+  @Test
+  public void clickToDownloadMissingDependency() throws Exception {
+    myGuiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    NlPaletteFixture palette = layout.getPalette();
+
+    // Click on the download icon next to the "FloatingActionButton"
+    palette.clickItem("Design", "FloatingActionButton", StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth() / 2);
+
+    // Test: Check that the "Add Project Dependency" dialog is presented
+    MessagesFixture dependencyDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency");
+    dependencyDialog.clickCancel();
   }
 }
