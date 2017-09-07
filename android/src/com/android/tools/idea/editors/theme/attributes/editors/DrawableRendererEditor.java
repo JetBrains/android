@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-
 import java.awt.image.BufferedImage;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,7 +44,6 @@ import java.util.List;
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
  */
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
-  private static final RenderLogger DRAWABLE_RENDER_LOGGER = new RenderLogger("ThemeEditorLogger", null);
   /**
    * Minimum size in pixels for the drawable preview render. This doesn't need to be exact as the actual icon
    * will be scaled to match the swatch size.
@@ -63,9 +61,10 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
     final RenderService service = RenderService.getInstance(facet);
-    RenderTask task = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
+    RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
+    RenderTask task = service.createTask(null, configuration, logger, null);
     assert task != null;
-    task.getLayoutlibCallback().setLogger(DRAWABLE_RENDER_LOGGER);
+    task.getLayoutlibCallback().setLogger(logger);
     return task;
   }
 
