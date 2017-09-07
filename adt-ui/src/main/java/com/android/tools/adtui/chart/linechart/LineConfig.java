@@ -175,15 +175,15 @@ public class LineConfig {
   }
 
   /**
-   * Used internally via {@link LineChart} to store the dash phase which should be used for the stroke. The adjusted stroke can be then
-   * retrieved via {@link #getAdjustedStroke()}
+   * Sets the dash phase which should be used for the stroke. The adjusted stroke can be then retrieved via {@link #getAdjustedStroke()}
    */
-  void setAdjustedDashPhase(double dashPhase) {
+  @VisibleForTesting
+  public void setAdjustedDashPhase(double dashPhase) {
     myAdjustedDashPhase = dashPhase;
   }
 
   @VisibleForTesting
-  double getAdjustedDashPhase() {
+  public double getAdjustedDashPhase() {
     return myAdjustedDashPhase;
   }
 
