@@ -74,7 +74,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
           + "GradleSyncState.isSyncInProgress to detect this scenario."))
     }
     else if (project.isInitialized) {
-      requestSync(reason, requireSourceGeneration, syncResult)
+      syncResult.setFuture(requestSync(reason, requireSourceGeneration))
 
     }
     else {
@@ -82,7 +82,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
         if (!GradleProjectInfo.getInstance(project).isNewOrImportedProject) {
           // http://b/62543184
           // If the project was created with the "New Project" wizard, there is no need to sync again.
-          requestSync(reason, requireSourceGeneration, syncResult)
+          syncResult.setFuture(requestSync(reason, requireSourceGeneration))
         }
         else {
           syncResult.set(AndroidProjectSystem.SyncResult.SKIPPED)
@@ -106,8 +106,9 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     }
   }
 
-  private fun requestSync(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean, syncResult: SettableFuture<AndroidProjectSystem.SyncResult>) {
+  private fun requestSync(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
     val trigger = convertReasonToTrigger(reason)
+    val syncResult = SettableFuture.create<AndroidProjectSystem.SyncResult>()
 
     val listener = object : GradleSyncListener.Adapter() {
       override fun syncSucceeded(project: Project) {
@@ -136,6 +137,8 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     catch (t: Throwable) {
       syncResult.setException(t)
     }
+
+    return syncResult
   }
 
   override val projectSystem = this
