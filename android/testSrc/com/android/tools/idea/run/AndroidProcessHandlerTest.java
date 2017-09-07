@@ -20,6 +20,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatReceiver;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
+import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.util.Key;
@@ -99,6 +101,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
         myLogcatService.shutdown();
       }
       StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.clearOverride();
+      LogcatOutputSettings.getInstance().reset();
     }
     finally {
       super.tearDown();
@@ -123,17 +126,42 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myExecuteShellCommandLatch.await();
 
     // Assert
-    assertThat(events.size()).isEqualTo(5);
+    assertThat(events.size()).isEqualTo(6);
     assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device myDevice\n");
-    assertThat(events.get(1).getText()).isEqualTo("W/DummyFirst: First Line1\n");
-    assertThat(events.get(2).getText()).isEqualTo("              First Line2\n");
-    assertThat(events.get(3).getText()).isEqualTo("              First Line3\n");
-    assertThat(events.get(4).getText()).isEqualTo("W/DummySecond: Second Line1\n");
+    assertThat(events.get(1).getText()).isEqualTo(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n");
+    assertThat(events.get(2).getText()).isEqualTo("W/DummyFirst: First Line1\n");
+    assertThat(events.get(3).getText()).isEqualTo("              First Line2\n");
+    assertThat(events.get(4).getText()).isEqualTo("              First Line3\n");
+    assertThat(events.get(5).getText()).isEqualTo("W/DummySecond: Second Line1\n");
   }
 
   public void testLogcatMessagesAreNotForwardedIfFeatureDisabled() throws Exception {
     // Prepare
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(false);
+    AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
+    List<ProcessEvent> events = new ArrayList<>();
+    processHandler.addProcessListener(new ProcessAdapter() {
+      @Override
+      public void onTextAvailable(ProcessEvent event, Key outputType) {
+        events.add(event);
+      }
+    });
+    processHandler.addTargetDevice(myDevice);
+    processHandler.clientChanged(myClient, Client.CHANGE_NAME);
+
+    // Act
+    myLogcatService.deviceConnected(myDevice);
+    myExecuteShellCommandLatch.await();
+
+    // Assert
+    assertThat(events.size()).isEqualTo(1);
+    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device myDevice\n");
+  }
+
+  public void testLogcatMessagesAreNotForwardedIfSettingDisabled() throws Exception {
+    // Prepare
+    LogcatOutputSettings.getInstance().setRunOutputEnabled(false);
+    LogcatOutputSettings.getInstance().setDebugOutputEnabled(false);
     AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {

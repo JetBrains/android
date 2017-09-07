@@ -23,6 +23,8 @@ import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
+import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -34,6 +36,7 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -44,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 
@@ -199,7 +203,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
           catch (Exception e) {
             // don't care..
           }
-        } else {
+        }
+        else {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger detaching, leaving process alive: " + pkgName);
         }
       }
@@ -213,6 +218,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
       return;
     }
+    if (!LogcatOutputSettings.getInstance().isDebugOutputEnabled()) {
+      return;
+    }
 
     final IDevice device = client.getDevice();
     final String pkgName = client.getClientData().getClientDescription();
@@ -221,6 +229,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+      private final AtomicBoolean myIsFirstMessage = new AtomicBoolean(true);
 
       @NotNull
       @Override
@@ -230,6 +239,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
       @Override
       public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        if (myIsFirstMessage.compareAndSet(true, false)) {
+          debugProcessHandler.notifyTextAvailable(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n", ProcessOutputTypes.STDOUT);
+        }
         debugProcessHandler.notifyTextAvailable(message, key);
       }
     };
