@@ -1107,6 +1107,9 @@
     <xdebugger.configurableProvider implementation="com.android.tools.idea.ddms.adb.AdbConfigurableProvider" />
     <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbOptionsService" />
 
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider" />
+    <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
+
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
