@@ -37,7 +37,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -209,7 +208,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
   }
 
-  public void reloadData() {
+  private void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
@@ -220,7 +219,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private ActionToolbar createToolbar() {
     DefaultActionGroup group = new DefaultActionGroup();
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
 
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");

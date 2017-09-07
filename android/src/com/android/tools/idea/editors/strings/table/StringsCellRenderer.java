@@ -34,7 +34,8 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
     }
 
     String s = (String)value;
-    if (shouldClip(s)) {
+
+    if (StringUtil.containsChar(s, '\n')) {
       s = clip(s);
     }
 
@@ -63,10 +64,6 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
 
     setToolTipText(problem);
     append(s, attributes);
-  }
-
-  public static boolean shouldClip(String s) {
-    return StringUtil.containsChar(s, '\n');
   }
 
   private static String clip(String str) {
