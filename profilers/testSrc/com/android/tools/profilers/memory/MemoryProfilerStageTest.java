@@ -140,10 +140,26 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testAllocationTrackingSetStreaming() throws Exception {
+    myProfilers.getTimeline().setStreaming(false);
+    Truth.assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+
+    // Stopping tracking should not cause streaming.
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
+    myStage.trackAllocations(false);
+    Truth.assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myStage.trackAllocations(true);
+    Truth.assertThat(myProfilers.getTimeline().isStreaming()).isTrue();
+  }
+
+  @Test
   public void testRequestHeapDump() throws Exception {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
-
     // Test the no-action cases
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.FAILURE_UNKNOWN);
     myStage.requestHeapDump();
@@ -163,6 +179,15 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.requestHeapDump();
 
     // TODO need to add a mock heap dump here to test the success path
+  }
+
+  @Test
+  public void testHeapDumpSetStreaming() throws Exception {
+    myProfilers.getTimeline().setStreaming(false);
+    Truth.assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+    myMockLoader.setReturnImmediateFuture(true);
+    myStage.requestHeapDump();
+    Truth.assertThat(myProfilers.getTimeline().isStreaming()).isTrue();
   }
 
   @Test
@@ -480,9 +505,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
 
     List<String> legendNames = legends.getLegends().stream()
-                                                   .map(legend -> legend.getName())
-                                                   .collect(Collectors.toList());
-    Truth.assertThat(legendNames).containsExactly("Others", "Code", "Stack", "Graphics", "Native",  "Java").inOrder();
+      .map(legend -> legend.getName())
+      .collect(Collectors.toList());
+    Truth.assertThat(legendNames).containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java").inOrder();
   }
 
   @Test
