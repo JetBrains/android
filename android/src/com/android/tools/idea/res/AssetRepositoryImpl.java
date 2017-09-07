@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.intellij.openapi.Disposable;
@@ -31,8 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -64,18 +66,23 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    List<IdeaSourceProvider> sourceProviders = getAllAndroidSourceProviders();
-    for (int i = sourceProviders.size() - 1; i >= 0; i--) {
-      for (VirtualFile assetDir : sourceProviders.get(i).getAssetsDirectories()) {
-        VirtualFile asset = assetDir.findFileByRelativePath(path);
-        if (asset != null) {
-          // TODO: ensure that this asset is within the asset directory. Files outside the asset directory shouldn't be accessible.
-          return asset.getInputStream();
+    return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, Library::getAssetsFolder)
+      .map(assetDir -> assetDir.findFileByRelativePath(path))
+      .map(assetDir -> {
+        if (assetDir == null) {
+          return null;
         }
-      }
-    }
 
-    return null;
+        try {
+          return assetDir.getInputStream();
+        }
+        catch (IOException e) {
+          return null;
+        }
+      })
+      .filter(Objects::nonNull)
+      .findAny()
+      .orElse(null);
   }
 
   /**
@@ -109,37 +116,53 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       return null;
     }
 
-    List<IdeaSourceProvider> sourceProviders = getAllAndroidSourceProviders();
-    for (int i = sourceProviders.size() - 1; i >= 0; i--) {
-      // Verify that the file at least contained in one of the resource directories
-      for (VirtualFile resDir : sourceProviders.get(i).getResDirectories()) {
-        if (VfsUtilCore.isAncestor(resDir, file, true)) {
+    return getDirectories(myFacet, IdeaSourceProvider::getResDirectories, Library::getResFolder)
+      .filter(resDir -> VfsUtilCore.isAncestor(resDir, file, true))
+      .map(resDir -> {
+        try {
           return file.getInputStream();
         }
-      }
-    }
-
-    if (isCachedFontFile(file)) {
-      return file.getInputStream();
-    }
-
-    return null;
+        catch (IOException e) {
+          return null;
+        }
+      })
+      .findAny()
+      .orElseGet(() -> {
+        if (isCachedFontFile(file)) {
+          try {
+            return file.getInputStream();
+          }
+          catch (IOException ignore) {
+          }
+        }
+        return null;
+      });
   }
 
   /**
-   * Get all SourceProviders of current and dependent Android modules.
-   * It is sorted according to the dependency path(s).
-   * The most far one in dependency path is at the first of list, and the current facet one is at the end.
-   *
-   * @return The SourceProviders of Android module relate to {@link #myFacet}
+   * Returns a specific set of directories for source providers and aars. The method receives the facet and two methods.
+   * One method to extract the directories from the {@link IdeaSourceProvider} and one to extract them from the {@link Library}.
+   * For example, to extract the assets directories, you would need to pass {@link IdeaSourceProvider::getAssetsDirectories} and
+   * {@link Library::getAssetsFolder}.
    */
-  private List<IdeaSourceProvider> getAllAndroidSourceProviders() {
-    // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
+  @NotNull
+  private static Stream<VirtualFile> getDirectories(@NotNull AndroidFacet facet,
+                                                    @NotNull Function<IdeaSourceProvider, Collection<VirtualFile>> sourceMapper,
+                                                    @NotNull Function<Library, String> aarMapper) {
+    Stream<VirtualFile> dirsFromSources =
+      Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
+        .flatMap(f -> IdeaSourceProvider.getAllIdeaSourceProviders(f).stream())
+        .distinct()
+        .map(sourceMapper)
+        .flatMap(Collection::stream);
 
-    return Stream.concat(AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true).stream(), Stream.of(myFacet))
-      .flatMap(facet -> IdeaSourceProvider.getAllIdeaSourceProviders(facet).stream())
-      .distinct()
-      .collect(Collectors.toList());
+    VirtualFileManager manager = VirtualFileManager.getInstance();
+    Stream<VirtualFile> dirsFromAars = AppResourceRepository.findAarLibraries(facet).stream()
+      .map(aarMapper)
+      .map(path -> manager.findFileByUrl("file://" + path))
+      .filter(Objects::nonNull);
+
+    return Stream.concat(dirsFromSources, dirsFromAars);
   }
 
   @Override
