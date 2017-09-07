@@ -48,7 +48,7 @@ public class FlatUiUtils {
       g.draw(rect);
     } else {
       boolean dark = UIUtil.isUnderDarcula();
-      Color color = UIUtil.isUnderWin10LookAndFeel() ? Gray.xE6 : ColorUtil.shift(bg, dark ? 1d / 0.7d :  0.7d);
+      Color color = UIUtil.isUnderWin10LookAndFeel() ? Gray.xE6 : dark ? ColorUtil.shift(bg, 1d / 0.7d) : Gray.xD0;
       g.setColor(color);
       g.fill(rect);
       double shift = UIUtil.isUnderDarcula() ? 1 / 0.49 : 0.49;
