@@ -18,9 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
 import com.android.tools.idea.uibuilder.palette2.PalettePanel;
+import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -33,6 +35,7 @@ import java.awt.*;
 public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
   private final PalettePanel myNewPalette;
   private final NlPalettePanel myOldPalette;
+  private SearchTextFieldFixture mySearchField;
 
   @NotNull
   public static NlPaletteFixture create(@NotNull Robot robot, @NotNull Container root) {
@@ -57,7 +60,7 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
   }
 
   @NotNull
-  private JListFixture getCategoryList() {
+  public JListFixture getCategoryList() {
     return new JListFixture(robot(), myNewPalette != null ? myNewPalette.getCategoryList() : myOldPalette.getTreeGrid().getCategoryList());
   }
 
@@ -68,7 +71,7 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
    *              Use an empty string if there is no groupings in this palette (like for menues).
    */
   @NotNull
-  private JListFixture getItemList(@NotNull String group) {
+  public JListFixture getItemList(@NotNull String group) {
     if (!group.isEmpty()) {
       getCategoryList().selectItem(group);
     }
@@ -93,5 +96,18 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
    */
   public void dragComponent(@NotNull String group, @NotNull String item) {
     getItemList(group).drag(item);
+  }
+
+  @NotNull
+  public SearchTextFieldFixture getSearchTextField() {
+    if (mySearchField == null) {
+      mySearchField = new SearchTextFieldFixture(robot(), robot().finder().findByType(getMyPanel().getParent(), SearchTextField.class));
+    }
+    return mySearchField;
+  }
+
+  @NotNull
+  private JPanel getMyPanel() {
+    return myNewPalette != null ? myNewPalette : myOldPalette;
   }
 }

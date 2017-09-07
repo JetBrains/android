@@ -103,6 +103,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
   private StartFilteringListener myStartFilteringCallback;
+  private Palette.Group myLastSelectedGroup;
 
   public PalettePanel(@NotNull Project project) {
     this(project, new DependencyManager(project), new JBPopupMenu());
@@ -276,12 +277,14 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   }
 
   private void categorySelectionChanged() {
-    Palette.Group group = myCategoryList.getSelectedValue();
-    if (group == null) {
+    Palette.Group newSelection = myCategoryList.getSelectedValue();
+    if (newSelection == null) {
+      myLastSelectedGroup = null;
       myCategoryList.setSelectedIndex(0);
       return;
     }
-    myDataModel.categorySelectionChanged(group);
+    myDataModel.categorySelectionChanged(newSelection);
+    myLastSelectedGroup = newSelection;
     myItemList.setSelectedIndex(0);
   }
 
@@ -338,7 +341,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @Override
   public void setFilter(@NotNull String filter) {
     myDataModel.setFilterPattern(filter);
-    categorySelectionChanged();
+    Palette.Group newSelection = myDataModel.getCategoryListModel().contains(myLastSelectedGroup) ? myLastSelectedGroup : null;
+    myCategoryList.clearSelection();
+    myCategoryList.setSelectedValue(newSelection, true);
   }
 
   @Override
