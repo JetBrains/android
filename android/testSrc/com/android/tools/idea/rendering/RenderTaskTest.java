@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
@@ -29,9 +30,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
@@ -79,11 +82,11 @@ public class RenderTaskTest extends RenderTestBase {
 
   public void testDrawableRender() throws Exception {
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
-                               "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                        "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                        "    android:shape=\"rectangle\"\n" +
-                                                        "    android:tint=\"#FF0000\">\n" +
-                                                        "</shape>").getVirtualFile();
+                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                          "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                          "    android:shape=\"rectangle\"\n" +
+                                                          "    android:tint=\"#FF0000\">\n" +
+                                                          "</shape>").getVirtualFile();
     Configuration configuration = getConfiguration(drawableFile, DEFAULT_DEVICE_ID);
     RenderLogger logger = mock(RenderLogger.class);
 
@@ -96,14 +99,18 @@ public class RenderTaskTest extends RenderTestBase {
     BufferedImage result = task.renderDrawable(resourceValue).get();
 
     assertNotNull(result);
+    //noinspection UndesirableClassUsage
     BufferedImage goldenImage = new BufferedImage(result.getWidth(), result.getHeight(), result.getType());
     Graphics2D g = goldenImage.createGraphics();
     try {
       g.setColor(Color.RED);
       g.fillRect(0, 0, result.getWidth(), result.getHeight());
-    } finally {
+    }
+    finally {
       g.dispose();
     }
+
+    ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }
@@ -204,4 +211,51 @@ public class RenderTaskTest extends RenderTestBase {
     }
   }
 
+  public void testAaptGradient() throws Exception {
+    @Language("XML")
+    final String content = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "        xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
+                           "        android:width=\"24dp\"\n" +
+                           "        android:height=\"24dp\"\n" +
+                           "        android:viewportWidth=\"24.0\"\n" +
+                           "        android:viewportHeight=\"24.0\">\n" +
+                           "  <path android:pathData=\"l24,0,0,24,-24,0z\">\n" +
+                           "    <aapt:attr name=\"android:fillColor\">\n" +
+                           "      <gradient\n" +
+                           "          xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "          android:endX=\"30\"\n" +
+                           "          android:endY=\"30\"\n" +
+                           "          android:startX=\"0\"\n" +
+                           "          android:startY=\"0\"\n" +
+                           "          android:type=\"linear\">\n" +
+                           "        <item\n" +
+                           "            android:color=\"#FF0\"\n" +
+                           "            android:offset=\"0.0\" />\n" +
+                           "        <item\n" +
+                           "            android:color=\"#F0F\"\n" +
+                           "            android:offset=\"0.5\" />\n" +
+                           "        <item\n" +
+                           "            android:color=\"#0FF\"\n" +
+                           "            android:offset=\"1.0\" />\n" +
+                           "      </gradient>\n" +
+                           "    </aapt:attr>\n" +
+                           "  </path>\n" +
+                           "</vector>\n";
+    VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
+                                                          content).getVirtualFile();
+    Configuration configuration = getConfiguration(drawableFile, DEFAULT_DEVICE_ID);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = createRenderTask(drawableFile, configuration, logger);
+    ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
+                                                    "@drawable/test",
+                                                    null);
+    BufferedImage result = task.renderDrawable(resourceValue).get();
+    assertNotNull(result);
+
+    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 0.1);
+
+    task.dispose().get(5, TimeUnit.SECONDS);
+  }
 }
