@@ -45,6 +45,10 @@ public class CategoryListModel extends AbstractListModel<Palette.Group> {
     fireContentsChanged(this, 0, myGroups.size() - 1);
   }
 
+  public boolean contains(@NotNull Palette.Group group) {
+    return myGroups.contains(group);
+  }
+
   @Override
   public int getSize() {
     return myGroups.size();
