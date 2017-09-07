@@ -80,7 +80,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
       }
     }
 
-    return ProjectSystemUtil.getInstance(project).getDefaultApkFile();
+    return ProjectSystemUtil.getProjectSystem(project).getDefaultApkFile();
   }
 
   private static void saveLastSelectedApk(Project project, VirtualFile apk) {

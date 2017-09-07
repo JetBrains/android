@@ -90,8 +90,8 @@ private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.andr
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
  */
-fun getInstance(project: Project): AndroidProjectSystem {
-  return project.getComponent(ProjectSystemComponent::class.java).projectSystem
+fun Project.getProjectSystem(): AndroidProjectSystem {
+  return this.getComponent(ProjectSystemComponent::class.java).projectSystem
 }
 
 internal fun detectProjectSystem(project: Project): AndroidProjectSystem {

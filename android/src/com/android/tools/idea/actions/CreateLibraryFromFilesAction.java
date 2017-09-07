@@ -212,7 +212,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
           }
         }
       });
-      ProjectSystemUtil.getInstance(myProject).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+      ProjectSystemUtil.getProjectSystem(myProject).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
 
       super.doOKAction();
     }

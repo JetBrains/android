@@ -352,7 +352,7 @@ public class HtmlLinkManager {
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
-    ProjectSystemUtil.getInstance(project).buildProject();
+    ProjectSystemUtil.getProjectSystem(project).buildProject();
   }
 
   public String createSyncProjectUrl() {
@@ -361,7 +361,7 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    ProjectSystemUtil.getInstance(project).syncProject(project.isInitialized()? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED:
+    ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized()? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED:
                                                        AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
   }
 

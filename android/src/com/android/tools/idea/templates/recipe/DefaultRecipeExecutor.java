@@ -662,7 +662,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     public void requestSync(@NotNull Project project) {
-      ProjectSystemUtil.getInstance(project).syncProject(project.isInitialized() ? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED :
+      ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized() ? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED :
                                                          AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
     }
   }
