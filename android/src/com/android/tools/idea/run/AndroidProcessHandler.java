@@ -24,6 +24,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
+import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.process.ProcessHandler;
@@ -41,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 /**
@@ -338,9 +341,14 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
         return;
       }
+      if (!LogcatOutputSettings.getInstance().isRunOutputEnabled()) {
+        return;
+      }
+
       LOG.info(String.format("startCapture(\"%s\")", device.getName()));
       AndroidLogcatService.LogcatListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
         private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+        private final AtomicBoolean myIsFirstMessage = new AtomicBoolean(true);
 
         @Override
         protected String formatLogLine(@NotNull LogCatMessage line) {
@@ -357,6 +365,9 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
 
         @Override
         protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+          if (myIsFirstMessage.compareAndSet(true, false)) {
+            consumer.accept(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n", ProcessOutputTypes.STDOUT);
+          }
           consumer.accept(message, key);
         }
       };
