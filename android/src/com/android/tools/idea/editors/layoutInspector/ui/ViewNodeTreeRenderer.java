@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.model.ViewProperty;
+import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
