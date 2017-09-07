@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.adtui.font;
 
 import com.google.common.collect.Sets;
 import com.intellij.openapi.editor.colors.EditorColorsManager;

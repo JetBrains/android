@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.editors.strings.FontUtil;
+import com.android.tools.adtui.font.FontUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;

@@ -18,8 +18,9 @@ package org.jetbrains.android.actions;
 import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -29,6 +30,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.util.*;
 import java.util.function.Function;
 
@@ -91,6 +94,13 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
 
     if (chooseValue) {
+      myValueField.getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(@NotNull DocumentEvent event) {
+          myValueField.setFont(FontUtil.getFontAbleToDisplay(myValueField.getText(), myValueField.getFont()));
+        }
+      });
+
       setChangeValueVisible(true);
       if (!StringUtil.isEmpty(resourceValue)) {
         myValueField.setText(resourceValue);
