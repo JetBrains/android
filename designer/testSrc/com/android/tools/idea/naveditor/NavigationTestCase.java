@@ -54,6 +54,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     loadProject(NAVIGATION_EDITOR_BASIC);
+    generateSources();
     myFixture.setTestDataPath(getTestDataPath());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);
