@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project
 
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
@@ -38,11 +39,11 @@ class DefaultProjectSystemTest {
 
   @Test
   fun testIsNotGradleProjectSystem() {
-    Truth.assertThat(com.android.tools.idea.projectsystem.getInstance(myProject)).isInstanceOf(DefaultProjectSystem::class.java)
+    Truth.assertThat(myProject.getProjectSystem()).isInstanceOf(DefaultProjectSystem::class.java)
   }
 
   @Test
   fun testSameInstanceIsReturnedFromMultipleCalls() {
-    Truth.assertThat(com.android.tools.idea.projectsystem.getInstance(myProject)).isSameAs(com.android.tools.idea.projectsystem.getInstance(myProject))
+    Truth.assertThat(myProject.getProjectSystem()).isSameAs(myProject.getProjectSystem())
   }
 }

@@ -120,7 +120,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
 
-    Path pathToAapt = ProjectSystemUtil.getInstance(myProject).getPathToAapt();
+    Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
     //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
