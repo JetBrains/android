@@ -429,11 +429,23 @@ class CpuCaptureView {
 
     private AspectObserver myObserver;
 
-    // TODO: document the constructor highlighting the difference between both ranges used.
+    /**
+     * @param stageView - {@link CpuProfilerStageView} that contains this component.
+     * @param node - a node to render. This is the root node of tree even though it may not be shown.
+     * @param nodeRange - a range that represents portion of the {@param node} to render.
+     *                    If {@param node} starts at X and ends at (X + duration) and we only need to render the first half,
+     *                    the {@param nodeRange} should be [X..(X+duration)/2].
+     *                    Usually, in wall-clock time it's similar to the selection range.
+     *                    In thread time, there is a constant ratio between this range and the selection range,
+     *                    so that when the selection range represents the whole {@param node} in wall-clock time,
+     *                    the {@param nodeRange} will represent the whole {@param node} in thread time.
+     * @param captureRange - the capture range, i.e start timestamp and end timestamp of the corresponding trace.
+     * @param orientation - the orientation of this chart.
+     */
     private TreeChartView(@NotNull CpuProfilerStageView stageView,
+                          @Nullable HNode<MethodModel> node,
                           @NotNull Range nodeRange,
                           @NotNull Range captureRange,
-                          @Nullable HNode<MethodModel> node,
                           @NotNull HTreeChart.Orientation orientation) {
       myNode = node;
       myNodeRange = nodeRange;
@@ -495,14 +507,14 @@ class CpuCaptureView {
   private TreeChartView createCallChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.CallChart callChart) {
     assert myView.getStage().getCapture() != null;
     Range captureRange = myView.getStage().getCapture().getRange();
-    return new TreeChartView(view, callChart.getRange(), captureRange, callChart.getNode(), HTreeChart.Orientation.TOP_DOWN);
+    return new TreeChartView(view, callChart.getNode(), callChart.getRange(), captureRange,  HTreeChart.Orientation.TOP_DOWN);
   }
 
   @NotNull
   private TreeChartView createFlameChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.FlameChart flameChart) {
     assert myView.getStage().getCapture() != null;
     Range captureRange = myView.getStage().getCapture().getRange();
-    return new TreeChartView(view, flameChart.getRange(), captureRange, flameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP);
+    return new TreeChartView(view, flameChart.getNode(), flameChart.getRange(), captureRange, HTreeChart.Orientation.BOTTOM_UP);
   }
 
   private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
