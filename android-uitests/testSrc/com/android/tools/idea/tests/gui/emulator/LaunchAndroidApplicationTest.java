@@ -42,7 +42,7 @@ public class LaunchAndroidApplicationTest {
 
   private static final String APP_NAME = "app";
   private static final String APPLICATION_STARTED = ".*Application started.*";
-  private static final String FATAL_SIGNAL_11 = ".*Fatal signal 11.*";
+  private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
@@ -191,6 +191,9 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
+
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
     // The app must run under the debugger, otherwise there is a race condition where
     // the app may crash before Android Studio can connect to the console.
     ideFrameFixture
@@ -198,10 +201,9 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    // Look for text indicating a crash. Full text looks something like:
-    // A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x122 in tid 2462 (.tutorials.five)
+    // Look for text indicating a crash. Check for both SIGSEGV and SIGABRT since they are both given in some cases.
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11, Pattern.DOTALL)), 120);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11_OR_6, Pattern.DOTALL)), 120);
     contentWindow.stop();
   }
 
