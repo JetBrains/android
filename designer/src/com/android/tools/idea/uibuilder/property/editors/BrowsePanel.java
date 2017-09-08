@@ -17,31 +17,34 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
-import com.google.common.collect.ImmutableSet;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.uibuilder.api.AttributeBrowser;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Condition;
-import com.intellij.psi.PsiClass;
-import com.intellij.util.ArrayUtil;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.ViewEditorImpl.isPublicAndUnRestricted;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
@@ -187,49 +190,40 @@ public class BrowsePanel extends JPanel {
       .build();
   }
 
-  @Nullable
-  private static String showClassChooser(@NotNull NlProperty property, boolean includeSystemClasses, @NotNull Set<String> classes) {
-    Condition<PsiClass> psiFilter = psiClass -> {
-      if (isPublicAndUnRestricted(psiClass)) {
-        // All restriction scopes are currently filtered out
-        return false;
-      }
-      if (includeSystemClasses) {
-        return true;
-      }
-      String qualifiedName = psiClass.getQualifiedName();
-      if (qualifiedName == null) {
-        return false;
-      }
-      return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) && !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
-    };
-    return ChooseClassDialog.openDialog(property.getModel().getModule(), "Classes", true, psiFilter, ArrayUtil.toStringArray(classes));
-  }
-
   public static boolean hasBrowseDialog(@NotNull NlProperty property) {
-    return property.getName().equals(ATTR_CLASS) ||
-           property.getName().equals(ATTR_NAME) ||
-           !getResourceTypes(property).isEmpty();
+    return getBrowser(property) != null || !getResourceTypes(property).isEmpty();
   }
 
   /**
    * Show a browse dialog depending on the property type.
-   * TODO: Move the implementation into ViewHandler such that each view type has control over the dialog presented.
-   * TODO: And we avoid code duplication between ViewEditor and this class.
    * @return a new value or null if the dialog was cancelled.
    */
   @Nullable
   public static String showBrowseDialog(@NotNull NlProperty property) {
-    if (property.getName().equals(ATTR_CLASS)) {
-      return showClassChooser(property, false, Collections.singleton(CLASS_VIEW));
-    }
-    else if (property.getName().equals(ATTR_NAME)) {
-      return showClassChooser(property, true, ImmutableSet.of(CLASS_FRAGMENT, CLASS_V4_FRAGMENT));
+    AttributeBrowser browser = getBrowser(property);
+    if (browser != null) {
+      ViewEditor editor = new ViewEditorImpl(property.getModel());
+      return browser.browse(editor, property.getValue());
     }
     else if (!getResourceTypes(property).isEmpty()) {
       ChooseResourceDialog dialog = showResourceChooser(property);
       if (dialog.showAndGet()) {
         return dialog.getResourceName();
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static AttributeBrowser getBrowser(@NotNull NlProperty property) {
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(property.getModel().getProject());
+    for (NlComponent component : property.getComponents()) {
+      ViewHandler handler = viewHandlerManager.getHandler(component);
+      if (handler != null) {
+        AttributeBrowser browser = handler.getBrowser(property.getName());
+        if (browser != null) {
+          return browser;
+        }
       }
     }
     return null;
@@ -259,7 +253,7 @@ public class BrowsePanel extends JPanel {
    * @return The {@link ResourceType} that should be selected by default for the provided property name.
    */
   @Nullable
-  public static ResourceType getDefaultResourceType(@NotNull String propertyName) {
+  private static ResourceType getDefaultResourceType(@NotNull String propertyName) {
     String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
     if (lowerCaseProperty.contains("color")
         || lowerCaseProperty.contains("tint")) {

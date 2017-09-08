@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
@@ -42,6 +39,15 @@ public final class FragmentHandler extends ViewHandler {
       ATTR_NAME,
       ATTR_LAYOUT,
       ATTR_CLASS);
+  }
+
+  @Override
+  @Nullable
+  public AttributeBrowser getBrowser(@NotNull String attributeName) {
+    if (!attributeName.equals(ATTR_NAME)) {
+      return null;
+    }
+    return FragmentHandler::browseClasses;
   }
 
   @Override
@@ -85,7 +91,7 @@ public final class FragmentHandler extends ViewHandler {
       if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
         return true;
       }
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, null);
+      String src = browseClasses(editor, null);
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
         return true;
@@ -96,5 +102,10 @@ public final class FragmentHandler extends ViewHandler {
       }
     }
     return true;
+  }
+
+  @Nullable
+  private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
+    return editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, existingValue);
   }
 }

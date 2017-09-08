@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
@@ -39,6 +36,15 @@ public class ViewTagHandler extends ViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_CLASS, ATTR_STYLE);
+  }
+
+  @Override
+  @Nullable
+  public AttributeBrowser getBrowser(@NotNull String attributeName) {
+    if (!attributeName.equals(ATTR_CLASS)) {
+      return null;
+    }
+    return ViewTagHandler::browseClasses;
   }
 
   @Override
@@ -74,8 +80,7 @@ public class ViewTagHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Collections.singleton(CLASS_VIEW), ViewTagHandler::isViewSuitableForLayout, null);
-
+      String src = browseClasses(editor, null);
       if (src != null) {
         newChild.setAttribute(null, ATTR_CLASS, src);
         return true;
@@ -87,6 +92,11 @@ public class ViewTagHandler extends ViewHandler {
     }
 
     return true;
+  }
+
+  @Nullable
+  private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
+    return editor.displayClassInput(Collections.singleton(CLASS_VIEW), ViewTagHandler::isViewSuitableForLayout, existingValue);
   }
 
   @VisibleForTesting
