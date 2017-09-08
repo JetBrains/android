@@ -656,9 +656,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   @NotNull String destinationContents,
                                   @NotNull Project project,
                                   @Nullable String supportLibVersionFilter) {
-      BuildSystemService buildSystemService = BuildSystemServiceUtil.getInstance(project);
-      assert buildSystemService != null;
-      return buildSystemService.mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter);
+      return ProjectSystemUtil.getProjectSystem(project).mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter);
     }
 
     public void requestSync(@NotNull Project project) {

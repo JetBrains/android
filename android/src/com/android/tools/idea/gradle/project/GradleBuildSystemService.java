@@ -45,29 +45,4 @@ public class GradleBuildSystemService implements BuildSystemService {
     return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
-  /**
-   * @param artifact The dependency artifact without version.
-   *                 This method will add the ":+" to the given artifact.
-   *                 For Guava, for example: the artifact coordinate will not include the version:
-   *                 com.google.guava:guava
-   *                 and this method will add "+" as the version of the dependency to add.
-   */
-  @Override
-  public void addDependency(@NotNull Module module, @NotNull String artifact) {
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
-    manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
-  }
-
-  @Override
-  public String mergeBuildFiles(@NotNull String dependencies,
-                                @NotNull String destinationContents,
-                                @Nullable String supportLibVersionFilter) {
-    if (project.isInitialized()) {
-      return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
-    }
-    else {
-      return GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
-    }
-  }
 }

@@ -16,8 +16,10 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -29,6 +31,8 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.projectsystem.AndroidSourceSet
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.templates.GradleFilePsiMerger
+import com.android.tools.idea.templates.GradleFileSimpleMerger
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -144,6 +148,32 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     }
 
     return syncResult
+  }
+
+  /**
+   * This method will add the ":+" to the given dependency.
+   * For Guava, for example: the dependency coordinate will not include the version:
+   * com.google.guava:guava
+   * and this method will add "+" as the version of the dependency to add.
+   * @param dependency The dependency dependency without version.
+   */
+  override fun addDependency(module: Module, dependency: String) {
+    val manager = GradleDependencyManager.getInstance(module.project)
+    val coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+")
+    if (coordinate != null) {
+      manager.ensureLibraryIsIncluded(module, listOf(coordinate), null)
+    }
+  }
+
+  override fun mergeBuildFiles(dependencies: String,
+                      destinationContents: String,
+                      supportLibVersionFilter: String?): String {
+    return if (project.isInitialized) {
+      GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
+    }
+    else {
+      GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
+    }
   }
 
   override val projectSystem = this
