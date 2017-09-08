@@ -20,6 +20,7 @@ import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
+import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
@@ -455,7 +456,7 @@ class CpuCaptureView {
 
       JPanel contentPanel = new JPanel(new BorderLayout());
       contentPanel.add(chart, BorderLayout.CENTER);
-      contentPanel.add(new VerticalScrollBar(chart), BorderLayout.EAST);
+      contentPanel.add(new HTreeChartVerticalScrollBar<>(chart), BorderLayout.EAST);
       contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
 
       stageView.getIdeComponents()
@@ -487,61 +488,6 @@ class CpuCaptureView {
     @Override
     public JComponent getComponent() {
       return myPanel;
-    }
-
-    private static class VerticalScrollBar extends JBScrollBar {
-      private boolean myUpdating;
-      private final AspectObserver myObserver;
-      @NotNull private final HTreeChart<MethodModel> myChart;
-
-      public VerticalScrollBar(@NotNull HTreeChart<MethodModel> chart) {
-        super(VERTICAL);
-        myChart = chart;
-        setPreferredSize(new Dimension(10, getPreferredSize().height));
-
-        setUI(new RangeScrollBarUI());
-        addAdjustmentListener(e -> updateYRange());
-        myObserver = new AspectObserver();
-        chart.getYRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::updateValues);
-        updateValues();
-
-        chart.addComponentListener(new ComponentAdapter() {
-          @Override
-          public void componentResized(ComponentEvent e) {
-            updateValues();
-          }
-        });
-      }
-
-      private void updateValues() {
-        myUpdating = true;
-        double value;
-
-        if (myChart.getOrientation() == HTreeChart.Orientation.TOP_DOWN) {
-          value = (int)myChart.getYRange().getMin();
-        } else {
-          value = myChart.getMaximumHeight() - myChart.getYRange().getMin() - myChart.getHeight();
-        }
-
-        setValues((int)value, myChart.getHeight(), 0, myChart.getMaximumHeight());
-        myUpdating = false;
-      }
-
-      private void updateYRange() {
-        if (myUpdating) {
-          return;
-        }
-        int offset;
-        if (myChart.getOrientation() == HTreeChart.Orientation.BOTTOM_UP) {
-          // HTreeChart rendered bottom up, so is scrollBar.
-          offset = getMaximum() - (getValue() + getVisibleAmount());
-        }
-        else {
-          offset = getValue();
-        }
-
-        myChart.getYRange().set(offset, offset);
-      }
     }
   }
 
