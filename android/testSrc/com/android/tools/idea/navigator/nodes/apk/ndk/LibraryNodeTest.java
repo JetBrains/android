@@ -16,6 +16,8 @@
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -23,19 +25,44 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
+import static com.android.tools.idea.testing.ProjectFiles.createFolder;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link LibraryNode}.
  */
 public class LibraryNodeTest extends IdeaTestCase {
+  private IdeComponents myIdeComponents;
+  private IdeSdks myIdeSdks;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myIdeComponents = new IdeComponents(getProject());
+    myIdeSdks = myIdeComponents.mockService(IdeSdks.class);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testGetChildren() throws IOException {
     List<String> sourceFolderPaths = createSourceFolders("z", "y", "x", "a", "b", "c");
     NativeLibrary library = new NativeLibrary("test") {
@@ -52,10 +79,50 @@ public class LibraryNodeTest extends IdeaTestCase {
 
     assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
 
-    // Verify folder nodes are sorted.
+    VirtualFile folder = getFolderFrom(children.get(1));
+    String path = virtualToIoFile(folder).getPath();
+
+    String firstSourceFolder = sourceFolderPaths.get(0);
+    // Verify that the root node is the root folder for the source paths.
+    // PsiDirectoryNode will take care of populate its children.
+    assertThat(firstSourceFolder).contains(path);
+  }
+
+  public void testGetChildrenWithNdk() throws IOException {
+    VirtualFile ndkFolder = createFolderInProjectRoot(getProject(), "ndk");
+    File ndkFolderPath = virtualToIoFile(ndkFolder);
+    when(myIdeSdks.getAndroidNdkPath()).thenReturn(ndkFolderPath);
+
+    VirtualFile platformsFolder = createFolder(ndkFolder, "platforms");
+
+    List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));
+    sourceFolderPaths.add(toSystemDependentName(platformsFolder.getPath()));
+
+    NativeLibrary library = new NativeLibrary("test") {
+      @Override
+      @NotNull
+      public List<String> getSourceFolderPaths() {
+        return sourceFolderPaths;
+      }
+    };
+
+    LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
+    List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
+    assertThat(children).hasSize(3);
+
+    assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
+
     AbstractTreeNode node = children.get(1);
-    assertThat(node).isInstanceOf(PsiDirectoryNode.class);
-    VirtualFile folder = ((PsiDirectoryNode)node).getVirtualFile();
+    assertThat(node).isInstanceOf(NdkSourceNode.class);
+
+    NdkSourceNode ndkSourceNode = (NdkSourceNode)node;
+    List<? extends AbstractTreeNode> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
+    assertThat(ndkChildren).hasSize(1);
+
+    VirtualFile folder = getFolderFrom(ndkChildren.get(0));
+    assertEquals(platformsFolder.getPath(), folder.getPath());
+
+    folder = getFolderFrom(children.get(2));
     String path = virtualToIoFile(folder).getPath();
 
     String firstSourceFolder = sourceFolderPaths.get(0);
@@ -73,5 +140,11 @@ public class LibraryNodeTest extends IdeaTestCase {
     }
     sourceFolderPaths.sort(Comparator.naturalOrder());
     return sourceFolderPaths;
+  }
+
+  @NotNull
+  private static VirtualFile getFolderFrom(@NotNull AbstractTreeNode node) {
+    assertThat(node).isInstanceOf(PsiDirectoryNode.class);
+    return ((PsiDirectoryNode)node).getVirtualFile();
   }
 }
