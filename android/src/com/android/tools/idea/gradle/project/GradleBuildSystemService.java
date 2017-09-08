@@ -70,9 +70,4 @@ public class GradleBuildSystemService implements BuildSystemService {
       return GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
     }
   }
-
-  @Override
-  public List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
-    return GradleAndroidProjectPaths.getSourceSets(facet, targetDirectory);
-  }
 }
