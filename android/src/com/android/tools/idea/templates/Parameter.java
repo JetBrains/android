@@ -21,7 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;

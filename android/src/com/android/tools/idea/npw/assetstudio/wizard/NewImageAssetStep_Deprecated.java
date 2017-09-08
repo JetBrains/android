@@ -17,7 +17,7 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.util.SystemProperties;
@@ -52,7 +52,7 @@ public final class NewImageAssetStep_Deprecated extends ModelWizardStep<Generate
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getSourceSets(myFacet, null)));
   }
 
   @NotNull

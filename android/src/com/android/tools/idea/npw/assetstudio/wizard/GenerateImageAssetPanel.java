@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.ui.*;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;

@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,7 +40,7 @@ public abstract class GenerateIconsModel extends WizardModel {
   @NotNull private AndroidProjectPaths myPaths;
 
   public GenerateIconsModel(@NotNull AndroidFacet facet) {
-    this(AndroidSourceSet.getSourceSets(facet, null).get(0).getPaths());
+    this(AndroidPackageUtils.getSourceSets(facet, null).get(0).getPaths());
   }
 
   public GenerateIconsModel(@NotNull AndroidProjectPaths paths) {

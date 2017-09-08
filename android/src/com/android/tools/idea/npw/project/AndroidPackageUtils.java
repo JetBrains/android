@@ -16,11 +16,15 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -72,5 +76,15 @@ public final class AndroidPackageUtils {
     }
 
     return getPackageForApplication(androidFacet);
+  }
+
+  /**
+   * Convenience method to get {@link AndroidSourceSet}s from the current project.
+   */
+  @NotNull
+  public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
+    BuildSystemService service = BuildSystemServiceUtil.getInstance(facet.getModule().getProject());
+    assert service != null;
+    return service.getSourceSets(facet, targetDirectory);
   }
 }
