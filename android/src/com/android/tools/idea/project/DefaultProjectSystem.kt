@@ -43,6 +43,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun isApplicable() = false
 
+  override fun allowsFileCreation() = false
+
   override fun buildProject() {
   }
 

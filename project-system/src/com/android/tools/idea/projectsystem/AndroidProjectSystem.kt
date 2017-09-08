@@ -48,6 +48,11 @@ interface AndroidProjectSystem {
    */
   fun buildProject()
 
+  /**
+   * Returns true if the project allows adding new modules.
+   */
+  fun allowsFileCreation(): Boolean
+
   /** The result of a sync request */
   enum class SyncResult(val successful: Boolean) {
     /** The user cancelled the sync */

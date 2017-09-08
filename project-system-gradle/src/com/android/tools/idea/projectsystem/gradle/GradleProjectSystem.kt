@@ -38,7 +38,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Contract
 import java.nio.file.Path
 
@@ -55,6 +54,8 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
   override fun isApplicable(): Boolean {
     return GradleProjectInfo.getInstance(project).isBuildWithGradle
   }
+
+  override fun allowsFileCreation() = true
 
   override fun getDefaultApkFile(): VirtualFile? {
     return ModuleManager.getInstance(project).modules.asSequence()
