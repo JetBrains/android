@@ -15,47 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.intellij.psi.PsiClass;
-import org.intellij.lang.annotations.Language;
+import com.android.SdkConstants;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Tests for {@link ViewTagHandler}.
  */
 public class ViewTagHandlerTest extends AndroidTestCase {
+
   /**
    * Checks the {@link ViewTagHandler#isViewSuitableForLayout} method.
    */
   public void testIsViewSuitableForLayout() {
-    @Language("JAVA")
-    String publicViewText =
-      "package p1.p2;\n" +
-      "\n" +
-      "import android.content.Context;\n" +
-      "import android.widget.ImageView;\n" +
-      "\n" +
-      "public class PublicImageView extends ImageView {\n" +
-      "    public PublicImageView(Context context) {\n" +
-      "        super(context);\n" +
-      "    }\n" +
-      "}";
-
-    @Language("JAVA")
-    String protectedViewText =
-      "package p1.p2;\n" +
-      "\n" +
-      "import android.content.Context;\n" +
-      "import android.widget.ImageView;\n" +
-      "\n" +
-      "class ProtectedImageView extends ImageView {\n" +
-      "    public ProtectedImageView(Context context) {\n" +
-      "        super(context);\n" +
-      "    }\n" +
-      "}";
-
-    PsiClass publicClass = myFixture.addClass(publicViewText);
-    PsiClass protectedClass = myFixture.addClass(protectedViewText);
-    assertTrue(ViewTagHandler.isViewSuitableForLayout(publicClass));
-    assertFalse(ViewTagHandler.isViewSuitableForLayout(protectedClass));
+    assertTrue(ViewTagHandler.isViewSuitableForLayout("com.example.myownpackage.TestView"));
+    assertTrue(ViewTagHandler.isViewSuitableForLayout(SdkConstants.CLASS_CONSTRAINT_LAYOUT));
+    assertFalse(ViewTagHandler.isViewSuitableForLayout(SdkConstants.FQCN_IMAGE_BUTTON));
   }
 }
