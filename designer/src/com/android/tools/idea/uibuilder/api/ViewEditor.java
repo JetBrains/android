@@ -28,7 +28,6 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -171,7 +170,7 @@ public abstract class ViewEditor {
 
   @Nullable
   public abstract String displayClassInput(@NotNull Set<String> superTypes,
-                                           @Nullable Predicate<PsiClass> filter,
+                                           @Nullable Predicate<String> filter,
                                            @Nullable String currentValue);
 
   @NotNull

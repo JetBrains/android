@@ -63,6 +63,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -313,18 +314,23 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayClassInput(@NotNull Set<String> superTypes,
-                                  @Nullable final Predicate<PsiClass> filter,
+                                  @Nullable Predicate<String> filter,
                                   @Nullable String currentValue) {
     Module module = myModel.getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     Condition<PsiClass> psiFilter = psiClass -> {
-      if (isRestricted(psiClass)) {
-        // All restriction scopes are currently filtered out
+      if (!isPublicAndUnRestricted(psiClass)) {
+        // All non public classes and classes with restriction scopes are filtered out
         return false;
       }
+
       if (filter != null) {
-        return filter.test(psiClass);
+        String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+          return false;
+        }
+        return filter.test(qualifiedName);
       }
       return true;
     };
@@ -332,17 +338,20 @@ public class ViewEditorImpl extends ViewEditor {
     return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
-  public static boolean isRestricted(@NotNull PsiClass psiClass) {
+  public static boolean isPublicAndUnRestricted(@NotNull PsiClass psiClass) {
     PsiModifierList modifiers = psiClass.getModifierList();
     if (modifiers == null) {
       return false;
     }
+    if (!modifiers.hasModifierProperty(PsiModifier.PUBLIC)) {
+      return false;
+    }
     for (PsiAnnotation annotation : modifiers.getAnnotations()) {
       if (Objects.equals(annotation.getQualifiedName(), SupportAnnotationDetector.RESTRICT_TO_ANNOTATION)) {
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   @Override

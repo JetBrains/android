@@ -41,7 +41,7 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.ViewEditorImpl.isRestricted;
+import static com.android.tools.idea.uibuilder.handlers.ViewEditorImpl.isPublicAndUnRestricted;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
@@ -190,7 +190,7 @@ public class BrowsePanel extends JPanel {
   @Nullable
   private static String showClassChooser(@NotNull NlProperty property, boolean includeSystemClasses, @NotNull Set<String> classes) {
     Condition<PsiClass> psiFilter = psiClass -> {
-      if (isRestricted(psiClass)) {
+      if (isPublicAndUnRestricted(psiClass)) {
         // All restriction scopes are currently filtered out
         return false;
       }

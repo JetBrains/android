@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiModifier;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,17 +90,7 @@ public class ViewTagHandler extends ViewHandler {
   }
 
   @VisibleForTesting
-  static boolean isViewSuitableForLayout(@NotNull PsiClass psiClass) {
-    if (!psiClass.hasModifierProperty(PsiModifier.PUBLIC)) {
-      // Only public classes can be instantiated by the layout editor.
-      return false;
-    }
-
-    String qualifiedName = psiClass.getQualifiedName();
-    if (qualifiedName == null) {
-      return false;
-    }
-
+  static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {
     // Don't include builtin views (these are already in the palette and likely not what the user is looking for).
     return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
   }
