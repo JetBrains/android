@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -53,6 +54,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     "BarMethodB"
   );
 
+  @NotNull private Range myLastRequestedDataRange = new Range(0, 0);
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -66,7 +68,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private int myTrackAllocationCount;
   private int mySuspectAllocationCount;
   private int myResumeAllocationCount;
-
   private int myAppId;
 
   @Override
@@ -125,6 +126,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
     response.onNext(myMemoryData != null ? myMemoryData
                                          : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
+    myLastRequestedDataRange.set(request.getStartTime(), request.getEndTime());
     response.onCompleted();
   }
 
@@ -366,5 +368,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public int getResumeAllocationCount() {
     return myResumeAllocationCount;
+  }
+
+  @NotNull
+  public Range getLastRequestedDataRange() {
+    return myLastRequestedDataRange;
   }
 }
