@@ -23,7 +23,7 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.DefaultActionState;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
 import com.android.utils.HtmlBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

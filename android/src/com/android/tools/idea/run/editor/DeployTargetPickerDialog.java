@@ -20,7 +20,7 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;

@@ -20,7 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceRenderer;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;

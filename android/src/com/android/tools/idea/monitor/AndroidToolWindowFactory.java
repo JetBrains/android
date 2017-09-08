@@ -25,7 +25,7 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.google.common.util.concurrent.FutureCallback;

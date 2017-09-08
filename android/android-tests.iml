@@ -100,5 +100,6 @@
     <orderEntry type="module" module-name="apkanalyzer" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="sqlite" level="project" />
     <orderEntry type="module" module-name="project-system" scope="TEST" />
+    <orderEntry type="module" module-name="android-adb" scope="TEST" />
   </component>
 </module>

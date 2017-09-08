@@ -30,5 +30,6 @@ iml_module(
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork[module]",
+        "//tools/adt/idea/android-adb[module]",
     ],
 )
