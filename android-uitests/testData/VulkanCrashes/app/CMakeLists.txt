@@ -7,12 +7,11 @@ add_library( app-glue STATIC ${APP_GLUE_DIR}/android_native_app_glue.c)
 
 # build vulkan app
 set(SRC_DIR src/main/jni)
-set(WRAPPER_DIR ../../common/vulkan_wrapper)
 
 add_library(vktuts SHARED
             ${SRC_DIR}/VulkanMain.cpp
             ${SRC_DIR}/AndroidMain.cpp
-            ${WRAPPER_DIR}/vulkan_wrapper.cpp)
+            ${SRC_DIR}/vulkan_wrapper.cpp)
 
 include_directories(${WRAPPER_DIR})
 
