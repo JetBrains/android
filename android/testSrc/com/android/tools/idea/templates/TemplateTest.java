@@ -178,6 +178,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       KNOWN_BROKEN.add("AidlFile");
     }
+    KNOWN_BROKEN.add("WatchFaceService"); // See https://b.corp.google.com/issues/65062154
   }
 
   /**
