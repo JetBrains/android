@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -150,10 +151,13 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
    * In cases where the source provider returns multiple paths, we always take the first match.
    */
   @NotNull
-  public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+  public static List<AndroidSourceSet> getSourceSets(@NotNull Module module, @Nullable VirtualFile targetDirectory) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return Collections.emptyList();
+    }
     List<AndroidSourceSet> sourceSets = Lists.newArrayList();
-    Module module = androidFacet.getModule();
-    for (SourceProvider sourceProvider : getSourceProviders(androidFacet, targetDirectory)) {
+    for (SourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidProjectPaths paths = new GradleAndroidProjectPaths();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       if (roots.length > 0) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -26,15 +27,18 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.AndroidSourceSet
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Contract
 import java.nio.file.Path
 
@@ -142,4 +146,8 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
   }
 
   override val projectSystem = this
+
+  override fun getSourceSets(module: Module, targetDirectory: VirtualFile?): List<AndroidSourceSet> {
+    return GradleAndroidProjectPaths.getSourceSets(module, targetDirectory)
+  }
 }

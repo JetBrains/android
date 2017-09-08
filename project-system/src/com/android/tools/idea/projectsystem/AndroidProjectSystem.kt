@@ -19,6 +19,7 @@ package com.android.tools.idea.projectsystem
 
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
@@ -82,6 +83,20 @@ interface AndroidProjectSystem {
    * @return the future result of the sync request
    */
   fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
+
+  /**
+   * Requests information about the folder layout for the given module. This can be used to determine
+   * where files of various types should be written.
+   *
+   * TODO: Figure out and document the rest of the contracts for this method, such as how targetDirectory is used,
+   * what the source set names are used for, and why the result is a list
+   *
+   * @param module the module whose folder layout is being requested.
+   * @param targetDirectory to filter the relevant source providers from the android facet.
+   * @return a list of [AndroidSourceSet]s created from each of the android facet's source providers.
+   * In cases where the source provider returns multiple paths, we always take the first match.
+   */
+  fun getSourceSets(module: Module, targetDirectory: VirtualFile?): List<AndroidSourceSet>
 
 }
 

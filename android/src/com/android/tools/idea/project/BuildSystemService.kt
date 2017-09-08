@@ -17,12 +17,9 @@
 
 package com.android.tools.idea.project
 
-import com.android.tools.idea.projectsystem.AndroidSourceSet
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Handles generic build system operations such as syncing and building. Implementations of this interface will
@@ -65,15 +62,6 @@ interface BuildSystemService {
                       destinationContents: String,
                       supportLibVersionFilter: String?): String
 
-  /**
-   * TODO: Provide additional context for the purpose of this method
-   *
-   * @param facet from which we receive {@link SourceProvider}s.
-   * @param targetDirectory to filter the relevant {@link SourceProvider}s from the {@code androidFacet}.
-   * @return a list of {@link AndroidSourceSet}s created from each of {@code androidFacet}'s {@link SourceProvider}s.
-   * In cases where the source provider returns multiple paths, we always take the first match.
-   */
-  fun getSourceSets(facet: AndroidFacet, targetDirectory: VirtualFile?): List<AndroidSourceSet>
 }
 
 val EP_NAME = ExtensionPointName<BuildSystemService>("com.android.project.buildSystemService")

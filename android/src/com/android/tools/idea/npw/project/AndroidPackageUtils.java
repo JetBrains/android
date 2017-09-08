@@ -18,8 +18,11 @@ package com.android.tools.idea.npw.project;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,8 +86,7 @@ public final class AndroidPackageUtils {
    */
   @NotNull
   public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
-    BuildSystemService service = BuildSystemServiceUtil.getInstance(facet.getModule().getProject());
-    assert service != null;
-    return service.getSourceSets(facet, targetDirectory);
+    Module module = facet.getModule();
+    return ProjectSystemUtil.getProjectSystem(module.getProject()).getSourceSets(module, targetDirectory);
   }
 }
