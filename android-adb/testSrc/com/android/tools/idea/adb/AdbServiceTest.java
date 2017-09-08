@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ddms.adb;
+package com.android.tools.idea.adb;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.testutils.TestUtils;
+import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
+import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
-public class AdbServiceTest extends AndroidTestCase {
-
+public class AdbServiceTest extends PlatformTestCase {
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
     if (SystemInfo.isWindows) {
@@ -33,9 +37,10 @@ public class AdbServiceTest extends AndroidTestCase {
       return;
     }
 
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(getProject()));
+    Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
     AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
-    assertTrue(bridge.isConnected());
+    Truth.assertThat(bridge.isConnected()).isTrue();
     AdbService.getInstance().terminateDdmlib();
   }
 }

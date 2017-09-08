@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ddms.adb;
+package com.android.tools.idea.adb;
 
-import com.android.builder.model.AdbOptions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;

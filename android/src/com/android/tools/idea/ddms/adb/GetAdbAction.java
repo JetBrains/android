@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.adb;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.adb.AdbService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ddms.adb;
 
+import com.android.tools.idea.adb.AdbService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;

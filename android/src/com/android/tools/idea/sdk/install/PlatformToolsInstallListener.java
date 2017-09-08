@@ -20,7 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
