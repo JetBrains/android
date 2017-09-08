@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import org.junit.Test;
 
 import java.io.File;

@@ -21,7 +21,8 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.adtui.ASGallery;
@@ -90,7 +91,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                                 @NotNull AndroidFacet facet,
                                 @NotNull VirtualFile targetDirectory) {
     this(moduleModel, renderModel, formFactor);
-    List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+    List<AndroidSourceSet> sourceSets = AndroidPackageUtils.getSourceSets(facet, targetDirectory);
     init(formFactor, sourceSets, facet);
   }
 

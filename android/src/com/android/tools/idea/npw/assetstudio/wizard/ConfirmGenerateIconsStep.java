@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;

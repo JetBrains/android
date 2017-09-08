@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;

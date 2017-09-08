@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
 import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;

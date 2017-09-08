@@ -16,8 +16,13 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.templates.Parameter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -28,13 +33,28 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class AndroidGradleModuleUtils {
+
+  /**
+   * Convenience method to convert a {@link AndroidSourceSet} into a {@link SourceProvider}.
+   * Note that this target source provider has many fields stubbed out and should
+   * be used carefully.
+   *
+   * TODO: Investigate getting rid of dependencies on {@link SourceProvider} in
+   * {@link Parameter#validate} as this may allow us to delete this code
+   */
+  @NotNull
+  public static SourceProvider getSourceProvider(@NotNull AndroidSourceSet sourceSet) {
+    return new SourceProviderAdapter(sourceSet.getName(), sourceSet.getPaths());
+  }
 
   /**
    * Given a file and a project, return the Module corresponding to the containing Gradle project for the file.  If the file is not

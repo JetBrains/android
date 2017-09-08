@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.intellij.ui.ListCellRendererWrapper;

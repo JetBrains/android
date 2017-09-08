@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.project
 
-import com.android.tools.idea.npw.project.AndroidSourceSet
+import com.android.tools.idea.projectsystem.AndroidSourceSet
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

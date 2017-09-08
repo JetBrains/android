@@ -16,14 +16,14 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.templates.*;
@@ -482,7 +482,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
     Module module = myFacet == null ? null : myFacet.getModule();
     Project project = getModel().getProject().getValueOrNull();
-    SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getSourceSet().get());
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -736,7 +736,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Module module = myFacet != null ? myFacet.getModule() : null;
       Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
+      SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getSourceSet().get());
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;

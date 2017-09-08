@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -44,7 +46,7 @@ public class AndroidSourceSetTest {
     };
 
     AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
-    SourceProvider sourceProvider = sourceSet.toSourceProvider();
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(sourceSet);
 
     assertThat(sourceProvider.getJavaDirectories()).containsExactly(javaDirectory);
     assertThat(sourceProvider.getAidlDirectories()).containsExactly(aidlDirectory);
@@ -71,7 +73,7 @@ public class AndroidSourceSetTest {
     };
 
     AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
-    SourceProvider sourceProvider = sourceSet.toSourceProvider();
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(sourceSet);
 
     assertThat(sourceProvider.getJavaDirectories()).isEmpty();
     assertThat(sourceProvider.getResourcesDirectories()).isEmpty();

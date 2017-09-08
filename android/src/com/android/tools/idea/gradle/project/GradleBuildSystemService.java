@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.templates.GradleFilePsiMerger;
 import com.android.tools.idea.templates.GradleFileSimpleMerger;

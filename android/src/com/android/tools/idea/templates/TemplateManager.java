@@ -22,7 +22,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -486,7 +486,7 @@ public class TemplateManager {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           assert facet != null && facet.getAndroidModel() != null;
 
-          List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+          List<AndroidSourceSet> sourceSets = AndroidPackageUtils.getSourceSets(facet, targetDirectory);
           assert (!sourceSets.isEmpty());
 
           String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);

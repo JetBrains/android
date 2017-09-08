@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.project;
+package com.android.tools.idea.projectsystem;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 /**
- * Paths which are useful when instantiating Android components.
+ * Represents a template for creating new Android components. It knows where to put the various
+ * files given the root of the module. This is used when creating new files:
  * E.g., New Activity, Fragment, Module, Project.
  */
 public interface AndroidProjectPaths {
