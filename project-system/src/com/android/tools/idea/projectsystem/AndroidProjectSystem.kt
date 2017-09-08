@@ -103,6 +103,33 @@ interface AndroidProjectSystem {
    */
   fun getSourceSets(module: Module, targetDirectory: VirtualFile?): List<AndroidSourceSet>
 
+  /**
+   * Adds a dependency to the given module.
+   *
+   * TODO: Figure out and document the format for the dependency strings
+   */
+  fun addDependency(module: Module, dependency: String)
+
+  /**
+   * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
+   * text files describing the steps for building a single android application or library.
+   *
+   * TODO: The association between a single android library and a single build file is too gradle-specific.
+   * TODO: Document the exact format for the supportLibVersionFilter string
+   * TODO: Document the format for the dependencies string
+   *
+   * @param dependencies new dependencies.
+   * @param destinationContents original content of the build file.
+   * @param supportLibVersionFilter If a support library filter is provided, the support libraries will be
+   * limited to match that filter. This is typically set to the compileSdkVersion, such that you don't end
+   * up mixing and matching compileSdkVersions and support libraries from different versions, which is not
+   * supported.
+   *
+   * @return new content of the build file
+   */
+  fun mergeBuildFiles(dependencies: String,
+                      destinationContents: String,
+                      supportLibVersionFilter: String?): String
 }
 
 private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

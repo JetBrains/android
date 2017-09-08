@@ -97,7 +97,8 @@ class AndroidProjectRule() : NamedExternalResource() {
         facetModel.removeFacet(it)
       }
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
+      facets.clear()
     }
-    fixture.tearDown();
+    fixture.tearDown()
   }
 }

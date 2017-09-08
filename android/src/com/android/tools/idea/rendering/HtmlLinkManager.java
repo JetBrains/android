@@ -931,10 +931,8 @@ public class HtmlLinkManager {
 
   private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    BuildSystemService service = BuildSystemServiceUtil.getInstance(module.getProject());
-    if (service != null) {
-      String dependency = url.substring(URL_ADD_DEPENDENCY.length());
-      service.addDependency(module, dependency);
-    }
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(module.getProject());
+    String dependency = url.substring(URL_ADD_DEPENDENCY.length());
+    projectSystem.addDependency(module, dependency);
   }
 }
