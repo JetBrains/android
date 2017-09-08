@@ -26,7 +26,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiBinaryFile;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,18 +33,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
+import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
+/**
+ * "cpp" folder pointing to "lib".
+ */
 public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   @NotNull private final VirtualFile myFolder;
 
-  public LibFolderNode(@NotNull Project project, @NotNull VirtualFile folder /* "lib" folder */, @NotNull ViewSettings settings) {
-    super(project, folder, settings);
-    myFolder = folder;
+  public LibFolderNode(@NotNull Project project, @NotNull VirtualFile libFolder, @NotNull ViewSettings settings) {
+    super(project, libFolder, settings);
+    myFolder = libFolder;
   }
 
   @Override
@@ -71,24 +75,12 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   }
 
   @Override
-  public boolean canRepresent(Object element) {
-    if (element instanceof PsiBinaryFile) {
-      PsiBinaryFile binaryFile = (PsiBinaryFile)element;
-      VirtualFile file = binaryFile.getVirtualFile();
-      if (file != null) {
-        return contains(file);
-      }
-    }
-    if (element instanceof VirtualFile) {
-      VirtualFile file = (VirtualFile)element;
-      return contains(file);
-    }
-    return false;
-  }
-
-  @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return isAncestor(myFolder, file, false /* not strict */);
+    if (isAncestor(myFolder, file, false /* not strict */)) {
+      return true;
+    }
+    assert myProject != null;
+    return isInSourceFolder(file, myProject);
   }
 
   @Override
@@ -96,6 +88,12 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
     presentation.setIcon(SourceRoot);
     presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
     presentation.addText(" (lib)", GRAY_ATTRIBUTES);
+  }
+
+  @Override
+  @Nullable
+  public VirtualFile getVirtualFile() {
+    return myFolder;
   }
 
   @Override
@@ -129,5 +127,25 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return getSourceType().getName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LibFolderNode)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    LibFolderNode node = (LibFolderNode)o;
+    return Objects.equals(myFolder, node.myFolder);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myFolder);
   }
 }

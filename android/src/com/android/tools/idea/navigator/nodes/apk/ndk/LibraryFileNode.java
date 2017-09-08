@@ -23,18 +23,23 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiBinaryFile;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import static com.intellij.icons.AllIcons.FileTypes.JavaClass;
 import static com.intellij.ui.JBColor.GRAY;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
+/**
+ * The node representing the .so file.
+ */
 public class LibraryFileNode extends LibraryNode {
   @Nullable private VirtualFile myFile;
 
@@ -67,18 +72,39 @@ public class LibraryFileNode extends LibraryNode {
   }
 
   @Override
-  public boolean canNavigate() {
-    return true;
+  public void navigate(boolean requestFocus) {
+    VirtualFile file = getFile();
+    if (file != null) {
+      FileEditorManager.getInstance(myProject).openFile(file, requestFocus);
+    }
   }
 
   @Override
-  public void navigate(boolean requestFocus) {
+  public boolean canRepresent(Object element) {
+    if (element instanceof PsiBinaryFile) {
+      VirtualFile virtualFile = ((PsiBinaryFile)element).getVirtualFile();
+      return Objects.equals(virtualFile, getFile());
+    }
+    return false;
+  }
+
+  @Override
+  public boolean contains(@NotNull VirtualFile file) {
+    return file.equals(getFile());
+  }
+
+  @Override
+  @Nullable
+  public VirtualFile getVirtualFile() {
+    return getFile();
+  }
+
+  @Nullable
+  private VirtualFile getFile() {
     if (myFile == null) {
       myFile = getFirstFile();
     }
-    if (myFile != null) {
-      FileEditorManager.getInstance(myProject).openFile(myFile, requestFocus);
-    }
+    return myFile;
   }
 
   @Override
@@ -117,5 +143,25 @@ public class LibraryFileNode extends LibraryNode {
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return myLibrary.name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    LibraryFileNode node = (LibraryFileNode)o;
+    return Objects.equals(myFile, node.myFile);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myFile);
   }
 }

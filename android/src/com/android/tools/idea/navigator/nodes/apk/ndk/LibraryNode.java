@@ -16,34 +16,36 @@
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
-import com.android.tools.idea.apk.paths.PathNode;
 import com.android.tools.idea.apk.paths.PathTree;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiBinaryFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
+import static com.android.tools.idea.navigator.nodes.apk.ndk.PathTrees.getSourceFolderNodes;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static java.io.File.separatorChar;
 
+/**
+ * Represents a native library.
+ */
 public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @NotNull final NativeLibrary myLibrary;
   @NotNull private final String myLibraryName;
@@ -74,71 +76,48 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
     ViewSettings settings = getSettings();
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 
-    List<String> sourceFolderPaths = new ArrayList<>(myLibrary.getSourceFolderPaths());
-    if (!sourceFolderPaths.isEmpty()) {
+    File ndkPath = IdeSdks.getInstance().getAndroidNdkPath();
+    String ndkPathValue = ndkPath != null ? ndkPath.getPath() : null;
+
+    List<String> paths = myLibrary.getSourceFolderPaths();
+    List<String> srcPaths = new ArrayList<>();
+    List<String> ndkPaths = new ArrayList<>();
+    if (!paths.isEmpty()) {
       // Organize source folders in a tree.
-      PathTree tree = new PathTree();
-      for (String path : sourceFolderPaths) {
-        tree.addPath(path, separatorChar);
-      }
+      PathTree srcPathTree = new PathTree();
+      PathTree ndkPathTree = new PathTree();
 
-      // Only add the root nodes. PsiDirectoryNode will populate the children automatically.
-      List<PathNode> rootNodes = new ArrayList<>();
-      removeEmptyRoots(tree.getChildren(), rootNodes);
-
-      // This filter will ensure only the folders that are considered "source folders" show up in the tree.
-      SourceCodeFilter filter = new SourceCodeFilter(sourceFolderPaths);
-
-      for (PathNode pathNode : rootNodes) {
-        String path = pathNode.getPath();
-        PsiDirectory psiFolder = findDirectory(path);
-        if (psiFolder != null) {
-          children.add(new PsiDirectoryNode(myProject, psiFolder, settings, filter));
+      for (String path : paths) {
+        if (ndkPath != null && isAncestor(ndkPathValue, path, false /* Not strict */)) {
+          ndkPaths.add(path);
+          ndkPathTree.addPath(path, separatorChar);
+          continue;
         }
+        srcPaths.add(path);
+        srcPathTree.addPath(path, separatorChar);
       }
+
+      if (!ndkPathTree.getChildren().isEmpty()) {
+        assert ndkPath != null;
+        children.add(new NdkSourceNode(myProject, ndkPath, ndkPathTree, new SourceCodeFilter(ndkPaths), settings));
+      }
+      children.addAll(getSourceFolderNodes(srcPathTree, new SourceCodeFilter(srcPaths), myProject, settings));
     }
     return children;
   }
 
-  private static void removeEmptyRoots(@NotNull Collection<PathNode> nodes, @NotNull List<PathNode> rootNodes) {
-    for (PathNode node : nodes) {
-      String path = node.getPath();
-      if (isNotEmpty(path)) {
-        rootNodes.add(node);
-        continue;
-      }
-      removeEmptyRoots(node.getChildren(), rootNodes);
-    }
-  }
-
-  @Nullable
-  private PsiDirectory findDirectory(@NotNull String path) {
-    VirtualFile folder = LocalFileSystem.getInstance().findFileByPath(path);
-    if (folder != null) {
-      return PsiManager.getInstance(myProject).findDirectory(folder);
-    }
-    return null;
-  }
-
   @Override
-  public boolean canRepresent(Object element) {
-    if (element instanceof PsiBinaryFile) {
-      PsiBinaryFile binaryFile = (PsiBinaryFile)element;
-      VirtualFile file = binaryFile.getVirtualFile();
-      if (file != null) {
-        return contains(file);
-      }
-    }
-    if (element instanceof VirtualFile) {
-      VirtualFile file = (VirtualFile)element;
-      return contains(file);
-    }
-    return false;
+  public boolean canNavigate() {
+    return true;
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return myLibrary.sharedObjectFilesByAbi.containsValue(file);
+    if (myLibrary.sharedObjectFilesByAbi.containsValue(file)) {
+      return true;
+    }
+
+    return isInSourceFolder(file, myLibrary);
   }
 
   @Override
@@ -164,5 +143,26 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return myLibraryName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    LibraryNode node = (LibraryNode)o;
+    return Objects.equals(myLibrary, node.myLibrary) &&
+           Objects.equals(myLibraryName, node.myLibraryName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myLibrary, myLibraryName);
   }
 }
