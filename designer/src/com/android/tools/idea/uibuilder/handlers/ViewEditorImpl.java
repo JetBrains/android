@@ -343,7 +343,8 @@ public class ViewEditorImpl extends ViewEditor {
     return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
-  public static boolean isPublicAndUnRestricted(@NotNull PsiClass psiClass) {
+  @VisibleForTesting
+  static boolean isPublicAndUnRestricted(@NotNull PsiClass psiClass) {
     PsiModifierList modifiers = psiClass.getModifierList();
     if (modifiers == null) {
       return false;

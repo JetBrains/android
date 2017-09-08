@@ -73,6 +73,18 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   }
 
   /**
+   * Returns a browser for editing a specific attribute.
+   * This browser is used to edit the value in the inspector when the user press the
+   * button with ellipses after the control in the inspector.
+   * This method returns null if there is not a custom browser to display for the
+   * given attribute.
+   */
+  @Nullable
+  public AttributeBrowser getBrowser(@NotNull String attributeName) {
+    return null;
+  }
+
+  /**
    * Return the possible base styles for this component.
    * This will be used to determine which styles are shown in the style dropdown in
    * the property table if any.
