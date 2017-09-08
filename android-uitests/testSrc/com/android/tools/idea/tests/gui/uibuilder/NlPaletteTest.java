@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
@@ -153,5 +154,49 @@ public class NlPaletteTest {
     // Test: Check that the "Add Project Dependency" dialog is presented
     MessagesFixture dependencyDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency");
     dependencyDialog.clickCancel();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testAddFragmentWithoutCustomFragmentsAvailable() throws Exception {
+    myGuiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    layout.dragComponentToSurface("Containers", "fragment");
+
+    MessagesFixture classesDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "No Fragments Found");
+    classesDialog.requireMessageContains("You must first create one or more Fragments in code");
+    classesDialog.clickOk();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testAddFragmentWithCustomFragmentsAvailable() throws Exception {
+    myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
+
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    layout.dragComponentToSurface("Containers", "fragment");
+
+    ChooseClassDialogFixture dialog = ChooseClassDialogFixture.find(myGuiTest.ideFrame());
+    assertThat(dialog.getTitle()).isEqualTo("Fragments");
+    assertThat(dialog.getList().contents().length).isEqualTo(2);
+
+    dialog.getList().selectItem("PsiClass:YourCustomFragment");
+    dialog.clickOk();
+
+    editor.switchToTab("Text");
+    String content = editor.getCurrentFileContents();
+    assertThat(content).contains("    <fragment\n" +
+                                 "        android:id=\"@+id/fragment\"\n" +
+                                 "        android:name=\"google.fragmentapplication.YourCustomFragment\"\n");
   }
 }

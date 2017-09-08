@@ -16,7 +16,9 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
@@ -30,12 +32,13 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRunner.class)
 public class IssuePanelTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
 
   /**
    * Scenario:
@@ -54,7 +57,7 @@ public class IssuePanelTest {
   @Test
   public void openIssuePanel() throws IOException {
 
-    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+    EditorFixture editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
@@ -78,14 +81,71 @@ public class IssuePanelTest {
     assertEquals("1 Warning", panelFixture.getTitle().trim());
 
     String hardcodedTextErrorTitle = "Hardcoded text";
-    GuiTests.waitUntilShowing(guiTest.robot(), panelFixture.target(),
+    GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(),
                               Matchers.byText(JLabel.class, hardcodedTextErrorTitle));
     panelFixture.findIssueWithTitle(hardcodedTextErrorTitle).doubleClick();
     panelFixture.clickFixButton();
 
     panelFixture.dialog().button(Matchers.byText(JButton.class, "OK")).click();
-    GuiTests.waitUntilGone(guiTest.robot(), panelFixture.target(),
+    GuiTests.waitUntilGone(myGuiTest.robot(), panelFixture.target(),
                            Matchers.byText(JLabel.class, hardcodedTextErrorTitle));
     assertEquals("No issues", panelFixture.getTitle());
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  public void testFixMissingFragmentNameWithoutCustomFragmentsAvailable() throws Exception {
+    myGuiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+    editor.moveBetween(">\n", "\n</RelativeLayout");
+    editor.enterText("<fragment android:layout_width=\"match_parent\" android:layout_height=\"match_parent\"/>\n");
+    editor.switchToTab("Design");
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    layout.getRhsToolbar().openIssuePanel();
+    IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
+    String errorTitle = "Unknown fragments";
+    GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
+    panelFixture.findIssueWithTitle(errorTitle).doubleClick();
+    panelFixture.clickOnLink("Choose Fragment Class...");
+
+    MessagesFixture classesDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "No Fragments Found");
+    classesDialog.requireMessageContains("You must first create one or more Fragments in code");
+    classesDialog.clickOk();
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  public void testFixMissingFragmentNameWithCustomFragmentsAvailable() throws Exception {
+    myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
+
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/fragment_empty.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+    layout.getRhsToolbar().openIssuePanel();
+    IssuePanelFixture panelFixture = layout.enlargeIssuePanel();
+    String errorTitle = "Unknown fragments";
+    GuiTests.waitUntilShowing(myGuiTest.robot(), panelFixture.target(), Matchers.byText(JLabel.class, errorTitle));
+    panelFixture.findIssueWithTitle(errorTitle).doubleClick();
+    panelFixture.clickOnLink("Choose Fragment Class...");
+
+    ChooseClassDialogFixture dialog = ChooseClassDialogFixture.find(myGuiTest.ideFrame());
+    assertThat(dialog.getTitle()).isEqualTo("Fragments");
+    assertThat(dialog.getList().contents().length).isEqualTo(2);
+
+    dialog.getList().selectItem("google.fragmentapplication.YourCustomFragment");
+    dialog.clickOk();
+
+    editor.switchToTab("Text");
+    String content = editor.getCurrentFileContents();
+    assertThat(content).contains("<fragment android:layout_width=\"match_parent\"\n" +
+                                 "            android:layout_height=\"match_parent\"\n" +
+                                 "      android:name=\"google.fragmentapplication.YourCustomFragment\" />");
   }
 }

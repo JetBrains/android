@@ -64,6 +64,7 @@ import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -663,7 +664,8 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, null, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    Predicate<PsiClass> psiFilter = ChooseClassDialog.getUserDefinedPublicAndUnrestrictedFilter();
+    String className = ChooseClassDialog.openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
     if (className == null) {
       return;
     }

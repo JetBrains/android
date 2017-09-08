@@ -58,7 +58,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
@@ -318,29 +317,19 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayClassInput(@NotNull Set<String> superTypes,
+  public String displayClassInput(@NotNull String title,
+                                  @NotNull Set<String> superTypes,
                                   @Nullable Predicate<String> filter,
                                   @Nullable String currentValue) {
     Module module = myModel.getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    Condition<PsiClass> psiFilter = psiClass -> {
-      if (!isPublicAndUnRestricted(psiClass)) {
-        // All non public classes and classes with restriction scopes are filtered out
-        return false;
-      }
-
-      if (filter != null) {
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName == null) {
-          return false;
-        }
-        return filter.test(qualifiedName);
-      }
-      return true;
-    };
-
-    return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
+    Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
+    if (filter == null) {
+      filter = ChooseClassDialog.getIsUserDefinedFilter();
+    }
+    psiFilter = psiFilter.and(ChooseClassDialog.qualifiedNameFilter(filter));
+    return ChooseClassDialog.openDialog(module, title, currentValue, psiFilter, superTypesArray);
   }
 
   @VisibleForTesting

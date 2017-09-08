@@ -96,7 +96,7 @@ public class ViewTagHandler extends ViewHandler {
 
   @Nullable
   private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayClassInput(Collections.singleton(CLASS_VIEW), ViewTagHandler::isViewSuitableForLayout, existingValue);
+    return editor.displayClassInput("Views", Collections.singleton(CLASS_VIEW), ViewTagHandler::isViewSuitableForLayout, existingValue);
   }
 
   @VisibleForTesting

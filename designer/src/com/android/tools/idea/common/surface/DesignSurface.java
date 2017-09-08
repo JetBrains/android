@@ -63,6 +63,7 @@ import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
@@ -1226,6 +1227,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public IssuePanel getIssuePanel() {
     return myIssuePanel;
+  }
+
+  @NotNull
+  @TestOnly
+  public JBSplitter getErrorPanelSplitter() {
+    return myErrorPanelSplitter;
   }
 
   public void setShowIssuePanel(boolean show) {

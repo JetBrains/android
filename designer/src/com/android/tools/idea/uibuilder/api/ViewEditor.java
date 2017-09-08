@@ -168,8 +168,18 @@ public abstract class ViewEditor {
   @Nullable
   public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
 
+  /**
+   * Open a dialog to pick a class among classes derived from a specified set of super classes.
+   *
+   * @param title the title representing the class being picked ex: "Fragments", "Views"
+   * @param superTypes the possible super classes that the user is picking a class from
+   * @param filter a filter for the qualified name of the class, or null to specify user defined classes only
+   * @param currentValue the current value which may be initially selected in the class selector
+   * @return class name if user has selected one, or null if either the user cancelled, no classes were found, or we are in dumb mode.
+   */
   @Nullable
-  public abstract String displayClassInput(@NotNull Set<String> superTypes,
+  public abstract String displayClassInput(@NotNull String title,
+                                           @NotNull Set<String> superTypes,
                                            @Nullable Predicate<String> filter,
                                            @Nullable String currentValue);
 
