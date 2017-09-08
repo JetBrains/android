@@ -106,6 +106,9 @@ public final class FragmentHandler extends ViewHandler {
 
   @Nullable
   private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, existingValue);
+    return editor.displayClassInput("Fragments",
+                                    Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT),
+                                    null,
+                                    existingValue);
   }
 }

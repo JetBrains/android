@@ -72,6 +72,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
+  @NotNull
   public NlEditorFixture waitForRenderToFinish() {
     myDesignSurfaceFixture.waitForRenderToFinish();
     return this;
@@ -82,6 +83,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return ((NlDesignSurfaceFixture)myDesignSurfaceFixture).findView(tag, occurrence);
   }
 
+  @NotNull
   public List<NlComponent> getSelection() {
     return myDesignSurfaceFixture.getSelection();
   }
@@ -127,11 +129,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myPropertyFixture;
   }
 
+  @NotNull
   public NlRhsConfigToolbarFixture getRhsConfigToolbar() {
     ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsConfigToolbar", ActionToolbarImpl.class);
     return new NlRhsConfigToolbarFixture(this, toolbar);
   }
 
+  @NotNull
   public NlRhsToolbarFixture getRhsToolbar() {
     ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsToolbar", ActionToolbarImpl.class);
     return new NlRhsToolbarFixture(this, toolbar);
@@ -153,6 +157,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return fixture;
   }
 
+  @NotNull
   public JPanelFixture getBackNavigationPanel() {
     return new JPanelFixture(robot(), BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME);
   }
@@ -187,6 +192,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #resizeToAndroidSize(int, int)
    * @see #endResizeInteraction()
    */
+  @NotNull
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
@@ -203,6 +209,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #startResizeInteraction()
    * @see #endResizeInteraction()
    */
+  @NotNull
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getCurrentSceneView();
@@ -218,6 +225,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #startResizeInteraction()
    * @see #resizeToAndroidSize(int, int)
    */
+  @NotNull
   public NlEditorFixture endResizeInteraction() {
     robot().releaseMouse(MouseButton.LEFT_BUTTON);
     return this;
@@ -227,6 +235,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Ensures only the design view is being displayed.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
+  @NotNull
   public NlEditorFixture showOnlyDesignView() {
     getConfigToolbar().selectDesign();
     return this;
@@ -236,11 +245,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Ensures only the blueprint view is being displayed.
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
+  @NotNull
   public NlEditorFixture showOnlyBlueprintView() {
     getConfigToolbar().selectBlueprint();
     return this;
   }
 
+  @NotNull
   public NlEditorFixture mouseWheelZoomIn(int amount) {
     robot().click(myDesignSurfaceFixture.target());
     robot().pressModifiers(InputEvent.CTRL_MASK);
@@ -249,6 +260,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
+  @NotNull
   public NlEditorFixture mouseWheelScroll(int amount) {
     robot().click(myDesignSurfaceFixture.target());
     robot().rotateMouseWheel(myDesignSurfaceFixture.target(), amount);
@@ -270,14 +282,23 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myDesignSurfaceFixture.getAllComponents();
   }
 
+  @NotNull
   public Point getScrollPosition() {
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
 
+  @NotNull
   public IssuePanelFixture getIssuePanel() {
     return myDesignSurfaceFixture.getIssuePanelFixture();
   }
 
+  @NotNull
+  public IssuePanelFixture enlargeIssuePanel() {
+    myDesignSurfaceFixture.enlargeIssuePanel();
+    return getIssuePanel();
+  }
+
+  @NotNull
   public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
     componentFixture.invokeContextMenuAction("Convert view...");
     return new MorphDialogFixture(robot());
