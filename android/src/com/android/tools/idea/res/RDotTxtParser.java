@@ -66,7 +66,7 @@ class RDotTxtParser {
       Symbol styleable = symbolTable.getSymbols().row(ResourceType.STYLEABLE).get(styleableName);
 
       if (styleable == null) {
-        getLog().warn("Unable to find styleable: " + styleableName);
+        getLog().debug("Unable to find styleable: " + styleableName);
         return null;
       }
 
