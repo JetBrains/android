@@ -26,9 +26,7 @@ import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkProfilerStage;
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,12 +34,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.util.*;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -268,13 +261,13 @@ public class StudioProfilersViewTest {
   public void testNoStage() throws Exception {
     StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JPanel component = view.getComponent();
-    assertNotReachable(myProfilers, view, component);
+    new ReferenceWalker(myProfilers).assertNotReachable(view, component);
   }
 
   public void transitionStage(Stage stage) throws Exception {
     JPanel component = myView.getComponent();
     myProfilers.setStage(new FakeStage(myProfilers));
-    assertNotReachable(myProfilers, myView, component);
+    new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
     myProfilers.setStage(stage);
     // At this point it could be reachable with standard swing listeners.
     myProfilers.setStage(new FakeStage(myProfilers));
@@ -282,79 +275,7 @@ public class StudioProfilersViewTest {
     // from the model all the way up to the main view or the main component. There could
     // be the case that some listeners that don't point to the view/component are still
     // leaked but it would be pretty rare that such a listener was needed in the first place.
-    assertNotReachable(myProfilers, myView, component);
-  }
-
-  /**
-   * Asserts that none of the objects can be reached from object.
-   */
-
-  private void assertNotReachable(Object object, Object... objects) throws IllegalAccessException {
-    Set<Object> set = Sets.newIdentityHashSet();
-    Set<Object> invalid = Sets.newIdentityHashSet();
-    invalid.addAll(Arrays.asList(objects));
-    collectReachable(new LinkedList<>(), object, invalid::contains, set);
-  }
-
-  /**
-   * Collects all the objects reachable from "object" by following hard links. This method doesn't dive in if it finds
-   * objects within java.lang or io.grpc.
-   */
-  private void collectReachable(LinkedList<Object> path, Object object, Predicate<Object> invalid, Set<Object> reachable)
-    throws IllegalAccessException {
-    if (object == null || object.getClass().equals(WeakReference.class) || object.getClass().equals(WeakHashMap.class)) {
-      return;
-    }
-    if (!reachable.add(object)) {
-      return;
-    }
-    String name = object.getClass().getCanonicalName();
-    name = name == null ? "" : name;
-
-    if (invalid.test(object)) {
-      // We didn't see this object before
-      // There are several new internal objects created by the interaction of the UI. Only flag
-      // this as an error if it is within our package.
-      if (name.startsWith("com.android.tools")) {
-        String error = "Found invalid object:\n";
-        error += " > \"" + object + "\" :: " + object.getClass().getName() + "\n";
-        error += " Reference path:\n";
-
-        for (Object previous : path) {
-          error += " > \"" + previous + "\" :: " + previous.getClass().getName() + "\n";
-        }
-        Assert.fail(error);
-      }
-    }
-    if (!object.getClass().isArray() && (name.startsWith("java.lang") || name.startsWith("io.grpc"))) {
-      return;
-    }
-    path.push(object);
-    if (object.getClass().isArray()) {
-      for (int i = 0; i < Array.getLength(object); i++) {
-        Object value = Array.get(object, i);
-        collectReachable(path, value, invalid, reachable);
-      }
-    }
-    else {
-      ArrayList<Field> fields = new ArrayList<>();
-      collectInheritedDeclaredFields(object.getClass(), fields);
-      for (Field field : fields) {
-        if (!field.getType().isPrimitive()) {
-          field.setAccessible(true);
-          Object value = field.get(object);
-          collectReachable(path, value, invalid, reachable);
-        }
-      }
-    }
-    path.pop();
-  }
-
-  private void collectInheritedDeclaredFields(Class<?> clazz, ArrayList<Field> fields) {
-    Collections.addAll(fields, clazz.getDeclaredFields());
-    if (clazz.getSuperclass() != null) {
-      collectInheritedDeclaredFields(clazz.getSuperclass(), fields);
-    }
+    new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
   }
 
   static class FakeStage extends Stage {

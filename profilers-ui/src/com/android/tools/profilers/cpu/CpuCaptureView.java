@@ -93,6 +93,15 @@ class CpuCaptureView {
 
   private final JTabbedPane myTabsPanel;
 
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners.
+  // Previously, we were creating a CaptureDetailsView temporarily and grabbing its UI
+  // component only. However, in the case of subclass TreeChartView that contains an
+  // AspectObserver, which fires events. If that gets cleaned up early, our UI loses some
+  // useful events.
+  @SuppressWarnings("FieldCanBeLocal")
+  @Nullable
+  private CpuCaptureView.CaptureDetailsView myDetailsView;
+
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
 
@@ -156,7 +165,8 @@ class CpuCaptureView {
     // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
     Component selectedTab = myTabsPanel.getSelectedComponent();
     assert selectedTab instanceof JPanel;
-    ((JPanel)selectedTab).add(myBinder.build(myView, details).getComponent(), BorderLayout.CENTER);
+    myDetailsView = myBinder.build(myView, details);
+    ((JPanel)selectedTab).add(myDetailsView.getComponent(), BorderLayout.CENTER);
     // We're replacing the content by removing and adding a new component.
     // JComponent#removeAll doc says that we should revalidate if it is already visible.
     selectedTab.revalidate();
@@ -328,7 +338,7 @@ class CpuCaptureView {
     }
   }
 
-  private static class TopDownView extends CaptureDetailsView {
+  static class TopDownView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
 
     private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
@@ -361,7 +371,7 @@ class CpuCaptureView {
     }
   }
 
-  private static class BottomUpView extends CaptureDetailsView {
+  static class BottomUpView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
 
     private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
@@ -415,7 +425,7 @@ class CpuCaptureView {
     }
   }
 
-  private static class TreeChartView extends CaptureDetailsView {
+  static class TreeChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @Nullable private final HNode<MethodModel> myNode;
     @NotNull private final Range myNodeRange;
