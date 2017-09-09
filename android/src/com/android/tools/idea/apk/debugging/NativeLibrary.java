@@ -190,27 +190,6 @@ public class NativeLibrary {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    NativeLibrary library = (NativeLibrary)o;
-    return hasDebugSymbols == library.hasDebugSymbols &&
-           Objects.equals(name, library.name) &&
-           Objects.equals(pathMappings, library.pathMappings) &&
-           Objects.equals(mySharedObjectFilePaths, library.mySharedObjectFilePaths) &&
-           Objects.equals(debuggableSharedObjectFilesByAbi, library.debuggableSharedObjectFilesByAbi);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, pathMappings, mySharedObjectFilePaths, debuggableSharedObjectFilesByAbi, hasDebugSymbols);
-  }
-
-  @Override
   public String toString() {
     return name;
   }
@@ -250,5 +229,26 @@ public class NativeLibrary {
     if (sourceFolderPaths.size() > 1) {
       sourceFolderPaths.sort(Comparator.naturalOrder());
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    NativeLibrary library = (NativeLibrary)o;
+    return hasDebugSymbols == library.hasDebugSymbols &&
+           Objects.equals(name, library.name) &&
+           Objects.equals(pathMappings, library.pathMappings) &&
+           Objects.equals(mySharedObjectFilePaths, library.mySharedObjectFilePaths) &&
+           Objects.equals(debuggableSharedObjectFilesByAbi, library.debuggableSharedObjectFilesByAbi);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, pathMappings, mySharedObjectFilePaths, debuggableSharedObjectFilesByAbi, hasDebugSymbols);
   }
 }

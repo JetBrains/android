@@ -17,9 +17,9 @@ package com.android.tools.idea.apk.debugging.editor;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.apk.ApkFacetConfiguration;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
-import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -34,8 +34,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
+import static com.android.tools.idea.stats.AnonymizerUtil.anonymizeUtf8;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.APK_DEBUG;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.APK_DEBUG_ATTACH_JAVA_SOURCES;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleJavaPathDescriptor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class ChooseAndAttachJavaSourcesTask implements Runnable {
   @NotNull private final String myClassFqn;
@@ -78,23 +84,39 @@ class ChooseAndAttachJavaSourcesTask implements Runnable {
 
       // Send event to usage tracker
       ApkFacet facet = ApkFacet.getInstance(myModule);
-      if (facet != null) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(AndroidStudioEvent.EventCategory.APK_DEBUG)
-                                         .setKind(AndroidStudioEvent.EventKind.APK_DEBUG_ATTACH_JAVA_SOURCES)
-                                         .setApkDebugProject(ApkDebugProject.newBuilder()
-                                                               .setPackageId(
-                                                                 AnonymizerUtil.anonymizeUtf8(facet.getConfiguration().APP_PACKAGE))));
+      if (facet != null && !ApplicationManager.getApplication().isUnitTestMode()) {
+        ApkDebugProject.Builder project = ApkDebugProject.newBuilder();
+        project.setPackageId(anonymizeUtf8(facet.getConfiguration().APP_PACKAGE));
+
+        AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+        // @formatter:off
+        event.setCategory(APK_DEBUG)
+             .setKind(APK_DEBUG_ATTACH_JAVA_SOURCES)
+             .setApkDebugProject(project);
+        // @formatter:on
+
+        UsageTracker.getInstance().log(event);
       }
 
       ModifiableRootModel moduleModel = ModuleRootManager.getInstance(myModule).getModifiableModel();
       ExternalSourceFolders sourceFolders = new ExternalSourceFolders(moduleModel);
       sourceFolders.addSourceFolders(chosenFiles, () -> {
+        if (facet != null) {
+          storeJavaSourceFolderPaths(facet, chosenFiles);
+        }
         ApplicationManager.getApplication().runWriteAction(moduleModel::commit);
         // Wait until the new source folders are indexed. Otherwise PsiManager won't find the Java class.
         myDumbService.smartInvokeLater(() -> myDexSourceFiles.navigateToJavaFile(myClassFqn));
         myEditorNotifications.updateAllNotifications();
       });
+    }
+  }
+
+  private static void storeJavaSourceFolderPaths(@NotNull ApkFacet facet, @NotNull VirtualFile[] chosenFiles) {
+    ApkFacetConfiguration configuration = facet.getConfiguration();
+    for (VirtualFile file : chosenFiles) {
+      File path = virtualToIoFile(file);
+      configuration.JAVA_SOURCE_FOLDER_PATHS.add(path.getPath());
     }
   }
 }
