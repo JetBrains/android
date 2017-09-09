@@ -25,7 +25,6 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashMap;
@@ -41,14 +40,17 @@ import java.util.stream.Collectors;
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 
 public class ApkFacetConfiguration implements FacetConfiguration {
+  private static final FacetEditorTab[] EDITOR_TABS = new FacetEditorTab[0];
+
   @NonNls public String APK_PATH;
   @NonNls public String APP_PACKAGE;
   @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
   @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
+  @NotNull public Set<String> JAVA_SOURCE_FOLDER_PATHS = new HashSet<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
-    return new FacetEditorTab[0];
+    return EDITOR_TABS;
   }
 
   @NotNull
