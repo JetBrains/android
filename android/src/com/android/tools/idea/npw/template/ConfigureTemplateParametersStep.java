@@ -22,8 +22,8 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.templates.*;
@@ -83,7 +83,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * previously configured values, etc.
  */
 public final class ConfigureTemplateParametersStep extends ModelWizardStep<RenderTemplateModel> {
-  private final List<AndroidSourceSet> mySourceSets;
+  private final List<NamedModuleTemplate> myTemplates;
   private final StringProperty myPackageName;
 
   private final BindingsManager myBindings = new BindingsManager();
@@ -126,12 +126,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
-                                         @NotNull List<AndroidSourceSet> sourceSets,
+                                         @NotNull List<NamedModuleTemplate> templates,
                                          @Nullable AndroidFacet facet) {
     super(model, title);
 
     myFacet = facet;
-    mySourceSets = sourceSets;
+    myTemplates = templates;
     myPackageName = model.packageName();
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
@@ -265,16 +265,16 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<>(language), getModel().getLanguage());
     }
 
-    if (mySourceSets.size() > 1) {
-      RowEntry row = new RowEntry<>("Target Source Set", new SourceSetComboProvider(mySourceSets));
-      row.setEnabled(mySourceSets.size() > 1);
+    if (myTemplates.size() > 1) {
+      RowEntry row = new RowEntry<>("Target Source Set", new ModuleTemplateComboProvider(myTemplates));
+      row.setEnabled(myTemplates.size() > 1);
       row.addToPanel(myParametersPanel);
 
       //noinspection unchecked
-      SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
-      assert sourceSet != null; // SourceSetComboProvider always sets this
-      myBindings.bind(getModel().getSourceSet(), new OptionalToValuePropertyAdapter<>(sourceSet));
-      sourceSet.addListener(sender -> enqueueEvaluateParameters());
+      SelectedItemProperty<NamedModuleTemplate> template = (SelectedItemProperty<NamedModuleTemplate>)row.getProperty();
+      assert template != null; // ModuleTemplateComboProvider always sets this
+      myBindings.bind(getModel().getTemplate(), new OptionalToValuePropertyAdapter<>(template));
+      template.addListener(sender -> enqueueEvaluateParameters());
     }
 
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
@@ -398,8 +398,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-      ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
-      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
+      ObjectProperty<NamedModuleTemplate> template = getModel().getTemplate();
+      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
       additionalValues
         .put(ATTR_IS_INSTANT_APP, (myFacet != null && (myFacet.getProjectType() == PROJECT_TYPE_FEATURE)) || getModel().instantApp().get());
       additionalValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
@@ -482,7 +482,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
     Module module = myFacet == null ? null : myFacet.getModule();
     Project project = getModel().getProject().getValueOrNull();
-    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getSourceSet().get());
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -552,8 +552,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @Override
   protected void onProceeding() {
     // canGoForward guarantees this optional value is present
-    AndroidSourceSet sourceSet = getModel().getSourceSet().get();
-    AndroidProjectPaths paths = sourceSet.getPaths();
+    NamedModuleTemplate template = getModel().getTemplate().get();
+    AndroidModuleTemplate paths = template.getPaths();
 
     File moduleRoot = paths.getModuleRoot();
     if (moduleRoot == null) {
@@ -585,7 +585,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       templateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
     }
 
-    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
+    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, template.getName());
     if (isNewModule()) {
       templateValues.put(ATTR_IS_LAUNCHER, true);
     }
@@ -736,7 +736,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Module module = myFacet != null ? myFacet.getModule() : null;
       Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getSourceSet().get());
+      SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;

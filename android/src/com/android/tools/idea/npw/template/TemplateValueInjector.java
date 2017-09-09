@@ -33,7 +33,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
@@ -205,7 +205,7 @@ public final class TemplateValueInjector {
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  public TemplateValueInjector setModuleRoots(@NotNull AndroidProjectPaths paths, @NotNull String packageName) {
+  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String packageName) {
     File moduleRoot = paths.getModuleRoot();
 
     assert moduleRoot != null;

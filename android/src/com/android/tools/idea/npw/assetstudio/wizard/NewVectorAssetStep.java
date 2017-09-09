@@ -132,7 +132,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
   }
 
   @Override

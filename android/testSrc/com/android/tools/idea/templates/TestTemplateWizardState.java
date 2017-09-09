@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -123,6 +123,6 @@ class TestTemplateWizardState {
     String packageName = getString(ATTR_PACKAGE_NAME);
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot).getPaths(), packageName);
+      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName);
   }
 }

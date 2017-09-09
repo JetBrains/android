@@ -18,10 +18,14 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.*;
-import com.android.tools.idea.npw.assetstudio.ui.*;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureAdaptiveIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
+import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -35,8 +39,7 @@ import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
@@ -58,8 +61,10 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +80,7 @@ import java.util.stream.Collectors;
  */
 public final class GenerateImageAssetPanel extends JPanel implements Disposable {
 
-  @NotNull private final AndroidProjectPaths myDefaultPaths;
+  @NotNull private final AndroidModuleTemplate myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myBindings = new BindingsManager();
@@ -110,7 +115,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private SelectedProperty myShowSafeZoneProperty;
   private AbstractProperty<Density> myPreviewDensityProperty;
 
-  @NotNull private AndroidProjectPaths myPaths;
+  @NotNull private AndroidModuleTemplate myPaths;
   @NotNull private final BackgroundIconGenerator myBackgroundIconGenerator = new BackgroundIconGenerator();
 
   /**
@@ -119,7 +124,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
    * supported types are passed in, then all types will be supported by default.
    */
   public GenerateImageAssetPanel(@NotNull Disposable disposableParent,
-                                 @NotNull AndroidProjectPaths defaultPaths,
+                                 @NotNull AndroidModuleTemplate defaultPaths,
                                  @NotNull AndroidVersion minSdkVersion,
                                  @NotNull AndroidVersion targetSdkVersion,
                                  @NotNull AndroidAdaptiveIconType... supportedTypes) {
@@ -315,7 +320,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
    * this panel will attempt to use reasonable defaults for the project.
    */
   @SuppressWarnings("unused") // Will be used when template wizard is updated to use this new class
-  public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
+  public void setProjectPaths(@Nullable AndroidModuleTemplate projectPaths) {
     myPaths = (projectPaths != null) ? projectPaths : myDefaultPaths;
   }
 

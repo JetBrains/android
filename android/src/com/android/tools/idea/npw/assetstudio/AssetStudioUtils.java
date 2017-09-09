@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.util.io.FileUtil;
@@ -97,7 +97,7 @@ public final class AssetStudioUtils {
    * Returns true if a resource with the same name is already found at a location implied by the
    * input parameters.
    */
-  public static boolean resourceExists(@NotNull AndroidProjectPaths paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
+  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
     File resDir = paths.getResDirectory();
     if (resDir == null) {
       return false;
@@ -136,7 +136,7 @@ public final class AssetStudioUtils {
   }
 
   /**
-   * Like {@link #resourceExists(AndroidProjectPaths, ResourceFolderType, String)} but a useful
+   * Like {@link #resourceExists(AndroidModuleTemplate, ResourceFolderType, String)} but a useful
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {

@@ -13,46 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.projectsystem;
+package com.android.tools.idea.projectsystem
 
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
+import java.io.File
 
 /**
  * Represents a template for creating new Android components. It knows where to put the various
  * files given the root of the module. This is used when creating new files:
  * E.g., New Activity, Fragment, Module, Project.
  */
-public interface AndroidProjectPaths {
-  @Nullable
-  File getModuleRoot();
+interface AndroidModuleTemplate {
+  val moduleRoot: File?
 
   /**
    * @param packageName package name of the new component. May affect resulting source directory (e.g., appended to source root).
-   *                    For "com.google.foo.Bar", this would be "com.google.foo", and the resulting source directory *might* be
-   *                    "src/main/java/com/google/foo/".
-   *                    null if no transformation is required on the source root.
+   * For "com.google.foo.Bar", this would be "com.google.foo", and the resulting source directory *might* be
+   * "src/main/java/com/google/foo/".
+   * null if no transformation is required on the source root.
    * @return the target directory in which to place a new Android component.
    */
-  @Nullable
-  File getSrcDirectory(@Nullable String packageName);
+  fun getSrcDirectory(packageName: String?): File?
 
   /**
-   * Similar to {@link AndroidProjectPaths#getSrcDirectory(String)}, except for new tests.
+   * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new tests.
    */
-  @Nullable
-  File getTestDirectory(@Nullable String packageName);
+  fun getTestDirectory(packageName: String?): File?
 
-  @Nullable
-  File getResDirectory();
+  val resDirectory: File?
 
   /**
-   * Similar to {@link AndroidProjectPaths#getSrcDirectory(String)}, except for new aidl files.
+   * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new aidl files.
    */
-  @Nullable
-  File getAidlDirectory(@Nullable String packageName);
+  fun getAidlDirectory(packageName: String?): File?
 
-  @Nullable
-  File getManifestDirectory();
+  val manifestDirectory: File?
 }

@@ -21,10 +21,10 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
@@ -129,9 +129,9 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
+    NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
 
-    myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet, message("android.wizard.activity.add", myFormFactor.id));
+    myRenderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
 
@@ -182,7 +182,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     getModel().moduleName().set(myModuleName.getText());
     Project project = moduleModel.getProject().getValue();
     File moduleRoot = new File(project.getBasePath(), moduleModel.moduleName().get());
-    myRenderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
+    myRenderModel.getTemplate().set(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot));
 
     if (myIsLibrary) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);

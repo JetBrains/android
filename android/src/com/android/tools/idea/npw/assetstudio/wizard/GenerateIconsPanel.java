@@ -16,14 +16,15 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.tools.adtui.ImageComponent;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -32,8 +33,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
@@ -69,7 +69,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
   private static final int ASSET_PREVIEW_HEIGHT = 96;
 
-  private final AndroidProjectPaths myDefaultPaths;
+  private final AndroidModuleTemplate myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
   private final BindingsManager myBindings = new BindingsManager();
@@ -90,7 +90,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   private JPanel mySourceAssetPanel;
   private JPanel mySourceAssetMaxWidthPanel;
 
-  @NotNull private AndroidProjectPaths myPaths;
+  @NotNull private AndroidModuleTemplate myPaths;
   @Nullable private BufferedImage myEnqueuedImageToProcess;
 
   /**
@@ -99,7 +99,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    * supported types are passed in, then all types will be supported by default.
    */
   public GenerateIconsPanel(@NotNull Disposable disposableParent,
-                            @NotNull AndroidProjectPaths defaultPaths,
+                            @NotNull AndroidModuleTemplate defaultPaths,
                             int minSdkVersion,
                             @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
@@ -232,7 +232,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    * Set the target project paths that this panel should use when generating assets. If not set,
    * this panel will attempt to use reasonable defaults for the project.
    */
-  public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
+  public void setProjectPaths(@Nullable AndroidModuleTemplate projectPaths) {
     myPaths = (projectPaths != null) ? projectPaths : myDefaultPaths;
   }
 

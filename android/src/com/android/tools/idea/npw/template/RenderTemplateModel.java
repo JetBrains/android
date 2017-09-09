@@ -21,9 +21,9 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -61,7 +61,7 @@ public final class RenderTemplateModel extends WizardModel {
 
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
-  @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
+  @NotNull private final ObjectProperty<NamedModuleTemplate> myTemplates;
   @NotNull private final ObjectProperty<Language> myLanguageSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
@@ -80,12 +80,12 @@ public final class RenderTemplateModel extends WizardModel {
   public RenderTemplateModel(@NotNull Project project,
                              @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
-                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
     myProject = new OptionalValueProperty<>(project);
     myInstantApp = new BoolValueProperty(false);
     myPackageName = new StringValueProperty(initialPackageSuggestion);
-    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
@@ -96,12 +96,12 @@ public final class RenderTemplateModel extends WizardModel {
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
                              @Nullable TemplateHandle templateHandle,
-                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
     myInstantApp = moduleModel.instantApp();
     myPackageName = moduleModel.packageName();
-    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
@@ -129,8 +129,8 @@ public final class RenderTemplateModel extends WizardModel {
    * paths the template's output will be rendered into).
    */
   @NotNull
-  public ObjectProperty<AndroidSourceSet> getSourceSet() {
-    return mySourceSet;
+  public ObjectProperty<NamedModuleTemplate> getTemplate() {
+    return myTemplates;
   }
 
   @NotNull
@@ -195,7 +195,7 @@ public final class RenderTemplateModel extends WizardModel {
         return false;
       }
 
-      AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
 
       return renderTemplate(true, project, paths, null, null);
@@ -203,7 +203,7 @@ public final class RenderTemplateModel extends WizardModel {
 
     @Override
     public void render() {
-      final AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      final AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
       final List<File> filesToOpen = Lists.newArrayListWithExpectedSize(3);
       final List<File> filesToReformat = Lists.newArrayList();
@@ -249,7 +249,7 @@ public final class RenderTemplateModel extends WizardModel {
 
     private boolean renderTemplate(boolean dryRun,
                                    @NotNull Project project,
-                                   @NotNull AndroidProjectPaths paths,
+                                   @NotNull AndroidModuleTemplate paths,
                                    @Nullable List<File> filesToOpen,
                                    @Nullable List<File> filesToReformat) {
       final Template template = myTemplateHandle.getTemplate();

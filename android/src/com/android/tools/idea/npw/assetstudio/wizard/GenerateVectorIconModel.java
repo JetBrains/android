@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -46,7 +46,7 @@ public final class GenerateVectorIconModel extends GenerateIconsModel {
   }
 
   @Override
-  protected void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator) {
+  protected void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull AndroidIconGenerator iconGenerator) {
     // We always know that this model is used on a step that requires VectorAssets
     VectorAsset vectorAsset = (VectorAsset)iconGenerator.sourceAsset().getValue();
     VectorAsset.ParseResult result = vectorAsset.parse();

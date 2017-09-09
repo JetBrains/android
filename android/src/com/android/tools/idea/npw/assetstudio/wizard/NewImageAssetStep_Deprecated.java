@@ -52,7 +52,7 @@ public final class NewImageAssetStep_Deprecated extends ModelWizardStep<Generate
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
   }
 
   @NotNull

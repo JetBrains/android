@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.AndroidSourceSet
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
@@ -178,7 +178,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
 
   override val projectSystem = this
 
-  override fun getSourceSets(module: Module, targetDirectory: VirtualFile?): List<AndroidSourceSet> {
-    return GradleAndroidProjectPaths.getSourceSets(module, targetDirectory)
+  override fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
+    return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
   }
 }

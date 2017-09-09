@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.adtui.ASGallery;
@@ -68,7 +68,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> {
   private final RenderTemplateModel myRenderModel;
   private @NotNull List<TemplateRenderer> myTemplateRenderers;
-  private @NotNull List<AndroidSourceSet> mySourceSets;
+  private @NotNull List<NamedModuleTemplate> myModuleTemplates;
 
   private @NotNull ASGallery<TemplateRenderer> myActivityGallery;
   private @NotNull ValidatorPanel myValidatorPanel;
@@ -80,9 +80,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
                                 @NotNull FormFactor formFactor,
-                                @NotNull List<AndroidSourceSet> sourceSets) {
+                                @NotNull List<NamedModuleTemplate> moduleTemplates) {
     this(moduleModel, renderModel, formFactor);
-    init(formFactor, sourceSets, null);
+    init(formFactor, moduleTemplates, null);
   }
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
@@ -91,8 +91,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
                                 @NotNull AndroidFacet facet,
                                 @NotNull VirtualFile targetDirectory) {
     this(moduleModel, renderModel, formFactor);
-    List<AndroidSourceSet> sourceSets = AndroidPackageUtils.getSourceSets(facet, targetDirectory);
-    init(formFactor, sourceSets, facet);
+    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+    init(formFactor, moduleTemplates, facet);
   }
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel,
@@ -102,9 +102,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   }
 
   private void init(@NotNull FormFactor formFactor,
-                    @NotNull List<AndroidSourceSet> sourceSets,
+                    @NotNull List<NamedModuleTemplate> moduleTemplates,
                     @Nullable AndroidFacet facet) {
-    mySourceSets = sourceSets;
+    myModuleTemplates = moduleTemplates;
     myFacet = facet;
     List<TemplateHandle> templateHandles = TemplateManager.getInstance().getTemplateList(formFactor);
 
@@ -137,7 +137,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     String title = message("android.wizard.config.activity.title");
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, mySourceSets, myFacet));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, myModuleTemplates, myFacet));
   }
 
   @Override

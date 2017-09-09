@@ -98,10 +98,10 @@ interface AndroidProjectSystem {
    *
    * @param module the module whose folder layout is being requested.
    * @param targetDirectory to filter the relevant source providers from the android facet.
-   * @return a list of [AndroidSourceSet]s created from each of the android facet's source providers.
+   * @return a list of templates created from each of the android facet's source providers.
    * In cases where the source provider returns multiple paths, we always take the first match.
    */
-  fun getSourceSets(module: Module, targetDirectory: VirtualFile?): List<AndroidSourceSet>
+  fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
    * Adds a dependency to the given module.

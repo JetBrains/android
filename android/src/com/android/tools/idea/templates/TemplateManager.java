@@ -22,7 +22,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -486,13 +486,13 @@ public class TemplateManager {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           assert facet != null && facet.getAndroidModel() != null;
 
-          List<AndroidSourceSet> sourceSets = AndroidPackageUtils.getSourceSets(facet, targetDirectory);
-          assert (!sourceSets.isEmpty());
+          List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+          assert (!moduleTemplates.isEmpty());
 
-          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
           Project project = facet.getModule().getProject();
 
-          RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
+          RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, moduleTemplates.get(0),
             AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
           NewModuleModel moduleModel = new NewModuleModel(project);
