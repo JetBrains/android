@@ -16,19 +16,19 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.draw.DrawAction;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,11 +48,19 @@ public class ActionTarget extends BaseTarget {
   private final NlComponent myNlComponent;
   private final SceneComponent myDestination;
 
+  private static final int SPACING = 15;
+
   public static class CurvePoints {
     @SwingCoordinate public Point p1;
     @SwingCoordinate public Point p2;
     @SwingCoordinate public Point p3;
     @SwingCoordinate public Point p4;
+    public ConnectionDirection dir;
+  }
+
+  public static class SelfActionPoints {
+    @SwingCoordinate public int[] x = new int[5];
+    @SwingCoordinate public int[] y = new int[5];
     public ConnectionDirection dir;
   }
 
@@ -120,15 +128,23 @@ public class ActionTarget extends BaseTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     Rectangle sourceRect = Coordinates.getSwingRectDip(sceneContext, getComponent().fillRect(null));
+
+    String sourceId = getComponent().getId();
+    if (sourceId == null) {
+      return;
+    }
+
     String targetId = NlComponent.stripId(myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
     if (targetId == null) {
       // TODO: error handling
       return;
     }
+
     myDestRect = Coordinates.getSwingRectDip(sceneContext, myDestination.fillRect(null));
     mySourceRect = sourceRect;
     boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
-    DrawAction.buildDisplayList(list, ConnectionType.NORMAL, sourceRect, myDestRect, selected ? SELECTED : NORMAL);
+    DrawAction.buildDisplayList(list, sourceId.equals(targetId) ? ConnectionType.SELF : ConnectionType.NORMAL, sourceRect, myDestRect,
+                                selected ? SELECTED : NORMAL);
   }
 
   @Override
@@ -136,13 +152,33 @@ public class ActionTarget extends BaseTarget {
     if (mySourceRect == null || myDestRect == null) {
       return;
     }
+
+    String sourceId = getComponent().getId();
+    if (sourceId == null) {
+      return;
+    }
+
+    String targetId = NlComponent.stripId(myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+    if (targetId == null) {
+      return;
+    }
+
+    if (sourceId.equals(targetId)) {
+      @SwingCoordinate SelfActionPoints points = getSelfActionPoints(mySourceRect, transform);
+      for (int i = 1; i < points.x.length; i++) {
+        picker.addLine(this, 5, points.x[i - 1], points.y[i - 1], points.x[i], points.y[i]);
+      }
+
+      return;
+    }
+
     CurvePoints points = getCurvePoints(mySourceRect, myDestRect);
     picker.addCurveTo(this, 5, points.p1.x, points.p1.y, points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
   }
 
   @NotNull
   public static CurvePoints getCurvePoints(@SwingCoordinate @NotNull Rectangle source,
-                                            @SwingCoordinate @NotNull Rectangle dest) {
+                                           @SwingCoordinate @NotNull Rectangle dest) {
     ConnectionDirection sourceDirection = RIGHT;
     ConnectionDirection destDirection = LEFT;
     int startx = getConnectionX(sourceDirection, source);
@@ -160,6 +196,31 @@ public class ActionTarget extends BaseTarget {
     result.p3 = new Point(endx + dx + scale_dest * destDirection.getDeltaX(), endy + dy + scale_dest * destDirection.getDeltaY());
     result.p4 = new Point(endx + dx, endy + dy);
     return result;
+  }
+
+  @NotNull
+  public static SelfActionPoints getSelfActionPoints(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
+    ConnectionDirection sourceDirection = RIGHT;
+    ConnectionDirection destDirection = BOTTOM;
+
+    SelfActionPoints selfActionPoints = new SelfActionPoints();
+    selfActionPoints.dir = destDirection;
+
+    @SwingCoordinate int spacing = sceneContext.getSwingDimension(SPACING);
+
+    selfActionPoints.x[0] = getConnectionX(sourceDirection, rect);
+    selfActionPoints.x[1] = selfActionPoints.x[0] + spacing;
+    selfActionPoints.x[2] = selfActionPoints.x[1];
+    selfActionPoints.x[3] = selfActionPoints.x[2] - rect.width / 2;
+    selfActionPoints.x[4] = selfActionPoints.x[3];
+
+    selfActionPoints.y[0] = getConnectionY(sourceDirection, rect);
+    selfActionPoints.y[1] = selfActionPoints.y[0];
+    selfActionPoints.y[2] = selfActionPoints.y[1] + rect.height / 2 + spacing;
+    selfActionPoints.y[3] = selfActionPoints.y[2];
+    selfActionPoints.y[4] = selfActionPoints.y[3] - spacing + getDestinationDy(destDirection);
+
+    return selfActionPoints;
   }
 
   private static int getConnectionX(@NotNull ConnectionDirection side, @NotNull Rectangle rect) {

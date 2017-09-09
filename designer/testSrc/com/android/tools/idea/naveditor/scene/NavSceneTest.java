@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
@@ -31,6 +27,10 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.naveditor.surface.NavView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -454,5 +454,34 @@ public class NavSceneTest extends NavigationTestCase {
     Scene scene = manager.build();
 
     assertTrue(scene.getSceneComponent("myId").isSelected());
+  }
+
+  public void testSelfAction() throws Exception {
+    ComponentDescriptor root = rootComponent()
+      .withStartDestinationAttribute("fragment1")
+      .unboundedChildren(
+        fragmentComponent("fragment1")
+          .withLayoutAttribute("activity_main")
+          .unboundedChildren(
+            actionComponent("action1")
+              .withDestinationAttribute("fragment1")
+          ));
+
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+
+    assertEquals("Clip,0,0,292,420\n" +
+                 "DrawNavScreen,23,51,51,191,319\n" +
+                 "DrawComponentFrame,50,50,192,320,1,false\n" +
+                 "DrawAction,21,SELF,50x50x192x320,50x50x192x320,NORMAL\n" +
+                 "DrawActionHandle,24,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,22,50,44,ff000000,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
+                 "DrawAction,21,NORMAL,-162x50x192x320,50x50x192x320,NORMAL\n\n" +
+                 "UNClip\n", list.serialize());
   }
 }
