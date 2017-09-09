@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths.createDefaultSourceSetAt;
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static org.junit.Assert.assertEquals;
 
-public final class GradleAndroidProjectPathsTest {
+public final class GradleModuleTemplateTest {
 
   @Test
   public void testDefaultSourceSetAtCurrentDir() {
-    AndroidSourceSet sourceSet = createDefaultSourceSetAt(new File("."));
-    AndroidProjectPaths paths = sourceSet.getPaths();
+    NamedModuleTemplate moduleTemplate = createDefaultTemplateAt(new File("."));
+    AndroidModuleTemplate paths = moduleTemplate.getPaths();
 
-    assertEquals("main", sourceSet.getName());
+    assertEquals("main", moduleTemplate.getName());
     assertEquals(paths.getModuleRoot(), new File("."));
     assertEquals(paths.getSrcDirectory("my.package"), new File("./src/main/java/my/package"));
     assertEquals(paths.getTestDirectory("my.package"), new File("./src/androidTest/java/my/package"));
@@ -42,10 +42,10 @@ public final class GradleAndroidProjectPathsTest {
 
   @Test
   public void testDefaultSourceSetAtInvalidDir() {
-    // AndroidProjectPaths are not expected to do validation of its file path, so no exception is expected
+    // AndroidModuleTemplate are not expected to do validation of its file path, so no exception is expected
     // (This is not a requirement, but helps the UI to bind with a field that can temporarily hold an invalid value)
     for (String str : new String[] {":", "<", ">", "?", "\0"}) {
-      assertEquals(createDefaultSourceSetAt(new File(str)).getPaths().getModuleRoot(), new File(str));
+      assertEquals(createDefaultTemplateAt(new File(str)).getPaths().getModuleRoot(), new File(str));
     }
   }
 }

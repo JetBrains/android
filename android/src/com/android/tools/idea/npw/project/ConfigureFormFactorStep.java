@@ -21,7 +21,7 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
@@ -29,7 +29,7 @@ import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
@@ -127,10 +127,10 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     for (final FormFactor formFactor : formFactors) {
       FormFactorInfo formFactorInfo = myFormFactors.get(formFactor);
 
-      AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
+      NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
 
       NewModuleModel moduleModel = new NewModuleModel(getModel(), formFactorInfo.templateFile);
-      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
+      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate,
                                                                 message("android.wizard.activity.add", formFactor.id));
 
       moduleModel.getRenderTemplateValues().setValue(renderModel.getTemplateValues());
@@ -158,7 +158,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       // Some changes on the Project/Module Model trigger changes on the Render Model
       myListeners.listenAll(getModel().projectLocation(), moduleModel.moduleName()).withAndFire(() -> {
         File moduleRoot = new File(getModel().projectLocation().get(), moduleModel.moduleName().get());
-        renderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
+        renderModel.getTemplate().set(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot));
       });
     }
 

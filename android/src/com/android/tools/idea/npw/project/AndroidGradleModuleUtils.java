@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.project.BuildSystemServiceUtil;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Parameter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -44,7 +44,7 @@ import java.util.List;
 public class AndroidGradleModuleUtils {
 
   /**
-   * Convenience method to convert a {@link AndroidSourceSet} into a {@link SourceProvider}.
+   * Convenience method to convert a {@link NamedModuleTemplate} into a {@link SourceProvider}.
    * Note that this target source provider has many fields stubbed out and should
    * be used carefully.
    *
@@ -52,8 +52,8 @@ public class AndroidGradleModuleUtils {
    * {@link Parameter#validate} as this may allow us to delete this code
    */
   @NotNull
-  public static SourceProvider getSourceProvider(@NotNull AndroidSourceSet sourceSet) {
-    return new SourceProviderAdapter(sourceSet.getName(), sourceSet.getPaths());
+  public static SourceProvider getSourceProvider(@NotNull NamedModuleTemplate template) {
+    return new SourceProviderAdapter(template.getName(), template.getPaths());
   }
 
   /**

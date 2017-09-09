@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -28,41 +28,41 @@ import java.util.List;
 /**
  * Provides a combobox which presents the user with a list of source sets.
  *
- * @see AndroidSourceSet
+ * @see NamedModuleTemplate
  */
 // Disable JComboBox warnings. We have no choice but to use it as we're stuck with JDK6
 @SuppressWarnings({"UndesirableClassUsage", "unchecked"})
-public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
-  @NotNull private final List<AndroidSourceSet> mySourceSets;
+public final class ModuleTemplateComboProvider extends ComponentProvider<JComboBox> {
+  @NotNull private final List<NamedModuleTemplate> myTemplates;
 
-  public SourceSetComboProvider(@NotNull List<AndroidSourceSet> sourceSets) {
-    mySourceSets = sourceSets;
+  public ModuleTemplateComboProvider(@NotNull List<NamedModuleTemplate> templates) {
+    myTemplates = templates;
   }
 
   @NotNull
   @Override
   public JComboBox createComponent() {
     DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
-    for (AndroidSourceSet sourceSet : mySourceSets) {
-      comboBoxModel.addElement(sourceSet);
+    for (NamedModuleTemplate template : myTemplates) {
+      comboBoxModel.addElement(template);
     }
 
-    JComboBox sourceSetCombo = new JComboBox(comboBoxModel);
-    sourceSetCombo.setRenderer(new ListCellRendererWrapper() {
+    JComboBox moduleTemplateCombo = new JComboBox(comboBoxModel);
+    moduleTemplateCombo.setRenderer(new ListCellRendererWrapper() {
       @Override
       public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        setText(((AndroidSourceSet)value).getName());
+        setText(((NamedModuleTemplate)value).getName());
       }
     });
-    sourceSetCombo.setToolTipText("<html>The source set within which to generate new project files.<br>" +
+    moduleTemplateCombo.setToolTipText("<html>The source set within which to generate new project files.<br>" +
                                   "If you specify a source set that does not yet exist on disk, a folder will be created for it.</html>");
-    return sourceSetCombo;
+    return moduleTemplateCombo;
   }
 
   @Nullable
   @Override
-  public AbstractProperty<?> createProperty(@NotNull JComboBox sourceSetCombo) {
-    return new SelectedItemProperty<AndroidSourceSet>(sourceSetCombo);
+  public AbstractProperty<?> createProperty(@NotNull JComboBox moduleTemplateCombo) {
+    return new SelectedItemProperty<NamedModuleTemplate>(moduleTemplateCombo);
   }
 }
 

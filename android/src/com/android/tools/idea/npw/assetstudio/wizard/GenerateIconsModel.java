@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,13 +37,13 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GenerateIconsModel extends WizardModel {
   @Nullable private AndroidIconGenerator myIconGenerator;
 
-  @NotNull private AndroidProjectPaths myPaths;
+  @NotNull private AndroidModuleTemplate myPaths;
 
   public GenerateIconsModel(@NotNull AndroidFacet facet) {
-    this(AndroidPackageUtils.getSourceSets(facet, null).get(0).getPaths());
+    this(AndroidPackageUtils.getModuleTemplates(facet, null).get(0).getPaths());
   }
 
-  public GenerateIconsModel(@NotNull AndroidProjectPaths paths) {
+  public GenerateIconsModel(@NotNull AndroidModuleTemplate paths) {
     myPaths = paths;
   }
 
@@ -52,12 +52,12 @@ public abstract class GenerateIconsModel extends WizardModel {
     return Logger.getInstance(GenerateIconsModel.class);
   }
 
-  public final void setPaths(@NotNull AndroidProjectPaths paths) {
+  public final void setPaths(@NotNull AndroidModuleTemplate paths) {
     myPaths = paths;
   }
 
   @NotNull
-  public AndroidProjectPaths getPaths() {
+  public AndroidModuleTemplate getPaths() {
     return myPaths;
   }
 
@@ -83,5 +83,5 @@ public abstract class GenerateIconsModel extends WizardModel {
   /**
    * Serialize the icons into files on disk. This method will be called within a WriteAction.
    */
-  protected abstract void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator);
+  protected abstract void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull AndroidIconGenerator iconGenerator);
 }

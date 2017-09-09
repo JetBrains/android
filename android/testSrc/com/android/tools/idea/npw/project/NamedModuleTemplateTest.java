@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -27,16 +27,16 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * Tests for {@link AndroidSourceSet}.
+ * Tests for {@link NamedModuleTemplate}.
  */
-public class AndroidSourceSetTest {
+public class NamedModuleTemplateTest {
   @Test
   public void testToSourceProviderDirectories() {
     File javaDirectory = mock(File.class);
     File aidlDirectory = mock(File.class);
     File resDirectory = mock(File.class);
 
-    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths() {
+    AndroidModuleTemplate mockProjectPaths = new AndroidModuleTemplate() {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
@@ -45,8 +45,8 @@ public class AndroidSourceSetTest {
       @Nullable @Override public File getManifestDirectory() { return null; }
     };
 
-    AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
-    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(sourceSet);
+    NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("", mockProjectPaths);
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(moduleTemplate);
 
     assertThat(sourceProvider.getJavaDirectories()).containsExactly(javaDirectory);
     assertThat(sourceProvider.getAidlDirectories()).containsExactly(aidlDirectory);
@@ -63,7 +63,7 @@ public class AndroidSourceSetTest {
 
   @Test
   public void testToSourceProviderWithEmptyDirectories() {
-    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths() {
+    AndroidModuleTemplate mockProjectPaths = new AndroidModuleTemplate() {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
@@ -72,8 +72,8 @@ public class AndroidSourceSetTest {
       @Nullable @Override public File getManifestDirectory() { return null; }
     };
 
-    AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
-    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(sourceSet);
+    NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("", mockProjectPaths);
+    SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(moduleTemplate);
 
     assertThat(sourceProvider.getJavaDirectories()).isEmpty();
     assertThat(sourceProvider.getResourcesDirectories()).isEmpty();

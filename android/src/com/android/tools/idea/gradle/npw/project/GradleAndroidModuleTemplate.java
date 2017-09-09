@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.npw.project;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -55,7 +55,7 @@ import static com.android.SdkConstants.*;
  *      `-com/google/foo/bar/... (test directory of package com.google.foo.bar)
  * </pre>
  */
-public class GradleAndroidProjectPaths implements AndroidProjectPaths {
+public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
@@ -108,26 +108,26 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
     return myManifestDirectory;
   }
 
-  public static AndroidSourceSet createDummySourceSet() {
-    return createDefaultSourceSetAt(new File(""));
+  public static NamedModuleTemplate createDummyTemplate() {
+    return createDefaultTemplateAt(new File(""));
   }
 
   /**
-   * Create an {@link AndroidSourceSet} with default values.
+   * Create an {@link NamedModuleTemplate} with default values.
    * Assumes the 'main' flavor and default android locations for the source, test, res,
    * aidl and manifest.
    */
-  public static AndroidSourceSet createDefaultSourceSetAt(@NotNull File moduleRoot) {
+  public static NamedModuleTemplate createDefaultTemplateAt(@NotNull File moduleRoot) {
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavourDir = new File(baseSrcDir, FD_MAIN);
-    GradleAndroidProjectPaths paths = new GradleAndroidProjectPaths();
+    GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
     paths.myModuleRoot = moduleRoot;
     paths.mySrcRoot = new File(baseFlavourDir, FD_JAVA);
     paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
     paths.myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
     paths.myAidlRoot = new File(baseFlavourDir, FD_AIDL);
     paths.myManifestDirectory = baseFlavourDir;
-    return new AndroidSourceSet("main", paths);
+    return new NamedModuleTemplate("main", paths);
   }
 
   /**
@@ -147,18 +147,18 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
   /**
    * @param androidFacet    from which we receive {@link SourceProvider}s.
    * @param targetDirectory to filter the relevant {@link SourceProvider}s from the {@code androidFacet}.
-   * @return a list of {@link AndroidSourceSet}s created from each of {@code androidFacet}'s {@link SourceProvider}s.
+   * @return a list of {@link NamedModuleTemplate}s created from each of {@code androidFacet}'s {@link SourceProvider}s.
    * In cases where the source provider returns multiple paths, we always take the first match.
    */
   @NotNull
-  public static List<AndroidSourceSet> getSourceSets(@NotNull Module module, @Nullable VirtualFile targetDirectory) {
+  public static List<NamedModuleTemplate> getModuleTemplates(@NotNull Module module, @Nullable VirtualFile targetDirectory) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return Collections.emptyList();
     }
-    List<AndroidSourceSet> sourceSets = Lists.newArrayList();
+    List<NamedModuleTemplate> templates = Lists.newArrayList();
     for (SourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
-      GradleAndroidProjectPaths paths = new GradleAndroidProjectPaths();
+      GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       if (roots.length > 0) {
         paths.myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
@@ -171,8 +171,8 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
       paths.myResDirectory = Iterables.getFirst(sourceProvider.getResDirectories(), null);
       paths.myAidlRoot = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
       paths.myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
-      sourceSets.add(new AndroidSourceSet(sourceProvider.getName(), paths));
+      templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
     }
-    return sourceSets;
+    return templates;
   }
 }

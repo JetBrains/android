@@ -13,29 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.projectsystem;
-
-import org.jetbrains.annotations.NotNull;
+package com.android.tools.idea.projectsystem
 
 /**
- * An {@link AndroidProjectPaths} instance with a name.
+ * An [AndroidModuleTemplate] instance with a name.
  */
-public final class AndroidSourceSet {
-  @NotNull private final String myName;
-  @NotNull private final AndroidProjectPaths myPaths;
-
-  public AndroidSourceSet(@NotNull String name, @NotNull AndroidProjectPaths paths) {
-    myName = name;
-    myPaths = paths;
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  @NotNull
-  public AndroidProjectPaths getPaths() {
-    return myPaths;
-  }
-}
+data class NamedModuleTemplate(val name: String, val paths: AndroidModuleTemplate)

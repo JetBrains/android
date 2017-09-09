@@ -17,11 +17,11 @@ package com.android.tools.idea.npw.assetstudio.icon;
 
 import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -118,13 +118,13 @@ public abstract class AndroidIconGenerator {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidProjectPaths)} is called.
+   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
    *
    * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  public final Map<File, BufferedImage> generateIntoFileMap(@NotNull AndroidProjectPaths paths) {
+  public final Map<File, BufferedImage> generateIntoFileMap(@NotNull AndroidModuleTemplate paths) {
     if (myName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
@@ -140,13 +140,13 @@ public abstract class AndroidIconGenerator {
 
   /**
    * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
-   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidProjectPaths)} is called.
+   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
    *
    * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  public final Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidProjectPaths paths) {
+  public final Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths) {
     if (myName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
@@ -175,7 +175,7 @@ public abstract class AndroidIconGenerator {
    *
    * This method must be called from within a WriteAction.
    */
-  public final void generateImageIconsIntoPath(@NotNull AndroidProjectPaths paths) {
+  public final void generateImageIconsIntoPath(@NotNull AndroidModuleTemplate paths) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(paths);
 

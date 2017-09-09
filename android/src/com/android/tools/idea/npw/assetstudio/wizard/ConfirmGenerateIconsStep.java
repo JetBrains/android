@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
@@ -71,24 +71,24 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   private JComboBox myPathsComboBox;
   private Tree myOutputPreviewTree;
 
-  private ObservableValue<AndroidSourceSet> mySelectedSourceSet;
+  private ObservableValue<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<AndroidSourceSet> sourceSets) {
+  public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    DefaultComboBoxModel sourceSetsModel = new DefaultComboBoxModel();
-    for (AndroidSourceSet sourceSet : sourceSets) {
-      sourceSetsModel.addElement(sourceSet);
+    DefaultComboBoxModel moduleTemplatesModel = new DefaultComboBoxModel();
+    for (NamedModuleTemplate template : templates) {
+      moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<AndroidSourceSet>() {
+    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
       @Override
-      public void customize(JList list, AndroidSourceSet sourceSet, int index, boolean selected, boolean hasFocus) {
-        setText(sourceSet.getName());
+      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
+        setText(template.getName());
       }
     });
-    myPathsComboBox.setModel(sourceSetsModel);
+    myPathsComboBox.setModel(moduleTemplatesModel);
 
     myOutputPreviewTree.setModel(EMPTY_MODEL);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
@@ -111,7 +111,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedSourceSet = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedTemplate = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
   }
 
   @NotNull
@@ -122,20 +122,20 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedSourceSet.get().getPaths());
+    getModel().setPaths(mySelectedTemplate.get().getPaths());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedSourceSet); // Just in case we're entering this step a second time
-    myListeners.receiveAndFire(mySelectedSourceSet, sourceSet -> {
+    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
+    myListeners.receiveAndFire(mySelectedTemplate, template -> {
       AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = sourceSet.getPaths().getResDirectory();
+      File resDir = template.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
 
-      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(sourceSet.getPaths());
+      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
       int minHeight = Integer.MAX_VALUE;

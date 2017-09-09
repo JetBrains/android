@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
@@ -78,7 +78,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private final JBLabel myPreviewIcon;
 
   private JPanel myRootPanel;
-  private JComboBox<AndroidSourceSet> myPathsComboBox;
+  private JComboBox<NamedModuleTemplate> myPathsComboBox;
   private Tree myOutputPreviewTree;
   private CheckeredBackgroundPanel myPreviewPanel;
   private JTextField mySizeDpTextField;
@@ -111,24 +111,24 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private EditorFactory myEditorFactory;
   private Document myXmlPreviewDocument;
 
-  private ObservableValue<AndroidSourceSet> mySelectedSourceSet;
+  private ObservableValue<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<AndroidSourceSet> sourceSets) {
+  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    DefaultComboBoxModel<AndroidSourceSet> sourceSetsModel = new DefaultComboBoxModel<>();
-    for (AndroidSourceSet sourceSet : sourceSets) {
-      sourceSetsModel.addElement(sourceSet);
+    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
+    for (NamedModuleTemplate template : templates) {
+      moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<AndroidSourceSet>() {
+    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
       @Override
-      public void customize(JList list, AndroidSourceSet sourceSet, int index, boolean selected, boolean hasFocus) {
-        setText(sourceSet.getName());
+      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
+        setText(template.getName());
       }
     });
-    myPathsComboBox.setModel(sourceSetsModel);
+    myPathsComboBox.setModel(moduleTemplatesModel);
 
     myOutputPreviewTree.setModel(EMPTY_MODEL);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
@@ -251,7 +251,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedSourceSet = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedTemplate = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
   }
 
   @NotNull
@@ -262,21 +262,21 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedSourceSet.get().getPaths());
+    getModel().setPaths(mySelectedTemplate.get().getPaths());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedSourceSet); // Just in case we're entering this step a second time
-    myListeners.receiveAndFire(mySelectedSourceSet, (AndroidSourceSet sourceSet) -> {
+    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
+    myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
       AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = sourceSet.getPaths().getResDirectory();
+      File resDir = template.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
 
       myNodeToPreviewImage.clear();
-      final Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(sourceSet.getPaths());
+      final Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
       // Create a FileTreeModel containing all generated files

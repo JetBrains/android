@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public final class GenerateImageIconsModel extends GenerateIconsModel {
   }
 
   @Override
-  protected void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator) {
+  protected void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull AndroidIconGenerator iconGenerator) {
     iconGenerator.generateImageIconsIntoPath(paths);
   }
 }

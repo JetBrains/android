@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.java;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
@@ -86,7 +86,7 @@ public final class NewJavaModuleModel extends WizardModel {
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot).getPaths(), packageName().get())
+      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
       .setJavaVersion(myProject);
 
     myTemplateValues.put(TemplateMetadata.ATTR_CLASS_NAME, className().get());

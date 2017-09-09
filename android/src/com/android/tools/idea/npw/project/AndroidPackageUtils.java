@@ -16,13 +16,9 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.project.BuildSystemServiceUtil;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -58,11 +54,11 @@ public final class AndroidPackageUtils {
    */
   @NotNull
   public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
-                                         @NotNull List<AndroidSourceSet> sourceSets,
+                                         @NotNull List<NamedModuleTemplate> moduleTemplates,
                                          @NotNull VirtualFile targetDirectory) {
-    if (!sourceSets.isEmpty()) {
+    if (!moduleTemplates.isEmpty()) {
       Module module = androidFacet.getModule();
-      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory(null);
+      File srcDirectory = moduleTemplates.get(0).getPaths().getSrcDirectory(null);
       if (srcDirectory != null) {
         // We generate a package name relative to the source root, but if the target path is not under the source root, we should just
         // fall back to the default application package.
@@ -82,11 +78,11 @@ public final class AndroidPackageUtils {
   }
 
   /**
-   * Convenience method to get {@link AndroidSourceSet}s from the current project.
+   * Convenience method to get {@link NamedModuleTemplate}s from the current project.
    */
   @NotNull
-  public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
+  public static List<NamedModuleTemplate> getModuleTemplates(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
     Module module = facet.getModule();
-    return ProjectSystemUtil.getProjectSystem(module.getProject()).getSourceSets(module, targetDirectory);
+    return ProjectSystemUtil.getProjectSystem(module.getProject()).getModuleTemplates(module, targetDirectory);
   }
 }

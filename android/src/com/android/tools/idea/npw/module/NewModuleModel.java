@@ -183,7 +183,7 @@ public final class NewModuleModel extends WizardModel {
     Map<String, Object> renderTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(renderTemplateValues)
       .setBuildVersion(renderModel.androidSdkInfo().getValue(), project)
-      .setModuleRoots(renderModel.getSourceSet().get().getPaths(), packageName().get());
+      .setModuleRoots(renderModel.getTemplate().get().getPaths(), packageName().get());
 
     getRenderTemplateValues().setValue(renderTemplateValues);
   }

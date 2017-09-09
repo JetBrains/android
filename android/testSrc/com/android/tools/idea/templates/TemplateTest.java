@@ -24,7 +24,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.lint.LintIdeClient;
@@ -1429,7 +1429,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
         if (moduleState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
-          assetGenerator.generateImageIconsIntoPath(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot).getPaths());
+          assetGenerator.generateImageIconsIntoPath(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
         }
         projectState.updateParameters();
 

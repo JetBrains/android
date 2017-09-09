@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
-import com.android.tools.idea.projectsystem.AndroidSourceSet;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -38,32 +38,32 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
-    AndroidProjectPaths androidProjectPaths = Mockito.mock(AndroidProjectPaths.class);
-    Mockito.when(androidProjectPaths.getSrcDirectory(null)).thenReturn(javaSrcDir);
+    AndroidModuleTemplate AndroidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);
+    Mockito.when(AndroidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
-    AndroidSourceSet sourceSet = new AndroidSourceSet("main", androidProjectPaths);
+    NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", AndroidModuleTemplate);
     String defaultPackage = getModel().getApplicationId();
 
     // Anything inside the Java src directory should return the "local package"
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src/main/java/com/example/projectwithappandlib/app"));
-    assertEquals("com.example.projectwithappandlib", getPackageForPath(sourceSet, "app/src/main/java/com/example/projectwithappandlib"));
-    assertEquals("com.example", getPackageForPath(sourceSet, "app/src/main/java/com/example"));
-    assertEquals("com", getPackageForPath(sourceSet, "app/src/main/java/com"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/java/com/example/projectwithappandlib/app"));
+    assertEquals("com.example.projectwithappandlib", getPackageForPath(moduleTemplate, "app/src/main/java/com/example/projectwithappandlib"));
+    assertEquals("com.example", getPackageForPath(moduleTemplate, "app/src/main/java/com/example"));
+    assertEquals("com", getPackageForPath(moduleTemplate, "app/src/main/java/com"));
 
     // Anything outside the Java src directory should return the default package
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src/main/java"));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src/main"));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src"));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app"));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, ""));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src/main/res"));
-    assertEquals(defaultPackage, getPackageForPath(sourceSet, "app/src/main/res/layout"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/java"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, ""));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/res"));
+    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/res/layout"));
   }
 
-  private String getPackageForPath(AndroidSourceSet androidSourceSet, String targetDirPath) {
+  private String getPackageForPath(NamedModuleTemplate NamedModuleTemplate, String targetDirPath) {
     LocalFileSystem fs = LocalFileSystem.getInstance();
     VirtualFile targetDirectory = fs.refreshAndFindFileByPath(getProject().getBasePath()).findFileByRelativePath(targetDirPath);
 
-    return AndroidPackageUtils.getPackageForPath(myAndroidFacet, Lists.newArrayList(androidSourceSet), targetDirectory);
+    return AndroidPackageUtils.getPackageForPath(myAndroidFacet, Lists.newArrayList(NamedModuleTemplate), targetDirectory);
   }
 }

@@ -21,7 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
-import com.android.tools.idea.projectsystem.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
@@ -523,7 +523,7 @@ public final class Parameter {
   }
 
   /**
-   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidModuleTemplate, ResourceFolderType, String)}
    * TODO: After Wizard migration, delete this
    */
   public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider, @Nullable Module module,
@@ -551,7 +551,7 @@ public final class Parameter {
   }
 
   /**
-   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidModuleTemplate, ResourceFolderType, String)}
    * TODO: After Wizard migration, delete this
    */
   public static boolean existsResourceFile(File resDir, ResourceFolderType resourceType, String name) {
