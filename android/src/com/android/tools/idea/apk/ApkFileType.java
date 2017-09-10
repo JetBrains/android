@@ -49,7 +49,7 @@ public class ApkFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.ProjectStructure.UnknownLibrary;
+    return AndroidIcons.AndroidFile;
   }
 
   @Override
