@@ -26,5 +26,7 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/ninepatch:studio.ninepatch[module]",
         "//tools/base/sdklib:studio.sdklib[module]",
+        "//tools/base/flags:studio.flags[module]",
+        "//tools/idea/platform/projectModel-api[module]",
     ],
 )
