@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -31,8 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
 
 /**
  * Main entry for the Scout Inference engine.
@@ -270,19 +263,7 @@ public class Scout {
     if (list.isEmpty()) {
       return;
     }
-    NlModel nlModel = list.get(0).getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
 
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        for (NlComponent component : list) {
-          AttributesTransaction transaction = component.startAttributeTransaction();
-          transaction.commit();
-        }
-      }
-    };
-    action.execute();
+    NlWriteCommandAction.run(list, label, () -> list.forEach(component -> component.startAttributeTransaction().commit()));
   }
 }

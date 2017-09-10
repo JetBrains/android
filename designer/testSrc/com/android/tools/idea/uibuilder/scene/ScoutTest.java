@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;
@@ -55,13 +55,13 @@ public class ScoutTest extends SceneTest {
     Scout.inferConstraintsAndCommit (myModel.getComponents());
     myScreen.get("@+id/textview")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
+                 "        android:id=\"@+id/textview\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +

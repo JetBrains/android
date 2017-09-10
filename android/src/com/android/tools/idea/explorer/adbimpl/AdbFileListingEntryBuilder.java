@@ -26,7 +26,7 @@ public class AdbFileListingEntryBuilder {
   @Nullable private String myGroup;
   @Nullable private String myDate;
   @Nullable private String myTime;
-  @Nullable private long mySize;
+  private long mySize;
   @Nullable private String myExtraInfo;
 
   public AdbFileListingEntryBuilder() {
@@ -89,7 +89,7 @@ public class AdbFileListingEntryBuilder {
     return this;
   }
 
-  public AdbFileListingEntryBuilder setSize(@Nullable long size) {
+  public AdbFileListingEntryBuilder setSize(long size) {
     mySize = size;
     return this;
   }

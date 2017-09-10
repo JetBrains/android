@@ -302,6 +302,27 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
+  /**
+   * Same as {@link #dispose()} but waits for background threads to terminate
+   * before returning to the caller. This is useful to prevent thread leaks
+   * when running tests.
+   */
+  @TestOnly
+  public void shutdown() {
+    dispose();
+    synchronized (myLock) {
+      myExecutors.values().forEach(executor -> {
+        try {
+          executor.shutdownNow();
+          executor.awaitTermination(5_000, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e) {
+          getLog().info("Error shutting down executor", e);
+        }
+      });
+    }
+  }
+
   private static void executeCommandOnDevice(@NotNull IDevice device,
                                              @NotNull String command,
                                              @NotNull AndroidOutputReceiver receiver,

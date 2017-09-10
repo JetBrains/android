@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class TestDevices {
-  @NotNull public static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
+  @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
   @NotNull public static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
 
   /**
@@ -242,6 +242,21 @@ public class TestDevices {
     commands.add("ls -l -d /sdcard/", "drwxrwx--x root     sdcard_rw          2014-02-10 17:16\r\n");
     commands.add("ls -l -d /tombstones/", "/tombstones/: Permission denied\r\n");
     commands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
+
+    addCommand(commands, "ls -l /system/", "drwxr-xr-x root     root              2016-05-17 12:04 app\n\n" +
+                                           "drwxr-xr-x root     shell             2016-08-26 12:00 bin\n\n" +
+                                           "-rw-r--r-- root     root         3870 2016-08-26 12:02 build.prop\n\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:00 etc\n\n" +
+                                           "drwxr-xr-x root     root              2016-05-27 13:49 fonts\n\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:02 framework\n\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:00 lib\n\n" +
+                                           "drwxr-xr-x root     root              1969-12-31 16:00 lost+found\n\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:01 media\n\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:04 priv-app\n\n" +
+                                           "-rw-r--r-- root     root       103290 2008-08-01 05:00 recovery-from-boot.p\n\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:04 usr\n\n" +
+                                           "drwxr-xr-x root     shell             2013-06-15 12:54 vendor\n\n" +
+                                           "drwxr-xr-x root     shell             2016-08-24 15:40 xbin\n\n");
 
     addFailedCommand(commands, "test -e /foo.txt");
 
@@ -579,6 +594,34 @@ public class TestDevices {
     shellCommands.add("su 0 sh -c 'ls -l -d /tombstones/'", "ls: /tombstones/: No such file or directory\n");
     shellCommands.add("su 0 sh -c 'ls -l -d /system/'", "drwxr-xr-x 16 root root 4096 1969-12-31 16:00 /system/\n");
     shellCommands.add("su 0 sh -c 'ls -l -d /vendor/'", "drwxr-xr-x 3 root shell 4096 2016-11-14 14:01 /vendor/\n");
+    addCommand(shellCommands, "touch /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
+    addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
+    addFailedCommand(shellCommands, "touch /system/build.prop", "touch: '/system/build.prop': Read-only file system\n");
+    addCommand(shellCommands, "su 0 sh -c 'touch /data/local/tmp/temp0'", "");
+    addCommand(shellCommands, "cp /data/local/tmp/device-explorer/.__temp_cp_test_file__.tmp /data/local/tmp/device-explorer/.__temp_cp_test_file_dst__.tmp", "");
+    addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_cp_test_file__.tmp", "");
+    addCommand(shellCommands, "rm /data/local/tmp/device-explorer/.__temp_cp_test_file_dst__.tmp", "");
+    addFailedCommand(shellCommands, "su 0 sh -c 'cp /data/local/tmp/temp0 /system/build.prop'", "cp: /system/build.prop: Read-only file system\n");
+    addCommand(shellCommands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
+    addCommand(shellCommands, "su 0 sh -c 'rm -f /data/local/tmp/temp0'", "");
+    addCommand(shellCommands, "su 0 sh -c 'ls -l /system/'",
+               "total 144\n" +
+               "drwxr-xr-x 47 root root  4096 2017-02-22 09:10 app\n" +
+               "drwxr-xr-x  2 root shell 8192 2017-02-22 09:06 bin\n" +
+               "-rw-r--r--  1 root root  2006 2017-02-22 09:07 build.prop\n" +
+               "drwxr-xr-x  8 root root  4096 2017-02-22 09:11 etc\n" +
+               "drwxr-xr-x  2 root root  4096 2017-02-22 09:06 fake-libs\n" +
+               "drwxr-xr-x  2 root root  8192 2017-02-22 09:06 fonts\n" +
+               "drwxr-xr-x  4 root root  4096 2017-02-22 09:10 framework\n" +
+               "drwxr-xr-x  5 root root  8192 2017-02-22 09:09 lib\n" +
+               "drwx------  2 root root  4096 1969-12-31 16:00 lost+found\n" +
+               "drwxr-xr-x  3 root root  4096 2017-02-22 09:07 media\n" +
+               "drwxr-xr-x 40 root root  4096 2017-02-22 09:11 priv-app\n" +
+               "drwxr-xr-x  3 root root  4096 2017-02-22 09:07 tts\n" +
+               "drwxr-xr-x  7 root root  4096 2017-02-22 09:07 usr\n" +
+               "drwxr-xr-x  3 root shell 4096 2017-02-22 09:07 vendor\n" +
+               "drwxr-xr-x  2 root shell 4096 2017-02-22 09:07 xbin\n");
+    addCommand(shellCommands, "su 0 sh -c 'cp /system/build.prop /data/local/tmp/temp0'", "");
   }
 
   private static void addCommand(@NotNull TestShellCommands commands, @NotNull String command, @NotNull String result) {

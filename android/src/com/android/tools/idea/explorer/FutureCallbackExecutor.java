@@ -62,8 +62,8 @@ public class FutureCallbackExecutor implements Executor {
       try {
         futureResult.set(function.call());
       }
-      catch (Exception e) {
-        futureResult.setException(e);
+      catch (Throwable t) {
+        futureResult.setException(t);
       }
     });
     return futureResult;
@@ -161,13 +161,13 @@ public class FutureCallbackExecutor implements Executor {
   public <I> ListenableFuture<I> finallyAsync(@NotNull ListenableFuture<I> input,
                                               @NotNull Callable<ListenableFuture<Void>> finallyBlock) {
     SettableFuture<I> futureResult = SettableFuture.create();
-    addConsumer(input, (i, throwable) -> {
+    addConsumer(input, (i, futureThrowable) -> {
       try {
         ListenableFuture<Void> futureFinallyBlock = finallyBlock.call();
         addConsumer(futureFinallyBlock, (aVoid, finallyError) -> {
           // Prefer original error over error from finally block
-          if (throwable != null) {
-            futureResult.setException(throwable);
+          if (futureThrowable != null) {
+            futureResult.setException(futureThrowable);
           }
           else if (finallyError != null){
             futureResult.setException(finallyError);
@@ -177,13 +177,13 @@ public class FutureCallbackExecutor implements Executor {
           }
         });
       }
-      catch (Exception e) {
+      catch (Throwable t) {
         // Prefer original error over error from finally block
-        if (throwable != null) {
-          futureResult.setException(throwable);
+        if (futureThrowable != null) {
+          futureResult.setException(futureThrowable);
         }
         else {
-          futureResult.setException(e);
+          futureResult.setException(t);
         }
       }
     });

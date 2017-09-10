@@ -78,10 +78,9 @@ public class ScoutArrangeTest5 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.ConnectStart, list, true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"/>");
-
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\" />");
 
     buildScene();
   }
