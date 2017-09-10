@@ -18,7 +18,13 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.logcat.AndroidLogcatFormatter;
+import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
+import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -30,15 +36,18 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 
@@ -60,7 +69,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
   @NotNull
   protected RunContentDescriptor getDescriptor(@NotNull LaunchInfo currentLaunchInfo,
-                                            @NotNull ProcessHandlerLaunchStatus launchStatus) {
+                                               @NotNull ProcessHandlerLaunchStatus launchStatus) {
     RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
 
     // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
@@ -73,7 +82,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
   @NotNull
   protected ProcessHandler getOldProcessHandler(@NotNull LaunchInfo currentLaunchInfo,
-                                             @NotNull ProcessHandlerLaunchStatus launchStatus) {
+                                                @NotNull ProcessHandlerLaunchStatus launchStatus) {
     ProcessHandler processHandler = getDescriptor(currentLaunchInfo, launchStatus).getProcessHandler();
     assert processHandler != null;
     return processHandler;
@@ -146,6 +155,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     final String pkgName = client.getClientData().getClientDescription();
     final IDevice device = client.getDevice();
 
+    captureLogcatOutput(client, debugProcessHandler);
+
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       private int myTerminationCount = 0;
@@ -192,12 +203,58 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
           catch (Exception e) {
             // don't care..
           }
-        } else {
+        }
+        else {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger detaching, leaving process alive: " + pkgName);
         }
       }
     });
 
     return debugProcessHandler;
+  }
+
+  private static void captureLogcatOutput(@NotNull Client client,
+                                          @NotNull ProcessHandler debugProcessHandler) {
+    if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
+      return;
+    }
+    if (!LogcatOutputSettings.getInstance().isDebugOutputEnabled()) {
+      return;
+    }
+
+    final IDevice device = client.getDevice();
+    final String pkgName = client.getClientData().getClientDescription();
+
+    Logger.getInstance(ConnectJavaDebuggerTask.class).info(String.format("captureLogcatOutput(\"%s\")", device.getName()));
+
+    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
+      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+      private final AtomicBoolean myIsFirstMessage = new AtomicBoolean(true);
+
+      @NotNull
+      @Override
+      public String formatLogLine(@NotNull LogCatMessage line) {
+        return AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+      }
+
+      @Override
+      public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        if (myIsFirstMessage.compareAndSet(true, false)) {
+          debugProcessHandler.notifyTextAvailable(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n", ProcessOutputTypes.STDOUT);
+        }
+        debugProcessHandler.notifyTextAvailable(message, key);
+      }
+    };
+    AndroidLogcatService.getInstance().addListener(device, logListener, true);
+
+    // Remove listener when process is terminated
+    debugProcessHandler.addProcessListener(new ProcessAdapter() {
+      @Override
+      public void processTerminated(ProcessEvent event) {
+        Logger.getInstance(ConnectJavaDebuggerTask.class)
+          .info(String.format("captureLogcatOutput(\"%s\"): remove listener", device.getName()));
+        AndroidLogcatService.getInstance().removeListener(device, logListener);
+      }
+    });
   }
 }

@@ -67,11 +67,11 @@ public class ScoutArrangeConnectTest extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.ConnectTop, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"525dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginTop=\"525dp\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
 
   public void testConnectBottom() {
@@ -86,11 +86,11 @@ public class ScoutArrangeConnectTest extends SceneTest {
 
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      android:layout_marginBottom=\"460dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginBottom=\"460dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\" />");
   }
 
   public void testConnectStart() {
@@ -104,11 +104,11 @@ public class ScoutArrangeConnectTest extends SceneTest {
 
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginStart=\"200dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginStart=\"200dp\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />");
   }
 
   public void testConnectEnd() {
@@ -122,11 +122,11 @@ public class ScoutArrangeConnectTest extends SceneTest {
 
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintEnd_toStartOf=\"@+id/textview3\"\n" +
-                 "      android:layout_marginEnd=\"75dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginEnd=\"75dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\" />");
   }
 
   public void testConnectEndGap() {
@@ -139,9 +139,9 @@ public class ScoutArrangeConnectTest extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, list, true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintEnd_toStartOf=\"@+id/textview3\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\" />");
   }
 }

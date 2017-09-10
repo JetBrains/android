@@ -68,15 +68,15 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "      tools:layout_editor_absoluteY=\"494dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
+                 "        tools:layout_editor_absoluteY=\"494dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -117,14 +117,14 @@ public class ScoutArrangeTest2 extends SceneTest {
    Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"525dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"@+id/textview1\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -162,15 +162,15 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "      tools:layout_editor_absoluteY=\"525dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -208,15 +208,15 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"191dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"191dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -256,15 +256,15 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"525dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -302,15 +302,15 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "      tools:layout_editor_absoluteY=\"525dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintHorizontal_bias=\"0.5\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -347,10 +347,10 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.HorizontalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"50dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"50dp\" />");
   }
 
   public void testVerticalPack() {
@@ -363,10 +363,10 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.VerticalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"375dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"375dp\" />");
   }
   public void testExpandHorizontally() {
     myScreen.get("@+id/textview2")
@@ -378,10 +378,10 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"984dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"8dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"984dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"8dp\" />");
   }
 
   public void testExpandVertically() {
@@ -394,10 +394,10 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"984dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"8dp\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"984dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"8dp\" />");
   }
 
   public void testDistributeVertically() {
@@ -410,25 +410,25 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.DistributeVertically, list,true);
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview1\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"40dp\"/>"   );
+                 "        android:id=\"@+id/textview1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"40dp\" />");
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"477dp\"\n" +
-                 "      android:layout_marginTop=\"82dp\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/textview1\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginTop=\"82dp\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/textview1\"\n" +
+                 "        tools:layout_editor_absoluteY=\"477dp\" />");
     myScreen.get("@+id/textview3")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview3\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"50dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"575dp\"\n" +
-                 "      android:layout_marginTop=\"83dp\"\n" +
-                 "      app:layout_constraintTop_toBottomOf=\"@+id/textview2\" />");
+                 "        android:id=\"@+id/textview3\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"50dp\"\n" +
+                 "        android:layout_marginTop=\"83dp\"\n" +
+                 "        app:layout_constraintTop_toBottomOf=\"@+id/textview2\"\n" +
+                 "        tools:layout_editor_absoluteY=\"575dp\" />");
   }
 
   public void testDistributeHorizontally() {
@@ -441,11 +441,11 @@ public class ScoutArrangeTest2 extends SceneTest {
     Scout.arrangeWidgets(Scout.Arrange.DistributeHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@+id/textview2\"\n" +
-                 "    android:layout_width=\"200dp\"\n" +
-                 "    android:layout_height=\"30dp\"\n" +
-                 "      tools:layout_editor_absoluteX=\"187dp\"\n" +
-                 "      android:layout_marginStart=\"37dp\"\n" +
-                 "      app:layout_constraintStart_toEndOf=\"@+id/textview1\" />");
+                 "        android:id=\"@+id/textview2\"\n" +
+                 "        android:layout_width=\"200dp\"\n" +
+                 "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginStart=\"37dp\"\n" +
+                 "        app:layout_constraintStart_toEndOf=\"@+id/textview1\"\n" +
+                 "        tools:layout_editor_absoluteX=\"187dp\" />");
   }
 }

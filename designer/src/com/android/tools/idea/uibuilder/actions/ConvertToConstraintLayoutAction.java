@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -271,33 +272,26 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         myScreenView.getModel().addListener(new ModelListener() {
           @Override
           public void modelRendered(@NotNull NlModel model) {
-            final ModelListener listner = this;
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
+            assert id != null;
+            NlComponent layout = myScreenView.getModel().find(id);
 
-                WriteCommandAction<Void> action =
-                  new WriteCommandAction<Void>(myLayout.getModel().getProject(), "Infer Constraints", myLayout.getModel().getFile()) {
-                    @Override
-                    protected void run(Result<Void> result) throws Throwable {
-                      NlComponent layout = myScreenView.getModel().find(id);
-                      if (layout != null) {
-                        Map<NlComponent, Dimension> sizes = myEditor.measureChildren(layout, null);
+            Runnable action = new NlWriteCommandAction(Collections.singletonList(layout), "Infer Constraints", () -> {
+              if (layout != null) {
+                Map<NlComponent, Dimension> sizes = myEditor.measureChildren(layout, null);
+                assert sizes != null;
 
-                        for (NlComponent component : sizes.keySet()) {
-                          Dimension d = sizes.get(component);
-                          component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
-                          component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
-                        }
+                for (NlComponent component : sizes.keySet()) {
+                  Dimension d = sizes.get(component);
+                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
+                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
+                }
 
-                        inferConstraints(layout);
-                        myScreenView.getModel().removeListener(listner);
-                      }
-                    }
-                  };
-                action.execute();
+                inferConstraints(layout);
+                myScreenView.getModel().removeListener(this);
               }
             });
+
+            ApplicationManager.getApplication().invokeLater(action);
           }
 
           @Override

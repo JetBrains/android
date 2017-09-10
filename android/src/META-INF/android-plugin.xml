@@ -634,6 +634,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDuplicateDivider" displayName="Unnecessary Divider Copy" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintDuplicateDividerInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDuplicateIds" displayName="Duplicate ids within a single layout" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintDuplicateIdsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDuplicateIncludedIds" displayName="Duplicate ids across layouts combined with include tags" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintDuplicateIncludedIdsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintDuplicatePlatformClasses" displayName="Duplicate Platform Classes" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintDuplicatePlatformClassesInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDuplicateUsesFeature" displayName="Feature declared more than once" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintDuplicateUsesFeatureInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintEasterEgg" displayName="Code contains easter egg" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintEasterEggInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintEllipsizeMaxLines" displayName="Combining Ellipsize and Maxlines" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintEllipsizeMaxLinesInspection"/>
@@ -921,7 +922,7 @@
     <facet.toolWindow id="Logcat"
                       facetIdList="android"
                       anchor="bottom"
-                      icon="AndroidIcons.Ddms.Logcat"
+                      icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
                       factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
@@ -1105,6 +1106,9 @@
 
     <xdebugger.configurableProvider implementation="com.android.tools.idea.ddms.adb.AdbConfigurableProvider" />
     <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbOptionsService" />
+
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider" />
+    <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>

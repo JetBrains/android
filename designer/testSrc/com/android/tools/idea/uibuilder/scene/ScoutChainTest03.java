@@ -99,47 +99,47 @@ public class ScoutChainTest03 extends SceneTest {
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:id=\"@+id/content_main\"\n" +
-                 "  android:layout_width=\"360dp\"\n" +
-                 "  android:layout_height=\"512dp\">\n" +
+                 "    android:layout_width=\"360dp\"\n" +
+                 "    android:layout_height=\"512dp\">\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/a\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"106dp\"\n" +
-                 "      android:layout_marginStart=\"16dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"@+id/b\"\n" +
-                 "      android:layout_marginBottom=\"106dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/a\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginBottom=\"106dp\"\n" +
+                 "        android:layout_marginStart=\"16dp\"\n" +
+                 "        android:layout_marginTop=\"106dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"@+id/b\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/b\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"212dp\"\n" +
-                 "      android:layout_marginStart=\"16dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"@+id/c\"\n" +
-                 "      android:layout_marginBottom=\"211dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/b\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginBottom=\"211dp\"\n" +
+                 "        android:layout_marginStart=\"16dp\"\n" +
+                 "        android:layout_marginTop=\"212dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"@+id/c\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/c\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginStart=\"16dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      android:layout_marginBottom=\"72dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/c\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginBottom=\"72dp\"\n" +
+                 "        android:layout_marginStart=\"16dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />\n" +
                  "\n" +
-                 "  <TextView\n" +
-                 "    android:id=\"@+id/d\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      android:layout_marginStart=\"16dp\" />\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/d\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginStart=\"16dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }

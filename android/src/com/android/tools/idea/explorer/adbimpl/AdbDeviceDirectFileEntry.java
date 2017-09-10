@@ -145,7 +145,8 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
   }
 
   private static boolean isSyncPermissionError(@NotNull SyncException pullError) {
-    return pullError.getErrorCode() == SyncException.SyncError.NO_REMOTE_OBJECT;
+    return pullError.getErrorCode() == SyncException.SyncError.NO_REMOTE_OBJECT ||
+           pullError.getErrorCode() == SyncException.SyncError.TRANSFER_PROTOCOL_ERROR;
   }
 
   private boolean isDeviceSuAndNotRoot()

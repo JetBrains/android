@@ -611,6 +611,16 @@ public class DrawConnection implements DrawCommand {
                           endx + dx, endy + dy);
         }
         else {
+          int xgap = startx - endx;
+          int ygap = starty - endy;
+          if ((startx - endx) == 0 && dirDeltaX[sourceDirection] == 0) {
+            scale_source = 0;
+            scale_dest = 0;
+          }
+          else if ((starty - endy) == 0 && dirDeltaY[sourceDirection] == 0) {
+            scale_dest = 0;
+            scale_source = 0;
+          }
           ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
                           endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
                           endx + dx, endy + dy);

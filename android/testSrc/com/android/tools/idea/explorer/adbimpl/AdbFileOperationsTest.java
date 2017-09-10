@@ -39,8 +39,6 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(Parameterized.class)
 public class AdbFileOperationsTest {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
-  @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
-  @NotNull private static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
 
   @NotNull private Consumer<TestShellCommands> mySetupCommands;
 

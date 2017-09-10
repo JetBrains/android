@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -74,9 +73,6 @@ public class ConvertToConstraintLayoutTest {
     layout.waitForRenderToFinish();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     waitForScout();
-
-    editor.invokeAction(EditorAction.SELECT_ALL);
-    guiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
 
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -193,9 +189,6 @@ public class ConvertToConstraintLayoutTest {
     layout.waitForRenderToFinish();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     waitForScout();
-
-    editor.invokeAction(EditorAction.SELECT_ALL);
-    guiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
 
     @Language("XML")
     @SuppressWarnings("XmlUnusedNamespaceDeclaration")

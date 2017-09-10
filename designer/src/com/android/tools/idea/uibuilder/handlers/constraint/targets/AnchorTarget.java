@@ -49,10 +49,26 @@ public class AnchorTarget extends BaseTarget {
   private AnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
   private boolean myThisIsTheTarget;
   private boolean myInDrag = false;
+  private boolean myRenderingTemporaryConnection = false;
 
   // Type of possible anchors
   public enum Type {
-    LEFT, TOP, RIGHT, BOTTOM, BASELINE
+    LEFT, TOP, RIGHT, BOTTOM, BASELINE;
+    public int getMask() {
+      switch (this){
+        case LEFT:
+          return DecoratorUtilities.MASK_LEFT;
+        case TOP:
+          return DecoratorUtilities.MASK_TOP;
+        case RIGHT:
+          return DecoratorUtilities.MASK_RIGHT;
+        case BOTTOM:
+          return DecoratorUtilities.MASK_BOTTOM;
+        case BASELINE:
+          return DecoratorUtilities.MASK_BASELINE;
+      }
+      return 0;
+    }
   }
 
   protected static final int ourSize = 3;
@@ -333,48 +349,65 @@ public class AnchorTarget extends BaseTarget {
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
-    int mode = mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL;
+
+    int mode = DrawAnchor.NORMAL;
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
-    if (state != null) {
-      switch (myType) {
 
-        case LEFT:
-          if ((state & DecoratorUtilities.MASK_LEFT) != 0) {
-            mode = DrawAnchor.CAN_CONNECT;
-          }
-          break;
-        case TOP:
-          if ((state & DecoratorUtilities.MASK_TOP) != 0) {
-            mode = DrawAnchor.CAN_CONNECT;
-          }
-          break;
-         case RIGHT:
-           if ((state & DecoratorUtilities.MASK_RIGHT) != 0) {
-             mode = DrawAnchor.CAN_CONNECT;
-           }
-           break;
-         case BOTTOM:
-           if ((state & DecoratorUtilities.MASK_BOTTOM) != 0) {
-             mode = DrawAnchor.CAN_CONNECT;
-           }
-           break;
-         case BASELINE:
-           if ((state & DecoratorUtilities.MASK_BASELINE) != 0) {
-             mode = DrawAnchor.CAN_CONNECT;
-           }
-           break;
-       }
-     }
-    DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
-                   myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected() && !myThisIsTheTarget,
-                   mode );
+    boolean can_connect = (state != null && (state & myType.getMask()) != 0)? true : false;
+    boolean is_connected = isConnected();
+    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (myThisIsTheTarget?8:0) | (myComponent.isSelected()?16:0);
 
-    if (myLastX != -1 && myLastY != -1) {
-      if ((myConnectedX == -1 && myConnectedY == -1)
-          || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
-        float x = myLeft + (myRight - myLeft) / 2;
-        float y = myTop + (myBottom - myTop) / 2;
-        list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
+    int []modeTable = {
+      DrawAnchor.DO_NOT_DRAW, //
+      DrawAnchor.CAN_CONNECT, // can_connect
+      DrawAnchor.OVER,        // mIsOver
+      DrawAnchor.CAN_CONNECT, // can_connect & mIsOver
+      DrawAnchor.NORMAL,      // is_connected
+      DrawAnchor.CAN_CONNECT, // is_connected & can_connect
+      DrawAnchor.OVER,        // is_connected & mIsOver
+      DrawAnchor.CAN_CONNECT, // is_connected & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // myThisIsTheTarget
+      DrawAnchor.NORMAL,      // myThisIsTheTarget & can_connect
+      DrawAnchor.DO_NOT_DRAW, // myThisIsTheTarget & mIsOver
+      DrawAnchor.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // myThisIsTheTarget & is_connected &
+      DrawAnchor.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
+      DrawAnchor.CANNOT_CONNECT, // myThisIsTheTarget & is_connected & mIsOver
+      DrawAnchor.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // isSelected
+      DrawAnchor.NORMAL,      // isSelected & can_connect
+      DrawAnchor.OVER,        // isSelected & mIsOver
+      DrawAnchor.CAN_CONNECT, // isSelected & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // isSelected & is_connected
+      DrawAnchor.NORMAL,      // isSelected & is_connected & can_connect
+      DrawAnchor.OVER,        // isSelected & is_connected & mIsOver
+      DrawAnchor.CAN_CONNECT, // isSelected & is_connected & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget
+      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & can_connect
+      DrawAnchor.CANNOT_CONNECT,   // isSelected & myThisIsTheTarget & mIsOver
+      DrawAnchor.CAN_CONNECT, // isSelected & myThisIsTheTarget & can_connect & mIsOver
+      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & is_connected &
+      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
+      DrawAnchor.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
+      DrawAnchor.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
+
+    };
+    mode = modeTable[drawState];
+
+    if (mode != DrawAnchor.DO_NOT_DRAW) {
+      DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
+                     myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, is_connected && !myThisIsTheTarget,
+                     mode);
+    }
+
+    if (!myRenderingTemporaryConnection) {
+      if (myLastX != -1 && myLastY != -1) {
+        if ((myConnectedX == -1 && myConnectedY == -1)
+            || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
+          float x = myLeft + (myRight - myLeft) / 2;
+          float y = myTop + (myBottom - myTop) / 2;
+          list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
+        }
       }
     }
   }
@@ -516,6 +549,7 @@ public class AnchorTarget extends BaseTarget {
     ConstraintComponentUtilities.cleanup(attributes, myComponent);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    myRenderingTemporaryConnection = true;
     return attributes;
   }
 
@@ -628,14 +662,32 @@ public class AnchorTarget extends BaseTarget {
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_START,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_END,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
+                                component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS));
       }
       break;
       case TOP: {
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
+                                component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS));
       }
       break;
       case BOTTOM: {
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
+                                component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS));
       }
       break;
       case BASELINE: {
@@ -694,6 +746,17 @@ public class AnchorTarget extends BaseTarget {
       if (attribute != null) {
         AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
+          if (myComponent.getParent() != targetAnchor.myComponent) {
+            Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
+            if (targetAnchor.myType == null || state == null) {
+              return;
+            }
+            int mask = state & targetAnchor.myType.getMask();
+            if (mask == 0) {
+              return;
+            }
+          }
+
           NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
           connectMe(component, attribute, targetComponent);
           return;
@@ -701,6 +764,7 @@ public class AnchorTarget extends BaseTarget {
       }
     }
     revertToPreviousState();
+    myRenderingTemporaryConnection = false;
   }
 
   /**
@@ -716,38 +780,54 @@ public class AnchorTarget extends BaseTarget {
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myLastX = -1;
     myLastY = -1;
-    if (myInDrag) {
-      myInDrag = false;
-      DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
-    }
-    if (myComponent.getParent() != null) {
-      myComponent.getParent().setExpandTargetArea(false);
-    }
-    Target closestTarget = null;
-    for (Target target : closestTargets) {
-      if (target instanceof AnchorTarget && target != this) {
-        closestTarget = target;
-        break;
+    try {
+      if (myComponent.getParent() != null) {
+        myComponent.getParent().setExpandTargetArea(false);
       }
-    }
-    if (closestTarget == null && closestTargets.contains(this)) {
-      closestTarget = this;
-    }
-    if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
-      NlComponent component = myComponent.getAuthoritativeNlComponent();
-      if (closestTarget == this) {
-        disconnectMe(component);
-      }
-      else {
-        String attribute = getAttribute(closestTarget);
-        if (attribute != null) {
-          AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
-          NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
-          AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
-
-          NlWriteCommandAction.run(component, "Constraint Connected", attributes::commit);
-          myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+      Target closestTarget = null;
+      for (Target target : closestTargets) {
+        if (target instanceof AnchorTarget && target != this) {
+          closestTarget = target;
+          break;
         }
+      }
+      if (closestTarget == null && closestTargets.contains(this)) {
+        closestTarget = this;
+      }
+      if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
+        NlComponent component = myComponent.getAuthoritativeNlComponent();
+        if (closestTarget == this) {
+          disconnectMe(component);
+        }
+        else {
+          String attribute = getAttribute(closestTarget);
+          if (attribute != null) {
+            AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
+            if (targetAnchor.myComponent == myComponent) {
+              return;
+            }
+            if (myComponent.getParent() != targetAnchor.myComponent) {
+              Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
+              if (targetAnchor.myType == null || state == null) {
+                return;
+              }
+              int mask = state & targetAnchor.myType.getMask();
+              if (mask == 0) {
+                return;
+              }
+            }
+            NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
+            AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
+
+            NlWriteCommandAction.run(component, "Constraint Connected", attributes::commit);
+            myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+          }
+        }
+      }
+    } finally {
+      if (myInDrag) {
+        myInDrag = false;
+        DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
       }
     }
   }
