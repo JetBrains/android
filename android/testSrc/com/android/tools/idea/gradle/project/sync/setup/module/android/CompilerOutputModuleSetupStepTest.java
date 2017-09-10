@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.intellij.testFramework.IdeaTestCase;
+
 /**
  * Tests for {@link CompilerOutputModuleSetupStep}.
  */
 public class CompilerOutputModuleSetupStepTest extends IdeaTestCase {
-
   // See bug http://b.android.com/233410
   public void testIsInvokedOnSkippedSync() {
     assertTrue(new CompilerOutputModuleSetupStep().invokeOnSkippedSync());
