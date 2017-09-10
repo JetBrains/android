@@ -20,5 +20,7 @@
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
     <orderEntry type="module" module-name="ninepatch" />
     <orderEntry type="module" module-name="sdklib" />
+    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="projectModel-api" />
   </component>
 </module>

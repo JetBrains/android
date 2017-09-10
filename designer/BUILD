@@ -97,7 +97,8 @@ iml_module(
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:Gradle[test]",
-        "//tools/base/flags:studio.flags[module]",
+        "//tools/base/flags:studio.flags[module, test]",
         "//tools/adt/idea/artwork[module, test]",
+        "//tools/adt/idea/android-common[module, test]",
     ],
 )
