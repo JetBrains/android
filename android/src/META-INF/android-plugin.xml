@@ -189,8 +189,8 @@
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.CleanImportProject" class="com.android.tools.idea.gradle.actions.CleanImportProjectAction" />
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
-      <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.adb.GetAdbAction" />
-      <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.adb.TerminateAdbAction" />
+      <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
+      <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
       <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
