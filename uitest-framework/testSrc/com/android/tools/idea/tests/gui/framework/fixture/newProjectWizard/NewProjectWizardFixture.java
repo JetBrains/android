@@ -70,7 +70,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle(StudioFlags.NPW_NEW_PROJECT.get() ? "Configure Activity" : "Customize the Activity");
+    JRootPane rootPane = findStepWithTitle("Configure Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 
