@@ -150,7 +150,9 @@ public class LinearDragTarget extends DragBaseTarget {
     return myDragHandled;
   }
 
+  @Override
   public void cancel() {
+    super.cancel();
     myHandler.setDragging(myComponent, false);
     if (myClosest != null) {
       myClosest.setHighlight(false);
