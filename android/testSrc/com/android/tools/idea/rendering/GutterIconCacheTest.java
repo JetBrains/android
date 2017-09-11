@@ -19,7 +19,7 @@ import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.nio.file.FileSystems;
@@ -70,14 +70,13 @@ public class GutterIconCacheTest extends AndroidTestCase {
     assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
   }
 
-  // FIXME: Disabled due to flakiness b/64485516
-  public void disabled_testIconUpToDate_entryInvalidSavedChanges() {
+  public void testIconUpToDate_entryInvalidSavedChanges() throws Exception {
     GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
 
-    // Modify image resource by adding an empty comment and then save to disk
+    // Modify image resource by adding an empty comment and then save
     Document document = FileDocumentManager.getInstance().getDocument(mySampleSvgFile);
     ApplicationManager.getApplication().runWriteAction(() -> {
-      document.setText(document.getText() + "<!---->");
+      document.setText(document.getText() + "<!-- -->");
       FileDocumentManager.getInstance().saveDocument(document);
     });
 
