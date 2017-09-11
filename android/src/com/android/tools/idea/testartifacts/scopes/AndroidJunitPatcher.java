@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +59,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
       // Add resource folders if Java module and for module dependencies
-      addResourceFoldersToClasspath(module, null, javaParameters.getClassPath());
+      addFoldersToClasspath(module, null, javaParameters.getClassPath());
       return;
     }
 
@@ -92,7 +94,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     String originalClassPath = classPath.getPathsString();
     try {
       replaceAndroidJarWithMockableJar(classPath, platform, testArtifact);
-      addResourceFoldersToClasspath(module, testArtifact, classPath);
+      addFoldersToClasspath(module, testArtifact, classPath);
     }
     catch (RuntimeException e) {
       throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
@@ -147,19 +149,20 @@ public class AndroidJunitPatcher extends JUnitPatcher {
   }
 
   /**
-   * Puts folders with merged java resources for the selected variant of every module on the classpath.
+   * Puts additional necessary folders for the selected variant of every module on the classpath.
    *
    * <p>The problem we're solving here is that CompilerModuleExtension supports only one directory for "compiler output". When IJ compiles
-   * Java projects, it copies resources to the output classes dir. This is something our Gradle plugin doesn't do, so we need to add the
-   * resource directories to the classpath here.
+   * Java projects, it copies resources and Kotlin classes to the output classes dir. This is something Gradle doesn't do, so we need to add
+   * these directories to the classpath here.
    *
    * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
+   * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
-  private static void addResourceFoldersToClasspath(@NotNull Module module,
-                                                    @Nullable JavaArtifact testArtifact,
-                                                    @NotNull PathsList classPath) {
+  private static void addFoldersToClasspath(@NotNull Module module,
+                                            @Nullable JavaArtifact testArtifact,
+                                            @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
@@ -190,7 +193,11 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       JavaFacet javaFacet = JavaFacet.getInstance(affectedModule);
       if (javaFacet != null) {
         JavaModuleModel javaModel = javaFacet.getJavaModuleModel();
-        ExtIdeaCompilerOutput output = javaModel == null ? null : javaModel.getCompilerOutput();
+        if (javaModel == null) {
+          continue;
+        }
+
+        ExtIdeaCompilerOutput output = javaModel.getCompilerOutput();
         File javaTestResources = output == null ? null : output.getTestResourcesDir();
         if (javaTestResources != null) {
           addToClasspath(javaTestResources, classPath, excludeScope);
@@ -199,16 +206,25 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         if (javaMainResources != null) {
           addToClasspath(javaMainResources, classPath, excludeScope);
         }
+
+        if (javaModel.getBuildFolderPath() != null) {
+          File kotlinClasses = javaModel.getBuildFolderPath().toPath().resolve("classes").resolve("kotlin").toFile();
+
+          if (kotlinClasses.exists()) {
+            // It looks like standard Gradle-4.0-style output directories are used. We add Kotlin equivalents speculatively, since we don't
+            // yet have a way of passing the data all the way from Gradle to here.
+            addToClasspath(new File(kotlinClasses, "main"), classPath, excludeScope);
+            addToClasspath(new File(kotlinClasses, "test"), classPath, excludeScope);
+          }
+        }
       }
     }
   }
 
-  private static void addToClasspath(@NotNull File resourceFolder,
-                                     @NotNull PathsList classPath,
-                                     @Nullable FileRootSearchScope excludeScope) {
-    if (excludeScope != null && excludeScope.accept(resourceFolder)) {
+  private static void addToClasspath(@NotNull File folder, @NotNull PathsList classPath, @Nullable FileRootSearchScope excludeScope) {
+    if (excludeScope != null && excludeScope.accept(folder)) {
       return;
     }
-    classPath.add(resourceFolder);
+    classPath.add(folder);
   }
 }
