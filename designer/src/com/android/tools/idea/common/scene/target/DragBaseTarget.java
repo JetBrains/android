@@ -181,6 +181,16 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Reset the status when the dragging is canceled.
+   */
+  public void cancel() {
+    myComponent.setDragging(false);
+    myTargetSnapper.cleanNotch();
+    myChangedComponent = false;
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+  }
+
   @Override
   public Cursor getMouseCursor() {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
