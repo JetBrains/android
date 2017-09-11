@@ -84,6 +84,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Documented;
@@ -1328,16 +1329,18 @@ public class TemplateTest extends AndroidGradleTestCase {
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
       initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
       buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
+      @SuppressWarnings("resource")
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try {
-        buildLauncher.run();
+        buildLauncher.setStandardError(baos).run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
-      //catch (Exception e) {
-      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-      //  throw e;
-      //}
+      catch (Exception e) {
+        //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+        //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
+        //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+        throw new Exception(baos.toString("UTF-8"), e);
+      }
       finally {
         connection.close();
 
