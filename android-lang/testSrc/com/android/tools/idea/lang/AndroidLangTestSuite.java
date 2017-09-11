@@ -18,7 +18,6 @@ package com.android.tools.idea.lang;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -36,6 +35,7 @@ public class AndroidLangTestSuite {
     VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
 
     symbolicLinkInTmpDir("tools/adt/idea/android-lang/testData");
+    symbolicLinkInTmpDir("tools/idea/java"); // For the mock JDK.
   }
 
   private static void symbolicLinkInTmpDir(String target) {
