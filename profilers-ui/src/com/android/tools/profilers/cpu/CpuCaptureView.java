@@ -112,6 +112,7 @@ class CpuCaptureView {
                           view.getStage()::getClockTypes, view.getStage()::getClockType, view.getStage()::setClockType);
     clockTypes.bind();
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
+    myTabsPanel.setOpaque(false);
 
     myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
     myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
