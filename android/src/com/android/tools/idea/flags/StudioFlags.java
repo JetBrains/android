@@ -50,10 +50,6 @@ public final class StudioFlags {
   }
 
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
-  public static final Flag<Boolean> NPW_NEW_PROJECT = Flag.create(
-    NPW, "new.project", "Migrate \"New Project\"",
-    "Use the new wizard framework for the \"New > New Project...\" wizard flow.",
-    true);
 
   public static final Flag<Boolean> NPW_DUMP_TEMPLATE_VARS = Flag.create(
     NPW, "dump.template.vars", "Dump template variables to a scratch file",
