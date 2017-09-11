@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
@@ -88,7 +89,9 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @NotNull
   public ConstraintLayoutViewInspectorFixture getConstraintLayoutViewInspector() {
     Robot robot = robot();
-    return new ConstraintLayoutViewInspectorFixture(robot, robot.finder().findByType(WidgetConstraintPanel.class));
+    Container target = GuiTests.waitUntilFound(robot, myPanel, Matchers.byType(WidgetConstraintPanel.class));
+
+    return new ConstraintLayoutViewInspectorFixture(robot, target);
   }
 
   @Nullable
