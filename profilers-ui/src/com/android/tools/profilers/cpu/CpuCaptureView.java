@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.FlatTabbedPane;
-import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
@@ -37,7 +36,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
@@ -53,8 +51,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -109,6 +105,7 @@ class CpuCaptureView {
                           view.getStage()::getClockTypes, view.getStage()::getClockType, view.getStage()::setClockType);
     clockTypes.bind();
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
+    myTabsPanel.setOpaque(false);
 
     myPanel = new JPanel(new TabularLayout("*,150px,Fit", "Fit,*"));
 
