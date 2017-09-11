@@ -23,6 +23,7 @@ import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Files;
 
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
@@ -54,11 +55,13 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
   public void testJavaLibDependencyResourcesInClasspath() throws Exception {
     loadProject(JAVA_LIB);
     testJavaLibResources("app");
+    testKotlinClasses("app");
   }
 
   public void testJavaLibModuleResourcesInClasspath() throws Exception {
     loadProject(JAVA_LIB);
     testJavaLibResources("lib");
+    testKotlinClasses("lib");
   }
 
   private void testJavaLibResources(@NotNull String moduleToTest) throws Exception {
@@ -81,5 +84,30 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
 
     assertThat(classpath).contains(javaTestResources);
     assertThat(classpath).contains(javaMainResources);
+  }
+
+  private void testKotlinClasses(@NotNull String moduleToTest) throws Exception {
+    File projectPath = getProjectFolderPath();
+    File kotlinMainClasses = new File(projectPath, "/lib/build/classes/kotlin/main");
+    File kotlinTestClasses = new File(projectPath, "/lib/build/classes/kotlin/test");
+
+    // Simulate Kotlin Gradle plugin 1.1.4 and Gradle 4.0
+    Files.createDirectories(kotlinMainClasses.toPath());
+    Files.createDirectories(kotlinTestClasses.toPath());
+
+    Module module = ModuleManager.getInstance(getProject()).findModuleByName(moduleToTest);
+    JavaParameters parameters = new JavaParameters();
+    parameters.configureByModule(module, JavaParameters.CLASSES_AND_TESTS);
+
+    String classpath = parameters.getClassPath().getPathsString();
+    assertThat(classpath).doesNotContain(kotlinMainClasses.toString());
+    assertThat(classpath).doesNotContain(kotlinTestClasses.toString());
+
+    JUnitPatcher myPatcher = new AndroidJunitPatcher();
+    myPatcher.patchJavaParameters(module, parameters);
+    classpath = parameters.getClassPath().getPathsString();
+
+    assertThat(classpath).contains(kotlinMainClasses.toString());
+    assertThat(classpath).contains(kotlinTestClasses.toString());
   }
 }
