@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.roomSql
+package com.android.tools.idea.actions
 
+import com.android.tools.idea.lang.roomSql.RoomSchemaManager
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction

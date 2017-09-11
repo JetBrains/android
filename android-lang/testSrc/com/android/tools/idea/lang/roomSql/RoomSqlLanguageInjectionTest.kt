@@ -20,9 +20,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiLanguageInjectionHost.Shred
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
-class RoomSqlLanguageInjectionTest : AndroidTestCase() {
+class RoomSqlLanguageInjectionTest : JavaCodeInsightFixtureTestCase() {
   private fun checkNoInjection(text: String) {
     assertFalse(InjectedLanguageUtil.hasInjections(myFixture.findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
   }
