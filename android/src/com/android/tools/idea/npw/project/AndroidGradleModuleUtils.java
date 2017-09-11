@@ -17,19 +17,14 @@ package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Parameter;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,33 +54,10 @@ public class AndroidGradleModuleUtils {
   @Nullable
   public static Module getContainingModule(File file, Project project) {
     VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
-    if (vFile == null) {
+    if (vFile == null || vFile.isDirectory()) {
       return null;
     }
-    Module bestMatch = null;
-    int bestMatchValue = Integer.MAX_VALUE;
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      GradleFacet facet = GradleFacet.getInstance(module);
-      if (facet != null) {
-        GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
-        assert gradleModuleModel != null;
-        VirtualFile buildFile = gradleModuleModel.getBuildFile();
-        if (buildFile != null) {
-          VirtualFile root = buildFile.getParent();
-          if (VfsUtilCore.isAncestor(root, vFile, true)) {
-            String relativePath = VfsUtilCore.getRelativePath(vFile, root, '/');
-            if (relativePath != null) {
-              int value = Iterables.size(Splitter.on('/').split(relativePath));
-              if (value < bestMatchValue) {
-                bestMatch = module;
-                bestMatchValue = value;
-              }
-            }
-          }
-        }
-      }
-    }
-    return bestMatch;
+    return ProjectFileIndex.getInstance(project).getModuleForFile(vFile, false);
   }
 
   /**
