@@ -37,15 +37,25 @@ class MemoryStageTooltipView extends ProfilerTooltipView {
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
 
-    legend.configure(legends.getJavaLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_JAVA));
-    legend.configure(legends.getNativeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_NATIVE));
-    legend.configure(legends.getGraphicsLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_GRAPHICS));
-    legend.configure(legends.getStackLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_STACK));
-    legend.configure(legends.getCodeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_CODE));
-    legend.configure(legends.getOtherLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_OTHERS));
-
+    if (myStage.useLiveAllocationTracking()) {
+      legend.configure(legends.getJavaLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_JAVA_CAPTURED));
+      legend.configure(legends.getNativeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_NATIVE_CAPTURED));
+      legend.configure(legends.getGraphicsLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_GRAPHICS_CAPTURED));
+      legend.configure(legends.getStackLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_STACK_CAPTURED));
+      legend.configure(legends.getCodeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_CODE_CAPTURED));
+      legend.configure(legends.getOtherLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_OTHERS_CAPTURED));
+      legend.configure(legends.getObjectsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.MEMORY_OBJECTS_CAPTURED));
+    }
+    else {
+      legend.configure(legends.getJavaLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_JAVA));
+      legend.configure(legends.getNativeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_NATIVE));
+      legend.configure(legends.getGraphicsLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_GRAPHICS));
+      legend.configure(legends.getStackLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_STACK));
+      legend.configure(legends.getCodeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_CODE));
+      legend.configure(legends.getOtherLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_OTHERS));
+      legend.configure(legends.getObjectsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.MEMORY_OBJECTS));
+    }
     legend.configure(legends.getTotalLegend(), new LegendConfig(LegendConfig.IconType.NONE, ProfilerColors.DEFAULT_STAGE_BACKGROUND));
-    legend.configure(legends.getObjectsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.MEMORY_OBJECTS));
 
     return legend;
   }
