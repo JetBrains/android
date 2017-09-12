@@ -481,7 +481,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
       myCaptureView = null;
     }
-    else {
+    else if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE) {
+      // Capture has finished. Create a CpuCaptureView to display it.
       myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
