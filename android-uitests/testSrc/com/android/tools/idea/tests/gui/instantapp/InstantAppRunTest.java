@@ -138,7 +138,7 @@ public class InstantAppRunTest {
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
       "x86 Images",
-      new ChooseSystemImageStepFixture.SystemImage("O", "26", "x86", "Android 8.0 (Google APIs)"),
+      new ChooseSystemImageStepFixture.SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)"),
       O_AVD_NAME
     );
 
