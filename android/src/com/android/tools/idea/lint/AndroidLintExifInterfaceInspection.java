@@ -122,7 +122,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       Futures.addCallback(syncResult, new FutureCallback<AndroidProjectSystem.SyncResult>() {
         @Override
         public void onSuccess(@Nullable AndroidProjectSystem.SyncResult syncResult) {
-          if (syncResult != null && syncResult.getSuccessful()) {
+          if (syncResult != null && syncResult.isSuccessful()) {
             DumbService.getInstance(project).runWhenSmart(() -> replaceReferences(startElement));
           }
         }

@@ -208,7 +208,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     Futures.addCallback(syncResult, new FutureCallback<AndroidProjectSystem.SyncResult>() {
       @Override
       public void onSuccess(@Nullable AndroidProjectSystem.SyncResult syncResult) {
-        if (syncResult != null && syncResult.getSuccessful()) {
+        if (syncResult != null && syncResult.isSuccessful()) {
           restartAnalysis(project, scope);
         }
       }
