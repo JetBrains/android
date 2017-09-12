@@ -122,8 +122,9 @@ public class AnchorTarget extends BaseTarget {
   public void setThisIsTheTarget(boolean target) {
     myThisIsTheTarget = target;
   }
+
   @Override
-  public void setOver(boolean over) {
+  public void setMouseHovered(boolean over) {
     if (over != mIsOver) {
       changeState(mIsOver, over);
       mIsOver = over;
@@ -161,10 +162,9 @@ public class AnchorTarget extends BaseTarget {
   }
 
   @Override
-  public void setComponentSelection(boolean selection) {
+  public void onComponentSelectionChanged(boolean selection) {
     String dir;
     switch (myType) {
-
       case LEFT:
         dir = DecoratorUtilities.LEFT_CONNECTION;
         break;

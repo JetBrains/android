@@ -69,8 +69,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     if (DEBUG) {
-      var color = Color.green
-      if (mIsOver) color = Color.orange
+      val color = if (mIsOver) Color.orange else Color.green
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, color)
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, color)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, color)
@@ -94,9 +93,5 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, value)
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())
     applyAndCommit(attributes, "Set gravity")
-  }
-
-  override fun setComponentSelection(selection: Boolean) {
-
   }
 }

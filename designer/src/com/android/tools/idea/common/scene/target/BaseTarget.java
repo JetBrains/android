@@ -43,11 +43,6 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean canChangeSelection() {
-    return true;
-  }
-
-  @Override
   public void setComponent(@NotNull SceneComponent component) {
     myComponent = component;
   }
@@ -58,16 +53,11 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
-  public void setOver(boolean over) {
+  public void setMouseHovered(boolean over) {
     if (over != mIsOver && myComponent != null) {
       myComponent.getScene().repaint();
     }
     mIsOver = over;
-  }
-
-  @Override
-  public void setExpandSize(boolean expand) {
-    //do nothing
   }
 
   @Override
@@ -120,11 +110,6 @@ public abstract class BaseTarget implements Target {
     NlWriteCommandAction.run(attributes.getComponent(), label, attributes::commit);
 
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
-  }
-
-  @Override
-  public void setComponentSelection(boolean selection) {
-
   }
 
   //endregion
