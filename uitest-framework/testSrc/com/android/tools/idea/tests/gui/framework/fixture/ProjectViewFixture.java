@@ -19,7 +19,7 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
-import com.android.tools.idea.navigator.nodes.apk.ndk.SourceFolderNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.NdkSourceNode;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
@@ -42,7 +42,6 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -286,20 +285,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public boolean isSourceFolder() {
-      return myNode instanceof PsiDirectoryNode;
-    }
-
-    @NotNull
-    public String getSourceFolderName() {
-      if(!isSourceFolder()) {
-        throw new IllegalStateException("The node in this NodeFixture is not a SourceFolderNode");
-      }
-
-      PsiDirectory folder = ((SourceFolderNode) myNode).getValue();
-      if(folder == null) {
-        return "";
-      }
-      return folder.getName();
+      return myNode instanceof PsiDirectoryNode || myNode instanceof NdkSourceNode;
     }
 
     @NotNull
