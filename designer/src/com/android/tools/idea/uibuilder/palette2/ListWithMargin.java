@@ -102,7 +102,10 @@ public abstract class ListWithMargin<E> extends JBList<E> {
       Rectangle bounds = rendererAndBounds.second;
       if (bounds.width > myComponent.getWidth() - getRightMarginWidth() && bounds.width < myComponent.getWidth()) {
         myExpansionIndex = index;
-        myComponent.repaint(myComponent.getCellBounds(myExpansionIndex, myExpansionIndex));
+        Rectangle cellBounds = myComponent.getCellBounds(myExpansionIndex, myExpansionIndex);
+        if (cellBounds != null) {
+          myComponent.repaint(cellBounds);
+        }
         return null;
       }
       hideExpansion();
@@ -118,7 +121,10 @@ public abstract class ListWithMargin<E> extends JBList<E> {
     private void hideExpansion() {
       if (myExpansionIndex != null) {
         Rectangle bounds = myComponent.getCellBounds(myExpansionIndex, myExpansionIndex);
-        myComponent.repaint(bounds);
+        if (bounds != null) {
+          // The bounds may be null (seen on Linux during tearDown a test)
+          myComponent.repaint(bounds);
+        }
       }
       myExpansionIndex = null;
     }
