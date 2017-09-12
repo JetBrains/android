@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -24,8 +25,8 @@ import javax.swing.*;
 import java.util.function.Function;
 
 class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRenderer {
-  private final Function<MemoryObjectTreeNode<T>, String> myTextGetter;
-  private final Function<MemoryObjectTreeNode<T>, Icon> myIconGetter;
+  @NotNull private final Function<MemoryObjectTreeNode<T>, String> myTextGetter;
+  @NotNull private final Function<MemoryObjectTreeNode<T>, Icon> myIconGetter;
   private final int myAlignment;
 
   public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
@@ -58,6 +59,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
         setIcon(icon);
       }
       setTextAlign(myAlignment);
+      setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
     }
   }
 }
