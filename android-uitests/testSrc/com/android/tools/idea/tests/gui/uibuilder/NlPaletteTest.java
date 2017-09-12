@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -74,7 +75,7 @@ public class NlPaletteTest {
     // Test:
     JListFixture categoryList = palette.getCategoryList();
     assertThat(categoryList.selection()).asList().containsExactly("Layouts");
-    assertThat(itemList.contents()).isEqualTo(new String[]{"LinearLayout (horizontal)", "LinearLayout (vertical)"});
+    assertThat(palette.getItemTitles(itemList)).containsExactly("LinearLayout (horizontal)", "LinearLayout (vertical)");
   }
 
   @Test
@@ -127,7 +128,7 @@ public class NlPaletteTest {
     searchTextFieldFixture.pressAndReleaseKeys(KeyEvent.VK_ENTER);
 
     // Test:
-    assertThat(itemList.selection()).asList().containsExactly("ConstraintLayout");
+    assertThat(itemList.selection()).asList().containsExactly(SdkConstants.CONSTRAINT_LAYOUT);
     assertThat(itemList.target().hasFocus()).isTrue();
   }
 
@@ -144,7 +145,7 @@ public class NlPaletteTest {
     NlPaletteFixture palette = layout.getPalette();
 
     // Click on the download icon next to the "FloatingActionButton"
-    palette.clickItem("Design", "FloatingActionButton", StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth() / 2);
+    palette.clickItem("Design", SdkConstants.FLOATING_ACTION_BUTTON, StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth() / 2);
 
     // Test: Check that the "Add Project Dependency" dialog is presented
     MessagesFixture dependencyDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency");
