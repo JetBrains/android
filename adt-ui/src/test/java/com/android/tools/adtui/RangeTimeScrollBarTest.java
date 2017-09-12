@@ -111,6 +111,42 @@ public class RangeTimeScrollBarTest {
     assertThat(scrollBar.getVisibleAmount()).isEqualTo(secToMillis(14 - 6));
   }
 
+  @Test
+  public void viewRangePartiallyOutsideOfGlobalRange() {
+    Range global = new Range(secToUs(2), secToUs(12));
+    Range view = new Range(secToUs(0), secToUs(10));
+    RangeTimeScrollBar scrollBar = new RangeTimeScrollBar(global, view, TimeUnit.MICROSECONDS);
+
+    assertThat(scrollBar.getMinimum()).isEqualTo(0);
+    assertThat(scrollBar.getMaximum()).isEqualTo(secToMillis(10));
+    assertThat(scrollBar.getValue()).isEqualTo(secToMillis(0));
+    assertThat(scrollBar.getVisibleAmount()).isEqualTo(secToMillis(8));
+  }
+
+  @Test
+  public void viewRangeOutsideToTheLeftOfGlobalRange() {
+    Range global = new Range(secToUs(10), secToUs(22));
+    Range view = new Range(secToUs(0), secToUs(5));
+    RangeTimeScrollBar scrollBar = new RangeTimeScrollBar(global, view, TimeUnit.MICROSECONDS);
+
+    assertThat(scrollBar.getMinimum()).isEqualTo(0);
+    assertThat(scrollBar.getMaximum()).isEqualTo(secToMillis(12));
+    assertThat(scrollBar.getValue()).isEqualTo(secToMillis(0));
+    assertThat(scrollBar.getVisibleAmount()).isEqualTo(secToMillis(0));
+  }
+
+  @Test
+  public void viewRangeOutsideToTheRightOfGlobalRange() {
+    Range global = new Range(secToUs(10), secToUs(22));
+    Range view = new Range(secToUs(25), secToUs(30));
+    RangeTimeScrollBar scrollBar = new RangeTimeScrollBar(global, view, TimeUnit.MICROSECONDS);
+
+    assertThat(scrollBar.getMinimum()).isEqualTo(0);
+    assertThat(scrollBar.getMaximum()).isEqualTo(secToMillis(12));
+    assertThat(scrollBar.getValue()).isEqualTo(secToMillis(12));
+    assertThat(scrollBar.getVisibleAmount()).isEqualTo(secToMillis(0));
+  }
+
   private static long secToUs(long sec) {
     return TimeUnit.SECONDS.toMicros(sec);
   }
