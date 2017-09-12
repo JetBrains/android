@@ -273,24 +273,77 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
     final LineChart lineChart = new LineChart(memoryUsage);
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS, memoryUsage.getGraphicsSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
-    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.DEFAULT_STAGE_BACKGROUND));
-    lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
-      .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    if (getStage().useLiveAllocationTracking()) {
+      // Always show series in their captured state in live allocation mode.
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA_CAPTURED, memoryUsage.getJavaSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE_CAPTURED, memoryUsage.getNativeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS_CAPTURED, memoryUsage.getGraphicsSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK_CAPTURED, memoryUsage.getStackSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE_CAPTURED, memoryUsage.getCodeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS_CAPTURED, memoryUsage.getOtherSeries());
+      lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS_CAPUTRED)
+        .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    }
+    else {
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS, memoryUsage.getGraphicsSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
+      configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
+      lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
+        .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    }
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
 
-    // TODO set proper colors / icons
+    DurationDataRenderer<GcDurationData> gcRenderer =
+      new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
+        .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
+        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
+                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+        .build();
+    lineChart.addCustomRenderer(gcRenderer);
+
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    final JPanel overlayPanel = new JBPanel(new BorderLayout());
+    overlayPanel.setOpaque(false);
+    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    final OverlayComponent overlay = new OverlayComponent(selection);
+    overlay.addDurationDataRenderer(gcRenderer);
+    overlayPanel.add(overlay, BorderLayout.CENTER);
+
+    // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
+    if (!getStage().useLiveAllocationTracking()) {
+      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
+          .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
+          .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
+          .setLabelProvider(
+            data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+                                                            TimeAxisFormatter.DEFAULT
+                                                              .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          .build();
+      allocationRenderer.addCustomLineConfig(memoryUsage.getJavaSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getJavaSeries())).setColor(ProfilerColors.MEMORY_JAVA_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getNativeSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getNativeSeries())).setColor(ProfilerColors.MEMORY_NATIVE_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getGraphicsSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())).setColor(ProfilerColors.MEMORY_GRAPHICS_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getStackSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getStackSeries())).setColor(ProfilerColors.MEMORY_STACK_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getCodeSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getCodeSeries())).setColor(ProfilerColors.MEMORY_CODE_CAPTURED));
+      allocationRenderer.addCustomLineConfig(memoryUsage.getOtherSeries(), LineConfig
+        .copyOf(lineChart.getLineConfig(memoryUsage.getOtherSeries())).setColor(ProfilerColors.MEMORY_OTHERS_CAPTURED));
+      lineChart.addCustomRenderer(allocationRenderer);
+      overlay.addDurationDataRenderer(allocationRenderer);
+    }
+
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
-      new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.BLACK)
-        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
+      new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.DARK_GRAY)
+        .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setStroke(new BasicStroke(1))
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
@@ -302,40 +355,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       LineConfig newConfig = LineConfig.copyOf(config).setColor(Gray.get(gray));
       heapDumpRenderer.addCustomLineConfig(series, newConfig);
     }
-
-    DurationDataRenderer<GcDurationData> gcRenderer =
-      new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
-        .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
-        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
-                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
-        .build();
-
     lineChart.addCustomRenderer(heapDumpRenderer);
-    lineChart.addCustomRenderer(gcRenderer);
-
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
-    final JPanel overlayPanel = new JBPanel(new BorderLayout());
-    overlayPanel.setOpaque(false);
-    overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(selection);
     overlay.addDurationDataRenderer(heapDumpRenderer);
-    overlay.addDurationDataRenderer(gcRenderer);
-    overlayPanel.add(overlay, BorderLayout.CENTER);
-
-    // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
-    if (!getStage().useLiveAllocationTracking()) {
-      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
-        new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
-          .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-          .setStroke(new BasicStroke(1))
-          .setLabelProvider(
-            data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
-                                                            TimeAxisFormatter.DEFAULT
-                                                              .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-          .build();
-      lineChart.addCustomRenderer(allocationRenderer);
-      overlay.addDurationDataRenderer(allocationRenderer);
-    }
 
     MemoryStageTooltipView tooltipView = new MemoryStageTooltipView(getStage());
     RangeTooltipComponent tooltip =
@@ -365,7 +386,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     rightAxis.setHideTickAtMin(true);
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
-
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
