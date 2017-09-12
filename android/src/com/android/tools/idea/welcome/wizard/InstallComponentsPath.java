@@ -328,6 +328,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+      myProgressStep.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 
