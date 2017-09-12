@@ -37,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,9 +98,9 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
       .addDebugSymbols(debugSymbols);
     guiTest.waitForBackgroundTasks();
 
-    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    int numSourceFolders = countOccurrencesOfSourceFolders(srcNodes);
-    Assert.assertEquals(2, numSourceFolders);
+    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
+
+    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
   }
 
   /**
@@ -154,8 +153,9 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
     waitForJavaFileToShow(editor);
 
-    List<ProjectViewFixture.NodeFixture> srcNodes = getNativeLibChildren(ideFrame, "libsanangeles");
-    Assert.assertEquals(2, srcNodes.size());
+    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
+
+    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
   }
 
   /**
@@ -279,18 +279,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
   }
 
   @NotNull
-  private List<ProjectViewFixture.NodeFixture> filterSourceFolderChildren(
-      @NotNull List<ProjectViewFixture.NodeFixture> nodeChildren) {
-    List<ProjectViewFixture.NodeFixture> filteredChildren = ContainerUtil.newArrayList();
-    for (ProjectViewFixture.NodeFixture child : nodeChildren) {
-      if (child.isSourceFolder()) {
-        filteredChildren.add(child);
-      }
-    }
-    return filteredChildren;
-  }
-
-  @NotNull
   private IdeFrameFixture attachJavaSources(@NotNull IdeFrameFixture ideFrame, @NotNull File sourceDir) {
     String smaliFile = "smali/out/com/example/SanAngeles/DemoActivity.smali";
 
@@ -317,12 +305,12 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
   }
 
   @NotNull
-  private List<ProjectViewFixture.NodeFixture> getNativeLibChildren(@NotNull IdeFrameFixture ideFrame, @NotNull String libraryName) {
+  private List<ProjectViewFixture.NodeFixture> getLibChildren(@NotNull IdeFrameFixture ideFrame, @NotNull String libraryName) {
     ProjectViewFixture.NodeFixture libNode = ideFrame
       .getProjectView()
       .selectAndroidPane()
       .findNativeLibraryNodeFor(libraryName);
-    return filterSourceFolderChildren(libNode.getChildren());
+    return libNode.getChildren();
   }
 
   private int countOccurrencesOfSourceFolders(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes) {
