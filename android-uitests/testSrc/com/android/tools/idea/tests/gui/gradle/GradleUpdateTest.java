@@ -46,7 +46,7 @@ public class GradleUpdateTest {
    *   Open build.gradle files and make sure that the version of the plugin was updated to <current gradle="" version="">
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void updateGradleTestProject() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -67,6 +67,7 @@ public class GradleUpdateTest {
 
     ideFrameFixture.requestProjectSync();
     GuiTests.findAndClickButtonWhenEnabled(ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended"), "Update");
+    guiTest.waitForBackgroundTasks();
     String contents = ideFrameFixture.getEditor()
       .open("build.gradle")
       .getCurrentFileContents();
