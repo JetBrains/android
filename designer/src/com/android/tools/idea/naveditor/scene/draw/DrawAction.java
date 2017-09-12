@@ -71,22 +71,22 @@ public class DrawAction extends NavBaseDrawCommand {
 
   private static Rectangle stringToRect(@NotNull String s) {
     String[] sp = s.split("x");
-    int c = 0;
+    int c = -1;
     Rectangle r = new Rectangle();
-    r.x = Integer.parseInt(sp[c++]);
-    r.y = Integer.parseInt(sp[c++]);
-    r.width = Integer.parseInt(sp[c++]);
-    r.height = Integer.parseInt(sp[c++]);
+    r.x = Integer.parseInt(sp[++c]);
+    r.y = Integer.parseInt(sp[++c]);
+    r.width = Integer.parseInt(sp[++c]);
+    r.height = Integer.parseInt(sp[++c]);
     return r;
   }
 
   public DrawAction(@NotNull String s) {
     String[] sp = s.split(",");
-    int c = 0;
-    myConnectionType = ActionTarget.ConnectionType.valueOf(sp[c++]);
-    mySource = stringToRect(sp[c++]);
-    myDest = stringToRect(sp[c++]);
-    myMode = DrawMode.valueOf(sp[c++]);
+    int c = -1;
+    myConnectionType = ActionTarget.ConnectionType.valueOf(sp[++c]);
+    mySource = stringToRect(sp[++c]);
+    myDest = stringToRect(sp[++c]);
+    myMode = DrawMode.valueOf(sp[++c]);
   }
 
   @Override

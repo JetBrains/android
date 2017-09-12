@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -34,7 +33,6 @@ public class NavInspectorProviders extends InspectorProviders {
 
   public NavInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(propertiesManager, parentDisposable);
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(propertiesManager.getFacet());
     NavigationInspectorProvider provider = new NavigationInspectorProvider();
     myNullProvider = provider;
     myProviders = ImmutableList.of(provider, new ActionInspectorProvider());

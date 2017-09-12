@@ -19,8 +19,6 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.intellij.ui.JBColor;
 
-import java.awt.*;
-
 /**
  * {@link ColorSet} for the navigation editor.
  */
@@ -37,12 +35,12 @@ public class NavColorSet extends ColorSet {
     mSelectedText = mSelectedFrames;
 
     mBackground = new JBColor(0xf5f5f5, 0x2d2f31);
-    mComponentBackground = new Color(0xfdfdfd);
+    mComponentBackground = new JBColor(0xfdfdfd, 0xfdfdfd);
     mComponentHighlightedBackground = mComponentBackground;
 
     mText = JBColor.BLACK;
 
-    mSubduedText = new JBColor(Color.BLACK.getRGB(), 0x888888);
+    mSubduedText = new JBColor(0x000000, 0x888888);
     mSubduedBackground = new JBColor(0xfcfcfc, 0x313435);
   }
 }
