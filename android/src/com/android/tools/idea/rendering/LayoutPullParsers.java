@@ -191,7 +191,7 @@ public class LayoutPullParsers {
     ResourceFolderType type = ResourceHelper.getFolderType(file);
     assert type != null;
 
-    setAndroidAttr(imageView, ATTR_SRC, PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file));
+    setAndroidAttr(imageView, ATTR_SRC, file.getVirtualFile().getPath());
 
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
