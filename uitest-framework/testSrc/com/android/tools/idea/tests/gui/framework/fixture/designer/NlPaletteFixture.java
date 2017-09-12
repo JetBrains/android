@@ -83,6 +83,10 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
       itemList = myNewPalette.getItemList();
     }
     else {
+      if (group.isEmpty()) {
+        group = "All";
+      }
+
       // Wait until the list has been expanded in UI (eliminating flakiness).
       itemList = GuiTests.waitUntilShowing(robot(), myOldPalette.getTreeGrid(), Matchers.byName(JList.class, group));
     }
