@@ -289,20 +289,20 @@ final class ThreadsView {
       if (data.getDownloadingTimeUs() > 0) {
         double download = rangeToPosition(data.getDownloadingTimeUs());
         // draw sending
-        g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2, download - prev, STATE_HEIGHT));
+        g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, download - prev, STATE_HEIGHT));
         g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_RECEIVING);
         prev = download;
       }
 
       double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
-      g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2, end - prev, STATE_HEIGHT));
+      g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT));
     }
 
     private void drawWarning(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
       double start = rangeToPosition(data.getStartTimeUs());
       double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
 
-      double stateY = (getHeight() - STATE_HEIGHT) / 2;
+      double stateY = (getHeight() - STATE_HEIGHT) / 2.0;
 
       Path2D triangle = new Path2D.Double();
       triangle.moveTo(end - Math.min(end - start, WARNING_SIZE), stateY);
@@ -338,7 +338,7 @@ final class ThreadsView {
       g2d.setStroke(new BasicStroke(SELECTION_OUTLINE_BORDER));
       g2d.setColor(myTable.getSelectionBackground());
       Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_OUTLINE_PADDING,
-                                                (getHeight() - STATE_HEIGHT) / 2 - SELECTION_OUTLINE_PADDING,
+                                                (getHeight() - STATE_HEIGHT) / 2.0 - SELECTION_OUTLINE_PADDING,
                                                 end - start + 2 * SELECTION_OUTLINE_PADDING,
                                                 STATE_HEIGHT + 2 * SELECTION_OUTLINE_PADDING);
       g2d.draw(rect);
