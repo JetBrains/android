@@ -54,7 +54,7 @@ interface AndroidProjectSystem {
   fun allowsFileCreation(): Boolean
 
   /** The result of a sync request */
-  enum class SyncResult(val successful: Boolean) {
+  enum class SyncResult(val isSuccessful: Boolean) {
     /** The user cancelled the sync */
     CANCELLED(false),
     /** Sync failed */

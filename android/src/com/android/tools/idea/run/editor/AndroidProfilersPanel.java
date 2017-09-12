@@ -136,7 +136,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     });
 
     // Block until sync finishes
-    if (Futures.getUnchecked(syncResult).getSuccessful()) {
+    if (Futures.getUnchecked(syncResult).isSuccessful()) {
       updateHyperlink("");
     }
     else {
