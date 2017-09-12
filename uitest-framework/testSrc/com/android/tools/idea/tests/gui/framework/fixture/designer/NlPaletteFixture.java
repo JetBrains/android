@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette2.PalettePanel;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.MouseButton;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
   private final PalettePanel myNewPalette;
@@ -119,6 +122,17 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
     Point pos = new Point(bounds.x + bounds.width - fromRightEdge, bounds.y + bounds.height / 2);
     robot().waitForIdle();
     robot().click(itemList.target(), pos, MouseButton.LEFT_BUTTON, 1);
+  }
+
+  @NotNull
+  public List<String> getItemTitles(@NotNull JListFixture itemList) {
+    //noinspection unchecked
+    ListModel<Palette.Item> model = itemList.target().getModel();
+    List<String> titles = new ArrayList<>();
+    for (int index = 0; index < model.getSize(); index++) {
+      titles.add(model.getElementAt(index).getTitle());
+    }
+    return titles;
   }
 
   @NotNull

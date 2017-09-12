@@ -431,7 +431,7 @@ public class Palette {
     @NotNull
     @Override
     public String toString() {
-      return getTitle();
+      return myTagName;
     }
   }
 
