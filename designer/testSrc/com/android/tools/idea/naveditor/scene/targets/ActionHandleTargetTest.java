@@ -76,11 +76,11 @@ public class ActionHandleTargetTest extends TestCase {
     verifyDrawCommands(0, DrawActionHandle.SMALL_RADIUS, HIGHLIGHTEDFRAMES);
 
     // hover over target
-    myActionHandleTarget.setOver(true);
+    myActionHandleTarget.setMouseHovered(true);
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.LARGE_RADIUS, HIGHLIGHTEDFRAMES);
 
     // move away from target
-    myActionHandleTarget.setOver(false);
+    myActionHandleTarget.setMouseHovered(false);
     verifyDrawCommands(DrawActionHandle.LARGE_RADIUS, DrawActionHandle.SMALL_RADIUS, HIGHLIGHTEDFRAMES);
 
     // move away from component
@@ -96,7 +96,7 @@ public class ActionHandleTargetTest extends TestCase {
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.SMALL_RADIUS, SELECTEDFRAMES);
 
     // hover over target
-    myActionHandleTarget.setOver(true);
+    myActionHandleTarget.setMouseHovered(true);
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.LARGE_RADIUS, SELECTEDFRAMES);
 
     // mouse down and drag
@@ -105,18 +105,18 @@ public class ActionHandleTargetTest extends TestCase {
     verifyDrawCommands();
 
     // mouse release
-    myActionHandleTarget.setOver(false);
+    myActionHandleTarget.setMouseHovered(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
     myActionHandleTarget.mouseRelease(DRAGX, DRAGY, null);
     verifyDrawCommands(DrawActionHandle.LARGE_RADIUS, DrawActionHandle.SMALL_RADIUS, SELECTEDFRAMES);
 
     // hover over target
-    myActionHandleTarget.setOver(true);
+    myActionHandleTarget.setMouseHovered(true);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.LARGE_RADIUS, SELECTEDFRAMES);
 
     // move away from component and target
-    myActionHandleTarget.setOver(false);
+    myActionHandleTarget.setMouseHovered(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
     verifyDrawCommands(DrawActionHandle.LARGE_RADIUS, DrawActionHandle.SMALL_RADIUS, SELECTEDFRAMES);
 

@@ -698,12 +698,12 @@ public class Scene implements SelectionListener, Disposable {
     Target closestTarget = myHoverListener.getClosestTarget();
     if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
-        myOverTarget.setOver(false);
+        myOverTarget.setMouseHovered(false);
         myOverTarget = null;
         needsRebuildList();
       }
       if (closestTarget != null) {
-        closestTarget.setOver(true);
+        closestTarget.setMouseHovered(true);
         transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
@@ -713,12 +713,12 @@ public class Scene implements SelectionListener, Disposable {
       Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
       if (snapTarget != mySnapTarget) {
         if (mySnapTarget != null) {
-          mySnapTarget.setOver(false);
+          mySnapTarget.setMouseHovered(false);
           mySnapTarget = null;
           needsRebuildList();
         }
         if (snapTarget != null) {
-          snapTarget.setOver(true);
+          snapTarget.setMouseHovered(true);
           transform.setToolTip(closestTarget.getToolTipText());
           mySnapTarget = closestTarget;
           needsRebuildList();

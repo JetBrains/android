@@ -553,7 +553,7 @@ public class SceneComponent {
       setDrawState(DrawState.NORMAL);
     }
     for (Target target : myTargets) {
-      target.setComponentSelection(myIsSelected);
+      target.onComponentSelectionChanged(myIsSelected);
     }
   }
 

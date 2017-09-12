@@ -124,7 +124,7 @@ class CoordinatorDragTarget : BaseTarget() {
     }
     mySnapTarget = null
     val snapTarget : Target? = closestTarget?.filter { it is CoordinatorSnapTarget }?.firstOrNull()
-    snapTarget?.setOver(true)
+    snapTarget?.setMouseHovered(true)
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
     }
@@ -150,9 +150,4 @@ class CoordinatorDragTarget : BaseTarget() {
     }
     myComponent.scene.needsLayout(ANIMATED_LAYOUT)
   }
-
-  override fun setComponentSelection(selection: Boolean) {
-
-  }
-
 }
