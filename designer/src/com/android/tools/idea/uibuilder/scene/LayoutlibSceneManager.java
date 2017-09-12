@@ -594,9 +594,6 @@ public class LayoutlibSceneManager extends SceneManager {
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback().setAdaptiveIconMaskPath(((NlDesignSurface)getDesignSurface()).getAdaptiveIconShape().getPathDescription());
-        if (!isRenderViewPort()) {
-          myRenderTask.useDesignMode(getModel().getFile());
-        }
         result = myRenderTask.inflate();
         if (result == null || !result.getRenderResult().isSuccess()) {
           myRenderTask.dispose();
