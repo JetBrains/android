@@ -246,6 +246,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/transition/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/wear/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-lite/11.2.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads/11.2.0:aar",
