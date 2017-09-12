@@ -71,5 +71,6 @@ public final class TestProjectPaths {
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
+  public static final String UNIT_TESTING = "projects/unit_testing";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";
 }
