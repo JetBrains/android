@@ -75,7 +75,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",
       "layout_height=\"fill_parent\"",
-      "src=\"@drawable/progress_horizontal\" />",
+      "src=\"" + file.getPath() + "\" />",
       ""
     );
 
@@ -83,6 +83,60 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     checkRendering(task, "drawable/progress_horizontal.png");
   }
+
+  /**
+   * Check that when two drawables with the same name exist in multiple densities, we select the intended one.
+   */
+  public void testRenderConflictingDrawables() throws Exception {
+    final String redBoxContent = "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                 "    android:shape=\"rectangle\">\n" +
+                                 "    <solid android:color=\"#F00\"/>\n" +
+                                 "</shape>";
+    final String blueBoxContent = "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                  "    android:shape=\"rectangle\">\n" +
+                                  "    <solid android:color=\"#00F\"/>\n" +
+                                  "</shape>";
+    VirtualFile redBox = myFixture.addFileToProject("res/drawable/box.xml", redBoxContent).getVirtualFile();
+    VirtualFile blueBox = myFixture.addFileToProject("res/drawable-xxxhdpi/box.xml", blueBoxContent).getVirtualFile();
+
+    RenderTask task = createRenderTask(redBox);
+    assertNotNull(task);
+    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    assertTrue(parser instanceof DomPullParser);
+    Element root = ((DomPullParser)parser).getRoot();
+
+    String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String expectedLayout = Joiner.on(System.lineSeparator()).join(
+      "<ImageView",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"fill_parent\"",
+      "src=\"" + redBox.getPath() + "\" />",
+      ""
+    );
+
+    assertEquals(expectedLayout, actualLayout);
+
+    task = createRenderTask(blueBox);
+    assertNotNull(task);
+    parser = LayoutPullParserFactory.create(task);
+    assertTrue(parser instanceof DomPullParser);
+    root = ((DomPullParser)parser).getRoot();
+
+    actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    expectedLayout = Joiner.on(System.lineSeparator()).join(
+      "<ImageView",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"fill_parent\"",
+      "src=\"" + blueBox.getPath() + "\" />",
+      ""
+    );
+
+    assertEquals(expectedLayout, actualLayout);
+  }
+
+
 
   public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
     RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
@@ -118,7 +172,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",
       "layout_height=\"fill_parent\"",
-      "src=\"@mipmap/adaptive\" />",
+      "src=\"" + file.getPath() + "\" />",
       ""
     );
 
