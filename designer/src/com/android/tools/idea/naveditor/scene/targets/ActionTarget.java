@@ -59,8 +59,8 @@ public class ActionTarget extends BaseTarget {
   }
 
   public static class SelfActionPoints {
-    @SwingCoordinate public int[] x = new int[5];
-    @SwingCoordinate public int[] y = new int[5];
+    @SwingCoordinate public final int[] x = new int[5];
+    @SwingCoordinate public final int[] y = new int[5];
     public ConnectionDirection dir;
   }
 

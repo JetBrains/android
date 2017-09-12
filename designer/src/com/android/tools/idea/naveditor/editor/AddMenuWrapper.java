@@ -451,9 +451,8 @@ public class AddMenuWrapper extends DropDownAction {
     JPanel createButtonPanel = new JPanel();
     createButtonPanel.add(myNewDestinationButton);
     selectionPanel.add(createButtonPanel);
-    myNewDestinationButton.addActionListener(event -> {
-      ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, "new", JBCardLayout.SwipeDirection.FORWARD);
-    });
+    myNewDestinationButton.addActionListener(event ->
+      ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, "new", JBCardLayout.SwipeDirection.FORWARD));
     myDestinationsGallery.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {

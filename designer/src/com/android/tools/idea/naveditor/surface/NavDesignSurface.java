@@ -267,7 +267,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
     String tagName = component.getTagName();
-    String id = null;
+    String id;
     if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
       if (tagName.equals(TAG_INCLUDE)) {
         id = component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH);
