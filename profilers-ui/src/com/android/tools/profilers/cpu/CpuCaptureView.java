@@ -25,10 +25,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.InfoMessagePanel;
-import com.android.tools.profilers.JComboBoxView;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.ImmutableMap;
@@ -604,6 +601,7 @@ class CpuCaptureView {
         else {
           append(String.format("%,.0f", v));
         }
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         // TODO: We should improve the visual feedback when no data is available.
@@ -624,19 +622,18 @@ class CpuCaptureView {
       if (value instanceof DefaultMutableTreeNode &&
           ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
         CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
-        if (node != null) {
-          if (node.getMethodName().isEmpty()) {
-            setIcon(AllIcons.Debugger.ThreadSuspended);
-            append(node.getClassName());
-          }
-          else {
-            setIcon(PlatformIcons.METHOD_ICON);
-            append(node.getMethodName() + "()");
-            if (node.getClassName() != null) {
-              append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
-            }
+        if (node.getMethodName().isEmpty()) {
+          setIcon(AllIcons.Debugger.ThreadSuspended);
+          append(node.getClassName());
+        }
+        else {
+          setIcon(PlatformIcons.METHOD_ICON);
+          append(node.getMethodName() + "()");
+          if (node.getClassName() != null) {
+            append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
           }
         }
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         append(value.toString());
