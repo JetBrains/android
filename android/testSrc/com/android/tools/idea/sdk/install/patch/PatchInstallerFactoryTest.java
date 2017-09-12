@@ -79,6 +79,15 @@ public class PatchInstallerFactoryTest {
   }
 
   @Test
+  public void cantHandleWindowsUninstallWithLargeFile() {
+    myFileOp.setIsWindows(true);
+    LocalPackage p = new FakeLocalPackage("foo");
+    myFileOp.recordExistingFile(p.getLocation().getAbsolutePath(), new byte[100 * 1024 * 1024]);
+    myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
+    assertFalse(myInstallerFactory.canHandlePackage(p, myRepoManager, myFileOp));
+  }
+
+  @Test
   public void cantHandleWindowsUninstallWithoutPatcher() {
     myFileOp.setIsWindows(true);
     LocalPackage p = new FakeLocalPackage("foo");
@@ -97,6 +106,7 @@ public class PatchInstallerFactoryTest {
   public void cantHandleNoPatchOnLinux() {
     myFileOp.setIsWindows(false);
     FakeRemotePackage p = new FakeRemotePackage("foo");
+    p.setCompleteUrl("http://example.com");
     p.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(p));
@@ -107,6 +117,7 @@ public class PatchInstallerFactoryTest {
   public void canHandleOnLinux() {
     myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
+    remote.setCompleteUrl("http://example.com");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
@@ -124,6 +135,7 @@ public class PatchInstallerFactoryTest {
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1, 1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
@@ -138,6 +150,23 @@ public class PatchInstallerFactoryTest {
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
+    remote.setCompleteUrl("http://example.com");
+    FakeLocalPackage local = new FakeLocalPackage("foo");
+    local.setRevision(new Revision(1));
+    myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
+    myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
+    assertTrue(myInstallerFactory.canHandlePackage(remote, myRepoManager, myFileOp));
+  }
+
+  @Test
+  public void canHandleLargeFileOnWindows() {
+    myFileOp.setIsWindows(true);
+    FakeRemotePackage remote = new FakeRemotePackage("foo");
+    remote.setRevision(new Revision(2));
+    remote.setPatchInfo("foo", new Revision(1));
+    remote.setCompleteUrl("http://example.com");
+    remote.getArchive().getComplete().setSize(100 * 1024 * 1024);
+    remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
@@ -150,6 +179,7 @@ public class PatchInstallerFactoryTest {
     myFileOp.setIsWindows(true);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
@@ -158,11 +188,27 @@ public class PatchInstallerFactoryTest {
   }
 
   @Test
+  public void cantHandleNoPatchOnWindowsWithLargeFile() {
+    myFileOp.setIsWindows(true);
+    FakeRemotePackage remote = new FakeRemotePackage("foo");
+    remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
+    remote.getArchive().getComplete().setSize(100 * 1024 * 1024);
+    remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
+    FakeLocalPackage local = new FakeLocalPackage("foo");
+    local.setRevision(new Revision(1));
+    myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
+    myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
+    assertFalse(myInstallerFactory.canHandlePackage(remote, myRepoManager, myFileOp));
+  }
+
+  @Test
   public void cantHandleNoSrcOnWindows() {
     myFileOp.setIsWindows(true);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
+    remote.setCompleteUrl("http://example.com");
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
     assertFalse(myInstallerFactory.canHandlePackage(remote, myRepoManager, myFileOp));
@@ -173,6 +219,7 @@ public class PatchInstallerFactoryTest {
     myFileOp.setIsWindows(true);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_2));
@@ -185,6 +232,7 @@ public class PatchInstallerFactoryTest {
     myFileOp.setIsWindows(true);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local));
@@ -214,6 +262,7 @@ public class PatchInstallerFactoryTest {
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
     remote.setDependencies(ImmutableList.of(new FakeDependency(PATCHER_4.getPath())));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
@@ -227,6 +276,7 @@ public class PatchInstallerFactoryTest {
     myFileOp.setIsWindows(true);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
@@ -240,6 +290,7 @@ public class PatchInstallerFactoryTest {
     myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
+    remote.setCompleteUrl("http://example.com");
     FakeLocalPackage local = new FakeLocalPackage("foo");
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
