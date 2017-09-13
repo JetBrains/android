@@ -23,9 +23,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
@@ -35,15 +32,11 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.annotations.Contract
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {

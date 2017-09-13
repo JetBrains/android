@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -32,7 +34,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateTest extends IdeaTestCase {
-  @Mock private GradleSyncListener mySyncListener;
+  @Mock private GradleSyncListener myGradleSyncListener;
+  @Mock private AndroidProjectSystem.SyncResultListener mySyncResultListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
@@ -50,7 +53,8 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
                                       myGradleFiles, messageBus, myChangeNotification, mySummary);
 
-    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
+    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
+    when(messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)).thenReturn(mySyncResultListener);
   }
 
   public void testSyncStartedWithoutUserNotification() {
@@ -66,7 +70,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(mySyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
   }
 
   public void testSyncStartedWithUserNotification() {
@@ -79,7 +83,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(mySyncListener, times(1)).syncStarted(myProject);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
   }
 
   public void testSyncSkipped() {
@@ -89,7 +93,8 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(timestamp);
-    verify(mySyncListener, times(1)).syncSkipped(myProject);
+    verify(myGradleSyncListener, times(1)).syncSkipped(myProject);
+    verify(mySyncResultListener, times(1)).syncEnded(AndroidProjectSystem.SyncResult.SKIPPED);
   }
 
   public void testSyncSkippedAfterSyncStarted() {
@@ -109,7 +114,8 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySummary, times(1)).setSyncErrorsFound(true);
-    verify(mySyncListener, times(1)).syncFailed(myProject, msg);
+    verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
+    verify(mySyncResultListener, times(1)).syncEnded(AndroidProjectSystem.SyncResult.FAILURE);
   }
 
   public void testSyncFailedWithoutSyncStarted() {
@@ -117,7 +123,8 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncFailed(msg);
     verify(mySummary, never()).setSyncErrorsFound(true);
-    verify(mySyncListener, never()).syncFailed(myProject, msg);
+    verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
+    verify(mySyncResultListener, never()).syncEnded(any());
   }
 
   public void testSyncEnded() {
@@ -125,19 +132,21 @@ public class GradleSyncStateTest extends IdeaTestCase {
     mySyncState.syncEnded();
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
-    verify(mySyncListener, times(1)).syncSucceeded(myProject);
+    verify(myGradleSyncListener, times(1)).syncSucceeded(myProject);
+    verify(mySyncResultListener, times(1)).syncEnded(AndroidProjectSystem.SyncResult.SUCCESS);
   }
 
   public void testSyncEndedWithoutSyncStarted() {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncEnded();
-    verify(mySyncListener, never()).syncSucceeded(myProject);
+    verify(myGradleSyncListener, never()).syncSucceeded(myProject);
+    verify(mySyncResultListener, never()).syncEnded(any());
   }
 
   public void testSetupStarted() {
     mySyncState.setupStarted();
 
-    verify(mySyncListener, times(1)).setupStarted(myProject);
+    verify(myGradleSyncListener, times(1)).setupStarted(myProject);
   }
 
   public void testGetSyncTimesSuccess() {
