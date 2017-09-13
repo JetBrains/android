@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
@@ -92,7 +93,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyName;
 
 // TODO for permission if not from main file
@@ -317,8 +317,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static final Comparator<File> MANIFEST_SORTER = (o1, o2) -> {
     String p1 = o1.getPath();
     String p2 = o2.getPath();
-    boolean lib1 = p1.contains(EXPLODED_AAR);
-    boolean lib2 = p2.contains(EXPLODED_AAR);
+    boolean lib1 = p1.contains(FilenameConstants.EXPLODED_AAR);
+    boolean lib2 = p2.contains(FilenameConstants.EXPLODED_AAR);
     if (lib1 != lib2) {
       return lib1 ? 1 : -1;
     }
@@ -893,7 +893,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
 
           // AAR library in the project build directory?
-          if (path.contains(EXPLODED_AAR)) {
+          if (path.contains(FilenameConstants.EXPLODED_AAR)) {
             source = findSourceForFileInExplodedAar(file, facet, module);
           }
         }

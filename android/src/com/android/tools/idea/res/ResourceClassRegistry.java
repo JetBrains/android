@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.io.FileWrapper;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
@@ -64,7 +64,7 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   public void addAarLibrary(@NotNull AppResourceRepository appResources, @NotNull File aarDir) {
     String path = aarDir.getPath();
-    if (path.endsWith(DOT_AAR) || path.contains(AndroidModuleModel.EXPLODED_AAR)) {
+    if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
       FileResourceRepository repository = appResources.findRepositoryFor(aarDir);
       if (repository != null) {
         addLibrary(appResources, getAarPackage(aarDir));

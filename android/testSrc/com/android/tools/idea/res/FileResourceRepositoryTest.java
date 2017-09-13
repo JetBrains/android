@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static java.io.File.separatorChar;
@@ -93,7 +93,7 @@ public class FileResourceRepositoryTest extends TestCase {
   static FileResourceRepository getTestRepository() throws IOException {
     String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
                      "rendering" + separatorChar +
-                     EXPLODED_AAR + separatorChar +
+                     FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
     return FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);

@@ -27,6 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.util.Pair;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -431,7 +432,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // we're rendering in a library module, and Gradle sync has mapped an
     // AAR library to an existing library definition in the main module. In
     // that case we need to find the corresponding resources there.
-    int exploded = aarPath.indexOf(AndroidModuleModel.EXPLODED_AAR);
+    int exploded = aarPath.indexOf(FilenameConstants.EXPLODED_AAR);
     if (exploded != -1) {
       String suffix = aarPath.substring(exploded) + File.separator + FD_RES;
       for (LocalResourceRepository r : myLibraries) {

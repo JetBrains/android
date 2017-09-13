@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -67,7 +68,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
@@ -288,7 +288,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   public XmlPullParser getXmlFileParser(String fileName) {
     // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
     // layoutlib built-in directories
-    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
+    if (fileName.contains(FilenameConstants.EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
       return null;
     }
 
@@ -433,7 +433,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       String path = xml.getPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
       // layoutlib built-in directories
-      if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)) {
+      if (parent != null && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)) {
         String parentName = parent.getName();
         if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);

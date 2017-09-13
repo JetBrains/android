@@ -22,6 +22,7 @@ import com.android.ide.common.res2.ResourceRepository;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static java.io.File.separatorChar;
 
 public class ResourceClassGeneratorTest extends AndroidTestCase {
@@ -201,7 +201,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
     String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
                      "rendering" + separatorChar +
-                     EXPLODED_AAR + separatorChar +
+                     FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
     FileResourceRepository libraryRepository = FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);

@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.ProjectResourceRepositoryRootListener;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -36,7 +37,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 /**
  * The resource folder manager is responsible for returning the current set
@@ -290,7 +290,7 @@ public class ResourceFolderManager implements ModificationTracker {
         VirtualFile exploded = aar.getParent();
         if (exploded != null) {
           String name = exploded.getName();
-          if (name.equals(EXPLODED_AAR)) {
+          if (name.equals(FilenameConstants.EXPLODED_AAR)) {
             return true;
           }
         }

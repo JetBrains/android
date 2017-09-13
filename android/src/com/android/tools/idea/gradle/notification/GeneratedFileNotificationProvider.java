@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.notification;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
@@ -74,7 +74,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
         return null;
       }
 
-      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_AAR);
+      VirtualFile explodedBundled = buildFolder.findChild(FilenameConstants.EXPLODED_AAR);
       boolean inAar = explodedBundled != null && isAncestor(explodedBundled, file, true /* strict */);
       String text;
       if (inAar) {
