@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
@@ -34,7 +36,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
-  @Mock private GradleSyncListener mySyncListener;
+  @Mock private GradleSyncListener myGradleSyncListener;
+  @Mock private AndroidProjectSystem.SyncResultListener mySyncResultListener;
 
   private GradleSyncState mySyncState;
 
@@ -45,7 +48,8 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     MessageBus messageBus = mock(MessageBus.class);
-    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
+    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
+    when(messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)).thenReturn(mySyncResultListener);
 
     mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
                                       GradleFiles.getInstance(project), messageBus);
@@ -71,7 +75,8 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     assertNull(appAndroidFacet.getAndroidModel());
     assertNull(libAndroidFacet.getAndroidModel());
 
-    verify(mySyncListener).syncFailed(getProject(), "Error");
+    verify(myGradleSyncListener).syncFailed(getProject(), "Error");
+    verify(mySyncResultListener).syncEnded(AndroidProjectSystem.SyncResult.FAILURE);
   }
 
   public void testSyncErrorsFailSync() throws Exception {

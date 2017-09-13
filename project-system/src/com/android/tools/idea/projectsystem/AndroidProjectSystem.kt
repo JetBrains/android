@@ -18,10 +18,13 @@
 package com.android.tools.idea.projectsystem
 
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.messages.Topic
 import java.nio.file.Path
 
 /**
@@ -83,6 +86,11 @@ interface AndroidProjectSystem {
     USER_REQUEST;
   }
 
+  /** Listener which provides callbacks for the beginning and the end of syncs for an associated project */
+  interface SyncResultListener {
+    fun syncEnded(result: SyncResult)
+  }
+
   /**
    * Triggers synchronizing the IDE model with the build system model of the project. Source generation
    * may be triggered regardless of the value of {@code requireSourceGeneration}, though implementing classes may
@@ -137,6 +145,10 @@ interface AndroidProjectSystem {
                       destinationContents: String,
                       supportLibVersionFilter: String?): String
 }
+
+/** Endpoint for broadcasting changes in global sync status */
+@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic<AndroidProjectSystem.SyncResultListener>("Project sync",
+    AndroidProjectSystem.SyncResultListener::class.java)
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.

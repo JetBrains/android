@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -48,6 +49,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.Utils;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
@@ -249,6 +251,7 @@ public class GradleSyncState {
     stopSyncInProgress();
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
+    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(AndroidProjectSystem.SyncResult.SKIPPED));
 
     enableNotifications();
 
@@ -288,6 +291,7 @@ public class GradleSyncState {
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
+    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(AndroidProjectSystem.SyncResult.FAILURE));
 
     mySummary.setSyncErrorsFound(true);
   }
@@ -322,6 +326,7 @@ public class GradleSyncState {
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
+    syncPublisher(() -> myMessageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(AndroidProjectSystem.SyncResult.SUCCESS));
   }
 
   private long getSyncDurationMS(long syncEndTimestamp) {
