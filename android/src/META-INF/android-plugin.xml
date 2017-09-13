@@ -1273,7 +1273,6 @@
 
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
-    <buildSystemService implementation="com.android.tools.idea.gradle.project.GradleBuildSystemService"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">

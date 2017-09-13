@@ -17,8 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.project.BuildSystemServiceUtil;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;

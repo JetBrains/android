@@ -17,10 +17,8 @@ package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.project.BuildSystemService;
-import com.android.tools.idea.project.BuildSystemServiceUtil;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Parameter;
 import com.google.common.base.Splitter;
@@ -33,13 +31,11 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class AndroidGradleModuleUtils {
 
