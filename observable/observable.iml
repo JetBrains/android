@@ -11,15 +11,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$APPLICATION_HOME_DIR$/redist/annotations-java8.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="module" module-name="annotations-java8" />
     <orderEntry type="module" module-name="util" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="platform-impl" />
