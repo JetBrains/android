@@ -38,6 +38,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
 import com.android.utils.HtmlBuilder;
@@ -79,7 +80,6 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
@@ -849,9 +849,9 @@ public class AndroidJavaDocRenderer {
                 builder.add(" => ");
 
                 // AAR Library? Strip off prefix
-                int index = value.indexOf(EXPLODED_AAR);
+                int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
                 if (index != -1) {
-                  value = value.substring(index + EXPLODED_AAR.length() + 1);
+                  value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
                 }
 
                 builder.add(value);

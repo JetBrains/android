@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDepende
 import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -72,8 +73,6 @@ import static com.intellij.util.ArrayUtil.contains;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  public static final String EXPLODED_AAR = "exploded-aar";
-
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
 
@@ -673,7 +672,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       if (intermediates.isDirectory()) {
         for (File folderPath : notNullize(intermediates.listFiles())) {
           String folderName = folderPath.getName();
-          if (folderName.equals(EXPLODED_AAR) || folderName.equals("manifest")) {
+          if (folderName.equals(FilenameConstants.EXPLODED_AAR) || folderName.equals("manifest")) {
             continue;
           }
           excludedFolderPaths.add(folderPath);
