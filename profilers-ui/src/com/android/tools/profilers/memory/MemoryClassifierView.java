@@ -17,10 +17,9 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.ProfilerLayout;
-import icons.StudioIcons;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -29,8 +28,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +47,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 
 final class MemoryClassifierView extends AspectObserver {
@@ -227,7 +227,9 @@ final class MemoryClassifierView extends AspectObserver {
 
     // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
     myTree = new JTree();
-    myTree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+    int defaultFontHeight = myTree.getFontMetrics(myTree.getFont()).getHeight();
+    myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    myTree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(false);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

@@ -71,7 +71,6 @@ final class ThreadsView {
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myThreadsTable.setFont(AdtUiUtils.DEFAULT_FONT);
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
     myThreadsTable.setTableHeader(null);

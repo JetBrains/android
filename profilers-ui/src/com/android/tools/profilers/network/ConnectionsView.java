@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
 /**
@@ -55,8 +56,6 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BOR
  * for network profiling. Each row in the table represents a single connection.
  */
 final class ConnectionsView {
-  private static final int ROW_HEIGHT_PADDING = JBUI.scale(8);
-
   /**
    * Columns for each connection information
    */
@@ -209,11 +208,10 @@ final class ConnectionsView {
       }
     });
 
-    myConnectionsTable.setFont(AdtUiUtils.DEFAULT_FONT);
     myConnectionsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myConnectionsTable.setShowVerticalLines(true);
     myConnectionsTable.setShowHorizontalLines(false);
-    int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
+    int defaultFontHeight = myConnectionsTable.getFontMetrics(myConnectionsTable.getFont()).getHeight();
     myConnectionsTable.setRowMargin(0);
     myConnectionsTable.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
     myConnectionsTable.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
