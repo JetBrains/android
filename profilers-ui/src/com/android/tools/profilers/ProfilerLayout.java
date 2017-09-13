@@ -54,9 +54,11 @@ public class ProfilerLayout {
    */
   public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
 
-  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(2, 3, 2, 3);
+  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(3, 10, 3, 0);
+  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = new EmptyBorder(3, 0, 3, 10);
 
-  public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(0, 3, 0, 3);
+  public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
+  public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

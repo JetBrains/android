@@ -35,6 +35,11 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
     myTextGetter = textGetter;
     myIconGetter = iconGetter;
     myAlignment = alignment;
+    if (myAlignment == SwingConstants.LEFT) {
+      setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+    } else {
+      setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -59,7 +64,6 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
         setIcon(icon);
       }
       setTextAlign(myAlignment);
-      setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
     }
   }
 }
