@@ -37,8 +37,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBScrollBar;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +63,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
@@ -217,7 +217,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
@@ -231,7 +231,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
@@ -245,7 +245,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Total (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setComparator(DEFAULT_SORT_ORDER))
@@ -368,7 +368,11 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -402,7 +406,11 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -569,10 +577,12 @@ class CpuCaptureView {
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
     private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
+    private final int myAlignment;
 
     public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage, int alignment) {
       myGetter = getter;
       myPercentage = percentage;
+      myAlignment = alignment;
       setTextAlign(alignment);
     }
 
@@ -594,11 +604,16 @@ class CpuCaptureView {
         else {
           append(String.format("%,.0f", v));
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         // TODO: We should improve the visual feedback when no data is available.
         append(value.toString());
+      }
+      if (myAlignment == SwingConstants.LEFT) {
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+      }
+      else {
+        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
   }
@@ -626,7 +641,6 @@ class CpuCaptureView {
             append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
           }
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         append(value.toString());

@@ -54,12 +54,22 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
        */
       String text = myTextGetter.apply((MemoryObjectTreeNode<T>)value);
       append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES, text);
+      setTextAlign(myAlignment);
+
       Icon icon = myIconGetter.apply((MemoryObjectTreeNode<T>)value);
       if (icon != null) {
         setIcon(icon);
       }
-      setTextAlign(myAlignment);
-      setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+      else {
+        // Only include cell insets if we don't have an icon. Otherwise, the padding appears between the text and icon instead of all
+        // the way on the left of the cell.
+        if (myAlignment == SwingConstants.LEFT) {
+          setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+        }
+        else {
+          setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
+        }
+      }
     }
   }
 }

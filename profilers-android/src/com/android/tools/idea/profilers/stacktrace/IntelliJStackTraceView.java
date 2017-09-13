@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
@@ -187,6 +188,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
+      setIpad(ProfilerLayout.LIST_ROW_INSETS);
       if (value instanceof CodeElement) {
         renderStackNavigation((CodeElement)value, selected);
       }
