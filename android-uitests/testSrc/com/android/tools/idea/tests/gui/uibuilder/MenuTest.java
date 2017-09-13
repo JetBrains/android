@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -168,9 +169,12 @@ public final class MenuTest {
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
     NlEditorFixture editor = myEditor.getLayoutEditor(false);
-
     editor.waitForRenderToFinish();
-    editor.getPalette().dragComponent("", item);
+
+    JListFixture list = editor.getPalette().getItemList("");
+    list.replaceCellReader(new ItemTitleListCellReader());
+    list.drag(item);
+
     editor.getSurface().drop(point);
   }
 }
