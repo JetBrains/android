@@ -38,7 +38,7 @@
     <orderEntry type="module" module-name="instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
-      <library>
+      <library name="dexlib2-2.0.8-dev">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
           <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
