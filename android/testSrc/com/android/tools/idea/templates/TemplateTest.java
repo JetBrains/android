@@ -717,6 +717,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testWatchFaceServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "WatchFaceService", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewValueResourceFile() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "ValueResourceFile");
