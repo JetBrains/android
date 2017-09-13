@@ -36,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -124,9 +126,17 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-          // Track first, so current stage is sent with the event
-          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMonitor();
-          monitor.expand();
+          expandMonitor(monitor);
+        }
+      });
+      component.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+          if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (monitor.isFocused()) {
+              expandMonitor(monitor);
+            }
+          }
         }
       });
       int weight = (int)(view.getVerticalWeight() * 100f);
@@ -159,6 +169,12 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       myTooltip.add(component, BorderLayout.CENTER);
     }
     myTooltip.repaint();
+  }
+
+  private void expandMonitor(ProfilerMonitor monitor) {
+    // Track first, so current stage is sent with the event
+    getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMonitor();
+    monitor.expand();
   }
 
   @Override

@@ -42,6 +42,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
   @Override
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
+    container.setFocusable(true);
 
     JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
