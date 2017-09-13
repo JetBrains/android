@@ -78,7 +78,6 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myListView.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myListView.setCellRenderer(new StackElementRenderer());
-    myListView.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
     myScrollPane = new JBScrollPane(myListView);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -173,6 +172,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
+      setIpad(ProfilerLayout.LIST_ROW_INSETS);
       if (value instanceof CodeElement) {
         renderStackNavigation((CodeElement)value, selected);
       }

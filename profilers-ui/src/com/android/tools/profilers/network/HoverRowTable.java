@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;
@@ -92,6 +93,11 @@ final class HoverRowTable extends JBTable {
 
   @Override
   public void paint(@NotNull Graphics g) {
+    if (g instanceof Graphics2D) {
+      // Manually set the KEY_TEXT_LCD_CONTRAST here otherwise JTable/JList use inconsistent values by default compared to the rest
+      // of the IntelliJ UI.
+      ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST, UIUtil.getLcdContrastValue());
+    }
     super.paint(g);
     // Draw column line down to bottom of table, matches the look and feel of BasicTableUI#paintGrid which is private and cannot override.
     g.setColor(getGridColor());

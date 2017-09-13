@@ -32,7 +32,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 
 /**
@@ -339,7 +339,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
     // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
     final JTree tree = new JTree(treeModel);
-    tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+    int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+    tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

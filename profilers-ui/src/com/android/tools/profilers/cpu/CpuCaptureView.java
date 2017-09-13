@@ -36,7 +36,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +58,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
@@ -375,7 +375,9 @@ class CpuCaptureView {
       myPanel = new JPanel(new CardLayout());
       // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
       final JTree tree = new JTree();
-      tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -411,7 +413,9 @@ class CpuCaptureView {
       myPanel = new JPanel(new CardLayout());
       // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
       final JTree tree = new JTree();
-      tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -612,7 +616,8 @@ class CpuCaptureView {
       }
       if (myAlignment == SwingConstants.LEFT) {
         setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
-      } else {
+      }
+      else {
         setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
