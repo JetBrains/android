@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-@Ignore("https://android-devtools-builder.corp.google.com/builders/studio-unreliable_nightly/builds/34")
 public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
