@@ -43,6 +43,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
   @Override
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
+    container.setFocusable(true);
 
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
