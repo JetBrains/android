@@ -70,8 +70,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
     else if (projectJdk == null || !myJdks.isApplicableJdk(projectJdk, javaLangVersion)) {
       ideJdk = myJdks.chooseOrCreateJavaSdk(javaLangVersion);
     }
-    else if (application.isUnitTestMode()) {
-      // Let tests have a JDK when being executed inside the IDE, or when tests are executed as IDEA.
+    else {
       ideJdk = projectJdk;
     }
 
