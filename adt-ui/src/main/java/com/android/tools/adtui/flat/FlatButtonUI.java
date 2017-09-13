@@ -67,7 +67,8 @@ class FlatButtonUI extends BasicButtonUI {
   @Override
   public void paint(Graphics g, JComponent c) {
     AbstractButton b = (AbstractButton)c;
-    if (myHover || b.isSelected()) {
+    // TODO: Create a unique style for showing focus on buttons, for now use the hover state visuals.
+    if (myHover || b.isSelected() || b.isFocusOwner()) {
       FlatUiUtils.paintBackground(g, c);
     }
     super.paint(g, c);
