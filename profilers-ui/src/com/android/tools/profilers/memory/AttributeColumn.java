@@ -19,9 +19,10 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import javax.swing.border.Border;
 import java.util.Comparator;
 import java.util.function.Supplier;
 
@@ -46,13 +47,20 @@ class AttributeColumn<T extends MemoryObject> {
 
   @NotNull
   public ColumnTreeBuilder.ColumnBuilder getBuilder() {
+    Border border;
+    if (myHeaderAlignment == SwingConstants.LEFT) {
+      border = ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+    } else {
+      border = ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
+    }
+
     return new ColumnTreeBuilder.ColumnBuilder()
       .setName(myName)
       .setRenderer(myRendererSuppier.get())
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
       .setComparator(myComparator)
-      .setHeaderBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+      .setHeaderBorder(border);
   }
 
   public Comparator<MemoryObjectTreeNode<T>> getComparator() {
