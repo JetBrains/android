@@ -82,9 +82,7 @@ public class ConvertToConstraintLayoutTest {
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:id=\"@+id/absoluteLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"match_parent\"\n" +
-                 "    tools:layout_editor_absoluteX=\"<test>\"\n" +
-                 "    tools:layout_editor_absoluteY=\"<test>\">\n" +
+                 "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button\"\n" +
@@ -202,9 +200,7 @@ public class ConvertToConstraintLayoutTest {
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:id=\"@+id/linearLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    tools:layout_editor_absoluteX=\"<test>\"\n" +
-                 "    tools:layout_editor_absoluteY=\"<test>\">\n" +
+                 "    android:layout_height=\"wrap_content\">\n" +
                  "\n" +
                  "    <TextView\n" +
                  "        android:id=\"@+id/title\"\n" +

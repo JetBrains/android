@@ -608,7 +608,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
-    if (value != 0) {
+    if (value > 0) {
       String position = String.format(VALUE_N_DP, value);
       transaction.setAttribute(uri, attribute, position);
     }

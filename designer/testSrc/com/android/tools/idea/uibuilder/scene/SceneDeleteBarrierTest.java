@@ -37,7 +37,8 @@ public class SceneDeleteBarrierTest extends SceneTest {
     myScreen.get("@id/root")
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "                                            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "  android:id=\"@id/root\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    android:id=\"@id/root\"\n" +
                  "  android:layout_width=\"1000dp\"\n" +
                  "  android:layout_height=\"1000dp\"\n" +
                  "  android:padding=\"20dp\">\n" +
@@ -45,7 +46,9 @@ public class SceneDeleteBarrierTest extends SceneTest {
                  "    <android.support.constraint.ConstraintHelper\n" +
                  "        android:id=\"@id/barrier\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
-                 "        android:layout_height=\"20dp\" />\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"526dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }
