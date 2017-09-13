@@ -60,6 +60,7 @@ import java.util.function.Function;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
@@ -221,7 +222,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
@@ -235,7 +236,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
@@ -249,7 +250,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Total (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setComparator(DEFAULT_SORT_ORDER))
@@ -554,6 +555,12 @@ class CpuCaptureView {
       myGetter = getter;
       myPercentage = percentage;
       setTextAlign(alignment);
+      if (alignment == SwingConstants.LEFT) {
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+      } else {
+        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
+      }
+
     }
 
     @Override
@@ -574,7 +581,6 @@ class CpuCaptureView {
         else {
           append(String.format("%,.0f", v));
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         // TODO: We should improve the visual feedback when no data is available.

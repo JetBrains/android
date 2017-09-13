@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -294,7 +296,7 @@ final class ConnectionsView {
   private static class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
     @Override
     public void setBorder(Border border) {
-      super.setBorder(DefaultTableCellRenderer.noFocusBorder);
+      super.setBorder(new EmptyBorder(ProfilerLayout.TABLE_COLUMN_CELL_INSETS));
     }
   }
 
