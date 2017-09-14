@@ -19,13 +19,16 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * {@link NavBaseDrawCommand} Base class for navigation related draw commands.
  */
 public abstract class NavBaseDrawCommand implements DrawCommand {
   protected static final int DRAW_ACTION = COMPONENT_LEVEL + 1;
   protected static final int DRAW_SCREEN_LABEL = DRAW_ACTION + 1;
-  protected static final int DRAW_NAV_SCREEN = DRAW_SCREEN_LABEL + 1;
+  protected static final int DRAW_ICON = DRAW_SCREEN_LABEL + 1;
+  protected static final int DRAW_NAV_SCREEN = DRAW_ICON + 1;
   protected static final int DRAW_ACTION_HANDLE = DRAW_NAV_SCREEN + 1;
   protected static final int DRAW_ACTION_HANDLE_DRAG = DRAW_ACTION_HANDLE + 1;
 
@@ -37,4 +40,21 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
 
   @NotNull
   protected abstract Object[] getProperties();
+
+  @NotNull
+  protected static String rectToString(@NotNull Rectangle r) {
+    return r.x + "x" + r.y + "x" + r.width + "x" + r.height;
+  }
+
+  @NotNull
+  protected static Rectangle stringToRect(@NotNull String s) {
+    String[] sp = s.split("x");
+    int c = -1;
+    Rectangle r = new Rectangle();
+    r.x = Integer.parseInt(sp[++c]);
+    r.y = Integer.parseInt(sp[++c]);
+    r.width = Integer.parseInt(sp[++c]);
+    r.height = Integer.parseInt(sp[++c]);
+    return r;
+  }
 }

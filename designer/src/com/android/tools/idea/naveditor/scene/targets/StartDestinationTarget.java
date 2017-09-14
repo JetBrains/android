@@ -30,6 +30,7 @@ import java.awt.*;
  * Target responsible for adding the "Initial Destination" arrow.
  *
  * TODO: add support for editing as a pseudo-property on destinations
+ * TODO: 63031461 repurpose this class for global actions
  */
 public class StartDestinationTarget extends BaseTarget {
 

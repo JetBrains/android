@@ -204,6 +204,13 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     return descriptor;
   }
 
+  @NotNull
+  protected DeepLinkComponentDescriptor deepLinkComponent(@NotNull String uri) {
+    DeepLinkComponentDescriptor descriptor = new DeepLinkComponentDescriptor();
+    descriptor.withUriAttribute(uri);
+    return descriptor;
+  }
+
   protected static class NavigationComponentDescriptor extends ComponentDescriptor {
     public NavigationComponentDescriptor() {
       super(TAG_NAVIGATION);
@@ -255,6 +262,18 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   protected static class IncludeComponentDescriptor extends ComponentDescriptor {
     public IncludeComponentDescriptor() {
       super("include");
+    }
+  }
+
+  protected static class DeepLinkComponentDescriptor extends ComponentDescriptor {
+    public DeepLinkComponentDescriptor() {
+      super(NavigationSchema.TAG_DEEPLINK);
+    }
+
+    @NotNull
+    public DeepLinkComponentDescriptor withUriAttribute(@NotNull String uri) {
+      withAttribute(AUTO_URI, "uri", uri);
+      return this;
     }
   }
 }
