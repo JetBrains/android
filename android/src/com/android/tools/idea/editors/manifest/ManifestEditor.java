@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
@@ -136,31 +138,21 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   public void selectNotify() {
     mySelected = true;
 
-    final Project thisProject = myFacet.getModule().getProject();
+    final Project project = myFacet.getModule().getProject();
     if (myManifestPanel == null) {
       myManifestPanel = new ManifestPanel(myFacet);
       myLazyContainer.add(myManifestPanel);
-      // Parts of the merged manifest come from the gradle model, so we want to know
+      // Parts of the merged manifest come from the project's build model, so we want to know
       // if that changes so we can get the latest values.
-      GradleSyncState.subscribe(thisProject, new GradleSyncListener.Adapter() {
-        @Override
-        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-          if (thisProject == project) {
-            reload();
-          }
+      project.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+        if (result == AndroidProjectSystem.SyncResult.FAILURE || result == AndroidProjectSystem.SyncResult.SUCCESS) {
+          reload();
         }
-
-        @Override
-        public void syncSucceeded(@NotNull Project project) {
-          if (thisProject == project) {
-            reload();
-          }
-        }
-      }, this);
+      });
     }
 
-    PsiManager.getInstance(thisProject).addPsiTreeChangeListener(myPsiChangeListener);
-    BuildVariantView.getInstance(thisProject).addListener(buildVariantListener);
+    PsiManager.getInstance(project).addPsiTreeChangeListener(myPsiChangeListener);
+    BuildVariantView.getInstance(project).addListener(buildVariantListener);
     reload();
   }
 

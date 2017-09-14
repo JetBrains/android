@@ -17,7 +17,6 @@ package com.android.tools.idea.startup;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.*;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -36,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Delay the initialization of various tasks until the build state is known.
@@ -61,7 +62,13 @@ public class DelayedInitialization {
     myBuildState = buildState;
     myRunnables = new ArrayList<>();
     GradleBuildState.subscribe(project, new BuildListener());
-    GradleSyncState.subscribe(project, new SyncListener());
+
+    project.getMessageBus().connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result == AndroidProjectSystem.SyncResult.SKIPPED || result == AndroidProjectSystem.SyncResult.FAILURE) {
+        afterBuild();
+      }
+    });
+
     runAfterBuild(this::clearResourceCache, null);
   }
 
@@ -157,18 +164,6 @@ public class DelayedInitialization {
     BUILD_NEEDED,
     BUILD_ERROR,
     BUILD_SUCCESS
-  }
-
-  private class SyncListener extends GradleSyncListener.Adapter {
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      afterBuild();
-    }
-
-    @Override
-    public void syncSkipped(@NotNull Project project) {
-      afterBuild();
-    }
   }
 
   private class BuildListener extends GradleBuildListener.Adapter {
