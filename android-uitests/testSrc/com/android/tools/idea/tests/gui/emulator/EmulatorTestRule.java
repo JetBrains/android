@@ -43,7 +43,7 @@ public class EmulatorTestRule extends ExternalResource {
 
   @Override
   protected void after() {
-    getEmulatorConnection().killEmulatorProcesses();
+    getEmulatorConnection().killEmulator();
     // Remove all AVDs
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
       getEmulatorConnection().deleteAvd(avdInfo);
