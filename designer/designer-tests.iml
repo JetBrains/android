@@ -32,6 +32,5 @@
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="artwork" scope="TEST" />
-    <orderEntry type="module" module-name="project-system" scope="TEST" />
   </component>
 </module>

@@ -36,7 +36,6 @@ iml_module(
         "//tools/base/flags:studio.flags[module]",
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/android-common[module]",
-        "//tools/adt/idea/project-system[module]",
     ],
 )
 
@@ -100,6 +99,5 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle[test]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/adt/idea/artwork[module, test]",
-        "//tools/adt/idea/project-system[module, test]",
     ],
 )

@@ -23,6 +23,7 @@ import com.android.tools.apk.analyzer.internal.AndroidArtifact;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.ZipArtifact;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
