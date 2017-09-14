@@ -76,78 +76,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
   }
 
   override fun syncProject(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
-    val syncResult = SettableFuture.create<AndroidProjectSystem.SyncResult>()
-
-    if (GradleSyncState.getInstance(project).isSyncInProgress) {
-      syncResult.setException(RuntimeException("A sync was requested while one is already in progress. Use"
-          + "GradleSyncState.isSyncInProgress to detect this scenario."))
-    }
-    else if (project.isInitialized) {
-      syncResult.setFuture(requestSync(reason, requireSourceGeneration))
-
-    }
-    else {
-      StartupManager.getInstance(project).runWhenProjectIsInitialized {
-        if (!GradleProjectInfo.getInstance(project).isNewOrImportedProject) {
-          // http://b/62543184
-          // If the project was created with the "New Project" wizard, there is no need to sync again.
-          syncResult.setFuture(requestSync(reason, requireSourceGeneration))
-        }
-        else {
-          syncResult.set(AndroidProjectSystem.SyncResult.SKIPPED)
-        }
-      }
-    }
-
-    return syncResult
-  }
-
-  @Contract(pure = true)
-  private fun convertReasonToTrigger(reason: AndroidProjectSystem.SyncReason): GradleSyncStats.Trigger {
-    return if (reason === AndroidProjectSystem.SyncReason.PROJECT_LOADED) {
-      GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
-    }
-    else if (reason === AndroidProjectSystem.SyncReason.PROJECT_MODIFIED) {
-      GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
-    }
-    else {
-      GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
-    }
-  }
-
-  private fun requestSync(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
-    val trigger = convertReasonToTrigger(reason)
-    val syncResult = SettableFuture.create<AndroidProjectSystem.SyncResult>()
-
-    val listener = object : GradleSyncListener.Adapter() {
-      override fun syncSucceeded(project: Project) {
-        syncResult.set(AndroidProjectSystem.SyncResult.SUCCESS)
-      }
-
-      override fun syncFailed(project: Project, errorMessage: String) {
-        syncResult.set(AndroidProjectSystem.SyncResult.FAILURE)
-      }
-
-      override fun syncSkipped(project: Project) {
-        syncResult.set(AndroidProjectSystem.SyncResult.SKIPPED)
-      }
-    }
-
-    val request = GradleSyncInvoker.Request().setTrigger(trigger)
-        .setGenerateSourcesOnSuccess(requireSourceGeneration).setRunInBackground(true)
-
-    if (GradleProjectInfo.getInstance(project).isNewOrImportedProject) {
-      request.setNewOrImportedProject()
-    }
-
-    try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
-    }
-    catch (t: Throwable) {
-      syncResult.setException(t)
-    }
-
-    return syncResult
+    return syncProject(project, reason, requireSourceGeneration)
   }
 
   /**
