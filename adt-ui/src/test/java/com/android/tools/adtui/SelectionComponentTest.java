@@ -154,6 +154,54 @@ public class SelectionComponentTest {
     assertEquals(10, model.getSelectionRange().getMax(), DELTA);
   }
 
+  @Test
+  public void leftKeyUpdatesModel() {
+    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
+    SelectionComponent component = new SelectionComponent(model);
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+    ui.keyboard.setFocus(component);
+    // Test no modifier keys shifts the entire model left.
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.LEFT, 9,19);
+
+    // Test shift expands the selection by shifting the min range but not the max.
+    ui.keyboard.press(FakeKeyboard.Key.SHIFT);
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.LEFT, 8,19);
+    ui.keyboard.release(FakeKeyboard.Key.SHIFT);
+
+    // Test alt shrinks the selection by shifting the max range but not the min.
+    ui.keyboard.press(FakeKeyboard.Key.ALT);
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.LEFT, 8,18);
+  }
+
+  @Test
+  public void rightKeyUpdatesModel() {
+    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
+    SelectionComponent component = new SelectionComponent(model);
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+    ui.keyboard.setFocus(component);
+
+    // Test no modifier keys shifts the entire model right.
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.RIGHT, 11,21);
+
+    // Test shift expands the selection by shifting the max range but not the min.
+    ui.keyboard.press(FakeKeyboard.Key.SHIFT);
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.RIGHT, 11,22);
+    ui.keyboard.release(FakeKeyboard.Key.SHIFT);
+
+    // Test alt shrinks the selection by shifting the min range but not the max.
+    ui.keyboard.press(FakeKeyboard.Key.ALT);
+    shiftAndValidateShift(ui, model, FakeKeyboard.Key.RIGHT, 12,22);
+  }
+
+  private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {
+    ui.keyboard.press(key);
+    assertEquals(min, model.getSelectionRange().getMin(), DELTA);
+    assertEquals(max, model.getSelectionRange().getMax(), DELTA);
+    ui.keyboard.release(key);
+  }
+
   private static int getMinHandleX(SelectionModel model) {
     return (int)model.getSelectionRange().getMin() - (SelectionComponent.HANDLE_WIDTH / 2);
   }

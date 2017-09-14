@@ -42,6 +42,8 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 
@@ -229,6 +231,14 @@ final class MemoryClassifierView extends AspectObserver {
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(false);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    myTree.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myTree.getSelectionCount() == 0) {
+          myTree.setSelectionRow(0);
+        }
+      }
+    });
 
     myTree.addTreeSelectionListener(e -> {
       TreePath path = e.getPath();
@@ -286,7 +296,6 @@ final class MemoryClassifierView extends AspectObserver {
         }
       }
     });
-
     builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
