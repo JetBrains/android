@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 
@@ -33,24 +34,29 @@ public class SceneDeleteBarrierTest extends SceneTest {
     SceneComponent layout = myScene.getSceneComponent("root");
     NlComponent layoutComponent = layout.getNlComponent();
     NlComponent toDelete = myScene.getSceneComponent("button").getNlComponent();
-    layoutComponent.getModel().delete(Arrays.asList(toDelete));
+    layoutComponent.getModel().delete(Collections.singletonList(toDelete));
+
+    @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
+    String expected = "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "                                            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                      "    android:id=\"@id/root\"\n" +
+                      "  android:layout_width=\"1000dp\"\n" +
+                      "  android:layout_height=\"1000dp\"\n" +
+                      "  android:padding=\"20dp\">\n" +
+                      "\n" +
+                      "    <android.support.constraint.ConstraintHelper\n" +
+                      "        android:id=\"@id/barrier\"\n" +
+                      "        android:layout_width=\"100dp\"\n" +
+                      "        android:layout_height=\"20dp\"\n" +
+                      "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                      "        tools:layout_editor_absoluteY=\"526dp\" />\n" +
+                      "\n" +
+                      "</android.support.constraint.ConstraintLayout>";
+
     myScreen.get("@id/root")
-      .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "                                            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-                 "    android:id=\"@id/root\"\n" +
-                 "  android:layout_width=\"1000dp\"\n" +
-                 "  android:layout_height=\"1000dp\"\n" +
-                 "  android:padding=\"20dp\">\n" +
-                 "\n" +
-                 "    <android.support.constraint.ConstraintHelper\n" +
-                 "        android:id=\"@id/barrier\"\n" +
-                 "        android:layout_width=\"100dp\"\n" +
-                 "        android:layout_height=\"20dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"526dp\" />\n" +
-                 "\n" +
-                 "</android.support.constraint.ConstraintLayout>");
+      .expectXml(expected);
   }
 
   @Override
@@ -79,7 +85,7 @@ public class SceneDeleteBarrierTest extends SceneTest {
                        .width("100dp")
                        .height("20dp")
                        .withAttribute("app:constraint_referenced_ids", "button")
-                     )
-                   );
+                   )
+    );
   }
 }
