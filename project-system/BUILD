@@ -13,5 +13,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/common:studio.common[module]",
+        "//tools/idea/platform/annotations/common:annotations-common[module]",
     ],
 )
