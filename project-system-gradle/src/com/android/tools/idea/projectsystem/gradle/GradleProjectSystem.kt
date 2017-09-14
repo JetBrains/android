@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
@@ -109,5 +110,9 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
 
   override fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
+  }
+
+  override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
+    return supportsPngGeneration(module)
   }
 }

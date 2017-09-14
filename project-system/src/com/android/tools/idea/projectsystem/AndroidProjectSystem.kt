@@ -53,6 +53,12 @@ interface AndroidProjectSystem {
    */
   fun allowsFileCreation(): Boolean
 
+  /**
+   * Determines whether or not the underlying build system is capable of generating a PNG
+   * from vector graphics.
+   */
+  fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus
+
   /** The result of a sync request */
   enum class SyncResult(val isSuccessful: Boolean) {
     /** The user cancelled the sync */
@@ -132,14 +138,14 @@ interface AndroidProjectSystem {
                       supportLibVersionFilter: String?): String
 }
 
-private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
-
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
  */
 fun Project.getProjectSystem(): AndroidProjectSystem {
   return this.getComponent(ProjectSystemComponent::class.java).projectSystem
 }
+
+private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 internal fun detectProjectSystem(project: Project): AndroidProjectSystem {
   val extensions = EP_NAME.getExtensions(project)
