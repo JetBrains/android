@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
@@ -38,6 +39,17 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    * The first version of the patcher that actually works reliably.
    */
   private static final String KNOWN_GOOD_VERSION = PatchInstallerUtil.PATCHER_PATH_PREFIX + RepoPackage.PATH_SEPARATOR + "v4";
+
+  private final PatchRunner.Factory myPatchRunnerFactory;
+
+  public PatchInstallerFactory() {
+    this(new PatchRunner.DefaultFactory());
+  }
+
+  @VisibleForTesting
+  PatchInstallerFactory(@NotNull PatchRunner.Factory runnerFactory) {
+    myPatchRunnerFactory = runnerFactory;
+  }
 
   @NotNull
   @Override
@@ -94,13 +106,18 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     if (hasPatch(local, remote)) {
       // If a patch is available, make sure we can get the patcher itself
       LocalPackage patcher = PatchInstallerUtil.getDependantPatcher((RemotePackage)p, manager);
-      if (patcher != null && PatchRunner.getPatchRunner(patcher, progress, fop) != null) {
+      if (patcher != null && myPatchRunnerFactory.getPatchRunner(patcher, progress, fop) != null) {
         return true;
       }
 
       // Maybe it's not installed yet, but is being installed right now as part of the same operation.
       if (PatchInstallerUtil.getInProgressDependantPatcherInstall((RemotePackage)p, manager) != null) {
         return true;
+      }
+
+      // We don't have the right patcher. Give up unless we're on Windows.
+      if (!fop.isWindows()) {
+        return false;
       }
     }
 
