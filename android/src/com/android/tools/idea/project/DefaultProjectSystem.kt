@@ -17,7 +17,9 @@ package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -62,10 +64,4 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     return emptyList()
   }
-
-  override fun addDependency(sourceContext: VirtualFile, artifact: GoogleMavenArtifact) {}
-
-  override fun findArtifact(artifactId: GoogleMavenArtifactId): GoogleMavenArtifact? = null
-
-  override fun getDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId): GoogleMavenArtifact? = null
 }
