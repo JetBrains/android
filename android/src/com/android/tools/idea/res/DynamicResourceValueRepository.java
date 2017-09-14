@@ -24,9 +24,8 @@ import com.android.ide.common.res2.ResourceNamespaces;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -44,6 +43,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 /**
  * Resource repository which contains dynamically registered resource items from the model.
  *
@@ -56,7 +57,7 @@ import java.util.Set;
  * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
-  implements GradleSyncListener, BuildVariantView.BuildVariantSelectionChangeListener {
+  implements BuildVariantView.BuildVariantSelectionChangeListener {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
   private final String myNamespace;
@@ -67,7 +68,14 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     myNamespace = namespace;
     assert facet.requiresAndroidModel();
     Module module = facet.getModule();
-    MessageBusConnection parent = GradleSyncState.subscribe(module.getProject(), this, module);
+
+    MessageBusConnection parent = module.getProject().getMessageBus().connect(module);
+    parent.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result == AndroidProjectSystem.SyncResult.SUCCESS) {
+        notifyProjectSynced();
+      }
+    });
+
     Disposer.register(parent, this);
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
@@ -123,7 +131,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return myFullTable;
   }
 
-  private void notifyGradleSynced() {
+  private void notifyProjectSynced() {
     myFullTable.clear(); // compute lazily in getMap
     super.invalidateParentCaches();
   }
@@ -178,34 +186,11 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return Collections.singleton(myNamespace);
   }
 
-  // ---- Implements GradleSyncListener ----
-
-  @Override
-  public void syncStarted(@NotNull Project project) {
-  }
-
-  @Override
-  public void setupStarted(@NotNull Project project) {
-  }
-
-  @Override
-  public void syncSucceeded(@NotNull Project project) {
-    notifyGradleSynced();
-  }
-
-  @Override
-  public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-  }
-
-  @Override
-  public void syncSkipped(@NotNull Project project) {
-  }
-
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
 
   @Override
   public void selectionChanged() {
-    notifyGradleSynced();
+    notifyProjectSynced();
   }
 
   @NotNull

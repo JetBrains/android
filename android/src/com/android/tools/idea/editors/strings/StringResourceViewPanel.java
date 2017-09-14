@@ -22,10 +22,9 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
@@ -62,6 +61,8 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
@@ -242,19 +243,15 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void addResourceChangeListenerOrSubscribe() {
-    if (!GradleProjectInfo.getInstance(myFacet.getModule().getProject()).isBuildWithGradle() || AndroidModuleModel.get(myFacet) != null) {
+    Project project = myFacet.getModule().getProject();
+
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle() || AndroidModuleModel.get(myFacet) != null) {
       addResourceChangeListener();
       return;
     }
 
-    GradleSyncState.subscribe(myFacet.getModule().getProject(), new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        addResourceChangeListener();
-      }
-
-      @Override
-      public void syncSkipped(@NotNull Project project) {
+    project.getMessageBus().connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result.isSuccessful()) {
         addResourceChangeListener();
       }
     });
