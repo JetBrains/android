@@ -118,13 +118,6 @@ interface AndroidProjectSystem {
   fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Adds a dependency to the given module.
-   *
-   * TODO: Figure out and document the format for the dependency strings
-   */
-  fun addDependency(module: Module, dependency: String)
-
-  /**
    * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
    * text files describing the steps for building a single android application or library.
    *

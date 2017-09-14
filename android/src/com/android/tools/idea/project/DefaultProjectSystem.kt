@@ -50,9 +50,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return Futures.immediateFuture(AndroidProjectSystem.SyncResult.FAILURE)
   }
 
-  override fun addDependency(module: Module, dependency: String) {
-  }
-
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     return destinationContents
   }
