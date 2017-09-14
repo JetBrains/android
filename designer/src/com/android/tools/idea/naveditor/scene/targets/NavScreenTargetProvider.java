@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
-
 /**
  * {@link TargetProvider} for navigation screens.
  *
@@ -78,13 +76,8 @@ public class NavScreenTargetProvider implements TargetProvider {
     if (mySchema.getDestinationSubtags(nlComponent.getTagName()).containsKey(NavActionElement.class)) {
       result.add(new ActionHandleTarget(sceneComponent));
     }
-    result.add(new ScreenLabelTarget(sceneComponent));
-    NlComponent parentNlComponent = parent.getNlComponent();
-    String startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);
-    startDestination = NlComponent.stripId(startDestination);
-    if (startDestination != null && startDestination.equals(sceneComponent.getId())) {
-      result.add(new StartDestinationTarget(sceneComponent));
-    }
+
+    result.add(new ScreenHeaderTarget(sceneComponent));
     return result;
   }
 }

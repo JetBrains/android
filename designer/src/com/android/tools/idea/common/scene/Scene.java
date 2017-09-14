@@ -30,6 +30,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
+import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -927,9 +928,11 @@ public class Scene implements SelectionListener, Disposable {
     if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent) {
       myNewSelectedComponents.add(myHitComponent);
     }
+    // TODO: Refactor this to use an override method instead of type checks
     if (myHitTarget instanceof ActionTarget
         || myHitTarget instanceof GuidelineTarget
-        || myHitTarget instanceof BarrierTarget) {
+        || myHitTarget instanceof BarrierTarget
+        || myHitTarget instanceof ScreenHeaderTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
       myNewSelectedComponents.clear();
