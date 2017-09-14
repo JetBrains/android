@@ -354,7 +354,9 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -388,7 +390,9 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -550,17 +554,13 @@ class CpuCaptureView {
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
     private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
+    private final int myAlignment;
 
     public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage, int alignment) {
       myGetter = getter;
       myPercentage = percentage;
+      myAlignment = alignment;
       setTextAlign(alignment);
-      if (alignment == SwingConstants.LEFT) {
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
-      } else {
-        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
-      }
-
     }
 
     @Override
@@ -585,6 +585,11 @@ class CpuCaptureView {
       else {
         // TODO: We should improve the visual feedback when no data is available.
         append(value.toString());
+      }
+      if (myAlignment == SwingConstants.LEFT) {
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+      } else {
+        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
   }
@@ -612,7 +617,6 @@ class CpuCaptureView {
             append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
           }
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         append(value.toString());

@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ProfilerLayout;
 import icons.StudioIcons;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
@@ -222,7 +223,9 @@ final class MemoryClassifierView extends AspectObserver {
 
     assert myColumnTree == null && myTreeModel == null && myTreeRoot == null && myTree == null;
 
-    myTree = new Tree();
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    myTree = new JTree();
+    myTree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(false);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
