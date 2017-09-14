@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -42,10 +43,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,6 +66,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
@@ -72,6 +77,7 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -538,5 +544,35 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
                                             .hasGroup("Unresolved dependencies")
                                             .hasMessageLine("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.", 0);
     // @formatter:on
+  }
+
+  public void testSyncWithAARDependencyAddsSources() throws Exception {
+    Project project = getProject();
+
+    loadProject(SIMPLE_APPLICATION);
+
+    Module appModule = getModule("app");
+
+    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
+        project, () -> {
+          GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+
+          buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
+
+          String newDependency = "com.foo.bar:bar:0.1@aar";
+          buildModel.dependencies().addArtifact(COMPILE, newDependency);
+          buildModel.applyChanges();
+        }));
+
+    requestSyncAndWait();
+
+    // Verify that the library has sources.
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    String libraryName = "com.foo.bar:bar-0.1";
+    Library library = libraryTable.getLibraryByName(libraryName);
+
+    assertNotNull("Library " + libraryName + " is missing", library);
+    VirtualFile[] files = library.getFiles(SOURCES);
+    assertThat(files).asList().hasSize(1);
   }
 }
