@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.build.OutputFile;
+import com.android.builder.model.*;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -32,7 +37,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -51,25 +55,36 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   public static final String ANALYZE = "analyze:";
   public static final String MODULE = "module:";
   @NotNull private final Project myProject;
-  @NotNull private final Map<Module, File> myModulesAndApkPaths;
+  @Nullable private final Collection<Module> myModules;
   @NotNull private final String myNotificationTitle;
 
+  private Map<Module, File> myModulesAndApkPaths;
+
   public GoToApkLocationTask(@NotNull Map<Module, File> modulesAndPaths, @NotNull String notificationTitle) {
-    this(modulesAndPaths.entrySet().iterator().next().getKey().getProject(), modulesAndPaths, notificationTitle);
+    this(modulesAndPaths.entrySet().iterator().next().getKey().getProject(), modulesAndPaths, null, notificationTitle);
+  }
+  public GoToApkLocationTask(@NotNull Collection<Module> modules, @NotNull String notificationTitle) {
+    this(modules.iterator().next().getProject(), null, modules, notificationTitle);
   }
 
   @VisibleForTesting
   GoToApkLocationTask(@NotNull Project project,
-                      @NotNull Map<Module, File> modulesAndPaths,
+                      @Nullable Map<Module, File> modulesAndPaths,
+                      @Nullable Collection<Module> modules,
                       @NotNull String notificationTitle) {
     myProject = project;
     myModulesAndApkPaths = modulesAndPaths;
+    myModules = modules;
     myNotificationTitle = notificationTitle;
   }
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
     try {
+      if (myModulesAndApkPaths == null) {
+        myModulesAndApkPaths = getModulesAndPaths(result.getModel());
+      }
+
       List<String> moduleNames = new ArrayList<>();
       Map<String, File> apkPathsByModule = new HashMap<>();
       for (Map.Entry<Module, File> moduleAndApkPath : myModulesAndApkPaths.entrySet()) {
@@ -132,6 +147,97 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       // See https://code.google.com/p/android/issues/detail?id=195369
       GradleBuildInvoker.getInstance(myProject).remove(this);
     }
+  }
+
+  /**
+   * Generates a map from module to the location (either the apk itself if only one or to the folder if multiples).
+   */
+  @NotNull
+  @VisibleForTesting
+  Map<Module, File> getModulesAndPaths(@Nullable Object model) {
+    assert myModules != null;
+
+    Map<Module, File> modulesAndPaths = new HashMap<>();
+    PostBuildModel postBuildModel = null;
+
+    if (model != null && model instanceof OutputBuildAction.PostBuildProjectModels) {
+      postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels) model);
+    }
+
+    for (Module module : myModules) {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (androidModel == null) {
+        continue;
+      }
+
+      File outputFolderOrApk = null;
+      if (postBuildModel != null) {
+        outputFolderOrApk = tryToGetOutputPostBuild(androidModel, module, postBuildModel);
+        if (outputFolderOrApk == null) {
+          outputFolderOrApk = tryToGetOutputPostBuildInstantApp(androidModel, module, postBuildModel);
+        }
+      }
+      if (outputFolderOrApk == null) {
+        outputFolderOrApk = tryToGetOutputPreBuild(androidModel);
+      }
+
+      modulesAndPaths.put(module, outputFolderOrApk);
+    }
+
+    return modulesAndPaths;
+  }
+
+  @Nullable
+  private static File tryToGetOutputPostBuild(@NotNull AndroidModuleModel androidModel,
+                                              @NotNull Module module,
+                                              @NotNull PostBuildModel postBuildModel) {
+    if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+      ProjectBuildOutput projectBuildOutput = postBuildModel.findProjectBuildOutput(module);
+      if (projectBuildOutput != null) {
+        for (VariantBuildOutput variantBuildOutput : projectBuildOutput.getVariantsBuildOutput()) {
+          if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+            Collection<OutputFile> outputs = variantBuildOutput.getOutputs();
+            File outputFolderOrApk;
+            if (outputs.size() == 1) {
+              outputFolderOrApk = outputs.iterator().next().getOutputFile();
+            }
+            else {
+              outputFolderOrApk = outputs.iterator().next().getOutputFile().getParentFile();
+            }
+            return outputFolderOrApk;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File tryToGetOutputPostBuildInstantApp(@NotNull AndroidModuleModel androidModel,
+                                                        @NotNull Module module,
+                                                        @NotNull PostBuildModel postBuildModel) {
+    if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_INSTANTAPP) {
+      InstantAppProjectBuildOutput instantAppProjectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(module);
+      if (instantAppProjectBuildOutput != null) {
+        for (InstantAppVariantBuildOutput variantBuildOutput : instantAppProjectBuildOutput.getInstantAppVariantsBuildOutput()) {
+          if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+            return variantBuildOutput.getOutput().getOutputFile();
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
+    Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    if (outputs.size() == 1) {
+      return outputs.iterator().next().getOutputFile();
+    }
+    return outputs.iterator().next().getOutputFile().getParentFile();
   }
 
   @VisibleForTesting
