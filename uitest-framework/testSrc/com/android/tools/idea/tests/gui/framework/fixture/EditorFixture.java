@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixt
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -423,7 +424,7 @@ public class EditorFixture {
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getAllEditors();
         for (FileEditor editor : editors) {
-          if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
+          if (editor instanceof TextEditor && editor.getComponent().isVisible()) {
             TextEditor textEditor = (TextEditor)editor;
             Document document = textEditor.getEditor().getDocument();
             PsiFile psiFile = PsiDocumentManager.getInstance(myFrame.getProject()).getPsiFile(document);
@@ -582,9 +583,16 @@ public class EditorFixture {
     return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
   }
 
-  public boolean isPreviewShowing() {
+  private boolean isPreviewShowing() {
     return GuiQuery.getNonNull(
       () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+  }
+
+  public boolean isPreviewShowing(@NotNull String fileName) {
+    return GuiQuery.getNonNull(() -> {
+      NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
+      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFile().getName());
+    });
   }
 
   public int getPreviewUpdateCount() {
