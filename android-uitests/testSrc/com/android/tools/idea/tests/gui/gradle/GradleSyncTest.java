@@ -573,35 +573,6 @@ public class GradleSyncTest {
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
-  @Ignore("fails; replace with headless integration test; see b/37730035")
-  @Test
-  public void aarSourceAttachments() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    Project project = ideFrame.getProject();
-
-    Module appModule = ideFrame.getModule("app");
-
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-      project, () -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-
-        String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
-        buildModel.dependencies().addArtifact(COMPILE, newDependency);
-        buildModel.applyChanges();
-      }));
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    // Verify that the library has sources.
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "mapbox-android-sdk-0.7.4";
-    Library library = libraryTable.getLibraryByName(libraryName);
-    VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).asList().hasSize(1);
-  }
-
   // https://code.google.com/p/android/issues/detail?id=185313
   @Test
   public void sdkCreationForAddons() throws IOException {
