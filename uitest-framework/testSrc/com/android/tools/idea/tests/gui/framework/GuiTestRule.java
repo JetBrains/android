@@ -16,16 +16,19 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -283,6 +286,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
+    System.out.println(String.format("Creating Gradle wrapper with version: %s for project %s", gradleVersion, projectDirPath));
     return GradleWrapper.create(projectDirPath, gradleVersion) != null;
   }
 
@@ -290,9 +294,14 @@ public class GuiTestRule implements TestRule {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
     localProperties.save();
+    System.out.println(String.format("Setting SDK path to %s", localProperties.getAndroidSdkPath()));
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
+    System.out.println(String.format("Maybe updating gradle plugin version to: %s (unless overwritten)",
+        BuildEnvironment.getInstance().getGradlePluginVersion()));
+    System.out.println(String.format("Maybe updating experimental gradle plugin version to: %s (unless overwritten)",
+        BuildEnvironment.getInstance().getExperimentalPluginVersion()));
     AndroidGradleTests.updateGradleVersions(projectPath);
   }
 
