@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.connection.assistant.actions
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.assistant.AssistActionHandler
 import com.android.tools.idea.assistant.datamodel.ActionData
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 /**
- * Used in Connection Assistant, allows user to restart ADB to scan for new connected Android devices.
+ * Allows user to scan their connected usb devices.
  */
-class RestartAdbAction : AssistActionHandler {
+class ListUsbDevicesAction : AssistActionHandler {
   companion object {
-    @JvmStatic val ACTION_ID = "connection.restart.adb"
+    @JvmStatic
+    val ACTION_ID: String = "connection.list.devices"
   }
 
   override fun getId(): String = ACTION_ID
 
   override fun handleAction(actionData: ActionData, project: Project) {
-    val adb = AndroidDebugBridge.getBridge() ?: return
-    ApplicationManager.getApplication().executeOnPooledThread { adb.restart() }
+    ListUsbDevicesActionStateManager.getInstance().refresh()
   }
 }
