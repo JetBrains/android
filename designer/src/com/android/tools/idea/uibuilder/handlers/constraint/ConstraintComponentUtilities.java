@@ -52,7 +52,7 @@ public final class ConstraintComponentUtilities {
 
   public static final HashMap<String, String> ourReciprocalAttributes;
   public static final HashMap<String, String> ourMapMarginAttributes;
-  public static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
+  private static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
   public static final ArrayList<String> ourLeftAttributes;
   public static final ArrayList<String> ourTopAttributes;
   public static final ArrayList<String> ourRightAttributes;
@@ -60,8 +60,8 @@ public final class ConstraintComponentUtilities {
   public static final ArrayList<String> ourStartAttributes;
   public static final ArrayList<String> ourEndAttributes;
   public static final ArrayList<String> ourBaselineAttributes;
-  public static final ArrayList<String> ourHorizontalAttributes;
-  public static final ArrayList<String> ourVerticalAttributes;
+  private static final ArrayList<String> ourHorizontalAttributes;
+  private static final ArrayList<String> ourVerticalAttributes;
 
   public static final HashMap<String, String> ourLayoutUriToPrefix = new HashMap<>();
 
@@ -70,7 +70,7 @@ public final class ConstraintComponentUtilities {
     ourLayoutUriToPrefix.put(SHERPA_URI, PREFIX_APP);
   }
 
-  public static final ArrayList<Pair<String, String>> ourLayoutAttributes = new ArrayList();
+  public static final ArrayList<Pair<String, String>> ourLayoutAttributes = new ArrayList<>();
 
   static {
     ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_WIDTH));
@@ -137,7 +137,7 @@ public final class ConstraintComponentUtilities {
 
   private static final HashMap<String, String> ourLTRConvertedAttributes = new HashMap<>();
   private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourLTRConstraintAnchorsToMargin = new HashMap<>();
-  public static final HashMap<String, AnchorTarget.Type> ourLTRMapSideToTargetAnchors = new HashMap<>();
+  private static final HashMap<String, AnchorTarget.Type> ourLTRMapSideToTargetAnchors = new HashMap<>();
 
   static {
     ourLTRConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_START_TO_START_OF);
@@ -165,7 +165,7 @@ public final class ConstraintComponentUtilities {
 
   private static final HashMap<String, String> ourRTLConvertedAttributes = new HashMap<>();
   private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourRTLConstraintAnchorsToMargin = new HashMap<>();
-  public static final HashMap<String, AnchorTarget.Type> ourRTLMapSideToTargetAnchors = new HashMap<>();
+  private static final HashMap<String, AnchorTarget.Type> ourRTLMapSideToTargetAnchors = new HashMap<>();
 
   static {
     ourRTLConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_END_TO_END_OF);
@@ -253,7 +253,7 @@ public final class ConstraintComponentUtilities {
     ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
     ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
   };
-  public static final String[] ourLayoutAttributesToClear = {
+  private static final String[] ourLayoutAttributesToClear = {
     ATTR_LAYOUT_MARGIN,
     ATTR_LAYOUT_MARGIN_LEFT,
     ATTR_LAYOUT_MARGIN_START,
@@ -364,7 +364,7 @@ public final class ConstraintComponentUtilities {
     }
     String attribute = ourConstraintAttributes.get(Pair.of(source, destination));
     if (useRtlAttributes) {
-      String converted = null;
+      String converted;
       if (isRtl) {
         converted = ourRTLConvertedAttributes.get(attribute);
       }
@@ -442,6 +442,7 @@ public final class ConstraintComponentUtilities {
     boolean isConnected = false;
     Pair pair = ourPotentialAttributes.get(type);
     if (pair != null) {
+      // noinspection ConstantConditions
       isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getFirst()) != null;
       isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getSecond()) != null;
     }
@@ -483,12 +484,6 @@ public final class ConstraintComponentUtilities {
 
   /**
    * Given a NlComponent and an attribute, return the corresponding AnchorTarget
-   *
-   * @param scene
-   * @param targetComponent
-   * @param attribute
-   * @param b
-   * @param rtl             @return
    */
   public static AnchorTarget getTargetAnchor(Scene scene,
                                              NlComponent targetComponent,
@@ -531,18 +526,18 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  public static boolean hasHorizontalConstraints(NlComponent component) {
+  private static boolean hasHorizontalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourHorizontalAttributes);
   }
 
-  public static boolean hasVerticalConstraints(NlComponent component) {
+  private static boolean hasVerticalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourVerticalAttributes);
   }
 
   /**
    * Return a dp value correctly resolved. This is only intended for generic
    * dimensions (number + unit). Do not use this if the string can contain
-   * wrap_content or match_parent. See {@link #getLayoutDimensionDpValue(NlComponent, String)}.
+   * wrap_content or match_parent.
    *
    * @param component the component we are looking at
    * @param value     the attribute value we want to parse
@@ -582,11 +577,15 @@ public final class ConstraintComponentUtilities {
    * @param component
    * @return
    */
-  public static NlComponent getOriginalComponent(@NotNull NlComponent component) {
+  private static NlComponent getOriginalComponent(@NotNull NlComponent component) {
     if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
       NlComponent parent = component.getParent();
+      assert parent != null;
+
       if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         parent = parent.getParent();
+        assert parent != null;
+
         if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT)) {
           for (NlComponent child : parent.getChildren()) {
             if (child.getId() != null && child.getId().equals(component.getId())) {
@@ -633,7 +632,7 @@ public final class ConstraintComponentUtilities {
     transaction.setAttribute(uri, attributes.getSecond(), null);
   }
 
-  public static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
+  private static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -710,6 +709,7 @@ public final class ConstraintComponentUtilities {
 
   public static void updateOnDelete(NlComponent component, String targetId) {
     AttributesTransaction transaction = null;
+    // noinspection ConstantConditions
     transaction = updateOnDelete(component, ourLeftAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourTopAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourRightAttributes, transaction, targetId);
@@ -724,10 +724,10 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static AttributesTransaction updateOnDelete(NlComponent component,
-                                                     ArrayList<String> attributes,
-                                                     AttributesTransaction transaction,
-                                                     String targetId) {
+  private static AttributesTransaction updateOnDelete(NlComponent component,
+                                                      ArrayList<String> attributes,
+                                                      AttributesTransaction transaction,
+                                                      String targetId) {
     if (isConnectedTo(component, attributes, targetId)) {
       if (transaction == null) {
         transaction = component.startAttributeTransaction();
@@ -737,7 +737,7 @@ public final class ConstraintComponentUtilities {
     return transaction;
   }
 
-  public static boolean isConnectedTo(NlComponent component, ArrayList<String> attributes, String targetId) {
+  private static boolean isConnectedTo(NlComponent component, ArrayList<String> attributes, String targetId) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -1055,14 +1055,16 @@ public final class ConstraintComponentUtilities {
   }
 
   public static @Nullable
-  NlComponent findChainHead(@Nullable NlComponent component, @Nullable ArrayList<String> sideA, @Nullable ArrayList<String> sideB) {
+  NlComponent findChainHead(@NotNull NlComponent component, @Nullable ArrayList<String> sideA, @Nullable ArrayList<String> sideB) {
     final int maxAttempts = 1000;
     for (int i = 0; i < maxAttempts; i++) {
       String attributeA = getConnectionId(component, SHERPA_URI, sideA);
       if (attributeA == null) {
         return component;
       }
-      List<NlComponent> list = component.getParent().getChildren();
+      NlComponent parent = component.getParent();
+      assert parent != null;
+      List<NlComponent> list = parent.getChildren();
 
       NlComponent target = getComponent(list, attributeA);
       if (target == null) {
@@ -1281,7 +1283,7 @@ public final class ConstraintComponentUtilities {
    * @param component view to be tested
    * @return true if constrained on both sides
    */
-  public static boolean isHeightConstrained(@NotNull NlComponent component) {
+  private static boolean isHeightConstrained(@NotNull NlComponent component) {
     String tb = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
     String tt = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_TOP_TO_TOP_OF);
     if (!(tt != null || tb != null)) { // efficiency short cut
@@ -1289,7 +1291,7 @@ public final class ConstraintComponentUtilities {
     }
     String bb = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     String bt = component.getAttribute(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    return ((tt != null || tb != null) && (bt != null || bb != null));
+    return bt != null || bb != null;
   }
 
   /**
@@ -1299,7 +1301,7 @@ public final class ConstraintComponentUtilities {
    * @param component view to be tested
    * @return true if constrained on both sides
    */
-  public static boolean isWidthConstrained(@NotNull NlComponent component) {
+  private static boolean isWidthConstrained(@NotNull NlComponent component) {
     String se = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_START_TO_END_OF);
     String ss = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_START_TO_START_OF);
     String ee = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_END_TO_END_OF);
@@ -1338,6 +1340,8 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
+    assert dimension != null;
+
     if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
@@ -1347,6 +1351,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
+    assert dimension != null;
 
     if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
@@ -1405,8 +1410,8 @@ public final class ConstraintComponentUtilities {
     transaction.apply();
   }
 
-  public static void setScoutAttributeValue(@NotNull NlComponent component, @NotNull String uri,
-                                            @NotNull String attribute, @AndroidDpCoordinate int dp, boolean apply) {
+  private static void setScoutAttributeValue(@NotNull NlComponent component, @NotNull String uri,
+                                             @NotNull String attribute, @AndroidDpCoordinate int dp, boolean apply) {
     if (dp <= 0) {
       return;
     }
@@ -1437,14 +1442,14 @@ public final class ConstraintComponentUtilities {
   }
 
   // ordered the same as Direction enum
-  public static String[][] ATTRIB_MATRIX = {
+  private static String[][] ATTRIB_MATRIX = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
     {null, null, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF, null},
     {null, null, ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF, null},
     {null, null, null, null, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
-  public static String[][] ATTRIB_CLEAR = {
+  private static String[][] ATTRIB_CLEAR = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
@@ -1452,7 +1457,7 @@ public final class ConstraintComponentUtilities {
     {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
 
-  public static String[] ATTRIB_MARGIN = {
+  private static String[] ATTRIB_MARGIN = {
     ATTR_LAYOUT_MARGIN_TOP,
     ATTR_LAYOUT_MARGIN_BOTTOM,
     ATTR_LAYOUT_MARGIN_START,
@@ -1469,7 +1474,7 @@ public final class ConstraintComponentUtilities {
     if (attrib == null) {
       throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
     }
-    ArrayList<String> list = new ArrayList<String>();
+    ArrayList<String> list = new ArrayList<>();
     for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
       String clr_attr = ATTRIB_CLEAR[srcIndex][i];
       if (!attrib.equals(clr_attr)) {
@@ -1478,7 +1483,7 @@ public final class ConstraintComponentUtilities {
     }
     final AttributesTransaction transaction = source.startAttributeTransaction();
     clearAttributes(SHERPA_URI, list, transaction);
-    String targetId = null;
+    String targetId;
     if (target == source.getParent()) {
       targetId = ATTR_PARENT;
     }
@@ -1490,7 +1495,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
     }
     transaction.apply();
-    String str = null;
+    String str;
     switch (sourceDirection) {
       case BASELINE:
         str = DecoratorUtilities.BASELINE_CONNECTION;
@@ -1507,7 +1512,11 @@ public final class ConstraintComponentUtilities {
       case TOP:
         str = DecoratorUtilities.TOP_CONNECTION;
         break;
+      default:
+        str = null;
+        break;
     }
+    // noinspection ConstantConditions
     if (str != null) {
       DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
     }
@@ -1529,7 +1538,7 @@ public final class ConstraintComponentUtilities {
     if (attrib == null) {
       throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
     }
-    ArrayList<String> list = new ArrayList<String>();
+    ArrayList<String> list = new ArrayList<>();
     for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
       String clr_attr = ATTRIB_CLEAR[srcIndex][i];
       if (!attrib.equals(clr_attr)) {
@@ -1538,7 +1547,7 @@ public final class ConstraintComponentUtilities {
     }
     final AttributesTransaction transaction = source.startAttributeTransaction();
     clearAttributes(SHERPA_URI, list, transaction);
-    String targetId = null;
+    String targetId;
     if (target == source.getParent()) {
       targetId = ATTR_PARENT;
     }
@@ -1583,31 +1592,22 @@ public final class ConstraintComponentUtilities {
     switch (sourceDirection) {
       case TOP:
       case BOTTOM:
-        connected = getConnected(source, sisters,
-                                 ConstraintComponentUtilities.ourBottomAttributes,
-                                 ConstraintComponentUtilities.ourTopAttributes,
-                                 ConstraintComponentUtilities.ourBaselineAttributes);
+        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
         return connected.contains(target.getId());
       case RIGHT:
       case LEFT:
-        connected = getConnected(source, sisters,
-                                 ConstraintComponentUtilities.ourRightAttributes,
-                                 ConstraintComponentUtilities.ourLeftAttributes,
-                                 ConstraintComponentUtilities.ourStartAttributes,
-                                 ConstraintComponentUtilities.ourEndAttributes);
+        connected = getConnected(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
         return connected.contains(target.getId());
 
       case BASELINE:
-        connected = getConnected(source, sisters,
-                                 ConstraintComponentUtilities.ourBottomAttributes,
-                                 ConstraintComponentUtilities.ourTopAttributes,
-                                 ConstraintComponentUtilities.ourBaselineAttributes);
+        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
         return connected.contains(target.getId());
     }
     return false;
   }
 
-  static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
+  @SafeVarargs
+  private static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
     HashSet<String> set = new HashSet<>();
     set.add(c.getId());
     int lastCount;
