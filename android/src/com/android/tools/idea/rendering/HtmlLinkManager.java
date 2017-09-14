@@ -18,9 +18,11 @@ package com.android.tools.idea.rendering;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -62,6 +64,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -359,8 +362,8 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized()? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED:
-                                                       AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
+    ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized() ? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED :
+                                                            AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
   }
 
   public String createEditClassPathUrl() {
@@ -923,14 +926,17 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createAddDependencyUrl(String artifact) {
-    return URL_ADD_DEPENDENCY + artifact;
+  public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
+    return URL_ADD_DEPENDENCY + artifactId;
   }
 
   private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
+    assert module.getModuleFile() != null;
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(module.getProject());
-    String dependency = url.substring(URL_ADD_DEPENDENCY.length());
-    projectSystem.addDependency(module, dependency);
+
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.valueOf(url.substring(URL_ADD_DEPENDENCY.length()));
+    DependencyManagementUtil.addDependencies(module.getProject(), module.getModuleFile(),
+                                             Collections.singletonList(artifactId),
+                                             true);
   }
 }
