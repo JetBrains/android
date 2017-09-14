@@ -40,6 +40,8 @@ public final class SelectionComponent extends AnimatedComponent {
 
   public static final int HANDLE_WIDTH = 5;
 
+  private static final double SELECTION_MOVE_PERCENT = 0.01;
+
   private int myMousePressed;
 
   private enum Mode {
@@ -53,6 +55,13 @@ public final class SelectionComponent extends AnimatedComponent {
     ADJUST_MIN,
     /** User is adjusting the max. */
     ADJUST_MAX
+  }
+
+  private enum ShiftDirection {
+    /** User is moving the selection to the left */
+    LEFT,
+    /** User is moving the selection to the right */
+    RIGHT,
   }
 
   private Mode myMode;
@@ -157,16 +166,45 @@ public final class SelectionComponent extends AnimatedComponent {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          if (!myModel.getSelectionRange().isEmpty()) {
-            myModel.getSelectionRange().clear();
-            e.consume();
-          }
+        switch (e.getKeyCode()) {
+          case KeyEvent.VK_ESCAPE:
+            if (!myModel.getSelectionRange().isEmpty()) {
+              myModel.getSelectionRange().clear();
+              e.consume();
+            }
+            break;
+          case KeyEvent.VK_LEFT:
+            // If we are shifting left with the alt key down, we are shrinking our selection from the right.
+            // If we are shifting left with the shift key down, we are growing our selection to the left.
+            shiftModel(ShiftDirection.LEFT, e.isAltDown(), e.isShiftDown());
+            break;
+          case KeyEvent.VK_RIGHT:
+            // If we are shifting right with the shift key down, we are growing our selection to the right.
+            // If we are shifting right with the alt key down, we are shrinking our selection from the left
+            shiftModel(ShiftDirection.RIGHT, e.isShiftDown(), e.isAltDown());
+            break;
         }
+        myModel.endUpdate();
       }
     });
   }
 
+  private void shiftModel(ShiftDirection direction, boolean zeroMin, boolean zeroMax) {
+    double min = myModel.getSelectionRange().getMin();
+    double max = myModel.getSelectionRange().getMax();
+    double rangeDelta = myModel.getRange().getLength() * SELECTION_MOVE_PERCENT;
+    rangeDelta = (direction == ShiftDirection.LEFT) ? rangeDelta * -1 : rangeDelta;
+    double minDelta = zeroMin ? 0 : rangeDelta;
+    double maxDelta = zeroMax ? 0 : rangeDelta;
+    // If we don't have a selection attempt to put the selection in the center off the screen.
+    if (max < min) {
+      max = min = myModel.getRange().getLength() / 2.0 + myModel.getRange().getMin();
+    }
+
+    myModel.beginUpdate();
+    myModel.set(min + minDelta, max + maxDelta);
+    myModel.endUpdate();
+  }
   private double xToRange(int x) {
     Range range = myModel.getRange();
     return x / getSize().getWidth() * range.getLength() + range.getMin();

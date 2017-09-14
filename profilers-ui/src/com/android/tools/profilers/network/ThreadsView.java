@@ -79,6 +79,8 @@ final class ThreadsView {
     myThreadsTable.setFocusable(false);
     myThreadsTable.setRowMargin(0);
     myThreadsTable.setRowHeight(ROW_HEIGHT);
+    myThreadsTable.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+    myThreadsTable.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
     myThreadsTable.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
