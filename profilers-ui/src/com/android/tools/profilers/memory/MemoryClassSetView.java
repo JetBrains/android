@@ -35,6 +35,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -343,6 +345,14 @@ final class MemoryClassSetView extends AspectObserver {
       }
     });
 
+    myTree.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myTree.getSelectionCount() == 0 && myTree.getRowCount() != 0){
+          myTree.setSelectionRow(0);
+        }
+      }
+    });
     builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
