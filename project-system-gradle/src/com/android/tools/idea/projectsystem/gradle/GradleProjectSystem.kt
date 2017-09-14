@@ -77,21 +77,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     return syncProject(project, reason, requireSourceGeneration)
   }
 
-  /**
-   * This method will add the ":+" to the given dependency.
-   * For Guava, for example: the dependency coordinate will not include the version:
-   * com.google.guava:guava
-   * and this method will add "+" as the version of the dependency to add.
-   * @param dependency The dependency dependency without version.
-   */
-  override fun addDependency(module: Module, dependency: String) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    val coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+")
-    if (coordinate != null) {
-      manager.ensureLibraryIsIncluded(module, listOf(coordinate), null)
-    }
-  }
-
   override fun mergeBuildFiles(dependencies: String,
                                destinationContents: String,
                                supportLibVersionFilter: String?): String {

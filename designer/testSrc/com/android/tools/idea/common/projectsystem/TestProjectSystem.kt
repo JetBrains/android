@@ -89,10 +89,6 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
     TODO("not implemented")
   }
 
-  override fun addDependency(module: Module, dependency: String) {
-    TODO("not implemented")
-  }
-
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     TODO("not implemented")
   }
