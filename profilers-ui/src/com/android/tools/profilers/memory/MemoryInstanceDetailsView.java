@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
@@ -335,7 +336,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
-    final JTree tree = new Tree(treeModel);
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    final JTree tree = new JTree(treeModel);
+    tree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

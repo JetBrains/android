@@ -18,16 +18,12 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.CloseButton;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -250,7 +246,9 @@ final class MemoryClassSetView extends AspectObserver {
            myCaptureObject != null &&
            myClassSet != null;
 
-    myTree = new Tree();
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    myTree = new JTree();
+    myTree.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

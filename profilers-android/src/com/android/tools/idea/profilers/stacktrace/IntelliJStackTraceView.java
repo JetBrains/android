@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
@@ -77,6 +78,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myListView.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myListView.setCellRenderer(new StackElementRenderer());
+    myListView.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
     myScrollPane = new JBScrollPane(myListView);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
