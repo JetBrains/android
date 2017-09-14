@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.facet.ui.FacetDependentToolWindow;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -38,8 +39,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    createContent(project, toolWindow);
-
     toolWindow.setToHideOnEmptyContent(true);
     ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
       @Override
@@ -79,7 +78,24 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public boolean value(Project project) {
-    return StudioFlags.PROFILER_ENABLED.get();
+    return false;
+  }
+
+  @NotNull
+  public static ToolWindow ensureToolWindowInitialized(@NotNull ToolWindowManagerEx windowManager) {
+    ToolWindow window = windowManager.getToolWindow(ID);
+    if (window == null) {
+      for (FacetDependentToolWindow extension : Extensions.getExtensions(FacetDependentToolWindow.EXTENSION_POINT_NAME)) {
+        if (extension.id.equals(ID)) {
+          windowManager.initToolWindow(extension);
+          window = windowManager.getToolWindow(ID);
+        }
+      }
+      if (window == null) {
+        throw new RuntimeException("Could not find Android Profiler facet/extension.");
+      }
+    }
+    return window;
   }
 }
 
