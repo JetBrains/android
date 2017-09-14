@@ -28,7 +28,9 @@ import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle
 
@@ -36,37 +38,22 @@ import org.jetbrains.android.util.AndroidBundle
  * StateManager for RestartAdbAction, displays if there are any connected devices to the user through the
  * state message.
  */
-class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBridge.IDebugBridgeChangeListener {
+class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
   private lateinit var myProject: Project
   private var myAdbFuture: ListenableFuture<AndroidDebugBridge>? = null
   private var myLoading: Boolean = false
-
-  private fun generateMessage(devices: Array<IDevice>): String {
-    if (devices.isEmpty()) {
-      return AndroidBundle.message("connection.assistant.adb.no_devices")
-    }
-    else {
-      val builder = HtmlBuilder() // skip open and close htmlbody because the StatefulButtonMessage will add it instead
-      builder
-          .addHtml(AndroidBundle.message("connection.assistant.adb.devices"))
-      for (device in devices) {
-        builder.addHtml("<p><span style=\"font-size: 150%;\">" + device.name + "</span>")
-            .newline()
-            .addHtml("<span style=\"font-size: 80%; font-weight:lighter;\">" + device.version.toString() + "</span></p>")
-            .newline()
-      }
-      return builder.html
-    }
-  }
-
-  override fun getId(): String {
-    return RestartAdbAction.ACTION_ID
-  }
 
   override fun init(project: Project, actionData: ActionData) {
     myProject = project
     initDebugBridge(myProject)
     AndroidDebugBridge.addDebugBridgeChangeListener(this)
+    AndroidDebugBridge.addDeviceChangeListener(this)
+
+    Disposer.register(project, this)
+  }
+
+  override fun getId(): String {
+    return RestartAdbAction.ACTION_ID
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
@@ -88,16 +75,33 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
       DefaultActionState.IN_PROGRESS -> returnMessage = AndroidBundle.message("connection.assistant.loading")
       DefaultActionState.PARTIALLY_COMPLETE, DefaultActionState.ERROR_RETRY -> {
         val adb = AndroidDebugBridge.getBridge()
-        if (adb != null) {
-          returnMessage = generateMessage(adb.devices)
+        returnMessage = if (adb != null) {
+          generateMessage(adb.devices)
         }
         else {
-          returnMessage = AndroidBundle.message("connection.assistant.adb.failure")
+          AndroidBundle.message("connection.assistant.adb.failure")
         }
       }
     }
 
     return StatefulButtonMessage(returnMessage, state)
+  }
+
+  private fun generateMessage(devices: Array<IDevice>): String {
+    return if (devices.isEmpty()) {
+      AndroidBundle.message("connection.assistant.adb.no_devices")
+    }
+    else {
+      // skip open and close htmlbody because the StatefulButtonMessage will add it instead
+      val builder = HtmlBuilder().addHtml(AndroidBundle.message("connection.assistant.adb.devices"))
+      devices.forEach { device ->
+        builder.addHtml("<p><span style=\"font-size: 150%;\">" + device.name + "</span>")
+            .newline()
+            .addHtml("<span style=\"font-size: 80%; font-weight:lighter;\">" + device.version.toString() + "</span></p>")
+            .newline()
+      }
+      builder.html
+    }
   }
 
   private fun setLoading(loading: Boolean) {
@@ -107,8 +111,8 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
 
   private fun initDebugBridge(project: Project) {
     val adb = AndroidSdkUtils.getAdb(project) ?: return
-    myAdbFuture = AdbService.getInstance().getDebugBridge(adb)
-    if (myAdbFuture == null) return
+    myAdbFuture = AdbService.getInstance().getDebugBridge(adb) ?: return
+
     Futures.addCallback(myAdbFuture, object : FutureCallback<AndroidDebugBridge> {
       override fun onSuccess(bridge: AndroidDebugBridge?) {
         refreshDependencyState(project)
@@ -120,6 +124,11 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     }, EdtExecutor.INSTANCE)
   }
 
+  override fun dispose() {
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this)
+    AndroidDebugBridge.removeDeviceChangeListener(this)
+  }
+
   override fun bridgeChanged(bridge: AndroidDebugBridge?) {}
 
   override fun restartInitiated() {
@@ -129,4 +138,17 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
   override fun restartCompleted(isSuccessful: Boolean) {
     setLoading(false)
   }
+
+  override fun deviceConnected(device: IDevice) {
+    refreshDependencyState(myProject)
+  }
+
+  override fun deviceDisconnected(device: IDevice) {
+    refreshDependencyState(myProject)
+  }
+
+  override fun deviceChanged(device: IDevice, changeMask: Int) {
+    refreshDependencyState(myProject)
+  }
+
 }
