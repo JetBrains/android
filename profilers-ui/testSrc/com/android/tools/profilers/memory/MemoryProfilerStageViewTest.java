@@ -183,6 +183,13 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testLoadingTooltipViewWithStrongReference() throws Exception {
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    ReferenceWalker referenceWalker = new ReferenceWalker(stageView);
+    referenceWalker.assertReachable(MemoryStageTooltipView.class);
+  }
+
+  @Test
   public void testLoadingNewCaptureWithExistingLoad() throws Exception {
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 

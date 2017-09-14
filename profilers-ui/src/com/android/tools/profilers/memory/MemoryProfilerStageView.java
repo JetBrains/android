@@ -58,6 +58,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
+  @NotNull private final MemoryStageTooltipView myMemoryStageTooltipView = new MemoryStageTooltipView(getStage());
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -358,10 +359,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(heapDumpRenderer);
 
-    MemoryStageTooltipView tooltipView = new MemoryStageTooltipView(getStage());
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                tooltipView.createComponent());
+                                myMemoryStageTooltipView.createComponent());
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);
