@@ -50,6 +50,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -177,7 +179,7 @@ class CpuCaptureView {
     selectedTab.revalidate();
   }
 
-  void setCaptureDetailToTab(ChangeEvent event) {
+  private void setCaptureDetailToTab(ChangeEvent event) {
     CaptureModel.Details.Type type = null;
     if (myTabsPanel.getSelectedIndex() >= 0) {
       String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
@@ -305,15 +307,11 @@ class CpuCaptureView {
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new SampledMethodUsageHRenderer());
     chart.setHTree(node);
+    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
+    chart.addMouseListener(handler);
     stageView.getIdeComponents()
-      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
-        HNode<MethodModel> n = chart.getHoveredNode();
-        if (n == null || n.getData() == null) {
-          return null;
-        }
-        MethodModel method = n.getData();
-        return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
-      });
+      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(),
+                                    handler::getCodeLocation);
     return chart;
   }
 
@@ -460,7 +458,7 @@ class CpuCaptureView {
   static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @NotNull private final CaptureModel.CallChart myCallChart;
-    @NotNull protected HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<MethodModel> myChart;
 
     private AspectObserver myObserver;
 
@@ -468,7 +466,6 @@ class CpuCaptureView {
                           @NotNull CaptureModel.CallChart callChart) {
       myCallChart = callChart;
       myChart = setUpChart(myCallChart.getRange(), myCallChart.getNode(), HTreeChart.Orientation.TOP_DOWN, stageView);
-
       if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
@@ -525,6 +522,7 @@ class CpuCaptureView {
     public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
+
       myChart = setUpChart(myMasterRange, myFlameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP, stageView);
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
@@ -554,6 +552,46 @@ class CpuCaptureView {
     @Override
     JComponent getComponent() {
       return myPanel;
+    }
+  }
+
+  private static class TreeChartNavigationHandler extends MouseAdapter {
+    @NotNull private final HTreeChart<MethodModel> myChart;
+    private Point myLastPopupPoint;
+
+    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart) {
+      myChart = chart;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    private void handlePopup(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        myLastPopupPoint = e.getPoint();
+      }
+    }
+
+    @Nullable
+    private CodeLocation getCodeLocation() {
+      HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
+      if (n == null || n.getData() == null) {
+        return null;
+      }
+      MethodModel method = n.getData();
+      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
     }
   }
 
