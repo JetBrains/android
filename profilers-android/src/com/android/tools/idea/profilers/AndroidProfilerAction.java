@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import icons.StudioIcons;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidProfilerAction extends DumbAwareAction {
   protected AndroidProfilerAction() {
-    super("Android Profiler");
+    super(AndroidProfilerToolWindowFactory.ID);
     getTemplatePresentation().setVisible(StudioFlags.PROFILER_ENABLED.get());
   }
 
@@ -52,8 +52,8 @@ public class AndroidProfilerAction extends DumbAwareAction {
   public void actionPerformed(@Nullable AnActionEvent e) {
     Project project = getEventProject(e);
     if (project == null) return;
-    ToolWindowManager windowManager = ToolWindowManager.getInstance(project);
-    final ToolWindow window = windowManager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(project);
+    ToolWindow window = AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(windowManager);
 
     if (windowManager.isEditorComponentActive() || !AndroidProfilerToolWindowFactory.ID.equals(windowManager.getActiveToolWindowId())) {
       window.activate(null);

@@ -36,4 +36,7 @@
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
     </group>
   </actions>
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerToolWindowTaskContributor" />
+  </extensions>
 </idea-plugin>
