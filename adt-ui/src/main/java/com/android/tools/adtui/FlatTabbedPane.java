@@ -24,9 +24,7 @@ import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 
 /**
  * A simple tabbed pane that mimics the laf of IntelliJ's flat toolbar tabs. Supports hover states over tab.
@@ -36,11 +34,37 @@ public class FlatTabbedPane extends JTabbedPane {
 
   @NotNull private final FlatTabbedPaneUI myUi;
 
+  enum ActionDirection {
+    LEFT,
+    RIGHT
+  }
+
+  final class NavigateAction extends AbstractAction {
+    private final ActionDirection myDirection;
+
+    NavigateAction(ActionDirection direction) {
+      myDirection = direction;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int tabCount = getTabCount();
+      if (myDirection == ActionDirection.RIGHT) {
+        setSelectedIndex((getSelectedIndex() + 1) % tabCount);
+      } else {
+        setSelectedIndex((getSelectedIndex() - 1 + tabCount) % tabCount);
+      }
+    }
+  }
+
   public FlatTabbedPane() {
     myUi = new FlatTabbedPaneUI();
     setUI(myUi);
     setFont(AdtUiUtils.DEFAULT_FONT);
-
+    getActionMap().put("navigatePrevious", new NavigateAction(ActionDirection.LEFT));
+    getActionMap().put("navigateNext", new NavigateAction(ActionDirection.RIGHT));
+    getActionMap().put("navigateLeft", new NavigateAction(ActionDirection.LEFT));
+    getActionMap().put("navigateRight", new NavigateAction(ActionDirection.RIGHT));
     // Sets up mouse listeners to support hover state rendering.
     addMouseListener(new MouseAdapter() {
       @Override

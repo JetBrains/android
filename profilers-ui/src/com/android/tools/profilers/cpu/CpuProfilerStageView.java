@@ -234,6 +234,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myStage.setSelectedThread(CaptureModel.NO_THREAD);
       }
     });
+
+    myThreads.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myThreads.getSelectedIndex() < 0 && myThreads.getItemsCount() > 0) {
+          myThreads.setSelectedIndex(0);
+        }
+      }
+    });
+
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setBorder(MONITOR_BORDER);
     scrollingThreads.setViewportView(myThreads);

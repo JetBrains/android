@@ -214,6 +214,8 @@ final class ConnectionsView {
     int defaultFontHeight = myConnectionsTable.getFontMetrics(myConnectionsTable.getFont()).getHeight();
     myConnectionsTable.setRowMargin(0);
     myConnectionsTable.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    myConnectionsTable.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+    myConnectionsTable.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
 
     myConnectionsTable.addComponentListener(new ComponentAdapter() {
       @Override

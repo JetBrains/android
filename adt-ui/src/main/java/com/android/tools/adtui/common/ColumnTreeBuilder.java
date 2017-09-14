@@ -102,6 +102,7 @@ public class ColumnTreeBuilder {
     myTable = new JBTable(myTableModel, tableColumnModel);
     myTable.setAutoCreateColumnsFromModel(true);
     myTable.setShowVerticalLines(false);
+    myTable.setFocusable(false);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myRowSorter = new TableRowSorter<>(myTable.getModel());
     myColumnBuilders = new LinkedList<>();
@@ -132,6 +133,11 @@ public class ColumnTreeBuilder {
 
   public ColumnTreeBuilder setShowVerticalLines(boolean showVerticalLines) {
     myTable.setShowVerticalLines(showVerticalLines);
+    return this;
+  }
+
+  public ColumnTreeBuilder setTableFocusable(boolean focusable) {
+    myTable.setFocusable(focusable);
     return this;
   }
 
