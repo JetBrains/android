@@ -66,4 +66,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
     return CapabilityNotSupported()
   }
+
+  override fun addDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {}
+
+  override fun getVersionOfDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
 }

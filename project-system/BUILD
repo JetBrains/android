@@ -14,5 +14,6 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/common:studio.common[module]",
         "//tools/idea/platform/annotations/common:annotations-common[module]",
+        "//tools/base/sdk-common:studio.sdk-common[module]",
     ],
 )

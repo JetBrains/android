@@ -144,6 +144,26 @@ interface AndroidProjectSystem {
   fun mergeBuildFiles(dependencies: String,
                       destinationContents: String,
                       supportLibVersionFilter: String?): String
+
+  /**
+   * Adds an artifact of given id as a dependency available to the source context.  The caller may specify a
+   * specific version of the artifact to add.  If no version is passed or the passed version is null, the artifact
+   * added will be of the latest version supported by the underlying build system of this project.
+   * @param sourceContext  The depender that requires the dependency (e.g. a source file, layout xml, etc)
+   * @param artifactId  Id of artifact needed by the depender.
+   * @param version   Version of the artifact to add.  If left blank this parameter defaults to {@link GoogleMavenArtifact.VERSION_LATEST}
+   * @throws DependencyManagementException if an error occurs when trying to add the dependency.
+   */
+  @Throws(DependencyManagementException::class)
+  fun addDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null)
+
+  /**
+   * Returns the version of a dependency artifact for given artifact id at the depender's sourceContext or
+   * null if such artifact does not exist.
+   * @throws DependencyManagementException if an error occurs when trying to locate dependencies.
+   */
+  @Throws(DependencyManagementException::class)
+  fun getVersionOfDependency(sourceContext: VirtualFile, artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
 }
 
 /** Endpoint for broadcasting changes in global sync status */
@@ -157,7 +177,7 @@ fun Project.getProjectSystem(): AndroidProjectSystem {
   return this.getComponent(ProjectSystemComponent::class.java).projectSystem
 }
 
-private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
+val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 internal fun detectProjectSystem(project: Project): AndroidProjectSystem {
   val extensions = EP_NAME.getExtensions(project)
