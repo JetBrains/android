@@ -404,11 +404,10 @@ public class NlPreviewManager implements ProjectComponent {
       processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
     }
 
-    @Override
-    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(
-        () -> processFileEditorChange(getActiveLayoutXmlEditor(null)), myProject.getDisposed());
-    }
+    // Do not respond to fileClosed events since this has led to problems with the preview
+    // window in the past. See b/64199946 and b/64288544
+    // @Override
+    // public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file);
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {

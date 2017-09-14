@@ -320,8 +320,8 @@ public class NlPreviewTest {
     // Regression test for b/64288544
     EditorFixture editor = guiTest.importSimpleApplication()
       .getEditor()
-      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR);
     editor
       .getLayoutPreview(true)
       .waitForRenderToFinish();
@@ -330,7 +330,30 @@ public class NlPreviewTest {
 
     Wait.seconds(2).expecting("preview to update")
       .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
-    assertTrue(editor.isPreviewShowing());
+    assertTrue(editor.isPreviewShowing("activity_my.xml"));
+  }
+
+  @Test
+  public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
+    // Regression test for b/64199946
+    EditorFixture editor = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/drawable/ic_launcher.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY);
+    editor.getLayoutPreview(true);
+
+    TextEditorFixture launcher = checkNotNull(editor.getVisibleTextEditor("ic_launcher.xml"));
+    TextEditorFixture activity = checkNotNull(editor.getVisibleTextEditor("activity_my.xml"));
+
+    launcher.select();
+    activity.select();
+
+    int updateCountBeforeClose = editor.getPreviewUpdateCount();
+    activity.closeFile();
+    Wait.seconds(2).expecting("preview to update")
+      .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
+    assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
 
   private static void navigateEditor(@NotNull EditorFixture editor,
