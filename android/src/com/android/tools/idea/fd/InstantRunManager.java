@@ -17,16 +17,15 @@ package com.android.tools.idea.fd;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.ir.client.InstantRunPushFailedException;
 import com.android.tools.ir.client.UpdateMode;
-import com.android.tools.idea.run.AndroidSessionInfo;
-import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.utils.ILogger;
-import com.android.tools.idea.log.LogWrapper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
@@ -56,8 +55,6 @@ import java.util.List;
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public final class InstantRunManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.3.0-beta1";
-  public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
   public static final Logger LOG = Logger.getInstance("#InstantRun");

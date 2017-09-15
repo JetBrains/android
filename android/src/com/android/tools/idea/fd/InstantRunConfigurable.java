@@ -15,20 +15,12 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.Revision;
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -52,14 +44,8 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION;
-import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-
 public class InstantRunConfigurable
-    implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
+    implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, Disposable {
   private final InstantRunConfiguration myBuildConfiguration;
   private JPanel myContentPanel;
   private JBCheckBox myInstantRunCheckBox;
@@ -196,11 +182,12 @@ public class InstantRunConfigurable
       if (project.isDefault()) {
         continue;
       }
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           isGradle = true;
-          if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {
+          if (projectSystem.getInstantRunSupport(module).isSupported()) {
             isCurrentPlugin = true;
             break;
           }
@@ -233,83 +220,34 @@ public class InstantRunConfigurable
       if (project.isDefault()) {
         continue;
       }
-      if (!updateProjectToInstantRunTools(project, this)) {
-        setSyncLinkMessage("Error updating to new Gradle version");
+
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      if (projectSystem.upgradeProjectToSupportInstantRun()) {
+        updateUi(true, false);
+        Futures.addCallback(projectSystem.syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, false),
+                            new FutureCallback<AndroidProjectSystem.SyncResult>() {
+            @Override
+            public void onSuccess(AndroidProjectSystem.SyncResult result) {
+              updateUi(false, result.isSuccessful());
+            }
+
+            @Override
+            public void onFailure(@NotNull Throwable t) {
+              updateUi(false, false);
+            }
+          }, EdtExecutor.INSTANCE);
+      } else {
+        showFailureMessage();
       }
     }
   }
 
-  /** Update versions relevant for Instant Run, and trigger a Gradle sync if successful */
-  public static boolean updateProjectToInstantRunTools(@NotNull Project project, @Nullable GradleSyncListener listener) {
-    String pluginVersion = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
-    // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
-    if (GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
-      pluginVersion = GRADLE_PLUGIN_RECOMMENDED_VERSION;
-    }
-
-    // Update plugin version
-    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-    UpdateResult result = updater.updatePluginVersion(GradleVersion.parse(pluginVersion), GradleVersion.parse(GRADLE_LATEST_VERSION));
-    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
-      // Should be at least 23.0.2
-      String buildToolsVersion = "23.0.2";
-      AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class), false);
-      if (latestBuildTool != null) {
-        Revision revision = latestBuildTool.getRevision();
-        if (revision.compareTo(Revision.parseRevision(buildToolsVersion)) > 0) {
-          buildToolsVersion = revision.toShortString();
-        }
-      }
-
-      // Also update build files to set build tools version 23.0.2
-      GradleUtil.setBuildToolsVersion(project, buildToolsVersion);
-
-      // Also update Gradle wrapper version
-      GradleWrapper gradleWrapper = GradleWrapper.find(project);
-      if (gradleWrapper != null) {
-        gradleWrapper.updateDistributionUrlAndDisplayFailure(GRADLE_LATEST_VERSION);
-      }
-
-      // Request a sync
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(
-        TRIGGER_PROJECT_MODIFIED);
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
-      return true;
-    }
-    else {
-      return false;
-    }
+  private void showFailureMessage() {
+    setSyncLinkMessage("Error updating to new Gradle version");
   }
 
   @Override
   public void dispose() {
-  }
-
-  // ---- Implements GradleSyncListener ----
-
-  @Override
-  public void syncStarted(@NotNull Project project) {
-    updateUi(true, false);
-  }
-
-  @Override
-  public void setupStarted(@NotNull Project project) {
-  }
-
-  @Override
-  public void syncSucceeded(@NotNull Project project) {
-    updateUi(false, false);
-  }
-
-  @Override
-  public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-    updateUi(false, true);
-  }
-
-  @Override
-  public void syncSkipped(@NotNull Project project) {
-    updateUi(false, false);
   }
 
   private void updateUi(final boolean syncing, final boolean failed) {

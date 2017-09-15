@@ -62,6 +62,20 @@ interface AndroidProjectSystem {
    */
   fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus
 
+  /**
+   * Determines whether or not the underlying build system supports instant run.
+   */
+  fun getInstantRunSupport(module: Module): CapabilityStatus
+
+  /**
+   * Attempts to upgrade the project to support instant run. If the project already supported
+   * instant run, this will report failure without modifying the project.
+   * <p>
+   * Returns true iff the upgrade was successful. Callers must sync the
+   * project by calling [syncProject] after calling this method if it returns true.
+   */
+  fun upgradeProjectToSupportInstantRun(): Boolean
+
   /** The result of a sync request */
   enum class SyncResult(val isSuccessful: Boolean) {
     /** The user cancelled the sync */

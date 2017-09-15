@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.fd.gradle;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.model.MergedManifest;
@@ -33,9 +31,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +39,9 @@ import java.io.File;
 import java.io.IOException;
 
 public class InstantRunGradleUtils {
+  private static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.3.0-beta1";
+  public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+
   @NotNull
   public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidModuleModel model, @Nullable AndroidVersion deviceVersion) {
     if (model == null) {
@@ -109,7 +107,7 @@ public class InstantRunGradleUtils {
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
   public static boolean modelSupportsInstantRun(@NotNull AndroidModuleModel model) {
     GradleVersion modelVersion = model.getModelVersion();
-    return modelVersion == null || modelVersion.compareTo(InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+    return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
   @Nullable
