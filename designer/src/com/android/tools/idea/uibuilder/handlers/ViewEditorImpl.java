@@ -104,11 +104,15 @@ public class ViewEditorImpl extends ViewEditor {
     this(sceneView.getModel(), sceneView.getScene());
   }
 
-  public ViewEditorImpl(@NotNull NlModel model, @NotNull Scene scene) {
+  public ViewEditorImpl(@NotNull NlModel model) {
+    this(model, null);
+  }
+
+  public ViewEditorImpl(@NotNull NlModel model, @Nullable Scene scene) {
     myConfiguration = model.getConfiguration();
     myModel = model;
-    mySceneManager = scene.getSceneManager();
     myScene = scene;
+    mySceneManager = scene != null ? scene.getSceneManager() : null;
   }
 
   @Override
@@ -149,6 +153,7 @@ public class ViewEditorImpl extends ViewEditor {
   @NotNull
   @Override
   public LayoutlibSceneManager getSceneBuilder() {
+    assert mySceneManager != null : "ViewEditorImpl incorrectly configured";
     return (LayoutlibSceneManager)mySceneManager;
   }
 
@@ -357,6 +362,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   @NotNull
   public Scene getScene() {
+    assert myScene != null : "ViewEditorImpl incorrectly configured";
     return myScene;
   }
 
