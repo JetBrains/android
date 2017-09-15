@@ -143,13 +143,15 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     guiTest.waitForBackgroundTasks();
     File cppSources = new File(projectRoot, "app/src/main/cpp");
     libraryEditor.getPathMappings()
-      .mapRemotePathToLocalPath(cppSources);
+      .mapOriginalToLocalPath("cpp", cppSources);
     libraryEditor.applyChanges();
     guiTest.waitForBackgroundTasks();
 
     ideFrame.getProjectView()
       .selectAndroidPane();
     attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
+
+    // Verifications:
     waitForJavaFileToShow(editor);
 
     List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
