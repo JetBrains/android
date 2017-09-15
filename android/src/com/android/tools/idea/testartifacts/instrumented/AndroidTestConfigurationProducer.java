@@ -81,7 +81,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       if (JUnitUtil.isTestClass(elementClass)) {
         setupConfiguration(configuration, elementClass, context, sourceElement);
         configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS;
-        configuration.CLASS_NAME = elementClass.getQualifiedName();
+        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementClass);
         configuration.setGeneratedName();
         return true;
       }
@@ -102,7 +102,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         setupConfiguration(configuration, elementMethod, context, sourceElement);
         assert c != null;
         configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD;
-        configuration.CLASS_NAME = c.getQualifiedName();
+        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(c);
         configuration.METHOD_NAME = elementMethod.getName();
         configuration.setGeneratedName();
         return true;
