@@ -163,7 +163,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
     SceneView view = surface.getCurrentSceneView();
     assert view != null;
-    return new Point(view.getX(), (surface.getHeight() - view.getSize().width) / 2);
+    return new Point(view.getX(), (surface.getHeight() - view.getSize().width + 1) / 2);
   }
 
   @NotNull
