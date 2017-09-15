@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Map;
@@ -67,7 +68,11 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             // This is the jar obtained by compiling the module, no need to add it as dependency.
             continue;
           }
-          String libraryName = module.getName() + "." + artifactName;
+
+          // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
+          // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
+          String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+          String libraryName = prefix + module.getName() + "." + artifactName;
           Library library = ideModelsProvider.getLibraryByName(libraryName);
           if (library == null) {
             // Create library.
@@ -77,7 +82,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             libraryModel.addRoot(url, CLASSES);
           }
           else {
-            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, artifact);
+            //SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, artifact);
           }
           LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
           orderEntry.setScope(COMPILE);

@@ -40,6 +40,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
@@ -76,6 +77,7 @@ import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.util.JpsPathUtil;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -776,6 +778,11 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                            @NotNull IdeModifiableModelsProvider provider,
                                            @NotNull ModifiableRootModel model,
                                            @NotNull String path) {
+    // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
+    // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
+    String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+    libraryName = libraryName.isEmpty() || StringUtil.startsWith(libraryName, prefix) ? libraryName : prefix + libraryName;
+
     Library library = provider.getLibraryByName(libraryName);
 
     if (library == null) {
