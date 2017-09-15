@@ -239,7 +239,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
-    mySurface.getSelectionModel().clear();
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton");
   }
@@ -279,7 +278,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button3 = model.find("cuteLittleButton3");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCut(dataContext);
-    mySurface.getSelectionModel().clear();
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton");
     assertComponentWithId(model, "cuteLittleButton2");
@@ -346,7 +344,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
-    mySurface.getSelectionModel().clear();
     handler.performPaste(dataContext);
     NlComponent button2 = model.find("cuteLittleButton");
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2);

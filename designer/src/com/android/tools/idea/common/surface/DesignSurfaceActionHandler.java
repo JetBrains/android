@@ -109,6 +109,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
     SelectionModel selectionModel = sceneView.getSelectionModel();
     NlModel model = sceneView.getModel();
     model.delete(selectionModel.getSelection());
+    selectionModel.clear();
   }
 
   @Override
