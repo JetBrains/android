@@ -243,7 +243,5 @@ public abstract class SceneView {
   }
 
   @NotNull
-  public Color getBgColor() {
-    return Color.BLACK;
-  }
+  public abstract ColorSet getColorSet();
 }

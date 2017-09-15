@@ -19,6 +19,8 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.sherpa.drawing.ColorSet
 import java.awt.Color
 import java.awt.Dimension
 
@@ -26,10 +28,8 @@ import java.awt.Dimension
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
 class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, model) {
-
   override fun getContentTranslationX() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawX ?: 0)
   override fun getContentTranslationY() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawY ?: 0)
-
   override fun getPreferredSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 
@@ -38,7 +38,7 @@ class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, mo
     return result
   }
 
-  override fun getBgColor(): Color {
-    return Color.WHITE
-  }
+  private val colorSet = NavColorSet()
+
+  override fun getColorSet(): ColorSet = colorSet
 }

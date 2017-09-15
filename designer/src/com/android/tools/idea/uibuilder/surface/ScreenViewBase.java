@@ -98,6 +98,7 @@ abstract class ScreenViewBase extends SceneView {
     return (NlDesignSurface)super.getSurface();
   }
 
+  @Override
   @NotNull
   public ColorSet getColorSet() {
     return myColorSet;

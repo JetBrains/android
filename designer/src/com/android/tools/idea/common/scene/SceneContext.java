@@ -16,16 +16,11 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
@@ -144,15 +139,7 @@ public class SceneContext {
       }
     }
     SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
-    ColorSet colorSet;
-    if (sceneView.getModel().getType() == NlLayoutType.NAV) {
-      colorSet = new NavColorSet();
-    }
-    else {
-      // TEMP hack corrected in the next CL
-      colorSet = ((ScreenView)sceneView).getColorSet();
-    }
-    sceneViewTransform.myColorSet = colorSet;
+    sceneViewTransform.myColorSet = sceneView.getColorSet();
 
     cache.put(sceneView, new SoftReference<>(sceneViewTransform));
     return sceneViewTransform;
