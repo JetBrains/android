@@ -25,10 +25,12 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -74,7 +76,15 @@ public class IdeaGradleSync implements GradleSync {
                 .setCleanProjectAfterSync(request.isCleanProject());
     // @formatter:on
 
-    String externalProjectPath = getBaseDirPath(project).getPath();
+    String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+    // the sync should be aware of multiple linked gradle project with a single IDE project
+    // and a linked gradle project can be located not in the IDE Project.baseDir
+    if (GradleSettings.getInstance(project).getLinkedProjectSettings(externalProjectPath) == null) {
+      if (listener != null) {
+        listener.syncSkipped(project);
+      }
+      return;
+    }
 
     ProjectSetUpTask setUpTask =
       new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);

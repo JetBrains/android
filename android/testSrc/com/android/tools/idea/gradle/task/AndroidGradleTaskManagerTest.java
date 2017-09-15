@@ -45,8 +45,7 @@ public class AndroidGradleTaskManagerTest {
 
     new AndroidGradleTaskManager().executeTasks(taskId, taskNames, projectPath, null, null, listener);
 
-    verify(gradleBuildInvoker).executeTasks(new GradleBuildInvoker.Request(project, taskNames, taskId)
-                                              .setBuildFilePath(new File(projectPath))
+    verify(gradleBuildInvoker).executeTasks(new GradleBuildInvoker.Request(project, new File(projectPath), taskNames, taskId)
                                               .setJvmArguments(new ArrayList<>())
                                               .setCommandLineArguments(new ArrayList<>())
                                               .setTaskListener(listener)

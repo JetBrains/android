@@ -20,10 +20,10 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -39,6 +39,7 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -46,6 +47,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidCommonBundle;
@@ -164,6 +166,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           return;
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
+        if(StringUtil.isEmpty(rootProjectPath)) {
+          LOG.error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
+          return;
+        }
 
         // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
         AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
@@ -190,7 +197,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         gradleBuildInvoker.add(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
-        gradleBuildInvoker.executeTasks(assembleTasks, projectProperties);
+        gradleBuildInvoker.executeTasks(new File(rootProjectPath), assembleTasks, projectProperties);
 
         LOG.info("Export APK command: " +
                  Joiner.on(',').join(assembleTasks) +
