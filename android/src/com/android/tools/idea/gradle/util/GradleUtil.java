@@ -86,6 +86,7 @@ import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -353,7 +354,7 @@ public final class GradleUtil {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
-  @Nullable
+  @NotNull
   public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (IdeInfo.getInstance().isAndroidStudio() && useEmbeddedGradle) {
@@ -366,6 +367,9 @@ public final class GradleUtil {
           executionSettings.setJavaHome(jdkPath.getPath());
         }
       }
+    }
+    if(executionSettings == null) {
+      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
     }
     return executionSettings;
   }
