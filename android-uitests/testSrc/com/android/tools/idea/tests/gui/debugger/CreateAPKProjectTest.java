@@ -34,7 +34,6 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -254,17 +253,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     debugWindow.pressResumeProgram();
 
     stopDebugSession(debugWindow, debugConfigName);
-  }
-
-  @After
-  public void removeApkProjectsGeneratedDuringTest() {
-    // An ~/ApkProjects directory will show us a dialog in a subsequent
-    // test run. Clean up after ourselves by deleting the directory here.
-
-    // Close before deleting, because IDE will write to some files that will be deleted
-    // Prevents FileNotFoundException from occurring
-    guiTest.ideFrame().closeProject();
-    removeApkProjectsDirectory();
   }
 
   private static void removeApkProjectsDirectory() {
