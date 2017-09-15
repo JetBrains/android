@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.builder.model.InstantRun;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.Executor;
@@ -34,7 +33,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class AndroidRunConfigurationBaseTest extends AndroidTestCase {
+public class AndroidRunConfigurationBaseGetFastDeployDevicesTest extends AndroidTestCase {
   @Mock private Executor myExecutor;
   @Mock private AndroidSessionInfo myInfo;
   @Mock private AndroidModuleModel myModel;

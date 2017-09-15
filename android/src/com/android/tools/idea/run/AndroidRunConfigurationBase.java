@@ -253,48 +253,31 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
-    Project project = env.getProject();
-
+    final Project project = env.getProject();
     final boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
-    boolean couldHaveHotswapped = false;
     final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
+    final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
-    boolean debug = false;
-    if (executor instanceof DefaultDebugExecutor) {
-      debug = true;
-    }
-
+    boolean couldHaveHotswapped = false;
     DeviceFutures deviceFutures = null;
-    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
-    // note: we look for this run config with any executor
 
-    if (instantRunEnabled) {
-      if (info != null && supportsInstantRun()) {
-        // if there is an existing previous session, then see if we can detect devices to fast deploy to
-        deviceFutures = getFastDeployDevices(executor, AndroidModuleModel.get(facet), info);
+    if (supportsInstantRun() && existingSessionInfo != null) {
+      // returns null if we prompt user and they choose to abort the Run
+      PrepareSessionResult result = prepareInstantRunSession(existingSessionInfo, executor, facet, project, forceColdswap, instantRunEnabled);
+      if (result == null) {
+        return null;
       }
 
-      if (info != null && deviceFutures == null) {
-        // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
-        // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
-        if (!promptAndKillSession(executor, project, info)) {
-          return null;
-        }
-      }
-      else if (info != null && forceColdswap) {
-        // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
-        couldHaveHotswapped = true;
-
-        // forcibly kill app in case of run action (which forces a cold swap)
-        // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
-        killSession(info);
-      }
+      deviceFutures = result.futures;
+      couldHaveHotswapped = result.couldHaveHotswapped;
     }
+
+    final boolean isDebugging = executor instanceof DefaultDebugExecutor;
 
     // If we are not fast deploying, then figure out (prompting user if needed) where to deploy
     if (deviceFutures == null) {
-      DeployTarget deployTarget = getDeployTarget(executor, env, debug, facet);
-      if (deployTarget == null) {
+      DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
+      if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
         return null;
       }
 
@@ -303,7 +286,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return deployTarget.getRunProfileState(executor, env, deployTargetState);
       }
 
-      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID());
+      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
       if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
@@ -314,93 +297,192 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
     InstantRunContext instantRunContext = null;
-
     if (supportsInstantRun() && instantRunEnabled) {
-      InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
-      if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
-        AndroidVersion version = deviceFutures.getDevices().get(0).getVersion();
-        String message = AndroidBundle.message("instant.run.quickfix.missing.platform", SdkVersionInfo.getVersionWithCodename(version));
-        int result = Messages.showYesNoDialog(project,
-                                              message,
-                                              "Instant Run",
-                                              "Install and Continue", // yes button
-                                              "Proceed without Instant Run", // no button
-                                              Messages.getQuestionIcon());
-        if (result == Messages.OK) { // if ok, install platform and continue with instant run
-          ModelWizardDialog dialog =
-            SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(DetailsTypes.getPlatformPath(version)));
-          if (dialog == null) {
-            LOG.warn("Unable to get quick fix wizard to install missing platform required for instant run.");
-          }
-          else if (dialog.showAndGet()) {
-            gradleSupport = SUPPORTED;
-          }
-        }
-      }
-
-      if (gradleSupport == SUPPORTED) {
-        InstantRunUtils.setInstantRunEnabled(env, true);
-        instantRunContext = InstantRunGradleUtils.createGradleProjectContext(facet);
-      }
-      else {
-        InstantRunManager.LOG.warn("Instant Run enabled, but not doing an instant run build since: " + gradleSupport);
-        // IR is disabled, we only want to display IR notification on start of session to avoid spamming user on each run.
-        if (!isSameExecutorAsPreviousSession(executor, info)) {
-          String notificationText = gradleSupport.getUserNotification();
-          if (notificationText != null) {
-            InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
-          }
-        }
-      }
+      instantRunContext = ensureGradleSupport(executor, env, module, facet, project, existingSessionInfo, deviceFutures);
     }
     else {
-      String msg = "Not using instant run for this launch: ";
-      if (instantRunEnabled) {
-        msg += getType().getDisplayName() + " does not support instant run";
-      }
-      else {
-        msg += "instant run is disabled";
-      }
-      InstantRunManager.LOG.info(msg);
+      logInstantRunOffReason(instantRunEnabled);
     }
 
-    // Store the chosen target on the execution environment so before-run tasks can access it.
-    AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
-    env.putCopyableUserData(AndroidRunConfigContext.KEY, runConfigContext);
-    runConfigContext.setTargetDevices(deviceFutures);
-    runConfigContext.setSameExecutorAsPreviousSession(isSameExecutorAsPreviousSession(executor, info));
-    runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
-
-    // Save the instant run context so that before-run task can access it
-    env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
-
-    if (debug) {
+    if (isDebugging) {
       String error = canDebug(deviceFutures, facet, module.getName());
       if (error != null) {
         throw new ExecutionException(error);
       }
     }
 
-    LaunchOptions launchOptions = getLaunchOptions()
-      .setDebug(debug)
-      .build();
-
     ProcessHandler processHandler = null;
-    if (info != null && info.getExecutorId().equals(executor.getId())) {
-      processHandler = info.getProcessHandler();
+    if (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(executor.getId())) {
+      processHandler = existingSessionInfo.getProcessHandler();
     }
 
-    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
+    // Store the chosen target on the execution environment so before-run tasks can access it.
+    env.putCopyableUserData(AndroidRunConfigContext.KEY,
+                            createAndroidRunConfigContext(executor, forceColdswap, existingSessionInfo, couldHaveHotswapped, deviceFutures));
+    // Save the instant run context so that before-run task can access it
+    env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
+
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions,
-                                            processHandler, instantRunContext);
+      createLaunchTasksProviderFactory(env, facet, deviceFutures,
+                                       applicationIdProvider, instantRunContext, processHandler, isDebugging);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
   }
+
+  /**
+   * Checks Instant Run is supported based on gradle version and the chosen deploy target.
+   * Prompts user to install required platform if not installed.
+   */
+  @Nullable
+  private InstantRunContext ensureGradleSupport(@NotNull Executor executor,
+                                                @NotNull ExecutionEnvironment env,
+                                                @NotNull Module module,
+                                                @NotNull AndroidFacet facet,
+                                                @NotNull Project project,
+                                                @Nullable AndroidSessionInfo info,
+                                                @NotNull DeviceFutures deviceFutures) {
+    InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
+    if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
+      if(promptInstallTargetPlatform(project, deviceFutures)) {
+        gradleSupport = SUPPORTED;
+      }
+    }
+
+    if (gradleSupport == SUPPORTED) {
+      InstantRunUtils.setInstantRunEnabled(env, true);
+      return InstantRunGradleUtils.createGradleProjectContext(facet);
+    }
+    else {
+      notifyInstantRunDisabled(executor, env, info, gradleSupport);
+    }
+    return null;
+  }
+
+  @NotNull
+  private LaunchTasksProviderFactory createLaunchTasksProviderFactory(@NotNull ExecutionEnvironment env,
+                                                                      @NotNull AndroidFacet facet,
+                                                                      @NotNull DeviceFutures deviceFutures,
+                                                                      @NotNull ApplicationIdProvider applicationIdProvider,
+                                                                      @Nullable InstantRunContext instantRunContext,
+                                                                      @Nullable ProcessHandler processHandler, boolean isDebugging) {
+    LaunchOptions launchOptions = getLaunchOptions()
+      .setDebug(isDebugging)
+      .build();
+    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, getApkProvider(facet, applicationIdProvider),
+                                                 deviceFutures, launchOptions,
+                                                 processHandler, instantRunContext);
+  }
+
+  @NotNull
+  private AndroidRunConfigContext createAndroidRunConfigContext(@NotNull Executor executor,
+                                                                boolean forceColdswap,
+                                                                @Nullable AndroidSessionInfo existingSessionInfo,
+                                                                boolean couldHaveHotswapped,
+                                                                @NotNull DeviceFutures deviceFutures) {
+    AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
+    runConfigContext.setTargetDevices(deviceFutures);
+    runConfigContext.setSameExecutorAsPreviousSession(isSameExecutorAsPreviousSession(executor, existingSessionInfo));
+    runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
+    return runConfigContext;
+  }
+
+  /**
+   * There is an existing AndroidSessionInfo. Determines the deviceFutures based on previous session
+   * and prepares the session for Instant Run.
+   * @return a data class that holds the deviceFutures and boolean for if user could have
+   * used hotswap button.
+   */
+  @VisibleForTesting
+  @Nullable
+  PrepareSessionResult prepareInstantRunSession(@NotNull final AndroidSessionInfo info,
+                                                @NotNull final Executor executor,
+                                                @NotNull final AndroidFacet facet,
+                                                @NotNull final Project project,
+                                                final boolean forceColdswap,
+                                                final boolean instantRunEnabled) {
+    DeviceFutures deviceFutures = null;
+    boolean couldHaveHotswapped = false;
+    if (instantRunEnabled) {
+      // if there is an existing previous session, then see if we can detect devices to fast deploy to
+      deviceFutures = getFastDeployDevices(executor, AndroidModuleModel.get(facet), info);
+    }
+
+    if (deviceFutures == null) {
+      // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
+      // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
+      if (!promptAndKillSession(executor, project, info)) {
+        return null;
+      }
+    }
+    else if (forceColdswap) {
+      // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
+      couldHaveHotswapped = true;
+
+      // forcibly kill app in case of run action (which forces a cold swap)
+      // normally, installing the apk will force kill the app, but we need to forcibly kill it in the case that there were no changes
+      killSession(info);
+    }
+
+    return new PrepareSessionResult(deviceFutures, couldHaveHotswapped);
+  }
+
+  private void notifyInstantRunDisabled(@NotNull final Executor executor,
+                                        @NotNull final ExecutionEnvironment env,
+                                        @Nullable final AndroidSessionInfo info,
+                                        @NotNull final InstantRunGradleSupport gradleSupport) {
+    InstantRunManager.LOG.warn("Instant Run enabled, but not doing an instant run build since: " + gradleSupport);
+    // IR is disabled, we only want to display IR notification on start of session to avoid spamming user on each run.
+    if (!isSameExecutorAsPreviousSession(executor, info)) {
+      String notificationText = gradleSupport.getUserNotification();
+      if (notificationText != null) {
+        InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+      }
+    }
+  }
+
+  /**
+   * Request user ot install the target platform so Instant Run can be used.
+   * Returns true if it is installed, false otherwise.
+   */
+  private boolean promptInstallTargetPlatform(@NotNull final Project project,
+                                              @NotNull final DeviceFutures deviceFutures) {
+    AndroidVersion version = deviceFutures.getDevices().get(0).getVersion();
+    String message = AndroidBundle.message("instant.run.quickfix.missing.platform", SdkVersionInfo.getVersionWithCodename(version));
+    int result = Messages.showYesNoDialog(project,
+                                          message,
+                                          "Instant Run",
+                                          "Install and Continue", // yes button
+                                          "Proceed without Instant Run", // no button
+                                          Messages.getQuestionIcon());
+    if (result == Messages.OK) { // if ok, install platform and continue with instant run
+      ModelWizardDialog dialog =
+        SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(DetailsTypes.getPlatformPath(version)));
+      if (dialog == null) {
+        LOG.warn("Unable to get quick fix wizard to install missing platform required for instant run.");
+      }
+      else if (dialog.showAndGet()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void logInstantRunOffReason(boolean instantRunEnabled) {
+    String msg = "Not using instant run for this launch: ";
+    if (instantRunEnabled) {
+      msg += getType().getDisplayName() + " does not support instant run";
+    }
+    else {
+      msg += "instant run is disabled";
+    }
+    InstantRunManager.LOG.info(msg);
+  }
+
 
   private boolean isSameExecutorAsPreviousSession(@NotNull Executor executor, @Nullable AndroidSessionInfo info) {
     return info != null && executor.getId().equals(info.getExecutorId());
@@ -410,14 +492,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     info.getProcessHandler().destroyProcess();
   }
 
+  /**
+   * Retrieves DeviceFutures based on the AndroidSessionInfo for Instant Run.
+   */
   @VisibleForTesting
   @Nullable
   protected static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
-                                                      @NotNull AndroidModuleModel model,
+                                                      @Nullable AndroidModuleModel model,
                                                       @NotNull AndroidSessionInfo info) {
+
     if (!info.getExecutorId().equals(executor.getId())) {
-      String msg = String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
-                                 executor.getId());
+      String msg =
+        String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+                      executor.getId());
       InstantRunManager.LOG.info(msg);
       return null;
     }
@@ -491,6 +578,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return deployTarget;
   }
 
+  /**
+   * Prompts user to kill the existing android session on the device
+   * @return true if session is killed, false if user choose to not kill session.
+   */
   private boolean promptAndKillSession(@NotNull Executor executor, @NotNull Project project, @NotNull AndroidSessionInfo info) {
     String previousExecutorId = info.getExecutorId();
     String currentExecutorId = executor.getId();
@@ -568,9 +659,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return MultiUserUtils.PRIMARY_USERID;
   }
 
+  @VisibleForTesting
   @NotNull
-  private InstantRunGradleSupport canInstantRun(@NotNull Module module,
-                                                @NotNull List<AndroidDevice> targetDevices) {
+  InstantRunGradleSupport canInstantRun(@NotNull Module module,
+                                        @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
       return CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
     }
@@ -729,6 +821,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     @Override
     public PostBuildModel getPostBuildModel() {
       return myBuildOutputs;
+    }
+  }
+
+  @VisibleForTesting
+  static class PrepareSessionResult {
+    DeviceFutures futures;
+    boolean couldHaveHotswapped;
+
+    public PrepareSessionResult(DeviceFutures futures, boolean couldHaveHotswapped) {
+      this.futures = futures;
+      this.couldHaveHotswapped = couldHaveHotswapped;
     }
   }
 }

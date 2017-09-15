@@ -71,6 +71,7 @@ public final class InstantRunManager implements ProjectComponent {
   public static final ImmutableSet<String> ALLOWED_MULTI_PROCESSES =
     ImmutableSet.of(":leakcanary",
                     ":background_crash"); // firebase uses a :background_crash process for crash reporting
+  public static final int MIN_IR_API_VERSION = 21;
 
   @NotNull private final Project myProject;
 
@@ -111,7 +112,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   /** Returns true if the device is capable of running Instant Run */
   public static boolean isInstantRunCapableDeviceVersion(@NotNull AndroidVersion version) {
-    return version.getApiLevel() >= 21;
+    return version.getApiLevel() >= MIN_IR_API_VERSION;
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
