@@ -20,24 +20,30 @@ import org.jetbrains.annotations.Nls
 /**
  * Holds the status of a project system capability
  */
-sealed class CapabilityStatus
+sealed class CapabilityStatus {
+  abstract fun isSupported(): Boolean
+}
 
 /**
  * Indicates that the capability is supported by the project system
  */
-class CapabilitySupported : CapabilityStatus()
+class CapabilitySupported : CapabilityStatus() {
+  override fun isSupported(): Boolean = true
+}
 
 /**
  * Indicates that the capability is not supported by the project system. Includes a user-readable message
  * explaining that the capability is unsupported.
  */
 open class CapabilityNotSupported(@Nls val message: String = "The build system for this project does not support this feature",
-                                  @Nls(capitalization = Nls.Capitalization.Title) val title: String = "Unsupported Capability") : CapabilityStatus()
+                                  @Nls(capitalization = Nls.Capitalization.Title) val title: String = "Unsupported Capability") : CapabilityStatus() {
+  override fun isSupported(): Boolean = false
+}
 
 /**
  * Indicates that the capability is not supported by the current version of the build system,
  * but would be available if it were upgraded to a newer version.
  */
-class CapabilityUpgradeRequired(@Nls message: String,
-                                @Nls(capitalization = Nls.Capitalization.Title) title: String)
+class CapabilityUpgradeRequired(@Nls message: String = "You must upgrade your build system to support this feature",
+                                @Nls(capitalization = Nls.Capitalization.Title) title: String = "Upgrade needed")
   : CapabilityNotSupported(message, title)

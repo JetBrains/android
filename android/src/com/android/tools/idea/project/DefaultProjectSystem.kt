@@ -66,4 +66,12 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
     return CapabilityNotSupported()
   }
+
+  override fun getInstantRunSupport(module: Module): CapabilityStatus {
+    return CapabilityNotSupported()
+  }
+
+  override fun upgradeProjectToSupportInstantRun(): Boolean {
+    return false
+  }
 }

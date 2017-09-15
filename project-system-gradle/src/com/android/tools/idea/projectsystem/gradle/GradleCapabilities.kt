@@ -22,6 +22,8 @@ import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.CapabilityUpgradeRequired
 import com.intellij.openapi.module.Module
 
+val MIN_PNG_GENERATION_VERSION = GradleVersion(1, 4, 0)
+
 /**
  * Returns the gradle plugin version for the given module or null if the model is unknown
  */
@@ -29,22 +31,22 @@ fun Module.getGradleVersion(): GradleVersion? {
   return AndroidModuleModel.get(this)?.let { GradleVersion.parse(it.androidProject.modelVersion) }
 }
 
-fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean): Boolean {
+fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean, ignoreQualifier: Boolean = true): Boolean {
   val gradleVersion = getGradleVersion()
-  return if (gradleVersion == null)
-    default
-  else
-    gradleVersion.compareIgnoringQualifiers(version) >= 0
+  return when {
+    gradleVersion == null -> default
+    ignoreQualifier -> gradleVersion.compareIgnoringQualifiers(version) >= 0
+    else -> gradleVersion >= version
+  }
 }
 
 /**
  * @return whether the gradle plugin used by this module supports PNG generation
  */
 fun supportsPngGeneration(module: Module): CapabilityStatus {
-  return if (module.isGradleVersionAtLeast(GradleVersion(1, 4, 0), true)) {
+  return if (module.isGradleVersionAtLeast(MIN_PNG_GENERATION_VERSION, true))
     CapabilitySupported()
-  }
-  else {
+  else
     CapabilityUpgradeRequired(
         "<html><p>To support vector assets when your minimal SDK version is less than 21,<br>" +
             "the Android plugin for Gradle version must be 1.4 or above.<br>" +
@@ -53,5 +55,4 @@ fun supportsPngGeneration(module: Module): CapabilityStatus {
             "#projectBuildFile\">here</a> for how to update the version of Android plugin for Gradle." +
             "</p></html>",
         "Newer Android Plugin for Gradle Required")
-  }
 }

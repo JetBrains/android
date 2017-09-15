@@ -108,4 +108,12 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
   override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
     return supportsPngGeneration(module)
   }
+
+  override fun getInstantRunSupport(module: Module): CapabilityStatus {
+    return getInstantRunCapabilityStatus(module)
+  }
+
+  override fun upgradeProjectToSupportInstantRun(): Boolean {
+    return updateProjectToInstantRunTools(project)
+  }
 }

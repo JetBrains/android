@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
@@ -162,7 +163,7 @@ public class InstantRunNotificationTask implements LaunchTask {
           BrowserUtil.browse(INSTANT_RUN_URL, project);
         }
         else if ("updategradle".equals(description)) {
-          InstantRunConfigurable.updateProjectToInstantRunTools(project, null);
+          ProjectSystemUtil.getProjectSystem(project).upgradeProjectToSupportInstantRun();
         }
       }
     };
