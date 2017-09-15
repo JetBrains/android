@@ -20,11 +20,15 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.intellij.openapi.application.ActionsKt;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent;
 import static com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent;
 import static org.mockito.Mockito.*;
@@ -34,17 +38,31 @@ import static org.mockito.Mockito.*;
  */
 public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
-  public void testSimple() throws Exception {
+  public void testSimple() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
-                                fragmentComponent("fragment1"),
-                                fragmentComponent("fragment2"))).build();
+                              rootComponent().id("@+id/root")
+                                .unboundedChildren(
+                                  fragmentComponent("fragment1"),
+                                  fragmentComponent("fragment2"))).build();
+    ManualLayoutAlgorithm.LayoutPositions rootPositions = new ManualLayoutAlgorithm.LayoutPositions();
     ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(123, 456));
-    positions.myPositions.put("fragment2", new ManualLayoutAlgorithm.Point(456, 789));
+    rootPositions.put("nav.xml", positions);
+
+    ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.put("root", newPositions);
+    positions = newPositions;
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(123, 456);
+    positions.put("fragment1", newPositions);
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(456, 789);
+    positions.put("fragment2", newPositions);
+
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), positions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verifyZeroInteractions(fallback);
 
@@ -54,15 +72,80 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     assertEquals(789, scene.getSceneComponent("fragment2").getDrawY());
   }
 
-  public void testFallback() throws Exception {
+  public void testDifferentFiles() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
-                                fragmentComponent("fragment1"),
-                                fragmentComponent("fragment2"),
-                                fragmentComponent("fragment3"))).build();
+                              rootComponent().id("@+id/root")
+                                .unboundedChildren(
+                                  fragmentComponent("fragment1"))).build();
+
+    SyncNlModel model2 = model("nav2.xml",
+                               rootComponent().id("@+id/root")
+                                 .unboundedChildren(
+                                   fragmentComponent("fragment1"))).build();
+
+    ManualLayoutAlgorithm.LayoutPositions rootPositions = new ManualLayoutAlgorithm.LayoutPositions();
     ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
-    positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(60, 60));
-    positions.myPositions.put("fragment3", new ManualLayoutAlgorithm.Point(200, 200));
+    rootPositions.put("nav.xml", positions);
+
+    ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.put("root", newPositions);
+    positions = newPositions;
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(123, 456);
+    positions.put("fragment1", newPositions);
+
+    positions = new ManualLayoutAlgorithm.LayoutPositions();
+    rootPositions.put("nav2.xml", positions);
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.put("root", newPositions);
+    positions = newPositions;
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(456, 789);
+    positions.put("fragment1", newPositions);
+
+    Scene scene = model.getSurface().getScene();
+    NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
+    ManualLayoutAlgorithm algorithm =
+      new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
+    scene.getRoot().flatten().forEach(algorithm::layout);
+
+    Scene scene2 = model2.getSurface().getScene();
+    scene2.getRoot().flatten().forEach(algorithm::layout);
+
+    assertEquals(123, scene.getSceneComponent("fragment1").getDrawX());
+    assertEquals(456, scene.getSceneComponent("fragment1").getDrawY());
+    assertEquals(456, scene2.getSceneComponent("fragment1").getDrawX());
+    assertEquals(789, scene2.getSceneComponent("fragment1").getDrawY());
+  }
+
+  public void testFallback() {
+    SyncNlModel model = model("nav.xml",
+                              rootComponent().id("@+id/root")
+                                .unboundedChildren(
+                                  fragmentComponent("fragment1"),
+                                  fragmentComponent("fragment2"),
+                                  fragmentComponent("fragment3"))).build();
+
+    ManualLayoutAlgorithm.LayoutPositions rootPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
+    rootPositions.put("nav.xml", positions);
+
+    ManualLayoutAlgorithm.LayoutPositions newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.put("root", newPositions);
+    positions = newPositions;
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(60, 60);
+    positions.put("fragment1", newPositions);
+
+    newPositions = new ManualLayoutAlgorithm.LayoutPositions();
+    newPositions.myPosition = new ManualLayoutAlgorithm.Point(200, 200);
+    positions.put("fragment3", newPositions);
+
+
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
     SceneComponent fragment2 = scene.getSceneComponent("fragment2");
@@ -70,7 +153,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
       ((SceneComponent)invocation.getArgument(0)).setPosition(123, 456);
       return null;
     }).when(fallback).layout(fragment2);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), positions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), rootPositions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verify(fallback).layout(fragment2);
     verifyNoMoreInteractions(fallback);
@@ -90,7 +173,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testSave() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent().id("@+id/nav").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"))).build();
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
@@ -104,8 +187,8 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     // Tests always use file-based storage, not directory-based
     assertTrue(FileUtil.loadFile(VfsUtilCore.virtualToIoFile(getProject().getProjectFile())).contains("fragment1"));
 
-    // Now create everything anew and  verify the old position is restored
-    model = model("nav.xml", rootComponent().unboundedChildren(
+    // Now create everything anew and verify the old position is restored
+    model = model("nav.xml", rootComponent().id("@+id/nav").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"))).build();
     surface = new NavDesignSurface(getProject(), getTestRootDisposable());
@@ -115,5 +198,38 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     algorithm.layout(component);
     assertEquals(100, component.getDrawX());
     assertEquals(200, component.getDrawY());
+  }
+
+  public void testSaveWithError() {
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(myModule);
+    SyncNlModel model = model("nav.xml",
+                              rootComponent().id("@+id/nav").unboundedChildren(
+                                fragmentComponent("fragment1"),
+                                fragmentComponent("fragment2"))).build();
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface.setModel(model);
+    SceneComponent nullIdComponent = surface.getScene().getSceneComponent("fragment1");
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> nullIdComponent.getNlComponent().setAndroidAttribute(ATTR_ID, null));
+    nullIdComponent.setPosition(100, 200);
+    algorithm.save(nullIdComponent);
+
+    SceneComponent component = surface.getScene().getSceneComponent("fragment2");
+    component.setPosition(400, 500);
+    algorithm.save(component);
+    PlatformTestUtil.saveProject(getProject());
+
+    // Now create everything anew and verify the old position is restored
+    model = model("nav.xml", rootComponent().id("@+id/nav").unboundedChildren(
+      fragmentComponent("fragment1"),
+      fragmentComponent("fragment2"))).build();
+    surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface.setModel(model);
+    component = surface.getScene().getSceneComponent("fragment2");
+    algorithm = new ManualLayoutAlgorithm(model.getModule());
+    algorithm.layout(component);
+    assertEquals(400, component.getDrawX());
+    assertEquals(500, component.getDrawY());
+
+    // don't need to test the null id component; behavior there is undefined.
   }
 }

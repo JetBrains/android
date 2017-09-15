@@ -16,15 +16,25 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -74,18 +84,76 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
       return;
     }
-    Point location = getStorage().getState().getPositions().get(component.getId());
-    if (location != null) {
-      component.setPosition(location.x, location.y);
+    Deque<String> stack = getParentStack(component);
+
+    LayoutPositions positions = getStorage().getState();
+    positions = positions.get(getFileName(component));
+    while (!stack.isEmpty()) {
+      if (positions == null) {
+        break;
+      }
+      positions = positions.get(stack.pop());
     }
-    else {
-      getFallback().layout(component);
-      save(component);
+
+    if (positions != null) {
+      Point location = positions.myPosition;
+      if (location != null) {
+        component.setPosition(location.x, location.y);
+        return;
+      }
     }
+
+    getFallback().layout(component);
+    save(component);
+  }
+
+  @NotNull
+  private static Deque<String> getParentStack(@NotNull SceneComponent component) {
+    Deque<String> stack = new LinkedList<>();
+    NlComponent current = component.getNlComponent();
+    while (current != null) {
+      String id = NavComponentHelperKt.getResolvedId(current);
+      if (id == null) {
+        NlModel model = current.getModel();
+        Document doc = FileDocumentManager.getInstance().getDocument(model.getFile().getVirtualFile());
+        int line = -1;
+        if (doc != null) {
+          line = doc.getLineNumber(current.getTag().getTextRange().getStartOffset()) + 1;
+        }
+        // TODO: surface this
+        Logger.getInstance(ManualLayoutAlgorithm.class).warn("Element with null id encountered" + (line != -1 ? " on line " + line : ""));
+      }
+      stack.push(id);
+      current = current.getParent();
+    }
+    return stack;
   }
 
   public void save(@NotNull SceneComponent component) {
-    getStorage().getState().getPositions().put(component.getId(), new Point(component.getDrawX(), component.getDrawY()));
+    LayoutPositions positions = getStorage().getState();
+
+    Deque<String> stack = getParentStack(component);
+    stack.push(getFileName(component));
+    while (!stack.isEmpty()) {
+      String element = stack.pop();
+      if (element == null) {
+        // We encountered an element with no id. This shouldn't happen (we shouldn't be able to build and thus shouldn't be showing the
+        // editor at all), but if it does, just abort.
+        return;
+      }
+      LayoutPositions newPositions = positions.get(element);
+      if (newPositions == null) {
+        newPositions = new LayoutPositions();
+        positions.put(element, newPositions);
+      }
+      positions = newPositions;
+    }
+    positions.myPosition = new Point(component.getDrawX(), component.getDrawY());
+  }
+
+  @NotNull
+  private static String getFileName(@NotNull SceneComponent component) {
+    return component.getNlComponent().getModel().getFile().getName();
   }
 
   @NotNull
@@ -102,7 +170,8 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     public int y;
 
     @SuppressWarnings("unused")  // Invoked by reflection
-    public Point() {}
+    public Point() {
+    }
 
     public Point(int x, int y) {
       this.x = x;
@@ -115,10 +184,20 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     // Map of id to layout position
 
     @SuppressWarnings("CanBeFinal")  // Somehow making it final breaks persistence
-    public Map<String, Point> myPositions = new HashMap<>();
+    public Map<String, LayoutPositions> myPositions;
 
-    public Map<String, Point> getPositions() {
-      return myPositions;
+    public Point myPosition;
+
+    @Nullable
+    public LayoutPositions get(@Nullable String id) {
+      return myPositions == null ? null : myPositions.get(id);
+    }
+
+    public void put(@NotNull String id, @NotNull LayoutPositions sub) {
+      if (myPositions == null) {
+        myPositions = new HashMap<>();
+      }
+      myPositions.put(id, sub);
     }
   }
 
@@ -139,6 +218,5 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     public void loadState(@NotNull LayoutPositions state) {
       myState = state;
     }
-
   }
 }
