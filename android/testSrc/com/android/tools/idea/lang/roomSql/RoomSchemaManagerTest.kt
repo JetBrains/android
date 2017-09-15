@@ -281,6 +281,32 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
             daos = emptySet()))
   }
 
+  fun testColums_static() {
+    myFixture.addClass(
+        """
+        package com.example;
+
+        import android.arch.persistence.room.Entity;
+        import android.arch.persistence.room.Ignore;
+
+        @Entity
+        public class User {
+          private static final int MY_CONST = 12;
+          private String name;
+        }
+        """.trimIndent())
+
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+        RoomSchema(
+            entities = setOf(
+                Entity(
+                    myFixture.classPointer("com.example.User"),
+                    name = "User",
+                    columns = setOf(Column(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+            databases = emptySet(),
+            daos = emptySet()))
+  }
+
   fun testColums_inheritance() {
     myFixture.addClass(
         """

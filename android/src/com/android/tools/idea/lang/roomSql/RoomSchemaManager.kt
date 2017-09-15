@@ -146,19 +146,21 @@ class RoomSchemaManager(val module: Module) {
 
   private fun findColumns(psiClass: PsiClass, pointerManager: SmartPointerManager): Set<Column> {
     return psiClass.allFields
+        .asSequence()
+        .filterNot { it.modifierList?.hasModifierProperty(PsiModifier.STATIC) ?: false }
+        .filterNot { it.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null }
         .mapNotNullTo(HashSet()) { psiField ->
-          if (psiField.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null) {
-            return@mapNotNullTo null
-          }
-
-          val (columnName, columnNameElement) = getNameAndNameElement(
-              psiField, annotationName = COLUMN_INFO_ANNOTATION_NAME, annotationAttributeName = "name") ?: return@mapNotNullTo null
-
-          Column(
-              pointerManager.createSmartPsiElementPointer(psiField),
-              columnName,
-              pointerManager.createSmartPsiElementPointer(columnNameElement)
-          )
+          getNameAndNameElement(
+              psiField,
+              annotationName = COLUMN_INFO_ANNOTATION_NAME,
+              annotationAttributeName = "name")
+              ?.let { (columnName, columnNameElement) ->
+                Column(
+                    pointerManager.createSmartPsiElementPointer(psiField),
+                    columnName,
+                    pointerManager.createSmartPsiElementPointer(columnNameElement)
+                )
+              }
         }
   }
 
