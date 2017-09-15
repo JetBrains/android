@@ -50,9 +50,9 @@ public class GenericErrorHandler extends SyncErrorHandler {
   @NotNull
   private List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
-    String lastLine = message.get(message.size() - 1);
-    if (lastLine != null) {
+    List<String> message = getMessageLines(text);
+    if (!message.isEmpty()) {
+      String lastLine = message.get(message.size() - 1);
       Pair<String, Integer> errorLocation = getErrorLocation(lastLine);
       if (errorLocation != null) {
         String filePath = errorLocation.getFirst();
