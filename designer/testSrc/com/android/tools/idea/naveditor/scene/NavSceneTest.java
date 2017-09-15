@@ -139,6 +139,7 @@ public class NavSceneTest extends NavigationTestCase {
   public void testNegativePositions() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment1")
+      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main"),
@@ -191,6 +192,7 @@ public class NavSceneTest extends NavigationTestCase {
   public void testVeryPositivePositions() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment1")
+      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main"),
@@ -243,6 +245,7 @@ public class NavSceneTest extends NavigationTestCase {
   public void testAddComponent() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment2")
+      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main")

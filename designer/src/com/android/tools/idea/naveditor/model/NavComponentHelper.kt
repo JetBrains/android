@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
@@ -43,6 +45,8 @@ fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
   }
 }
 
+val NlComponent.resolvedId
+    get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
