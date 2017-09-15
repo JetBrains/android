@@ -271,6 +271,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
+                       order="first, before gradle"/>
     <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
          so we need to set order to prevent overriding other position managers as well -->
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
@@ -282,7 +284,6 @@
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>
-    <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
@@ -860,12 +861,6 @@
                 conditionClass="com.android.tools.idea.explorer.DeviceExplorerViewCondition"
                 icon="AndroidIcons.AndroidToolWindow"
                 factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <toolWindow id="Gradle Console"
-                anchor="bottom"
-                secondary="true"
-                conditionClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleCondition"
-                icon="AndroidIcons.GradleConsoleToolWindow"
-                factoryClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
@@ -878,7 +873,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.InternalAndroidModelView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
@@ -988,7 +982,6 @@
     <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
-    <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
@@ -1170,7 +1163,6 @@
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>
 
-    <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.LibraryCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
@@ -1286,11 +1278,5 @@
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
     </component>
   </module-components>
-
-
-  <extensions defaultExtensionNs="com.intellij">
-    <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
-  </extensions>
-
 
 </idea-plugin>
