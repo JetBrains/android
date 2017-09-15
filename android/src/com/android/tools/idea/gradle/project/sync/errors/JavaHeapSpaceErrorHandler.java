@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.google.common.base.Splitter;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +33,11 @@ public class JavaHeapSpaceErrorHandler extends BaseSyncErrorHandler {
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
+    List<String> message = getMessageLines(text);
     int lineCount = message.size();
+    if (lineCount == 0) {
+      return null;
+    }
     String firstLine = message.get(0);
     String newMsg = null;
 
