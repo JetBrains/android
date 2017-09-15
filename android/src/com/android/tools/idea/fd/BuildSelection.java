@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Immutable;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +24,8 @@ public final class BuildSelection {
   @NotNull public final BuildCause why;
   public final boolean brokenForSecondaryUser;
 
-  BuildSelection(@NotNull BuildCause why, boolean brokenForSecondaryUser) {
+  @VisibleForTesting
+  public BuildSelection(@NotNull BuildCause why, boolean brokenForSecondaryUser) {
     this.why = why;
     this.brokenForSecondaryUser = brokenForSecondaryUser;
   }
