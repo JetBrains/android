@@ -478,6 +478,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return null;
   }
 
+  @NotNull
+  @Override
+  protected LaunchOptions.Builder getLaunchOptions() {
+    // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
+    return super.getLaunchOptions().setForceStopRunningApp(false);
+  }
+
   @VisibleForTesting
   class MyApplicationLaunchTask implements LaunchTask {
     @Nullable private final String myInstrumentationTestRunner;
