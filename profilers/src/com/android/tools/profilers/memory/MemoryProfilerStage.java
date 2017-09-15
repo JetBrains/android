@@ -90,6 +90,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private boolean myUpdateCaptureOnSelection = true;
   private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
   private long myPendingCaptureStartTime = INVALID_START_TIME;
+  private long myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -346,6 +347,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         case SUCCESS:
           myTrackingAllocations = enabled;
           myPendingCaptureStartTime = info.getStartTime();
+          myPendingLegacyAllocationStartTimeNs = enabled ? info.getStartTime() : INVALID_START_TIME;
           break;
         case IN_PROGRESS:
           myTrackingAllocations = true;
@@ -378,7 +380,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     if (myTrackingAllocations) {
       Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
         .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
-      return timeResponse.getTimestampNs() - myPendingCaptureStartTime;
+      return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
     }
     return INVALID_START_TIME;
   }

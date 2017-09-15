@@ -153,6 +153,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Test
   public void testCaptureElapsedTime() throws Exception {
+    final int invalidTime = -1;
     final int startTime = 1;
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
@@ -166,11 +167,20 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myService.setExplicitAllocationsStatus(MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
                                          TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
+
     myStage.trackAllocations(true);
     assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true),
                  stageView.getCaptureElapsedTimeLabel().getText());
 
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(endTime));
+    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
+    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
+                 stageView.getCaptureElapsedTimeLabel().getText());
+
+    // Triggering a heap dump should not affect the allocation recording duration
+    myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
+    myService.setExplicitHeapDumpInfo(TimeUnit.SECONDS.toNanos(invalidTime), TimeUnit.SECONDS.toNanos(Long.MAX_VALUE));
+    myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
                  stageView.getCaptureElapsedTimeLabel().getText());
