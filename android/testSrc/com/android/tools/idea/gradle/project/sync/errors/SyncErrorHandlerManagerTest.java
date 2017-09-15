@@ -24,6 +24,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static org.mockito.Mockito.*;
@@ -51,9 +54,7 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
                                                         myErrorHandler2);
   }
 
-  /** Disabled in merge of IntelliJ 2017.1.2 */
-  public void test() { /*To avoid "No tests found in com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManagerTest"*/}
-  public void ignored_testHandleError() {
+  public void testHandleError() {
     Throwable error = new Throwable("Test");
     ExternalSystemException errorToReport = new ExternalSystemException("Test error");
     errorToReport.initCause(error);
@@ -61,7 +62,7 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     ErrorAndLocation errorAndLocation = new ErrorAndLocation(errorToReport, positionInFile);
 
     when(myCauseAndLocationFactory.create(error)).thenReturn(errorAndLocation);
-    when(mySyncMessages.createNotification(DEFAULT_GROUP, "Test error", ERROR, positionInFile)).thenReturn(myNotificationData);
+    when(mySyncMessages.createNotification(eq(DEFAULT_GROUP), any(), eq(ERROR), eq(positionInFile))).thenReturn(myNotificationData);
 
     // simulate that myErrorHandler1 can handle the error
     Project project = getProject();
@@ -70,6 +71,41 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     myErrorHandlerManager.handleError(error);
 
     // Verify that the second error handler was not invoked because the first one already handled the error.
+    verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);
+    verify(myErrorHandler2, never()).handleError(errorToReport, myNotificationData, project);
+
+    // Verify the error was reported.
+    verify(mySyncMessages, times(1)).report(myNotificationData);
+  }
+
+  /**
+   * Verify an empty error can be processed by all error handlers returned by SyncErrorHandler.getExtensions() but that none of them
+   * return true on handleError.
+   */
+  public void testEmptyError() {
+    Throwable error = new Throwable("");
+    ExternalSystemException errorToReport = new ExternalSystemException("");
+    errorToReport.initCause(error);
+    PositionInFile positionInFile = new PositionInFile(mock(VirtualFile.class));
+    ErrorAndLocation errorAndLocation = new ErrorAndLocation(errorToReport, positionInFile);
+
+    when(myCauseAndLocationFactory.create(error)).thenReturn(errorAndLocation);
+    when(mySyncMessages.createNotification(eq(DEFAULT_GROUP), any(), eq(ERROR), eq(positionInFile))).thenReturn(myNotificationData);
+
+    Project project = getProject();
+
+    ArrayList<SyncErrorHandler> allExtensions = new ArrayList<>(Arrays.asList(SyncErrorHandler.getExtensions()));
+    // add a mock handler
+    when(myErrorHandler1.handleError(errorToReport, myNotificationData, project)).thenReturn(true);
+    allExtensions.add(myErrorHandler1);
+    allExtensions.add(myErrorHandler2);
+    SyncErrorHandler[] asArray = new SyncErrorHandler[allExtensions.size()];
+    allExtensions.toArray(asArray);
+
+    SyncErrorHandlerManager realErrorHandler = new SyncErrorHandlerManager(project, mySyncMessages, myCauseAndLocationFactory, asArray);
+    realErrorHandler.handleError(error);
+
+    // Verify that only the first mock handler handled the error.
     verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);
     verify(myErrorHandler2, never()).handleError(errorToReport, myNotificationData, project);
 
