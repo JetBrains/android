@@ -25,19 +25,19 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.naveditor.surface.NavView;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidIcons;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DestinationList}
@@ -60,10 +60,8 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     myList = (DestinationList)def.getFactory().create();
     DesignSurface surface = myModel.getSurface();
-    SceneView sceneView = mock(SceneView.class);
-    when(sceneView.getConfiguration()).thenReturn(myModel.getConfiguration());
+    SceneView sceneView = new NavView((NavDesignSurface)surface, myModel);
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
-    when(sceneView.getModel()).thenReturn(myModel);
     myList.setToolContext(surface);
   }
 
@@ -137,11 +135,8 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
 
-    SceneView sceneView = mock(SceneView.class);
-    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+    SceneView sceneView = new NavView((NavDesignSurface)model.getSurface(), myModel);
     when(model.getSurface().getCurrentSceneView()).thenReturn(sceneView);
-    when(sceneView.getModel()).thenReturn(myModel);
-    when(sceneView.getPreferredSize()).thenReturn(new Dimension(100, 100));
     list.setToolContext(model.getSurface());
 
     //noinspection AssertEqualsBetweenInconvertibleTypes
@@ -184,10 +179,8 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-    SceneView sceneView = mock(SceneView.class);
-    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+    SceneView sceneView = new NavView(surface, myModel);
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
-    when(sceneView.getModel()).thenReturn(model);
     list.setToolContext(surface);
 
     NlComponent root = model.getComponents().get(0);
@@ -229,10 +222,8 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     DesignSurface surface = model.getSurface();
-    SceneView sceneView = mock(SceneView.class);
-    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+    SceneView sceneView = new NavView((NavDesignSurface)surface, myModel);
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
-    when(sceneView.getModel()).thenReturn(model);
     list.setToolContext(surface);
 
     assertEquals(5, list.myList.getItemsCount());
