@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -38,12 +39,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.ui.PlatformColors;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -127,15 +125,16 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     });
 
-    ActionListener actionListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
+    if (config instanceof AndroidTestRunConfiguration) {
+      // The application is always force stopped when running `am instrument`. See AndroidTestRunConfiguration#getLaunchOptions().
+      myForceStopRunningApplicationCheckBox.setVisible(false);
+    } else {
+      mySkipNoOpApkInstallation.addActionListener(e -> {
         if (mySkipNoOpApkInstallation == e.getSource()) {
           myForceStopRunningApplicationCheckBox.setEnabled(mySkipNoOpApkInstallation.isSelected());
         }
-      }
-    };
-    mySkipNoOpApkInstallation.addActionListener(actionListener);
+      });
+    }
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
     myModulesComboBox.addActionListener(new ActionListener() {
