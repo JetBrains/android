@@ -534,8 +534,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewTvActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewProjectWithTvActivity() throws Exception {
     checkCreateTemplate("activities", "AndroidTVActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithTvActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", true, withKotlin);
   }
 
   @TemplateCheck
