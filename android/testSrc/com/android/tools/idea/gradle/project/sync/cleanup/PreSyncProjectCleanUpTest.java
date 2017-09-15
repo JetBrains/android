@@ -44,7 +44,6 @@ public class PreSyncProjectCleanUpTest {
     assertThat(tasks[2]).isInstanceOf(HttpProxySettingsCleanUpTask.class);
     assertThat(tasks[3]).isInstanceOf(GradleSettingsCleanUpTask.class);
     assertThat(tasks[4]).isInstanceOf(GradleDistributionCleanUpTask.class);
-    assertThat(tasks[5]).isInstanceOf(BuildOutputViewCleanUpTask.class);
   }
 
   public void execute() {
