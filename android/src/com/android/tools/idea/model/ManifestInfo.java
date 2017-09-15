@@ -61,6 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -83,7 +84,7 @@ final class ManifestInfo {
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
-    ManifestMerger2.MergeType mergeType = facet.isAppProject() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
+    ManifestMerger2.MergeType mergeType = facet.isAppProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getAndroidModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
@@ -343,7 +344,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
 
       List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (myFacet.isAppProject()) {
+      if (myFacet.isAppProject() || myFacet.getProjectType() == PROJECT_TYPE_FEATURE) {
         libraryManifests = getLibManifests(myFacet);
         trackChanges(lastModifiedMap, libraryManifests);
       }
