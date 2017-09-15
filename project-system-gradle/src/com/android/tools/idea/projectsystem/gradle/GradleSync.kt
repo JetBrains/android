@@ -29,14 +29,10 @@ import org.jetbrains.annotations.Contract
 
 @Contract(pure = true)
 private fun convertReasonToTrigger(reason: AndroidProjectSystem.SyncReason): GradleSyncStats.Trigger {
-  return if (reason === AndroidProjectSystem.SyncReason.PROJECT_LOADED) {
-    GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
-  }
-  else if (reason === AndroidProjectSystem.SyncReason.PROJECT_MODIFIED) {
-    GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
-  }
-  else {
-    GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
+  return when {
+    reason === AndroidProjectSystem.SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
+    reason === AndroidProjectSystem.SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
+    else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
   }
 }
 
