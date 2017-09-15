@@ -33,7 +33,9 @@ import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -44,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,11 +111,11 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     args.addAll(getInstantRunArguments(buildSelection.getBuildMode()));
     args.addAll(getFlightRecorderArguments());
 
-    List<String> tasks = new LinkedList<>();
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
     if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
-      tasks.addAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
+      tasks.putAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
     }
-    tasks.addAll(myTasksProvider.getFullBuildTasks());
+    tasks.putAll(myTasksProvider.getFullBuildTasks());
     return taskRunner.run(tasks, null, args);
   }
 

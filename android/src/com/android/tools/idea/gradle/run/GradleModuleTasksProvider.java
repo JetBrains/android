@@ -18,13 +18,15 @@ package com.android.tools.idea.gradle.run;
 import com.android.tools.idea.fd.InstantRunTasksProvider;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.util.List;
 
 public class GradleModuleTasksProvider implements InstantRunTasksProvider {
@@ -39,17 +41,17 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
 
   @NotNull
   @Override
-  public List<String> getCleanAndGenerateSourcesTasks() {
-    List<String> tasks = Lists.newArrayList();
+  public ListMultimap<Path, String> getCleanAndGenerateSourcesTasks() {
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
 
-    tasks.addAll(GradleBuildInvoker.findCleanTasksForModules(myModules));
-    tasks.addAll(GradleBuildInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleBuildInvoker.TestCompileType.NONE));
+    tasks.putAll(GradleBuildInvoker.findCleanTasksForModules(myModules));
+    tasks.putAll(GradleBuildInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleBuildInvoker.TestCompileType.NONE));
 
     return tasks;
   }
 
   @NotNull
-  public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
+  public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
     return GradleBuildInvoker.findTasksToExecute(affectedModules, buildMode, GradleBuildInvoker.TestCompileType.UNIT_TESTS);
@@ -64,12 +66,12 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
 
   @NotNull
   @Override
-  public List<String> getFullBuildTasks() {
+  public ListMultimap<Path, String> getFullBuildTasks() {
     return getTasksFor(BuildMode.ASSEMBLE, GradleBuildInvoker.TestCompileType.NONE);
   }
 
   @NotNull
-  public List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleBuildInvoker.TestCompileType testCompileType) {
+  public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleBuildInvoker.TestCompileType testCompileType) {
     return GradleBuildInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }

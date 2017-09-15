@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
@@ -26,20 +27,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface GradleTaskRunner {
   String USE_SPLIT_APK = "USE_SPLIT_APK";
 
-  boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+  boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
   static GradleTaskRunner newRunner(@NotNull Project project) {
     return new GradleTaskRunner() {
       @Override
-      public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-        throws InvocationTargetException, InterruptedException {
+      public boolean run(@NotNull ListMultimap<Path, String> tasks,
+                         @Nullable BuildMode buildMode,
+                         @NotNull List<String> commandLineArguments) {
         assert !ApplicationManager.getApplication().isDispatchThread();
 
         final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);

@@ -74,6 +74,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -321,7 +322,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
-    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(Lists.newArrayList(tasks)));
+    File projectDir = getBaseDirPath(project);
+    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks)));
   }
 
   @NotNull

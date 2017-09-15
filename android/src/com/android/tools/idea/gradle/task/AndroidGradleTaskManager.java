@@ -68,14 +68,14 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
     if (gradleBuildInvoker != null) {
-      GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), taskNames, id);
+      GradleBuildInvoker.Request request =
+        new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), new File(projectPath), taskNames, id);
 
       GradleExecutionSettings effectiveSettings =
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
       appendInitScriptArgument(taskNames, jvmAgentSetup, effectiveSettings);
       // @formatter:off
-      request.setBuildFilePath(new File(projectPath))
-             .setJvmArguments(new ArrayList<>(effectiveSettings.getVmOptions()))
+      request.setJvmArguments(new ArrayList<>(effectiveSettings.getVmOptions()))
              .setCommandLineArguments(effectiveSettings.getArguments())
              .setTaskListener(listener)
              .setWaitForCompletion(true);
