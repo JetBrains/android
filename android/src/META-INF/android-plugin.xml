@@ -969,7 +969,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar;sdk-common.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;android-rt.jar;sdk-common.jar"/>
     <compileServer.plugin classpath="repository.jar;sdklib.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
