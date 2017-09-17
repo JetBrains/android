@@ -38,14 +38,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
@@ -63,10 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
-import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
@@ -116,7 +110,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
-    checkForSupportedModules();
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
@@ -247,39 +240,5 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
     }
-  }
-
-  /**
-   * Verifies that the project, if it is an Android Gradle project, does not have any modules that are not known by Gradle. For example,
-   * when adding a plain IDEA Java module.
-   * Do not call this method from {@link ModuleListener#moduleAdded(Project, Module)} because the settings that this method look for are
-   * not present when importing a valid Gradle-aware module, resulting in false positives.
-   */
-  public void checkForSupportedModules() {
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    if (modules.length == 0 || !isBuildWithGradle(myProject)) {
-      return;
-    }
-    List<Module> unsupportedModules = new ArrayList<>();
-
-    for (Module module : modules) {
-      ModuleType moduleType = ModuleType.get(module);
-
-      if (moduleType instanceof JavaModuleType) {
-        if (!GRADLE_SYSTEM_ID.getId().equals(ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId())) {
-          unsupportedModules.add(module);
-        }
-      }
-    }
-
-    if (unsupportedModules.size() == 0) {
-      return;
-    }
-    String s = join(unsupportedModules, Module::getName, ", ");
-    AndroidGradleNotification.getInstance(myProject).showBalloon(
-      "Unsupported Modules Detected",
-      "Compilation is not supported for following modules: " + s +
-      ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",
-      NotificationType.ERROR);
   }
 }
