@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
@@ -170,7 +168,6 @@ public class NlPaletteModel implements Disposable {
         .map(Palette.Group::getItems)
         .forEach(List::clear);
 
-      loadThirdPartyLibraryComponents(type, palette);
       loadProjectComponents(type, palette, viewClasses);
     }
 
@@ -186,24 +183,6 @@ public class NlPaletteModel implements Disposable {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
     myTypeToPalette.put(type, palette);
     return palette;
-  }
-
-  private void loadThirdPartyLibraryComponents(@NotNull NlLayoutType type, @NotNull Palette palette) {
-    AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(myModule);
-    if (appResourceRepository == null) {
-      return;
-    }
-    for (FileResourceRepository fileResource : appResourceRepository.getLibraries()) {
-      // TODO: Add all palette components here:
-      //for (PaletteComponent component : fileResource.getPaletteComponents()) {
-      //  addThirdPartyComponent(...);
-      //}
-    }
-    // TODO: Remove this. Use this line to test this feature.
-    //addThirdPartyComponent(type, THIRD_PARTY_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-    //                       StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE,
-    //                       "com.google.android.exoplayer2.ui.SimpleExoPlayerView", null, null, "com.google.android.exoplayer:exoplayer",
-    //                       null, Collections.singletonList("tag"), Collections.emptyList());
   }
 
   private void loadProjectComponents(@NotNull NlLayoutType type,
@@ -281,7 +260,10 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
-    group.getItems().add(new Palette.Item(tagName, handler));
+    Palette.Item item = new Palette.Item(tagName, handler);
+    group.getItems().add(item);
+    item.resolve();
+    item.setParent(group);
     manager.registerHandler(tagName, handler);
     return true;
   }

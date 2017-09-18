@@ -158,6 +158,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     registerKeyboardActions();
 
     myLayoutType = NlLayoutType.UNKNOWN;
+    myLastSelectedGroup = DataModel.COMMON;
   }
 
   @NotNull
@@ -281,7 +282,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private void categorySelectionChanged() {
     Palette.Group newSelection = myCategoryList.getSelectedValue();
     if (newSelection == null) {
-      myLastSelectedGroup = null;
+      myLastSelectedGroup = DataModel.COMMON;
       myCategoryList.setSelectedIndex(0);
       return;
     }

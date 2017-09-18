@@ -34,7 +34,6 @@ import java.util.List;
  * and generating updates to 2 list models: category list and item list.
  */
 public class DataModel {
-  @VisibleForTesting
   public static final Palette.Group COMMON = new Palette.Group("Common");
   @VisibleForTesting
   public static final Palette.Group RESULTS = new Palette.Group("All Results");
