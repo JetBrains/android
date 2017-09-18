@@ -38,6 +38,51 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     StudioFlags.NELE_TARGET_RELATIVE.clearOverride()
   }
 
+  fun testResizeFromTopLeft() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_TOP)
+    myInteraction.mouseRelease(110f, 130f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"50dp\"\n" +
+            "        android:layout_height=\"30dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"10dp\"\n" +
+            "        android:layout_marginTop=\"30dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
+  }
+
+  fun testResizeFromTopRight() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_TOP)
+    myInteraction.mouseRelease(220f, 130f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"70dp\"\n" +
+            "        android:layout_height=\"30dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"100dp\"\n" +
+            "        android:layout_marginTop=\"30dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
+  }
+
+  fun testResizeFromBottomLeft() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_BOTTOM)
+    myInteraction.mouseRelease(110f, 230f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"50dp\"\n" +
+            "        android:layout_height=\"80dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"10dp\"\n" +
+            "        android:layout_marginTop=\"100dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
+  }
+
   fun testResizeFromBottomRight() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_BOTTOM)
