@@ -161,13 +161,29 @@ public class NewModuleTest {
       .getConfigureJavaLibaryStepFixture()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
-      .enterClassName("MyJavaClass")
       .setCreateGitIgnore(true)
       .getWizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open("mylib/.gitignore")
-      .open("mylib/src/main/java/my/test/MyJavaClass.java");
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyClass.java")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).isFile();
+  }
+
+  @Test
+  public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Java Library")
+      .clickNextToStep("Library name:")
+      .getConfigureJavaLibaryStepFixture()
+      .enterLibraryName("mylib")
+      .enterPackageName("my.test")
+      .enterClassName("MyJavaClass")
+      .setCreateGitIgnore(false)
+      .getWizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).doesNotExist();
   }
 }

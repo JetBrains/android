@@ -46,7 +46,7 @@ public final class NewJavaModuleModel extends WizardModel {
 
   @NotNull private final StringProperty myLibraryName = new StringValueProperty("lib");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
-  @NotNull private final StringProperty myClassName = new StringValueProperty("myClass");
+  @NotNull private final StringProperty myClassName = new StringValueProperty("MyClass");
   @NotNull private final BoolProperty myCreateGitIgnore = new BoolValueProperty(true);
 
   public NewJavaModuleModel(@NotNull Project project,
