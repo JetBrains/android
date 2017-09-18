@@ -32,7 +32,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
           public class NormalClass {}
           """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("User"), "User"),
@@ -44,7 +44,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
   fun testEntities_tableNameOverride() {
     myFixture.addRoomEntity("com.example.Address", tableNameOverride = "addresses")
 
-    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    val entity = RoomSchemaManager.getInstance(myModule)!!.schema!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.classPointer("com.example.Address"))
     assertThat(entity.name).isEqualTo("addresses")
     assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
@@ -63,7 +63,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    val entity = RoomSchemaManager.getInstance(myModule)!!.schema!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.classPointer("com.example.Address"))
     assertThat(entity.name).isEqualTo("addresses_table")
     assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
@@ -79,7 +79,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         public class Address {}
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = emptySet(),
             databases = emptySet(),
@@ -90,7 +90,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
     myFixture.type("@Entity ")
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("com.example.Address"), "Address")),
@@ -109,7 +109,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         public class Address {}
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("com.example.Address"), "Address")),
@@ -122,7 +122,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
-    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    val entity = RoomSchemaManager.getInstance(myModule)!!.schema!!.entities.single()
     assertThat(entity.psiClass).isSameAs(myFixture.classPointer("com.example.Address"))
     assertThat(entity.name).isEqualTo("addresses")
     assertThat(entity.nameElement).isNotSameAs(entity.psiClass)
@@ -143,14 +143,14 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         public class AppDatabase {}
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("com.example.Address"), "Address"),
                 Entity(myFixture.classPointer("com.example.User"), "User"),
                 Entity(myFixture.classPointer("com.example.Order"), "Order")),
             databases = setOf(
-                Database(
+                RoomDatabase(
                     myFixture.classPointer("com.example.AppDatabase"),
                     entities = setOf(
                         myFixture.classPointer("com.example.Address"),
@@ -183,19 +183,19 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         public class OrderDatabase {}
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("com.example.Address"), "Address"),
                 Entity(myFixture.classPointer("com.example.User"), "User"),
                 Entity(myFixture.classPointer("com.example.Order"), "Order")),
             databases = setOf(
-                Database(
+                RoomDatabase(
                     myFixture.classPointer("com.example.UserDatabase"),
                     entities = setOf(
                         myFixture.classPointer("com.example.Address"),
                         myFixture.classPointer("com.example.User"))),
-                Database(
+                RoomDatabase(
                     myFixture.classPointer("com.example.OrderDatabase"),
                     entities = setOf(
                         myFixture.classPointer("com.example.Address"),
@@ -219,7 +219,7 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(myFixture.classPointer("com.example.User"), "User")),
@@ -235,22 +235,22 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
       myFixture.findClass("android.arch.persistence.room.Entity").containingFile.virtualFile.delete(this)
     }
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isNull()
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isNull()
   }
 
   fun testColums() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
 
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     columns = setOf(
-                        Column(myFixture.fieldPointer("com.example.User", "name"), "name"),
-                        Column(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+                        EntityColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                        EntityColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
             databases = emptySet(),
             daos = emptySet()))
   }
@@ -270,13 +270,13 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(
                     myFixture.classPointer("com.example.User"),
                     name = "User",
-                    columns = setOf(Column(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(EntityColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
             databases = emptySet(),
             daos = emptySet()))
   }
@@ -296,13 +296,13 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(
                     myFixture.classPointer("com.example.User"),
                     name = "User",
-                    columns = setOf(Column(myFixture.fieldPointer("com.example.User", "name"), "name")))),
+                    columns = setOf(EntityColumn(myFixture.fieldPointer("com.example.User", "name"), "name")))),
             databases = emptySet(),
             daos = emptySet()))
   }
@@ -331,15 +331,15 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
+    assertThat(RoomSchemaManager.getInstance(myModule)!!.schema).isEqualTo(
         RoomSchema(
             entities = setOf(
                 Entity(
                     myFixture.classPointer("com.example.User"),
                     name = "User",
                     columns = setOf(
-                        Column(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
-                        Column(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+                        EntityColumn(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
+                        EntityColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
             databases = emptySet(),
             daos = emptySet()))
   }

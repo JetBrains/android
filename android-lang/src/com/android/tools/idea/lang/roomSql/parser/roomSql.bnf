@@ -374,7 +374,11 @@ select_stmt ::=
     ( WHERE expr )?
     ( GROUP BY expr ( ',' expr )* ( HAVING expr )? )? | VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* ) )*
   ( ORDER BY ordering_term ( ',' ordering_term )* )?
-  ( LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+  ( LIMIT expr ( ( OFFSET | ',' ) expr )? )? {
+
+    implements="com.android.tools.idea.lang.roomSql.psi.QueryWithSqlContext"
+    methods=[getSqlContext]
+  }
 
 join_clause ::= table_or_subquery ( join_operator table_or_subquery join_constraint? )+
 

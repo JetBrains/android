@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.android.tools.idea.lang.roomSql.SqlContext;
 
 public class RoomSelectStmtImpl extends ASTWrapperPsiElement implements RoomSelectStmt {
 
@@ -83,6 +84,11 @@ public class RoomSelectStmtImpl extends ASTWrapperPsiElement implements RoomSele
   @NotNull
   public List<RoomTableOrSubquery> getTableOrSubqueryList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableOrSubquery.class);
+  }
+
+  @Nullable
+  public SqlContext getSqlContext() {
+    return PsiImplUtil.getSqlContext(this);
   }
 
 }

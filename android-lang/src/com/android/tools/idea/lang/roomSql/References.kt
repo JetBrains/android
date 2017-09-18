@@ -16,10 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
-import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
-import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
-import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes
-import com.android.tools.idea.lang.roomSql.psi.RoomTableName
+import com.android.tools.idea.lang.roomSql.psi.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
 import com.intellij.lang.cacheBuilder.WordOccurrence
@@ -32,51 +29,57 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.ArrayUtil
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
+/** Picks the [SqlContext] to use for a given query. */
+private fun chooseContext(element: PsiElement): SqlContext? {
+  return PsiTreeUtil.getParentOfType(element, QueryWithSqlContext::class.java)?.sqlContext
+      ?: RoomSchemaManager.getInstance(element)?.schema
+}
 
 /**
  * A [PsiReference] pointing from the column name in SQL to the Java PSI element defining the column name.
  *
- * @see Column.nameElement
+ * @see EntityColumn.nameElement
  */
 class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiReferenceBase.Poly<RoomColumnName>(columnName) {
 
-  private val schema: RoomSchema?
-    get() = ModuleUtil.findModuleForPsiElement(columnName)?.let(RoomSchemaManager.Companion::getInstance)?.getSchema()
+  private val sqlContext get() = chooseContext(columnName)
 
   override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> = PsiElementResolveResult.createResults(
-      schema
-          ?.entities
+      sqlContext
+          ?.columns
           ?.asSequence()
-          ?.flatMap { it.columns.asSequence() }
           ?.filter { it.name.equals(columnName.nameAsString, ignoreCase = true) }
           ?.mapNotNull { it.nameElement.element }
           ?.toList()
           .orEmpty())
 
   override fun getVariants(): Array<Any> =
-      schema
-          ?.entities
-          ?.flatMap { (psiClassPointer, _, _ , columns) ->
-            columns.map { (psiField, columnName) ->
-              LookupElementBuilder.create(psiField, RoomSqlLexer.getValidName(columnName))
-                  .withTypeText(psiClassPointer.element?.qualifiedName, true)
-                  // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
-                  // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
-                  // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
-                  // name (`isValid`) which seems a good UX. See the below for why table name completion is configured differently.
-                  //
-                  // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
-                  .withCaseSensitivity(true)
-            }
+      sqlContext
+          ?.columns
+          ?.map { column ->
+            // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
+            // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
+            // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
+            // name (`isValid`) which seems a good UX. See the below for why table name completion is configured differently.
+            //
+            // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
+            val lookupElement =
+                LookupElementBuilder.create(column.element, RoomSqlLexer.getValidName(column.name)).withCaseSensitivity(true)
+
+            // Try to set the type text from the underlying field's java type, if present.
+            // TODO: Use the effective SQL type.
+            column.element.element.let { it as? PsiField}?.type?.presentableText
+                ?.let { lookupElement.withTypeText(it) }
+                ?: lookupElement
           }
-          ?.let { it as? List<Any> }
-          ?.toTypedArray()
+          ?.toTypedArray<Any>()
           ?: ArrayUtil.EMPTY_OBJECT_ARRAY
 }
 
@@ -88,24 +91,21 @@ class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiRefere
  */
 class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReferenceBase.Poly<RoomTableName>(tableName) {
 
-  private val schema: RoomSchema?
-    get() = ModuleUtil.findModuleForPsiElement(tableName)?.let(RoomSchemaManager.Companion::getInstance)?.getSchema()
+  private val sqlContext get() = chooseContext(tableName)
 
   override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> = PsiElementResolveResult.createResults(
-      schema
-          ?.entities
-          ?.asSequence()
-          ?.filter { it.name.equals(tableName.nameAsString, ignoreCase = true) }
+      sqlContext
+          ?.matchingTables(tableName)
           ?.mapNotNull { it.nameElement.element }
-          ?.toList()
           .orEmpty())
 
   override fun getVariants(): Array<Any> =
-      schema
-          ?.entities
-          ?.mapNotNull { (psiClassPointer, tableName) ->
-            val psiClass = psiClassPointer.element ?: return@mapNotNull null
-            LookupElementBuilder.create(psiClass, RoomSqlLexer.getValidName(tableName))
+      sqlContext
+          ?.availableTables
+          ?.mapNotNull { table ->
+            val psiClass = (table.element.element as? PsiClass) ?: return@mapNotNull null
+
+            LookupElementBuilder.create(psiClass, RoomSqlLexer.getValidName(table.name))
                 .withTypeText(psiClass.qualifiedName, true)
                 // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
                 // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
@@ -117,8 +117,7 @@ class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReference
                 // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
                 .withCaseSensitivity(false)
           }
-          ?.let { it as? List<Any> }
-          ?.toTypedArray()
+          ?.toTypedArray<Any>()
           ?: ArrayUtil.EMPTY_OBJECT_ARRAY
 }
 
@@ -170,7 +169,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
     ModuleUtil.findModuleForPsiElement(element)
         ?.let(RoomSchemaManager.Companion::getInstance)
-        ?.getSchema()
+        ?.schema
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
