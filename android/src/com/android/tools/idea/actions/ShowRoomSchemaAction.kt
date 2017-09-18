@@ -45,7 +45,7 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
     ModuleManager.getInstance(project).modules
         .filter { AndroidFacet.getInstance(it) != null }
         .forEach { module ->
-          val schema = RoomSchemaManager.getInstance(module)?.getSchema()
+          val schema = RoomSchemaManager.getInstance(module)?.schema
 
           if (schema == null) {
             writer.println("${module.name}: failed to get Room schema.")

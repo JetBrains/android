@@ -321,7 +321,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitSelectStmt(@NotNull RoomSelectStmt o) {
-    visitPsiElement(o);
+    visitQueryWithSqlContext(o);
   }
 
   public void visitSignedNumber(@NotNull RoomSignedNumber o) {
@@ -382,6 +382,10 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitWithClause(@NotNull RoomWithClause o) {
     visitPsiElement(o);
+  }
+
+  public void visitQueryWithSqlContext(@NotNull QueryWithSqlContext o) {
+    visitElement(o);
   }
 
   public void visitNameElement(@NotNull RoomNameElement o) {

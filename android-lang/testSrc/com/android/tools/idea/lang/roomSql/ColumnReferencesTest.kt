@@ -100,7 +100,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
     assertThat(referenceTarget.text).isEqualTo("\"full_name\"")
   }
 
-  fun testMultiResolve() {
+  fun testMultiResolve_noTable() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
@@ -112,7 +112,73 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT i<caret>d FROM User") List<Integer> getIds();
+          @Query("SELECT i<caret>d ") List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
+    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement))
+        .containsExactly(
+            myFixture.findField("com.example.User", "id"),
+            myFixture.findField("com.example.Book", "id")
+        )
+  }
+
+  fun testMultiResolve_validTable() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT i<caret>d from user") List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
+    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement))
+        .containsExactly(
+            myFixture.findField("com.example.User", "id"))
+  }
+
+  fun testMultiResolve_invalidTable() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT i<caret>d from madeup") List<Integer> getIds();
+        }
+    """.trimIndent())
+
+    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
+    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement)).isEmpty()
+  }
+
+  fun testMultiResolve_join() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT i<caret>d from user, book") List<Integer> getIds();
         }
     """.trimIndent())
 
@@ -449,7 +515,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
         .isNotNull()
   }
 
-  fun testUsages_tableNameOverride() {
+  fun testUsages_nameOverride() {
     myFixture.addRoomEntity(
         "com.example.User",
         FieldDefinition("id", "int"), FieldDefinition("fullName", "String", columnName = "full_name")
@@ -473,7 +539,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
         .isNotNull()
   }
 
-  fun testUsages_tableNameOverride_escaping() {
+  fun testUsages_nameOverride_escaping() {
     myFixture.addRoomEntity(
         "com.example.User",
         FieldDefinition("fullName", "String", columnName = "user's name")

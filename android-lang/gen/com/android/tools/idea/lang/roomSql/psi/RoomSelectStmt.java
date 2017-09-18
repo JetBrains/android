@@ -21,8 +21,9 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.SqlContext;
 
-public interface RoomSelectStmt extends PsiElement {
+public interface RoomSelectStmt extends QueryWithSqlContext {
 
   @NotNull
   List<RoomCommonTableExpression> getCommonTableExpressionList();
@@ -44,5 +45,8 @@ public interface RoomSelectStmt extends PsiElement {
 
   @NotNull
   List<RoomTableOrSubquery> getTableOrSubqueryList();
+
+  @Nullable
+  SqlContext getSqlContext();
 
 }
