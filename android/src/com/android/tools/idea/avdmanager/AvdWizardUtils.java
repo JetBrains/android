@@ -30,7 +30,7 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
+import com.android.tools.idea.device.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;

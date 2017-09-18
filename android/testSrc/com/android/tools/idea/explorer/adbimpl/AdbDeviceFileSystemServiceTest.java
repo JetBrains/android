@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.util.FutureUtils;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;

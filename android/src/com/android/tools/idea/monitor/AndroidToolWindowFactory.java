@@ -22,7 +22,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.adb.AdbService;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.util;
 
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.IdeEventQueue;

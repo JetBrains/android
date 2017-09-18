@@ -23,7 +23,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.google.common.util.concurrent.FutureCallback;

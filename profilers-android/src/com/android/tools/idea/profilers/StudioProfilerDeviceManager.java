@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;

@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.explorer.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.fs.ThrottledProgress;
@@ -207,7 +208,7 @@ public class AdbFileTransfer {
   /**
    * Forward callbacks from a {@link SyncService.ISyncProgressMonitor}, running on a pooled thread,
    * to a {@link FileTransferProgress}, using the provided {@link Executor}, typically the
-   * {@link com.android.tools.idea.ddms.EdtExecutor}
+   * {@link EdtExecutor}
    */
   private static class SingleFileProgressMonitor implements SyncService.ISyncProgressMonitor {
     private static final int PROGRESS_REPORT_INTERVAL_MILLIS = 50;

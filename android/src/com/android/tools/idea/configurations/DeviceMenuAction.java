@@ -23,7 +23,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.avdmanager.ModuleAvds;
-import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

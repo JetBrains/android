@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderResult;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;

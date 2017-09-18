@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.device.DeviceArtDescriptor;
+import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;

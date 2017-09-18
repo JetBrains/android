@@ -24,7 +24,7 @@ import com.android.tools.apk.analyzer.internal.ApkDiffParser;
 import com.android.tools.apk.analyzer.internal.ApkEntry;
 import com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;

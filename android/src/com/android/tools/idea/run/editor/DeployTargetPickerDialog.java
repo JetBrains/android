@@ -19,7 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.*;
