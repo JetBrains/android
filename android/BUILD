@@ -237,6 +237,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.0.0-beta1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.0.0-beta1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/transition/26.0.0-beta1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/wear/26.0.0-beta1:aar",
         "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/0.4-devpreview:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/things/contrib/driver-apa102/0.3:aar",
