@@ -385,7 +385,7 @@ public class Palette {
       visitor.visit(this);
     }
 
-    private void resolve() {
+    void resolve() {
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
         if (myDragPreviewXml == null && myXmlValuePart.reuseForDragPreview()) {

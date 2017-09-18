@@ -148,6 +148,28 @@ public class PalettePanelTest extends LayoutTestCase {
     verify(myDependencyManager, never()).ensureLibraryIsIncluded(any(Palette.Item.class));
   }
 
+  public void testSearchPaletteWithCustomComponent() {
+    // Regression test for b/65842975
+    @Language("JAVA")
+    String widget = "package a.b;\n" +
+                    "\n" +
+                    "import android.content.Context;\n" +
+                    "import android.webkit.WebView;\n" +
+                    "\n" +
+                    "public class MyWebView extends android.webkit.WebView {\n" +
+                    "\n" +
+                    "    public WebView(Context context) {\n" +
+                    "        super(context);\n" +
+                    "    }\n" +
+                    "}\n";
+
+    myFixture.addFileToProject("src/a/b/MyWebView.java", widget);
+    setUpLayoutDesignSurface();
+    myPanel.setFilter("%");
+    assertThat(myPanel.getCategoryList().getItemsCount()).isEqualTo(1);
+    assertThat(myPanel.getItemList().getItemsCount()).isEqualTo(0);
+  }
+
   public void testInitialCategoryWidthIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
     Disposer.dispose(myPanel);

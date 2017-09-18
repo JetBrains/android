@@ -269,6 +269,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +
                                         "    android:layout_width=\"wrap_content\"\n" +
                                         "    android:layout_height=\"wrap_content\" />\n");
+    assertThat(item.getMetaTags()).isEmpty();
+    assertThat(item.getParent()).isEqualTo(projectComponents);
   }
 
   @Nullable
