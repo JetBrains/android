@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.editors.hprof.views.HprofAnalysisContentsDelegate;
 import com.android.tools.idea.profiling.view.CaptureEditor;
 import com.android.tools.idea.profiling.view.CapturePanel;

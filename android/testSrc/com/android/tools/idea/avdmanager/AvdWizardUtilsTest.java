@@ -24,7 +24,7 @@ import com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
+import com.android.tools.idea.device.DeviceArtDescriptor;
 import com.android.tools.adtui.webp.WebpMetadata;
 import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.google.common.base.Charsets;

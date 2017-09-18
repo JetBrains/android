@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;

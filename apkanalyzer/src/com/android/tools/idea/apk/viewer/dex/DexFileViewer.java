@@ -23,7 +23,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.idea.apk.viewer.ApkViewPanel;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
