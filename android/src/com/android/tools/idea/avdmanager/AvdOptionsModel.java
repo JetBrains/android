@@ -494,7 +494,10 @@ public final class AvdOptionsModel extends WizardModel {
       mySdCardStorage.setValue(storage);
     }
     storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties());
-    if (storage != null) {
+    // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is defaulted
+    // to 0. In this case, We will skip this default value. When the hardware-properties.ini is
+    // updated, we will delete the redundant value check.
+    if (storage != null && storage.getSize() != 0) {
       myInternalStorage.set(storage);
     }
   }
