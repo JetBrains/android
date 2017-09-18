@@ -32,6 +32,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerMultipleStackedActivitiesEvent();
     registerMultipleInlineActivitiesEvent();
     registerSimpleTapEvent();
+    registerSimpleTapAndHoldEvent();
     registerMultipleTapEvents();
     registerAddActivityBeforeStartEvent();
   }
@@ -139,7 +140,18 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void generateTestData() {
         long eventTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
-        performTap(eventTime);
+        performTap(eventTime, eventTime);
+      }
+    });
+  }
+
+  private void registerSimpleTapAndHoldEvent() {
+    register(new SimpleTapEventImageDiffEntry("simple_tap_and_hold_event_baseline.png") {
+
+      @Override
+      protected void generateTestData() {
+        long eventTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
+        performTap(eventTime, 0);
       }
     });
   }
@@ -150,9 +162,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void generateTestData() {
         long eventTime1 = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
-        long eventTime2 = eventTime1 + TimeUnit.MILLISECONDS.toMicros(1500); // Give some time between the events
-        performTap(eventTime1);
-        performTap(eventTime2);
+        long eventTime2 = eventTime1 + TimeUnit.MILLISECONDS.toMicros(600); // Give some time between the events
+        performTap(eventTime1, eventTime1);
+        performTap(eventTime2, eventTime2);
       }
     });
   }
@@ -206,14 +218,14 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
      */
     protected void addMultipleActivities(long[] startTimeList, long[] endTimeList) {
       EventAction<StackedEventType> event;
-      for (int i = 0; i  < startTimeList.length; i++) {
+      for (int i = 0; i < startTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Start event
         event = new ActivityAction(startTimeList[i], 0, StackedEventType.ACTIVITY_STARTED, activityName);
         myData.add(startTimeList[i], event);
       }
 
-      for (int i = 0; i  < endTimeList.length; i++) {
+      for (int i = 0; i < endTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Completed event
         event = new ActivityAction(startTimeList[i], endTimeList[i], StackedEventType.ACTIVITY_COMPLETED, activityName);
@@ -229,12 +241,14 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final int ICON_HEIGHT = 16;
 
     private static final Map<SimpleEventType, SimpleEventRenderer> MOCK_RENDERERS;
+
     static {
       MOCK_RENDERERS = new HashMap();
       MOCK_RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
       MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png"));
       MOCK_RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
     }
+
     /**
      * Enum that defines what Icon to draw for an event action.
      */
@@ -271,12 +285,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myComponents.add(myEventModel);
     }
 
-    protected void performTap(long eventTime) {
-      EventAction<SimpleEventType> event =
-        new EventAction<>(eventTime, 0, SimpleEventType.TOUCH);
-      myData.add(eventTime, event);
-      event = new EventAction<>(eventTime, eventTime, SimpleEventType.TOUCH);
-      myData.add(eventTime, event);
+    protected void performTap(long startTime, long endTime) {
+      EventAction<SimpleEventType> event = new EventAction<>(startTime, endTime, SimpleEventType.TOUCH);
+      myData.add(startTime, event);
     }
   }
 }

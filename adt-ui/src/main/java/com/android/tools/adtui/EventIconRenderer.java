@@ -23,11 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
+  private static int BORDER_MARGIN = 2;
 
   @NotNull private Icon myIcon;
-  @NotNull private int myIconWidth;
+  private int myIconWidth;
 
   @NotNull
   private static Icon load(String path) {
@@ -45,7 +47,7 @@ public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
 
   @Override
   public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
-    Icon icon = myIcon;
+    Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -myIconWidth / 2, 0);
