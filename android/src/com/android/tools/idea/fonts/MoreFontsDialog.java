@@ -21,16 +21,16 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.adtui.SearchField;
+import com.android.tools.adtui.validation.Validator.Result;
+import com.android.tools.adtui.validation.Validator.Severity;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedListValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.adtui.validation.Validator.Result;
-import com.android.tools.adtui.validation.Validator.Severity;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -38,6 +38,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -99,6 +100,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private JPanel myDownloadable;
   private JRadioButton myMakeDownloadable;
   private ValidatorPanel myValidatorPanel;
+  private HyperlinkLabel myLicenseLabel;
   private FontFamily myLastSelectedFont;
   private String myResultingFont;
 
@@ -161,6 +163,8 @@ public class MoreFontsDialog extends DialogWrapper {
     if (currentValue != null) {
       myFontList.setSelectedValue(myModel.getFont(currentValue), true);
     }
+    myLicenseLabel.setHyperlinkText("These fonts are available under the ", "Apache License Version 2.0 or Open Font License", "");
+    myLicenseLabel.setHyperlinkTarget("https://fonts.google.com");
 
     init();
   }
@@ -295,6 +299,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
   private void fontListSelectionChanged() {
     FontFamily family = myFontList.getSelectedValue();
+    myLicenseLabel.setVisible(family.getFontSource() == FontSource.DOWNLOADABLE);
     if (Objects.equals(family, myLastSelectedFont)) {
       // Often we get multiple selection notifications. Avoid multiple downloads of the same files:
       return;
