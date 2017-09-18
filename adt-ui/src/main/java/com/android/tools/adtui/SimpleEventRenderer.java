@@ -16,10 +16,13 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.event.EventAction;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 /**
  * Interface to define how events should be rendered in the event timeline.
@@ -41,5 +44,42 @@ public interface SimpleEventRenderer<E> {
 
   default void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
     draw(parent, g2d, transform, length, null);
+  }
+
+
+  /**
+   * Return an ImageIcon with border. The border surrounds the original icon and has a constant thickness.
+   *
+   * @param icon         The original icon.
+   * @param margin       Thickness of the icon's border. The returned ImageIcon is 2*margin larger than then original
+   *                     icon in height and width to reserve space to draw the border.
+   * @param borderColor  Color of the icon's border.
+   */
+  static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor) {
+    BufferedImage originalImage = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    // Border image has a bigger size to fit the extra border
+    BufferedImage borderImage =
+      UIUtil.createImage(icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2d = originalImage.createGraphics();
+
+    icon.paintIcon(null, g2d, 0, 0);
+    for (int y = 0; y < originalImage.getHeight(); ++y) {
+      for (int x = 0; x < originalImage.getWidth(); ++x) {
+        Color color = new Color(originalImage.getRGB(x, y), true);
+        if (color.getAlpha() > 0) {
+          for (int ny = y - margin; ny <= y + margin; ++ny) {
+            for (int nx = x - margin; nx <= x + margin; ++nx) {
+              if ((x - nx) * (x - nx) + (y - ny) * (y - ny) <= margin * margin) {
+                // Shift original image right and down to keep it centered in the border image
+                borderImage.setRGB(nx + margin, ny + margin, borderColor.getRGB());
+              }
+            }
+          }
+        }
+      }
+    }
+    g2d = borderImage.createGraphics();
+    icon.paintIcon(null, g2d, margin, margin);
+    return new ImageIcon(borderImage);
   }
 }
