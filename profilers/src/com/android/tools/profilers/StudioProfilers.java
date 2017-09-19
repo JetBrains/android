@@ -59,7 +59,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
-  public static final int TIMELINE_BUFFER = 1;
+  /**
+   * How much of the timeline is hidden from the main data range.
+   * A value of zero indicates that we synchronize the data max value with the current time on device.
+   */
+  public static final int TIMELINE_BUFFER = 0;
 
   private final ProfilerClient myClient;
 
