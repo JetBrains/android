@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 
@@ -30,6 +34,9 @@ import static com.android.SdkConstants.*;
 public class SceneDeleteBarrierTest extends SceneTest {
 
   public void testDelete() {
+    ViewEditor editor = new ViewEditorImpl(new ScreenFixture(myModel).getScreen());
+    Mockito.when(myModel.getSurface().getViewEditor()).thenReturn(editor);
+
     SceneComponent layout = myScene.getSceneComponent("root");
     NlComponent layoutComponent = layout.getNlComponent();
     NlComponent toDelete = myScene.getSceneComponent("button").getNlComponent();
@@ -37,7 +44,8 @@ public class SceneDeleteBarrierTest extends SceneTest {
     myScreen.get("@id/root")
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "                                            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "  android:id=\"@id/root\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    android:id=\"@id/root\"\n" +
                  "  android:layout_width=\"1000dp\"\n" +
                  "  android:layout_height=\"1000dp\"\n" +
                  "  android:padding=\"20dp\">\n" +
@@ -45,7 +53,9 @@ public class SceneDeleteBarrierTest extends SceneTest {
                  "    <android.support.constraint.ConstraintHelper\n" +
                  "        android:id=\"@id/barrier\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
-                 "        android:layout_height=\"20dp\" />\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"526dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }

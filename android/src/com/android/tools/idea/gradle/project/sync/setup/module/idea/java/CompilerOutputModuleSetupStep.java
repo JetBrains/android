@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -35,7 +36,16 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
-  private final CompilerSettingsSetup myCompilerSettingsSetup = new CompilerSettingsSetup();
+  @NotNull private final CompilerSettingsSetup myCompilerSettingsSetup;
+
+  public CompilerOutputModuleSetupStep() {
+    this(new CompilerSettingsSetup());
+  }
+
+  @VisibleForTesting
+  CompilerOutputModuleSetupStep(@NotNull CompilerSettingsSetup compilerSettingsSetup) {
+    myCompilerSettingsSetup = compilerSettingsSetup;
+  }
 
   @Override
   protected void doSetUpModule(@NotNull Module module,
@@ -43,26 +53,34 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
                                @NotNull JavaModuleModel javaModuleModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
-    File mainClassesFolder = null;
-    File testClassesFolder = null;
+    File mainClassesFolderPath = null;
+    File testClassesFolderPath = null;
     ExtIdeaCompilerOutput compilerOutput = javaModuleModel.getCompilerOutput();
-    if (compilerOutput == null) {
+    if (compilerOutput != null) {
+      mainClassesFolderPath = compilerOutput.getMainClassesDir();
+      testClassesFolderPath = compilerOutput.getTestClassesDir();
+    }
+    if (javaModuleModel.isBuildable()) {
+      // See: http://b/65513580
       File buildFolderPath = javaModuleModel.getBuildFolderPath();
-      if (buildFolderPath != null) {
-        mainClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
-        testClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));
+      if (mainClassesFolderPath == null) {
+        mainClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
+      }
+      if (testClassesFolderPath == null) {
+        testClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));
       }
     }
-    else {
-      mainClassesFolder = compilerOutput.getMainClassesDir();
-      testClassesFolder = compilerOutput.getTestClassesDir();
-    }
 
-    if (mainClassesFolder != null) {
+    if (mainClassesFolderPath != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
       ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-      myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
+      myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolderPath, testClassesFolderPath);
     }
+  }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
   }
 }

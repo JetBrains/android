@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -104,7 +104,7 @@ public final class NlWriteCommandAction implements Runnable {
         return;
       }
 
-      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
+      ViewGroupHandler handler = ViewHandlerManager.get(getProject()).findLayoutHandler(component, true);
 
       if (handler == null) {
         return;

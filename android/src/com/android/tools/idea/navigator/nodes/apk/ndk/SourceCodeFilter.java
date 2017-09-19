@@ -22,6 +22,7 @@ import com.intellij.psi.PsiFileSystemItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -53,5 +54,22 @@ public class SourceCodeFilter implements PsiFileSystemItemFilter {
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SourceCodeFilter)) {
+      return false;
+    }
+    SourceCodeFilter filter = (SourceCodeFilter)o;
+    return Objects.equals(mySourceFolderPaths, filter.mySourceFolderPaths);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mySourceFolderPaths);
   }
 }

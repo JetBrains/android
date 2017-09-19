@@ -482,19 +482,6 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "</RelativeLayout>");
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      // The dependency checker for Relative Layout maintains a static cache with wek references.
-      // For tests this can be cleared
-      DependencyGraph.clearCacheAfterTests();
-    }
-    finally {
-      //noinspection ThrowFromFinallyBlock
-      super.tearDown();
-    }
-  }
-
   private void setMinimumSdkVersion(int version) {
     if (myMockAndroidModel == null) {
       myMockAndroidModel = Mockito.mock(AndroidModel.class);

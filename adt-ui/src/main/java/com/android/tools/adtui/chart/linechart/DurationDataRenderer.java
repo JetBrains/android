@@ -109,6 +109,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myCustomLineConfigs.put(series, config);
   }
 
+  @VisibleForTesting
+  LineConfig getCustomLineConfig(@NotNull RangedContinuousSeries series) {
+    return myCustomLineConfigs.get(series);
+  }
+
   private void modelChanged() {
     // Generate the rectangle regions for the duration data series
     myDataCache.clear();
@@ -197,14 +202,18 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       Dimension dim = lineChart.getSize();
 
       Rectangle2D clipRect = new Rectangle2D.Float();
+      // Build the list of configs for the corresponding series. Use a custom config if it has been specified, otherwise grab the default
+      // config from the LineChart.
       List<LineConfig> configs = new ArrayList<>(series.size());
-      for (int i = 0; i < series.size(); ++i) {
-        LineConfig config;
-        if (myCustomLineConfigs.containsKey(series.get(i))) {
-          config = myCustomLineConfigs.get(series.get(i));
-        }
-        else {
-          config = lineChart.getLineConfig(series.get(i));
+      for (RangedContinuousSeries rangedSeries : series) {
+        LineConfig config = lineChart.getLineConfig(rangedSeries);
+        if (myCustomLineConfigs.containsKey(rangedSeries)) {
+          LineConfig customConfig = myCustomLineConfigs.get(rangedSeries);
+          // Dash phases can be modified during the LineChart update loop, so we have to copy any changes over to the custom config.
+          if (config.isAdjustDash() && customConfig.isAdjustDash()) {
+            customConfig.setAdjustedDashPhase(config.getAdjustedDashPhase());
+          }
+          config = customConfig;
         }
         configs.add(config);
       }

@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class InstallOperation<Return, Argument> {
   protected final InstallContext myContext;
+  // TODO: replace with ProgressIndicator.createSubProgress
   private final double myProgressRatio;
 
   protected InstallOperation(InstallContext context, double progressRatio) {

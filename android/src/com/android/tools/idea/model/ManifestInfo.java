@@ -57,6 +57,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_URI;
@@ -173,7 +174,12 @@ final class ManifestInfo {
         else {
           vFile = VfsUtil.findFileByIoFile(file, false);
         }
-        assert vFile != null : file;
+        if (vFile == null ) {
+          // Gracefully handle case where file doesn't exist; this can happen for example
+          // when a Gradle sync is needed after version control etc (see issue 65541477)
+          //noinspection ZeroLengthArrayAllocation
+          return new ByteArrayInputStream("<manifest/>".getBytes(StandardCharsets.UTF_8));
+        }
 
         // We do not want to do this check if we have no library manifests.
         // findModuleForFile does not work for other build systems (e.g. bazel)

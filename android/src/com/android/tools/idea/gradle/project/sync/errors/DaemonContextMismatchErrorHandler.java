@@ -36,7 +36,10 @@ public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
+    List<String> message = getMessageLines(text);
+    if (message.isEmpty()) {
+      return null;
+    }
     String firstLine = message.get(0);
     if (isNotEmpty(firstLine) &&
         firstLine.contains("The newly created daemon process has a different context than expected.") &&

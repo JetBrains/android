@@ -27,6 +27,9 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.ComponentStack;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
@@ -43,10 +46,13 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Mock private IdeSdks myIdeSdks;
   @Mock private Jdks myJdks;
   @Mock private IdeInfo myIdeInfo;
+  @Mock private ProjectRootManager myProjectRootManager;
+  @Mock private Sdk myProjectSdk;
 
   private GradleSyncMessagesStub mySyncMessages;
   private ProgressIndicator myIndicator;
   private ProjectJdkSetupStep mySetupStep;
+  private ComponentStack myComponentStack;
 
   @Override
   public void setUp() throws Exception {
@@ -55,6 +61,25 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks, myIdeInfo);
     myIndicator = new EmptyProgressIndicator();
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myComponentStack = new ComponentStack(getProject());
+    myComponentStack.registerComponentImplementation(ProjectRootManager.class, myProjectRootManager);
+    when(myProjectRootManager.getProjectSdk()).thenReturn(myProjectSdk);
+    when(myProjectSdk.getHomePath()).thenReturn("somePath");
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myComponentStack.restoreComponents();
+      myIdeSdks = null;
+      myJdks = null;
+      myIdeInfo = null;
+      myProjectRootManager = null;
+      myProjectSdk = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testDoSetUpProjectWithAndroidStudio() {
@@ -68,6 +93,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     Project project = getProject();
     mySetupStep.setUpProject(project, myIndicator);
 
+    UIUtil.dispatchAllInvocationEvents();
     verify(myJdks, times(1)).setJdk(project, jdk);
   }
 
@@ -102,6 +128,18 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     Project project = getProject();
     mySetupStep.setUpProject(project, myIndicator);
 
+    UIUtil.dispatchAllInvocationEvents();
     verify(myJdks, times(1)).setJdk(project, jdk);
+  }
+
+  public void testDoSetUpProjectWithIdeaWithApplicableProjectJdk() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(false);
+    when(myJdks.isApplicableJdk(myProjectSdk, JDK_1_8)).thenReturn(true);
+
+    Project project = getProject();
+    mySetupStep.setUpProject(project, myIndicator);
+
+    UIUtil.dispatchAllInvocationEvents();
+    verify(myJdks, times(1)).setJdk(project, myProjectSdk);
   }
 }

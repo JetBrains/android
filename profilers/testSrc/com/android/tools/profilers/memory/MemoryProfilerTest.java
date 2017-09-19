@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
@@ -28,8 +29,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
+
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
+  private static final long DEVICE_STARTTIME_NS = 0;
 
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
@@ -74,21 +78,26 @@ public class MemoryProfilerTest {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
-    // Advance the timer to select the device + process
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Range dataRequestRange = myMemoryService.getLastRequestedDataRange();
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
 
+    // Advance the timer to select the device + process
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-    // Expecting a stop/start trackAllocations request pair.
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
+    // AllocationsInfo should be queried for {0ns, 1ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
+    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(-1));
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(2));
   }
 
   @Test
   public void testAllocationTrackingNotStartedIfInfoExists() {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
+    myProfilerService.setTimestampNs(DEVICE_STARTTIME_NS);
     setupODeviceAndProcess();
 
     // AllocationsInfo should exist for tracking to not restart.
@@ -100,16 +109,24 @@ public class MemoryProfilerTest {
         .setLegacy(false).build()
     ).build());
 
-    // Advance the timer to select the device + process
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-
+    Range dataRequestRange = myMemoryService.getLastRequestedDataRange();
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(0));
 
+    // Advance the timer to select the device + process
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Should not stop/start live tracking since an AllocationsInfo already exists.
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    // AllocationsInfo should be queried for {0ns, 1ns}, but here we account for the +/- 1s buffer in AllocationInfosDataSeries as well.
+    Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(TimeUnit.SECONDS.toNanos(-1));
+    Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(TimeUnit.SECONDS.toNanos(2));
+
+
   }
 
   @Test
@@ -167,6 +184,7 @@ public class MemoryProfilerTest {
       .setPid(20)
       .setState(Profiler.Process.State.ALIVE)
       .setName("FakeProcess")
+      .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();
     myProfilerService.addDevice(device);
     Common.Session session = Common.Session.newBuilder()

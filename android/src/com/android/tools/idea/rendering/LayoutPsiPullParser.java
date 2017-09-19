@@ -666,11 +666,56 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   /**
+   * Returns the distance from the given tag to the parent {@code layout} tag or -1 if there is no {@code layout} tag
+   */
+  private static int distanceToLayoutTag(@NotNull XmlTag tag) {
+    int distance = 0;
+
+    while ((tag = tag.getParentTag()) != null) {
+      String tagName = tag.getName();
+      // The merge tag does not count for the distance to the layout tag since it will be
+      if (!VIEW_MERGE.equals(tagName)) {
+        distance++;
+      }
+
+      if (TAG_LAYOUT.equals(tagName)) {
+        break;
+      }
+    }
+
+    // We only count the distance to the layout tag
+    return tag != null ? distance : -1;
+  }
+
+  /**
    * Creates a {@link TagSnapshot} for the given {@link XmlTag} and all its children.
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @Nullable
   private static TagSnapshot createSnapshot(@NotNull XmlTag tag, boolean honorMergeParentTag) {
+    Consumer<TagSnapshot> tagDecorator = TAG_SNAPSHOT_DECORATOR;
+    if (tag.getName().equals(TAG_LAYOUT)) {
+      // If we are creating a snapshot of a databinding layout (the root tag is <layout>), we need to emulate some post-processing that
+      // the databinding code does in the layouts.
+      // For all the children of the root tag, it adds a tag that identifies. The tag is "layout/layout_name_<number>"
+      final String layoutRootName = tag.getContainingFile().getVirtualFile().getNameWithoutExtension();
+      tagDecorator = tagDecorator.andThen(new Consumer<TagSnapshot>() {
+        int counter = 0;
+        @Override
+        public void accept(TagSnapshot snapshot) {
+          if (snapshot.tag == null) {
+            return;
+          }
+
+          if (distanceToLayoutTag(snapshot.tag) == 1) {
+            // The tag attribute is only applied to the root immediate children
+            snapshot.setAttribute("tag", ANDROID_URI, ANDROID_NS_NAME, "layout/" + layoutRootName + "_" + counter++, false);
+          }
+        }
+      });
+    }
+
+
     // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
@@ -686,13 +731,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         return createSnapshotForViewFragment(tag);
 
       case FRAME_LAYOUT:
-        return createSnapshotForFrameLayout(tag);
+        return createSnapshotForFrameLayout(tag, tagDecorator);
 
       case VIEW_MERGE:
-        return createSnapshotForMerge(tag, honorMergeParentTag);
+        return createSnapshotForMerge(tag, honorMergeParentTag, tagDecorator);
 
       default:
-        TagSnapshot root = TagSnapshot.createTagSnapshot(tag, TAG_SNAPSHOT_DECORATOR);
+        TagSnapshot root = TagSnapshot.createTagSnapshot(tag, tagDecorator);
 
         // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
         // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
@@ -744,8 +789,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, TAG_SNAPSHOT_DECORATOR);
+  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagDecorator) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
 
     // tools:layout on a <FrameLayout> acts like an <include> child. This
     // lets you preview runtime additions on FrameLayouts.
@@ -793,8 +838,10 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @NotNull
-  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag, boolean honorMergeParentTag) {
-    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, TAG_SNAPSHOT_DECORATOR);
+  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag,
+                                                    boolean honorMergeParentTag,
+                                                    @NotNull Consumer<TagSnapshot> tagDecorator) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
     String parentTag = honorMergeParentTag ? rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI) : null;
     if (parentTag == null) {
       return root;

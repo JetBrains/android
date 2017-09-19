@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.testing.IdeComponents;
@@ -77,7 +78,7 @@ public class BuildApkActionTest extends IdeaTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
   }
 
   @NotNull

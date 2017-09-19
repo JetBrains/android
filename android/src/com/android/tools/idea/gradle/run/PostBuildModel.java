@@ -31,7 +31,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 public class PostBuildModel {
   @NotNull private final OutputBuildAction.PostBuildProjectModels myPostBuildProjectModels;
 
-  PostBuildModel(@NotNull OutputBuildAction.PostBuildProjectModels outputs) {
+  public PostBuildModel(@NotNull OutputBuildAction.PostBuildProjectModels outputs) {
     myPostBuildProjectModels = outputs;
   }
 

@@ -233,7 +233,7 @@ public class GuidelineHandler {
     myVerticalEdges = new ArrayList<>();
     myCenterVertEdges = new ArrayList<>();
     myCenterHorizEdges = new ArrayList<>();
-    myDependencyGraph = DependencyGraph.get(layout);
+    myDependencyGraph = layout.getDependencyGraph();
   }
 
   /**

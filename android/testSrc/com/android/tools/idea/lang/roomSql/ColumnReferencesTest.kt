@@ -257,7 +257,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
   }
 
   fun testCodeCompletion_single() {
-    myFixture.addRoomEntity("com.example.User",  "name" ofType "String")
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -267,7 +267,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT n<caret>") List<String> getNames();
+          @Query("SELECT f<caret>") List<String> getNames();
         }
     """.trimIndent())
 
@@ -281,7 +281,37 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT name") List<String> getNames();
+          @Query("SELECT firstName") List<String> getNames();
+        }
+    """.trimIndent())
+  }
+
+  fun testCodeCompletion_caseSensitivity() {
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT firstn<caret>") List<String> getNames();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT firstName") List<String> getNames();
         }
     """.trimIndent())
   }
