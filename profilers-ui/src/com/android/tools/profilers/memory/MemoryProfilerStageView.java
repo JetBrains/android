@@ -295,8 +295,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
         .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
     }
+    // The "Total" series is only added in the LineChartModel so it can calculate the max Y value across all the series. We don't want to
+    // draw it as an extra line so we hide it by setting it to transparent.
+    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(new Color(0, 0, 0, 0)));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
+    lineChart.setFillEndGap(true);
 
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)

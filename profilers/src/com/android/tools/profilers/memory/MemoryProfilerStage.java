@@ -600,7 +600,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range,
                                          Interpolatable.RoundedSegmentInterpolator);
 
-      List<SeriesLegend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
+      List<SeriesLegend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
                                                              myNativeLegend, myJavaLegend)
                                              : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
                                                              myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend);
