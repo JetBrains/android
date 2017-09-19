@@ -293,6 +293,7 @@ public class NlPreviewTest {
     navigateEditor(editor, absolute, 323, 1706, frames, 0);
 
     // Navigation in frames.xml
+    frames.select();
     frames.focusAndWaitForFocusGain();
     navigateEditor(editor, frames, 345, 1572, absolute, 1706);
   }
