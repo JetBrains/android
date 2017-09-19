@@ -357,6 +357,67 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "text"));
   }
 
+  public void testDatabindig() throws Exception {
+    @Language("XML")
+    String contents = "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                      "  android:layout_width=\"match_parent\"\n" +
+                      "  android:layout_height=\"match_parent\"\n" +
+                      "  android:orientation=\"vertical\"\n" +
+                      "  tools:parentTag=\"LinearLayout\">\n" +
+                      "\n" +
+                      "  <TextView\n" +
+                      "      android:id=\"@+id/test1\"\n" +
+                      "      android:layout_width=\"wrap_content\"\n" +
+                      "      android:layout_height=\"wrap_content\"\n" +
+                      "      tools:text=\"Hello\"/>\n" +
+                      "  \n" +
+                      "  <FrameLayout\n" +
+                      "      android:layout_width=\"wrap_content\"\n" +
+                      "      android:layout_height=\"wrap_content\">\n" +
+                      "    <TextView\n" +
+                      "        android:id=\"@+id/test2\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"World\" />\n" +
+                      "  </FrameLayout>\n" +
+                      "\n" +
+                      "</merge>\n";
+    PsiFile noLayoutPsiFile = myFixture.addFileToProject("res/layout/no_data_binding.xml", contents);
+    PsiFile layoutPsiFile = myFixture.addFileToProject("res/layout/data_binding.xml",
+                                                       "<layout>" + contents + "</layout>");
+    XmlFile xmlFile = (XmlFile)layoutPsiFile;
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("layout/data_binding_0", parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName());
+    assertEquals("layout/data_binding_1", parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    // The children should not have tag
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+
+    // Now check that if the file is not a databinding layout, the tags are not included
+    xmlFile = (XmlFile)noLayoutPsiFile;
+
+    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {

@@ -32,7 +32,7 @@ public class ProfilerLayout {
    */
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
-  public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
+  public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
 
   public static final float TOOLTIP_FONT_SIZE = 11f;
 
@@ -54,8 +54,9 @@ public class ProfilerLayout {
    */
   public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
 
-  // TODO: Add support for column cells reading their border style from their column headers and using it
   public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(2, 3, 2, 3);
+
+  public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(0, 3, 0, 3);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

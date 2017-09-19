@@ -122,7 +122,7 @@ public class ConstraintPainter {
                                             boolean showDependents,
                                             TextDirection textDirection) {
 
-    DependencyGraph dependencyGraph = DependencyGraph.get(parentNode);
+    DependencyGraph dependencyGraph = parentNode.getDependencyGraph();
     Set<NlComponent> horizontalDeps = dependencyGraph.dependsOn(childNodes, false /* vertical */);
     Set<NlComponent> verticalDeps = dependencyGraph.dependsOn(childNodes, true /* vertical */);
     Set<NlComponent> deps = new HashSet<NlComponent>(horizontalDeps.size() + verticalDeps.size());

@@ -21,18 +21,13 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import java.awt.Component;
-import java.awt.Container;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 
 /**
@@ -53,7 +48,7 @@ public class LibraryEditorFixture extends EditorFixture {
       .finder()
       .findByName(
         ideFrame.target(),
-        "nativeLibraryDebugSymbolsContainer",
+        "libraryEditorForm",
         JPanel.class,
         true);
     return new LibraryEditorFixture(ideFrame, target);

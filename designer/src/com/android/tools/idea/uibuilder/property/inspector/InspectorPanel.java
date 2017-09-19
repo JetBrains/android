@@ -28,6 +28,7 @@ import com.google.common.html.HtmlEscapers;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeGlassPane;
@@ -73,6 +74,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private final InspectorExpandableItemsHandler myExpandableItemsHandler;
   private final Disposable myParentDisposable;
 
+  private InspectorProviders myInspectorProviders;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
@@ -246,8 +248,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         propertiesByName.putIfAbsent(property.getName(), property);
       }
 
-      myInspectors = myPropertiesManager.getDesignSurface().getInspectorProviders(myPropertiesManager, myParentDisposable)
-        .createInspectorComponents(components, propertiesByName, propertiesManager);
+      if (myInspectorProviders != null) {
+        Disposer.dispose(myInspectorProviders);
+      }
+      myInspectorProviders = myPropertiesManager.getDesignSurface().getInspectorProviders(myPropertiesManager, myParentDisposable);
+      myInspectors = myInspectorProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
 
       int rows = 0;
       for (InspectorComponent inspector : myInspectors) {

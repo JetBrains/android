@@ -42,7 +42,11 @@ public class CpuProfilerTestUtils {
   }
 
   public static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
-    return ByteString.copyFrom(Files.readAllBytes(getTraceFile(filename).toPath()));
+    return traceFileToByteString(getTraceFile(filename));
+  }
+
+  public static ByteString traceFileToByteString(@NotNull File file) throws IOException {
+    return ByteString.copyFrom(Files.readAllBytes(file.toPath()));
   }
 
   public static File getTraceFile(@NotNull String filename) {
@@ -51,6 +55,16 @@ public class CpuProfilerTestUtils {
 
   public static CpuCapture getValidCapture() throws IOException, ExecutionException, InterruptedException {
     return getCapture(readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+  }
+
+  public static CpuCapture getCapture(@NotNull String fullFileName) {
+    try {
+      File file = TestUtils.getWorkspaceFile(fullFileName);
+      return getCapture(traceFileToByteString(file), CpuProfiler.CpuProfilerType.ART);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed with exception", e);
+    }
   }
 
   public static CpuCapture getCapture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType)

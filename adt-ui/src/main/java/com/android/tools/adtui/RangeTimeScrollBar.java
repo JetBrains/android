@@ -71,10 +71,16 @@ public class RangeTimeScrollBar extends JBScrollBar {
     // We convert the given time ranges to milliseconds to prevent from integer overflow,
     // because JScrollBar API based on ints.
     int globalLengthMs = unitToMs(myGlobalRange.getLength());
-    int viewLengthMs = unitToMs(myViewRange.getLength());
-    int viewRelativeMinMs = unitToMs(Math.max(0, (myViewRange.getMin() - myGlobalRange.getMin())));
 
-    setValues(viewRelativeMinMs, viewLengthMs, 0, globalLengthMs);
+    Range intersection = myGlobalRange.getIntersection(myViewRange);
+    if (!intersection.isEmpty()) {
+      int viewLengthMs = unitToMs(intersection.getLength());
+      int viewRelativeMinMs = unitToMs(intersection.getMin() - myGlobalRange.getMin());
+      setValues(viewRelativeMinMs, viewLengthMs, 0, globalLengthMs);
+    } else {
+      setValues(myViewRange.getMax() < myGlobalRange.getMin() ? 0 : globalLengthMs, 0, 0, globalLengthMs);
+    }
+
     myUpdating = false;
   }
 

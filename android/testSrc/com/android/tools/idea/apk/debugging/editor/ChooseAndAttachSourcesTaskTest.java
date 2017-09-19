@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.util.FileOrFolderChooser;
@@ -30,12 +31,16 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -60,6 +65,7 @@ public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
 
     File appModulePath = new File(getBaseDirPath(getProject()), "app");
     Module appModule = createModule(appModulePath, JavaModuleType.getModuleType());
+    ApkFacet apkFacet = createAndAddApkFacet(appModule);
 
     VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
     when(myFileOrFolderChooser.choose(getProject())).thenReturn(new VirtualFile[]{javaSourceFolder});
@@ -75,6 +81,10 @@ public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
 
     verify(myDexSourceFiles).navigateToJavaFile(classFqn);
     verify(myEditorNotifications).updateAllNotifications();
+
+    Set<String> javaSourceFolderPaths = apkFacet.getConfiguration().JAVA_SOURCE_FOLDER_PATHS;
+    assertThat(javaSourceFolderPaths).hasSize(1);
+    assertEquals(virtualToIoFile(javaSourceFolder).getPath(), getFirstItem(javaSourceFolderPaths));
   }
 
   @NotNull

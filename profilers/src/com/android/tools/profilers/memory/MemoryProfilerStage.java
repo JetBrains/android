@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.annotations.concurrency.Immutable;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -36,7 +35,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,7 +43,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -311,6 +312,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case UNRECOGNIZED:
         break;
     }
+
+    getStudioProfilers().getTimeline().setStreaming(true);
   }
 
   public void forceGarbageCollection() {
@@ -358,6 +361,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
     catch (StatusRuntimeException e) {
       getLogger().debug(e);
+    }
+
+    if (myTrackingAllocations) {
+      getStudioProfilers().getTimeline().setStreaming(true);
     }
   }
 

@@ -44,7 +44,10 @@ public class MissingDependencyErrorHandler extends SyncErrorHandler {
     //noinspection ThrowableResultOfMethodCallIgnored
     Throwable rootCause = getRootCause(error);
     String text = rootCause.getMessage();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
+    List<String> message = getMessageLines(text);
+    if (message.isEmpty()) {
+      return false;
+    }
     String firstLine = message.get(0);
 
     Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);

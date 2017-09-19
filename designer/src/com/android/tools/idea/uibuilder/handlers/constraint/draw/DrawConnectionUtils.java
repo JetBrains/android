@@ -399,14 +399,14 @@ public class DrawConnectionUtils {
     int remove = -1;
     for (int i = 0; i < length - 1; i++) {
       int dx = xPoints[i + 1] - xPoints[i];
-      int dy = xPoints[i + 1] - xPoints[i];
+      int dy = yPoints[i + 1] - yPoints[i];
       if (dx == 0) {
         dir4 = (dy > 0) ? 0 : 2;
       }
       else {
         dir4 = (dx > 0) ? 1 : 3;
       }
-      int len4 = (dx == 0) ? dy : dx;
+      int len4 = Math.abs((dx == 0) ? dy : dx);
       if (dir1 >= 0) {
         if (dir1 == dir3 && dir2 == dir4 && distance > len2) { // if we move in the same direction
           remove = i - 2;

@@ -154,17 +154,35 @@ public class ProfilerColors {
 
   public static final Color MEMORY_JAVA = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
+  public static final Color MEMORY_JAVA_CAPTURED = new JBColor(new Color(0x45A5CF), new Color(0x3C9EC9));
+
   public static final Color MEMORY_NATIVE = new JBColor(new Color(0x56A5CB), new Color(0x226484));
+
+  public static final Color MEMORY_NATIVE_CAPTURED = new JBColor(new Color(0x478EB2), new Color(0x307EA3));
 
   public static final Color MEMORY_CODE = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
 
+  public static final Color MEMORY_CODE_CAPTURED = new JBColor(new Color(0x6BCFBF), new Color(0x67D0A5));
+
   public static final Color MEMORY_STACK = new JBColor(new Color(0x50CBB8), new Color(0x348866));
+
+  public static final Color MEMORY_STACK_CAPTURED = new JBColor(new Color(0x3FB1A0), new Color(0x47A981));
 
   public static final Color MEMORY_GRAPHICS = new JBColor(new Color(0xF4DEA2), new Color(0xA8825C));
 
+  public static final Color MEMORY_GRAPHICS_CAPTURED = new JBColor(new Color(0xE2BF8A), new Color(0xCBA76D));
+
   public static final Color MEMORY_OTHERS = new JBColor(new Color(0x6E92A5), new Color(0x4E616B));
 
+  public static final Color MEMORY_OTHERS_CAPTURED = new JBColor(new Color(0x5D7F91), new Color(0x637A85));
+
   public static final Color MEMORY_OBJECTS = new JBColor(new Color(0x1B6386), new Color(0xD8DBDE));
+
+  public static final Color MEMORY_OBJECTS_CAPUTRED = new JBColor(new Color(0x1B4D65), new Color(0xF6F6F6));
+
+  public static final Color MEMORY_HEAP_DUMP_BG = new JBColor(new Color(0xD8D8D8), new Color(0x9C9C9C));
+
+  public static final Color MEMORY_ALLOC_BG = new JBColor(new Color(0xECF2FA), new Color(0x323940));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 

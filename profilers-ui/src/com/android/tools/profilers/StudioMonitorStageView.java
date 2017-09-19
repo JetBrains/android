@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
@@ -88,6 +89,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     RangeTooltipComponent
       tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip);
 
+    // The monitor's LineCharts trigger repaint on a container that's lower in the UI hierarchy than the tooltip.
+    // Here we synchronize the tooltip range changes to align with the LineCharts, otherwise the tooltip can flicker.
+    timeline.getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> timeline.getTooltipRange().changed(Range.Aspect.RANGE));
+
     myTooltipBinder = new ViewBinder<>();
     myTooltipBinder.bind(NetworkMonitor.class, NetworkMonitorTooltipView::new);
     myTooltipBinder.bind(CpuMonitor.class, CpuMonitorTooltipView::new);
@@ -132,7 +137,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     }
 
     StudioProfilers profilers = stage.getStudioProfilers();
-    AxisComponent timeAxis = buildTimeAxis(profilers);
+    JComponent timeAxis = buildTimeAxis(profilers);
 
     topPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     topPanel.add(monitors, new TabularLayout.Constraint(0, 0));

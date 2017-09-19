@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerAspect;
@@ -52,20 +51,32 @@ public class MemoryProfiler extends StudioProfiler {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setProcessId(process.getPid())
                                                                    .setSession(session).build());
-    if (myProfilers.isLiveAllocationEnabled()) {
-      myProfilers.getClient().getMemoryClient().resumeTrackAllocations(ResumeTrackAllocationsRequest.newBuilder()
-                                                                         .setProcessId(process.getPid())
-                                                                         .setSession(session).build());
+
+    try {
+      if (myProfilers.isLiveAllocationEnabled()) {
+        myProfilers.getClient().getMemoryClient().resumeTrackAllocations(ResumeTrackAllocationsRequest.newBuilder()
+                                                                           .setProcessId(process.getPid())
+                                                                           .setSession(session).build());
+      }
+    }
+    catch (StatusRuntimeException e) {
+      getLogger().info(e);
     }
   }
 
   @Override
   public void stopProfiling(Common.Session session, Profiler.Process process) {
-    if (myProfilers.isLiveAllocationEnabled()) {
-      myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
-                                                                          .setProcessId(process.getPid())
-                                                                          .setSession(session).build());
+    try {
+      if (myProfilers.isLiveAllocationEnabled()) {
+        myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
+                                                                            .setProcessId(process.getPid())
+                                                                            .setSession(session).build());
+      }
     }
+    catch (StatusRuntimeException e) {
+      getLogger().info(e);
+    }
+
     myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
                                                                   .setProcessId(process.getPid())
                                                                   .setSession(session).build());
@@ -90,7 +101,7 @@ public class MemoryProfiler extends StudioProfiler {
       new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session, process.getPid(),
                                     myProfilers.getRelativeTimeConverter(), myProfilers.getIdeServices().getFeatureTracker(), null);
     // Only starts live tracking if an existing one is not available.
-    if (allocationSeries.getDataForXRange(new Range(Double.MIN_VALUE, Double.MAX_VALUE)).size() > 0) {
+    if (!allocationSeries.getDataForXRange(myProfilers.getTimeline().getDataRange()).isEmpty()) {
       return;
     }
 
