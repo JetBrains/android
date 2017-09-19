@@ -69,6 +69,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     final LineChart lineChart = new LineChart(cpuUsage);
     lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
     lineChart.setMaxLineMargin(40);
+    lineChart.setFillEndGap(true);
     getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
 
     LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
