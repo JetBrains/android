@@ -257,12 +257,7 @@ public class GradleBuildInvoker {
     GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
     Runnable executeTasksTask = () -> {
       myDocumentManager.saveAllDocuments();
-      if (StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
-        DumbService.getInstance(myProject).runWhenSmart(executor::queue);
-      }
-      else {
-        executor.queue();
-      }
+      executor.queue();
     };
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
