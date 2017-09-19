@@ -39,7 +39,6 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRunner.class)
@@ -167,7 +166,7 @@ public class NlEditorTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
-      .dragComponentToSurface("Text", "android.support.design.widget.TextInputLayout");
+      .dragComponentToSurface("Text", "TextInputLayout");
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
