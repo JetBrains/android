@@ -230,7 +230,7 @@ public class AddGradleDependencyTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     editor.moveBetween("@Not", "Null ");
-    editor.invokeQuickfixAction("Import class", false); // It shows the import class popup instead of the bulb icon
+    editor.invokeQuickfixActionWithoutBulb("Import class"); // It shows the import class popup instead of the bulb icon
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");

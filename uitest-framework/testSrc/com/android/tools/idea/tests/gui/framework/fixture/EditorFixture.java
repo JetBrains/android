@@ -244,6 +244,17 @@ public class EditorFixture {
     robot.pressMouse(selectTarget.component, selectTarget.startPoint);
     robot.moveMouse(selectTarget.component, selectTarget.endPoint);
     robot.releaseMouseButtons();
+
+    // Input events are sent through the X server, which means the events are sent
+    // back to the IDE asynchronously. We should wait for the cursor position to be updated
+    Wait.seconds(1)
+      .expecting("text caret position to be at the end of the matched group")
+      .until(() -> GuiQuery.getNonNull(() ->
+        end == FileEditorManager.getInstance(myFrame.getProject())
+          .getSelectedTextEditor()
+          .getCaretModel()
+          .getOffset()
+      ));
     return this;
   }
 
@@ -517,26 +528,24 @@ public class EditorFixture {
 
   /**
    * Waits for the quickfix bulb to appear before invoking the show intentions action,
-   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   * then waits for the actions to be displayed and finally picks the one with the given
+   * {@code labelPrefix}
    *
-   * @param labelPrefix the prefix of the action description to be shown
    */
   @NotNull
   public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix) {
-    return invokeQuickfixAction(labelPrefix, true);
+    waitForQuickfix();
+    return invokeQuickfixActionWithoutBulb(labelPrefix);
   }
 
   /**
-   * Waits for the quickfix bulb to appear before invoking the show intentions action,
-   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   * Invokes the show intentions action, without waiting for the quickfix bulb icon
+   * then waits for the actions to be displayed and finally picks the one with the given
+   * {@code labelPrefix}
    *
-   * @param labelPrefix the prefix of the action description to be shown
    */
-  @NotNull
-  public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix, boolean waitForBulbIcon) {
-    if (waitForBulbIcon) {
-      waitForQuickfix();
-    }
+  public EditorFixture invokeQuickfixActionWithoutBulb(@NotNull String labelPrefix) {
+    waitUntilErrorAnalysisFinishes();
     invokeAction(EditorAction.SHOW_INTENTION_ACTIONS);
     JBList popup = waitForPopup(robot);
     clickPopupMenuItem(labelPrefix, popup, robot);
