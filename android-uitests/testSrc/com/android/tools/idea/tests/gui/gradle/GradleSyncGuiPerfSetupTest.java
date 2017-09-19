@@ -24,29 +24,39 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.tests.gui.framework.*;
+import com.android.utils.PathUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
+import static java.nio.file.Files.find;
+import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.write;
 import static junit.framework.Assert.assertTrue;
 
 /**
@@ -79,7 +89,7 @@ public class GradleSyncGuiPerfSetupTest {
   public void syncPerfTest() throws IOException, NullPointerException {
     UsageTracker.setInstanceForTest(new NullUsageTracker(new AnalyticsSettings(), new VirtualTimeScheduler()));
     guiTest.importProjectAndWaitForProjectSyncToFinish("android-studio-gradle-test");
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(5 * 60));
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(10 * 60));
     guiTest.ideFrame().invokeProjectMake(Wait.seconds(30 * 60));
   }
 }
@@ -116,7 +126,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     updateVersionAndDependencies(projectRoot);
   }
 
-  protected static void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
+  private static void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     //Update build.gradle in root directory
     updateBuildFile(projectRoot);
 
@@ -145,7 +155,6 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     }
   }
 
-
   /**
    * Update build.gradle in root directory
    **/
@@ -163,8 +172,12 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     contents = contents.replaceAll("(force 'com.android.support:[^:]*):[^']*'", "$1:" + "25.1.0" + "'");
     contents = contents
       .replaceAll("defaultConfig \\{", "defaultConfig {\njavaCompileOptions.annotationProcessorOptions.includeCompileClasspath = false\n");
-    int pos = contents.indexOf("apply plugin: 'com.uber");
-    write(contents.substring(0, pos - 1), buildFile, Charsets.UTF_8);
+    contents = contents.replaceAll("(classpath\\s\\('com.uber:okbuck:\\d+.\\d+.\\d+'\\)(\\s\\{\n.*\n.*}))?", "");
+    contents = contents.replaceAll("(apply plugin: 'com.uber.okbuck')", "");
+
+    contents = contents.replaceAll("(okbuck\\s\\{\n(.*\n){3}+.*})", "");
+    contents = contents.replaceAll("(compile 'com.google.auto.service:auto-service:1.0-rc2')", "");
+    write(contents, buildFile, Charsets.UTF_8);
   }
 
   /**
@@ -187,21 +200,17 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     contents = contents.replaceAll("def support = \\[", "def support = [\n" +
                                                         "leanback : \"com.android.support:leanback-v17:\\${versions.supportVersion}\",\n" +
                                                         "mediarouter : \"com.android.support:mediarouter-v7:25.0.1\",\n");
+    contents = contents.replaceAll("playServicesVersion: '\\d+.\\d+.\\d+'", "playServicesVersion: '9.6.1'");
+    contents = contents.replaceAll("leakCanaryVersion\\s*: '\\d+.\\d+'", "leakCanaryVersion: '1.4'");
+    contents = contents.replaceAll("daggerVersion\\s*: '\\d+.\\d+'", "daggerVersion: '2.7'");
+    contents =
+      contents.replaceAll("autoCommon\\s*: 'com.google.auto:auto-common:\\d+.\\d+'", "autoCommon: 'com.google.auto:auto-common:0.6'");
+
     contents = contents +
                "\n\n// Fixes for support lib versions.\n" +
                "ext.deps.other.appcompat = [\n" +
                "        ext.deps.support.appCompat,\n" +
                "        ext.deps.other.appcompat,\n" +
-               "]\n" +
-               "\n" +
-               "ext.deps.external.butterKnife = [\n" +
-               "        ext.deps.support.annotations,\n" +
-               "        ext.deps.external.butterKnife,\n" +
-               "]\n" +
-               "\n" +
-               "ext.deps.apt.butterKnifeCompiler = [\n" +
-               "        ext.deps.support.annotations,\n" +
-               "        ext.deps.apt.butterKnifeCompiler,\n" +
                "]\n" +
                "\n" +
                "ext.deps.other.cast = [\n" +
@@ -263,139 +272,52 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   }
 
   private static void updateAndroidAptConfiguration(@NotNull File projectRoot) throws IOException {
-    // Remove the android-apt plugin
-    Set<String> aptConfigurationProjects =
-      ImmutableSet.of(
-        "Padraig/endocoele",
-        "Padraig/follicle",
-        "Padraig/ratafee",
-        "Tripoline",
-        "fratry/Cosmati",
-        "fratry/Krapina",
-        "fratry/cepaceous",
-        "fratry/crankum",
-        "fratry/crapple",
-        "fratry/crippling",
-        "fratry/endothys",
-        "fratry/fortunate",
-        "fratry/halsen",
-        "fratry/linotype",
-        "fratry/matchy",
-        "fratry/passbook",
-        "fratry/psoriasis",
-        "fratry/savory",
-        "fratry/sodden",
-        "fratry/subradius",
-        "fratry/wiredraw",
-        "harvestry/Bokhara",
-        "harvestry/Timbira",
-        "harvestry/digallate",
-        "harvestry/isocryme",
-        "harvestry/suchness",
-        "harvestry/thribble",
-        "outissue/Glumaceae",
-        "outissue/airified",
-        "outissue/carnally",
-        "outissue/caudate",
-        "outissue/eyesore",
-        "outissue/nonparty",
-        "outissue/nursing",
-        "outissue/situla",
-        "outissue/worldway",
-        "preprice",
-        "subvola/Dipnoi",
-        "subvola/Leporis",
-        "subvola/absconsa",
-        "subvola/aluminize",
-        "subvola/atbash",
-        "subvola/cleithral",
-        "subvola/copsewood",
-        "subvola/doored",
-        "subvola/emergency",
-        "subvola/gorgoneum/Chordata",
-        "subvola/gorgoneum/metanilic/agaric",
-        "subvola/gorgoneum/teerer/Cuphea",
-        "subvola/gorgoneum/teerer/Onondaga",
-        "subvola/gorgoneum/teerer/lucrific",
-        "subvola/gorgoneum/teerer/perscribe",
-        "subvola/gorgoneum/teerer/polytonal",
-        "subvola/gorgoneum/teerer/revalenta",
-        "subvola/gorgoneum/unwincing",
-        "subvola/graphite",
-        "subvola/haploidic",
-        "subvola/inhumanly",
-        "subvola/liming",
-        "subvola/ocracy",
-        "subvola/remigrate",
-        "subvola/suborder",
-        "subvola/tourer",
-        "subvola/transpire",
-        "subvola/unmilked",
-        "subvola/wordsmith",
-        "subvola/zealotic",
-        "subvola/zelator");
+    List<Path> allBuildFiles =
+      find(projectRoot.toPath(), Integer.MAX_VALUE, (path, attrs) -> path.getFileName().toString().equals("build.gradle"))
+        .filter(p -> !PathUtils.toSystemIndependentPath(p).endsWith("gradle/SourceTemplate/app/build.gradle")).collect(Collectors.toList());
+    modifyBuildFiles(allBuildFiles);
+  }
 
-    for (String path : aptConfigurationProjects) {
-      searchAndReplace(
-        new File(projectRoot, path + "/build.gradle"), "apply plugin: 'com\\.neenbedankt\\.android-apt'", "/* $0 */");
-      searchAndReplace(new File(projectRoot, path + "/build.gradle"), " apt ", " annotationProcessor ");
-    }
+  private static void modifyBuildFiles(@NotNull List<Path> buildFiles) throws IOException {
+    Pattern appPlugin = Pattern.compile("apply plugin:\\s*['\"]com.android.application['\"]");
+    Pattern libPlugin = Pattern.compile("apply plugin:\\s*['\"]com.android.library['\"]");
+    Pattern javaPlugin = Pattern.compile("apply plugin:\\s*['\"]java['\"]");
 
-    for (String path : ImmutableList.of("subvola/absconsa", "phthalic", "fratry/endothys")) {
-      searchAndReplace(
-        new File(projectRoot, path + "/build.gradle"), "estApt", "estAnnotationProcessor");
-    }
-    Set<String> aptPluginProjects =
-      ImmutableSet.of(
-        "Padraig/arbitrate",
-        "Padraig/cuminoin",
-        "Padraig/decollete",
-        "Padraig/emerse",
-        "Padraig/limitary",
-        "Padraig/paegle",
-        "Padraig/quaestor/triduum",
-        "Padraig/signist",
-        "fratry/Ormond",
-        "fratry/assumpsit",
-        "fratry/asteep",
-        "fratry/audience",
-        "fratry/tentlet",
-        "harvestry/Savannah/penumbra",
-        "harvestry/eelgrass",
-        "harvestry/unwormy",
-        "outissue/aricine",
-        "outissue/bracciale",
-        "outissue/browntail",
-        "outissue/caricetum/midship",
-        "outissue/caricetum/scientist",
-        "outissue/caricetum/skiapod",
-        "outissue/coherence",
-        "outissue/cyclus",
-        "outissue/defusion",
-        "outissue/embrace",
-        "outissue/extended",
-        "outissue/gliadin",
-        "outissue/nonjurant",
-        "outissue/nonunion",
-        "outissue/nutate",
-        "outissue/oleometer",
-        "outissue/phasmatid",
-        "outissue/shortsome",
-        "outissue/synarchy",
-        "outissue/tetragram",
-        "phthalic",
-        "subvola/Brittany",
-        "subvola/Brittany",
-        "subvola/papistry");
-    assertThat(aptPluginProjects).containsNoneIn(aptConfigurationProjects);
-    for (String path : aptPluginProjects) {
-      searchAndReplace(
-        new File(projectRoot, path + "/build.gradle"),
-        "apply plugin: 'com\\.neenbedankt\\.android-apt'",
-        "/* $0 */");
+    for (Path build : buildFiles) {
+      String fileContent = new String(readAllBytes(build));
+      if (appPlugin.matcher(fileContent).find() || libPlugin.matcher(fileContent).find()) {
+        appendToFile(
+          build.toFile(),
+          "\n"
+          + "android.defaultConfig.javaCompileOptions {\n"
+          + "    annotationProcessorOptions.includeCompileClasspath = false\n"
+          + "}");
+
+        replaceIfPresent(fileContent, build, "\\s*compile\\s(.*)", "\napi $1");
+        replaceIfPresent(fileContent, build, "\\s*provided\\s(.*)", "\ncompileOnly $1");
+        replaceIfPresent(fileContent, build, "\\s*testCompile\\s(.*)", "\ntestImplementation $1");
+        replaceIfPresent(fileContent, build, "\\s*debugCompile\\s(.*)", "\ndebugImplementation $1");
+        replaceIfPresent(fileContent, build, "\\s*releaseCompile\\s(.*)", "\nreleaseImplementation $1");
+        replaceIfPresent(fileContent, build, "\\s*androidTestCompile\\s(.*)", "\nandroidTestImplementation $1");
+      }
+      else if (javaPlugin.matcher(fileContent).find()) {
+        searchAndReplace(build, javaPlugin.pattern(), "apply plugin: 'java-library'");
+      }
     }
   }
 
+  private static void replaceIfPresent(@NotNull String content, @NotNull Path destination, @NotNull String pattern, @NotNull String replace)
+    throws IOException {
+    Pattern compiledPattern = Pattern.compile(pattern);
+    if (compiledPattern.matcher(content).find()) {
+      searchAndReplace(destination, compiledPattern.pattern(), replace);
+    }
+  }
+
+  private static void appendToFile(@NotNull File file, @NotNull String content) throws IOException {
+    write(file.toPath(), (System.lineSeparator() + content).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND,
+          StandardOpenOption.CREATE);
+  }
 
   protected static void createGradleWrapper(@NotNull File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
@@ -408,9 +330,13 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
    * Replace all occurrence of regex in file
    **/
   private static void searchAndReplace(@NotNull File file, @NotNull String regex, @NotNull String replaceString) throws IOException {
-    String contents = Files.toString(file, Charsets.UTF_8);
+    searchAndReplace(file.toPath(), regex, replaceString);
+  }
+
+  private static void searchAndReplace(@NotNull Path file, @NotNull String regex, @NotNull String replaceString) throws IOException {
+    String contents = new String(readAllBytes(file));
     contents = contents.replaceAll(regex, replaceString);
-    write(contents, file, Charsets.UTF_8);
+    write(file, contents.getBytes());
   }
 
   @Override
