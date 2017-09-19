@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -60,6 +61,8 @@ public class AndroidGradleTests {
                                    pluginVersion);
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    buildEnvironment.getExperimentalPluginVersion());
+
+      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", KOTLIN_VERSION_FOR_TESTS);
 
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
