@@ -58,6 +58,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.instantapp.provision.ProvisionException.ErrorType.CANCELLED;
+import static com.android.instantapp.provision.ProvisionException.ErrorType.NO_GOOGLE_ACCOUNT;
 import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdk;
 import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 
@@ -231,6 +233,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
                   provisionRunner.clearCache();
                 }
                 else {
+                  if (e.getErrorType() != NO_GOOGLE_ACCOUNT && e.getErrorType() != CANCELLED) {
+                    // Log as error and allows submitting report
+                    getLogger().error(e);
+                  }
                   tryAgain.set(false);
                   // If there was an error while provisioning, we stop running the RunConfiguration
                   result.set(false);
@@ -240,7 +246,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
           }
         }
         catch (FileNotFoundException | ProvisionException e) {
-          getLogger().warn("Error while provisioning devices", e);
+          getLogger().error("Error while provisioning devices", e);
           result.set(false);
         }
         finally {
