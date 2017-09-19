@@ -65,7 +65,10 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   public void killEmulator() {
     AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
     for (IDevice device : adb.getDevices()) {
-      EmulatorConsole.getConsole(device).kill();
+      EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
+      if (emulatorConsole != null) {
+        emulatorConsole.kill();
+      }
     }
 
     // Kill emulator crash report dialogs left behind
