@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="sdklib" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="projectModel-api" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>
