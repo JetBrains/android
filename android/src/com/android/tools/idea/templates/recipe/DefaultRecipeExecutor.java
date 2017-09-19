@@ -16,6 +16,8 @@
 package com.android.tools.idea.templates.recipe;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.manifmerger.XmlElement;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
@@ -37,6 +39,9 @@ import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -251,6 +256,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         File sourceFile = myContext.getLoader().getSourceFile(from);
         File targetFile = getTargetFile(to);
         String content = processFreemarkerTemplate(myContext, sourceFile, null);
+        content = extractFullyQualifiedNames(to, content);
+
         if (targetFile.exists()) {
           if (!compareTextFile(targetFile, content)) {
             addFileAlreadyExistWarning(targetFile);
@@ -587,6 +594,42 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     else {
       return readTextFromDocument(myContext.getProject(), file);
     }
+  }
+
+  /**
+   * Shorten all fully qualified Layout names that belong to the same package as the manifest's
+   * package attribute value.
+   *
+   * @See {@link com.android.manifmerger.ManifestMerger2#extractFqcns(String, XmlElement)}
+   */
+  private String extractFullyQualifiedNames(@NotNull File to, @NotNull String content) {
+    if (ResourceFolderType.getFolderType(to.getParentFile().getName()) != ResourceFolderType.LAYOUT) {
+      return content;
+    }
+
+    String packageName = (String) getParamMap().get(ATTR_APPLICATION_PACKAGE);
+    if (packageName == null) {
+      packageName = (String) getParamMap().get(ATTR_PACKAGE_NAME);
+    }
+
+    XmlElementFactory factory = XmlElementFactory.getInstance(myContext.getProject());
+    XmlTag root = factory.createTagFromText(content);
+
+    // Note: At the moment only root "context:tools" atribute needs to be shorten
+    XmlAttribute contextAttr = root.getAttribute(ATTR_CONTEXT, TOOLS_URI);
+    if (packageName == null || contextAttr == null) {
+      return content;
+    }
+
+    String context = contextAttr.getValue();
+    if (context == null || !context.startsWith(packageName + '.')) {
+      return content;
+    }
+
+    String newContext = context.substring(packageName.length());
+    root.setAttribute(ATTR_CONTEXT, TOOLS_URI, newContext);
+
+    return root.getText();
   }
 
   /**
