@@ -28,5 +28,6 @@ iml_module(
         "//tools/base/sdklib:studio.sdklib[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/platform/projectModel-api[module]",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
