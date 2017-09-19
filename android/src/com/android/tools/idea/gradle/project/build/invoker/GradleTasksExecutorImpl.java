@@ -779,7 +779,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       }
     }
     else if (myWarningCount > 0) {
-      message += String.format(" with %d warnings(s)", myWarningCount);
+      message += String.format(" with %d warning(s)", myWarningCount);
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;
