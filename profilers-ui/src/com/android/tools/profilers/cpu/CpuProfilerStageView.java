@@ -182,7 +182,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setLabelProvider(this::formatCaptureLabel)
-        .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(traceInfo -> getStage().setAndSelectCapture(traceInfo.getTraceId()))
         .build();
@@ -200,7 +199,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
-        .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .build();
 
