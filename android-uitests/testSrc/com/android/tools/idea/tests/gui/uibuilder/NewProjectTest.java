@@ -351,7 +351,7 @@ public class NewProjectTest {
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
-      .dragComponentToSurface("Containers", "android.support.v7.widget.RecyclerView")
+      .dragComponentToSurface("Containers", "RecyclerView")
       .waitForRenderToFinish();
 
     String contents = ideFrameFixture.getEditor()
