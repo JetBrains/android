@@ -117,19 +117,7 @@ public class GradleSyncInvoker {
       ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
       try {
         if (prepareProject(project, request, listener)) {
-          // If the project is not initialised, gradle sync will by design be a part of
-          // project bootstrapping. Therefore in that case it should be invoked directly rather
-          // than via runWhenSmart(), because one of the necessary conditions for the latter
-          // to execute the runnable is the project being initialised.
-          // Also if the project is not initialised, there can't be any concurrent indexing at
-          // this point anyway, and when it starts later during further project setup, it will
-          // already be managed by sync internals.
-          if (StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get() && project.isInitialized()) {
-            DumbService.getInstance(project).runWhenSmart(() -> sync(project, request, listener));
-          }
-          else {
-            sync(project, request, listener);
-          }
+          sync(project, request, listener);
         }
       }
       catch (ConfigurationException e) {
