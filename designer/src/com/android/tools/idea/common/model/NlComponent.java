@@ -21,7 +21,8 @@ import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
+import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -426,6 +427,17 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
+   * Remove attributes that are not valid anymore for the current tag
+   */
+  public void removeObsoleteAttributes() {
+    Set<QualifiedName> obsoleteAttributes = AttributesHelperKt.getObsoleteAttributes(this);
+    AttributesTransaction transaction = startAttributeTransaction();
+    obsoleteAttributes.forEach(
+      qualifiedName -> transaction.removeAttribute(qualifiedName.getNamespace(), qualifiedName.getName()));
+    transaction.commit();
+  }
+
+  /**
    * A cache for use by system to reduce recalculating information
    * The cache may be destroyed at any time as the system rebuilds the components
    *
@@ -500,7 +512,6 @@ public class NlComponent implements NlAttributesHolder {
    * Assign a new unique and valid id to this component. The id will not be du-duped against any existing pending ids.
    *
    * @param baseName The base (prefix) for the new id.
-   *
    * @return The new id.
    */
   @NotNull
@@ -512,7 +523,6 @@ public class NlComponent implements NlAttributesHolder {
    * Assign a new unique and valid id to this component. The id will be based on the tag name.
    *
    * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
-   *
    * @return The new id.
    */
   @NotNull
@@ -524,8 +534,7 @@ public class NlComponent implements NlAttributesHolder {
    * Assign a new unique and valid id to this component.
    *
    * @param baseName The base (prefix) for the new id.
-   * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
-   *
+   * @param ids      A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
    * @return The new id.
    */
   @NotNull

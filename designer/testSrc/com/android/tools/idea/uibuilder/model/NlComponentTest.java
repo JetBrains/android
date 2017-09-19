@@ -19,8 +19,13 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -209,5 +214,42 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("150dp", textViewXmlTag.getAttribute("android:layout_width").getValue());
     // Check we haven't executed the delete on the attribute that was modified
     assertEquals("900dp", textViewXmlTag.getAttribute("android:layout_height").getValue());
+  }
+
+  public void testRemoveObsoleteAttributes() throws Exception {
+    @Language("XML")
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<RelativeLayout\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\">" +
+                      "  <Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         android:orientation=\"vertical\"\n" +
+                      "         tools:layout_editor_absoluteX=\"32dp\"\n" +
+                      "         tools:layout_editor_absoluteY=\"43dp\"\n/>" +
+                      "</RelativeLayout>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+
+    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    assertEquals(1, subTags.length);
+
+    NlComponent component = MockNlComponent.create(subTags[0]);
+    component.setMixin(new NlComponentMixin(component));
+    CommandProcessor.getInstance().runUndoTransparentAction(component::removeObsoleteAttributes);
+
+    @Language("XML")
+    String expected = "<Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         />";
+    assertEquals(expected, component.getTag().getText());
   }
 }
