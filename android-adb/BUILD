@@ -19,6 +19,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/platform-api[module]",
         "//tools/idea/platform/xdebugger-api[module]",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",

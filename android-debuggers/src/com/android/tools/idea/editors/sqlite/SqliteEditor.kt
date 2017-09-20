@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.explorer.DeviceFileId
+import com.android.tools.idea.device.fs.DeviceFileId
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
