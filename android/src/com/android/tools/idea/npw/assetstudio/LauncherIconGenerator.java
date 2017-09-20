@@ -21,10 +21,8 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.utils.Pair;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -202,10 +200,16 @@ public class LauncherIconGenerator extends GraphicGenerator {
     @NonNull
     @SuppressWarnings("UseJBColor")
     @Override
-    public BufferedImage generate(
-            @NonNull GraphicGeneratorContext context, @NonNull Options options) {
-        LauncherOptions launcherOptions = (LauncherOptions) options;
+    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+        if (options.usePlaceholders) {
+            return PLACEHOLDER_IMAGE;
+        }
 
+        BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
+        if (sourceImage == null) {
+            sourceImage = AssetStudioUtils.createDummyImage();
+        }
+        LauncherOptions launcherOptions = (LauncherOptions) options;
 
         if (launcherOptions.isDogEar) {
             launcherOptions.shape = applyDog(launcherOptions.shape);
@@ -260,9 +264,9 @@ public class LauncherIconGenerator extends GraphicGenerator {
         BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
         Graphics2D gIcon = (Graphics2D) iconImage.getGraphics();
         if (launcherOptions.crop) {
-            AssetUtil.drawCenterCrop(gIcon, launcherOptions.sourceImage, targetRect);
+            AssetUtil.drawCenterCrop(gIcon, sourceImage, targetRect);
         } else {
-            AssetUtil.drawCenterInside(gIcon, launcherOptions.sourceImage, targetRect);
+            AssetUtil.drawCenterInside(gIcon, sourceImage, targetRect);
         }
         AssetUtil.Effect[] effects;
         if (launcherOptions.useForegroundColor) {
