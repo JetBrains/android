@@ -779,6 +779,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
   }
 
+  public void testFragmentCompletion7() throws Throwable {
+    doTestCompletionVariants("fragmentCompletion7.xml",
+                             "tools:layout",
+                             "tools:targetApi");
+  }
+
   public void testCustomAttrsPerformance() throws Throwable {
     myFixture.copyFileToProject("dom/resources/bigfile.xml", "res/values/bigfile.xml");
     myFixture.copyFileToProject("dom/resources/bigattrs.xml", "res/values/bigattrs.xml");
