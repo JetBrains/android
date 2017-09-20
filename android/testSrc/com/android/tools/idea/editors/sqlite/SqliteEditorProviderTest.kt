@@ -16,17 +16,18 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import javax.swing.JPanel
 
-class SqliteEditorProviderTest : AndroidTestCase() {
+class SqliteEditorProviderTest : LightPlatformTestCase() {
   private var sqliteUtil: SqliteTestUtil? = null
   private var previouslyEnabled: Boolean = false
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    sqliteUtil = SqliteTestUtil(myFixture.tempDirFixture)
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     previouslyEnabled = SqliteViewer.enableFeature(true)
   }
 
@@ -49,7 +50,7 @@ class SqliteEditorProviderTest : AndroidTestCase() {
     // Act
     // Note: This relies on the sqlite file detector being correctly registered as a
     // global file type detector.
-    val accepts = provider.accept(project, file)
+    val accepts = provider.accept(getProject(), file)
 
     // Assert
     assertThat(accepts).isTrue()
@@ -63,7 +64,7 @@ class SqliteEditorProviderTest : AndroidTestCase() {
     // Act
     // Note: This relies on the sqlite file detector being correctly registered as a
     // global file type detector.
-    val accepts = provider.accept(project, file)
+    val accepts = provider.accept(getProject(), file)
 
     // Assert
     assertThat(accepts).isTrue()
@@ -77,7 +78,7 @@ class SqliteEditorProviderTest : AndroidTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val accepts = provider.accept(project, file)
+    val accepts = provider.accept(getProject(), file)
 
     // Assert
     assertThat(accepts).isFalse()
@@ -91,7 +92,7 @@ class SqliteEditorProviderTest : AndroidTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val accepts = provider.accept(project, file)
+    val accepts = provider.accept(getProject(), file)
 
     // Assert
     assertThat(accepts).isFalse()
@@ -104,7 +105,7 @@ class SqliteEditorProviderTest : AndroidTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val editor = provider.createEditor(project, file)
+    val editor = provider.createEditor(getProject(), file)
 
     // Assert
     assertThat(editor).isNotNull()

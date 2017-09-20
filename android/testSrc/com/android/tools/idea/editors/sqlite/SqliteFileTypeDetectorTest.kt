@@ -16,16 +16,17 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
-class SqliteFileTypeDetectorTest : AndroidTestCase() {
+class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   private var mySqliteUtil: SqliteTestUtil? = null
   private var myPreviousEnabled: Boolean = false
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    mySqliteUtil = SqliteTestUtil(myFixture.tempDirFixture)
+    mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     myPreviousEnabled = SqliteViewer.enableFeature(true)
   }
 
