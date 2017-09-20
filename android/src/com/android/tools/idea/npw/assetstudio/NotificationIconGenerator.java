@@ -20,10 +20,8 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.ide.common.util.AssetUtil.ShadowEffect;
-import java.awt.Color;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
@@ -37,8 +35,15 @@ public class NotificationIconGenerator extends GraphicGenerator {
 
     @NonNull
     @Override
-    public BufferedImage generate(
-            @NonNull GraphicGeneratorContext context, @NonNull Options options) {
+    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+        if (options.usePlaceholders) {
+            return PLACEHOLDER_IMAGE;
+        }
+
+        BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
+        if (sourceImage == null) {
+            sourceImage = AssetStudioUtils.createDummyImage();
+        }
         Rectangle iconSizeMdpi;
         Rectangle targetRectMdpi;
         NotificationOptions notificationOptions = (NotificationOptions) options;
@@ -70,15 +75,15 @@ public class NotificationIconGenerator extends GraphicGenerator {
                             + notificationOptions.density.getResourceValue()
                             + ".png");
             g.drawImage(backImage, 0, 0, null);
-            BufferedImage top = options.sourceImage;
+            BufferedImage top = sourceImage;
             BufferedImage filled = AssetUtil.filledImage(top, Color.WHITE);
             AssetUtil.drawCenterInside(g, filled, targetRect);
         } else if (notificationOptions.version == Version.V11) {
-            AssetUtil.drawCenterInside(g2, options.sourceImage, targetRect);
+            AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
             AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(Color.WHITE),});
         } else {
             assert notificationOptions.version == Version.V9;
-            AssetUtil.drawCenterInside(g2, options.sourceImage, targetRect);
+            AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
             AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(
               new GradientPaint(0, 0, new Color(0x919191), 0, imageRect.height,
                                 new Color(0x828282))),

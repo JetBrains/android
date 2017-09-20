@@ -21,10 +21,8 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.ide.common.util.AssetUtil.ShadowEffect;
-import java.awt.Color;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -37,8 +35,15 @@ public class MenuIconGenerator extends GraphicGenerator {
 
     @NonNull
     @Override
-    public BufferedImage generate(
-            @NonNull GraphicGeneratorContext context, @NonNull Options options) {
+    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+        if (options.usePlaceholders) {
+            return PLACEHOLDER_IMAGE;
+        }
+
+        BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
+        if (sourceImage == null) {
+            sourceImage = AssetStudioUtils.createDummyImage();
+        }
         Rectangle imageSizeHdpi = new Rectangle(0, 0, 48, 48);
         Rectangle targetRectHdpi = new Rectangle(8, 8, 32, 32);
         float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
@@ -50,7 +55,7 @@ public class MenuIconGenerator extends GraphicGenerator {
 
         BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
         Graphics2D g2 = (Graphics2D) tempImage.getGraphics();
-        AssetUtil.drawCenterInside(g2, options.sourceImage, targetRect);
+        AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
 
         AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(
           new GradientPaint(0, 0, new Color(0xa3a3a3), 0, imageRect.height, new Color(0x787878))),

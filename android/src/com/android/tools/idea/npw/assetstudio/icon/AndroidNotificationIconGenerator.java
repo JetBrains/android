@@ -31,9 +31,18 @@ public final class AndroidNotificationIconGenerator extends AndroidIconGenerator
     super(minSdkVersion, new NotificationIconGenerator());
   }
 
-  @NotNull
   @Override
-  protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    return new NotificationIconGenerator.NotificationOptions();
+  @NotNull
+  public GraphicGenerator.Options createOptions(boolean forPreview) {
+    NotificationIconGenerator.NotificationOptions options = new NotificationIconGenerator.NotificationOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
+
+    return options;
   }
 }

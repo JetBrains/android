@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconType;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -49,8 +50,11 @@ public class BackgroundIconGenerator {
       return;
     }
 
-    Request request = new Request(iconType, iconGenerator, onDone);
-    myImageRequests.add(request);
+    if (iconGenerator.sourceAsset().get().isPresent()) {
+      GraphicGenerator.Options options = iconGenerator.createOptions(true);
+      Request request = new Request(iconType, iconGenerator, options, onDone);
+      myImageRequests.add(request);
+    }
 
     processNextRequest();
   }
@@ -79,22 +83,23 @@ public class BackgroundIconGenerator {
     @NotNull private final AndroidAdaptiveIconType myType;
     @NotNull private final AndroidIconGenerator myIconGenerator;
     @NotNull private final Consumer<IconGeneratorResult> myOnDone;
+    @NotNull private final GraphicGenerator.Options myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
 
     public Request(@NotNull AndroidAdaptiveIconType iconType,
                    @NotNull AndroidIconGenerator iconGenerator,
+                   @NotNull GraphicGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
       myType = iconType;
       myIconGenerator = iconGenerator;
+      myOptions = options;
       myOnDone = onDone;
     }
 
     public void run() {
       assert !ApplicationManager.getApplication().isDispatchThread();
 
-      if (myIconGenerator.sourceAsset().get().isPresent()) {
-        myGeneratorResult = myIconGenerator.generatePreviewIcons();
-      }
+      myGeneratorResult = myIconGenerator.generateIcons(myOptions);
     }
 
     public void done() {

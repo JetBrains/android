@@ -45,6 +45,7 @@ import java.util.Map;
 public abstract class AndroidIconGenerator implements Disposable {
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myName = new StringValueProperty();
+
   private final int myMinSdkVersion;
 
   @NotNull private final GraphicGeneratorContext myContext;
@@ -103,23 +104,12 @@ public abstract class AndroidIconGenerator implements Disposable {
     return myName;
   }
 
-  @NotNull
-  private IconGeneratorResult generateIcons() {
-    if (!mySourceAsset.get().isPresent()) {
-      throw new IllegalStateException("Can't generate icons without a source asset set first");
-    }
-
-    GraphicGenerator.Options options = createOptions(mySourceAsset.getValue());
-    return new IconGeneratorResult(myGraphicGenerator.generateIcons(myContext, options, myName.get()), options);
+  public int getMinSdkVersion() {
+    return myMinSdkVersion;
   }
 
   @NotNull
-  public IconGeneratorResult generatePreviewIcons() {
-    if (!mySourceAsset.get().isPresent()) {
-      throw new IllegalStateException("Can't generate icons without a source asset set first");
-    }
-
-    GraphicGenerator.Options options = createPreviewOptions(mySourceAsset.getValue());
+  public IconGeneratorResult generateIcons(GraphicGenerator.Options options) {
     return new IconGeneratorResult(myGraphicGenerator.generateIcons(myContext, options, myName.get()), options);
   }
 
@@ -135,10 +125,14 @@ public abstract class AndroidIconGenerator implements Disposable {
       throw new IllegalStateException("Can't generate icons without a source asset set first");
     }
 
-    Map<String, Map<String, BufferedImage>> categoryMap = newAssetMap();
-    GraphicGenerator.Options options = createOptions(mySourceAsset.getValue());
-    myGraphicGenerator.generate(null, categoryMap, myContext, options, myName.get());
+    GraphicGenerator.Options options = createOptions(false);
+    return generateIntoMemory(options);
+  }
 
+  @NotNull
+  private CategoryIconMap generateIntoMemory(GraphicGenerator.Options options) {
+    Map<String, Map<String, BufferedImage>> categoryMap = newAssetMap();
+    myGraphicGenerator.generate(null, categoryMap, myContext, options, myName.get());
     return new CategoryIconMap(categoryMap);
   }
 
@@ -173,6 +167,33 @@ public abstract class AndroidIconGenerator implements Disposable {
    */
   @NotNull
   public final Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths) {
+    GraphicGenerator.Options options = createOptions(false);
+    return generateIntoIconMap(paths, options);
+  }
+
+  /**
+   * Similar to {@link ##generateIntoIconMap(AndroidModuleTemplate)} but instead of generating real icons
+   * uses placeholders that are much faster to produce.
+   *
+   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * an exception will be thrown.
+   */
+  @NotNull
+  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull AndroidModuleTemplate paths) {
+    GraphicGenerator.Options options = createOptions(false);
+    options.usePlaceholders = true;
+    return generateIntoIconMap(paths, options);
+  }
+
+  /**
+   * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
+   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidModuleTemplate)} is called.
+   *
+   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * an exception will be thrown.
+   */
+  @NotNull
+  public final Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate paths, GraphicGenerator.Options options) {
     if (myName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
@@ -182,7 +203,7 @@ public abstract class AndroidIconGenerator implements Disposable {
       throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }
 
-    IconGeneratorResult icons = generateIcons();
+    IconGeneratorResult icons = generateIcons(options);
     Map<File, GeneratedIcon> outputMap = new HashMap<>();
     icons.getIcons().getList().forEach(icon -> {
       if (icon.getOutputPath() != null && icon.getCategory() != IconCategory.PREVIEW) {
@@ -233,28 +254,7 @@ public abstract class AndroidIconGenerator implements Disposable {
   }
 
   @NotNull
-  protected abstract GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType);
-
-  @NotNull
-  protected GraphicGenerator.Options createPreviewOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    return createOptions(assetType);
-  }
-
-  @NotNull
-  private GraphicGenerator.Options createOptions(@NotNull BaseAsset baseAsset) {
-    GraphicGenerator.Options options = createOptions(baseAsset.getClass());
-    options.minSdk = myMinSdkVersion;
-    options.sourceImage = baseAsset.toImage();
-    return options;
-  }
-
-  @NotNull
-  private GraphicGenerator.Options createPreviewOptions(@NotNull BaseAsset baseAsset) {
-    GraphicGenerator.Options options = createPreviewOptions(baseAsset.getClass());
-    options.minSdk = myMinSdkVersion;
-    options.sourceImage = baseAsset.toImage();
-    return options;
-  }
+  public abstract GraphicGenerator.Options createOptions(boolean forPreview);
 
   private void writePngToDisk(@NotNull File file, @NotNull BufferedImage image) {
     try {

@@ -16,19 +16,25 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
+
 import java.awt.image.BufferedImage;
 
 /**
  * Generate icons for the vector drawable.
- * We need the image in original format and size, therefore, there is no extra
- * operation on the sourceImage.
  */
 public class VectorIconGenerator extends GraphicGenerator {
-    @NonNull
     @Override
-    public BufferedImage generate(
-            @NonNull GraphicGeneratorContext context, @NonNull Options options) {
-        return options.sourceImage;
+    @NonNull
+    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+        if (options.usePlaceholders) {
+            return PLACEHOLDER_IMAGE;
+        }
+
+        BufferedImage image = getTrimmedAndPaddedImage(options);
+        if (image == null) {
+            image = AssetStudioUtils.createDummyImage();
+        }
+        return image;
     }
 
     public static class VectorIconOptions extends GraphicGenerator.Options {

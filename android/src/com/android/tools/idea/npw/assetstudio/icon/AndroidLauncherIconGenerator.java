@@ -95,19 +95,27 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
     return myDogEared;
   }
 
-  @NotNull
   @Override
-  protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
-    launcherOptions.shape = myShape.get();
-    launcherOptions.crop = myCropped.get();
-    launcherOptions.style = GraphicGenerator.Style.SIMPLE;
-    launcherOptions.useForegroundColor = myUseForegroundColor.get();
-    launcherOptions.foregroundColor = myForegroundColor.get().getRGB();
-    launcherOptions.backgroundColor = myBackgroundColor.get().getRGB();
-    launcherOptions.isWebGraphic = true;
-    launcherOptions.isDogEar = myDogEared.get();
+  @NotNull
+  public GraphicGenerator.Options createOptions(boolean forPreview) {
+    LauncherIconGenerator.LauncherOptions options = new LauncherIconGenerator.LauncherOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
 
-    return launcherOptions;
+    options.shape = myShape.get();
+    options.crop = myCropped.get();
+    options.style = GraphicGenerator.Style.SIMPLE;
+    options.useForegroundColor = myUseForegroundColor.get();
+    options.foregroundColor = myForegroundColor.get().getRGB();
+    options.backgroundColor = myBackgroundColor.get().getRGB();
+    options.isWebGraphic = true;
+    options.isDogEar = myDogEared.get();
+
+    return options;
   }
 }

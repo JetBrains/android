@@ -143,6 +143,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
         final NonOpaquePanel panel = super.customizeLoadingLayer(parent, text, icon);
         Font font = text.getFont();
         text.setFont(font.deriveFont(font.getStyle(), font.getSize() + 6));
+        //noinspection UseJBColor
         text.setForeground(ColorUtil.toAlpha(Color.BLACK, 100));
         panel.setOpaque(true);
         return panel;
@@ -377,7 +378,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   }
 
   private boolean iconExists() {
-    Map<File, BufferedImage> pathImageMap = getIconGenerator().generateIntoFileMap(myPaths);
+    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths);
     for (File path : pathImageMap.keySet()) {
       if (path.exists()) {
         return true;

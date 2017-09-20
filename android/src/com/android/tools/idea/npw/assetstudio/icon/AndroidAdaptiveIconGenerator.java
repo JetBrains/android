@@ -188,27 +188,14 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
     return myBackgroundLayerName;
   }
 
-  @NotNull
   @Override
-  protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    AdaptiveIconOptions options = createOptions();
-    options.generateOutputIcons = true;
-    options.generatePreviewIcons = false;
-    return options;
-  }
-
   @NotNull
-  @Override
-  protected GraphicGenerator.Options createPreviewOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    AdaptiveIconOptions options = createOptions();
-    options.generateOutputIcons = false;
-    options.generatePreviewIcons = true;
-    return options;
-  }
-
-  @NotNull
-  private AdaptiveIconOptions createOptions() {
+  public GraphicGenerator.Options createOptions(boolean forPreview) {
     AdaptiveIconOptions options = new AdaptiveIconOptions();
+    options.generateOutputIcons = !forPreview;
+    options.generatePreviewIcons = forPreview;
+
+    options.minSdk = getMinSdkVersion();
     options.useForegroundColor = myUseForegroundColor.get();
     options.foregroundColor = myForegroundColor.get().getRGB();
     // Set foreground image.
@@ -223,7 +210,7 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
       }
       else if (foregroundAsset.trimmed().get()) {
         // Scale correction for images to fit into the safe zone.
-        // Finding the smallest circle containing the image is not trivial.
+        // Finding the smallest circle containing the image is not trivial (see https://en.wikipedia.org/wiki/Smallest-circle_problem).
         // For simplicity we treat the safe zone as a square.
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
@@ -247,7 +234,6 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
     options.webIconShape = myWebIconShape.get();
     options.generateRoundIcon = myGenerateRoundIcon.get();
     options.generateWebIcon = myGenerateWebIcon.get();
-
     return options;
   }
 
