@@ -63,6 +63,8 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -772,5 +774,12 @@ public class EditorFixture {
   @NotNull
   public LibraryEditorFixture getLibrarySymbolsFixture() {
     return LibraryEditorFixture.find(getIdeFrame());
+  }
+
+  @NotNull
+  public JListFixture getAutoCompleteWindow() {
+    CompletionFixture autocompletePopup = new CompletionFixture(myFrame);
+    autocompletePopup.waitForCompletionsToShow();
+    return autocompletePopup.getCompletionList();
   }
 }
