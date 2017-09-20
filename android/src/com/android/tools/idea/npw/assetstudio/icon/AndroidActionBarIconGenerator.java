@@ -49,25 +49,32 @@ public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
 
   /**
    * A custom color which will be used if {@link #theme()} is set to
-   * {@link ActionBarIconGenerator.Theme#CUSTOM}
+   * {@link ActionBarIconGenerator.Theme#CUSTOM}.
    */
   @NotNull
   public ObjectProperty<Color> customColor() {
     return myCustomColor;
   }
 
-  @NotNull
   @Override
-  protected ActionBarIconGenerator.ActionBarOptions createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    ActionBarIconGenerator.ActionBarOptions actionBarOptions = new ActionBarIconGenerator.ActionBarOptions();
-
-    actionBarOptions.theme = myTheme.get();
-    if (actionBarOptions.theme == ActionBarIconGenerator.Theme.CUSTOM) {
-      actionBarOptions.customThemeColor = myCustomColor.get().getRGB();
+  @NotNull
+  public ActionBarIconGenerator.ActionBarOptions createOptions(boolean forPreview) {
+    ActionBarIconGenerator.ActionBarOptions options = new ActionBarIconGenerator.ActionBarOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
     }
 
-    actionBarOptions.sourceIsClipart = (assetType.equals(VectorAsset.class));
+    options.theme = myTheme.get();
+    if (options.theme == ActionBarIconGenerator.Theme.CUSTOM) {
+      options.customThemeColor = myCustomColor.get().getRGB();
+    }
 
-    return actionBarOptions;
+    options.sourceIsClipart = asset instanceof VectorAsset;
+
+    return options;
   }
 }

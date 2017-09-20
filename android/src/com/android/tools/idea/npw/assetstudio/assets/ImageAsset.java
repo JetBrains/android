@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.ide.common.vectordrawable.Svg2Vector;
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
+import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -24,7 +24,7 @@ import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.io.Files;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.TAG_VECTOR;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -51,25 +49,26 @@ public final class ImageAsset extends BaseAsset {
   @NotNull private final OptionalValueProperty<File> myImagePath;
   @NotNull private final ObservableBool myIsVectorGraphics;
   @NotNull private final ObservableBool myIsResizable;
-  @Nullable private BufferedImage myImage;
   @NotNull private final BoolValueProperty myXmlDrawableIsResizable = new BoolValueProperty();
   @NotNull private final OptionalValueProperty<String> myError = new OptionalValueProperty<>();
   @NotNull private final OptionalValueProperty<String> myWarning = new OptionalValueProperty<>();
 
   @NotNull private final Object myLock = new Object();
   @GuardedBy("myLock")
-  @Nullable private Future<String> myXmlDrawableFuture;
-  @GuardedBy("myLock")
   @Nullable private File myImageFile;
+  @GuardedBy("myLock")
+  @Nullable private ListenableFuture<String> myXmlDrawableFuture;
+  @GuardedBy("myLock")
+  @Nullable private ListenableFuture<BufferedImage> myImageFuture;
 
   public ImageAsset() {
     myImagePath = new OptionalValueProperty<>();
     myImagePath.addListener((v) -> {
-      myImage = null;
       myXmlDrawableIsResizable.set(false);
       synchronized (myLock) {
-        myXmlDrawableFuture = null;
         myImageFile = myImagePath.getValueOrNull();
+        myXmlDrawableFuture = null;
+        myImageFuture = null;
       }
     });
 
@@ -144,26 +143,18 @@ public final class ImageAsset extends BaseAsset {
   }
 
   @Override
-  @NotNull
-  protected BufferedImage createAsImage(@NotNull Color color) {
-    if (myImage == null) {
-      String error = null;
-      File imageFile = myImagePath.getValueOrNull();
-      if (imageFile != null && !myIsVectorGraphics.get()) {
-        try {
-          myImage = ImageIO.read(imageFile);
+  @Nullable
+  public ListenableFuture<BufferedImage> toImage() {
+    synchronized (myLock) {
+      if (myImageFuture == null) {
+        File file = myImageFile;
+        if (file == null || isVectorGraphics(FileType.fromFile(file))) {
+          return null;
         }
-        catch (IOException e) {
-          error = e.getMessage();
-        }
+        myImageFuture = FutureUtils.executeOnPooledThread(() -> loadImage(file));
       }
-
-      if (myImage == null) {
-        myImage = AssetStudioUtils.createDummyImage();
-      }
-      setError(error);
+      return myImageFuture;
     }
-    return myImage;
   }
 
   private void setError(@Nullable String message) {
@@ -178,7 +169,7 @@ public final class ImageAsset extends BaseAsset {
    * This method may be called on any thread.
    */
   @Nullable
-  public Future<String> getXmlDrawable() {
+  public ListenableFuture<String> getXmlDrawable() {
     synchronized (myLock) {
       if (myXmlDrawableFuture == null) {
         if (myImageFile == null) {
@@ -189,7 +180,7 @@ public final class ImageAsset extends BaseAsset {
           return null;
         }
         File file = myImageFile;
-        myXmlDrawableFuture = ApplicationManager.getApplication().executeOnPooledThread(() -> loadXmlDrawable(file));
+        myXmlDrawableFuture = FutureUtils.executeOnPooledThread(() -> loadXmlDrawable(file));
       }
       return myXmlDrawableFuture;
     }
@@ -262,7 +253,6 @@ public final class ImageAsset extends BaseAsset {
         myXmlDrawableIsResizable.set(finalImage != null);
         myError.setNullableValue(finalError);
         myWarning.setNullableValue(null);
-        myImage = finalImage;
       }
     });
 
