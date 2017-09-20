@@ -450,6 +450,10 @@ public class AttributeProcessingUtil {
 
     String tagName = tag.getName();
     switch (tagName) {
+      case VIEW_FRAGMENT:
+        registerToolsAttribute(ATTR_LAYOUT, callback);
+        break;
+
       case VIEW_TAG:
         // In Android layout XMLs, one can write, e.g.
         //   <view class="LinearLayout" />
