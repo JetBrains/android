@@ -23,9 +23,14 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.EmptyIterator;
+import org.jetbrains.annotations.NotNull;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -35,25 +40,19 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Paths;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.imageio.ImageIO;
 
 /**
  * The base Generator class.
  */
 public abstract class GraphicGenerator {
+    public static final BufferedImage PLACEHOLDER_IMAGE = AssetStudioUtils.createDummyImage();
+
     private static final Map<Density, Pattern> DENSITY_PATTERNS;
 
     static {
@@ -76,17 +75,26 @@ public abstract class GraphicGenerator {
      * Options used for all generators.
      */
     public static class Options {
-        /** Minimum version (API level) of the SDK to generate icons for */
+        /** Indicates that the graphic generator may use placeholders instead of real images. */
+        public boolean usePlaceholders;
+
+        /** Minimum version (API level) of the SDK to generate icons for. */
         public int minSdk = 1;
 
-        /** Source image to use as a basis for the icon */
-        public BufferedImage sourceImage;
+        /** Source image to use as a basis for the icon. */
+        @Nullable public ListenableFuture<BufferedImage> sourceImageFuture;
 
-        /** The density to generate the icon with */
-        public Density density = Density.XHIGH;
+        /** Indicated whether the source image should be trimmed or not. */
+        public boolean isTrimmed;
 
-        /** Controls the directory where to store the icon/resource */
-        public IconFolderKind iconFolderKind = IconFolderKind.DRAWABLE;
+        /** Percent of padding for the source image. */
+        public int paddingPercent;
+
+        /** The density to generate the icon with. */
+        @NotNull public Density density = Density.XHIGH;
+
+        /** Controls the directory where to store the icon/resource. */
+        @NotNull public IconFolderKind iconFolderKind = IconFolderKind.DRAWABLE;
     }
 
     public enum IconFolderKind {
@@ -98,7 +106,7 @@ public abstract class GraphicGenerator {
         VALUES,
     }
 
-    /** Shapes that can be used for icon backgrounds */
+    /** Shapes that can be used for icon backgrounds. */
     public enum Shape {
         /** No background */
         NONE("none"),
@@ -152,9 +160,6 @@ public abstract class GraphicGenerator {
             @NonNull String name,
             @NonNull IconCategory category) {
         BufferedImage image = generate(context, options);
-        if (image == null) {
-            return null;
-        }
         return new GeneratedImageIcon(
                 getIconName(options, name),
                 Paths.get(getIconPath(options, name)),
@@ -202,8 +207,7 @@ public abstract class GraphicGenerator {
      * @return a {@link BufferedImage} with the generated icon
      */
     @NonNull
-    public abstract BufferedImage generate(
-            @NonNull GraphicGeneratorContext context, @NonNull Options options);
+    public abstract BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options);
 
     /**
      * Computes the target filename (relative to the Android project folder) where an icon rendered
@@ -290,7 +294,7 @@ public abstract class GraphicGenerator {
         generateAllDensities(category, categoryMap, context, options, name);
     }
 
-    protected void generateAllDensities(
+    private void generateAllDensities(
             String category,
             Map<String, Map<String, BufferedImage>> categoryMap,
             GraphicGeneratorContext context,
@@ -326,10 +330,6 @@ public abstract class GraphicGenerator {
             Options options,
             String name) {
         BufferedImage image = generate(context, options);
-        if (image == null) {
-            return;
-        }
-
         // The category key is either the "category" parameter or the density if not present
         String mapCategory = category;
         if (mapCategory == null) {
@@ -371,14 +371,8 @@ public abstract class GraphicGenerator {
      * @throws IOException if an unexpected I/O error occurs
      */
     public static BufferedImage getStencilImage(String relativePath) throws IOException {
-        InputStream is = GraphicGenerator.class.getResourceAsStream(relativePath);
-        if (is == null) {
-            return null;
-        }
-        try {
+        try (InputStream is = GraphicGenerator.class.getResourceAsStream(relativePath)) {
             return ImageIO.read(is);
-        } finally {
-            Closeables.close(is, true /* swallowIOException */);
         }
     }
 
@@ -390,13 +384,9 @@ public abstract class GraphicGenerator {
      * @return the icon image
      * @throws IOException if the image cannot be loaded
      */
-    public static BufferedImage getClipartIcon(String name) throws IOException {
-        InputStream is = GraphicGenerator.class.getResourceAsStream(
-                "/images/clipart/small/" + name);
-        try {
+    private static BufferedImage getClipartIcon(String name) throws IOException {
+        try (InputStream is = GraphicGenerator.class.getResourceAsStream("/images/clipart/small/" + name)) {
             return ImageIO.read(is);
-        } finally {
-            Closeables.close(is, true /* swallowIOException */);
         }
     }
 
@@ -409,12 +399,8 @@ public abstract class GraphicGenerator {
      * @throws IOException if the image cannot be loaded
      */
     public static BufferedImage getClipartImage(String name) throws IOException {
-        InputStream is = GraphicGenerator.class.getResourceAsStream(
-                "/images/clipart/big/" + name);
-        try {
+        try (InputStream is = GraphicGenerator.class.getResourceAsStream("/images/clipart/big/" + name)) {
             return ImageIO.read(is);
-        } finally {
-            Closeables.close(is, true /* swallowIOException */);
         }
     }
 
@@ -435,8 +421,7 @@ public abstract class GraphicGenerator {
                 File file = SdkUtils.urlToFile(url);
                 zipFile = new JarFile(file);
             } else {
-                Enumeration<URL> en =
-                        GraphicGenerator.class.getClassLoader().getResources(pathPrefix);
+                Enumeration<URL> en = GraphicGenerator.class.getClassLoader().getResources(pathPrefix);
                 if (en.hasMoreElements()) {
                     url = en.nextElement();
                     URLConnection urlConnection = url.openConnection();
@@ -445,8 +430,13 @@ public abstract class GraphicGenerator {
                         zipFile = urlConn.getJarFile();
                     } else if ("file".equals(url.getProtocol())) { //$NON-NLS-1$
                         File directory = new File(url.getPath());
-                        return Lists.newArrayList(directory.list()).iterator();
+                        String[] list = directory.list();
+                        if (list == null) {
+                            return EmptyIterator.getInstance();
+                        }
+                        return ImmutableList.copyOf(list).iterator();
                     }
+
                 }
             }
             Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
@@ -464,8 +454,8 @@ public abstract class GraphicGenerator {
                 }
                 names.add(name);
             }
-        } catch (final Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            getLog().error(e);
         }
 
         return names.iterator();
@@ -477,10 +467,9 @@ public abstract class GraphicGenerator {
      */
     @Nullable
     public static Density pathToDensity(@NonNull String iconPath) {
-
         iconPath = FileUtils.toSystemIndependentPath(iconPath);
         // Strip off the filename, in case the user names their icon "xxxhdpi" etc.
-        // but leave the trailing slash, as it's used in the regex pattern
+        // but leave the trailing slash, as it's used in the regex pattern.
         iconPath = iconPath.substring(0, iconPath.lastIndexOf('/') + 1);
 
         for (Density density : Density.values()) {
@@ -490,5 +479,37 @@ public abstract class GraphicGenerator {
         }
 
         return null;
+    }
+
+    @Nullable
+    public static BufferedImage getTrimmedAndPaddedImage(Options options) {
+        return getTrimmedAndPaddedImage(options.sourceImageFuture, options.isTrimmed, options.paddingPercent);
+    }
+
+    @Nullable
+    public static BufferedImage getTrimmedAndPaddedImage(@Nullable ListenableFuture<BufferedImage> imageFuture, boolean isTrimmed,
+                                                         int paddingPercent) {
+        if (imageFuture == null) {
+            return null;
+        }
+        try {
+            BufferedImage image = imageFuture.get();
+            if (image != null) {
+                if (isTrimmed) {
+                    image = AssetStudioUtils.trim(image);
+                }
+                if (paddingPercent != 0) {
+                    image = AssetStudioUtils.pad(image, paddingPercent);
+                }
+            }
+            return image;
+        }
+        catch (InterruptedException | ExecutionException e) {
+            return null;
+        }
+    }
+
+    private static Logger getLog() {
+        return Logger.getInstance(GraphicGenerator.class);
     }
 }

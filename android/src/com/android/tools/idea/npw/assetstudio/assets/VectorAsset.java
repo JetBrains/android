@@ -18,15 +18,15 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.observable.core.*;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,7 +42,6 @@ import java.util.Locale;
  * generate a result.
  */
 public final class VectorAsset extends BaseAsset {
-
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
 
   private final ObjectProperty<FileType> myFileType = new ObjectValueProperty<>(FileType.SVG);
@@ -145,10 +144,10 @@ public final class VectorAsset extends BaseAsset {
     return parse(0, true);
   }
 
-  @NotNull
   @Override
-  protected BufferedImage createAsImage(@NotNull Color color) {
-    return parse().getImage();
+  @Nullable
+  public ListenableFuture<BufferedImage> toImage() {
+    return Futures.immediateFuture(parse().getImage());
   }
 
   /**
@@ -269,7 +268,7 @@ public final class VectorAsset extends BaseAsset {
     private static final ParseResult INVALID = new ParseResult();
 
     @NotNull private final String myErrors;
-    @NotNull private final BufferedImage myImage;
+    @Nullable private final BufferedImage myImage;
     private final int myOriginalWidth;
     private final int myOriginalHeight;
     private final boolean myIsValid;
@@ -279,7 +278,7 @@ public final class VectorAsset extends BaseAsset {
      * Use {@link #INVALID} instead.
      */
     private ParseResult() {
-      this("", AssetStudioUtils.createDummyImage(), 0, 0, "");
+      this("", null, 0, 0, "");
     }
 
     public ParseResult(@NotNull String errors) {
@@ -287,7 +286,7 @@ public final class VectorAsset extends BaseAsset {
     }
 
     public ParseResult(@NotNull String errors,
-                       @NotNull BufferedImage image,
+                       @Nullable BufferedImage image,
                        int originalWidth,
                        int originalHeight,
                        @NotNull String xmlContent) {
@@ -340,7 +339,7 @@ public final class VectorAsset extends BaseAsset {
     /**
      * An image preview of the final vector asset.
      */
-    @NotNull
+    @Nullable
     public BufferedImage getImage() {
       return myImage;
     }

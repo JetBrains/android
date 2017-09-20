@@ -67,6 +67,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
  * generate the icon plus some other options. Note that this panel provides a superset of all
@@ -78,8 +80,6 @@ import java.util.Map;
  */
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
-  /** 108x108dp at XXXHDPI is 432x432px. */
-  private static final Dimension LAYER_RESOLUTION = new Dimension(432, 432);
 
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
@@ -313,11 +313,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       myForegroundTextRadioButton, myForegroundTextAssetEditor
     );
     myForegroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_foreground.xml"));
-    myForegroundImageAssetBrowser.getAsset().targetSize().setValue(LAYER_RESOLUTION);
-    myForegroundClipartAssetButton.getAsset().targetSize().setValue(LAYER_RESOLUTION);
-    myForegroundTextAssetEditor.getAsset().targetSize().setValue(LAYER_RESOLUTION);
     myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_background.xml"));
-    myBackgroundImageAssetBrowser.getAsset().targetSize().setValue(LAYER_RESOLUTION);
 
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
@@ -348,9 +344,10 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     VectorAsset clipartAsset = myForegroundClipartAssetButton.getAsset();
     // Source material icons are provided in a vector graphics format, but their default resolution
     // is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
-    // a fair bit.
-    clipartAsset.outputWidth().set(LAYER_RESOLUTION.width);
-    clipartAsset.outputHeight().set(LAYER_RESOLUTION.height);
+    // a fair bit. The chosen number is a multiple of IMAGE_SIZE_FULL_BLEED_DP that is not less than
+    // the Web icon size. The latter condition prevents the generated Web icon from looking blurry.
+    clipartAsset.outputWidth().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
+    clipartAsset.outputHeight().set(IMAGE_SIZE_FULL_BLEED_DP.width * 8);
 
     myForegroundImageRadioButton.setSelected(true);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());

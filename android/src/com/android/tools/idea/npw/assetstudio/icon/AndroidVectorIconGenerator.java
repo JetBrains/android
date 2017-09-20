@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
+import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
-import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +31,19 @@ public final class AndroidVectorIconGenerator extends AndroidIconGenerator {
     super(minSdkVersion, new VectorIconGenerator());
   }
 
-  @NotNull
   @Override
-  protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    VectorIconGenerator.VectorIconOptions vectorOptions = new VectorIconGenerator.VectorIconOptions();
-    vectorOptions.density = Density.ANYDPI;
-    return vectorOptions;
+  @NotNull
+  public GraphicGenerator.Options createOptions(boolean forPreview) {
+    VectorIconGenerator.VectorIconOptions options = new VectorIconGenerator.VectorIconOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
+
+    options.density = Density.ANYDPI;
+    return options;
   }
 }
