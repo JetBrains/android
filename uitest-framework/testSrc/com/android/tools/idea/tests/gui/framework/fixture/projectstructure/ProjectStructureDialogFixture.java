@@ -30,7 +30,8 @@ import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JTabbedPane;
 
 public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> {
 
