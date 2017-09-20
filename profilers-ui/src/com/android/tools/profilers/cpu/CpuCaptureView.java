@@ -61,7 +61,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
   // Note the order of the values in the map defines the order of the tabs in UI.
@@ -628,29 +627,72 @@ class CpuCaptureView {
     }
   }
 
-  private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    @Override
-    public int compare(DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) {
-      return ((CpuTreeNode)o1.getUserObject()).getMethodName().compareTo(((CpuTreeNode)o2.getUserObject()).getMethodName());
-    }
-  }
+  /**
+   * In this comparator nodes with filter type {@link CaptureNode.FilterType#UNMATCH} comes after than others.
+   */
+  private static abstract class CpuNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    private final SortOrder myOrderPreference;
 
-  private static class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    private final Function<CpuTreeNode, Double> myGetter;
-
-    DoubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
-      myGetter = getter;
+    protected CpuNodeComparator(SortOrder orderPreference) {
+      myOrderPreference = orderPreference;
     }
 
     @Override
     public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
       CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
       CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
-      return Double.compare(myGetter.apply(o1), myGetter.apply(o2));
+
+      int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
+      if (cmp == 0) {
+        return compareField(o1, o2);
+      }
+      return myOrderPreference == SortOrder.ASCENDING ? cmp : -cmp;
+    }
+
+    public abstract int compareField(CpuTreeNode a, CpuTreeNode b);
+  }
+
+  private static class NameValueNodeComparator extends CpuNodeComparator {
+    protected NameValueNodeComparator() {
+      super(SortOrder.ASCENDING);
+    }
+
+    @Override
+    public int compareField(CpuTreeNode a, CpuTreeNode b) {
+      return a.getMethodName().compareTo(b.getMethodName());
     }
   }
 
-  private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
+  private static class DoubleValueNodeComparator extends CpuNodeComparator {
+    private final Function<CpuTreeNode, Double> myGetter;
+
+    DoubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
+      super(SortOrder.DESCENDING);
+      myGetter = getter;
+    }
+
+    @Override
+    public int compareField(CpuTreeNode a, CpuTreeNode b) {
+      return Double.compare(myGetter.apply(a), myGetter.apply(b));
+    }
+  }
+
+  private static abstract class CpuCaptureCellRenderer extends ColoredTreeCellRenderer {
+
+    private static final Map<CaptureNode.FilterType, SimpleTextAttributes> TEXT_ATTRIBUTES =
+      ImmutableMap.<CaptureNode.FilterType, SimpleTextAttributes>builder()
+        .put(CaptureNode.FilterType.MATCH, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+        .put(CaptureNode.FilterType.EXACT_MATCH, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+        .put(CaptureNode.FilterType.UNMATCH, SimpleTextAttributes.GRAY_ATTRIBUTES)
+        .build();
+
+    @NotNull
+    protected SimpleTextAttributes getTextAttributes(@NotNull CpuTreeNode node) {
+      return TEXT_ATTRIBUTES.get(node.getFilterType());
+    }
+  }
+
+  private static class DoubleValueCellRenderer extends CpuCaptureCellRenderer {
     private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
     private final int myAlignment;
@@ -672,13 +714,14 @@ class CpuCaptureView {
                                       boolean hasFocus) {
       CpuTreeNode node = getNode(value);
       if (node != null) {
+        SimpleTextAttributes attributes = getTextAttributes(node);
         double v = myGetter.apply(node);
         if (myPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f%%", v / root.getTotal() * 100));
+          append(String.format("%.2f%%", v / root.getTotal() * 100), attributes);
         }
         else {
-          append(String.format("%,.0f", v));
+          append(String.format("%,.0f", v), attributes);
         }
       }
       else {
@@ -694,7 +737,7 @@ class CpuCaptureView {
     }
   }
 
-  private static class MethodNameRenderer extends ColoredTreeCellRenderer {
+  private static class MethodNameRenderer extends CpuCaptureCellRenderer {
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -706,15 +749,17 @@ class CpuCaptureView {
       if (value instanceof DefaultMutableTreeNode &&
           ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
         CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
+        SimpleTextAttributes attributes = getTextAttributes(node);
+
         if (node.getMethodName().isEmpty()) {
           setIcon(AllIcons.Debugger.ThreadSuspended);
-          append(node.getClassName());
+          append(node.getClassName(), attributes);
         }
         else {
           setIcon(PlatformIcons.METHOD_ICON);
-          append(node.getMethodName() + "()");
+          append(node.getMethodName() + "()", attributes);
           if (node.getClassName() != null) {
-            append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            append(" (" + node.getClassName() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
           }
         }
       }

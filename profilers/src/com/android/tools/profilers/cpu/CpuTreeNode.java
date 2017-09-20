@@ -106,4 +106,10 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
   abstract public String getClassName();
 
   abstract public String getSignature();
+
+  abstract public CaptureNode.FilterType getFilterType();
+
+  public boolean isUnmatched() {
+    return getFilterType() == CaptureNode.FilterType.UNMATCH;
+  }
 }

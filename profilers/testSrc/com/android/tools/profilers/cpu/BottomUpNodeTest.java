@@ -268,6 +268,58 @@ public class BottomUpNodeTest {
     assertEquals(1, nodeA.getChildrenTotal(), EPS);
   }
 
+  /**
+   * The structure of the tree:
+   * main [0..100]
+   *     -> A* [0..50]
+   *         -> B* [0..50]
+   *     -> A  [51..100]
+   *         -> B  [51..75]
+   *         -> B* [76..99]
+   *
+   * where A* and B* unmatched nodes.
+   */
+  @Test
+  public void testWithUnmatchedNodes() {
+    CaptureNode root = newNode("main", 0, 100);
+    addChildren(root, newNode("A", 0, 50, true),
+                          newNode("A", 51, 100, false));
+    addChildren(root.getChildAt(0), newNode("B", 0, 50, true));
+    addChildren(root.getChildAt(1), newNode("B", 51, 75),
+                                        newNode("B", 76, 99, true));
+
+    List<ExpectedNode> expectedNodes = Arrays.asList(
+      new ExpectedNode("Root", 100.0, 99.0, false),
+      // main
+      new ExpectedNode("main", 100.0, 99.0, false),
+      // A*
+      new ExpectedNode("A", 50.0, 50.0, true),
+      // A* -> main
+      new ExpectedNode("main", 50.0, 50.0, false),
+      // B*
+      new ExpectedNode("B", 73.0, 0.0, true),
+      // B* -> A*
+      new ExpectedNode("A", 50.0, 0.0, true),
+      // B* -> A* -> main
+      new ExpectedNode("main", 50.0, 0.0, false),
+      // B* -> A
+      new ExpectedNode("A", 23.0, 0.0, false),
+      // B* -> A -> main
+      new ExpectedNode("main", 23.0, 0.0, false),
+      // A
+      new ExpectedNode("A", 49.0, 47.0, false),
+      // A -> main
+      new ExpectedNode("main", 49.0, 47.0, false),
+      // B
+      new ExpectedNode("B", 24.0, 0.0, false),
+      // B -> A
+      new ExpectedNode("A", 24.0, 0.0, false),
+      // B -> A -> main
+      new ExpectedNode("main", 24.0, 0.0, false)
+    );
+    traverseAndCheck(root, expectedNodes);
+  }
+
   private static void traverseAndCheck(CaptureNode root, List<ExpectedNode> expectedNodes) {
     List<BottomUpNode> traverseOrder = new ArrayList<>();
     traverse(new BottomUpNode(root), traverseOrder);
@@ -275,6 +327,12 @@ public class BottomUpNodeTest {
     Range viewRange = new Range(root.getStart(), root.getEnd());
     traverseOrder.forEach(node -> node.update(viewRange));
     checkTraverseOrder(expectedNodes, traverseOrder);
+  }
+
+  private static void addChildren(CaptureNode node, CaptureNode... children) {
+    for (int i = 0; i < children.length; ++i) {
+      node.addChild(children[i]);
+    }
   }
 
   private static void addChainSubtree(CaptureNode root, CaptureNode... chainNodes) {
@@ -300,18 +358,24 @@ public class BottomUpNodeTest {
       assertEquals(expected.get(i).myId, node.getId());
       assertEquals(expected.get(i).myTotal, node.getTotal(), EPS);
       assertEquals(expected.get(i).myChildrenTotal, node.getChildrenTotal(), EPS);
+      assertEquals(expected.get(i).myIsUnmatch, node.isUnmatched());
     }
   }
 
-  @NotNull
-  private static CaptureNode newNode(String method, long start, long end) {
+  private static CaptureNode newNode(String method, long start, long end, boolean unmatched) {
     CaptureNode node = new CaptureNode();
     node.setMethodModel(new MethodModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     node.setStartThread(start);
     node.setEndThread(end);
+    node.setFilterType(unmatched ? CaptureNode.FilterType.UNMATCH : CaptureNode.FilterType.MATCH);
     return node;
+  }
+
+  @NotNull
+  private static CaptureNode newNode(String method, long start, long end) {
+    return newNode(method, start, end, false);
   }
 
   @NotNull
@@ -334,17 +398,21 @@ public class BottomUpNodeTest {
     private String myId;
     private double myTotal;
     private double myChildrenTotal;
+    private boolean myIsUnmatch = false;
 
-    private ExpectedNode(String method, double total, double childrenTotal) {
+    private ExpectedNode(String method, double total, double childrenTotal, boolean unmatch) {
       myId = new MethodModel(method).getId();
       myTotal = total;
       myChildrenTotal = childrenTotal;
+      myIsUnmatch = unmatch;
+    }
+
+    private ExpectedNode(String method, double total, double childrenTotal) {
+      this(method, total, childrenTotal, false);
     }
 
     private ExpectedNode(double total, double childrenTotal) {
-      myId = "Root";
-      myTotal = total;
-      myChildrenTotal = childrenTotal;
+      this("Root", total, childrenTotal);
     }
 
     private static ExpectedNode newRoot(double total, double childrenTotal) {
