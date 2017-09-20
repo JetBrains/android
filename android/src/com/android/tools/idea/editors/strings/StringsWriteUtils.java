@@ -219,7 +219,7 @@ public class StringsWriteUtils {
   }
 
   @Nullable
-  static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
+  private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
     LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
@@ -251,7 +251,7 @@ public class StringsWriteUtils {
   }
 
   @Nullable
-  private static XmlFile getStringResourceFile(@NotNull Project project, @NotNull final VirtualFile resFolder, @Nullable Locale locale) {
+  static XmlFile getStringResourceFile(@NotNull Project project, @NotNull VirtualFile resFolder, @Nullable Locale locale) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (locale != null) {
       configuration.setLocaleQualifier(locale.qualifier);
