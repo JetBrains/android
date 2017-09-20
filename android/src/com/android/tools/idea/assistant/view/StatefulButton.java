@@ -25,8 +25,8 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
 import com.intellij.ide.ui.laf.intellij.MacIntelliJButtonBorder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +68,7 @@ public class StatefulButton extends JPanel {
                         @NotNull ActionListener listener,
                         @Nullable AssistActionStateManager stateManager,
                         @NotNull Project project) {
-    super(new VerticalLayout(5, SwingConstants.LEFT));
+    super(new GridBagLayout());
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
 
@@ -105,16 +105,26 @@ public class StatefulButton extends JPanel {
       }
     };
 
-    add(myButton);
+    GridBagConstraints c = new GridBagConstraints();
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 1;
+    c.anchor = GridBagConstraints.NORTHWEST;
+    c.insets = JBUI.insets(7, 0, 10, 5);
+    add(myButton, c);
     // Initialize to hidden until state management is completed.
     myButton.setVisible(false);
 
     if (myStateManager != null) {
       myStateManager.init(project, action);
       myMessage = myStateManager.getStateDisplay(project, action, mySuccessMessage);
-      add(myMessage);
-      // Initialize to hidden until state management is completed.
-      myMessage.setVisible(false);
+      if (myMessage != null) {
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        add(myMessage, c);
+        // Initialize to hidden until state management is completed.
+        myMessage.setVisible(false);
+      }
 
       // Listen for notifications that the state has been updated.
       for (Module module : GradleProjectInfo.getInstance(project).getAndroidModules()) {
@@ -164,14 +174,23 @@ public class StatefulButton extends JPanel {
   private void updateUIForState(AssistActionState state) {
     myButton.setVisible(state.isButtonVisible());
     myButton.setEnabled(state.isButtonEnabled());
-    myMessage.setVisible(state.isMessageVisible());
-    if (state.isMessageVisible()) {
+    if (myMessage != null) {
+      myMessage.setVisible(state.isMessageVisible());
+    }
+    if (state.isMessageVisible() && myStateManager != null) {
       remove(myMessage);
       myMessage = myStateManager.getStateDisplay(myProject, myAction, mySuccessMessage);
       if (myMessage == null) {
         return;
       }
-      add(myMessage);
+      GridBagConstraints c = new GridBagConstraints();
+      c.gridx = 0;
+      c.gridy = 1;
+      c.weightx = 1;
+      c.anchor = GridBagConstraints.NORTHWEST;
+      c.fill = GridBagConstraints.HORIZONTAL;
+      c.insets = JBUI.insets(7, 0, 10, 5);
+      add(myMessage, c);
     }
   }
 
