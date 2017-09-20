@@ -54,6 +54,9 @@ interface SqlContext {
   /** Tables that can be selected from. */
   val availableTables: Collection<SqlTable>
 
+  /** Whether this [SqlContext] can guarantee that valid references will be accepted by SQLite and invalid will be rejected. */
+  val isSound: Boolean
+
   fun matchingTables(name: RoomTableName) = availableTables.filter { it.name.equals(name.nameAsString, ignoreCase = true) }
 }
 
@@ -65,6 +68,7 @@ interface SqlContext {
 class SingleTableContext(table: RoomTableName) : SqlContext {
   override val columns: Collection<SqlColumn>
   override val availableTables: Collection<SqlTable>
+  override val isSound = true
 
   init {
     val schema = RoomSchemaManager.getInstance(table)?.schema

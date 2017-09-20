@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -23,6 +25,9 @@ import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
+
+    // A misconfigured SDK manifests itself in strange ways, let's fail early if there's something wrong.
+    assertThat(ModuleRootManager.getInstance(myModule).sdk).named("module SDK").isNotNull()
 
     myFixture.addClass(
         """
