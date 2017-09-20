@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.explorer.DeviceFileId
+import com.android.tools.idea.device.fs.DeviceFileId
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel

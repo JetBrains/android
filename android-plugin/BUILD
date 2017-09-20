@@ -9,6 +9,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android[module]",
+        "//tools/adt/idea/android-adb[module]",
+        "//tools/adt/idea/android-debuggers[module]",
+        "//tools/adt/idea/android-lang[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
         "//tools/adt/idea/sdk-updates[module]",

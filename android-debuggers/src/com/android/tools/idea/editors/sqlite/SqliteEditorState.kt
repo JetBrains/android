@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.explorer.DeviceFileId
+import com.android.tools.idea.device.fs.DeviceFileId
 import com.google.common.base.Objects
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import org.jdom.Element
+import java.util.*
 
 /**
  * Persistent [state][FileEditorState] accociated with a file opened with a [SqliteEditor].

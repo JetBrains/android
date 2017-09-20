@@ -21,7 +21,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import javax.swing.JPanel
 
 class SqliteEditorProviderTest : LightPlatformTestCase() {
-  private var sqliteUtil: SqliteTestUtil? = null
+  private lateinit var sqliteUtil: SqliteTestUtil
   private var previouslyEnabled: Boolean = false
 
   @Throws(Exception::class)
@@ -44,7 +44,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testShouldAcceptSqliteFiles() {
     // Prepare
-    val file = sqliteUtil!!.createTempSqliteDatabase()
+    val file = sqliteUtil.createTempSqliteDatabase()
     val provider = SqliteEditorProvider()
 
     // Act
@@ -58,7 +58,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
 
   fun testShouldAcceptSqliteEmptyDatabase() {
     // Prepare
-    val file = sqliteUtil!!.createEmptyTempSqliteDatabase()
+    val file = sqliteUtil.createEmptyTempSqliteDatabase()
     val provider = SqliteEditorProvider()
 
     // Act
@@ -74,7 +74,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
   fun testShouldNotAcceptFilesIfFeatureDisabled() {
     // Prepare
     SqliteViewer.enableFeature(false)
-    val file = sqliteUtil!!.createTempSqliteDatabase()
+    val file = sqliteUtil.createTempSqliteDatabase()
     val provider = SqliteEditorProvider()
 
     // Act
@@ -88,7 +88,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
   fun testShouldNotAcceptBinaryFiles() {
     // Prepare
     SqliteViewer.enableFeature(false)
-    val file = sqliteUtil!!.createTempBinaryFile(1000)
+    val file = sqliteUtil.createTempBinaryFile(1000)
     val provider = SqliteEditorProvider()
 
     // Act
@@ -101,7 +101,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testShouldOpenSqliteEditor() {
     // Prepare
-    val file = sqliteUtil!!.createTempSqliteDatabase()
+    val file = sqliteUtil.createTempSqliteDatabase()
     val provider = SqliteEditorProvider()
 
     // Act

@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer
+package com.android.tools.idea.editors
 
-import com.intellij.openapi.util.Key
+import com.android.tools.idea.editors.sqlite.SqliteFileType
+import com.intellij.openapi.fileTypes.FileTypeConsumer
+import com.intellij.openapi.fileTypes.FileTypeFactory
 
-/**
- * Persistent identifier of a file on a given device.
- *
- * The identifier remains valid across device and/or JVM restarts.
- */
-data class DeviceFileId(val deviceId: String, val devicePath: String) {
-  companion object {
-    @JvmField val UNKNOWN = DeviceFileId("", "")
-    @JvmField val KEY = Key.create<DeviceFileId>("DEVICE-ENTRY-INFO-KEY")
+class SqliteFileTypeFactory : FileTypeFactory() {
+  override fun createFileTypes(consumer: FileTypeConsumer) {
+    consumer.consume(SqliteFileType)
   }
 }

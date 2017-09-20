@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
