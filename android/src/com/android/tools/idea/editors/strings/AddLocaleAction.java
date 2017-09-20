@@ -24,10 +24,12 @@ import com.android.tools.idea.ui.Icons;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.ScalableIcon;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -97,13 +99,16 @@ final class AddLocaleAction extends AnAction {
   }
 
   private void createItem(@NotNull Locale locale) {
+    Project project = myFacet.getModule().getProject();
     StringResource resource = findResource();
     StringResourceKey key = resource.getKey();
+    XmlFile file = StringPsiUtils.getStringResourceFile(project, key, locale);
 
-    VirtualFile directory = key.getDirectory();
-    assert directory != null;
+    if (file == null) {
+      return;
+    }
 
-    StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), resource.getDefaultValueAsString(), true);
+    WriteCommandAction.runWriteCommandAction(project, () -> StringPsiUtils.addString(file, key, resource.getDefaultValueAsString()));
   }
 
   @NotNull
