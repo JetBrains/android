@@ -30,9 +30,24 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
     super(node.getData() == null ? INVALID_ID : node.getData().getId());
     addNode(node);
 
+    // We're adding unmatched children separately, because we don't want to merge unmatched with matched,
+    // i.e all merged children should have the same {@link CaptureNode.FilterType}.
+    addChildren(node, false);
+    addChildren(node, true);
+  }
+
+  /**
+   * Adds children of {@param node} whose filter type matches to the flag {@param unmatched}.
+   */
+  private void addChildren(@NotNull CaptureNode node, boolean unmatched) {
     Map<String, TopDownNode> children = new TreeMap<>();
     for (CaptureNode child : node.getChildren()) {
       assert child.getData() != null;
+
+      if (unmatched != child.isUnmatched()) {
+        continue;
+      }
+
       TopDownNode prev = children.get(child.getData().getId());
       TopDownNode other = new TopDownNode(child);
       if (prev == null) {
@@ -47,12 +62,28 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
 
   private void merge(TopDownNode other) {
     addNodes(other.getNodes());
+
+    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
+    // i.e all merged children should have the same {@link CaptureNode.FilterType};
     Map<String, TopDownNode> children = new TreeMap<>();
+    Map<String, TopDownNode> unmatchedChildren = new TreeMap<>();
+
     for (TopDownNode child : getChildren()) {
-      children.put(child.getId(), child);
+      if (child.isUnmatched()) {
+        unmatchedChildren.put(child.getId(), child);
+      } else {
+        children.put(child.getId(), child);
+      }
     }
+
     for (TopDownNode otherChild : other.getChildren()) {
-      TopDownNode existing = children.get(otherChild.getId());
+      TopDownNode existing;
+
+      if (otherChild.isUnmatched()) {
+        existing = unmatchedChildren.get(otherChild.getId());
+      } else {
+        existing = children.get(otherChild.getId());
+      }
       if (existing != null) {
         existing.merge(otherChild);
       }
@@ -78,5 +109,10 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
   public String getSignature() {
     MethodModel data = getNodes().get(0).getData();
     return data == null ? "" : data.getSignature();
+  }
+
+  @Override
+  public CaptureNode.FilterType getFilterType() {
+    return getNodes().get(0).getFilterType();
   }
 }

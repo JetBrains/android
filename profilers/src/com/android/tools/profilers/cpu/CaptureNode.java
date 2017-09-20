@@ -62,6 +62,12 @@ public class CaptureNode implements HNode<MethodModel> {
   private MethodModel myMethodModel;
 
   /**
+   * see {@link FilterType}.
+   */
+  @NotNull
+  private FilterType myFilterType;
+
+  /**
    * The shortest distance from the root.
    */
   private int myDepth;
@@ -193,5 +199,39 @@ public class CaptureNode implements HNode<MethodModel> {
 
   public void setDepth(int depth) {
     myDepth = depth;
+  }
+
+  public boolean matchesToFilter(@NotNull String filter) {
+    assert getMethodModel() != null;
+    return getMethodModel().getFullName().contains(filter);
+  }
+
+  public FilterType getFilterType() {
+    return myFilterType;
+  }
+
+  public void setFilterType(FilterType type) {
+    myFilterType = type;
+  }
+
+  public boolean isUnmatched() {
+    return getFilterType() == FilterType.UNMATCH;
+  }
+
+  public enum FilterType {
+    /**
+     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(String)} is true.
+     */
+    EXACT_MATCH,
+
+    /**
+     * Either one of its ancestor is a {@link #EXACT_MATCH} or one of its descendant.
+     */
+    MATCH,
+
+    /**
+     * Neither this node matches to the filter nor one of its ancestor nor one of its descendant.
+     */
+    UNMATCH,
   }
 }
