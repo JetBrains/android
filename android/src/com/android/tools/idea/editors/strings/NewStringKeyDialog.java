@@ -111,6 +111,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     VirtualFile folder = (VirtualFile)myResourceFolderComboBox.getSelectedItem();
 
     if (myKeys.contains(new StringResourceKey(key, folder))) {
+      assert folder != null;
       return new ValidationInfo(key + " already exists in " + VirtualFiles.toString(folder, myFacet.getModule().getProject()));
     }
 
@@ -126,15 +127,12 @@ public class NewStringKeyDialog extends DialogWrapper {
     super.doOKAction();
   }
 
-  public String getKey() {
-    return myKey;
+  @NotNull
+  StringResourceKey getKey() {
+    return new StringResourceKey(myKey, myResFolder);
   }
 
   public String getDefaultValue() {
     return myDefaultValue;
-  }
-
-  public VirtualFile getResFolder() {
-    return myResFolder;
   }
 }
