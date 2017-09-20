@@ -17,21 +17,24 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory key="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="AIDL"
+                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
 
     <!-- Proguard support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
-    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
-    <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
-    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
-    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
+    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
+    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="PROGUARD"
+                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
+    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
+    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="Renderscript"
+                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
 
     <!-- Room SQL support. -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>
@@ -49,6 +52,15 @@
                              implementationClass="com.android.tools.idea.lang.roomSql.RoomFindUsagesProvider"/>
     <referencesSearch implementation="com.android.tools.idea.lang.roomSql.RoomReferenceSearchExecutor"/>
     <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.RoomUsageTypeProvider"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidUnresolvedRoomSqlReference"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.roomSql.UnresolvedRoomSqlReferenceInspection"
+                     displayName="Unresolved reference in Room SQL"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.intellij.intelliLang">

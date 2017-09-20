@@ -82,5 +82,11 @@ data class RoomSchema(
   override val availableTables: Collection<SqlTable> get() = entities
   override val columns: Collection<SqlColumn> get() = entities.flatMap { it.columns }
 
+  override val isSound: Boolean get() {
+    // RoomSchema is the fallback context, it contains all tables and columns whether or not they were selected from or not. It also has no
+    // understanding of temporary table and columns from e.g. subqueries.
+    return false
+  }
+
   fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass.element == psiClass }
 }
