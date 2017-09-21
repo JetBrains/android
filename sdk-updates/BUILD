@@ -32,6 +32,7 @@ iml_module(
         "//tools/base/templates",
     ],
     test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/sdk-updates[module, test]",
