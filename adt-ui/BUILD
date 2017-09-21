@@ -31,5 +31,5 @@ iml_module(
 java_binary(
     name = "baseline-images-generator",
     main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
-    runtime_deps = [":adt-ui_testlib.javas"],
+    runtime_deps = [":adt-ui_testlib"],
 )
