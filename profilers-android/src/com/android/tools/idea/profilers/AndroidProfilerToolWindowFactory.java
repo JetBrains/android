@@ -94,6 +94,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       if (window == null) {
         throw new RuntimeException("Could not find Android Profiler facet/extension.");
       }
+      // We need to force the ToolWindow to a "hidden" state, otherwise the Tool Window will come up visible *but* empty if it had been made
+      // visible in a previous AS session.
+      window.hide(null);
     }
     return window;
   }
