@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -69,13 +71,13 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -447,8 +449,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForGradleImportProjectSync() {
-    Wait.seconds(30).expecting("Project Import Sync to finish")
-      .until(() -> !GradleSyncState.getInstance(getProject()).isSyncInProgress());
+    AtomicBoolean isGradleDone = new AtomicBoolean();
+    AfterGradleInvocationTask afterGradleInvocationTask = new AfterGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        GradleBuildInvoker.getInstance(getProject()).remove(this);
+        isGradleDone.set(true);
+      }
+    };
+    GradleBuildInvoker.getInstance(getProject()).add(afterGradleInvocationTask);
+
+    Wait.seconds(60).expecting("Project Import Sync to finish").until(isGradleDone::get);
     return this;
   }
 
