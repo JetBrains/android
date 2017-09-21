@@ -77,7 +77,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
     if (GradleSyncState.getInstance(project).isSyncInProgress) {
       syncResult.setException(RuntimeException("A sync was requested while one is already in progress. Use"
-          + "GradleSyncState.isSyncInProgress to detect this scenario."))
+          + "ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
     }
     else if (project.isInitialized) {
       syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
@@ -98,4 +98,6 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
     return syncResult
   }
+
+  override fun isSyncInProgress(): Boolean = GradleSyncState.getInstance(project).isSyncInProgress
 }

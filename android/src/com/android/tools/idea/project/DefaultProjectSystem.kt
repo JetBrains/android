@@ -54,6 +54,8 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       })
       return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.FAILURE)
     }
+
+    override fun isSyncInProgress() = false
   }
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {

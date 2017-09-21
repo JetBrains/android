@@ -36,6 +36,16 @@ interface ProjectSystemSyncManager {
    */
   fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
 
+  /**
+   * Returns whether or not a sync is in progress. The return value of this method can change at any time as syncs are performed.
+   * To listen for changes in the return value due to a sync ending, subscribe to [PROJECT_SYSTEM_SYNC_TOPIC].
+   *
+   * Currently, we do not provide a way for callers to be notified when the return value changes due to a sync starting.
+   *
+   * @return true if the project is syncing
+   */
+  fun isSyncInProgress(): Boolean
+
   /** The result of a sync request */
   enum class SyncResult(val isSuccessful: Boolean) {
     /** The user cancelled the sync */
