@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors
+package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.editors.sqlite.SqliteFileType
-import com.intellij.openapi.fileTypes.FileTypeConsumer
-import com.intellij.openapi.fileTypes.FileTypeFactory
+import com.android.tools.idea.device.fs.DeviceFileId
 
 /**
- * Implementation of the [FileTypeFactory] extension point for [SqliteFileType].
+ * Listener interface corresponding to the [SqliteModel] class.
  */
-class SqliteFileTypeFactory : FileTypeFactory() {
-  override fun createFileTypes(consumer: FileTypeConsumer) {
-    consumer.consume(SqliteFileType)
-  }
+interface SqliteModelListener {
+  /**
+   * Notification that the [DeviceFileId] associated to the Sqlite database has changed.
+   */
+  fun deviceFileIdChanged(fileId: DeviceFileId?)
+
+  /**
+   * Notification that the [SqliteSchema] has changed.
+   */
+  fun schemaChanged(schema: SqliteSchema)
 }
