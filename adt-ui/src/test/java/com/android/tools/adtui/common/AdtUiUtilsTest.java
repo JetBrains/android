@@ -25,6 +25,8 @@ import java.awt.*;
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static org.junit.Assert.assertEquals;
 
+import static com.google.common.truth.Truth.assertThat;
+
 @RunWith(JUnit4.class)
 public class AdtUiUtilsTest {
 
@@ -52,5 +54,22 @@ public class AdtUiUtilsTest {
       assertEquals("A...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
       assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
     }
+  }
+
+  @Test
+  public void testOverlayColor() throws Exception {
+    float opacity = 0.8f;
+    Color grey_0_8 = AdtUiUtils.overlayColor(Color.BLACK.getRGB(), Color.WHITE.getRGB(), opacity);
+    long expected = Math.round(255 * opacity);
+    assertThat(grey_0_8.getRed()).isEqualTo(expected);
+    assertThat(grey_0_8.getGreen()).isEqualTo(expected);
+    assertThat(grey_0_8.getBlue()).isEqualTo(expected);
+
+    int background = 0xF000A0;
+    int foreground = 0x00CC0B;
+    Color mix = AdtUiUtils.overlayColor(background, foreground, 0.6f);
+    assertThat(mix.getRed()).isEqualTo(Math.round(0xF0 * 0.4f));
+    assertThat(mix.getGreen()).isEqualTo(Math.round(0xCC * 0.6f));
+    assertThat(mix.getBlue()).isEqualTo(Math.round(0xA0 * 0.4f + 0x0B * 0.6f));
   }
 }

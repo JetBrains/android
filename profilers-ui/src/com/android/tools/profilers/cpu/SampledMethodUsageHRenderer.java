@@ -18,7 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ProfilerColors;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -28,6 +30,18 @@ import java.util.regex.Pattern;
 public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
 
   private static final int LEFT_MARGIN_PX = 3;
+  @NotNull
+  private CaptureModel.Details.Type myType;
+
+  public SampledMethodUsageHRenderer(@NotNull CaptureModel.Details.Type type) {
+    super();
+    myType = type;
+  }
+
+  @VisibleForTesting
+  public SampledMethodUsageHRenderer() {
+    this(CaptureModel.Details.Type.CALL_CHART);
+  }
 
   protected boolean isMethodPlatform(MethodModel method) {
     return method.getClassName().startsWith("android.");
@@ -43,27 +57,53 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
 
   @Override
   protected Color getFillColor(MethodModel m) {
-    if (isMethodVendor(m)) {
-      return ProfilerColors.CPU_TREECHART_VENDOR;
-    }
-    else if (isMethodPlatform(m)) {
-      return ProfilerColors.CPU_TREECHART_PLATFORM;
+    if (myType == CaptureModel.Details.Type.CALL_CHART) {
+      if (isMethodVendor(m)) {
+        return ProfilerColors.CPU_CALLCHART_VENDOR;
+      }
+      else if (isMethodPlatform(m)) {
+        return ProfilerColors.CPU_CALLCHART_PLATFORM;
+      }
+      else {
+        return ProfilerColors.CPU_CALLCHART_APP;
+      }
     }
     else {
-      return ProfilerColors.CPU_TREECHART_APP;
+      if (isMethodVendor(m)) {
+        return ProfilerColors.CPU_FLAMECHART_VENDOR;
+      }
+      else if (isMethodPlatform(m)) {
+        return ProfilerColors.CPU_FLAMECHART_PLATFORM;
+      }
+      else {
+        return ProfilerColors.CPU_FLAMECHART_APP;
+      }
     }
   }
 
   @Override
   protected Color getBordColor(MethodModel m) {
-    if (isMethodVendor(m)) {
-      return ProfilerColors.CPU_TREECHART_VENDOR_BORDER;
-    }
-    else if (isMethodPlatform(m)) {
-      return ProfilerColors.CPU_TREECHART_PLATFORM_BORDER;
+    if (myType == CaptureModel.Details.Type.CALL_CHART) {
+      if (isMethodVendor(m)) {
+        return ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
+      }
+      else if (isMethodPlatform(m)) {
+        return ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
+      }
+      else {
+        return ProfilerColors.CPU_CALLCHART_APP_BORDER;
+      }
     }
     else {
-      return ProfilerColors.CPU_TREECHART_APP_BORDER;
+      if (isMethodVendor(m)) {
+        return ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
+      }
+      else if (isMethodPlatform(m)) {
+        return ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
+      }
+      else {
+        return ProfilerColors.CPU_FLAMECHART_APP_BORDER;
+      }
     }
   }
 

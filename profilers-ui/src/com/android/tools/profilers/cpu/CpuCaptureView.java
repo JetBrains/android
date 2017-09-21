@@ -300,12 +300,19 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
-  private static HTreeChart<MethodModel> setUpChart(@NotNull Range range,
+  private static HTreeChart<MethodModel> setUpChart(@NotNull CaptureModel.Details.Type type,
+                                                    @NotNull Range range,
                                                     @Nullable HNode<MethodModel> node,
-                                                    @NotNull HTreeChart.Orientation orientation,
                                                     @NotNull CpuProfilerStageView stageView) {
+    HTreeChart.Orientation orientation;
+    if (type == CaptureModel.Details.Type.CALL_CHART) {
+      orientation = HTreeChart.Orientation.TOP_DOWN;
+    }
+    else {
+      orientation = HTreeChart.Orientation.BOTTOM_UP;
+    }
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
-    chart.setHRenderer(new SampledMethodUsageHRenderer());
+    chart.setHRenderer(new SampledMethodUsageHRenderer(type));
     chart.setHTree(node);
     TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
     chart.addMouseListener(handler);
@@ -465,7 +472,8 @@ class CpuCaptureView {
     private CallChartView(@NotNull CpuProfilerStageView stageView,
                           @NotNull CaptureModel.CallChart callChart) {
       myCallChart = callChart;
-      myChart = setUpChart(myCallChart.getRange(), myCallChart.getNode(), HTreeChart.Orientation.TOP_DOWN, stageView);
+      myChart = setUpChart(CaptureModel.Details.Type.CALL_CHART, myCallChart.getRange(), myCallChart.getNode(), stageView);
+
       if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
@@ -522,8 +530,7 @@ class CpuCaptureView {
     public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
-
-      myChart = setUpChart(myMasterRange, myFlameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP, stageView);
+      myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, myMasterRange, myFlameChart.getNode(), stageView);
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
