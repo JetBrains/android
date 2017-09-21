@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors
+package com.android.tools.idea.sqlite.ui;
 
-import com.android.tools.idea.editors.sqlite.SqliteFileType
-import com.intellij.openapi.fileTypes.FileTypeConsumer
-import com.intellij.openapi.fileTypes.FileTypeFactory
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-/**
- * Implementation of the [FileTypeFactory] extension point for [SqliteFileType].
- */
-class SqliteFileTypeFactory : FileTypeFactory() {
-  override fun createFileTypes(consumer: FileTypeConsumer) {
-    consumer.consume(SqliteFileType)
-  }
+public class SqliteEditorPanel {
+  public JPanel mainPanel;
+  public JTextField deviceIdText;
+  public JTextField devicePathText;
+  public JPanel resultSetTitlePanel;
+  public JBLabel resultSetTitleLabel;
+  public JBScrollPane resultSetPane;
+  public JBTable resultSetTable;
+  private JPanel headerPanel;
+  private JPanel filePropertiesPanel;
 }
