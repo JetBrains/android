@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors
+package com.android.tools.idea.sqlite.jdbc
 
-import com.android.tools.idea.editors.sqlite.SqliteFileType
-import com.intellij.openapi.fileTypes.FileTypeConsumer
-import com.intellij.openapi.fileTypes.FileTypeFactory
+import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteTable
 
 /**
- * Implementation of the [FileTypeFactory] extension point for [SqliteFileType].
+ * Implementation of [SqliteSchema] for  a local Sqlite file using the JDBC driver.
  */
-class SqliteFileTypeFactory : FileTypeFactory() {
-  override fun createFileTypes(consumer: FileTypeConsumer) {
-    consumer.consume(SqliteFileType)
+class SqliteJdbcSchema : SqliteSchema {
+  override val tables = ArrayList<SqliteTable>()
+
+  fun addTable(table: SqliteTable) {
+    tables.add(table)
   }
 }
