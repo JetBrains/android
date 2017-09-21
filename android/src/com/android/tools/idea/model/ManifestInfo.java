@@ -20,8 +20,8 @@ import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -59,9 +59,11 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -273,8 +275,17 @@ final class ManifestInfo {
     private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
     private @Nullable Actions myActions;
 
+    private AtomicLong myLastSyncTimestamp;
+
     private ManifestFile(@NotNull AndroidFacet facet) {
       myFacet = facet;
+
+      myLastSyncTimestamp = new AtomicLong(-1L);
+      myFacet.getModule().getMessageBus().connect(myFacet).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+        if (result != AndroidProjectSystem.SyncResult.CANCELLED) {
+          myLastSyncTimestamp.set(System.currentTimeMillis());
+        }
+      });
     }
 
     @NotNull
@@ -334,11 +345,9 @@ final class ManifestInfo {
       if (primaryManifestFile == null) {
         return false;
       }
-      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
 
-      Project project = myFacet.getModule().getProject();
-      long lastGradleSyncTimestamp = GradleSyncState.getInstance(project).getSummary().getSyncTimestamp();
-      lastModifiedMap.put("gradle-sync", lastGradleSyncTimestamp);
+      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
+      lastModifiedMap.put("sync", myLastSyncTimestamp.get());
 
       List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
