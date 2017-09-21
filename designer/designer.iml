@@ -35,5 +35,6 @@
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="project-system" />
+    <orderEntry type="module" module-name="project-system-gradle" />
   </component>
 </module>

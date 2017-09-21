@@ -133,21 +133,19 @@ public class DelayedInitialization {
   }
 
   private GradleBuildStatus getBuildStatus() {
-    if (mySyncState.isSyncInProgress()) {
-      // A sync is currently in progress. A build is expected after that.
+    BuildSummary buildSummary = myBuildState.getSummary();
+    if (buildSummary == null ||                                                                 // Project was just opened. The state is being computed.
+        myBuildState.isBuildInProgress() ||                                                     // A build is currently in progress
+        ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().isSyncInProgress()) {    // A sync is currently in progress. A build is expected after that.
       return GradleBuildStatus.BUILDING;
     }
+
     // Don't return BUILD_ERROR if sync failed in a prior session but hasn't been attempted
     // in the current one yet, another sync will start soon.
     if (mySyncState.getSummary().getSyncTimestamp() > 0 && mySyncState.lastSyncFailedOrHasIssues()) {
       return GradleBuildStatus.BUILD_ERROR;                  // Sync failed in the current session.
     }
 
-    BuildSummary buildSummary = myBuildState.getSummary();
-    if (buildSummary == null ||                              // Project was just opened. The state is being computed.
-        myBuildState.isBuildInProgress()) {                  // A build is currently in progress
-      return GradleBuildStatus.BUILDING;
-    }
     if (buildSummary.getTimestamp() < 0 ||                   // New project, an initial build has not happened yet
         buildSummary.getStatus() == BuildStatus.CANCELED ||  // User cancelled the previous build
         mySyncState.isSyncNeeded() != ThreeState.NO) {       // A Gradle sync is needed
