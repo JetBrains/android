@@ -40,6 +40,7 @@ public class FutureCallbackExecutor implements Executor {
     myExecutor = executor;
   }
 
+  @NotNull
   public static FutureCallbackExecutor wrap(@NotNull Executor executor) {
     if (executor instanceof FutureCallbackExecutor) {
       return (FutureCallbackExecutor)executor;
@@ -158,6 +159,34 @@ public class FutureCallbackExecutor implements Executor {
 
   /**
    * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * using this instance as the executor, but executes the callable block in both success and error
+   * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
+   */
+  @NotNull
+  public <I> ListenableFuture<I> finallySync(@NotNull ListenableFuture<I> input,
+                                             @NotNull Runnable finallyBlock) {
+    SettableFuture<I> futureResult = SettableFuture.create();
+    addConsumer(input, (i, futureThrowable) -> {
+      try {
+        finallyBlock.run();
+        futureResult.set(i);
+      }
+      catch (Throwable finallyError) {
+        // Prefer original error over error from finally block
+        if (futureThrowable != null) {
+          futureThrowable.addSuppressed(finallyError);
+          futureResult.setException(futureThrowable);
+        }
+        else {
+          futureResult.setException(finallyError);
+        }
+      }
+    });
+    return futureResult;
+  }
+
+  /**
+   * Similar to {@link Futures#transformAsync(ListenableFuture, AsyncFunction, Executor)},
    * using this instance as the executor, but executes the async function in both success and error
    * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
    */
@@ -171,6 +200,9 @@ public class FutureCallbackExecutor implements Executor {
         addConsumer(futureFinallyBlock, (aVoid, finallyError) -> {
           // Prefer original error over error from finally block
           if (futureThrowable != null) {
+            if (finallyError != null) {
+              futureThrowable.addSuppressed(finallyError);
+            }
             futureResult.setException(futureThrowable);
           }
           else if (finallyError != null){

@@ -22,6 +22,12 @@ import com.intellij.openapi.vfs.VirtualFile
 
 import java.nio.charset.StandardCharsets
 
+/**
+ * Implementation of [FileTypeRegistry.FileTypeDetector] for Sqlite files.
+ *
+ * If starting by sequence of bytes of a file is the recognized Sqlite header [SQLITE3_FORMAT_HEADER],
+ * the implementation returns the [SqliteFileType] file type.
+ */
 class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
   private val SQLITE3_FORMAT_HEADER = "SQLite format 3\u0000".toByteArray(StandardCharsets.UTF_8)
 
