@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ThreadTracker;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 
@@ -105,6 +107,8 @@ public class AndroidAdaptiveIconGeneratorTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     try {
       myIconGenerator.dispose();
+      // Wait for asynchronous layoutlib disposal to finish.
+      ThreadTracker.awaitThreadTerminationWithParentParentGroup("main", 10, TimeUnit.SECONDS);
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());
     } finally {
       super.tearDown();
