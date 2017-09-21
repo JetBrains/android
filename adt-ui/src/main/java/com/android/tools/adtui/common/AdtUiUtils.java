@@ -92,4 +92,21 @@ public final class AdtUiUtils {
   public static int unscale(int i) {
     return Math.round(i / JBUI.scale(1.0f));
   }
+
+  /**
+   * Returns the resulting sRGB color (no alpha) by overlaying a foregrond color with a given opacity over a background color.
+   *
+   * @param backgroundRgb     the sRGB color of the background.
+   * @param foregroundRbg     the sRGB color of the foreground.
+   * @param foregroundOpacity the opaicty of the foreground, in the range of 0.0 - 1.0
+   * @return
+   */
+  public static Color overlayColor(int backgroundRgb, int foregroundRbg, float foregroundOpacity) {
+    Color background = new Color(backgroundRgb);
+    Color forground = new Color(foregroundRbg);
+    return new Color(
+      Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
+      Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
+      Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
+  }
 }
