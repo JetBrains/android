@@ -57,7 +57,11 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
   override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
 
-  override fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
+  override fun createTargets(sceneComponent: SceneComponent) = createTargets(sceneComponent, true)
+
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent) = createTargets(childComponent, false)
+
+  private fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
     if (isParent) {
       // RelativeLayout cases, create the target related to attributes of parent

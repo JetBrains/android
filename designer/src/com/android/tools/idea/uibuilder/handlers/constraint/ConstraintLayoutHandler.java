@@ -327,12 +327,23 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return new ConstraintSceneInteraction(screenView, component);
   }
 
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return createTargets(sceneComponent, true);
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    return createTargets(childComponent, false);
+  }
+
   /**
    * Create resize and anchor targets for the given component
    */
-  @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+  private List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
     List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getAuthoritativeNlComponent();

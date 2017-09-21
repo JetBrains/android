@@ -101,7 +101,7 @@ class CoordinatorDragTarget : BaseTarget() {
     val provider = myComponent.parent?.targetProvider
     if (provider is CoordinatorLayoutHandler) {
       provider.interactionState = interactionState
-      myComponent.parent?.updateTargets(true)
+      myComponent.parent?.updateTargets()
     }
   }
 

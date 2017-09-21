@@ -43,7 +43,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     myDragged = components[0]
     myComponent = TemporarySceneComponent(layout.scene, myDragged)
     myComponent.setSize(editor.pxToDp(myDragged.w), editor.pxToDp(myDragged.h), false)
-    myComponent.setTargetProvider({ sceneComponent, isParent -> ImmutableList.of<Target>(ConstraintDragDndTarget()) }, false)
+    myComponent.setTargetProvider({ _ -> ImmutableList.of<Target>(ConstraintDragDndTarget()) })
     myComponent.drawState = SceneComponent.DrawState.DRAG
     layout.addChild(myComponent)
   }

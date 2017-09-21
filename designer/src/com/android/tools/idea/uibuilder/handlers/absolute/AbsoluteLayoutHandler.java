@@ -53,9 +53,21 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
-  @Override
+
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return createTargets(sceneComponent, true);
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    return createTargets(childComponent, false);
+  }
+
+  @NotNull
+  private List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
     if (!isParent) {
       result.add(new AbsoluteDragTarget());

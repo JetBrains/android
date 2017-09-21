@@ -54,7 +54,7 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
     component = layout.scene.getSceneComponent(dragged) ?:
         TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
 
-    component.setTargetProvider({ _, _ -> mutableListOf<Target>(dragTarget) }, false)
+    component.setTargetProvider({ _ -> mutableListOf<Target>(dragTarget) })
     layout.addChild(component)
     component.drawState = SceneComponent.DrawState.DRAG
   }

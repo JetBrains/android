@@ -93,7 +93,7 @@ public class NavSceneManager extends SceneManager {
     super.updateFromComponent(sceneComponent);
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
     if (type != null) {
-      sceneComponent.setTargetProvider(myScreenTargetProvider, false);
+      sceneComponent.setTargetProvider(myScreenTargetProvider);
       switch (type) {
         case NAVIGATION:
           if (sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
@@ -209,7 +209,7 @@ public class NavSceneManager extends SceneManager {
     update();
     SceneComponent root = getScene().getRoot();
     if (root != null) {
-      root.updateTargets(true);
+      root.updateTargets();
       layoutAll(root);
     }
   }

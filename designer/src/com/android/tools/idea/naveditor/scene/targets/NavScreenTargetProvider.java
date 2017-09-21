@@ -47,7 +47,7 @@ public class NavScreenTargetProvider implements TargetProvider {
 
   @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
     List<Target> result = new ArrayList<>();
     SceneComponent parent = sceneComponent.getParent();
     NlComponent nlComponent = sceneComponent.getNlComponent();

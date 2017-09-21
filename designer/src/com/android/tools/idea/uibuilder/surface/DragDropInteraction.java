@@ -162,7 +162,7 @@ public class DragDropInteraction extends Interaction {
       mySceneView.getSelectionModel().clear();
       // Update the scene hierarchy to add the new targets
       mySceneView.getSceneManager().update();
-      myDragReceiver.updateTargets(true);
+      myDragReceiver.updateTargets();
       // Select the dragged components
       mySceneView.getSelectionModel().setSelection(myDraggedComponents);
     }

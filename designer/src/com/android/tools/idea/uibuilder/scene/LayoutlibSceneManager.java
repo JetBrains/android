@@ -254,11 +254,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
     if (handler instanceof ViewGroupHandler) {
-      ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
-      component.setTargetProvider(viewGroupHandler, true);
-      for (SceneComponent child : component.getChildren()) {
-        child.setTargetProvider(viewGroupHandler, false);
-      }
+      component.setTargetProvider((ViewGroupHandler) handler);
     }
   }
 
@@ -347,9 +343,9 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     void clearChildTargets(SceneComponent component) {
-      component.setTargetProvider(null, true);
+      component.setTargetProvider(null);
       for (SceneComponent child : component.getChildren()) {
-        child.setTargetProvider(null, false);
+        child.setTargetProvider(null);
         clearChildTargets(child);
       }
     }
