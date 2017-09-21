@@ -16,25 +16,25 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
-class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
-  private var mySqliteUtil: SqliteTestUtil? = null
+class SqliteFileTypeDetectorTest : UsefulTestCase() {
+  private lateinit var mySqliteUtil: SqliteTestUtil
   private var myPreviousEnabled: Boolean = false
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
-    mySqliteUtil!!.setUp()
+    mySqliteUtil.setUp()
     myPreviousEnabled = SqliteViewer.enableFeature(true)
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
-      mySqliteUtil!!.tearDown()
+      mySqliteUtil.tearDown()
       SqliteViewer.enableFeature(myPreviousEnabled)
     }
     finally {
@@ -45,9 +45,9 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testSqliteFileDetection() {
     // Prepare
-    val file = mySqliteUtil!!.createTempSqliteDatabase()
+    val file = mySqliteUtil.createTempSqliteDatabase()
     val detector = SqliteFileTypeDetector()
-    val byteSequence = mySqliteUtil!!.createByteSequence(file, 4096)
+    val byteSequence = mySqliteUtil.createByteSequence(file, 4096)
 
     // Act
     val fileType = detector.detect(file, byteSequence, null)
@@ -59,10 +59,10 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testSqliteFileDetectionShortSequence() {
     // Prepare
-    val file = mySqliteUtil!!.createTempSqliteDatabase()
+    val file = mySqliteUtil.createTempSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     // Note: 10 bytes is smaller than the Sqlite header
-    val byteSequence = mySqliteUtil!!.createByteSequence(file, 10)
+    val byteSequence = mySqliteUtil.createByteSequence(file, 10)
 
     // Act
     val fileType = detector.detect(file, byteSequence, null)
@@ -74,10 +74,10 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testSqliteFileDetectionEmptyDatabase() {
     // Prepare
-    val file = mySqliteUtil!!.createEmptyTempSqliteDatabase()
+    val file = mySqliteUtil.createEmptyTempSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     // Note: 10 bytes is smaller than the Sqlite header
-    val byteSequence = mySqliteUtil!!.createByteSequence(file, 10)
+    val byteSequence = mySqliteUtil.createByteSequence(file, 10)
 
     // Act
     val fileType = detector.detect(file, byteSequence, null)
@@ -89,9 +89,9 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   @Throws(Exception::class)
   fun testRandomBinaryFileDetection() {
     // Prepare
-    val file = mySqliteUtil!!.createTempBinaryFile(30000)
+    val file = mySqliteUtil.createTempBinaryFile(30000)
     val detector = SqliteFileTypeDetector()
-    val byteSequence = mySqliteUtil!!.createByteSequence(file, 4096)
+    val byteSequence = mySqliteUtil.createByteSequence(file, 4096)
 
     // Act
     val fileType = detector.detect(file, byteSequence, null)
