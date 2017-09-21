@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.editors.sqlite
 
+import com.android.tools.adtui.workbench.WorkBench
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import javax.swing.JPanel
+import org.mockito.MockitoAnnotations.initMocks
 
-class SqliteEditorProviderTest : LightPlatformTestCase() {
+class SqliteEditorProviderTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private var previouslyEnabled: Boolean = false
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
+    initMocks(this)
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
     previouslyEnabled = SqliteViewer.enableFeature(true)
@@ -52,7 +55,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
     // Act
     // Note: This relies on the sqlite file detector being correctly registered as a
     // global file type detector.
-    val accepts = provider.accept(getProject(), file)
+    val accepts = provider.accept(project, file)
 
     // Assert
     assertThat(accepts).isTrue()
@@ -66,7 +69,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
     // Act
     // Note: This relies on the sqlite file detector being correctly registered as a
     // global file type detector.
-    val accepts = provider.accept(getProject(), file)
+    val accepts = provider.accept(project, file)
 
     // Assert
     assertThat(accepts).isTrue()
@@ -80,7 +83,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val accepts = provider.accept(getProject(), file)
+    val accepts = provider.accept(project, file)
 
     // Assert
     assertThat(accepts).isFalse()
@@ -94,7 +97,7 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val accepts = provider.accept(getProject(), file)
+    val accepts = provider.accept(project, file)
 
     // Assert
     assertThat(accepts).isFalse()
@@ -107,13 +110,19 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
     val provider = SqliteEditorProvider()
 
     // Act
-    val editor = provider.createEditor(getProject(), file)
+    val editor = provider.createEditor(project, file)
 
-    // Assert
-    assertThat(editor).isNotNull()
-    assertThat(editor).isInstanceOf(SqliteEditor::class.java)
-    assertThat(editor.isValid).isTrue()
-    assertThat(editor.isModified).isFalse()
-    assertThat(editor.component).isInstanceOf(JPanel::class.java)
+    try {
+      // Assert
+      assertThat(editor).isNotNull()
+      assertThat(editor).isInstanceOf(SqliteEditor::class.java)
+      assertThat(editor.isValid).isTrue()
+      assertThat(editor.isModified).isFalse()
+      assertThat(editor.component).isInstanceOf(WorkBench::class.java)
+    }
+    finally {
+      // Close the JDBC service and the underlying file. Otherwise we won't be able to delete it (at least on Windows).
+      Disposer.dispose(editor)
+    }
   }
 }
