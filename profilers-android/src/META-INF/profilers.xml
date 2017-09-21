@@ -30,13 +30,15 @@
       <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="Android.RunAndroidSdkManager" />
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </action>
-    <group id="Android.AndroidProfilerGroup">
-      <reference id="Android.AndroidProfiler" />
-      <separator/>
-      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
-    </group>
+    <action id="ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction" text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
+      <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
+    </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerToolWindowTaskContributor" />
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
+    <programRunner implementation="com.android.tools.idea.profilers.AndroidProfilerProgramRunner" />
   </extensions>
 </idea-plugin>

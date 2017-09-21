@@ -69,10 +69,11 @@ are wrapped in an `AndroidDevice` which allows access to properties of an offlin
 The following steps are taken to actually perform a launch:
 
 1. User first selects a particular configuration. This would be an instance of `AndroidRunConfiguration` (which implements `RunProfile`).
-2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`.
+2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`. Note: there is a "Profile" executor that
+   mostly resembles the Run executor, but has additional behavior specific to the profiler.
 3. A `ProgramRunner` is selected based on the above two (configuration + executor). The android plugin defines a `AndroidProgramRunner`,
    which is very simple and mostly just ends up calling the run state. (The infrastructure chooses the first runner that `canRun` the given
-   configuration state and executor.
+   configuration state and executor. Note: the profiler has its own specific runner.
 4. An `ExecutionEnvironment` is created, and the `ProgramRunner.execute()` is called.
      1. This results in a call to `RunProfile.getState()`, which maps to `AndroidRunConfiguration.getState()`:
      2. We do a bunch of checks, then pick a device to deploy to, extract other necessary parameters and return a `RunProfileState`.
