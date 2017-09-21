@@ -20,6 +20,7 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/uast/uast-common[module]",
     ],
 )
 
@@ -38,8 +39,9 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/idea/plugins/IntelliLang:IntelliLang-java[module]",
         "//tools/idea/plugins/IntelliLang:IntelliLang-xml[module]",
-        "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/idea/uast/uast-java[module]",
     ],
 )

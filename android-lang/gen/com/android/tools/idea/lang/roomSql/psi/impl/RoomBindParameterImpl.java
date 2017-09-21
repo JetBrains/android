@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.intellij.psi.PsiReference;
 
 public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomBindParameter {
 
@@ -47,6 +48,16 @@ public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomB
   @NotNull
   public PsiElement getParameterName() {
     return findNotNullChildByType(PARAMETER_NAME);
+  }
+
+  @NotNull
+  public String getParameterNameAsString() {
+    return PsiImplUtil.getParameterNameAsString(this);
+  }
+
+  @Nullable
+  public PsiReference getReference() {
+    return PsiImplUtil.getReference(this);
   }
 
 }
