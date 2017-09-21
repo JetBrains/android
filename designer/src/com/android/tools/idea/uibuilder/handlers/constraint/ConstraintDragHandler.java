@@ -49,7 +49,7 @@ public class ConstraintDragHandler extends DragHandler {
       NlComponent component = components.get(0);
       myComponent = new TemporarySceneComponent(layout.getScene(), component);
       myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)), false);
-      myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new ConstraintDragDndTarget()), false);
+      myComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
       myComponent.setDrawState(SceneComponent.DrawState.DRAG);
       layout.addChild(myComponent);
     }

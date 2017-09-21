@@ -78,10 +78,15 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return SceneInteraction(screenView)
   }
 
+  override fun createTargets(sceneComponent: SceneComponent) = createTargets(sceneComponent, true)
+
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent) =
+      createTargets(childComponent, false)
+
   /**
    * Create resize and anchor targets for the given component
    */
-  override fun createTargets(component: SceneComponent, isParent: Boolean): MutableList<Target> {
+  private fun createTargets(component: SceneComponent, isParent: Boolean): MutableList<Target> {
     val result = ArrayList<Target>()
     val showAnchors = !isParent
 

@@ -83,7 +83,7 @@ class RelativeDragTarget : DragBaseTarget() {
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
     (parent.scene.sceneManager as LayoutlibSceneManager).addTargets(myComponent)
-    parent.updateTargets(true)
+    parent.updateTargets()
 
     super.mouseDown(x, y)
     myComponent.setModelUpdateAuthorized(true)
@@ -136,7 +136,7 @@ class RelativeDragTarget : DragBaseTarget() {
       }
     }
 
-    myComponent.updateTargets(false)
+    myComponent.updateTargets()
 
     myTargetX?.myIsHighlight = false
     myTargetY?.myIsHighlight = false

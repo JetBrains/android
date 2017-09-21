@@ -840,16 +840,16 @@ public class SceneComponent {
    * Set the TargetProvider for this component
    *
    * @param targetProvider The target provider to set
-   * @param isParent       The SceneComponent is the layout
    */
-  public void setTargetProvider(@Nullable TargetProvider targetProvider, boolean isParent) {
+  public void setTargetProvider(@Nullable TargetProvider targetProvider) {
     if (myTargetProvider == targetProvider) {
       return;
     }
     myTargetProvider = targetProvider;
-    myTargets.clear();
-    if (myTargetProvider != null) {
-      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+
+    updateTargets();
+    for (SceneComponent child : getChildren()) {
+      child.updateTargets();
     }
   }
 
@@ -862,13 +862,26 @@ public class SceneComponent {
     myComponentProvider = provider;
   }
 
-  public void updateTargets(boolean isParent) {
+  /**
+   * Remove existing {@link Target}s and create the {@link Target}s associated with this SceneComponent and its children.<br>
+   * The created Targets will save in the {@link #myTargets} in its associated {@link SceneComponent}.
+   */
+  public void updateTargets() {
     myTargets.clear();
-    if (myTargetProvider != null) {
-      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+
+    // update the Targets created by parent's TargetProvider
+    if (myParent != null && myParent.getTargetProvider() != null) {
+      myParent.getTargetProvider().createChildTargets(myParent, this).forEach(this::addTarget);
     }
-    for (SceneComponent child : getChildren()) {
-      child.updateTargets(false);
+
+    // update the Targets created by myTargetProvider
+    if (myTargetProvider != null) {
+      myTargetProvider.createTargets(this).forEach(this::addTarget);
+    }
+
+    // update the Targets of children
+    for (SceneComponent child: getChildren()) {
+      child.updateTargets();
     }
   }
 

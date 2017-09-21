@@ -315,6 +315,18 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return createTargets(sceneComponent, true);
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    return createTargets(childComponent, false);
+  }
+
   /**
    * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
    * for the children.
@@ -323,11 +335,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param isParent       is it the parent view group component
    * @return The list of target to add
    */
-  @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+  private List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     if (isParent) {
-      return super.createTargets(sceneComponent, true);
+      return super.createTargets(sceneComponent);
     }
 
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();

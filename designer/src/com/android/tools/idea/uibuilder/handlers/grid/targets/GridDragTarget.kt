@@ -144,7 +144,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget() {
           .run<Throwable> { attributes.commit() }
     }
 
-    myComponent.updateTargets(false)
+    myComponent.updateTargets()
 
     myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     myComponent.scene.repaint()
