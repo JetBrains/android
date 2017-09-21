@@ -159,6 +159,7 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
@@ -273,6 +274,7 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -334,6 +336,7 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
