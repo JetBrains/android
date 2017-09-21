@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 
 /**
@@ -47,6 +48,9 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun syncProject(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
+    AppUIUtil.invokeLaterIfProjectAlive(project, {
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(AndroidProjectSystem.SyncResult.FAILURE)
+    })
     return Futures.immediateFuture(AndroidProjectSystem.SyncResult.FAILURE)
   }
 
