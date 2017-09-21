@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
+import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
@@ -41,15 +42,15 @@ import com.intellij.util.Processor
  * because SQL remains valid when renaming quoted names.
  */
 class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>() {
-  override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String?): RoomNameElement {
-    if (newContent.isNullOrEmpty()) {
+  override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String): RoomNameElement {
+    if (newContent.isEmpty()) {
       return element
     }
 
     val newName = RoomSqlPsiFacade.getInstance(element.project)?.run {
       when (element.node.elementType) {
-        RoomPsiTypes.TABLE_NAME -> createTableName(newContent!!)
-        RoomPsiTypes.COLUMN_NAME -> createColumnName(newContent!!)
+        RoomPsiTypes.TABLE_NAME -> createTableName(newContent)
+        RoomPsiTypes.COLUMN_NAME -> createColumnName(newContent)
         else -> error("Don't know how to rename ${element.node.elementType}")
       }
     } ?: return element
@@ -59,6 +60,17 @@ class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>()
 
   override fun getRangeInElement(nameElement: RoomNameElement): TextRange =
       if (nameElement.nameIsQuoted) TextRange(1, nameElement.textLength - 1) else TextRange(0, nameElement.textLength)
+}
+
+class RoomBindParameterManipulator : AbstractElementManipulator<RoomBindParameter>() {
+  override fun handleContentChange(element: RoomBindParameter, range: TextRange, newContent: String): RoomBindParameter {
+    val newElement = RoomSqlPsiFacade.getInstance(element.project)?.createBindParamter(newContent) ?: return element
+    return element.replace(newElement) as RoomBindParameter
+  }
+
+  override fun getRangeInElement(element: RoomBindParameter): TextRange {
+    return TextRange(1, element.textLength)
+  }
 }
 
 /**

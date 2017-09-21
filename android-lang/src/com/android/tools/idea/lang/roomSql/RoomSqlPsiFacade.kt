@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
+import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
 import com.android.tools.idea.lang.roomSql.psi.RoomTableName
 import com.intellij.openapi.components.ServiceManager
@@ -44,4 +45,9 @@ class RoomSqlPsiFacade(val project: Project) {
       PsiTreeUtil.findChildOfAnyType(
           createFileFromText("select ${RoomSqlLexer.getValidName(name)}"),
           RoomColumnName::class.java)
+
+  fun createBindParamter(name: String): RoomBindParameter? =
+      PsiTreeUtil.findChildOfAnyType(
+          createFileFromText("select :$name"),
+          RoomBindParameter::class.java)
 }

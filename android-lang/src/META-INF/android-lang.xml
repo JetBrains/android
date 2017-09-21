@@ -51,6 +51,8 @@
                              implementationClass="com.android.tools.idea.lang.roomSql.RoomNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomColumnNameImpl"
                              implementationClass="com.android.tools.idea.lang.roomSql.RoomNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomBindParameterImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.RoomBindParameterManipulator"/>
     <lang.findUsagesProvider language="RoomSql"
                              implementationClass="com.android.tools.idea.lang.roomSql.RoomFindUsagesProvider"/>
     <referencesSearch implementation="com.android.tools.idea.lang.roomSql.RoomReferenceSearchExecutor"/>

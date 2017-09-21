@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.lang.roomSql
 
-// ATTENTION: This file has been automatically generated from roomSql.bnf. Do not edit it manually.
+const val ROOM_PACKAGE_NAME = "android.arch.persistence.room"
+const val ENTITY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Entity"
+const val DATABASE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Database"
+const val DAO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Dao"
+const val COLUMN_INFO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.ColumnInfo"
+const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
+const val QUERY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Query"
 
-package com.android.tools.idea.lang.roomSql.psi;
-
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
-
-public interface RoomBindParameter extends PsiElement {
-
-  @NotNull
-  PsiElement getParameterName();
-
-  @NotNull
-  String getParameterNameAsString();
-
-  @Nullable
-  PsiReference getReference();
-
-}

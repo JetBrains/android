@@ -27,13 +27,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
 
-private const val ROOM_PACKAGE_NAME = "android.arch.persistence.room"
-private const val ENTITY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Entity"
-private const val DATABASE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Database"
-private const val DAO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Dao"
-private const val COLUMN_INFO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.ColumnInfo"
-private const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
-
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */

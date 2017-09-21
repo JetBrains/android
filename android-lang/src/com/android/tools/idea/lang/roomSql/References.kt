@@ -17,12 +17,17 @@ package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.QueryWithSqlContext
+import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
 import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
 import com.android.tools.idea.lang.roomSql.psi.RoomTableName
+import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.ArrayUtil
+import com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY
+import org.jetbrains.uast.*
 
 interface SqlReference : PsiReference {
   val sqlContext: SqlContext?
@@ -35,15 +40,15 @@ interface SqlReference : PsiReference {
  *
  * @see EntityColumn.nameElement
  */
-class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiReferenceBase.Poly<RoomColumnName>(columnName), SqlReference {
+class RoomColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase.Poly<RoomColumnName>(columnName), SqlReference {
 
-  override val sqlContext get() = chooseContext(columnName)
+  override val sqlContext get() = chooseContext(element)
 
   override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> = PsiElementResolveResult.createResults(
       sqlContext
           ?.columns
           ?.asSequence()
-          ?.filter { it.name.equals(columnName.nameAsString, ignoreCase = true) }
+          ?.filter { it.name.equals(element.nameAsString, ignoreCase = true) }
           ?.mapNotNull { it.nameElement.element }
           ?.toList()
           .orEmpty())
@@ -68,7 +73,7 @@ class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiRefere
                 ?: lookupElement
           }
           ?.toTypedArray<Any>()
-          ?: ArrayUtil.EMPTY_OBJECT_ARRAY
+          ?: EMPTY_OBJECT_ARRAY
 }
 
 
@@ -77,13 +82,13 @@ class RoomColumnPsiReference(private val columnName: RoomColumnName) : PsiRefere
  *
  * @see Entity.nameElement
  */
-class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReferenceBase.Poly<RoomTableName>(tableName), SqlReference {
+class RoomTablePsiReference(tableName: RoomTableName) : PsiReferenceBase.Poly<RoomTableName>(tableName), SqlReference {
 
-  override val sqlContext get() = chooseContext(tableName)
+  override val sqlContext get() = chooseContext(element)
 
   override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> = PsiElementResolveResult.createResults(
       sqlContext
-          ?.matchingTables(tableName)
+          ?.matchingTables(element)
           ?.mapNotNull { it.nameElement.element }
           .orEmpty())
 
@@ -106,7 +111,7 @@ class RoomTablePsiReference(private val tableName: RoomTableName) : PsiReference
                 .withCaseSensitivity(false)
           }
           ?.toTypedArray<Any>()
-          ?: ArrayUtil.EMPTY_OBJECT_ARRAY
+          ?: EMPTY_OBJECT_ARRAY
 }
 
 /** Picks the [SqlContext] to use for a given query. */
@@ -115,3 +120,25 @@ private fun chooseContext(element: PsiElement): SqlContext? {
       ?: RoomSchemaManager.getInstance(element)?.schema
 }
 
+class RoomParameterReference(parameter: RoomBindParameter): PsiReferenceBase<RoomBindParameter>(parameter) {
+  override fun resolve(): PsiElement? {
+    val parameterName = element.parameterNameAsString
+    return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.psi
+  }
+
+  override fun getVariants(): Array<Any> =
+      findQueryMethod()
+          ?.uastParameters
+          ?.map { LookupElementBuilder.create(it.psi) }
+          ?.toTypedArray<Any>()
+          ?: EMPTY_OBJECT_ARRAY
+
+  private fun findQueryMethod(): UMethod? {
+    val injectionHost = InjectedLanguageManager.getInstance(element.project).getInjectionHost(element)
+    val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
+
+    if (annotation.qualifiedName != QUERY_ANNOTATION_NAME) return null
+
+    return annotation.getParentOfType<UAnnotated>() as? UMethod
+  }
+}

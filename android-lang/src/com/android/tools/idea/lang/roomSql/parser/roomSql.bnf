@@ -335,7 +335,12 @@ column_ref_expr ::=
 
 function_name ::= name
 
-bind_parameter ::= PARAMETER_NAME
+bind_parameter ::= PARAMETER_NAME {
+  methods=[
+    getParameterNameAsString
+    getReference
+  ]
+}
 
 raise_function_expr ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) ',' error_message ) ')'
 

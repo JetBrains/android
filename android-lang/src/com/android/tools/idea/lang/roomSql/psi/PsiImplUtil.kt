@@ -18,10 +18,7 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
-import com.android.tools.idea.lang.roomSql.RoomColumnPsiReference
-import com.android.tools.idea.lang.roomSql.RoomTablePsiReference
-import com.android.tools.idea.lang.roomSql.SingleTableContext
-import com.android.tools.idea.lang.roomSql.SqlContext
+import com.android.tools.idea.lang.roomSql.*
 import com.intellij.psi.PsiReference
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -31,6 +28,10 @@ import com.intellij.psi.util.PsiModificationTracker
 fun getReference(table: RoomTableName): PsiReference? = RoomTablePsiReference(table)
 
 fun getReference(column: RoomColumnName): PsiReference? = RoomColumnPsiReference(column)
+
+fun getReference(bindParameter: RoomBindParameter): PsiReference? = RoomParameterReference(bindParameter)
+
+fun getParameterNameAsString(bindParameter: RoomBindParameter) = bindParameter.text.substring(startIndex = 1)
 
 /**
  * Computes the [SqlContext] to use when resolving references inside a given select statement subtree.
