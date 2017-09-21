@@ -39,6 +39,9 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JDOM",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
 
@@ -72,6 +75,10 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
