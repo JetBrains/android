@@ -1260,9 +1260,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  // Regression test for http://b/37128688
   public void testToolsCompletion() throws Throwable {
-    // Regression test for
-    //   https://code.google.com/p/android/issues/detail?id=229486
     // Don't offer tools: completion for the mockup editor yet.
     // Also tests that the current expected set of tools attributes are offered.
     doTestCompletionVariants("toolsCompletion.xml",
@@ -1270,6 +1269,16 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                              "tools:listheader",
                              "tools:listitem",
                              "tools:targetApi");
+  }
+
+  // Regression test for http://b/66240917
+  public void testToolsCompletion2() throws Throwable {
+    doTestPresentableCompletionVariants("toolsCompletion2.xml",
+                                        "listfooter",
+                                        "listheader",
+                                        "listitem",
+                                        "listSelector",
+                                        "stateListAnimator");
   }
 
   public void testIncludeCompletion() throws Throwable {
