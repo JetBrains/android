@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.SdkConstants.*
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.Density
 import com.android.resources.ResourceType
@@ -32,15 +33,13 @@ import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.util.addDependencies
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -273,22 +272,20 @@ fun NlModel.createComponent(editor: ViewEditor,
 /**
  * Make sure the dependencies of the components being added are present in the module.
  * If they are not: ask the user if they can be added now.
- * @return true if all required dependencies are successfully added. false otherwise.
+ * Return true if the dependencies are present now (they may have just been added).
  */
 fun NlModel.addDependencies(toAdd: List<NlComponent>?, insertType: InsertType): Boolean {
   if (toAdd == null || insertType.isMove) {
     return true
   }
-
-  val projectSystem = project.getProjectSystem()
-  val modelFile = file.virtualFile
-  val missingArtifactIds = toAdd
-      .fold(HashSet<String>()) { set, comp -> comp.getDependencies(set); set }
-      .mapNotNull { GoogleMavenArtifactId.fromArtifactGradleCoordinate(it) }
-      .distinct()
-      .filter { projectSystem.getVersionOfDependency(modelFile, it) == null }
-
-  return project.addDependencies(modelFile, missingArtifactIds, true).isEmpty()
+  val artifacts = HashSet<String>()
+  toAdd.forEach { it.getDependencies(artifacts) }
+  val dependencies = artifacts.asSequence()
+      .map({ artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") })
+      .filter({ Objects.nonNull(it) })
+      .toList()
+  val manager = GradleDependencyManager.getInstance(project)
+  return manager.ensureLibraryIsIncluded(module, dependencies, null)
 }
 
 fun NlModel.createComponents(sceneView: SceneView,
