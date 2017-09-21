@@ -319,6 +319,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @TestOnly
+  @SuppressWarnings("GuardedBy")
   public static void invalidateInspectionShortName2IssueMap() {
     //noinspection FieldAccessNotGuarded  // TestOnly method
     ourIssue2InspectionShortName = null;
