@@ -16,6 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +33,9 @@ public class StudioMonitorStage extends Stage {
 
   @Nullable
   private ProfilerMonitor myTooltip;
+
+  @NotNull
+  private final Updatable myUpdatable;
 
   enum Aspect {
     TOOLTIP
@@ -50,6 +55,7 @@ public class StudioMonitorStage extends Stage {
   public StudioMonitorStage(@NotNull StudioProfilers profiler) {
     super(profiler);
     myMonitors = new LinkedList<>();
+    myUpdatable = elapsedNs -> getStudioProfilers().getTimeline().getTooltipRange().changed(Range.Aspect.RANGE);
   }
 
   @Override
@@ -67,10 +73,12 @@ public class StudioMonitorStage extends Stage {
     myMonitors.forEach(ProfilerMonitor::enter);
 
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getUpdater().register(myUpdatable);
   }
 
   @Override
   public void exit() {
+    getStudioProfilers().getUpdater().unregister(myUpdatable);
     myMonitors.forEach(ProfilerMonitor::exit);
   }
 
