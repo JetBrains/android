@@ -241,11 +241,9 @@ public class AndroidCompletionContributor extends CompletionContributor {
 
           // Lookup string is something that would be inserted when attribute is completed, so we want to use
           // local name as an argument of .create(), otherwise we'll end up with getting completions like
-          // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
-          // .withPresentableText is used
+          // "tools:tools:src".
           final LookupElementBuilder lookupElement =
-            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
-              .withPresentableText(namespacePrefix + ":" + localName);
+            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE);
           resultSet.addElement(lookupElement);
         }
         return null;
