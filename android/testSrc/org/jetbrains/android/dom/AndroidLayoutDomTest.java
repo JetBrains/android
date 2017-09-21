@@ -10,6 +10,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -25,12 +26,10 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
@@ -846,13 +845,13 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testOnClickHighlighting() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
     copyOnClickClasses();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     doTestHighlighting();
   }
 
   public void testOnClickHighlighting1() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity3.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
@@ -865,14 +864,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testOnClickHighlighting3() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity5.java", "src/p1/p2/Activity1.java");
     doTestHighlighting();
   }
 
   public void testOnClickHighlighting4() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity6.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
@@ -881,7 +880,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testOnClickHighlighting5() throws Throwable {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76262
     myFixture.allowTreeAccessForAllFiles();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity8.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
@@ -893,7 +892,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     // due to a setContentView call, it's declared explicitly with a tools:context
     // attribute instead
     myFixture.allowTreeAccessForAllFiles();
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity9.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
@@ -1191,7 +1190,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickQuickFix1() throws Throwable {
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
     VirtualFile file = copyFileToProject("onClickIntention.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -1200,7 +1199,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickQuickFix2() throws Throwable {
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
     VirtualFile file = copyFileToProject("onClickIntention.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -1213,7 +1212,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickQuickFix3() throws Throwable {
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
     VirtualFile file = copyFileToProject("onClickIntention.xml");
     doTestOnClickQuickfix(file);
@@ -1221,7 +1220,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickQuickFix4() throws Throwable {
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     VirtualFile file = copyFileToProject("onClickIntention.xml");
@@ -1230,7 +1229,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickQuickFixIncorrectName() throws Throwable {
-    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    enableInspection(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
     VirtualFile file = copyFileToProject("onClickIntentionIncorrectName.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -1239,7 +1238,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testSpellchecker() throws Throwable {
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    enableInspection(SpellCheckingInspection.class);
     myFixture.copyFileToProject(myTestFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
     doTestHighlighting();
   }
@@ -1249,7 +1248,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestSpellcheckerQuickFixes();
   }
 
-  public void testAar() throws Throwable {
+  public void testAarDependency() throws Throwable {
     PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
     doTestCompletion();
   }
@@ -1373,6 +1372,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
         actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
       }
     }.execute();
+  }
+
+  private void enableInspection(@NotNull Class<? extends LocalInspectionTool> inspectionClass) {
+    myFixture.enableInspections(Collections.singleton(inspectionClass));
   }
 }
 

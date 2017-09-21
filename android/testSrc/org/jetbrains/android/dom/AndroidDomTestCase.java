@@ -71,6 +71,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     super.setUp();
     ensureWebserverAccess();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    //noinspection unchecked
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
@@ -80,6 +81,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     try {
       Class builtinWebServerAccess = Class.forName("com.intellij.util.BuiltinWebServerAccess");
       if (builtinWebServerAccess != null) {
+        //noinspection unchecked
         Method ensureUserAuthenticationToken =
           builtinWebServerAccess.getMethod("ensureUserAuthenticationToken");
         if (ensureUserAuthenticationToken != null) {
@@ -100,7 +102,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     return "dom/res";
   }
 
-  protected final void doTestJavaCompletion(String aPackage) throws Throwable {
+  protected final void doTestJavaCompletion(@NotNull String aPackage) throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
     VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
@@ -247,6 +249,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestSpellcheckerQuickFixes() throws IOException {
+    //noinspection unchecked
     myFixture.enableInspections(SpellCheckingInspection.class);
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
@@ -280,7 +283,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
       assertNotNull(strs);
       assertEquals(strs.get(0), prefix);
     }
-    else if (strs != null && strs.size() > 0) {
+    else if (strs != null && !strs.isEmpty()) {
       String first = strs.get(0);
       assertFalse(first.endsWith(":"));
     }
