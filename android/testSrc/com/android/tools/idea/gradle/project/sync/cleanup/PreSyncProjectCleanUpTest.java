@@ -46,6 +46,7 @@ public class PreSyncProjectCleanUpTest {
     assertThat(tasks[4]).isInstanceOf(GradleDistributionCleanUpTask.class);
   }
 
+  @Test
   public void execute() {
     ProjectCleanUpTask task1 = mock(ProjectCleanUpTask.class);
     ProjectCleanUpTask task2 = mock(ProjectCleanUpTask.class);
