@@ -487,8 +487,8 @@ public class GradleSyncTest {
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
   }
 
+  @Ignore("fails; replace with headless integration test; see b/37730035")
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/64229547
   public void syncDuringOfflineMode() throws IOException {
     String hyperlinkText = "Disable offline mode and sync project";
 
@@ -573,8 +573,8 @@ public class GradleSyncTest {
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
+  @Ignore("fails; replace with headless integration test; see b/37730035")
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/64229547
   public void aarSourceAttachments() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();

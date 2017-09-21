@@ -57,8 +57,8 @@ public class GradleTestArtifactSyncTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @Ignore("fails; replace with headless integration test; see b/37730035")
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/64229547
   public void testLoadAllTestArtifacts() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
     EditorFixture editor = guiTest.ideFrame().getEditor();
