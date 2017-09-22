@@ -17,10 +17,10 @@
 package org.jetbrains.android.intentions;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.ImmutableCollection;
@@ -135,7 +135,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       return;
     }
     final ArtifactDependencySpec newDependency =
-      new ArtifactDependencySpec(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
+      ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
 
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override

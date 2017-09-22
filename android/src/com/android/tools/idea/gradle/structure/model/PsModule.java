@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
@@ -144,11 +142,11 @@ public abstract class PsModule extends PsChildModel {
     GradleBuildModel parsedModel = getParsedModel();
     if (parsedModel != null) {
       for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-        if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
+        if (repositoryModel.getType() == RepositoryModel.RepositoryType.JCENTER_DEFAULT) {
           repositories.add(new JCenterRepository());
           continue;
         }
-        if (repositoryModel instanceof MavenCentralRepositoryModel) {
+        if (repositoryModel.getType() == RepositoryModel.RepositoryType.MAVEN_CENTRAL) {
           repositories.add(new MavenCentralRepository());
         }
       }

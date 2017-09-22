@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -24,7 +24,7 @@ import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 
 public class BuildFileProcessor {

@@ -18,10 +18,10 @@ package com.android.tools.idea.templates.recipe;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.XmlElement;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
@@ -56,7 +56,7 @@ import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
@@ -160,10 +160,10 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
       }
       else {
-        GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.version));
+        GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.getVersion()));
         GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().value()));
         if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
-          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.version));
+          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.getVersion()));
         }
       }
       myIO.applyChanges(buildModel);

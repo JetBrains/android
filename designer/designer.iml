@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="project-system" />
     <orderEntry type="module" module-name="project-system-gradle" />
+    <orderEntry type="module" module-name="gradle-dsl-parser" />
   </component>
 </module>

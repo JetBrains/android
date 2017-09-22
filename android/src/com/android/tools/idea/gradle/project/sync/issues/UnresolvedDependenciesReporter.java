@@ -23,7 +23,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -46,7 +46,6 @@ import java.util.List;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
 import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -207,14 +206,14 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     Project project = module.getProject();
     if (buildFile != null) {
       GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
-      if (hasGoogleMavenRepository(moduleBuildModel.repositories())) {
+      if (moduleBuildModel.repositories().hasGoogleMavenRepository()) {
         // Module already has Google repository, no need to add it
         return;
       }
     }
     GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
     if (projectBuildModel != null) {
-      if (hasGoogleMavenRepository(projectBuildModel.repositories())) {
+      if (projectBuildModel.repositories().hasGoogleMavenRepository()) {
         // Project already has Google repository, no need to to add it
         return;
       }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.DELETE_LINE;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
@@ -103,7 +103,7 @@ public class AddGradleDependencyTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture library3BuildModel = guiTest.ideFrame().parseBuildFileForModule("library3");
-    ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
+    ArtifactDependencySpec gson = ArtifactDependencySpec.create("gson", "com.google.code.gson", "2.4");
     library3BuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     library3BuildModel.applyChanges();
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
@@ -131,7 +131,7 @@ public class AddGradleDependencyTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
-    ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
+    ArtifactDependencySpec gson = ArtifactDependencySpec.create("gson", "com.google.code.gson", "2.4");
     appBuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     appBuildModel.applyChanges();
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
@@ -208,7 +208,7 @@ public class AddGradleDependencyTest {
       .waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
-    ArtifactDependencySpec expected = new ArtifactDependencySpec("junit", "junit", "4.12");
+    ArtifactDependencySpec expected = ArtifactDependencySpec.create("junit", "junit", "4.12");
     appBuildModel.requireDependency(TEST_COMPILE, expected);
 
     verifyUndo(editor, 6);
@@ -234,7 +234,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
-    ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations-java5", "org.jetbrains", "15.0");
+    ArtifactDependencySpec expected = ArtifactDependencySpec.create("annotations-java5", "org.jetbrains", "15.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first

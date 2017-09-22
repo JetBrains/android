@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
     if (parsedModel != null) {
       AndroidModel android = parsedModel.android();
       if (android != null) {
-        List<BuildTypeModel> parsedBuildTypes = android.buildTypes();
+        List<? extends BuildTypeModel> parsedBuildTypes = android.buildTypes();
         for (BuildTypeModel parsedBuildType : parsedBuildTypes) {
           String name = parsedBuildType.name();
           BuildType fromGradle = buildTypesFromGradle.remove(name);
