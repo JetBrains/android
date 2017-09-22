@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.utils.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -114,55 +115,47 @@ public class LauncherIconGenerator extends GraphicGenerator {
     }
 
     /**
-     * Load a pref-defined image file given a {@link Shape}, {@link Density} and fileName.
+     * Loads a pref-defined image file given a {@link Shape}, {@link Density} and fileName.
      *
      * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
      * "Web" image size.
      */
     @Nullable
-    public static BufferedImage loadImage(
+    private static BufferedImage loadImage(
             @NonNull GraphicGeneratorContext context,
             @NonNull Shape shape,
             @Nullable Density density,
             @NonNull String fileName) {
         String densityValue = (density == null ? "web" : density.getResourceValue());
-        String name =
-                String.format(
-                        "/images/launcher_stencil/%s/%s/%s.png", shape.id, densityValue, fileName);
+        String name = String.format("/images/launcher_stencil/%s/%s/%s.png", shape.id, densityValue, fileName);
         return context.loadImageResource(name);
     }
 
     /**
-     * Load a pref-defined mask image file given a {@link Shape}, {@link Density} and fileName.
+     * Loads a pref-defined mask image file given a {@link Shape}, {@link Density} and fileName.
      *
      * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
      * "Web" image size.
      */
     @Nullable
-    public static BufferedImage loadMaskImage(
-            @NonNull GraphicGeneratorContext context,
-            @NonNull Shape shape,
-            @Nullable Density density) {
+    public static BufferedImage loadMaskImage(@NonNull GraphicGeneratorContext context, @NonNull Shape shape, @Nullable Density density) {
         return loadImage(context, shape, density, "mask");
     }
 
     /**
-     * Load a pref-defined background image file given a {@link Shape}, {@link Density} and
+     * Loads a pref-defined background image file given a {@link Shape}, {@link Density} and
      * fileName.
      *
      * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
      * "Web" image size.
      */
     @Nullable
-    public static BufferedImage loadBackImage(
-            @NonNull GraphicGeneratorContext context,
-            @NonNull Shape shape,
-            @Nullable Density density) {
+    public static BufferedImage loadBackImage(@NonNull GraphicGeneratorContext context, @NonNull Shape shape, @Nullable Density density) {
         return loadImage(context, shape, density, "back");
     }
 
     /**
-     * Load a pref-defined style image file given a {@link Shape}, {@link Density} and fileName.
+     * Loads a pref-defined style image file given a {@link Shape}, {@link Density} and fileName.
      *
      * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
      * "Web" image size.
@@ -177,7 +170,7 @@ public class LauncherIconGenerator extends GraphicGenerator {
     }
 
     /**
-     * Return the {@link Rectangle} (in pixels) where the foreground image of a legacy icon should
+     * Returns the {@link Rectangle} (in pixels) where the foreground image of a legacy icon should
      * be rendered. The {@link Rectangle} value depends on the {@link Shape} of the background, as
      * different shapes have different sizes.
      *
@@ -189,17 +182,15 @@ public class LauncherIconGenerator extends GraphicGenerator {
         Rectangle targetRect = TARGET_RECTS.get(Pair.of(shape, density));
         if (targetRect == null) {
             // Scale up from MDPI if no density-specific target rectangle is defined.
-            targetRect =
-                    AssetUtil.scaleRectangle(
-                            TARGET_RECTS.get(Pair.of(shape, Density.MEDIUM)),
-                            GraphicGenerator.getMdpiScaleFactor(density));
+            targetRect = AssetUtil.scaleRectangle(TARGET_RECTS.get(Pair.of(shape, Density.MEDIUM)),
+                                                  GraphicGenerator.getMdpiScaleFactor(density));
         }
         return targetRect;
     }
 
-    @NonNull
     @SuppressWarnings("UseJBColor")
     @Override
+    @NonNull
     public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
         if (options.usePlaceholders) {
             return PLACEHOLDER_IMAGE;
@@ -216,27 +207,16 @@ public class LauncherIconGenerator extends GraphicGenerator {
         }
 
         BufferedImage shapeImageBack = null, shapeImageFore = null, shapeImageMask = null;
-        if (launcherOptions.shape != Shape.NONE
-                && launcherOptions.shape != null
-                && launcherOptions.renderShape) {
-            Density loadImageDensity =
-                    (launcherOptions.isWebGraphic ? null : launcherOptions.density);
+        if (launcherOptions.shape != Shape.NONE && launcherOptions.shape != null && launcherOptions.renderShape) {
+            Density loadImageDensity = (launcherOptions.isWebGraphic ? null : launcherOptions.density);
             shapeImageBack = loadBackImage(context, launcherOptions.shape, loadImageDensity);
-            shapeImageFore =
-                    loadStyleImage(
-                            context,
-                            launcherOptions.shape,
-                            loadImageDensity,
-                            launcherOptions.style);
+            shapeImageFore = loadStyleImage(context, launcherOptions.shape, loadImageDensity, launcherOptions.style);
             shapeImageMask = loadMaskImage(context, launcherOptions.shape, loadImageDensity);
         }
 
         Rectangle imageRect = IMAGE_SIZE_WEB;
         if (!launcherOptions.isWebGraphic) {
-            imageRect =
-                    AssetUtil.scaleRectangle(
-                            IMAGE_SIZE_MDPI,
-                            GraphicGenerator.getMdpiScaleFactor(launcherOptions.density));
+            imageRect = AssetUtil.scaleRectangle(IMAGE_SIZE_MDPI, GraphicGenerator.getMdpiScaleFactor(launcherOptions.density));
         }
 
         Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);
@@ -270,10 +250,7 @@ public class LauncherIconGenerator extends GraphicGenerator {
         }
         AssetUtil.Effect[] effects;
         if (launcherOptions.useForegroundColor) {
-            effects =
-                    new AssetUtil.Effect[] {
-                        new AssetUtil.FillEffect(new Color(launcherOptions.foregroundColor), 1.0)
-                    };
+            effects = new AssetUtil.Effect[] { new AssetUtil.FillEffect(new Color(launcherOptions.foregroundColor), 1.0) };
         } else {
             effects = new AssetUtil.Effect[0];
         }
@@ -295,13 +272,13 @@ public class LauncherIconGenerator extends GraphicGenerator {
 
     @Override
     protected boolean includeDensity(@NonNull Density density) {
-        // Launcher icons should include xxxhdpi as well
+        // Launcher icons should include xxxhdpi as well.
         return super.includeDensity(density) || density == Density.XXXHIGH;
     }
 
     @Override
-    public void generate(String category, Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context, Options options, String name) {
+    public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                         @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
         LauncherOptions launcherOptions = (LauncherOptions) options;
         boolean generateWebImage = launcherOptions.isWebGraphic;
         launcherOptions.isWebGraphic = false;
@@ -317,8 +294,8 @@ public class LauncherIconGenerator extends GraphicGenerator {
         }
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getIconPath(@NonNull Options options, @NonNull String name) {
         if (((LauncherOptions) options).isWebGraphic) {
             return name + "-web.png"; // Store at the root of the project

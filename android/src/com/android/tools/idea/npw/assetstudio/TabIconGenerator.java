@@ -20,22 +20,23 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.ide.common.util.AssetUtil.ShadowEffect;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
-
 /**
- * Generate icons for tabs
+ * Generates icons for tabs.
  */
 public class TabIconGenerator extends GraphicGenerator {
-    /** Creates a new {@link TabIconGenerator} */
+    /** Creates a new TabIconGenerator. */
     public TabIconGenerator() {
     }
 
-    @NonNull
     @Override
+    @NonNull
     public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
         if (options.usePlaceholders) {
             return PLACEHOLDER_IMAGE;
@@ -47,7 +48,7 @@ public class TabIconGenerator extends GraphicGenerator {
         }
         Rectangle iconSizeMdpi = new Rectangle(0, 0, 32, 32);
         Rectangle targetRectMdpi = new Rectangle(2, 2, 28, 28);
-        final float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
+        float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
         Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
         Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
         BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
@@ -61,27 +62,25 @@ public class TabIconGenerator extends GraphicGenerator {
         if (tabOptions.selected) {
             if (tabOptions.oldStyle) {
                 AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(
-                  new GradientPaint(0, 0, new Color(0xa3a3a3), 0, imageRect.height,
-                                    new Color(0x787878))),
-                  new ShadowEffect(0, 2 * scaleFactor, 2 * scaleFactor, Color.BLACK, 0.2, true),
-                  new ShadowEffect(0, 1, 0, Color.BLACK, 0.35, true),
-                  new ShadowEffect(0, -1, 0, Color.WHITE, 0.35, true),});
+                    new GradientPaint(0, 0, new Color(0xa3a3a3), 0, imageRect.height, new Color(0x787878))),
+                    new ShadowEffect(0, 2 * scaleFactor, 2 * scaleFactor, Color.BLACK, 0.2, true),
+                    new ShadowEffect(0, 1, 0, Color.BLACK, 0.35, true),
+                    new ShadowEffect(0, -1, 0, Color.WHITE, 0.35, true),});
             } else {
                 AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(Color.WHITE),
-                  new ShadowEffect(0, 0, 3 * scaleFactor, Color.BLACK, 0.25, false),});
+                    new ShadowEffect(0, 0, 3 * scaleFactor, Color.BLACK, 0.25, false),});
             }
         } else {
             // Unselected
             if (tabOptions.oldStyle) {
                 AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(
-                  new GradientPaint(0, 0.25f * imageRect.height, new Color(0xf9f9f9), 0,
-                                    imageRect.height, new Color(0xdfdfdf))),
-                  new ShadowEffect(0, 2 * scaleFactor, 2 * scaleFactor, Color.BLACK, 0.1, true),
-                  new ShadowEffect(0, 1, 0, Color.BLACK, 0.35, true),
-                  new ShadowEffect(0, -1, 0, Color.WHITE, 0.35, true),});
+                    new GradientPaint(0, 0.25f * imageRect.height, new Color(0xf9f9f9), 0, imageRect.height,
+                                      new Color(0xdfdfdf))),
+                    new ShadowEffect(0, 2 * scaleFactor, 2 * scaleFactor, Color.BLACK, 0.1, true),
+                    new ShadowEffect(0, 1, 0, Color.BLACK, 0.35, true),
+                    new ShadowEffect(0, -1, 0, Color.WHITE, 0.35, true),});
             } else {
-                AssetUtil.drawEffects(g, tempImage, 0, 0,
-                                      new Effect[]{new FillEffect(new Color(0x808080)),});
+                AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(new Color(0x808080)),});
             }
         }
 
@@ -92,10 +91,10 @@ public class TabIconGenerator extends GraphicGenerator {
     }
 
     @Override
-    public void generate(String category, Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context, Options baseOptions, String name) {
+    public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                         @NotNull GraphicGeneratorContext context, @NotNull Options baseOptions, @NotNull String name) {
         TabOptions options = (TabOptions) baseOptions;
-        // Generate all permutations of tabOptions.selected and tabOptions.oldStyle
+        // Generate all permutations of tabOptions.selected and tabOptions.oldStyle.
         options.selected = true;
         options.oldStyle = false;
 
@@ -118,12 +117,11 @@ public class TabIconGenerator extends GraphicGenerator {
         super.generate(generateOldStyle ? unselectedLabelV5 : unselectedLabel,
                 categoryMap, context, options, name);
         options.selected = false;
-        super.generate(generateOldStyle ? selectedLabelV5 : selectedLabel,
-                categoryMap, context, options, name);
+        super.generate(generateOldStyle ? selectedLabelV5 : selectedLabel, categoryMap, context, options, name);
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getIconFolder(@NonNull Options options) {
         String folder = super.getIconFolder(options);
 
@@ -135,8 +133,8 @@ public class TabIconGenerator extends GraphicGenerator {
         }
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getIconName(@NonNull Options options, @NonNull String name) {
         TabOptions tabOptions = (TabOptions) options;
         if (tabOptions.selected) {
@@ -146,7 +144,7 @@ public class TabIconGenerator extends GraphicGenerator {
         }
     }
 
-    /** Options specific to generating tab icons */
+    /** Options specific to generating tab icons. */
     public static class TabOptions extends GraphicGenerator.Options {
         /** Generate icon in the style used prior to v5 */
         public boolean oldStyle;
