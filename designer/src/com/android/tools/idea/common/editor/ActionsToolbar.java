@@ -103,6 +103,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
     northToolbarComponent.setName("NlConfigToolbar");
+    northToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
 
     myNorthEastToolbar = createActionToolbar("NlRhsConfigToolbar", groups.getNorthEastGroup());
 
@@ -115,11 +116,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent centerToolbarComponent = centerToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
+    centerToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
 
     ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
     JComponent eastToolbarComponent = eastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
+    eastToolbarComponent.setBorder(IdeBorderFactory.createEmptyBorder());
 
     JComponent northPanel = new JPanel(new BorderLayout());
     northPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
