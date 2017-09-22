@@ -30,6 +30,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ResourceUtil;
 import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -339,5 +340,21 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     }
     assertEquals(ImmutableSet.of("Include Graph", "Nested Graph", "Fragment", "Activity"), result);
     assertEquals("fragment", popup.getSelectedItem());
+  }
+
+  public void testSourcePopup() {
+    @Language("XML")
+    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "  android:id=\"@+id/nav2\">\n" +
+                    "</navigation>\n";
+    myFixture.addFileToProject("res/navigation/nav2.xml", source);
+    ComboBox<String> popup = myMenu.mySourcePopup;
+    ListCellRenderer<? super String> renderer = popup.getRenderer();
+    Set<String> result = new HashSet<>();
+    for (int i = 0; i < popup.getItemCount(); i++) {
+      result.add(((JLabel)renderer.getListCellRendererComponent(null, popup.getItemAt(i), i, false, false)).getText());
+    }
+    assertEquals(ImmutableSet.of("navigation.xml", "New..."), result);
   }
 }
