@@ -82,10 +82,6 @@ public interface Validator<T> {
       return myMessage;
     }
 
-    public boolean isOk() {
-      return mySeverity == Severity.OK;
-    }
-
     /**
      * Returns an error result, if given an error message, or an OK result if given a null message.
      *

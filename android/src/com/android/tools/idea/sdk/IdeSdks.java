@@ -22,7 +22,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -390,7 +389,7 @@ public class IdeSdks {
    * @return {@code true} if the given Android SDK path points to a valid Android SDK.
    */
   public boolean isValidAndroidSdkPath(@NotNull File path) {
-    return validateAndroidSdk(path, false).isOk();
+    return validateAndroidSdk(path, false).success;
   }
 
   @NotNull

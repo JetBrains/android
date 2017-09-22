@@ -23,7 +23,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -383,10 +382,7 @@ public final class PathValidator implements Validator<File> {
     @NotNull
     public Builder withCommonRules() {
       withCommonTestRules();
-      // Don't include this rule in tests because the paths on test servers exceed the length limit.
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        withRule(PATH_TOO_LONG, Severity.ERROR);
-      }
+      withRule(PATH_TOO_LONG, Severity.ERROR);
       return this;
     }
 
@@ -443,7 +439,7 @@ public final class PathValidator implements Validator<File> {
   /**
    * A rule which is run on the target file as is.
    */
-  public static abstract class SimpleRule implements Rule {
+  private static abstract class SimpleRule implements Rule {
     @Nullable
     @Override
     public final File getMatchingFile(@NotNull FileOp fileOp, @NotNull File file) {
@@ -456,7 +452,7 @@ public final class PathValidator implements Validator<File> {
   /**
    * A rule which is run on the target file and each of its ancestors, recursively.
    */
-  public static abstract class RecursiveRule implements Rule {
+  private static abstract class RecursiveRule implements Rule {
     @Nullable
     @Override
     public final File getMatchingFile(@NotNull FileOp fileOp, @NotNull File file) {

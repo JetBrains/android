@@ -81,7 +81,7 @@ public class AndroidOpenProjectAction extends DumbAwareAction {
     VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
     chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
       ValidationIssue issue = validateFiles(files, descriptor, new ProjectImportPathValidator("project file"));
-      if (!issue.result.isOk()) {
+      if (issue.result.getSeverity() != Validator.Severity.OK) {
         boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
         String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
         Messages.showInfoMessage(project, issue.result.getMessage(), title);
@@ -107,7 +107,7 @@ public class AndroidOpenProjectAction extends DumbAwareAction {
       }
 
       Validator.Result result = validator.validate(new File(file.getPath()));
-      if (!result.isOk()) {
+      if (result.getSeverity() != Validator.Severity.OK) {
         return new ValidationIssue(result, file);
       }
     }

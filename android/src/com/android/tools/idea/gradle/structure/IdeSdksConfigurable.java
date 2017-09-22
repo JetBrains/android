@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.structure;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
-import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -73,6 +73,7 @@ import java.util.List;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -306,11 +307,11 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private TextFieldWithBrowseButton createTextFieldWithBrowseButton(@NotNull String title,
                                                                     @NotNull String errorMessage,
-                                                                    @NotNull Function<File, Validator.Result> validation) {
+                                                                    @NotNull Function<File, ValidationResult> validation) {
     FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, file -> {
-      Validator.Result validationResult = validation.fun(file);
-      if (!validationResult.isOk()) {
-        String msg = validationResult.getMessage();
+      ValidationResult validationResult = validation.fun(file);
+      if (!validationResult.success) {
+        String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = errorMessage;
         }
@@ -617,14 +618,16 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    PathValidator validator = new PathValidator.Builder().withCommonRules().build("Android SDK location");
-    Validator.Result wizardValidationResult = validator.validate(getSdkLocation());
+    //noinspection deprecation
+    PathValidationResult wizardValidationResult =
+      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false,
+                       PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
-      return wizardValidationResult.getMessage();
+      return wizardValidationResult.getFormattedMessage();
     }
-    Validator.Result validationResult = validateAndroidSdk(getSdkLocation(), false);
-    if (!validationResult.isOk()) {
-      String msg = validationResult.getMessage();
+    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    if (!validationResult.success) {
+      String msg = validationResult.message;
       if (isEmpty(msg)) {
         msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
       }
@@ -641,10 +644,10 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     hideNdkQuickfixLink();
     // As NDK is required for the projects with NDK modules, considering the empty value as legal.
     if (!myNdkLocationTextField.getText().isEmpty()) {
-      Validator.Result validationResult = validateAndroidNdk(getNdkLocation(), false);
-      if (!validationResult.isOk()) {
+      ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
+      if (!validationResult.success) {
         adjustNdkQuickFixVisibility();
-        String msg = validationResult.getMessage();
+        String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
         }
