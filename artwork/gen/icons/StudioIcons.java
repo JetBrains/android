@@ -39,6 +39,8 @@ public class StudioIcons {
     public static final Icon DEVICE_WEAR_LARGE = load("/studio/icons/avd/device-wear_large.png"); // 32x32
     public static final Icon EDIT_SELECTED = load("/studio/icons/avd/edit-selected.png"); // 16x16
     public static final Icon EDIT = load("/studio/icons/avd/edit.png"); // 16x16
+    public static final Icon QUICK_BOOT_SELECTED = load("/studio/icons/avd/quick-boot-selected.png"); // 16x16
+    public static final Icon QUICK_BOOT = load("/studio/icons/avd/quick-boot.png"); // 16x16
     public static final Icon RUN_SELECTED = load("/studio/icons/avd/run-selected.png"); // 16x16
     public static final Icon RUN = load("/studio/icons/avd/run.png"); // 16x16
   }
@@ -413,10 +415,12 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.png"); // 16x16
+      public static final Icon ACTIVITY_DESTINATION = load("/studio/icons/nav-editor/toolbar/activity-destination.png"); // 16x16
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.png"); // 16x16
       public static final Icon AUTO_ALIGN = load("/studio/icons/nav-editor/toolbar/auto-align.png"); // 16x16
       public static final Icon DESTINATION_GROUP = load("/studio/icons/nav-editor/toolbar/destination-group.png"); // 16x16
       public static final Icon DESTINATION = load("/studio/icons/nav-editor/toolbar/destination.png"); // 16x16
+      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/toolbar/start-destination.png"); // 16x16
     }
   }
 
@@ -525,6 +529,8 @@ public class StudioIcons {
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.png"); // 13x13
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.png"); // 13x13
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.png"); // 13x13
+      public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.png"); // 16x16
+      public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.png"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.png"); // 13x13
       public static final Icon PROJECT = load("/studio/icons/shell/tool-windows/project.png"); // 13x13
       public static final Icon RUN = load("/studio/icons/shell/tool-windows/run.png"); // 13x13
@@ -533,6 +539,8 @@ public class StudioIcons {
       public static final Icon TODO = load("/studio/icons/shell/tool-windows/todo.png"); // 13x13
       public static final Icon TOOL_WINDOW = load("/studio/icons/shell/tool-windows/tool-window.png"); // 13x13
       public static final Icon VERSION_CONTROL = load("/studio/icons/shell/tool-windows/version-control.png"); // 13x13
+      public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.png"); // 16x16
+      public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/tool-windows/window-toggled.png"); // 16x16
     }
 
     public static class Toolbar {
@@ -546,7 +554,9 @@ public class StudioIcons {
       public static final Icon RUN_WITH_COVERAGE = load("/studio/icons/shell/toolbar/run-with-coverage.png"); // 16x16
       public static final Icon RUN = load("/studio/icons/shell/toolbar/run.png"); // 16x16
       public static final Icon SDK_MANAGER = load("/studio/icons/shell/toolbar/sdk-manager.png"); // 16x16
+      public static final Icon SEARCH = load("/studio/icons/shell/toolbar/search.png"); // 16x16
       public static final Icon STOP = load("/studio/icons/shell/toolbar/stop.png"); // 16x16
+      public static final Icon USER_PROFILE_ACTIVE = load("/studio/icons/shell/toolbar/user-profile-active.png"); // 16x16
       public static final Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.png"); // 16x16
       public static final Icon VIRTUAL_DEVICES = load("/studio/icons/shell/toolbar/virtual-devices.png"); // 16x16
     }
