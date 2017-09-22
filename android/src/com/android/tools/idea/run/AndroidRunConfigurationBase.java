@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -270,7 +271,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (instantRunEnabled) {
       if (info != null && supportsInstantRun()) {
         // if there is an existing previous session, then see if we can detect devices to fast deploy to
-        deviceFutures = getFastDeployDevices(executor, facet, info);
+        deviceFutures = getFastDeployDevices(executor, AndroidModuleModel.get(facet), info);
       }
 
       if (info != null && deviceFutures == null) {
@@ -410,15 +411,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     info.getProcessHandler().destroyProcess();
   }
 
+  @VisibleForTesting
   @Nullable
-  private static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
-                                                    @NotNull AndroidFacet facet,
-                                                    @NotNull AndroidSessionInfo info) {
-    if (!InstantRunSettings.isInstantRunEnabled()) {
-      InstantRunManager.LOG.info("Instant run not enabled in settings");
-      return null;
-    }
-
+  protected static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
+                                                      @NotNull AndroidModuleModel model,
+                                                      @NotNull AndroidSessionInfo info) {
     if (!info.getExecutorId().equals(executor.getId())) {
       String msg = String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
                                  executor.getId());
@@ -437,7 +434,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidModuleModel model = AndroidModuleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
     InstantRunGradleSupport status = InstantRunGradleUtils.getIrSupportStatus(model, version);
     if (status != SUPPORTED) {
