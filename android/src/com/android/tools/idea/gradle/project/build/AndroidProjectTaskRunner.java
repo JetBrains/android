@@ -86,7 +86,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     else {
       projectName = projectFile.getName();
     }
-    String executionName = projectName + " build";
+    String executionName = "Build " + projectName;
     ListMultimap<Path, String> tasks = GradleBuildInvoker.findTasksToExecute(modules, buildMode, GradleBuildInvoker.TestCompileType.NONE);
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
