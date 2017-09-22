@@ -323,8 +323,8 @@ public class AdaptiveIconGenerator extends GraphicGenerator {
   }
 
   @Override
-  public void generate(String category, Map<String, Map<String, BufferedImage>> categoryMap, GraphicGeneratorContext context,
-                       Options options, String name) {
+  public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                       @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     AdaptiveIconOptions adaptiveIconOptions = (AdaptiveIconOptions) options;
     AdaptiveIconOptions localOptions = adaptiveIconOptions.clone();
     localOptions.generateWebIcon = false;

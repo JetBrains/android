@@ -259,8 +259,7 @@ public abstract class GraphicGenerator {
     }
 
     @NonNull
-    private static String getIconFolder(
-            @NonNull ResourceFolderType folderType, @NonNull Density density) {
+    private static String getIconFolder(@NonNull ResourceFolderType folderType, @NonNull Density density) {
         StringBuilder sb = new StringBuilder(50);
         sb.append(SdkConstants.FD_RES);
         sb.append('/');
@@ -286,20 +285,11 @@ public abstract class GraphicGenerator {
      * @param name the base name of the icons to generate
      */
     public void generate(
-            String category,
-            Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context,
-            Options options,
-            String name) {
-        generateAllDensities(category, categoryMap, context, options, name);
-    }
-
-    private void generateAllDensities(
-            String category,
-            Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context,
-            Options options,
-            String name) {
+            @Nullable String category,
+            @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+            @NotNull GraphicGeneratorContext context,
+            @NotNull Options options,
+            @NotNull String name) {
         // Vector image only need to generate one preview image, so we by pass all the
         // other image densities.
         if (options.density == Density.ANYDPI) {
@@ -324,19 +314,18 @@ public abstract class GraphicGenerator {
     }
 
     private void generateImageAndUpdateMap(
-            String category,
-            Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context,
-            Options options,
-            String name) {
+            @Nullable String category,
+            @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+            @NotNull GraphicGeneratorContext context,
+            @NotNull Options options,
+            @NotNull String name) {
         BufferedImage image = generate(context, options);
         // The category key is either the "category" parameter or the density if not present
         String mapCategory = category;
         if (mapCategory == null) {
             mapCategory = options.density.getResourceValue();
         }
-        Map<String, BufferedImage> imageMap =
-                categoryMap.computeIfAbsent(mapCategory, k -> new LinkedHashMap<>());
+        Map<String, BufferedImage> imageMap = categoryMap.computeIfAbsent(mapCategory, k -> new LinkedHashMap<>());
 
         // Store image in map, where the key is the relative path to the image
         imageMap.put(getIconPath(options, name), image);
@@ -353,7 +342,7 @@ public abstract class GraphicGenerator {
      * @param density the density
      * @return a factor to multiple mdpi distances with to compute the target density
      */
-    public static float getMdpiScaleFactor(Density density) {
+    public static float getMdpiScaleFactor(@NotNull Density density) {
         if (density == Density.ANYDPI) {
             density = Density.XXXHIGH;
         }
@@ -370,7 +359,8 @@ public abstract class GraphicGenerator {
      * @return the image, or null
      * @throws IOException if an unexpected I/O error occurs
      */
-    public static BufferedImage getStencilImage(String relativePath) throws IOException {
+    @Nullable
+    public static BufferedImage getStencilImage(@NotNull String relativePath) throws IOException {
         try (InputStream is = GraphicGenerator.class.getResourceAsStream(relativePath)) {
             return is == null ? null : ImageIO.read(is);
         }
@@ -384,7 +374,8 @@ public abstract class GraphicGenerator {
      * @return the icon image
      * @throws IOException if the image cannot be loaded
      */
-    private static BufferedImage getClipartIcon(String name) throws IOException {
+    @Nullable
+    private static BufferedImage getClipartIcon(@NotNull String name) throws IOException {
         try (InputStream is = GraphicGenerator.class.getResourceAsStream("/images/clipart/small/" + name)) {
             return ImageIO.read(is);
         }
@@ -398,7 +389,8 @@ public abstract class GraphicGenerator {
      * @return the clip art image
      * @throws IOException if the image cannot be loaded
      */
-    public static BufferedImage getClipartImage(String name) throws IOException {
+    @Nullable
+    public static BufferedImage getClipartImage(@NotNull String name) throws IOException {
         try (InputStream is = GraphicGenerator.class.getResourceAsStream("/images/clipart/big/" + name)) {
             return ImageIO.read(is);
         }
@@ -411,7 +403,8 @@ public abstract class GraphicGenerator {
      *
      * @return an iterator for the available image names
      */
-    public static Iterator<String> getResourcesNames(String pathPrefix, String filenameExtension) {
+    @NotNull
+    public static Iterator<String> getResourcesNames(@NotNull String pathPrefix, @NotNull String filenameExtension) {
         List<String> names = new ArrayList<>(80);
         try {
             ZipFile zipFile = null;
@@ -482,7 +475,7 @@ public abstract class GraphicGenerator {
     }
 
     @Nullable
-    public static BufferedImage getTrimmedAndPaddedImage(Options options) {
+    public static BufferedImage getTrimmedAndPaddedImage(@NotNull Options options) {
         return getTrimmedAndPaddedImage(options.sourceImageFuture, options.isTrimmed, options.paddingPercent);
     }
 
@@ -509,6 +502,7 @@ public abstract class GraphicGenerator {
         }
     }
 
+    @NotNull
     private static Logger getLog() {
         return Logger.getInstance(GraphicGenerator.class);
     }

@@ -20,6 +20,8 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.ide.common.util.AssetUtil.ShadowEffect;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,7 +31,7 @@ import java.util.Map;
  * Generate icons for the notifications bar
  */
 public class NotificationIconGenerator extends GraphicGenerator {
-    /** Creates a new {@link NotificationIconGenerator} */
+    /** Creates a new NotificationIconGenerator. */
     public NotificationIconGenerator() {
     }
 
@@ -75,8 +77,7 @@ public class NotificationIconGenerator extends GraphicGenerator {
                             + notificationOptions.density.getResourceValue()
                             + ".png");
             g.drawImage(backImage, 0, 0, null);
-            BufferedImage top = sourceImage;
-            BufferedImage filled = AssetUtil.filledImage(top, Color.WHITE);
+            BufferedImage filled = AssetUtil.filledImage(sourceImage, Color.WHITE);
             AssetUtil.drawCenterInside(g, filled, targetRect);
         } else if (notificationOptions.version == Version.V11) {
             AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
@@ -97,8 +98,8 @@ public class NotificationIconGenerator extends GraphicGenerator {
     }
 
     @Override
-    public void generate(String category, Map<String, Map<String, BufferedImage>> categoryMap,
-            GraphicGeneratorContext context, Options baseOptions, String name) {
+    public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                         @NotNull GraphicGeneratorContext context, @NotNull Options baseOptions, @NotNull String name) {
         NotificationOptions options = (NotificationOptions) baseOptions;
         if (options.minSdk < 9) {
             options.version = Version.OLDER;
