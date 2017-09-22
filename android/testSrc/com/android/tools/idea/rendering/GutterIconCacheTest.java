@@ -87,9 +87,14 @@ public class GutterIconCacheTest extends AndroidTestCase {
   public void testIconUpToDate_entryInvalidDiskChanges() throws Exception {
     GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
 
-    // "Modify" file by resetting its lastModified field
-    Files.setLastModifiedTime(mySampleSvgPath, FileTime.fromMillis(System.currentTimeMillis()));
+    FileTime previousTimestamp = Files.getLastModifiedTime(mySampleSvgPath);
+
+    // "Modify" file by changing its lastModified field
+    Files.setLastModifiedTime(mySampleSvgPath, FileTime.fromMillis(System.currentTimeMillis() + 1000));
     mySampleSvgFile.refresh(false, false);
+
+    // Sanity check
+    assertThat(previousTimestamp).isLessThan(Files.getLastModifiedTime(mySampleSvgPath));
 
     // Modifying the image should have invalidated the cache entry.
     assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
