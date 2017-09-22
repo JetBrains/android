@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -90,12 +90,12 @@ public class SdkSync {
         setProjectSdk(localProperties, ideAndroidSdkPath);
         return;
       }
-      Validator.Result validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
-      if (!validationResult.isOk()) {
+      ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
+      if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
         ApplicationManager.getApplication().invokeAndWait(() -> {
           if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            String error = validationResult.getMessage();
+            String error = validationResult.message;
             if (isEmpty(error)) {
               error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
             }
@@ -165,7 +165,7 @@ public class SdkSync {
     File ideAndroidNdkPath = myIdeSdks.getAndroidNdkPath();
 
     if (projectAndroidNdkPath != null) {
-      if (!validateAndroidNdk(projectAndroidNdkPath, false).isOk()) {
+      if (!validateAndroidNdk(projectAndroidNdkPath, false).success) {
         if (ideAndroidNdkPath != null) {
           Logger.getInstance(SdkSync.class).warn(String.format("Replacing invalid NDK path %1$s with %2$s",
                                                                projectAndroidNdkPath, ideAndroidNdkPath));
