@@ -600,8 +600,12 @@ public class GradleBuildInvoker {
     return TestCompileType.NONE;
   }
 
-  public void stopBuild(@NotNull ExternalSystemTaskId id) {
-    myBuildStopper.attemptToStopBuild(id, null);
+  public boolean stopBuild(@NotNull ExternalSystemTaskId id) {
+    if (myBuildStopper.contains(id)) {
+      myBuildStopper.attemptToStopBuild(id, null);
+      return true;
+    }
+    return false;
   }
 
   public void add(@NotNull AfterGradleInvocationTask task) {
