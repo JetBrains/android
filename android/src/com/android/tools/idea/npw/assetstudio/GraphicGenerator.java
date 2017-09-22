@@ -364,7 +364,7 @@ public abstract class GraphicGenerator {
     }
 
     /**
-     * Returns one of the built in stencil images, or null
+     * Returns one of the built in stencil images, or null if the image was not found.
      *
      * @param relativePath stencil path such as "launcher-stencil/square/web/back.png"
      * @return the image, or null
@@ -372,7 +372,7 @@ public abstract class GraphicGenerator {
      */
     public static BufferedImage getStencilImage(String relativePath) throws IOException {
         try (InputStream is = GraphicGenerator.class.getResourceAsStream(relativePath)) {
-            return ImageIO.read(is);
+            return is == null ? null : ImageIO.read(is);
         }
     }
 
