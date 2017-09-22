@@ -46,6 +46,7 @@ import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
@@ -87,6 +88,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
    * Once the file is loaded, myPendingFile will be null.
    */
   private Pending myPendingFile;
+  /**
+   * Contains the editor that is currently being loaded.
+   * Once the file is loaded, myPendingEditor will be null.
+   */
+  private TextEditor myPendingEditor;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
   private SceneMode mySceneMode;
@@ -266,16 +272,24 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  public void setFile(@Nullable PsiFile file) {
+  /**
+   * Specifies the next editor the preview should be shown for.
+   * The update of the preview may be delayed.
+   *
+   * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
+   */
+  public boolean setNextEditor(@NotNull TextEditor editor) {
     if (myAnimationToolbar != null) {
       myAnimationToolbar.stop();
     }
 
-    XmlFile xmlFile = myManager.getBoundXmlFile(file);
-    if (xmlFile == myFile) {
-      return;
+    PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(editor.getEditor().getDocument());
+    if (psiFile == null) {
+      return false;
     }
-    myFile = xmlFile;
+
+    myPendingEditor = editor;
+    myFile = myManager.getBoundXmlFile(psiFile);
 
     if (myPendingFile != null) {
       myPendingFile.invalidate();
@@ -294,6 +308,13 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
     else {
       initNeleModel();
+    }
+    return true;
+  }
+
+  public void clearRenderResult() {
+    if (myRenderResult != null && myRenderResult.getFile() != myFile) {
+      myRenderResult = RenderResult.createBlank(myFile);
     }
   }
 
@@ -350,7 +371,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  public void setActiveModel(@Nullable NlModel model) {
+  private void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
     SceneView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
@@ -377,7 +398,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
       else {
         mySurface.updateScrolledAreaSize();
       }
-      setEditor(myManager.getActiveLayoutXmlEditor(myFile));
+      setEditor(myPendingEditor);
+      myPendingEditor = null;
+
       model.activate(this);
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);
@@ -410,15 +433,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     Disposer.dispose(myActionsToolbar);
     myActionsToolbar = null;
-  }
-
-  @Nullable
-  public RenderResult getRenderResult() {
-    return myRenderResult;
-  }
-
-  public void setRenderResult(@NotNull RenderResult renderResult) {
-    myRenderResult = renderResult;
   }
 
   @NotNull

@@ -274,7 +274,6 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -336,7 +335,6 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
@@ -365,16 +363,16 @@ public class NlPreviewTest {
                                      @NotNull TextEditorFixture otherEditor, int expectedOffset) {
     NlPreviewFixture layout = editor.getLayoutPreview(true);
     layout.waitForRenderToFinish();
+    layout.waitForRenderToFinishAndApplyComponentDimensions();
 
     List<NlComponentFixture> components = layout.getAllComponents();
     NlComponentFixture first = components.get(1);                     // First child of the top level Layout
     NlComponentFixture last = components.get(components.size() - 1);  // Last child of the top level layout
-
     assertThat(first).isNotEqualTo(last);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
     first.doubleClick();
-    Wait.seconds(5).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+    Wait.seconds(1).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 

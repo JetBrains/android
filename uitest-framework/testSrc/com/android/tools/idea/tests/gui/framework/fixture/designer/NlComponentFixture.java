@@ -37,6 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents a view in the layout editor
@@ -272,5 +275,16 @@ public class NlComponentFixture {
   @NotNull
   public NlComponent getComponent() {
     return myComponent;
+  }
+
+  @NotNull
+  public List<NlComponentFixture> getChildren() {
+    if (myComponent.getChildCount() == 0) {
+      return Collections.emptyList();
+    }
+    return myComponent.getChildren()
+      .stream()
+      .map(component -> new NlComponentFixture(myRobot, component, mySurface))
+      .collect(Collectors.toList());
   }
 }
