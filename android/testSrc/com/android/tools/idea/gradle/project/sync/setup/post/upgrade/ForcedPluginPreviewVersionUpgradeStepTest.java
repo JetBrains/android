@@ -35,7 +35,8 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"2.0.0-alpha9", "2.0.0-alpha9", false},
-      {"2.0.0-alpha9", "2.0.0-alpha10", true},
+      {"2.0.0-alpha9", "2.0.0-alpha9-1", true},
+      {"2.0.0-alpha9", "2.0.0-alpha10", false},
       {"2.0.0-alpha9", "2.0.0-beta1", true},
       {"2.0.0-alpha9", "2.0.0", true},
       {"2.0.0", "2.0.1", false},
