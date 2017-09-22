@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.task;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +69,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @Nullable GradleExecutionSettings settings,
                               @Nullable final String jvmAgentSetup,
                               @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
-    GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
+    GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id, projectPath);
     if (gradleBuildInvoker != null) {
       GradleBuildInvoker.Request request =
         new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), new File(projectPath), taskNames, id);
@@ -90,19 +93,23 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
 
   @Override
   public boolean cancelTask(@NotNull ExternalSystemTaskId id, @NotNull ExternalSystemTaskNotificationListener listener) {
-    GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
-    if (gradleBuildInvoker != null) {
-      gradleBuildInvoker.stopBuild(id);
-      return true;
+    Project project = id.findProject();
+    if (project != null) {
+      return GradleBuildInvoker.getInstance(project).stopBuild(id);
     }
     return false;
   }
 
   @Nullable
-  private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id) {
+  private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id, String projectPath) {
     Project project = id.findProject();
-    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel() && isDirectGradleInvocationEnabled(project)) {
-      return GradleBuildInvoker.getInstance(project);
+    if (project != null && isDirectGradleInvocationEnabled(project)) {
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && Projects.isIdeaAndroidModule(module)) {
+          return GradleBuildInvoker.getInstance(project);
+        }
+      }
     }
     return null;
   }

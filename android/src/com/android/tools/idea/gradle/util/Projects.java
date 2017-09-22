@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
@@ -319,6 +320,17 @@ public final class Projects {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && !facet.requiresAndroidModel()) {
       // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isIdeaAndroidModule(@NotNull Module module) {
+    if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null) {
+      return true;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.requiresAndroidModel()) {
       return true;
     }
     return false;
