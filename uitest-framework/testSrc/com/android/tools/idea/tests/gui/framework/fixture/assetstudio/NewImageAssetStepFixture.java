@@ -27,6 +27,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -60,6 +61,8 @@ public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImage
 
   public List<String> getPreviewPanelIconNames(int index) {
     JPanel panel = getPreviewPanels().get(index);
+    Wait.seconds(1).expecting("Icon preview showing").until(
+      () -> !robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()).isEmpty());
     List<JPanel> iconPanels = Lists.newArrayList(robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()));
     List<String> names = new ArrayList<>();
     for (JPanel iconPanel : iconPanels) {
