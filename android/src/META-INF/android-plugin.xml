@@ -1218,6 +1218,8 @@
                     interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
+    <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
+                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

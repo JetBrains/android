@@ -16,15 +16,21 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.IdeaTestCase;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.gradle.tooling.model.GradleModuleVersion;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
+
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -160,11 +166,10 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testCreate_artifactDependencyModel() {
-    GradleDslElement element = mock(GradleDslElement.class);
-    ArtifactDependencyModel model = mock(ArtifactDependencyModel.class);
-    when(model.group()).thenReturn(new GradleNullableValue<>(element, "group"));
-    when(model.name()).thenReturn(new GradleNotNullValue<>(element, "name"));
-    when(model.version()).thenReturn(new GradleNullableValue<>(element, "version"));
+    ArtifactDependencyModel model = Mockito.mock(ArtifactDependencyModel.class);
+    when(model.group()).thenReturn(new TestGradleValue("group"));
+    when(model.name()).thenReturn(new TestGradleValue("name"));
+    when(model.version()).thenReturn(new TestGradleValue("version"));
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(model);
     assertNotNull(spec);
     assertEquals("group", spec.getGroup());
@@ -234,5 +239,51 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
 
   public void testEqualsAndHashCode() {
     EqualsVerifier.forClass(PsArtifactDependencySpec.class).verify();
+  }
+
+  private static class TestGradleValue implements GradleNullableValue<String>, GradleNotNullValue<String> {
+
+    @NotNull
+    private final String myValue;
+
+    public TestGradleValue(@NotNull String value) {
+      myValue = value;
+    }
+
+    @NotNull
+    @Override
+    public String value() {
+      return myValue;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement getPsiElement() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public VirtualFile getFile() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public String getPropertyName() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public String getDslText() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
+      return null;
+    }
   }
 }

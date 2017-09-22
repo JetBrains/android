@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -68,7 +67,7 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     if (gradleBuildModel != null) {
       // Check if Google Maven repository can be added
       VirtualFile buildFile = gradleBuildModel.getVirtualFile();
-      if (!hasGoogleMavenRepository(gradleBuildModel.buildscript().repositories())) {
+      if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
         hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
       }
       hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));

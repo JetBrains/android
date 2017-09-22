@@ -44,7 +44,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.ui.SideBorder.LEFT;

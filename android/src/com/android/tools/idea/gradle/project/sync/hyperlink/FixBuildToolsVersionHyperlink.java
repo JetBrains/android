@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 

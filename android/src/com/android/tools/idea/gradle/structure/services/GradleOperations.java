@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.services;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -95,7 +95,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
             ArtifactDependencySpec value = ArtifactDependencySpec.create(dependencyValue);
             assert value != null;
             // Ensure that the found version is at least the target version.
-            if (value.equalsIgnoreVersion(spec) && VersionComparatorUtil.compare(spec.version, value.version) >= 0) {
+            if (value.equalsIgnoreVersion(spec) && VersionComparatorUtil.compare(spec.getVersion(), value.getVersion()) >= 0) {
               return true;
             }
           }

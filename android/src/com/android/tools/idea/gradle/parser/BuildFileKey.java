@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

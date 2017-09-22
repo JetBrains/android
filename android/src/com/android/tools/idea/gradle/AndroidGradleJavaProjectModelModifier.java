@@ -24,12 +24,12 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -73,7 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
@@ -126,7 +126,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
     ArtifactDependencySpec dependencySpec =
-        new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
+        ArtifactDependencySpec.create(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
 
@@ -347,7 +347,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (coordinates == null) {
       return null;
     }
-    return new ArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+    return ArtifactDependencySpec.create(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
   @Nullable
@@ -386,7 +386,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         String artifactId = pathSegments.get(i);
         String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return new ArtifactDependencySpec(artifactId, groupId, version);
+          return ArtifactDependencySpec.create(artifactId, groupId, version);
         }
       }
     }

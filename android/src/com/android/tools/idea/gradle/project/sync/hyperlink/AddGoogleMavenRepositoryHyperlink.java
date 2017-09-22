@@ -16,15 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.addGoogleRepository;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
@@ -49,12 +48,12 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleBuildModel buildModel = parseBuildFile(myBuildFile, project);
-    addGoogleRepository(buildModel.repositories(), project);
+    buildModel.repositories().addGoogleMavenRepository(project);
     runWriteCommandAction(project, buildModel::applyChanges);
     GradleBuildModel buildModelProject = GradleBuildModel.get(project);
     // Also add to buildscript
     if (buildModelProject != null) {
-      addGoogleRepository(buildModelProject.buildscript().repositories(), project);
+      buildModelProject.buildscript().repositories().addGoogleMavenRepository(project);
       runWriteCommandAction(project, buildModelProject::applyChanges);
     }
     if (mySyncAfterFix) {

@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;

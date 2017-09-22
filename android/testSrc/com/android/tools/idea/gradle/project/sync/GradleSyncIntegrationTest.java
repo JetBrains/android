@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -62,7 +62,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
