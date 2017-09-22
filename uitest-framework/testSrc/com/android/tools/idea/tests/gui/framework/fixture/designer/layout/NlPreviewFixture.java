@@ -96,6 +96,17 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return this;
   }
 
+  public NlPreviewFixture waitForRenderToFinishAndApplyComponentDimensions() {
+    waitForRenderToFinish();
+    Wait.seconds(3).expecting("render image to update model").until(this::allComponentsHaveHeight);
+    return this;
+  }
+
+  private boolean allComponentsHaveHeight() {
+    return getAllComponents().stream()
+      .noneMatch(component -> component.getHeight() == 0);
+  }
+
   public boolean hasRenderErrors() {
     return myDesignSurfaceFixture.hasRenderErrors();
   }

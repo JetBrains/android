@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -279,14 +278,11 @@ public class NlPreviewManager implements ProjectComponent {
         final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
 
         if (activeEditor == null) {
-          myToolWindowForm.setFile(null);
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
         }
 
-        final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(activeEditor.getDocument());
-        myToolWindowForm.setFile(psiFile);
-        if (psiFile == null) {
+        if (!myToolWindowForm.setNextEditor(newEditor)) {
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
         }
@@ -297,10 +293,7 @@ public class NlPreviewManager implements ProjectComponent {
           // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
           // tool window is shown and the time the render has completed
           if (!myToolWindow.isVisible()) {
-            RenderResult renderResult = myToolWindowForm.getRenderResult();
-            if (renderResult != null && renderResult.getFile() != psiFile) {
-              myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile));
-            }
+            myToolWindowForm.clearRenderResult();
           }
           myToolWindow.show(null);
         }
@@ -312,7 +305,7 @@ public class NlPreviewManager implements ProjectComponent {
    * Find an active editor for the specified file, or just the first active editor if file is null.
    */
   @Nullable
-  TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
+  private TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
     }
@@ -323,7 +316,7 @@ public class NlPreviewManager implements ProjectComponent {
       .orElse(null);
   }
 
-  protected boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
+  private boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
