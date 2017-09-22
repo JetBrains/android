@@ -57,7 +57,7 @@ class ObsoleteModuleDisposer {
     List<Module> modulesToDispose = new CopyOnWriteArrayList<>();
     List<Module> modules = Arrays.asList(myModelsProvider.getModules());
     JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true, module -> {
-      SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
+      GradleModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
       if (moduleModels == null) {
         modulesToDispose.add(module);
       }

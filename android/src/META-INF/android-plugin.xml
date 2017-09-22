@@ -388,6 +388,7 @@
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncModelsManager"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
@@ -1146,8 +1147,8 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.pluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.extraJavaSyncModel"
-                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraJavaSyncModelExtension"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.extraGradleSyncJavaModels"
+                    interface="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncJavaModels"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>

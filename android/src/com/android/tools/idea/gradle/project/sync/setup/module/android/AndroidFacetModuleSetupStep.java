@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -45,7 +45,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                @NotNull AndroidModuleModel androidModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable GradleModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
     if (facet == null) {

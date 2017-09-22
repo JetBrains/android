@@ -46,7 +46,7 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isOptionVisible() {
-    return SystemProperties.getBooleanProperty("show.new.sync.preference", false);
+    return SystemProperties.getBooleanProperty("show.new.sync.preference", true);
   }
 
   public NewGradleSync(@NotNull Project project) {

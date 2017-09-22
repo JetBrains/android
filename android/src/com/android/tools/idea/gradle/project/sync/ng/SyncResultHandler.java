@@ -59,7 +59,7 @@ class SyncResultHandler {
                       @NotNull ProgressIndicator indicator,
                       @Nullable GradleSyncListener syncListener,
                       boolean isProjectNew) {
-    SyncAction.ProjectModels models = callback.getModels();
+    GradleProjectModels models = callback.getModels();
     if (models != null) {
       try {
         setUpProject(myProject, models, indicator, syncListener);
@@ -98,7 +98,7 @@ class SyncResultHandler {
   }
 
   private void setUpProject(@NotNull Project project,
-                            @NotNull SyncAction.ProjectModels models,
+                            @NotNull GradleProjectModels models,
                             @NotNull ProgressIndicator indicator,
                             @Nullable GradleSyncListener syncListener) {
     try {

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.*;
+import com.intellij.openapi.extensions.ExtensionPointName;
+import org.jetbrains.annotations.NotNull;
 
-class NewAndroidModuleSetup extends AndroidModuleSetup {
-  NewAndroidModuleSetup() {
-    // These are the steps to setup Android modules when they are first created.
-    // These steps can be executed on module creation because, unlike dependency setup, they don't depend on the rest of the project's
-    // modules.
-    super(new AndroidFacetModuleSetupStep(), new SdkModuleSetupStep(), new JdkModuleSetupStep(), new ContentRootsModuleSetupStep(),
-          new CompilerOutputModuleSetupStep());
+public abstract class ExtraGradleSyncJavaModels implements ExtraGradleSyncModels {
+  @NotNull private static ExtensionPointName<ExtraGradleSyncJavaModels> EP_NAME =
+    ExtensionPointName.create("com.android.gradle.sync.extraGradleSyncJavaModels");
+
+  @NotNull
+  public static ExtraGradleSyncJavaModels[] getExtensions() {
+    return EP_NAME.getExtensions();
   }
 }

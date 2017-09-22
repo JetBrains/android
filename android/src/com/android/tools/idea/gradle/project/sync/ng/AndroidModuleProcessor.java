@@ -34,7 +34,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 
 class AndroidModuleProcessor {
-  static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
+  static Key<GradleModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
   @NotNull private final Project myProject;
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
@@ -65,7 +65,7 @@ class AndroidModuleProcessor {
     for (Module module : androidModules) {
       AndroidModuleModel androidModel = findAndroidModel(module);
       if (androidModel != null) {
-        SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
+        GradleModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
         assert moduleModels != null;
         // We need to set up dependencies once all modules are created.
         boolean syncSkipped = mySyncState.isSyncSkipped();

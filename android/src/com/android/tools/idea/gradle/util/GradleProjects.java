@@ -149,7 +149,7 @@ public final class GradleProjects {
     return Module.EMPTY_ARRAY;
   }
 
-  public static boolean isProjectModule(@NotNull Module module) {
+  private static boolean isProjectModule(@NotNull Module module) {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.

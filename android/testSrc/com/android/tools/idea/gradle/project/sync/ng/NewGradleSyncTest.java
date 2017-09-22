@@ -50,7 +50,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     // Simulate successful sync.
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
 
-    myCallback.setDone(mock(SyncAction.ProjectModels.class));
+    myCallback.setDone(mock(GradleProjectModels.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 

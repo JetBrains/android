@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 abstract class ProjectSetup {
-  abstract void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator);
+  abstract void setUpProject(@NotNull GradleProjectModels models, @NotNull ProgressIndicator indicator);
 
   abstract void commit();
 
@@ -52,7 +52,7 @@ abstract class ProjectSetup {
     }
 
     @Override
-    void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
+    void setUpProject(@NotNull GradleProjectModels models, @NotNull ProgressIndicator indicator) {
       ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
       try {
         executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
