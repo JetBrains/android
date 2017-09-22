@@ -44,9 +44,9 @@ public class DrawLasso extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getFrames();
     g.setColor(background);
-    String valueWidth = String.valueOf(width);
+    String valueWidth = String.valueOf((int)(sceneContext.pxToDp(width) / sceneContext.getScale()));
     DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, false, x, x + width, y - GAP);
-    String valueHeight = String.valueOf(height);
+    String valueHeight = String.valueOf((int)(sceneContext.pxToDp(height) / sceneContext.getScale()));
     DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, false, x - GAP, y, y + height);
     Stroke stroke = g.getStroke();
     g.setStroke(DrawConnectionUtils.sDashedStroke);
