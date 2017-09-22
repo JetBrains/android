@@ -64,8 +64,8 @@ public class ObsoleteModuleDisposerTest extends IdeaTestCase {
 
   public void testDisposedObsoleteModules() {
     // Only myModule2 will not have models, making it obsolete and ready for disposal.
-    myModule1.putUserData(MODULE_GRADLE_MODELS_KEY, mock(SyncAction.ModuleModels.class));
-    myModule3.putUserData(MODULE_GRADLE_MODELS_KEY, mock(SyncAction.ModuleModels.class));
+    myModule1.putUserData(MODULE_GRADLE_MODELS_KEY, mock(GradleModuleModels.class));
+    myModule3.putUserData(MODULE_GRADLE_MODELS_KEY, mock(GradleModuleModels.class));
 
     Project project = getProject();
     when(myModuleDisposer.canDisposeModules(project)).thenReturn(true);

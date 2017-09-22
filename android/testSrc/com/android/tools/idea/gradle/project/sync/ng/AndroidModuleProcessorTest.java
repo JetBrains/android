@@ -48,8 +48,8 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private AndroidModuleValidator.Factory myModuleValidatorFactory;
   @Mock private AndroidModuleSetup myAndroidModuleSetup;
-  @Mock private SyncAction.ModuleModels myAppModels;
-  @Mock private SyncAction.ModuleModels myLibModels;
+  @Mock private GradleModuleModels myAppModels;
+  @Mock private GradleModuleModels myLibModels;
   @Mock private AndroidModuleModel myAppAndroidModel;
   @Mock private AndroidModuleModel myLibAndroidModel;
 
@@ -81,7 +81,7 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
 
   @NotNull
   private Module createAndroidModule(@NotNull String moduleName,
-                                     @NotNull SyncAction.ModuleModels moduleModels,
+                                     @NotNull GradleModuleModels moduleModels,
                                      @NotNull AndroidModuleModel androidModel) {
     Module module = createModule(moduleName);
     module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);

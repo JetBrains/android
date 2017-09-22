@@ -15,31 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link ExtraSyncModelExtensionManager}.
+ * Tests for {@link ExtraGradleSyncModelsManager}.
  */
-public class ExtraSyncModelExtensionManagerTest {
-  @Mock private ExtraJavaSyncModelExtension myJavaExtension1;
-  @Mock private ExtraJavaSyncModelExtension myJavaExtension2;
-  @Mock private SyncAction.ModuleModels myModuleModels;
-  @Mock private Project myProject;
+public class ExtraGradleSyncModelsManagerTest {
+  @Mock private ExtraGradleSyncJavaModels myJavaExtension1;
+  @Mock private ExtraGradleSyncJavaModels myJavaExtension2;
+  @Mock private GradleModuleModels myModuleModels;
   @Mock private Module myModule;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
-  private ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
+
+  private ExtraGradleSyncModelsManager myExtraModelsManager;
 
   private static class MockAppEngineProject {
   }
@@ -47,21 +46,21 @@ public class ExtraSyncModelExtensionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    when(myJavaExtension1.getExtraProjectModelClasses()).thenReturn(Sets.newHashSet(MockAppEngineProject.class));
+    when(myJavaExtension1.getModelTypes()).thenReturn(Collections.singleton(MockAppEngineProject.class));
 
-    myExtraSyncModelExtensionManager =
-      new ExtraSyncModelExtensionManager(Arrays.asList(myJavaExtension1, myJavaExtension2));
+    myExtraModelsManager =
+      new ExtraGradleSyncModelsManager(Arrays.asList(myJavaExtension1, myJavaExtension2));
   }
 
   @Test
   public void testGetExtraModels() {
-    assertThat(myExtraSyncModelExtensionManager.getExtraJavaModels()).containsExactly(MockAppEngineProject.class);
+    assertThat(myExtraModelsManager.getJavaModelTypes()).containsExactly(MockAppEngineProject.class);
   }
 
   @Test
   public void testSetupJavaModuleExtraModels() {
-    myExtraSyncModelExtensionManager.setupExtraJavaModels(myModuleModels, myProject, myModule, myModelsProvider);
-    verify(myJavaExtension1, times(1)).setupExtraModels(myModuleModels, myProject, myModule, myModelsProvider);
-    verify(myJavaExtension2, times(1)).setupExtraModels(myModuleModels, myProject, myModule, myModelsProvider);
+    myExtraModelsManager.applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+    verify(myJavaExtension1, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
+    verify(myJavaExtension2, times(1)).applyModelsToModule(myModuleModels, myModule, myModelsProvider);
   }
 }

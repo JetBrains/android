@@ -50,26 +50,25 @@ class SyncExecutor {
   @NotNull private final GradleSyncMessages mySyncMessages;
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
-  @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
+  @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, GradleSyncMessages.getInstance(project), new CommandLineArgs(true /* apply Java library plugin */),
-         new SyncErrorHandlerManager(project), new ExtraSyncModelExtensionManager());
+    this(project, ExtraGradleSyncModelsManager.getInstance(), GradleSyncMessages.getInstance(project),
+         new CommandLineArgs(true /* apply Java library plugin */), new SyncErrorHandlerManager(project));
   }
 
   @VisibleForTesting
   SyncExecutor(@NotNull Project project,
-               @NotNull GradleSyncMessages syncMessages,
+               @NotNull ExtraGradleSyncModelsManager extraModelsManager, @NotNull GradleSyncMessages syncMessages,
                @NotNull CommandLineArgs commandLineArgs,
-               @NotNull SyncErrorHandlerManager errorHandlerManager,
-               @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
+               @NotNull SyncErrorHandlerManager errorHandlerManager) {
     myProject = project;
     mySyncMessages = syncMessages;
     myCommandLineArgs = commandLineArgs;
     myErrorHandlerManager = errorHandlerManager;
-    myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
+    myExtraModelsManager = extraModelsManager;
   }
 
   void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
@@ -90,9 +89,9 @@ class SyncExecutor {
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      SyncAction syncAction = new SyncAction(myExtraSyncModelExtensionManager.getExtraAndroidModels(),
-                                             myExtraSyncModelExtensionManager.getExtraJavaModels());
-      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(syncAction);
+      SyncAction syncAction = new SyncAction(myExtraModelsManager.getAndroidModelTypes(),
+                                             myExtraModelsManager.getJavaModelTypes());
+      BuildActionExecuter<GradleProjectModels> executor = connection.action(syncAction);
 
       List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
@@ -107,7 +106,7 @@ class SyncExecutor {
       executor.withCancellationToken(cancellationTokenSource.token());
 
       try {
-        SyncAction.ProjectModels models = executor.run();
+        GradleProjectModels models = executor.run();
         callback.setDone(models);
       }
       catch (RuntimeException e) {

@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -38,14 +38,14 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class GradleModuleSetup {
   public void setUpModule(@NotNull Module module,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels models) {
+                          @NotNull GradleModuleModels models) {
     GradleModuleModel gradleModuleModel = createGradleModel(module, models);
     setUpModule(module, ideModelsProvider, gradleModuleModel);
   }
 
   @NotNull
   private static GradleModuleModel createGradleModel(@NotNull Module module,
-                                                     @NotNull SyncAction.ModuleModels models) {
+                                                     @NotNull GradleModuleModels models) {
     GradleProject gradleProject = models.findModel(GradleProject.class);
     assert gradleProject != null;
     GradleScript buildScript = null;

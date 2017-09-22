@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -29,20 +31,26 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 
 public class JavaModuleSetup {
   @NotNull private final JavaModuleSetupStep[] mySetupSteps;
 
-  public JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
+  public JavaModuleSetup() {
+    this(new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(), new DependenciesModuleSetupStep(),
+         new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(), new JavaLanguageLevelModuleSetupStep());
+  }
+
+  @VisibleForTesting
+  JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 
   public void setUpModule(@NotNull Module module,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull JavaModuleModel javaModuleModel,
-                          @Nullable SyncAction.ModuleModels models,
+                          @Nullable GradleModuleModels models,
                           @Nullable ProgressIndicator indicator,
                           boolean syncSkipped) {
     if (javaModuleModel.isAndroidModuleWithoutVariants()) {

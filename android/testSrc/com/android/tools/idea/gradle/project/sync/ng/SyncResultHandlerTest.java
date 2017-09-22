@@ -55,7 +55,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
   public void testOnSyncFinished() {
     Project project = getProject();
 
-    SyncAction.ProjectModels models = mock(SyncAction.ProjectModels.class);
+    GradleProjectModels models = mock(GradleProjectModels.class);
     when(mySyncCallback.getModels()).thenReturn(models);
 
     ProjectSetup projectSetup = mock(ProjectSetup.class);

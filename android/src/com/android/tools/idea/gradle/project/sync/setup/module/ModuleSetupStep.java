@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -26,7 +26,7 @@ public abstract class ModuleSetupStep<T> {
   public final void setUpModule(@NotNull Module module,
                                 @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                 @Nullable T gradleModel,
-                                @Nullable SyncAction.ModuleModels gradleModels,
+                                @Nullable GradleModuleModels gradleModels,
                                 @Nullable ProgressIndicator indicator) {
     if (gradleModel == null) {
       return;
@@ -37,7 +37,7 @@ public abstract class ModuleSetupStep<T> {
   protected abstract void doSetUpModule(@NotNull Module module,
                                         @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                         @NotNull T gradleModel,
-                                        @Nullable SyncAction.ModuleModels gradleModels,
+                                        @Nullable GradleModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
   public boolean invokeOnBuildVariantChange() {

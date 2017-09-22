@@ -46,9 +46,7 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidModuleModelDataService() {
-    this(new AndroidModuleSetup(new AndroidFacetModuleSetupStep(), new SdkModuleSetupStep(), new JdkModuleSetupStep(),
-                                new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()),
-         new AndroidModuleValidator.Factory(), new AndroidModuleCleanupStep());
+    this(new AndroidModuleSetup(), new AndroidModuleValidator.Factory(), new AndroidModuleCleanupStep());
   }
 
   @VisibleForTesting

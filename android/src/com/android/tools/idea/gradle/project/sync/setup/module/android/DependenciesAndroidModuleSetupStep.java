@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
@@ -79,7 +79,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                @NotNull AndroidModuleModel androidModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable GradleModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant());
     for (LibraryDependency dependency : dependencies.onLibraries()) {

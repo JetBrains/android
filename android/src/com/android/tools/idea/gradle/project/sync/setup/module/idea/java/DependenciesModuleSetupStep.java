@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
@@ -61,7 +61,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable GradleModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     List<String> unresolved = new ArrayList<>();
     for (JavaModuleDependency dependency : javaModuleModel.getJavaModuleDependencies()) {

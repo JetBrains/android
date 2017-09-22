@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ProjectSetupImplTest extends IdeaTestCase {
   @Mock private ModuleSetup.Factory myModuleSetupFactory;
   @Mock private ModuleSetup myModuleSetup;
-  @Mock private SyncAction.ProjectModels myModels;
+  @Mock private GradleProjectModels myModels;
 
   private IdeModifiableModelsProviderStub myModelsProvider;
   private ProgressIndicator myIndicator;
