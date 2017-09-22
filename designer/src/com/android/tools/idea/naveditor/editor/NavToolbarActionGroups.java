@@ -36,7 +36,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  protected ActionGroup getNorthEastGroup() {
+  protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new SetZoomAction(mySurface, ZoomType.OUT));
     group.add(new ZoomLabelAction(mySurface));
