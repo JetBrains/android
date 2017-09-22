@@ -245,7 +245,6 @@ public class AddMenuWrapper extends DropDownAction {
   @VisibleForTesting
   boolean validate() {
     String error = null;
-    String kind = (String)myKindPopup.getSelectedItem();
     if (myLabelField.getText().isEmpty()) {
       error = "Label must be set";
     }
@@ -295,6 +294,7 @@ public class AddMenuWrapper extends DropDownAction {
 
   private void updateDefaultIdAndLabel() {
     String newKind = (String)myKindPopup.getSelectedItem();
+    assert newKind != null;
     // If we haven't changed from the default, update the value
     if (myDefaultId == null || myIdField.getText().equals(myDefaultId)) {
       NlModel model = mySurface.getModel();
@@ -304,15 +304,15 @@ public class AddMenuWrapper extends DropDownAction {
     }
     if (myDefaultLabel == null || myLabelField.getText().equals(myDefaultLabel)) {
       Matcher m = Pattern.compile("\\d*$").matcher(myDefaultId);
-      m.find();
-      String n = m.group();
-      myDefaultLabel = getTypeLabel((String)myKindPopup.getSelectedItem()) + (n.isEmpty() ? "" : " " + n);
-      myLabelField.setText(myDefaultLabel);
+      if (m.find()) {
+        String n = m.group();
+        myDefaultLabel = getTypeLabel((String)myKindPopup.getSelectedItem()) + (n.isEmpty() ? "" : " " + n);
+        myLabelField.setText(myDefaultLabel);
+      }
     }
   }
 
   private void createSourcePopup() {
-    // TODO: add tests for this when the nav type is created
     mySourcePopup = new ComboBox<>();
     mySourcePopup.addItem(null);
     ResourceManager resourceManager = LocalResourceManager.getInstance(mySurface.getModel().getModule());
