@@ -186,8 +186,20 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
-      // TODO: find the right fix and remove this temporary expectation
+      // TODO(sprigogin): find the right fix and remove this temporary expectation
       "    Android Lint: Correctness",
+      "        Attribute unused on older versions",
+      "            ic_launcher_foreground.xml",
+      "                Attribute 'endX' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'endY' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'fillType' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'fillType' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'offset' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'offset' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'startX' is only used in API level 24 and higher (current min is 15)",
+      "                Attribute 'startY' is only used in API level 24 and higher (current min is 15)",
+
+      // TODO(dahlstrom|npaige): find the right fix and remove this temporary expectation
       "        Obsolete Gradle Dependency",
       "            build.gradle",
       "                A newer version of com.android.support:appcompat-v7 than 26.0.2 is available: 26.1.0",
