@@ -19,8 +19,12 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.idea.common.scene.draw.*;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.scene.draw.DrawNavigationBackground;
+import com.android.tools.idea.naveditor.scene.draw.DrawNavigationFrame;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +45,8 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle rect = new Rectangle();
-    component.fillRect(rect);
-    SceneComponent.DrawState state = component.getDrawState();
-    DrawComponentBackground.add(list, sceneContext, rect, state.ordinal(), true);
+    Rectangle rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null));
+    list.add(new DrawNavigationBackground(rect));
   }
 
   @Override
@@ -69,7 +71,9 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    DrawComponentFrame.add(list, sceneContext, component.fillRect(null), component.getDrawState().ordinal(), true);
+    Rectangle rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null));
+    list.add(new DrawNavigationFrame(rect, component.isSelected(),
+                                     component.getDrawState() == SceneComponent.DrawState.HOVER || component.isDragging()));
   }
 
   @Override

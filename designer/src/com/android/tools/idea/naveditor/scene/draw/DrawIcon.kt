@@ -18,9 +18,9 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import icons.StudioIcons.NavEditor.Surface
-
-import javax.swing.*
-import java.awt.*
+import java.awt.Graphics2D
+import java.awt.Rectangle
+import javax.swing.Icon
 
 /**
  * [DrawIcon] is a DrawCommand that draws an icon
@@ -33,15 +33,15 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
   }
 
   private val myIcon: Icon =
-    when (myIconType) {
-      DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
-      DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
-      else -> throw IllegalArgumentException()
-    }
+      when (myIconType) {
+        DrawIcon.IconType.START_DESTINATION -> Surface.START_DESTINATION
+        DrawIcon.IconType.DEEPLINK -> Surface.DEEPLINK
+        else -> throw IllegalArgumentException()
+      }
 
   private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[2]), IconType.valueOf(sp[3]))
 
-  constructor(s: String) : this(parse(s))
+  constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel(): Int {
     return NavBaseDrawCommand.DRAW_ICON
@@ -61,15 +61,5 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
     myIcon.paintIcon(null, g2, (myRectangle.x / scaleX).toInt(), (myRectangle.y / scaleY).toInt())
 
     g2.dispose()
-  }
-
-  companion object {
-    private fun parse(s: String): Array<String> {
-      val sp = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-      when {
-        sp.size == 4 -> return sp
-        else -> throw IllegalArgumentException()
-      }
-    }
   }
 }

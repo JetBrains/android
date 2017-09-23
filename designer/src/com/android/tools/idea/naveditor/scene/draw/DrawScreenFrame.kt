@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import junit.framework.TestCase
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.scene.SceneContext
+import java.awt.Graphics2D
+import java.awt.Rectangle
 
-import java.awt.*
+/**
+ * [DrawScreenFrame] draws a rectangular frame around the fragment.
+ */
+class DrawScreenFrame : DrawDestinationFrame {
 
-class DrawIconTest : TestCase() {
-  fun testSerialization() {
-    var drawIcon = DrawIcon(Rectangle(10, 20, 100, 200), DrawIcon.IconType.DEEPLINK)
-    val serialized = drawIcon.serialize()
-    TestCase.assertEquals(serialized, "DrawIcon,23,10x20x100x200,DEEPLINK")
+  constructor(@SwingCoordinate myRectangle: Rectangle, myIsSelected: Boolean, myIsHover: Boolean) : super(myRectangle, myIsSelected, myIsHover)
 
-    drawIcon = DrawIcon(serialized)
-    TestCase.assertEquals(serialized, drawIcon.serialize())
+  constructor(s: String) : super(s)
+
+  override fun drawFrame(g: Graphics2D, sceneContext: SceneContext, rectangle: Rectangle) {
+    g.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
   }
 }

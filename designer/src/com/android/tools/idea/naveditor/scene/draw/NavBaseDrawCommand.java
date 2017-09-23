@@ -57,4 +57,14 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
     r.height = Integer.parseInt(sp[++c]);
     return r;
   }
+
+  @NotNull
+  protected static String[] parse(@NotNull String s, int expected) {
+    String[] sp = s.split(",");
+    if (sp.length != expected) {
+      throw new IllegalArgumentException();
+    }
+
+    return sp;
+  }
 }

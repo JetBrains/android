@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.decorator;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
@@ -25,6 +26,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
+import com.android.tools.idea.naveditor.scene.draw.DrawScreenFrame;
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen;
 import com.android.tools.idea.rendering.ImagePool;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -34,6 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -42,6 +45,13 @@ import java.util.concurrent.ExecutionException;
  * {@link SceneDecorator} responsible for creating draw commands for one screen/fragment/destination in the navigation editor.
  */
 public class NavScreenDecorator extends SceneDecorator {
+
+  @Override
+  protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    Rectangle rect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null));
+    list.add(new DrawScreenFrame(rect, component.isSelected(),
+                                 component.getDrawState() == SceneComponent.DrawState.HOVER || component.isDragging()));
+  }
 
   @Override
   protected void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
