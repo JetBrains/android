@@ -27,8 +27,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.tools.Tool;
 import com.intellij.util.containers.HashMap;
+import com.intellij.xml.util.PsiElementPointer;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
@@ -73,7 +73,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
 
     if (fixData != null && fixes.length == 0) {
-      return createFixes(fixData);
+      return createFixes(startElement.getContainingFile(), fixData);
     }
 
     return fixes;
@@ -567,7 +567,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   /** Wraps quickfixes from {@link LintFix} with default implementations */
-  static AndroidLintQuickFix[] createFixes(@Nullable LintFix lintFix) {
+  static AndroidLintQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
     if (lintFix instanceof ReplaceString) {
       ReplaceString data = (ReplaceString)lintFix;
       String regexp;
@@ -585,6 +585,20 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (data.reformat) {
         fix.setFormat(true);
       }
+      if (data.range != null && file != null) {
+        Position start = data.range.getStart();
+        Position end = data.range.getEnd();
+        if (start != null && end != null) {
+          SmartPointerManager manager = SmartPointerManager.getInstance(file.getProject());
+          int startOffset = start.getOffset();
+          int endOffset = end.getOffset();
+          if (endOffset > startOffset) {
+            TextRange textRange = TextRange.create(startOffset, Math.max(startOffset, endOffset));
+            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(file, textRange);
+            fix.setRange(smartRange);
+          }
+        }
+      }
       return new AndroidLintQuickFix[]{fix};
     } else if (lintFix instanceof SetAttribute) {
       SetAttribute data = (SetAttribute)lintFix;
@@ -599,7 +613,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       LintFixGroup group = (LintFixGroup)lintFix;
       List<AndroidLintQuickFix> fixList = Lists.newArrayList();
       for (LintFix fix : group.fixes) {
-        Collections.addAll(fixList, createFixes(fix));
+        Collections.addAll(fixList, createFixes(file, fix));
       }
       AndroidLintQuickFix[] fixes = fixList.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
 
