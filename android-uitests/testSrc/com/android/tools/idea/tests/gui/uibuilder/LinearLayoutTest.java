@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.GuiTestFileUtils;
@@ -173,7 +171,6 @@ public final class LinearLayoutTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void changeOrientation() throws IOException {
     // @formatter:off
     String layout = new XmlBuilder()
