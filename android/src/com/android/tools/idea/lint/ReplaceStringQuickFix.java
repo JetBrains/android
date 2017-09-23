@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -49,6 +52,8 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private final String myNewValue;
   private boolean myShortenNames;
   private boolean myFormat;
+  private SmartPsiFileRange myRange;
+  private String myExpandedNewValue;
 
   /**
    * Creates a new lint quickfix which can replace string contents at the given PSI element
@@ -78,6 +83,11 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
     return this;
   }
 
+  /** Sets a range override to use when searching for replacement text */
+  public void setRange(SmartPsiFileRange range) {
+    myRange = range;
+  }
+
   @NotNull
   @Override
   public String getName() {
@@ -89,7 +99,7 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
 
   @Nullable
   protected String getNewValue() {
-    return myNewValue;
+    return myExpandedNewValue != null ? myExpandedNewValue : myNewValue;
   }
 
   protected void editBefore(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
@@ -102,14 +112,14 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     PsiFile file = startElement.getContainingFile();
     Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
-    String newValue = getNewValue();
-    if (newValue == null) {
-      newValue = "";
-    }
     if (document != null) {
       editBefore(document);
-      TextRange range = getRange(startElement, endElement);
+      TextRange range = getRange(startElement, endElement, true);
       if (range != null) {
+        String newValue = getNewValue();
+        if (newValue == null) {
+          newValue = "";
+        }
         if (whitespaceOnly(newValue)) {
           // If we're replacing a text segment with just whitespace,
           // and the line begins and ends with whitespace after making
@@ -131,7 +141,12 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
             return;
           }
           if (myShortenNames && element.getLanguage() == JavaLanguage.INSTANCE) {
-            PsiElement parent = element.getParent();
+            PsiElement end = file.findElementAt(endOffset);
+            PsiElement parent = end != null ? PsiTreeUtil.findCommonParent(element.getParent(), end) : element.getParent();
+            if (parent == null) {
+              parent = element.getParent();
+            }
+
             parent = JavaCodeStyleManager.getInstance(project).shortenClassReferences(parent);
             if (myFormat) {
               CodeStyleManager.getInstance(project).reformat(parent);
@@ -173,12 +188,19 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   }
 
   @Nullable
-  private TextRange getRange(PsiElement startElement, PsiElement endElement) {
+  private TextRange getRange(PsiElement startElement, PsiElement endElement, boolean computeReplacement) {
     if (!startElement.isValid() || !endElement.isValid()) {
       return null;
     }
     int start = startElement.getTextOffset();
     int end = endElement.getTextOffset() + endElement.getTextLength();
+    if (myRange != null) {
+      Segment segment = myRange.getRange();
+      if (segment != null) {
+        start = segment.getStartOffset();
+        end = segment.getEndOffset();
+      }
+    }
     if (myRegexp != null) {
       try {
         Pattern pattern = Pattern.compile(myRegexp, Pattern.MULTILINE);
@@ -195,8 +217,31 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
         }
         Matcher matcher = pattern.matcher(sequence);
         if (matcher.find()) {
-          end = start + matcher.end(1);
-          start += matcher.start(1);
+
+          end = start;
+
+          if (matcher.groupCount() > 0) {
+            if (myRegexp.contains("target")) {
+              try {
+                start += matcher.start("target");
+                end += matcher.end("target");
+              } catch (IllegalArgumentException ignore) {
+                // Occurrence of "target" not actually a named group
+                start += matcher.start(1);
+                end += matcher.end(1);
+              }
+            } else {
+              start += matcher.start(1);
+              end += matcher.end(1);
+            }
+          } else {
+            start += matcher.start();
+            end += matcher.end();
+          }
+
+          if (computeReplacement && myExpandedNewValue == null) {
+            myExpandedNewValue = LintFix.ReplaceString.expandBackReferences(myNewValue, matcher);
+          }
         }
         else {
           return null;
@@ -214,6 +259,6 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    return getRange(startElement, endElement) != null;
+    return getRange(startElement, endElement, false) != null;
   }
 }
