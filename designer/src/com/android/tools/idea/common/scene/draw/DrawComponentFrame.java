@@ -35,14 +35,12 @@ public class DrawComponentFrame extends DrawRegion {
   private static final Stroke myDragReceiverStroke = new BasicStroke(3);
 
   private final int myMode;
-  private final boolean myRounded;
 
   public DrawComponentFrame(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
     myMode = Integer.parseInt(sp[c]);
-    myRounded = Boolean.parseBoolean(sp[c]);
   }
 
   @Override
@@ -54,11 +52,9 @@ public class DrawComponentFrame extends DrawRegion {
                             @SwingCoordinate int y,
                             @SwingCoordinate int width,
                             @SwingCoordinate int height,
-                            int mode,
-                            boolean rounded) {
+                            int mode) {
     super(x, y, width, height);
     myMode = mode;
-    myRounded = rounded;
   }
 
   @Override
@@ -69,37 +65,24 @@ public class DrawComponentFrame extends DrawRegion {
     Color previousColor = g.getColor();
     g.setStroke(myNormalStroke);
     g.setColor(colorFrame[myMode]);
-    if (myRounded) {
-      g.drawRoundRect(x, y, width, height, DrawComponentBackground.ARC_SIZE, DrawComponentBackground.ARC_SIZE);
-    }
-    else {
-      g.drawRect(x, y, width, height);
-    }
+    g.drawRect(x, y, width, height);
     g.setStroke(previousStroke);
     g.setColor(previousColor);
   }
 
   @Override
   public String serialize() {
-    return super.serialize() + "," + myMode + "," + myRounded;
+    return super.serialize() + "," + myMode;
   }
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
                          @AndroidDpCoordinate Rectangle rect,
                          int mode) {
-    add(list, sceneContext, rect, mode, false);
-  }
-
-  public static void add(DisplayList list,
-                         SceneContext sceneContext,
-                         @AndroidDpCoordinate Rectangle rect,
-                         int mode,
-                         boolean rounded) {
     int l = sceneContext.getSwingX(rect.x);
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
-    list.add(new DrawComponentFrame(l, t, w, h, mode, rounded));
+    list.add(new DrawComponentFrame(l, t, w, h, mode));
   }
 }

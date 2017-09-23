@@ -30,17 +30,14 @@ public class DrawComponentBackground extends DrawRegion {
   public static final int NORMAL = 1;
   public static final int OVER = 2;
   public static final int SELECTED = 3;
-  public static final int ARC_SIZE = 20;
 
   private final int myMode;
-  private final boolean myRounded;
 
   public DrawComponentBackground(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
     myMode = Integer.parseInt(sp[c++]);
-    myRounded = Boolean.parseBoolean(sp[c]);
   }
 
   @Override
@@ -53,17 +50,8 @@ public class DrawComponentBackground extends DrawRegion {
                                  @SwingCoordinate int width,
                                  @SwingCoordinate int height,
                                  int mode) {
-    this(x, y, width, height, mode, false);
-  }
-
-  public DrawComponentBackground(@SwingCoordinate int x,
-                                 @SwingCoordinate int y,
-                                 @SwingCoordinate int width,
-                                 @SwingCoordinate int height,
-                                 int mode, boolean rounded) {
     super(x, y, width, height);
     myMode = mode;
-    myRounded = rounded;
   }
 
   @Override
@@ -74,35 +62,23 @@ public class DrawComponentBackground extends DrawRegion {
       colorSet.getDragReceiverBackground()};
     if (colorSet.drawBackground()) {
       g.setColor(colorBackground[myMode]);
-      if (myRounded) {
-        g.fillRoundRect(x, y, width, height, ARC_SIZE, ARC_SIZE);
-      }
-      else {
-        g.fillRect(x, y, width, height);
-      }
+      g.fillRect(x, y, width, height);
     }
   }
 
   @Override
   public String serialize() {
-    return super.serialize() + "," + myMode + "," + myRounded;
+    return super.serialize() + "," + myMode;
   }
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
                          @AndroidDpCoordinate Rectangle rect,
                          int mode) {
-    add(list, sceneContext, rect, mode, false);
-  }
-
-  public static void add(DisplayList list,
-                         SceneContext sceneContext,
-                         @AndroidDpCoordinate Rectangle rect,
-                         int mode, boolean rounded) {
     int l = sceneContext.getSwingX(rect.x);
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
-    list.add(new DrawComponentBackground(l, t, w, h, mode, rounded));
+    list.add(new DrawComponentBackground(l, t, w, h, mode));
   }
 }
