@@ -39,7 +39,6 @@ import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -312,8 +311,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       myForegroundClipartRadioButton, myForegroundClipartAssetButton,
       myForegroundTextRadioButton, myForegroundTextAssetEditor
     );
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_foreground.xml"));
-    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("ic_launcher_background.xml"));
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("drawable-v24", "ic_launcher_foreground.xml"));
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(getTemplateImage("drawable", "ic_launcher_background.xml"));
 
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
@@ -370,12 +369,13 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     add(myRootPanel);
   }
 
+  /**
+   * Returns a file pointing to a resource inside template.
+   */
   @NotNull
-  private static File getTemplateImage(@NotNull String fileName) {
-    String resourceType = SdkUtils.endsWithIgnoreCase(fileName, ".xml") ? "drawable" : "mipmap-xxxhdpi";
-    String pathToSampleImageInTemplate =
-        FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", resourceType, fileName);
-    return new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate);
+  private static File getTemplateImage(@NotNull String resourceDir, @NotNull String fileName) {
+    String path = FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", resourceDir, fileName);
+    return new File(TemplateManager.getTemplateRootFolder(), path);
   }
 
   @NotNull
@@ -383,15 +383,15 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     String userHome = System.getProperty("user.home");
     String path = null;
     if (SystemInfo.isWindows) {
-      // On Windows, we need the localized "Documents" folder name
+      // On Windows, we need the localized "Documents" folder name.
       path = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
     }
     else if (SystemInfo.isMac) {
-      // On OSX, "Documents" is not localized
+      // On OSX, "Documents" is not localized.
       path = FileUtil.join(userHome, "Documents");
     }
     else if (SystemInfo.isLinux) {
-      // On Linux, there is no standard "Documents" folder, so use the home folder
+      // On Linux, there is no standard "Documents" folder, so use the home folder.
       path = userHome;
     }
     if (StringUtil.isEmpty(path)) {
