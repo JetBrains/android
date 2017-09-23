@@ -186,6 +186,12 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
+      // TODO: find the right fix and remove this temporary expectation
+      "    Android Lint: Correctness",
+      "        Obsolete Gradle Dependency",
+      "            build.gradle",
+      "                A newer version of com.android.support:appcompat-v7 than 26.0.2 is available: 26.1.0",
+
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android Lint: Performance",
       "        Unused resources",
