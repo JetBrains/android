@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
@@ -32,6 +37,8 @@ public class NewGradleSyncTest extends IdeaTestCase {
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
   @Mock private GradleSyncListener mySyncListener;
+  @Mock private ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
+  @Mock private CachedProjectModels.Loader myProjectModelsLoader;
   @Mock private SyncExecutionCallback.Factory myCallbackFactory;
 
   private SyncExecutionCallback myCallback;
@@ -43,20 +50,123 @@ public class NewGradleSyncTest extends IdeaTestCase {
     initMocks(this);
 
     myCallback = new SyncExecutionCallback();
-    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler, myCallbackFactory);
+    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler, myBuildFileChecksumsLoader, myProjectModelsLoader,
+                                     myCallbackFactory);
+  }
+
+  public void testSyncFromCachedModels() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setUseCachedGradleModels(true);
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    CachedProjectModels projectModelsCache = mock(CachedProjectModels.class);
+    when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
+
+    myGradleSync.sync(request, mySyncListener);
+
+    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+  }
+
+  public void testFailedSyncFromCachedModels() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setUseCachedGradleModels(true);
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    CachedProjectModels projectModelsCache = mock(CachedProjectModels.class);
+    when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
+
+    // Simulate loading models from cache fails.
+    ModelNotFoundInCacheException error = new ModelNotFoundInCacheException(GradleModuleModel.class);
+    doThrow(error).when(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+
+    myCallback.setDone(mock(SyncProjectModels.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+  }
+
+  public void testSyncFromCachedModelsWithoutBuildFileChecksums() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setUseCachedGradleModels(true);
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(false);
+
+    myCallback.setDone(mock(SyncProjectModels.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+  }
+
+  public void testSyncFromCachedModelsWithoutModelsCache() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setUseCachedGradleModels(true);
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    myCallback.setDone(mock(SyncProjectModels.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+  }
+
+  public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() throws Exception {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setUseCachedGradleModels(true);
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(null);
+
+    myCallback.setDone(mock(SyncProjectModels.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
   }
 
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
 
-    myCallback.setDone(mock(GradleProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
     verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
   }
 
@@ -70,7 +180,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 

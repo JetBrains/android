@@ -81,7 +81,7 @@ public class IdeDependenciesFactoryTest {
       new DependencyGraphsStub(Arrays.asList(javaGraphItem, androidGraphItem, moduleGraphItem), Collections.emptyList(),
                                Collections.emptyList(), Collections.emptyList());
 
-    myDependenciesFactory.setupGlobalLibraryMap(new GlobalLibraryMapStub(ImmutableMap.of("javaLibrary", level2JavaLibrary,
+    myDependenciesFactory.setUpGlobalLibraryMap(new GlobalLibraryMapStub(ImmutableMap.of("javaLibrary", level2JavaLibrary,
                                                                                          "androidLibrary", level2AndroidLibrary,
                                                                                          "moduleLibrary", level2ModuleLibrary)));
     IdeDependencies level2Dependencies = myDependenciesFactory.createFromDependencyGraphs(dependencyGraphsStub);

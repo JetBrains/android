@@ -172,7 +172,7 @@ public class IdeDependenciesFactory {
    *
    * @param globalLibraryMap GlobalLibraryMap model returned from Android Plugin.
    */
-  public void setupGlobalLibraryMap(@NotNull GlobalLibraryMap globalLibraryMap) {
+  public void setUpGlobalLibraryMap(@NotNull GlobalLibraryMap globalLibraryMap) {
     ModelCache modelCache = new ModelCache();
     for (Library library : globalLibraryMap.getLibraries().values()) {
       myLibrariesById.computeIfAbsent(library.getArtifactAddress(), k -> myLibraryFactory.create(library, modelCache));

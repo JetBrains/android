@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -46,15 +46,14 @@ public class IdeaGradleSync implements GradleSync {
   }
 
   @Override
-  public void sync(@NotNull GradleSyncInvoker.Request request,
-                   @Nullable GradleSyncListener listener) {
+  public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
     boolean newProject = request.isNewOrImportedProject();
 
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
-      GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((myProject));
-      if (syncData != null && syncData.canUseCachedProjectData()) {
+      ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
+      if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
         DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
@@ -63,7 +62,7 @@ public class IdeaGradleSync implements GradleSync {
           // @formatter:off
           setupRequest.setUsingCachedGradleModels(true)
                       .setGenerateSourcesAfterSync(false)
-                      .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
+                      .setLastSyncTimestamp(buildFileChecksums.getLastGradleSyncTimestamp());
           // @formatter:on
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -95,7 +94,6 @@ public class IdeaGradleSync implements GradleSync {
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.isSkipAndroidPluginUpgrade()) {
-      //noinspection TestOnlyProblems
       setupRequest.setSkipAndroidPluginUpgrade();
     }
   }

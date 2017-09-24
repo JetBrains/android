@@ -36,11 +36,13 @@ import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleModuleSetup {
-  public void setUpModule(@NotNull Module module,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull GradleModuleModels models) {
+  @NotNull
+  public GradleModuleModel setUpModule(@NotNull Module module,
+                                       @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                                       @NotNull GradleModuleModels models) {
     GradleModuleModel gradleModuleModel = createGradleModel(module, models);
     setUpModule(module, ideModelsProvider, gradleModuleModel);
+    return gradleModuleModel;
   }
 
   @NotNull

@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.ng;
+package com.android.tools.idea.gradle.project.sync.ng.caching;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-
-public interface GradleModuleModels extends Serializable {
-  @Nullable
-  <T> T findModel(@NotNull Class<T> modelType);
-
-  @NotNull
-  String getModuleName();
+public class ModelNotFoundInCacheException extends Exception {
+  public ModelNotFoundInCacheException(@NotNull Class<?> modelType) {
+    super("Failed to find cached model of type " + modelType.getSimpleName());
+  }
 }

@@ -30,24 +30,24 @@ import java.util.*;
  * {@link AndroidProject}.
  */
 // (This class replaces org.jetbrains.plugins.gradle.model.ProjectImportAction.)
-public class SyncAction implements BuildAction<GradleProjectModels>, Serializable {
-  @NotNull private final Set<Class<?>> myAndroidModelTypes;
-  @NotNull private final Set<Class<?>> myJavaModelTypes;
+public class SyncAction implements BuildAction<SyncProjectModels>, Serializable {
+  @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
+  @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
 
   public SyncAction() {
     this(Collections.emptySet(), Collections.emptySet());
   }
 
-  public SyncAction(@NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
-    myAndroidModelTypes = androidModelTypes;
-    myJavaModelTypes = javaModelTypes;
+  public SyncAction(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
+    myExtraAndroidModelTypes = extraAndroidModelTypes;
+    myExtraJavaModelTypes = extraJavaModelTypes;
   }
 
   @Override
   @Nullable
-  public GradleProjectModels execute(@NotNull BuildController controller) {
+  public SyncProjectModels execute(@NotNull BuildController controller) {
     GradleBuild gradleBuild = controller.getBuildModel();
-    GradleProjectModels models = new GradleProjectModels(myAndroidModelTypes, myJavaModelTypes);
+    SyncProjectModels models = new SyncProjectModels(myExtraAndroidModelTypes, myExtraJavaModelTypes);
     models.populate(gradleBuild, controller);
     return models;
   }

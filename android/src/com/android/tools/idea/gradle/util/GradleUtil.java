@@ -69,6 +69,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.*;
@@ -94,6 +95,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -121,8 +123,20 @@ public final class GradleUtil {
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
+  }
+
+  /**
+   * Returns the path of the folder ".idea/caches" in the given project. The returned path is an absolute path.
+   *
+   * @param project the given project.
+   * @return the path of the folder ".idea/caches" in the given project.
+   */
+  @NotNull
+  public static File getCacheFolderRootPath(@NotNull Project project) {
+    return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
@@ -197,8 +211,8 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
-    switch(androidModuleModel.getAndroidProject().getProjectType()) {
-      case  PROJECT_TYPE_APP:
+    switch (androidModuleModel.getAndroidProject().getProjectType()) {
+      case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
       case PROJECT_TYPE_FEATURE:
         return FEATURE_MODULE;
@@ -352,7 +366,7 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
+  private static File getGradleSettingsFilePath(@NotNull File dirPath) {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
@@ -608,6 +622,7 @@ public final class GradleUtil {
     }
     return false;
   }
+
   /**
    * @param androidModel the Android model to check
    * @param artifact     the artifact
@@ -809,7 +824,7 @@ public final class GradleUtil {
                                             @Nullable String pluginVersion,
                                             boolean preferApi) {
 
-    boolean compatibilityNames = pluginVersion != null && pluginVersion.matches("[012]\\..*");
+    boolean compatibilityNames = pluginVersion != null && PLUGIN_VERSION_PATTERN.matcher(pluginVersion).matches();
     return mapConfigurationName(configuration, compatibilityNames, preferApi);
   }
 
@@ -823,10 +838,9 @@ public final class GradleUtil {
    * @return the right configuration name to use
    */
   @NotNull
-  public static String mapConfigurationName(@NotNull String configuration,
-                                            boolean useCompatibilityNames,
-                                            boolean preferApi) {
-
+  private static String mapConfigurationName(@NotNull String configuration,
+                                             boolean useCompatibilityNames,
+                                             boolean preferApi) {
     if (useCompatibilityNames) {
       return configuration;
     }

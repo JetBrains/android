@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class SyncExecutionCallback extends ActionCallback {
-  @Nullable private GradleProjectModels myModels;
+  @Nullable private SyncProjectModels myModels;
   @Nullable private Throwable mySyncError;
 
   static class Factory {
@@ -31,11 +31,11 @@ class SyncExecutionCallback extends ActionCallback {
   }
 
   @Nullable
-  GradleProjectModels getModels() {
+  SyncProjectModels getModels() {
     return myModels;
   }
 
-  void setDone(@Nullable GradleProjectModels models) {
+  void setDone(@Nullable SyncProjectModels models) {
     myModels = models;
     setDone();
   }
