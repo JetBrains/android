@@ -136,6 +136,7 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66829932
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
