@@ -50,6 +50,7 @@ public class IssuePanelTest {
    * - click the fix button
    * - check that the issue is gone by checking the title and the JLabel of the issue
    */
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void openIssuePanel() throws IOException {
 
