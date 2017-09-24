@@ -61,7 +61,8 @@ class SyncExecutor {
 
   @VisibleForTesting
   SyncExecutor(@NotNull Project project,
-               @NotNull ExtraGradleSyncModelsManager extraModelsManager, @NotNull GradleSyncMessages syncMessages,
+               @NotNull ExtraGradleSyncModelsManager extraModelsManager,
+               @NotNull GradleSyncMessages syncMessages,
                @NotNull CommandLineArgs commandLineArgs,
                @NotNull SyncErrorHandlerManager errorHandlerManager) {
     myProject = project;
@@ -89,9 +90,8 @@ class SyncExecutor {
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      SyncAction syncAction = new SyncAction(myExtraModelsManager.getAndroidModelTypes(),
-                                             myExtraModelsManager.getJavaModelTypes());
-      BuildActionExecuter<GradleProjectModels> executor = connection.action(syncAction);
+      SyncAction syncAction = new SyncAction(myExtraModelsManager.getAndroidModelTypes(), myExtraModelsManager.getJavaModelTypes());
+      BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
       List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
@@ -106,7 +106,7 @@ class SyncExecutor {
       executor.withCancellationToken(cancellationTokenSource.token());
 
       try {
-        GradleProjectModels models = executor.run();
+        SyncProjectModels models = executor.run();
         callback.setDone(models);
       }
       catch (RuntimeException e) {

@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,13 +58,14 @@ class SyncResultHandler {
   }
 
   void onSyncFinished(@NotNull SyncExecutionCallback callback,
+                      @NotNull PostSyncProjectSetup.Request setupRequest,
                       @NotNull ProgressIndicator indicator,
                       @Nullable GradleSyncListener syncListener,
                       boolean isProjectNew) {
-    GradleProjectModels models = callback.getModels();
+    SyncProjectModels models = callback.getModels();
     if (models != null) {
       try {
-        setUpProject(myProject, models, indicator, syncListener);
+        setUpProject(models, setupRequest, indicator, syncListener);
         Runnable runnable = () -> {
           boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
           if (isProjectNew && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
@@ -97,32 +100,49 @@ class SyncResultHandler {
     }
   }
 
-  private void setUpProject(@NotNull Project project,
-                            @NotNull GradleProjectModels models,
+  private void setUpProject(@NotNull SyncProjectModels models,
+                            @NotNull PostSyncProjectSetup.Request setupRequest,
                             @NotNull ProgressIndicator indicator,
                             @Nullable GradleSyncListener syncListener) {
     try {
       if (syncListener != null) {
-        syncListener.setupStarted(project);
+        syncListener.setupStarted(myProject);
       }
       mySyncState.setupStarted();
 
-      ProjectSetup projectSetup = myProjectSetupFactory.create(project);
+      ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
       projectSetup.setUpProject(models, indicator);
-      projectSetup.commit( /* synchronous */);
+      projectSetup.commit();
 
       if (syncListener != null) {
-        syncListener.syncSucceeded(project);
+        syncListener.syncSucceeded(myProject);
       }
 
-      PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-        myPostSyncProjectSetup.setUpProject(request, indicator);
-      });
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
     }
+  }
+
+  void onSyncSkipped(@NotNull CachedProjectModels projectModelsCache,
+                     @NotNull PostSyncProjectSetup.Request setupRequest,
+                     @NotNull ProgressIndicator indicator,
+                     @Nullable GradleSyncListener syncListener) throws ModelNotFoundInCacheException {
+    if (syncListener != null) {
+      syncListener.setupStarted(myProject);
+    }
+    mySyncState.setupStarted();
+    ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
+    projectSetup.setUpProject(projectModelsCache, indicator);
+    projectSetup.commit();
+
+    if (syncListener != null) {
+      syncListener.syncSkipped(myProject);
+    }
+
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
+
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {

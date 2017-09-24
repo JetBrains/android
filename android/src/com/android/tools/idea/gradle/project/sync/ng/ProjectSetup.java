@@ -15,25 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 abstract class ProjectSetup {
-  abstract void setUpProject(@NotNull GradleProjectModels models, @NotNull ProgressIndicator indicator);
+  abstract void setUpProject(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator);
+
+  abstract void setUpProject(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
+    throws ModelNotFoundInCacheException;
 
   abstract void commit();
 
   static class Factory {
     @NotNull
     ProjectSetup create(@NotNull Project project) {
-      return new ProjectSetupImpl(project, new IdeModifiableModelsProviderImpl(project), new ModuleSetup.Factory());
+      return new ProjectSetupImpl(project, new IdeModifiableModelsProviderImpl(project),
+                                  new ModuleSetup.Factory());
     }
   }
 
@@ -52,19 +59,47 @@ abstract class ProjectSetup {
     }
 
     @Override
-    void setUpProject(@NotNull GradleProjectModels models, @NotNull ProgressIndicator indicator) {
+    void setUpProject(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator) {
       ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
       try {
         executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
           @Override
           public void execute() {
-            moduleSetup.setUpModules(models, indicator);
+            moduleSetup.setUpModules(projectModels, indicator);
           }
         });
       }
       catch (Throwable e) {
         disposeChanges();
         throw e;
+      }
+    }
+
+    @Override
+    void setUpProject(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
+      throws ModelNotFoundInCacheException {
+      Ref<ModelNotFoundInCacheException> error = new Ref<>();
+      ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
+      try {
+        executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
+          @Override
+          public void execute() {
+            try {
+              moduleSetup.setUpModules(projectModels, indicator);
+            }
+            catch (ModelNotFoundInCacheException e) {
+              error.set(e);
+            }
+          }
+        });
+      }
+      catch (Throwable e) {
+        disposeChanges();
+        throw e;
+      }
+      ModelNotFoundInCacheException caughtError = error.get();
+      if (caughtError != null) {
+        throw caughtError;
       }
     }
 

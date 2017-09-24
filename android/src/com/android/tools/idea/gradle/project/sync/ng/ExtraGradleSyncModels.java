@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -41,4 +42,13 @@ public interface ExtraGradleSyncModels {
   void applyModelsToModule(@NotNull GradleModuleModels moduleModels,
                            @NotNull Module module,
                            @NotNull IdeModifiableModelsProvider modelsProvider);
+
+  /**
+   * Adds Gradle models to the given cache. The cache is used to quickly setup a project when reopened, bypassing Gradle Sync (for
+   * performance reasons.)
+   *
+   * @param module the module containing the models to store in the cache.
+   * @param cache the model cache.
+   */
+  void addModelsToCache(@NotNull Module module, @NotNull CachedModuleModels cache);
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
@@ -40,7 +39,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
@@ -55,9 +53,9 @@ import org.jetbrains.annotations.TestOnly;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
 import static com.intellij.notification.NotificationType.ERROR;

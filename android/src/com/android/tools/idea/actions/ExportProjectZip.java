@@ -133,12 +133,9 @@ public class ExportProjectZip extends AnAction implements DumbAware {
       if (androidModel != null) {
         excludes.add(androidModel.getAndroidProject().getBuildFolder());
       }
-      JavaFacet facet = JavaFacet.getInstance(module);
-      if (facet != null) {
-        JavaModuleModel model = facet.getJavaModuleModel();
-        if (model != null) {
-          excludes.add(model.getBuildFolderPath());
-        }
+      JavaModuleModel model = JavaModuleModel.get(module);
+      if (model != null) {
+        excludes.add(model.getBuildFolderPath());
       }
     }
 

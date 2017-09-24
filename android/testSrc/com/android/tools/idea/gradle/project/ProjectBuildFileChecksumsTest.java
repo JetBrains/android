@@ -18,14 +18,16 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.PathUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Map;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
-public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
+public class ProjectBuildFileChecksumsTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
@@ -33,33 +35,34 @@ public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     long previousSyncTime = syncState.getSummary().getSyncTimestamp();
 
-    GradleProjectSyncData data = GradleProjectSyncData.createFrom(project);
+    ProjectBuildFileChecksums data = ProjectBuildFileChecksums.createFrom(project);
     verifyGradleProjectSyncData(data, previousSyncTime);
 
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-    oos.writeObject(data);
-    oos.close();
-
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-    ObjectInputStream ois = new ObjectInputStream(inputStream);
-    GradleProjectSyncData newData = (GradleProjectSyncData)ois.readObject();
-    ois.close();
-
+    ProjectBuildFileChecksums newData;
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+      try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
+        oos.writeObject(data);
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray())) {
+          try (ObjectInputStream ois = new ObjectInputStream(inputStream)) {
+            newData = (ProjectBuildFileChecksums)ois.readObject();
+          }
+        }
+      }
+    }
     verifyGradleProjectSyncData(newData, previousSyncTime);
   }
 
-  private static void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
+  private static void verifyGradleProjectSyncData(@NotNull ProjectBuildFileChecksums data, long previousSyncTime) {
     assertNotNull(data);
 
     Map<String, byte[]> checksums = data.getFileChecksums();
     assertEquals(7, checksums.size());
-    assertContainsElements(checksums.keySet(), "gradle.properties", "local.properties", "build.gradle", "settings.gradle",
-                           PathUtil.toSystemDependentName("app/build.gradle"), PathUtil.toSystemDependentName("lib/build.gradle"));
+    assertThat(checksums.keySet()).containsAllOf("gradle.properties", "local.properties", "build.gradle", "settings.gradle",
+                                                 toSystemDependentName("app/build.gradle"), toSystemDependentName("lib/build.gradle"));
     String home = System.getProperty("user.home");
     if (home != null) {
-      File userProperties = new File(new File(home), PathUtil.toSystemDependentName(".gradle/gradle.properties"));
-      assertContainsElements(checksums.keySet(), userProperties.getPath());
+      File userProperties = new File(new File(home), toSystemDependentName(".gradle/gradle.properties"));
+      assertThat(checksums.keySet()).contains(userProperties.getPath());
     }
 
     assertEquals(previousSyncTime, data.getLastGradleSyncTimestamp());

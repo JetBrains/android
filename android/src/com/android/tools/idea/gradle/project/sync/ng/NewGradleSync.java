@@ -16,12 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -35,6 +40,8 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
   @NotNull private final SyncExecutor mySyncExecutor;
   @NotNull private final SyncResultHandler myResultHandler;
+  private ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
+  @NotNull private final CachedProjectModels.Loader myProjectModelsCacheLoader;
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
   public static boolean isEnabled() {
@@ -50,24 +57,29 @@ public class NewGradleSync implements GradleSync {
   }
 
   public NewGradleSync(@NotNull Project project) {
-    this(project, new SyncExecutor(project), new SyncResultHandler(project), new SyncExecutionCallback.Factory());
+    this(project, new SyncExecutor(project), new SyncResultHandler(project), new ProjectBuildFileChecksums.Loader(),
+         new CachedProjectModels.Loader(), new SyncExecutionCallback.Factory());
   }
 
   @VisibleForTesting
   NewGradleSync(@NotNull Project project,
                 @NotNull SyncExecutor syncExecutor,
                 @NotNull SyncResultHandler resultHandler,
+                @NotNull ProjectBuildFileChecksums.Loader buildFileChecksumsLoader,
+                @NotNull CachedProjectModels.Loader projectModelsCacheLoader,
                 @NotNull SyncExecutionCallback.Factory callbackFactory) {
     myProject = project;
     mySyncExecutor = syncExecutor;
     myResultHandler = resultHandler;
+    myBuildFileChecksumsLoader = buildFileChecksumsLoader;
+    myProjectModelsCacheLoader = projectModelsCacheLoader;
     myCallbackFactory = callbackFactory;
   }
 
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      sync(listener, new EmptyProgressIndicator(), request.isNewOrImportedProject());
+      sync(request, new EmptyProgressIndicator(), listener, request.isNewOrImportedProject());
       return;
     }
     Task task = createSyncTask(request, listener);
@@ -86,14 +98,14 @@ public class NewGradleSync implements GradleSync {
         return new Task.Modal(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(listener, indicator, isNewProject);
+            sync(request, indicator, listener, isNewProject);
           }
         };
       case IN_BACKGROUND_ASYNC:
         return new Task.Backgroundable(myProject, title, true) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            sync(listener, indicator, isNewProject);
+            sync(request, indicator, listener, isNewProject);
           }
         };
       default:
@@ -101,12 +113,57 @@ public class NewGradleSync implements GradleSync {
     }
   }
 
-  private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator, boolean isNewProject) {
+  private void sync(@NotNull GradleSyncInvoker.Request request,
+                    @NotNull ProgressIndicator indicator,
+                    @Nullable GradleSyncListener syncListener,
+                    boolean isNewProject) {
+    if (request.isUseCachedGradleModels()) {
+      // Use models from disk cache.
+      ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
+      if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
+        CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
+        if (projectModelsCache != null) {
+          PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+
+          // @formatter:off
+          setupRequest.setUsingCachedGradleModels(true)
+                      .setGenerateSourcesAfterSync(false)
+                      .setLastSyncTimestamp(buildFileChecksums.getLastGradleSyncTimestamp());
+          // @formatter:on
+
+          setSkipAndroidPluginUpgrade(request, setupRequest);
+
+          try {
+            myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener);
+            return;
+          }
+          catch (ModelNotFoundInCacheException e) {
+            Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
+          }
+        }
+      }
+    }
+
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+
+    // @formatter:off
+    setupRequest.setGenerateSourcesAfterSync(request.isGenerateSourcesOnSuccess())
+                .setCleanProjectAfterSync(request.isCleanProject());
+    // @formatter:on
+    setSkipAndroidPluginUpgrade(request, setupRequest);
+
     SyncExecutionCallback callback = myCallbackFactory.create();
     // @formatter:off
-    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
+    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
     mySyncExecutor.syncProject(indicator, callback);
+  }
+
+  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
+                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.isSkipAndroidPluginUpgrade()) {
+      setupRequest.setSkipAndroidPluginUpgrade();
+    }
   }
 }

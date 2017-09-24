@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -146,7 +146,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
-    GradleProjectSyncData.removeFrom(myProject);
+    ProjectBuildFileChecksums.removeFrom(myProject);
     GradleSyncState.getInstance(myProject).syncFailed(newMessage);
 
     if (mySyncListener != null) {

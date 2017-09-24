@@ -19,7 +19,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -165,7 +165,7 @@ public class PostSyncProjectSetup {
       failTestsIfSyncIssuesPresent();
 
       myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
-      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncFailed("");
       return;
@@ -233,7 +233,7 @@ public class PostSyncProjectSetup {
   }
 
   private void notifySyncFinished(@NotNull Request request) {
-    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+    // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.isUsingCachedGradleModels()) {
       long timestamp = System.currentTimeMillis();
@@ -242,7 +242,7 @@ public class PostSyncProjectSetup {
     }
     else {
       mySyncState.syncEnded();
-      GradleProjectSyncData.save(myProject);
+      ProjectBuildFileChecksums.saveToDisk(myProject);
     }
   }
 

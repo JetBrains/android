@@ -326,7 +326,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
     // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
     if (globalLibraryMap != null) {
-      myDependenciesFactory.setupGlobalLibraryMap(globalLibraryMap);
+      myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
     }
   }
 

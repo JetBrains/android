@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.subset;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel.SourceFileContainerInfo;
+import com.android.tools.idea.gradle.project.model.SourceFileContainerInfo;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.project.AndroidNotification;

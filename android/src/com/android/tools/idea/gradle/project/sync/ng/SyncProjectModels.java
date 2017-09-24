@@ -30,17 +30,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class GradleProjectModels implements Serializable {
-  @NotNull private final Set<Class<?>> myAndroidModelTypes;
-  @NotNull private final Set<Class<?>> myJavaModelTypes;
+public class SyncProjectModels implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
+  @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
+  @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
 
   // Key: module's Gradle path.
   @NotNull private final Map<String, GradleModuleModels> myModelsByModule = new HashMap<>();
   @Nullable private GlobalLibraryMap myGlobalLibraryMap;
 
-  GradleProjectModels(@NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
-    myAndroidModelTypes = androidModelTypes;
-    myJavaModelTypes = javaModelTypes;
+  public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
+    myExtraAndroidModelTypes = extraAndroidModelTypes;
+    myExtraJavaModelTypes = extraJavaModelTypes;
   }
 
   public void populate(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
@@ -61,7 +64,7 @@ public class GradleProjectModels implements Serializable {
   }
 
   private void populateModels(@NotNull GradleProject project, @NotNull BuildController controller) {
-    GradleModuleModels models = new GradleModuleModels(project, myAndroidModelTypes, myJavaModelTypes);
+    SyncModuleModels models = new SyncModuleModels(project, myExtraAndroidModelTypes, myExtraJavaModelTypes);
     models.populate(project, controller);
     myModelsByModule.put(project.getPath(), models);
 

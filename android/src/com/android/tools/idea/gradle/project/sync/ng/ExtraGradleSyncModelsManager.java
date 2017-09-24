@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -61,6 +62,12 @@ public class ExtraGradleSyncModelsManager {
                                   @NotNull IdeModifiableModelsProvider modelsProvider) {
     for (ExtraGradleSyncModels models : myJavaModels) {
       models.applyModelsToModule(moduleModels, module, modelsProvider);
+    }
+  }
+
+  public void addJavaModelsToCache(@NotNull Module module, @NotNull CachedModuleModels cache) {
+    for (ExtraGradleSyncModels models : myJavaModels) {
+      models.addModelsToCache(module, cache);
     }
   }
 }

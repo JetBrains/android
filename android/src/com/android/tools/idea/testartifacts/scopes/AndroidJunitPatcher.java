@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.intellij.execution.JUnitPatcher;
@@ -33,8 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -190,13 +187,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       }
 
       // Adds resources from java modules to the classpath (see b/37137712)
-      JavaFacet javaFacet = JavaFacet.getInstance(affectedModule);
-      if (javaFacet != null) {
-        JavaModuleModel javaModel = javaFacet.getJavaModuleModel();
-        if (javaModel == null) {
-          continue;
-        }
-
+      JavaModuleModel javaModel = JavaModuleModel.get(affectedModule);
+      if (javaModel != null) {
         ExtIdeaCompilerOutput output = javaModel.getCompilerOutput();
         File javaTestResources = output == null ? null : output.getTestResourcesDir();
         if (javaTestResources != null) {
