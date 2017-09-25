@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/android-adb[module]",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jre8",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/android-test-framework[module, test]",
