@@ -25,27 +25,6 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 
-/**
- * Similar to [kotlin.io.use] but accepts an [AutoCloseable] block instead of a [java.io.Closeable]
- */
-inline fun <T : AutoCloseable?, R> T.useAutoCloseable(block: (T) -> R): R {
-  var closed = false
-  try {
-    return block(this)
-  } catch (e: Exception) {
-    closed = true
-    try {
-      this?.close()
-    } catch (closeException: Exception) {
-    }
-    throw e
-  } finally {
-    if (!closed) {
-      this?.close()
-    }
-  }
-}
-
 class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
 
   @Throws(IOException::class)
@@ -66,7 +45,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
 
       // Note: We need to close the connection so the database file handle is released by the
       // Sqlite engine.
-      openSqliteDatabase(file).useAutoCloseable { connection -> fillDatabase(connection) }
+      openSqliteDatabase(file).use { connection -> fillDatabase(connection) }
 
       // File as changed on disk, refresh virtual file cached data
       file.refresh(false, false)
@@ -81,9 +60,9 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
 
       // Note: We need to close the connection so the database file handle is released by the
       // Sqlite engine.
-      openSqliteDatabase(file).useAutoCloseable { connection ->
+      openSqliteDatabase(file).use { connection ->
         // Create then drop a test table so this file is not empty on disk.
-        connection.createStatement().useAutoCloseable { stmt ->
+        connection.createStatement().use { stmt ->
           val sql = "CREATE TABLE test (\n" +
               " id integer PRIMARY KEY\n" +
               ");"
@@ -117,7 +96,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
   @Throws(SQLException::class)
   private fun fillDatabase(connection: Connection) {
     ApplicationManager.getApplication().runWriteAction {
-      connection.createStatement().useAutoCloseable { stmt ->
+      connection.createStatement().use { stmt ->
         val sql = "CREATE TABLE contacts (\n" +
             " contact_id integer PRIMARY KEY,\n" +
             " first_name text NOT NULL,\n" +
@@ -131,7 +110,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
       // Batch insert a bunch of rows
       connection.autoCommit = false
       val sql = "INSERT INTO contacts(contact_id, first_name, last_name, email, phone) VALUES(?, ?, ?, ?, ?)"
-      connection.prepareStatement(sql).useAutoCloseable { pstmt ->
+      connection.prepareStatement(sql).use { pstmt ->
         // 300 rows so the file size is non trivial (currently about 40KB)
         for (i in 0..299) {
           pstmt.setInt(1, i * 10)
