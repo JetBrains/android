@@ -34,6 +34,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +56,9 @@ public class WidgetConstraintPanel extends JPanel {
   NlComponent mComponent;
   private static final int UNCONNECTED = -1;
   private Runnable myWriteAction;
+  private final static int SLIDER_DEFAULT = 50;
+  public final static String VERTICAL_BIAS_SLIDER = "verticalBiasSlider";
+  public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
   private final static int DELAY_BEFORE_COMMIT = 400; // ms
   private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
     if (myWriteAction != null) {
@@ -100,6 +106,8 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setBackground(colorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
+    mVerticalSlider.setName(VERTICAL_BIAS_SLIDER);
+    mHorizontalSlider.setName(HORIZONTAL_BIAS_SLIDER);
     updateComponents(components);
 
     GridBagConstraints gbc = new GridBagConstraints();
@@ -121,7 +129,19 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, colorSet));
     mHorizontalSlider.addChangeListener(e -> setHorizontalBias());
     mVerticalSlider.addChangeListener(e -> setVerticalBias());
+    mHorizontalSlider.addMouseListener(mDoubleClickListener);
+    mVerticalSlider.addMouseListener(mDoubleClickListener);
   }
+
+  // Reset mouse on double click
+  MouseListener mDoubleClickListener = new MouseAdapter() {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      if (e.getClickCount() == 2) {
+        ((JSlider)e.getSource()).setValue(SLIDER_DEFAULT);
+      }
+    }
+  };
 
   /*-----------------------------------------------------------------------*/
   // code for getting values from ConstraintWidget to UI
@@ -488,13 +508,15 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setHorizontalBias() {
-    float bias = (mHorizontalSlider.getValue() / 100f);
+    int biasVal = mHorizontalSlider.getValue();
+    float bias = (biasVal / 100f);
+    String biasString = (biasVal == 50) ? null : Float.toString(bias);
     NlComponent chain = findInHorizontalChain(mComponent);
     if (chain != null && chain != mComponent) {
-      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
+      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, biasString);
     }
     else {
-      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
+      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, biasString);
     }
   }
 
@@ -532,13 +554,15 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setVerticalBias() {
-    float bias = 1f - (mVerticalSlider.getValue() / 100f);
+    int biasVal = mVerticalSlider.getValue();
+    float bias = 1f - (biasVal / 100f);
+    String biasString = (biasVal == 50) ? null : Float.toString(bias);
     NlComponent chain = findInVerticalChain(mComponent);
     if (chain != null && chain != mComponent) {
-      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
+      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, biasString);
     }
     else {
-      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
+      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, biasString);
     }
   }
 
