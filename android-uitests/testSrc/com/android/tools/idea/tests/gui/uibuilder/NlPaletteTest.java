@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
@@ -52,6 +54,7 @@ public class NlPaletteTest {
     StudioFlags.NELE_NEW_PALETTE.clearOverride();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66905952
   @Test
   public void testTypingKeepsCategorySelectionIfMatchesFound() throws Exception {
     myGuiTest.importSimpleApplication();
