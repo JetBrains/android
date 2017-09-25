@@ -99,7 +99,7 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(module, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
+    verify(myDependenciesSetup).setUpLibraryDependency(module, modelsProvider, "Gradle: myLibrary", COMPILE, dependency.getArtifactPath(),
                                                        dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION));
   }
 
