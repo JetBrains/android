@@ -31,7 +31,7 @@ public class LibraryDependencyTest {
   public void constructorWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);
-    assertEquals("guava-11.0.2", dependency.getName());
+    assertEquals("Gradle: guava-11.0.2", dependency.getName());
     File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);

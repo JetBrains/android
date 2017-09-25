@@ -136,7 +136,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).isEmpty();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified");
+    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: library-debug-unspecified");
   }
 
   public void testWithLocalJarsArModules() throws Exception {
@@ -148,7 +148,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local");
+    assertAbout(libraryDependencies()).that(localJarModule).contains("Gradle: localJarAsModule.local");
   }
 
   public void testWithInterModuleDependencies() throws Exception {
@@ -165,7 +165,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).contains("guava-17.0");
+    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: guava-17.0");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -175,7 +175,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'javawriter' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    assertAbout(libraryDependencies()).that(appModule).contains("javawriter-2.5.0");
+    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: javawriter-2.5.0");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -194,13 +194,13 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // dependency should be set on the module not the compiled jar.
     assertAbout(moduleDependencies()).that(appModule).contains("lib");
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib");
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib");
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib");
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
@@ -209,11 +209,11 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-    assertAbout(libraryDependencies()).that(library2Module).contains("fakelib");
+    assertAbout(libraryDependencies()).that(library2Module).contains("Gradle: fakelib");
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("fakelib");
+    assertAbout(libraryDependencies()).that(appModule).contains("Gradle: fakelib");
   }
 }
