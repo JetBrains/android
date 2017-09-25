@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -44,6 +43,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 /**
  * @author Alexander Lobas
@@ -213,7 +213,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
         return false;
       }
       for (PsiAnnotation annotation : modifiers.getAnnotations()) {
-        if (Objects.equals(annotation.getQualifiedName(), SupportAnnotationDetector.RESTRICT_TO_ANNOTATION)) {
+        if (Objects.equals(annotation.getQualifiedName(), RESTRICT_TO_ANNOTATION)) {
           return false;
         }
       }

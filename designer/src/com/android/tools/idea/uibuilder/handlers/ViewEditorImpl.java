@@ -45,7 +45,6 @@ import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.diagnostic.Logger;
@@ -82,6 +81,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -341,7 +341,7 @@ public class ViewEditorImpl extends ViewEditor {
       return false;
     }
     for (PsiAnnotation annotation : modifiers.getAnnotations()) {
-      if (Objects.equals(annotation.getQualifiedName(), SupportAnnotationDetector.RESTRICT_TO_ANNOTATION)) {
+      if (Objects.equals(annotation.getQualifiedName(), RESTRICT_TO_ANNOTATION)) {
         return false;
       }
     }

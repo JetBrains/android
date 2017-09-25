@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -24,9 +23,11 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
+
 public class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
   public AndroidLintUseCheckPermissionInspection() {
-    super(AndroidBundle.message("android.lint.inspections.use.check.permission"), SupportAnnotationDetector.CHECK_PERMISSION);
+    super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CHECK_PERMISSION);
   }
 
   @Override

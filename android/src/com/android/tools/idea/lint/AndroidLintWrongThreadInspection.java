@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.ThreadDetector.THREAD;
+
 public class AndroidLintWrongThreadInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongThreadInspection() {
-    super(AndroidBundle.message("android.lint.inspections.wrong.thread"), SupportAnnotationDetector.THREAD);
+    super(AndroidBundle.message("android.lint.inspections.wrong.thread"), THREAD);
   }
 }
