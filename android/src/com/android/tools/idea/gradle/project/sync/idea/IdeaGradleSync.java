@@ -16,24 +16,28 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
+
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 
 public class IdeaGradleSync implements GradleSync {
@@ -76,20 +80,26 @@ public class IdeaGradleSync implements GradleSync {
                 .setCleanProjectAfterSync(request.isCleanProject());
     // @formatter:on
 
-    String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
-    if (GradleSettings.getInstance(project).getLinkedProjectSettings(externalProjectPath) == null) {
+    Set<String> androidProjectsRootPaths = ContainerUtil.newLinkedHashSet();
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+      ContainerUtil.addIfNotNull(androidProjectsRootPaths, projectPath);
+    }
+    if (androidProjectsRootPaths.isEmpty()) {
       if (listener != null) {
         listener.syncSkipped(project);
       }
       return;
     }
 
-    ProjectSetUpTask setUpTask =
-      new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);
-    ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-    refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
-                   executionMode, true /* always report import errors */);
+    for (String rootPath : androidProjectsRootPaths) {
+      ProjectSetUpTask setUpTask =
+        new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);
+      ProgressExecutionMode executionMode = request.getProgressExecutionMode();
+      refreshProject(project, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
+                     executionMode, true /* always report import errors */);
+    }
   }
 }
