@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -52,6 +53,9 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
 
   @Override
   void validate(@NotNull Module module) {
+    if(!Projects.isIdeaAndroidModule(module)) {
+      return;
+    }
     File moduleFolderPath = getModuleFilePath(module).getParentFile();
     if (moduleFolderPath != null) {
       myModulesByPath.put(moduleFolderPath.getPath(), module);
