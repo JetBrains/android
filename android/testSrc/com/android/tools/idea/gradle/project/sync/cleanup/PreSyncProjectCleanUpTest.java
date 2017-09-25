@@ -38,7 +38,7 @@ public class PreSyncProjectCleanUpTest {
   public void mainConstructor() {
     PreSyncProjectCleanUp projectCleanUp = new PreSyncProjectCleanUp();
     ProjectCleanUpTask[] tasks = projectCleanUp.getCleanUpTasks();
-    assertThat(tasks).hasLength(6);
+    assertThat(tasks).hasLength(5);
     assertThat(tasks[0]).isInstanceOf(ProjectPreferencesCleanUpTask.class);
     assertThat(tasks[1]).isInstanceOf(GradleRunnerCleanupTask.class);
     assertThat(tasks[2]).isInstanceOf(HttpProxySettingsCleanUpTask.class);
