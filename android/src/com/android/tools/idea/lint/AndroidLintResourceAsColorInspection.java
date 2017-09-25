@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.ResourceTypeDetector.COLOR_USAGE;
+
 public class AndroidLintResourceAsColorInspection extends AndroidLintInspectionBase {
   public AndroidLintResourceAsColorInspection() {
-    super(AndroidBundle.message("android.lint.inspections.resource.as.color"), SupportAnnotationDetector.COLOR_USAGE);
+    super(AndroidBundle.message("android.lint.inspections.resource.as.color"), COLOR_USAGE);
   }
 }

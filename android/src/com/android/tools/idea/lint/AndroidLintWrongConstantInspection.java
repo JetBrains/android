@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.TypedefDetector.TYPE_DEF;
+
 public class AndroidLintWrongConstantInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongConstantInspection() {
-    super(AndroidBundle.message("android.lint.inspections.wrong.constant"), SupportAnnotationDetector.TYPE_DEF);
+    super(AndroidBundle.message("android.lint.inspections.wrong.constant"), TYPE_DEF);
   }
 }
