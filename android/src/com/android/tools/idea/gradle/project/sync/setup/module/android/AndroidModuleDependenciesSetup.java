@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -69,10 +68,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     if (library == null) {
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
-    }
-    else {
-      //SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
-      //registry.markAsUsed(library, binaryPaths);
     }
 
     if (newLibrary) {

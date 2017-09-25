@@ -79,7 +79,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("guava-11.0.2", dependency.getName());
+    assertEquals("Gradle: guava-11.0.2", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(DependencyScope.COMPILE, dependency.getScope());
 
@@ -110,7 +110,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNotNull(backup);
-    assertEquals("bundle", backup.getName());
+    assertEquals("Gradle: bundle", backup.getName());
     assertEquals(DependencyScope.COMPILE, backup.getScope());
 
     File[] backupBinaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
@@ -132,7 +132,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("bundle", dependency.getName());
+    assertEquals("Gradle: bundle", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(DependencyScope.COMPILE, dependency.getScope());
 
@@ -159,7 +159,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("bundle", dependency.getName());
+    assertEquals("Gradle: bundle", dependency.getName());
 
     File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
     assertThat(binaryPaths).hasLength(3);
