@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.util.text.StringUtil;
 
@@ -97,11 +98,7 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
     }
 
     // Try: t...
-    if (!name.isEmpty() && fontMetrics.stringWidth(name.charAt(0) + "...") < maxWidth) {
-      return name.charAt(0) + "...";
-    }
-
-    return "";
+    return AdtUiUtils.getFittedString(fontMetrics, name, (float)maxWidth, 1);
   }
 
   @Override
