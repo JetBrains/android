@@ -53,9 +53,11 @@ public class ErrorMatchingReceiver extends AndroidOutputReceiver {
       Matcher errorMatcher = TYPED_ERROR.matcher(line);
       if (errorMatcher.matches()) {
         errorType = Integer.parseInt(errorMatcher.group(1));
+        failureMessage = line;
       }
       else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
         errorType = UNTYPED_ERROR;
+        failureMessage = line;
       }
     }
     output.append(line).append('\n');
