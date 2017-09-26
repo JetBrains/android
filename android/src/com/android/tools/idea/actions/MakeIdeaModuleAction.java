@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.actions.MakeGradleModuleAction;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
+import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
 
 /**
  * Builds a module belonging to an IDEA project that is not an Android-model-based project.
@@ -27,6 +33,41 @@ import com.intellij.openapi.project.Project;
 public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
   public MakeIdeaModuleAction() {
     super(new MakeModuleAction(), "Make Module(s)");
+  }
+
+  public static void updatePresentation(@NotNull AnActionEvent e, @NotNull Project project) {
+    DataContext dataContext = e.getDataContext();
+
+    Module[] modules = getModulesToBuildFromSelection(project, dataContext);
+    int moduleCount = modules.length;
+
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabled(moduleCount > 0);
+
+    String presentationText;
+    if (moduleCount > 0) {
+      String text = "Make Module";
+      if (moduleCount > 1) {
+        text += "s";
+      }
+      for (int i = 0; i < moduleCount; i++) {
+        if (text.length() > 30) {
+          text = "Make Selected Modules";
+          break;
+        }
+        Module toMake = modules[i];
+        if (i != 0) {
+          text += ",";
+        }
+        text += " '" + toMake.getName() + "'";
+      }
+      presentationText = text;
+    }
+    else {
+      presentationText = "Make";
+    }
+    presentation.setText(presentationText);
+    presentation.setVisible(moduleCount > 0 || !PROJECT_VIEW_POPUP.equals(e.getPlace()));
   }
 
   @Override
@@ -47,6 +88,6 @@ public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
     // MakeModuleAction#update throws an NPE when being wrapped by this action.
     // The method 'updatePresentation' does exactly the same thing as MakeModuleAction#update, but without throwing NPE for non-Gradle
     // projects.
-    MakeGradleModuleAction.updatePresentation(e, project);
+    updatePresentation(e, project);
   }
 }

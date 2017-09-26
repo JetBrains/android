@@ -16,18 +16,17 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Syncs project with Gradle, with an additional argument to refresh the linked C++ projects.
  */
 public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
-  public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
 
   public RefreshLinkedCppProjectsAction() {
     super("Refresh Linked C++ Projects");
@@ -35,7 +34,7 @@ public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+    project.putUserData(CommandLineArgs.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
     super.doPerform(e, project);
   }
 
