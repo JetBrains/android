@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -293,6 +294,12 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   protected NlActionManager createActionManager() {
     return new NlActionManager(this);
+  }
+
+  @NotNull
+  @Override
+  public NlActionManager getActionManager() {
+    return (NlActionManager)super.getActionManager();
   }
 
   @Override

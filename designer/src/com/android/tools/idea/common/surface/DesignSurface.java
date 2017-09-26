@@ -194,7 +194,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myInteractionManager.registerListeners();
     myActionManager = createActionManager();
-    myActionManager.registerActions(myLayeredPane);
+    myActionManager.registerActionsShorcuts(myLayeredPane);
   }
 
   // TODO: add self-type parameter DesignSurface?

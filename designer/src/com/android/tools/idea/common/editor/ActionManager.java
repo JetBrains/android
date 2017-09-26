@@ -41,7 +41,7 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  public abstract void registerActions(@NotNull JComponent component);
+  public abstract void registerActionsShorcuts(@NotNull JComponent component);
 
   protected static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
     action.registerCustomShortcutSet(
