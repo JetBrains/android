@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
@@ -40,19 +39,16 @@ import static org.mockito.Mockito.when;
  * Tests for {@link ActionTarget}
  */
 public class ActionTargetTest extends NavigationTestCase {
-  public void testSelect() throws Exception {
+  public void testSelect() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
-        fragmentComponent("fragment2")
-          .withLayoutAttribute("activity_main2"),
         fragmentComponent("fragment1")
-          .withLayoutAttribute("activity_main")
           .unboundedChildren(
             actionComponent("action1")
-              .withDestinationAttribute("fragment2")));
-    ModelBuilder modelBuilder = model("nav.xml", root);
-    SyncNlModel model = modelBuilder.build();
+              .withDestinationAttribute("fragment2")),
+        fragmentComponent("fragment2"));
+    SyncNlModel model = model("nav.xml", root).build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
     SceneView view = new NavView(surface, model);
     when(surface.getCurrentSceneView()).thenReturn(view);

@@ -20,7 +20,9 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -44,9 +46,18 @@ public abstract class NavigationTestCase extends AndroidTestCase {
   private CodeStyleSettings mySettings;
   private boolean myUseCustomSettings;
 
+  // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
+  // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
+  protected Disposable myRootDisposable;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    //noinspection Convert2Lambda
+    myRootDisposable = new Disposable() {
+      @Override
+      public void dispose() {}
+    };
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/java", "src");
     myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/res", "res");
     File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
@@ -71,6 +82,7 @@ public abstract class NavigationTestCase extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      Disposer.dispose(myRootDisposable);
       ThumbnailManager thumbnailManager = ThumbnailManager.getInstance(myFacet);
       if (thumbnailManager instanceof TestableThumbnailManager) {
         ((TestableThumbnailManager)thumbnailManager).deregister();
@@ -106,5 +118,4 @@ public abstract class NavigationTestCase extends AndroidTestCase {
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     return NavModelBuilderUtil.model(name, root, myFacet, myFixture);
   }
-
 }

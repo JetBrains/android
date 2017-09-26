@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.actions;
 
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -51,7 +53,7 @@ public class DragCreateActionTest extends NavigationTestCase {
 
     SceneComponent component = scene.getSceneComponent(FRAGMENT1);
 
-    dragFromActionHandle(interactionManager, component, component.getCenterX(), component.getCenterY());
+    dragFromActionHandle(interactionManager, component, component.getCenterX(), component.getCenterY(), surface.getCurrentSceneView());
 
     String expected = "NlComponent{tag=<navigation>, instance=0}\n" +
                       "    NlComponent{tag=<fragment>, instance=1}\n" +
@@ -72,7 +74,8 @@ public class DragCreateActionTest extends NavigationTestCase {
     InteractionManager interactionManager = initializeInteractionManager(surface);
 
     SceneComponent component = scene.getSceneComponent(FRAGMENT2);
-    dragFromActionHandle(interactionManager, scene.getSceneComponent(FRAGMENT1), component.getCenterX(), component.getCenterY());
+    dragFromActionHandle(interactionManager, scene.getSceneComponent(FRAGMENT1), component.getCenterX(), component.getCenterY(),
+                         surface.getCurrentSceneView());
 
     String expected = "NlComponent{tag=<navigation>, instance=0}\n" +
                       "    NlComponent{tag=<fragment>, instance=1}\n" +
@@ -102,7 +105,8 @@ public class DragCreateActionTest extends NavigationTestCase {
     assertTrue(rootRect.y < componentRect.y);
 
     // drag release to a point over the root and verify no action is created
-    dragFromActionHandle(interactionManager, component, component.getCenterX(), (rootRect.y + componentRect.y) / 2 );
+    dragFromActionHandle(interactionManager, component, component.getCenterX(), (rootRect.y + componentRect.y) / 2,
+                         surface.getCurrentSceneView());
 
     String expected = "NlComponent{tag=<navigation>, instance=0}\n" +
                       "    NlComponent{tag=<fragment>, instance=1}";
@@ -130,10 +134,15 @@ public class DragCreateActionTest extends NavigationTestCase {
     return interactionManager;
   }
 
-  private static void dragFromActionHandle(InteractionManager interactionManager, SceneComponent component, int x, int y) {
-    Rectangle rect = component.fillRect(null);
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, rect.x + rect.width, component.getCenterY(), 0);
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, x, y, 0);
+  private static void dragFromActionHandle(InteractionManager interactionManager,
+                                           SceneComponent component,
+                                           @AndroidDpCoordinate int x,
+                                           @AndroidDpCoordinate int y,
+                                           SceneView view) {
+    Rectangle rect = Coordinates.getSwingRectDip(view, component.fillRect(null));
+    LayoutTestUtilities
+      .pressMouse(interactionManager, BUTTON1, rect.x + rect.width, Coordinates.getSwingYDip(view, component.getCenterY()), 0);
+    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y), 0);
   }
 
   private static void verifyModel(SyncNlModel model, String expected) {

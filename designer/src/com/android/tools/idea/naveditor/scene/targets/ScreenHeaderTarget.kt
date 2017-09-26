@@ -96,6 +96,6 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
     // TODO: finalize values for the following constants
     private const val FONT_NAME: String = "Default"
     private const val FONT_STYLE = Font.PLAIN
-    private const val FONT_SIZE = 8
+    private const val FONT_SIZE = 11
   }
 }

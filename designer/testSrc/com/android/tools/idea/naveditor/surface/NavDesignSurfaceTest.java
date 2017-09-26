@@ -40,8 +40,8 @@ import static org.mockito.Mockito.*;
  */
 public class NavDesignSurfaceTest extends NavigationTestCase {
 
-  public void testComponentActivated() throws Exception {
-    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+  public void testComponentActivated() {
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -60,8 +60,8 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     assertEquals("activity_main2.xml", editorManager.getOpenFiles()[0].getName());
   }
 
-  public void testNoLayoutComponentActivated() throws Exception {
-    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+  public void testNoLayoutComponentActivated() {
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -78,8 +78,8 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     assertEquals("BlankFragment.java", editorManager.getOpenFiles()[0].getName());
   }
 
-  public void testSubflowActivated() throws Exception {
-    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+  public void testSubflowActivated() {
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
         fragmentComponent("fragment1"),
@@ -93,7 +93,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     assertEquals(subnav, surface.getCurrentNavigation());
   }
 
-  public void testDoubleClickFragment() throws Exception {
+  public void testDoubleClickFragment() {
     SyncNlModel model = model("nav.xml", rootComponent()
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -113,7 +113,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     surface.getScene().layout(0, SceneContext.get(view));
     SceneComponent fragment = surface.getScene().getSceneComponent("fragment1");
     int x = Coordinates.getSwingXDip(view, fragment.getDrawX()) + 5;
-    int y = Coordinates.getSwingXDip(view, fragment.getDrawY()) + 5;
+    int y = Coordinates.getSwingYDip(view, fragment.getDrawY()) + 5;
     LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0);
 
     verify(surface).notifyComponentActivate(eq(fragment.getNlComponent()), anyInt(), anyInt());

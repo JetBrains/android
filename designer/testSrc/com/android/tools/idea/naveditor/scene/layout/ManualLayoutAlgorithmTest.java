@@ -20,8 +20,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.intellij.openapi.application.ActionsKt;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -176,7 +174,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
                               rootComponent().id("@+id/nav").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"))).build();
-    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
     surface.setModel(model);
     SceneComponent component = surface.getScene().getSceneComponent("fragment1");
     component.setPosition(100, 200);
@@ -191,7 +189,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     model = model("nav.xml", rootComponent().id("@+id/nav").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"))).build();
-    surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface = new NavDesignSurface(getProject(), myRootDisposable);
     surface.setModel(model);
     component = surface.getScene().getSceneComponent("fragment1");
     algorithm = new ManualLayoutAlgorithm(model.getModule());

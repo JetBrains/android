@@ -142,8 +142,8 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static Rectangle getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle rect) {
-    return new Rectangle(getSwingX(view, rect.x), getSwingY(view, rect.y),
-                         getSwingDimension(view, rect.width), getSwingDimension(view, rect.height));
+    return new Rectangle(getSwingXDip(view, rect.x), getSwingYDip(view, rect.y),
+                         getSwingDimensionDip(view, rect.width), getSwingDimensionDip(view, rect.height));
   }
 
   /**

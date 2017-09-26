@@ -64,7 +64,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
                       navigationComponent("subnav")
                         .unboundedChildren(fragmentComponent("fragment2"))))
       .build();
-    mySurface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    mySurface = new NavDesignSurface(getProject(), myRootDisposable);
     mySurface.setSize(1000, 1000);
     mySurface.setModel(myModel);
     myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());

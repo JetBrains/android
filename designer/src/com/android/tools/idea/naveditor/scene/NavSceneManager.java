@@ -110,7 +110,21 @@ public class NavSceneManager extends SceneManager {
           State state = getModel().getConfiguration().getDeviceState();
           assert state != null;
           Screen screen = state.getHardware().getScreen();
-          sceneComponent.setSize(screen.getXDimension() / 4, screen.getYDimension() / 4, true);
+          int x = 300;
+          int y = 300;
+          double ratio = screen.getXDimension() / (double)screen.getYDimension();
+          if (ratio > 1) {
+            y /= ratio;
+          }
+          else {
+            x *= ratio;
+          }
+          if (ratio < 1.1 && ratio > 0.9) {
+            // If it's approximately square make it smaller, otherwise it takes up too much space.
+            x *= 0.5;
+            y *= 0.5;
+          }
+          sceneComponent.setSize(x, y, true);
           break;
         default:
           // nothing
