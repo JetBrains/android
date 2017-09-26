@@ -39,20 +39,17 @@ import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.JBMenuItem;
-import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -60,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -95,9 +93,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private final CategoryList myCategoryList;
   private final ItemList myItemList;
   private final AddToDesignAction myAddToDesignAction;
-  private final AndroidDocAction myAndroidDocAction;
+  private final ComponentHelpAction myAndroidDocAction;
   private final MaterialDocAction myMaterialDocAction;
-  private final JPopupMenu myItemMenu;
+  private final ActionGroup myActionGroup;
   private final KeyListener myFilterKeyListener;
 
   private DesignSurface myDesignSurface;
@@ -107,11 +105,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private Palette.Group myLastSelectedGroup;
 
   public PalettePanel(@NotNull Project project) {
-    this(project, new DependencyManager(project), new JBPopupMenu());
+    this(project, new DependencyManager(project));
   }
 
   @VisibleForTesting
-  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager, @NotNull JPopupMenu itemPopupMenu) {
+  PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
     super(new BorderLayout());
     myDependencyManager = dependencyManager;
     myDependencyManager.registerDependencyUpdates(this, this);
@@ -121,9 +119,9 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     myCategoryList = new CategoryList();
     myItemList = new ItemList(myDependencyManager);
     myAddToDesignAction = new AddToDesignAction();
-    myAndroidDocAction = new AndroidDocAction(project);
+    myAndroidDocAction = new ComponentHelpAction(project, this::getSelectedTagName);
     myMaterialDocAction = new MaterialDocAction();
-    myItemMenu = addItemPopupMenuItems(itemPopupMenu);
+    myActionGroup = createPopupActionGroup();
 
     myCategoryList.setBackground(UIUtil.getPanelBackground());
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
@@ -159,6 +157,26 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
     myLayoutType = NlLayoutType.UNKNOWN;
     myLastSelectedGroup = DataModel.COMMON;
+  }
+
+  @NotNull
+  @TestOnly
+  AnAction getAddToDesignAction() {
+    //noinspection ReturnOfInnerClass
+    return myAddToDesignAction;
+  }
+
+  @NotNull
+  @TestOnly
+  AnAction getAndroidDocAction() {
+    return myAndroidDocAction;
+  }
+
+  @NotNull
+  @TestOnly
+  AnAction getMaterialDocAction() {
+    //noinspection ReturnOfInnerClass
+    return myMaterialDocAction;
   }
 
   @NotNull
@@ -206,17 +224,8 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
 
       private void showPopupMenu(@NotNull MouseEvent event) {
         myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
-        updateMenu();
-        myItemMenu.show(myItemList, event.getX(), event.getY());
-      }
-
-      private void updateMenu() {
-        for (MenuElement element : myItemMenu.getSubElements()) {
-          if (element instanceof JMenuItem) {
-            JMenuItem item = (JMenuItem)element;
-            item.setEnabled(item.getAction().isEnabled());
-          }
-        }
+        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, myActionGroup);
+        popupMenu.getComponent().show(myItemList, event.getX(), event.getY());
       }
     };
   }
@@ -234,27 +243,35 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   }
 
   private void registerKeyboardActions() {
-    myItemList.registerKeyboardAction(event -> myAddToDesignAction.actionPerformed(null),
+    myItemList.registerKeyboardAction(event -> keyboardActionPerformed(event, myAddToDesignAction),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-    myItemList.registerKeyboardAction(event -> myAndroidDocAction.actionPerformed(null),
+    myItemList.registerKeyboardAction(event -> keyboardActionPerformed(event, myAndroidDocAction),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK),
                                       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+  }
 
-    myAddToDesignAction.putValue(Action.ACCELERATOR_KEY,
-                                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-    myAndroidDocAction.putValue(Action.ACCELERATOR_KEY,
-                                KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK));
+  private void keyboardActionPerformed(@NotNull ActionEvent event, @NotNull AnAction action) {
+    DataContext dataContext = DataManager.getInstance().getDataContext(this);
+    InputEvent inputEvent = event.getSource() instanceof InputEvent ? (InputEvent)event.getSource() : null;
+    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext));
   }
 
   @NotNull
-  private JPopupMenu addItemPopupMenuItems(@NotNull JPopupMenu menu) {
-    menu.add(new JBMenuItem(myAddToDesignAction));
-    menu.addSeparator();
-    menu.add(new JBMenuItem(myAndroidDocAction));
-    menu.add(new JBMenuItem(myMaterialDocAction));
-    return menu;
+  private ActionGroup createPopupActionGroup() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(myAddToDesignAction);
+    group.addSeparator();
+    group.add(myAndroidDocAction);
+    group.add(myMaterialDocAction);
+    return group;
+  }
+
+  @Nullable
+  private String getSelectedTagName() {
+    Palette.Item item = myItemList.getSelectedValue();
+    return item != null ? item.getTagName() : null;
   }
 
   private static int getInitialCategoryWidth() {
@@ -509,20 +526,21 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
   }
 
-  private class AddToDesignAction extends AbstractAction {
+  private class AddToDesignAction extends AnAction {
 
     public AddToDesignAction() {
       super("Add to Design");
+      setShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)));
     }
 
     @Override
-    public void actionPerformed(@Nullable ActionEvent event) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
       addComponentToModel(false /* checkOnly */);
     }
 
     @Override
-    public boolean isEnabled() {
-      return addComponentToModel(true /* checkOnly */);
+    public void update(@NotNull AnActionEvent event) {
+      event.getPresentation().setEnabled(addComponentToModel(true /* checkOnly */));
     }
 
     private boolean addComponentToModel(boolean checkOnly) {
@@ -562,27 +580,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
   }
 
-  private class AndroidDocAction extends AbstractAction {
-    private AnAction myHelpAction;
-
-    private AndroidDocAction(@NotNull Project project) {
-      super("Android Documentation");
-      myHelpAction = new ComponentHelpAction(project, this::getSelectedTagName);
-    }
-
-    @Nullable
-    private String getSelectedTagName() {
-      Palette.Item item = myItemList.getSelectedValue();
-      return item != null ? item.getTagName() : null;
-    }
-
-    @Override
-    public void actionPerformed(@Nullable ActionEvent event) {
-      myHelpAction.actionPerformed(null);
-    }
-  }
-
-  private class MaterialDocAction extends AbstractAction {
+  private class MaterialDocAction extends AnAction {
     private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
 
     public MaterialDocAction() {
@@ -590,7 +588,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
 
     @Override
-    public void actionPerformed(@Nullable ActionEvent event) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
       String reference = getReference();
       if (!reference.isEmpty()) {
         BrowserUtil.browse(reference);
@@ -598,8 +596,8 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     }
 
     @Override
-    public boolean isEnabled() {
-      return !getReference().isEmpty();
+    public void update(@NotNull AnActionEvent event) {
+      event.getPresentation().setEnabled(!getReference().isEmpty());
     }
 
     private String getReference() {
