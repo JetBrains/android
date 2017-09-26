@@ -309,6 +309,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void dispose() {
     // This takes care of disposing any existing layers
     setLayers(ImmutableList.of());
+    myInteractionManager.unregisterListeners();
   }
 
   /**
@@ -614,10 +615,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
     }
-    else if (scale > 10) {
-      scale = 10;
-    }
-    myScale = Math.max(scale, getMinScale());
+    myScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
 
     Dimension oldSize = myScrollPane.getViewport().getViewSize();
     Point viewPortTargetCoordinates;
@@ -653,6 +651,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   protected double getMinScale() {
     return 0;
+  }
+
+  /**
+   * The maximum scale we'll allow.
+   */
+  protected double getMaxScale() {
+    return 1;
   }
 
   private void notifyScaleChanged() {

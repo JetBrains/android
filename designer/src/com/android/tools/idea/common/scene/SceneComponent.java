@@ -78,10 +78,10 @@ public class SceneComponent {
 
   private ArrayList<Target> myTargets = new ArrayList<>();
 
-  private int myCurrentLeft = 0;
-  private int myCurrentTop = 0;
-  private int myCurrentRight = 0;
-  private int myCurrentBottom = 0;
+  @AndroidDpCoordinate private int myCurrentLeft = 0;
+  @AndroidDpCoordinate private int myCurrentTop = 0;
+  @AndroidDpCoordinate private int myCurrentRight = 0;
+  @AndroidDpCoordinate private int myCurrentBottom = 0;
 
   private boolean myShowBaseline = false;
 
@@ -767,7 +767,8 @@ public class SceneComponent {
     return needsRebuildDisplayList;
   }
 
-  public Rectangle fillRect(@Nullable Rectangle rectangle) {
+  @AndroidDpCoordinate
+  public Rectangle fillRect(@AndroidDpCoordinate @Nullable Rectangle rectangle) {
     if (rectangle == null) {
       rectangle = new Rectangle();
     }

@@ -51,7 +51,19 @@ public class LevelTest extends NavigationTestCase {
   private InteractionManager myInteractionManager;
   private SceneView mySceneView;
 
-  public void testLevels() throws Exception {
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myInteractionManager != null) {
+        myInteractionManager.unregisterListeners();
+      }
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testLevels() {
     ComponentDescriptor root = rootComponent()
       .unboundedChildren(
         fragmentComponent("fragment1"),
@@ -73,11 +85,11 @@ public class LevelTest extends NavigationTestCase {
     SceneComponent component1 = scene.getSceneComponent("fragment1");
     SceneComponent component2 = scene.getSceneComponent("fragment2");
 
-    @AndroidDpCoordinate int x1 = component1.getDrawX() + component1.getDrawWidth() / 2;
-    @AndroidDpCoordinate int y1 = component1.getDrawY() + component1.getDrawHeight() / 2;
+    @AndroidDpCoordinate int x1 = component1.getCenterX();
+    @AndroidDpCoordinate int y1 = component1.getCenterY();
 
-    @AndroidDpCoordinate int x2 = component2.getDrawX() + component2.getDrawWidth() / 2;
-    @AndroidDpCoordinate int y2 = component2.getDrawY() + component2.getDrawHeight() / 2;
+    @AndroidDpCoordinate int x2 = component2.getCenterX();
+    @AndroidDpCoordinate int y2 = component2.getCenterY();
 
     checkSelections(x1, y1, x2, y2, component1, component2);
 
@@ -85,8 +97,6 @@ public class LevelTest extends NavigationTestCase {
     x2 = component2.getDrawX() + component2.getDrawWidth();
 
     checkSelections(x1, y1, x2, y2, component1, component2);
-
-    myInteractionManager.unregisterListeners();
   }
 
   private void checkSelections(@AndroidDpCoordinate int x1,
@@ -111,7 +121,9 @@ public class LevelTest extends NavigationTestCase {
                                    Coordinates.getSwingYDip(mySceneView, y), 0);
 
     LayoutTestUtilities.dragMouse(myInteractionManager, x, y, x + DRAG, y + DRAG, 0);
+    mySceneView.getScene().layout(0, SceneContext.get());
     LayoutTestUtilities.dragMouse(myInteractionManager, x + DRAG, y + DRAG, x, y, 0);
+    mySceneView.getScene().layout(0, SceneContext.get());
   }
 
   private void mouseUp(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {

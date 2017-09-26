@@ -52,8 +52,7 @@ public class NavModelBuilderUtil {
     };
 
     return new ModelBuilder(facet, fixture, name, root, managerFactory,
-                            NavSceneManager::updateHierarchy, "navigation", NavDesignSurface.class,
-                            (tag, model) -> new NlComponent(model, tag));
+                            NavSceneManager::updateHierarchy, "navigation", NavDesignSurface.class);
   }
 
   @NotNull

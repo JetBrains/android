@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
  */
 public class ScreenDragTargetTest extends NavigationTestCase {
 
-  public void testMove() throws Exception {
+  public void testMove() {
     ComponentDescriptor root = rootComponent()
       .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
@@ -63,20 +63,24 @@ public class ScreenDragTargetTest extends NavigationTestCase {
 
     SceneComponent component = scene.getSceneComponent("fragment1");
     InteractionManager interactionManager = new InteractionManager(surface);
-    interactionManager.registerListeners();
+    try {
+      interactionManager.registerListeners();
 
-    @AndroidDpCoordinate int x = component.getDrawX();
-    @AndroidDpCoordinate int y = component.getDrawY();
+      @AndroidDpCoordinate int x = component.getDrawX();
+      @AndroidDpCoordinate int y = component.getDrawY();
 
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 10),
-                                   Coordinates.getSwingYDip(view, y + 10), 0);
-    LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y),
-                                  Coordinates.getSwingXDip(view, x + 30), Coordinates.getSwingYDip(view, y + 40), 0);
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 30),
-                                     Coordinates.getSwingYDip(view, y + 40), 0);
+      LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 10),
+                                     Coordinates.getSwingYDip(view, y + 10), 0);
+      LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y),
+                                    Coordinates.getSwingXDip(view, x + 30), Coordinates.getSwingYDip(view, y + 40), 0);
+      LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 30),
+                                       Coordinates.getSwingYDip(view, y + 40), 0);
 
-    assertEquals(x + 20, component.getDrawX());
-    assertEquals(y + 30, component.getDrawY());
-    interactionManager.unregisterListeners();
+      assertEquals(x + 20, component.getDrawX());
+      assertEquals(y + 30, component.getDrawY());
+    }
+    finally {
+      interactionManager.unregisterListeners();
+    }
   }
 }

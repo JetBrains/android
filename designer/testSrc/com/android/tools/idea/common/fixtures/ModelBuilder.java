@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
@@ -48,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.DOT_XML;
@@ -71,7 +71,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
-  private final BiFunction<XmlTag, NlModel, NlComponent> myComponentFactory;
+  private Device myDevice;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull JavaCodeInsightTestFixture fixture,
@@ -80,8 +80,7 @@ public class ModelBuilder {
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
-                      @NotNull Class<? extends DesignSurface> surfaceClass,
-                      @NotNull BiFunction<XmlTag, NlModel, NlComponent> componentFactory) {
+                      @NotNull Class<? extends DesignSurface> surfaceClass) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
@@ -91,7 +90,6 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
-    myComponentFactory = componentFactory;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -127,6 +125,11 @@ public class ModelBuilder {
                                           @AndroidCoordinate int width,
                                           @AndroidCoordinate int height) {
     return myRoot.findByBounds(x, y, width, height);
+  }
+
+  public ModelBuilder setDevice(@NotNull Device device) {
+    myDevice = device;
+    return this;
   }
 
   public SyncNlModel build() {
@@ -168,6 +171,9 @@ public class ModelBuilder {
       SelectionModel selectionModel = surface.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getSceneManager()).thenReturn(sceneManager);
+      if (myDevice != null) {
+        model.getConfiguration().setDevice(myDevice, true);
+      }
       Scene scene = sceneManager.build();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);

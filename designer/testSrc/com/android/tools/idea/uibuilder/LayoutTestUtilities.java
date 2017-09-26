@@ -24,7 +24,6 @@ import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -63,7 +62,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
-  public static void dragMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
+  public static void dragMouse(InteractionManager manager,
+                               @SwingCoordinate int x1,
+                               @SwingCoordinate int y1,
+                               @SwingCoordinate int x2,
+                               @SwingCoordinate int y2,
+                               int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
@@ -86,7 +90,7 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void pressMouse(InteractionManager manager, int button, int x, int y, int modifiers) {
+  public static void pressMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -99,7 +103,7 @@ public class LayoutTestUtilities {
                                  .build());
   }
 
-  public static void releaseMouse(InteractionManager manager, int button, int x, int y, int modifiers) {
+  public static void releaseMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -111,7 +115,12 @@ public class LayoutTestUtilities {
                                   .withId(MouseEvent.MOUSE_RELEASED).build());
   }
 
-  public static void clickMouse(InteractionManager manager, int button, int count, int x, int y, int modifiers) {
+  public static void clickMouse(InteractionManager manager,
+                                int button,
+                                int count,
+                                @SwingCoordinate int x,
+                                @SwingCoordinate int y,
+                                int modifiers) {
     JComponent layeredPane = manager.getSurface().getLayeredPane();
     for (int i = 0; i < count; i++) {
       pressMouse(manager, button, x, y, modifiers);
@@ -132,11 +141,22 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void dragDrop(InteractionManager manager, int x1, int y1, int x2, int y2, Transferable transferable) {
+  public static void dragDrop(InteractionManager manager,
+                              @SwingCoordinate int x1,
+                              @SwingCoordinate int y1,
+                              @SwingCoordinate int x2,
+                              @SwingCoordinate int y2,
+                              Transferable transferable) {
     dragDrop(manager, x1, y1, x2, y2, transferable, DnDConstants.ACTION_COPY);
   }
 
-  public static void dragDrop(InteractionManager manager, int x1, int y1, int x2, int y2, Transferable transferable, int dropAction) {
+  public static void dragDrop(InteractionManager manager,
+                              @SwingCoordinate int x1,
+                              @SwingCoordinate int y1,
+                              @SwingCoordinate int x2,
+                              @SwingCoordinate int y2,
+                              Transferable transferable,
+                              int dropAction) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof DropTargetListener);
     DropTargetListener dropListener = (DropTargetListener)listener;

@@ -86,7 +86,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model),
-                            "layout", NlDesignSurface.class, LayoutTestCase::createComponent);
+                            "layout", NlDesignSurface.class);
   }
 
   private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
@@ -122,12 +122,5 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
-  }
-  @NotNull
-  @VisibleForTesting
-  private static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
-    NlComponent result = new NlComponent(model, tag);
-    NlComponentHelper.INSTANCE.registerComponent(result);
-    return result;
   }
 }

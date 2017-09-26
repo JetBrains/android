@@ -635,6 +635,11 @@ public class NlDesignSurface extends DesignSurface {
     return Math.min(getFitScale(false), 1);
   }
 
+  @Override
+  protected double getMaxScale() {
+    return 10;
+  }
+
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   @Nullable
   @Override

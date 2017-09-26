@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.NavigationGradleTestCase;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -49,9 +50,10 @@ public class ThumbnailManagerGradleTest extends NavigationGradleTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(getTestRootDisposable(), myAndroidFacet, psiFile);
+    NlModel model = NlModel.create(null, myAndroidFacet, psiFile);
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image.getCopy(), MAX_PERCENT_DIFFERENT);
+    Disposer.dispose(model);
   }
 }

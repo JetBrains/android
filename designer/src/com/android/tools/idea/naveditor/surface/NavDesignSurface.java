@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -44,6 +45,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -254,6 +256,14 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   protected int getContentOriginY() {
     return 0;
+  }
+
+  @Override
+  protected double getMaxScale() {
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      return 0.5;
+    }
+    return 1;
   }
 
   @Override
