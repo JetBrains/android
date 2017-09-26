@@ -19,13 +19,19 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
+import com.google.common.collect.Lists;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * The Palette UI will interact exclusively with this data model.
@@ -37,21 +43,27 @@ public class DataModel {
   public static final Palette.Group COMMON = new Palette.Group("Common");
   @VisibleForTesting
   public static final Palette.Group RESULTS = new Palette.Group("All Results");
+  @VisibleForTesting
+  public static final String FAVORITE_ITEMS = "Palette.Favorite.items";
 
   private final CategoryListModel myListModel;
   private final ItemListModel myItemModel;
   private final ItemFilter myItemFilter;
   private final DependencyManager myDependencyManager;
+  private final List<String> myFavoriteItems;
   private NlLayoutType myLayoutType;
   private Palette myPalette;
+  private Palette.Group myCurrentSelectedGroup;
 
   public DataModel(@NotNull DependencyManager dependencyManager) {
     myListModel = new CategoryListModel();
     myItemModel = new ItemListModel();
     myItemFilter = new ItemFilter();
+    myFavoriteItems = readFavoriteItems();
     myDependencyManager = dependencyManager;
     myLayoutType = NlLayoutType.UNKNOWN;
     myPalette = Palette.EMPTY;
+    myCurrentSelectedGroup = COMMON;
   }
 
   @NotNull
@@ -99,6 +111,47 @@ public class DataModel {
     else {
       createFilteredItems(selectedGroup);
     }
+    myCurrentSelectedGroup = selectedGroup;
+  }
+
+  public boolean isFavoriteItem(@NotNull Palette.Item item) {
+    return myFavoriteItems.contains(item.getId());
+  }
+
+  public void addFavoriteItem(@NotNull Palette.Item item) {
+    if (myFavoriteItems.contains(item.getId())) {
+      return;
+    }
+    myFavoriteItems.add(item.getId());
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, myFavoriteItems.toArray(new String[myFavoriteItems.size()]));
+    update();
+  }
+
+  public void removeFavoriteItem(@NotNull Palette.Item item) {
+    if (!myFavoriteItems.contains(item.getId())) {
+      return;
+    }
+    myFavoriteItems.remove(item.getId());
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, myFavoriteItems.toArray(new String[myFavoriteItems.size()]));
+    update();
+    if (myCurrentSelectedGroup == COMMON) {
+      createUnFilteredItems(COMMON);
+    }
+  }
+
+  @NotNull
+  @TestOnly
+  Palette getPalette() {
+    return myPalette;
+  }
+
+  @NotNull
+  private static List<String> readFavoriteItems() {
+    String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
+    if (favorites == null) {
+      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW};
+    }
+    return Lists.newArrayList(favorites);
   }
 
   private void update() {
@@ -175,11 +228,12 @@ public class DataModel {
       myPalette.accept(items::add);
     }
     else {
-      myPalette.accept(item -> {
-        if (item.isSuggested()) {
+      for (String id : myFavoriteItems) {
+        Palette.Item item = myPalette.getItemById(id);
+        if (item != null) {
           items.add(item);
         }
-      });
+      }
     }
     updateItemModel(items);
   }

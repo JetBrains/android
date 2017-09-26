@@ -282,6 +282,7 @@
     <item tag="LinearLayout"
           title="LinearLayout (vertical)"
           suggested="true"
+          id="VerticalLinearLayout"
           icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT">
       <xml>
         <![CDATA[
@@ -310,8 +311,7 @@
     <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
     <item tag="android.support.v4.view.ViewPager"/>
     <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
-    <item tag="android.support.v4.view.ViewPager"
-          title="Tabs"/>
+    <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
     <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
     <item tag="android.support.design.widget.NavigationView" suggested="true"/>
     <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>

@@ -248,6 +248,7 @@ public class NlPaletteModel implements Disposable {
     else {
       handler = new CustomViewHandler(handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate, preferredProperty, properties);
     }
+    manager.registerHandler(tagName, handler);
 
     List<Palette.BaseItem> groups = palette.getItems();
     Palette.Group group = groups.stream()
@@ -260,11 +261,10 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
-    Palette.Item item = new Palette.Item(tagName, handler);
+    Palette.Item item = new Palette.Item(tagName);
     group.getItems().add(item);
-    item.resolve();
+    item.setUp(palette, manager);
     item.setParent(group);
-    manager.registerHandler(tagName, handler);
     return true;
   }
 

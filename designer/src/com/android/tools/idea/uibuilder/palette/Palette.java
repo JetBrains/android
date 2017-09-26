@@ -52,9 +52,12 @@ public class Palette {
 
   private final Set<String> myGradleCoordinateIds;
 
+  private final Map<String, Item> myItemsById;
+
   private Palette() {
     myItems = new ArrayList<>();
     myGradleCoordinateIds = new HashSet<>();
+    myItemsById = new HashMap<>();
   }
 
   /**
@@ -62,9 +65,7 @@ public class Palette {
    */
   public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
-    palette.accept(Item::resolve);
-    palette.accept(item -> item.initHandler(manager));
-    palette.accept(item -> item.addGradleCoordinateId(palette.myGradleCoordinateIds));
+    palette.accept(item -> item.setUp(palette, manager));
     palette.setParentGroups();
     return palette;
   }
@@ -85,6 +86,11 @@ public class Palette {
   @NotNull
   public List<BaseItem> getItems() {
     return myItems;
+  }
+
+  @Nullable
+  public Item getItemById(@NotNull String id) {
+    return myItemsById.get(id);
   }
 
   @NotNull
@@ -275,9 +281,8 @@ public class Palette {
     private Item() {
     }
 
-    public Item(@NotNull String tagName, @NotNull PaletteComponentHandler handler) {
+    public Item(@NotNull String tagName) {
       myTagName = tagName;
-      myHandler = handler;
     }
 
     @NotNull
@@ -385,7 +390,14 @@ public class Palette {
       visitor.visit(this);
     }
 
-    void resolve() {
+    void setUp(@NotNull Palette palette, @NotNull ViewHandlerManager manager) {
+      resolve();
+      initHandler(manager);
+      addGradleCoordinateId(palette.myGradleCoordinateIds);
+      palette.myItemsById.put(getId(), this);
+    }
+
+    private void resolve() {
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
         if (myDragPreviewXml == null && myXmlValuePart.reuseForDragPreview()) {

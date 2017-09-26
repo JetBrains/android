@@ -33,7 +33,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.google.common.truth.Truth.assertThat;
@@ -135,6 +137,20 @@ public class NlPaletteModelTest extends AndroidTestCase {
                                         "    android:layout_height=\"wrap_content\" />\n");
     assertThat(item.getMetaTags()).isEmpty();
     assertThat(item.getParent()).isEqualTo(projectComponents);
+  }
+
+  public void testIdsAreUnique() {
+    checkIdsAreUniqueInPalette(NlLayoutType.LAYOUT);
+    checkIdsAreUniqueInPalette(NlLayoutType.MENU);
+    checkIdsAreUniqueInPalette(NlLayoutType.PREFERENCE_SCREEN);
+    checkIdsAreUniqueInPalette(NlLayoutType.STATE_LIST);
+  }
+
+  private void checkIdsAreUniqueInPalette(@NotNull NlLayoutType layoutType) {
+    Palette palette = model.getPalette(layoutType);
+    Set<String> ids = new HashSet<>();
+    palette.accept(item -> assertTrue("ID is not unique: " + item.getId() + " with layoutType: " + layoutType, ids.add(item.getId())));
+    assertThat(ids).isNotEmpty();
   }
 
   @Nullable
