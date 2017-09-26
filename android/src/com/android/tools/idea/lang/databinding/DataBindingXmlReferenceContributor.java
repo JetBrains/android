@@ -55,7 +55,6 @@ import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.
  * For references in DataBinding expressions. For references in {@code <data>} tag, see {@link DataBindingVariableTypeConverter}.
  */
 public class DataBindingXmlReferenceContributor extends PsiReferenceContributor {
-
   @Nullable
   public static DataBindingInfo getDataBindingInfo(PsiElement element) {
     DataBindingInfo dataBindingInfo = null;
@@ -82,8 +81,8 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       @NotNull
       @Override
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
-        PsiDbId id = (PsiDbId) element;
-        final String text = element.getText();
+        PsiDbId id = (PsiDbId)element;
+        String text = element.getText();
         if (text == null) {
           return PsiReference.EMPTY_ARRAY;
         }
@@ -113,18 +112,18 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
         }
         for (PsiDataBindingResourceItem variable : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE)) {
           if (text.equals(variable.getName())) {
-            final XmlTag xmlTag = variable.getXmlTag();
+            XmlTag xmlTag = variable.getXmlTag();
             return toArray(new VariableDefinitionReference(id, xmlTag, variable, dataBindingInfo, module));
           }
         }
         for (PsiDataBindingResourceItem anImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
           if (text.equals(DataBindingUtil.getAlias(anImport))) {
-            final XmlTag xmlTag = anImport.getXmlTag();
+            XmlTag xmlTag = anImport.getXmlTag();
             return toArray(new ImportDefinitionReference(id, xmlTag, anImport, module));
           }
         }
         JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(id.getProject());
-        if (text.indexOf('.') == -1) {
+        if (text.indexOf('.') < 0) {
           PsiClass langClass = javaPsiFacade.findClass(JAVA_LANG + text, GlobalSearchScope.moduleWithLibrariesScope(module));
           if (langClass != null) {
             return toArray(new ClassDefinitionReference(id, langClass));
@@ -142,19 +141,19 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       @NotNull
       @Override
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
-        PsiDbRefExpr dotExpr = (PsiDbRefExpr)element;
+        PsiDbRefExpr refExpr = (PsiDbRefExpr)element;
 
-        PsiDbExpr ownerExpr = dotExpr.getExpr();
-        if (ownerExpr == null) {
+        PsiDbExpr qualifierExpr = refExpr.getExpr();
+        if (qualifierExpr == null) {
           return PsiReference.EMPTY_ARRAY;
         }
-        ResolvesToModelClass ref = resolveClassReference(ownerExpr);
+        ResolvesToModelClass ref = resolveClassReference(qualifierExpr);
         PsiModelClass psiModelClass = resolveClassType(ref);
         if (psiModelClass == null) {
-          PsiReference[] references = ownerExpr.getReferences();
+          PsiReference[] references = qualifierExpr.getReferences();
 
           if (references.length > 0) {
-            String fieldText = dotExpr.getId().getText();
+            String fieldText = refExpr.getId().getText();
             Module module = ModuleUtilCore.findModuleForPsiElement(element);
             if (module == null || StringUtil.isEmpty(fieldText)) {
               return PsiReference.EMPTY_ARRAY;
@@ -183,9 +182,10 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
                 }
               }
             }
-          } return PsiReference.EMPTY_ARRAY;
+          }
+          return PsiReference.EMPTY_ARRAY;
         }
-        PsiDbId fieldName = dotExpr.getId();
+        PsiDbId fieldName = refExpr.getId();
         String fieldText = fieldName.getText();
         if (StringUtil.isEmpty(fieldText)) {
           return PsiReference.EMPTY_ARRAY;
@@ -202,12 +202,12 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           if (getterOrField.type.equals(Callable.Type.METHOD)) {
             PsiMethod[] methodsByName = psiClass.findMethodsByName(getterOrField.name, true);
             if (methodsByName.length > 0) {
-              return toArray(new PsiMethodReference(dotExpr, methodsByName[0]));
+              return toArray(new PsiMethodReference(refExpr, methodsByName[0]));
             }
           } else if (getterOrField.type.equals(Callable.Type.FIELD)) {
             PsiField fieldsByName = psiClass.findFieldByName(getterOrField.name, true);
             if (fieldsByName != null) {
-              return toArray(new PsiFieldReference(dotExpr, fieldsByName));
+              return toArray(new PsiFieldReference(refExpr, fieldsByName));
             }
           }
         }
@@ -230,19 +230,19 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       @NotNull
       @Override
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
-        PsiDbCallExpr methodExpr = (PsiDbCallExpr)element;
-        PsiDbExpr ownerExpr = methodExpr.getRefExpr().getExpr();
-        if (ownerExpr == null) {
+        PsiDbCallExpr callExpr = (PsiDbCallExpr)element;
+        PsiDbExpr receiverExpr = callExpr.getRefExpr().getExpr();
+        if (receiverExpr == null) {
           return PsiReference.EMPTY_ARRAY;
         }
-        PsiModelClass psiModelClass = resolveClassType(resolveClassReference(ownerExpr));
+        PsiModelClass psiModelClass = resolveClassType(resolveClassReference(receiverExpr));
         if (psiModelClass == null) {
           return PsiReference.EMPTY_ARRAY;
         }
         // TODO we need to do this incrementally. e.g. find a method then a method which matches all params
         List<ModelClass> args = new ArrayList<>();
         boolean hasInvalidArg = false;
-        PsiDbExpressionList expressionList = methodExpr.getExpressionList();
+        PsiDbExpressionList expressionList = callExpr.getExpressionList();
         if (expressionList != null) {
           for (PsiDbExpr expr : expressionList.getExprList()) {
             ModelClass refClass = resolveClassType(resolveClassReference(expr));
@@ -256,17 +256,16 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
         if (!hasInvalidArg) {
           // todo check static
-          ModelMethod method = psiModelClass.getMethod(methodExpr.getRefExpr().getId().getText(), args, false, false);
+          ModelMethod method = psiModelClass.getMethod(callExpr.getRefExpr().getId().getText(), args, false, false);
           if (method instanceof PsiModelMethod) {
-            return toArray(new PsiMethodReference(methodExpr, ((PsiModelMethod)method).getPsiMethod()));
+            return toArray(new PsiMethodReference(callExpr, ((PsiModelMethod)method).getPsiMethod()));
           }
         }
-        List<ModelMethod> methods = psiModelClass.findMethods(methodExpr.getRefExpr().getId().getText(), false);
-        List<PsiMethodReference> selected = new ArrayList<>();
+        List<ModelMethod> methods = psiModelClass.findMethods(callExpr.getRefExpr().getId().getText(), false);
+        List<PsiReference> selected = new ArrayList<>();
         for (ModelMethod modelMethod : methods) {
           if (modelMethod instanceof PsiModelMethod) {
-            selected.add(new PsiMethodReference(methodExpr,
-                                   ((PsiModelMethod)modelMethod).getPsiMethod()));
+            selected.add(new PsiMethodReference(callExpr, ((PsiModelMethod)modelMethod).getPsiMethod()));
           }
         }
         return selected.toArray(new PsiReference[selected.size()]);
@@ -338,7 +337,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   }
 
   private static class VariableDefinitionReference extends DefinitionReference {
-    private PsiModelClass myModelClass;
+    private final PsiModelClass myModelClass;
 
     public VariableDefinitionReference(@NotNull PsiElement element,
                                        @NotNull XmlTag resolveTo,
@@ -346,14 +345,16 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
                                        @NotNull DataBindingInfo dataBindingInfo,
                                        @NotNull Module module) {
       super(element, resolveTo);
-      final String type = DataBindingVariableTypeConverter.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo);
+      String type = DataBindingVariableTypeConverter.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo);
+      PsiModelClass modelClass = null;
       if (type != null) {
-        final PsiClass psiType =
-          JavaPsiFacade.getInstance(element.getProject()).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false));
+        PsiClass psiType =
+            JavaPsiFacade.getInstance(element.getProject()).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false));
         if (psiType != null) {
-          myModelClass = new PsiModelClass(PsiTypesUtil.getClassType(psiType));
+          modelClass = new PsiModelClass(PsiTypesUtil.getClassType(psiType));
         }
       }
+      myModelClass = modelClass;
     }
 
     @Override
@@ -369,21 +370,23 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   }
 
   private static class ImportDefinitionReference extends DefinitionReference {
-    private PsiModelClass myModelClass;
+    private final PsiModelClass myModelClass;
 
     public ImportDefinitionReference(@NotNull PsiElement element,
                                      @NotNull XmlTag resolveTo,
                                      @NotNull PsiDataBindingResourceItem variable,
                                      @NotNull Module module) {
       super(element, resolveTo);
-      final String type = variable.getTypeDeclaration();
+      String type = variable.getTypeDeclaration();
+      PsiModelClass modelClass = null;
       if (type != null) {
-        final PsiClass psiType =
+        PsiClass psiType =
           JavaPsiFacade.getInstance(element.getProject()).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false));
         if (psiType != null) {
-          myModelClass = new PsiModelClass(PsiTypesUtil.getClassType(psiType));
+          modelClass = new PsiModelClass(PsiTypesUtil.getClassType(psiType));
         }
       }
+      myModelClass = modelClass;
     }
 
     @Override
@@ -420,7 +423,6 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
   }
 
   private static class PackageReference implements PsiReference {
-
     private final PsiElement myElement;
     private final PsiPackage myTarget;
     private final TextRange myTextRange;
