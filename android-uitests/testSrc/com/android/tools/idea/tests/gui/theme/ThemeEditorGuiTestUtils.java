@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
@@ -28,6 +29,8 @@ public class ThemeEditorGuiTestUtils {
 
   @NotNull
   public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
+    // Wait for any indexing to finish before opening the theme editor
+    GuiTests.waitForBackgroundTasks(projectFrame.robot());
     ThemeEditorFixture themeEditor = projectFrame.getEditor()
       .open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR)
       .awaitNotification("Edit all themes in the project in the theme editor.")
