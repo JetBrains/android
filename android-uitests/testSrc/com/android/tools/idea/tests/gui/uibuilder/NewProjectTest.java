@@ -277,6 +277,7 @@ public class NewProjectTest {
     assertTrue(gradleFile.canExecute());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66950214
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Create a new project and open a layout file.
@@ -285,8 +286,7 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create(guiTest);
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    // TODO: Is this the right condition to wait for? Should it take this long? Why is it needed at all?
-    Wait.seconds(10).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
+    Wait.seconds(5).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
 
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
 
