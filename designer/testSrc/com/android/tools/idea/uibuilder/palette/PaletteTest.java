@@ -77,6 +77,12 @@ public class PaletteTest extends AndroidTestCase {
     checkParents(null, loadPalette().getItems());
   }
 
+  public void testGetById() throws Exception {
+    Palette palette = loadPalette();
+    assertTextViewItem(palette.getItemById("TextView"));
+    assertNormalProgressBarItem(palette.getItemById("NormalProgressBar"));
+  }
+
   private static Palette.Group assertIsGroup(@NotNull Palette.BaseItem item, @NotNull String name) {
     assertTrue(item instanceof Palette.Group);
     Palette.Group group = (Palette.Group)item;
@@ -238,6 +244,7 @@ public class PaletteTest extends AndroidTestCase {
     "    </item>\n" +
     "    <item tag=\"ProgressBar\"\n" +
     "          suggested=\"true\"" +
+    "          id=\"NormalProgressBar\"" +
     "          title=\"ProgressBar\">\n" +
     "      <xml reuse=\"preview,drag-preview\">\n" +
     "        <![CDATA[\n" +

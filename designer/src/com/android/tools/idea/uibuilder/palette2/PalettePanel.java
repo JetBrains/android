@@ -93,6 +93,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private final CategoryList myCategoryList;
   private final ItemList myItemList;
   private final AddToDesignAction myAddToDesignAction;
+  private final FavoriteAction myFavoriteAction;
   private final ComponentHelpAction myAndroidDocAction;
   private final MaterialDocAction myMaterialDocAction;
   private final ActionGroup myActionGroup;
@@ -119,6 +120,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     myCategoryList = new CategoryList();
     myItemList = new ItemList(myDependencyManager);
     myAddToDesignAction = new AddToDesignAction();
+    myFavoriteAction = new FavoriteAction();
     myAndroidDocAction = new ComponentHelpAction(project, this::getSelectedTagName);
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
@@ -164,6 +166,13 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   AnAction getAddToDesignAction() {
     //noinspection ReturnOfInnerClass
     return myAddToDesignAction;
+  }
+
+  @NotNull
+  @TestOnly
+  AnAction getFavoriteAction() {
+    //noinspection ReturnOfInnerClass
+    return myFavoriteAction;
   }
 
   @NotNull
@@ -262,6 +271,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private ActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(myAddToDesignAction);
+    group.add(myFavoriteAction);
     group.addSeparator();
     group.add(myAndroidDocAction);
     group.add(myMaterialDocAction);
@@ -577,6 +587,32 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
         model.addComponents(toAdd, root, null, insertType, myDesignSurface.getViewEditor());
       }
       return true;
+    }
+  }
+
+  private class FavoriteAction extends ToggleAction {
+
+    public FavoriteAction() {
+      super("Favorite");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent event) {
+      Palette.Item item = myItemList.getSelectedValue();
+      return item != null && myDataModel.isFavoriteItem(item);
+    }
+
+    @Override
+    public void setSelected(@NotNull AnActionEvent event, boolean state) {
+      Palette.Item item = myItemList.getSelectedValue();
+      if (item != null) {
+        if (state) {
+          myDataModel.addFavoriteItem(item);
+        }
+        else {
+          myDataModel.removeFavoriteItem(item);
+        }
+      }
     }
   }
 

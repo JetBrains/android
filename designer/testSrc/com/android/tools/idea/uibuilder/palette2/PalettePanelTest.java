@@ -247,7 +247,8 @@ public class PalettePanelTest extends LayoutTestCase {
 
     myTrackingDesignSurface = setUpLayoutDesignSurface();
     myPanel.setToolContext(myTrackingDesignSurface);
-    myPanel.getItemList().setSelectedIndex(15); // Select ConstraintLayout (to avoid preview)
+    myPanel.getCategoryList().setSelectedIndex(4); // Layouts
+    myPanel.getItemList().setSelectedIndex(0);     // ConstraintLayout (to avoid preview)
     NlUsageTracker usageTracker = mockNlUsageTracker(myTrackingDesignSurface);
 
     MouseEvent event = mock(MouseEvent.class);
@@ -256,14 +257,14 @@ public class PalettePanelTest extends LayoutTestCase {
     TransferHandler handler = list.getTransferHandler();
     imitateDrop(handler, list);
 
-    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, PaletteMode.ICON_AND_NAME, "Common", -1);
+    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, PaletteMode.ICON_AND_NAME, "Layouts", -1);
   }
 
   public void testAddToDesignFromEnterKey() throws Exception {
     DesignSurface surface = setUpLayoutDesignSurface();
 
-    ItemList itemList = myPanel.getItemList();
-    itemList.setSelectedIndex(5);
+    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
+    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
 
     ActionListener listener = myPanel.getItemList().getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
     assertThat(listener).isNotNull();
@@ -281,7 +282,7 @@ public class PalettePanelTest extends LayoutTestCase {
     setUpLayoutDesignSurface();
 
     ItemList itemList = myPanel.getItemList();
-    Rectangle bounds = itemList.getCellBounds(5, 5);
+    Rectangle bounds = itemList.getCellBounds(3, 3);
     int x = bounds.x + bounds.width / 2;
     int y = bounds.y + bounds.height / 2;
 
@@ -289,14 +290,14 @@ public class PalettePanelTest extends LayoutTestCase {
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_PRESSED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true));
 
     verify(myPopupMenuComponent).show(eq(itemList), eq(x), eq(y));
-    assertThat(itemList.getSelectedIndex()).isEqualTo(5);
+    assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
   public void testOpenContextPopupOnMouseReleased() throws Exception {
     setUpLayoutDesignSurface();
 
     ItemList itemList = myPanel.getItemList();
-    Rectangle bounds = itemList.getCellBounds(5, 5);
+    Rectangle bounds = itemList.getCellBounds(3, 3);
     int x = bounds.x + bounds.width / 2;
     int y = bounds.y + bounds.height / 2;
 
@@ -304,12 +305,13 @@ public class PalettePanelTest extends LayoutTestCase {
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true));
 
     verify(myPopupMenuComponent).show(eq(itemList), eq(x), eq(y));
-    assertThat(itemList.getSelectedIndex()).isEqualTo(5);
+    assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
   public void testAddToDesign() throws Exception {
     DesignSurface surface = setUpLayoutDesignSurface();
-    myPanel.getItemList().setSelectedIndex(5);
+    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
+    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAddToDesignAction().actionPerformed(event);
@@ -322,7 +324,8 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testOpenAndroidDocumentation() throws Exception {
     setUpLayoutDesignSurface();
-    myPanel.getItemList().setSelectedIndex(5);
+    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
+    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAndroidDocAction().actionPerformed(event);
@@ -332,7 +335,8 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testOpenMaterialDesignDocumentation() throws Exception {
     setUpLayoutDesignSurface();
-    myPanel.getItemList().setSelectedIndex(5);
+    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
+    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getMaterialDocAction().actionPerformed(event);

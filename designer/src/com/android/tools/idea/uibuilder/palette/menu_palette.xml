@@ -15,7 +15,7 @@
   -->
 <palette>
   <item tag="item" title="Cast Button" handler-class="com.android.tools.idea.uibuilder.menu.CastButtonHandler"
-        coordinate="com.android.support:mediarouter-v7">
+        id="cast" coordinate="com.android.support:mediarouter-v7">
     <xml>
       <![CDATA[
         <item xmlns:tools="http://schemas.android.com/tools"
@@ -31,7 +31,7 @@
     <xml><![CDATA[<item android:title="Item" />]]></xml>
   </item>
 
-  <item tag="item" title="Search Item" handler-class="com.android.tools.idea.uibuilder.menu.SearchItemHandler">
+  <item tag="item" id="search" title="Search Item" handler-class="com.android.tools.idea.uibuilder.menu.SearchItemHandler">
     <xml>
       <![CDATA[
         <item
@@ -42,7 +42,7 @@
     </xml>
   </item>
 
-  <item tag="item" title="Switch Item" handler-class="com.android.tools.idea.uibuilder.menu.SwitchItemHandler">
+  <item tag="item" id="switch" title="Switch Item" handler-class="com.android.tools.idea.uibuilder.menu.SwitchItemHandler">
     <xml>
       <![CDATA[
         <item
