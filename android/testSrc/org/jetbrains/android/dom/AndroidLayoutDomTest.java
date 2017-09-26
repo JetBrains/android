@@ -1091,7 +1091,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.complete(CompletionType.BASIC);
     List<String> variants = myFixture.getLookupElementStrings();
 
-    assertTrue(variants.size() > 0);
+    assertTrue(!variants.isEmpty());
     assertFalse(containElementStartingWith(variants, prefix));
   }
 
