@@ -46,7 +46,7 @@ import javax.swing.JComponent
  */
 class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
 
-  override fun registerActions(component: JComponent) {
+  override fun registerActionsShorcuts(component: JComponent) {
     // TODO
   }
 

@@ -158,6 +158,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     mySurface = designSurface;
     if (mySurface != null) {
       mySurface.getSelectionModel().addListener(this);
+      mySurface.getActionManager().registerActionsShorcuts(this);
+      mySurface.getActionManager().registerActionsShorcuts(this);
     }
     setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);

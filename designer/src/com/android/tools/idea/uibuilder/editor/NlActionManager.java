@@ -37,7 +37,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
@@ -69,16 +68,25 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     super(surface);
   }
 
+  /**
+   * Create actions if needed and register the shortcuts on the provided component.
+   * <p>
+   * The registered actions are:
+   * <ul>
+   * <li> {@link SelectAllAction}
+   * <li> {@link GotoComponentAction}
+   * <li> {@link SelectParentAction}
+   * </ul>
+   */
   @Override
-  public void registerActions(@NotNull JComponent component) {
-    assert mySelectAllAction == null; // should only be called once!
-    mySelectAllAction = new SelectAllAction(mySurface);
+  public void registerActionsShorcuts(@NotNull JComponent component) {
+    if (mySelectAllAction == null) {
+      mySelectAllAction = new SelectAllAction(mySurface);
+      myGotoComponentAction = new GotoComponentAction(mySurface);
+      mySelectParent = new SelectParentAction(mySurface);
+    }
     registerAction(mySelectAllAction, "$SelectAll", component);
-
-    myGotoComponentAction = new GotoComponentAction(mySurface);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
-
-    mySelectParent = new SelectParentAction(mySurface);
     mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
   }
 
