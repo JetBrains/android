@@ -394,6 +394,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
 
+  public <T> void registerApplicationComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerComponentImplementation(key, instance);
+  }
+
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentInstance(key, instance);
   }

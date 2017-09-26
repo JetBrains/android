@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.util.JavaDocViewer;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -27,6 +28,9 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.function.Supplier;
 
 import static com.android.SdkConstants.*;
@@ -39,12 +43,14 @@ public class ComponentHelpAction extends AnAction {
 
   public ComponentHelpAction(@NotNull Project project,
                              @NotNull Supplier<String> tagNameSupplier) {
+    super("Android Documentation");
     myProject = project;
     myTagNameSupplier = tagNameSupplier;
+    setShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK)));
   }
 
   @Override
-  public void actionPerformed(@Nullable AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     String tagName = myTagNameSupplier.get();
     if (tagName == null) {
       return;

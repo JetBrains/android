@@ -33,8 +33,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBUI;
@@ -60,8 +59,10 @@ public class PalettePanelTest extends LayoutTestCase {
   private CopyPasteManager myCopyPasteManager;
   private DependencyManager myDependencyManager;
   private BrowserLauncher myBrowserLauncher;
+  private ActionManager myActionManager;
   private DesignSurface myTrackingDesignSurface;
-  private JPopupMenu myPopupMenu;
+  private ActionPopupMenu myPopupMenu;
+  private JPopupMenu myPopupMenuComponent;
   private PalettePanel myPanel;
 
   @Override
@@ -71,13 +72,16 @@ public class PalettePanelTest extends LayoutTestCase {
     myCopyPasteManager = mock(CopyPasteManager.class);
     myDependencyManager = mock(DependencyManager.class);
     myBrowserLauncher = mock(BrowserLauncher.class);
-    myPopupMenu = spy(new JPopupMenu());
-    myPopupMenu.setLayout(new FlowLayout());
-    doNothing().when(myPopupMenu).show(any(Component.class), anyInt(), anyInt());
+    myPopupMenu = mock(ActionPopupMenu.class);
+    myPopupMenuComponent = mock(JPopupMenu.class);
+    myActionManager = mock(ActionManager.class);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    myPanel = new PalettePanel(getProject(), myDependencyManager, myPopupMenu);
+    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
+    when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
+    when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
+    myPanel = new PalettePanel(getProject(), myDependencyManager);
   }
 
   @Override
@@ -87,9 +91,13 @@ public class PalettePanelTest extends LayoutTestCase {
       if (myTrackingDesignSurface != null) {
         cleanUsageTrackerAfterTesting(myTrackingDesignSurface);
       }
+      myTreeDumper = null;
       myCopyPasteManager = null;
       myDependencyManager = null;
       myBrowserLauncher = null;
+      myPopupMenu = null;
+      myPopupMenuComponent = null;
+      myActionManager = null;
       myTrackingDesignSurface = null;
       myPopupMenu = null;
       myPanel = null;
@@ -173,7 +181,7 @@ public class PalettePanelTest extends LayoutTestCase {
   public void testInitialCategoryWidthIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "217");
     Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager, myPopupMenu);
+    myPanel = new PalettePanel(getProject(), myDependencyManager);
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(217));
@@ -182,7 +190,7 @@ public class PalettePanelTest extends LayoutTestCase {
   public void testInitialCategoryWidthIsReadFromOptionsButOverriddenIfTooSmall() {
     PropertiesComponent.getInstance().setValue(PalettePanel.PALETTE_CATEGORY_WIDTH, "0");
     Disposer.dispose(myPanel);
-    myPanel = new PalettePanel(getProject(), myDependencyManager, myPopupMenu);
+    myPanel = new PalettePanel(getProject(), myDependencyManager);
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(20));
@@ -280,8 +288,7 @@ public class PalettePanelTest extends LayoutTestCase {
     // On some OS we get context menus on mouse pressed events
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_PRESSED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true));
 
-    verify(myPopupMenu).show(eq(itemList), eq(x), eq(y));
-    assertThat(myPopupMenu.getSubElements().length).isEqualTo(3);
+    verify(myPopupMenuComponent).show(eq(itemList), eq(x), eq(y));
     assertThat(itemList.getSelectedIndex()).isEqualTo(5);
   }
 
@@ -296,17 +303,16 @@ public class PalettePanelTest extends LayoutTestCase {
     // On some OS we get context menus on mouse released events
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true));
 
-    verify(myPopupMenu).show(eq(itemList), eq(x), eq(y));
-    assertThat(myPopupMenu.getSubElements().length).isEqualTo(3);
+    verify(myPopupMenuComponent).show(eq(itemList), eq(x), eq(y));
     assertThat(itemList.getSelectedIndex()).isEqualTo(5);
   }
 
-  public void testAddToDesignFromPopup() throws Exception {
+  public void testAddToDesign() throws Exception {
     DesignSurface surface = setUpLayoutDesignSurface();
-
     myPanel.getItemList().setSelectedIndex(5);
-    JMenuItem item = (JMenuItem)myPopupMenu.getSubElements()[0];
-    item.getAction().actionPerformed(null);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    myPanel.getAddToDesignAction().actionPerformed(event);
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
@@ -314,20 +320,22 @@ public class PalettePanelTest extends LayoutTestCase {
       "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
   }
 
-  public void testOpenAndroidDocumentationFromPopup() throws Exception {
+  public void testOpenAndroidDocumentation() throws Exception {
     setUpLayoutDesignSurface();
     myPanel.getItemList().setSelectedIndex(5);
-    JMenuItem item = (JMenuItem)myPopupMenu.getSubElements()[1];
-    item.getAction().actionPerformed(null);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    myPanel.getAndroidDocAction().actionPerformed(event);
 
     verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull());
   }
 
-  public void testOpenMaterialDesignDocumentationFromPopup() throws Exception {
+  public void testOpenMaterialDesignDocumentation() throws Exception {
     setUpLayoutDesignSurface();
     myPanel.getItemList().setSelectedIndex(5);
-    JMenuItem item = (JMenuItem)myPopupMenu.getSubElements()[2];
-    item.getAction().actionPerformed(null);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    myPanel.getMaterialDocAction().actionPerformed(event);
 
     verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull());
   }
