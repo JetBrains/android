@@ -145,7 +145,8 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
         PsiDbExpr qualifierExpr = refExpr.getExpr();
         if (qualifierExpr == null) {
-          return PsiReference.EMPTY_ARRAY;
+          PsiDbId id = refExpr.getId();
+          return id.getReferences();
         }
         ResolvesToModelClass ref = resolveClassReference(qualifierExpr);
         PsiModelClass psiModelClass = resolveClassType(ref);
