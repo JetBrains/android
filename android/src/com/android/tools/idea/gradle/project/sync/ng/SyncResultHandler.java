@@ -142,7 +142,6 @@ class SyncResultHandler {
     }
 
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
-
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -153,6 +152,12 @@ class SyncResultHandler {
   }
 
   private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && error != null) {
+      // This is extremely handy when debugging sync errors in tests. Do not remove.
+      System.out.println("***** sync error: " + error.getMessage());
+      error.printStackTrace();
+    }
+
     if (syncListener != null) {
       syncListener.syncFailed(myProject, errorMessage);
     }
