@@ -56,7 +56,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
   @Mock private CachedProjectModels.Factory myCachedProjectModelsFactory;
   @Mock private CachedProjectModels myCachedProjectModels;
   @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
-  @Mock private NewJavaModuleModelFactory myNewJavaModuleModelFactory;
+  @Mock private JavaModuleModelFactory myJavaModuleModelFactory;
   @Mock private ArtifactModuleModelFactory myArtifactModuleModelFactory;
   @Mock private ExtraGradleSyncModelsManager myExtraModelsManager;
   @Mock private IdeDependenciesFactory myDependenciesFactory;
@@ -71,7 +71,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     myModuleSetup = new ModuleSetupImpl(getProject(), myModelsProvider, myExtraModelsManager, myModuleFactory, myGradleModuleSetup,
                                         myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,
                                         myVariantSelector, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
-                                        myNativeAndroidProjectFactory, myNewJavaModuleModelFactory, myArtifactModuleModelFactory,
+                                        myNativeAndroidProjectFactory, myJavaModuleModelFactory, myArtifactModuleModelFactory,
                                         myDependenciesFactory);
   }
 

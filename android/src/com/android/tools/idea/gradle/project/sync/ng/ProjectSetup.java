@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -114,6 +115,7 @@ abstract class ProjectSetup {
         });
       }
       catch (Throwable e) {
+        getLog().warn("Exception thrown while committing project changes", e);
         disposeChanges();
         throw e;
       }
@@ -123,9 +125,19 @@ abstract class ProjectSetup {
       executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
         @Override
         public void execute() {
-          myModelsProvider.dispose();
+          try {
+            myModelsProvider.dispose();
+          }
+          catch (Throwable e) {
+            getLog().warn("Failed to dispose changes", e);
+          }
         }
       });
+    }
+
+    @NotNull
+    private static Logger getLog() {
+      return Logger.getInstance(ProjectSetup.class);
     }
   }
 }

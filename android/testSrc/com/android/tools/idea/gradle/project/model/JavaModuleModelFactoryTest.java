@@ -33,42 +33,46 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link NewJavaModuleModelFactory}.
+ * Tests for {@link JavaModuleModelFactory}.
  */
-public class NewJavaModuleModelFactoryTest {
+public class JavaModuleModelFactoryTest {
+  private static final String JAVA_LANGUAGE_LEVEL = "1.7";
+  private static final File BUILD_FOLDER_PATH = new File("/mock/project/build");
+  private static final File PROJECT_FOLDER_PATH = new File("/mock/project");
+  private static final String MODULE_NAME = "javaLib";
+
   @Mock private JavaProject myJavaProject;
   @Mock private GradleProject myGradleProject;
-  private NewJavaModuleModelFactory myNewJavaModuleModelFactory;
-  private static final String javaLanguageLevel = "1.7";
-  private static final File buildDir = new File("/mock/project/build");
-  private static final File projectDir = new File("/mock/project");
-  private static final String moduleName = "javaLib";
+  private JavaModuleModelFactory myJavaModuleModelFactory;
 
   @Before
   public void setUpMethod() {
     initMocks(this);
-    when(myJavaProject.getName()).thenReturn(moduleName);
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(javaLanguageLevel);
+    when(myJavaProject.getName()).thenReturn(MODULE_NAME);
+    when(myJavaProject.getJavaLanguageLevel()).thenReturn(JAVA_LANGUAGE_LEVEL);
 
-    when(myGradleProject.getBuildDirectory()).thenReturn(buildDir);
-    when(myGradleProject.getProjectDirectory()).thenReturn(projectDir);
+    when(myGradleProject.getBuildDirectory()).thenReturn(BUILD_FOLDER_PATH);
+    when(myGradleProject.getProjectDirectory()).thenReturn(PROJECT_FOLDER_PATH);
     doReturn(ImmutableDomainObjectSet.of(Collections.emptyList())).when(myGradleProject).getTasks();
 
-    myNewJavaModuleModelFactory = new NewJavaModuleModelFactory();
+    myJavaModuleModelFactory = new JavaModuleModelFactory();
   }
 
   @Test
   public void verifyBasicProperties() {
-    JavaModuleModel javaModuleModel = myNewJavaModuleModelFactory.create(myGradleProject, myJavaProject, false);
-    assertThat(javaModuleModel.getModuleName()).isEqualTo(moduleName);
-    assertThat(javaModuleModel.isAndroidModuleWithoutVariants()).isFalse();
-    assertThat(javaModuleModel.getBuildFolderPath()).isEqualTo(buildDir);
-    assertThat(javaModuleModel.getJavaLanguageLevel()).isNotNull();
-    assertThat(javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption()).isEqualTo(javaLanguageLevel);
+    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myGradleProject, myJavaProject);
+    assertEquals(MODULE_NAME, javaModuleModel.getModuleName());
+    assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
+    assertEquals(BUILD_FOLDER_PATH, javaModuleModel.getBuildFolderPath());
+    assertNotNull(javaModuleModel.getJavaLanguageLevel());
+    assertEquals(JAVA_LANGUAGE_LEVEL, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
   }
 
@@ -81,16 +85,15 @@ public class NewJavaModuleModelFactoryTest {
     File compileJarFile = new File("/mock/compile.jar");
     File testJarFile = new File("/mock/test.jar");
 
+    JavaLibrary moduleLibrary = mock(JavaLibrary.class);
     JavaLibrary compileJarLibrary = mock(JavaLibrary.class);
     JavaLibrary testJarLibrary = mock(JavaLibrary.class);
-    JavaLibrary moduleLibrary = mock(JavaLibrary.class);
 
-    when(compileJarLibrary.getProject()).thenReturn(null);
-    when(compileJarLibrary.getJarFile()).thenReturn(compileJarFile);
-    when(testJarLibrary.getProject()).thenReturn(null);
-    when(testJarLibrary.getJarFile()).thenReturn(testJarFile);
-    when(moduleLibrary.getProject()).thenReturn(":lib2");
     when(moduleLibrary.getName()).thenReturn("lib2");
+    when(moduleLibrary.getProject()).thenReturn(":lib2");
+
+    when(compileJarLibrary.getJarFile()).thenReturn(compileJarFile);
+    when(testJarLibrary.getJarFile()).thenReturn(testJarFile);
 
     SourceSet mainSourceSet = mock(SourceSet.class);
     when(mainSourceSet.getName()).thenReturn("main");
@@ -102,29 +105,29 @@ public class NewJavaModuleModelFactoryTest {
 
     when(myJavaProject.getSourceSets()).thenReturn(Arrays.asList(mainSourceSet, testSourceSet));
 
-    JavaModuleModel javaModuleModel = myNewJavaModuleModelFactory.create(myGradleProject, myJavaProject, false);
+    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myGradleProject, myJavaProject);
 
     // Verify project dependency
     Collection<JavaModuleDependency> javaModuleDependencies = javaModuleModel.getJavaModuleDependencies();
     assertThat(javaModuleDependencies).hasSize(1);
     JavaModuleDependency javaModuleDependency = Iterables.get(javaModuleDependencies, 0);
-    assertThat(javaModuleDependency.getModuleName()).isEqualTo("lib2");
-    assertThat(javaModuleDependency.getScope()).isEqualTo("COMPILE");
+    assertEquals("lib2", javaModuleDependency.getModuleName());
+    assertEquals("COMPILE", javaModuleDependency.getScope());
 
     // Verify jar dependency
     Collection<JarLibraryDependency> jarLibraryDependencies = javaModuleModel.getJarLibraryDependencies();
     assertThat(jarLibraryDependencies).hasSize(2);
 
     for (JarLibraryDependency jarLibraryDependency : jarLibraryDependencies) {
-      assertThat(jarLibraryDependency.getScope()).isNotNull();
+      assertNotNull(jarLibraryDependency.getScope());
       // Jar dependency from main sourceSet
       if (jarLibraryDependency.getScope().equals("COMPILE")) {
-        assertThat(jarLibraryDependency.getBinaryPath()).isEqualTo(compileJarFile);
+        assertEquals(compileJarFile, jarLibraryDependency.getBinaryPath());
       }
       else {
         // Jar dependency from test sourceSet
-        assertThat(jarLibraryDependency.getScope()).isEqualTo("TEST");
-        assertThat(jarLibraryDependency.getBinaryPath()).isEqualTo(testJarFile);
+        assertEquals("TEST", jarLibraryDependency.getScope());
+        assertEquals(testJarFile, jarLibraryDependency.getBinaryPath());
       }
     }
   }
