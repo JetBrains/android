@@ -119,7 +119,7 @@ public class NlPreviewManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(StudioIcons.Shell.Menu.ANDROID_PREVIEW);
+    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PREVIEW);
 
     // The NlPreviewForm contains collapsible components like the palette. If one of those has the focus when the tool window is deactivated
     // it won't be able to regain it at the next activation. So we make sure the tool window does not try to give the focus on activation to
