@@ -41,6 +41,10 @@ public class SingleWidgetView extends JPanel {
   private static final int RATIO_LOCK = 1;
   public static final int RATIO_LOCK_HEIGHT = 2;
   public static final int RATIO_LOCK_WIDTH = 3;
+  public final static String TOP_MARGIN_WIDGET = "topMarginWidget";
+  public final static String LEFT_MARGIN_WIDGET = "leftMarginWidget";
+  public final static String BOTTOM_MARGIN_WIDGET = "bottomMarginWidget";
+  public final static String RIGHT_MARGIN_WIDGET = "rightMarginWidget";
 
   private WidgetConstraintPanel mWidgetConstraintPanel;
   public final static int MATCH_CONSTRAINT = 1;
@@ -111,6 +115,10 @@ public class SingleWidgetView extends JPanel {
     mLeftMargin.setToolTipText("Left Margin");
     mRightMargin.setToolTipText("Right Margin");
     mBottomMargin.setToolTipText("Bottom Margin");
+    mTopMargin.setName(TOP_MARGIN_WIDGET);
+    mLeftMargin.setName(LEFT_MARGIN_WIDGET);
+    mBottomMargin.setName(BOTTOM_MARGIN_WIDGET);
+    mRightMargin.setName(RIGHT_MARGIN_WIDGET);
 
     mHbar1 = new HConstraintDisplay(mColorSet, true);
     mHbar2 = new HConstraintDisplay(mColorSet, false);
