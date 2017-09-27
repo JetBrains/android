@@ -6,20 +6,30 @@ iml_module(
     srcs = ["src"],
     iml_files = ["android-adb.iml"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/base/ddmlib:studio.ddmlib[module]",
+        "//tools/idea/.idea/libraries:jsr305",
+        "//tools/idea/platform/platform-api[module]",
+        "//tools/idea/platform/xdebugger-api[module]",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:Guava",
+    ],
+)
+
+iml_module(
+    name = "android-adb-tests",
+    iml_files = ["android-adb-tests.iml"],
+    tags = ["managed"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/util[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
-        "//tools/base/ddmlib:studio.ddmlib[module]",
-        "//tools/idea/platform/core-api[module]",
-        "//tools/idea/.idea/libraries:jsr305",
-        "//tools/idea/platform/platform-api[module]",
-        "//tools/idea/platform/xdebugger-api[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/adt/idea/android-adb[module, test]",
+        "//tools/base/ddmlib:studio.ddmlib[module, test]",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
