@@ -26,9 +26,7 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 /**
@@ -152,6 +150,17 @@ public class MarginWidget extends JPanel {
 
       label.setText((String)combo.getSelectedItem());
       mCallbacks.forEach(listener -> listener.actionPerformed(event));
+    });
+
+    combo.addMouseWheelListener(new MouseAdapter() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        int newMargin = getMargin() - e.getWheelRotation();
+        if (newMargin >= 0) {
+          setMargin(newMargin);
+          mCallbacks.forEach(listener -> listener.actionPerformed(null));
+        }
+      }
     });
   }
 

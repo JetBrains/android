@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -41,6 +43,39 @@ public final class ConstraintLayoutViewInspectorFixture {
 
     GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, "marginStartComboBox");
     new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
+  }
+
+  public void setAllMargins(int n) {
+    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
+    if (comp != null) {
+      ((MarginWidget)comp).setMargin(n);
+    }
+
+    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
+    if (comp != null) {
+      ((MarginWidget)comp).setMargin(n);
+    }
+
+    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
+    if (comp != null) {
+      ((MarginWidget)comp).setMargin(n);
+    }
+
+    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
+    if (comp != null) {
+      ((MarginWidget)comp).setMargin(n);
+    }
+  }
+
+  public void scrollAllMargins(int scroll) {
+    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
+    myRobot.rotateMouseWheel(comp, scroll);
+    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
+    myRobot.rotateMouseWheel(comp, scroll);
+    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
+    myRobot.rotateMouseWheel(comp, scroll);
+    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
+    myRobot.rotateMouseWheel(comp, scroll);
   }
 
   @NotNull
