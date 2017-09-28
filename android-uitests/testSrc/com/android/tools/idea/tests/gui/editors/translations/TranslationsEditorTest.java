@@ -40,6 +40,7 @@ import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -372,6 +373,7 @@ public final class TranslationsEditorTest {
     assertEquals(width, (long)GuiQuery.getNonNull(() -> table.target().getColumnModel().getColumn(KEY_COLUMN).getPreferredWidth()));
   }
 
+  @Ignore("b/66680171")
   @Test
   public void invalidDefaultValueXml() throws IOException {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
@@ -395,6 +397,7 @@ public final class TranslationsEditorTest {
     assertEquals("Invalid XML", component.myTooltipText);
   }
 
+  @Ignore("b/66680171")
   @Test
   public void invalidTranslationXml() throws IOException {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");

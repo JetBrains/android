@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ public final class ScrollingActivityTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @Ignore("b/66680171")
   @Test
   public void contentScrollingXmlOpensInLayoutEditor() {
     WizardUtils.createNewProject(myGuiTest, "Scrolling Activity");
