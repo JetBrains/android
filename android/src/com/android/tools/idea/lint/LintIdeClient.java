@@ -187,6 +187,8 @@ public class LintIdeClient extends LintClient implements Disposable {
                       return Severity.WARNING;
                     case LintOptions.SEVERITY_INFORMATIONAL:
                       return Severity.INFORMATIONAL;
+                    case LintOptions.SEVERITY_DEFAULT_ENABLED:
+                      return issue.getDefaultSeverity();
                     case LintOptions.SEVERITY_IGNORE:
                     default:
                       return Severity.IGNORE;
