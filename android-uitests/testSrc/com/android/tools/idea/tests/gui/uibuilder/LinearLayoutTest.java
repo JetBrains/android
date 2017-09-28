@@ -30,6 +30,7 @@ import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +52,7 @@ public final class LinearLayoutTest {
   private Path myMainStylePath;
   private Path myLayoutPath;
 
+  @Ignore("b/66680171")
   @Before
   public void setUp() {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
