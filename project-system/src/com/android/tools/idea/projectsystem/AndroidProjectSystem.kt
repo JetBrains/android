@@ -18,12 +18,9 @@
 package com.android.tools.idea.projectsystem
 
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import java.nio.file.Path
 
@@ -57,15 +54,9 @@ interface AndroidProjectSystem {
   fun allowsFileCreation(): Boolean
 
   /**
-   * Determines whether or not the underlying build system is capable of generating a PNG
-   * from vector graphics.
+   * Returns an interface for interacting with the given module.
    */
-  fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus
-
-  /**
-   * Determines whether or not the underlying build system supports instant run.
-   */
-  fun getInstantRunSupport(module: Module): CapabilityStatus
+  fun getModuleSystem(module: Module): AndroidModuleSystem
 
   /**
    * Attempts to upgrade the project to support instant run. If the project already supported
@@ -118,27 +109,6 @@ interface AndroidProjectSystem {
   fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
 
   /**
-   * Requests information about the folder layout for the given module. This can be used to determine
-   * where files of various types should be written.
-   *
-   * TODO: Figure out and document the rest of the contracts for this method, such as how targetDirectory is used,
-   * what the source set names are used for, and why the result is a list
-   *
-   * @param module the module whose folder layout is being requested.
-   * @param targetDirectory to filter the relevant source providers from the android facet.
-   * @return a list of templates created from each of the android facet's source providers.
-   * In cases where the source provider returns multiple paths, we always take the first match.
-   */
-  fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate>
-
-  /**
-   * Adds a dependency to the given module.
-   *
-   * TODO: Figure out and document the format for the dependency strings
-   */
-  fun addDependency(module: Module, dependency: String)
-
-  /**
    * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
    * text files describing the steps for building a single android application or library.
    *
@@ -168,15 +138,12 @@ interface AndroidProjectSystem {
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
  */
 fun Project.getProjectSystem(): AndroidProjectSystem {
-  return this.getComponent(ProjectSystemComponent::class.java).projectSystem
+  return getComponent(ProjectSystemComponent::class.java).projectSystem
 }
 
-private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
-
-internal fun detectProjectSystem(project: Project): AndroidProjectSystem {
-  val extensions = EP_NAME.getExtensions(project)
-  val provider = extensions.find { it.isApplicable() }
-      ?: extensions.find { it.id == "" }
-      ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
-  return provider.projectSystem
+/**
+ * Returns the instance of {@link AndroidModuleSystem} that applies to the given {@link Module}.
+ */
+fun Module.getModuleSystem(): AndroidModuleSystem {
+  return project.getProjectSystem().getModuleSystem(this)
 }

@@ -24,10 +24,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.CapabilityStatus
-import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
@@ -73,21 +70,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     return syncProject(project, reason, requireSourceGeneration)
   }
 
-  /**
-   * This method will add the ":+" to the given dependency.
-   * For Guava, for example: the dependency coordinate will not include the version:
-   * com.google.guava:guava
-   * and this method will add "+" as the version of the dependency to add.
-   * @param dependency The dependency dependency without version.
-   */
-  override fun addDependency(module: Module, dependency: String) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    val coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+")
-    if (coordinate != null) {
-      manager.ensureLibraryIsIncluded(module, listOf(coordinate), null)
-    }
-  }
-
   override fun mergeBuildFiles(dependencies: String,
                       destinationContents: String,
                       supportLibVersionFilter: String?): String {
@@ -101,19 +83,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
 
   override val projectSystem = this
 
-  override fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
-  }
-
-  override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
-    return supportsPngGeneration(module)
-  }
-
-  override fun getInstantRunSupport(module: Module): CapabilityStatus {
-    return getInstantRunCapabilityStatus(module)
-  }
-
   override fun upgradeProjectToSupportInstantRun(): Boolean {
     return updateProjectToInstantRunTools(project)
+  }
+
+  override fun getModuleSystem(module: Module): AndroidModuleSystem {
+    return GradleModuleSystem(module)
   }
 }

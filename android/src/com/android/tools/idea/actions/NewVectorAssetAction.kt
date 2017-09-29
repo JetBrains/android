@@ -18,7 +18,7 @@ package com.android.tools.idea.actions
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateVectorIconModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.ui.Messages
@@ -34,7 +34,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
 
   override fun createWizard(facet: AndroidFacet): ModelWizard? {
     val module = facet.module
-    val status = module.project.getProjectSystem().canGeneratePngFromVectorGraphics(module)
+    val status = module.getModuleSystem().canGeneratePngFromVectorGraphics()
     if (status is CapabilityNotSupported) {
       val androidModel = facet.androidModel
       if (androidModel != null) {

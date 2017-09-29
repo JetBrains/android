@@ -54,28 +54,32 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return Futures.immediateFuture(AndroidProjectSystem.SyncResult.FAILURE)
   }
 
-  override fun addDependency(module: Module, dependency: String) {
-  }
-
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     return destinationContents
   }
 
   override val projectSystem = this
 
-  override fun getModuleTemplates(module: Module, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    return emptyList()
-  }
-
-  override fun canGeneratePngFromVectorGraphics(module: Module): CapabilityStatus {
-    return CapabilityNotSupported()
-  }
-
-  override fun getInstantRunSupport(module: Module): CapabilityStatus {
-    return CapabilityNotSupported()
-  }
-
   override fun upgradeProjectToSupportInstantRun(): Boolean {
     return false
+  }
+
+  override fun getModuleSystem(module: Module): AndroidModuleSystem {
+    return object : AndroidModuleSystem {
+      override fun addDependency(dependency: String) {
+      }
+
+      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
+        return emptyList()
+      }
+
+      override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
+        return CapabilityNotSupported()
+      }
+
+      override fun getInstantRunSupport(): CapabilityStatus {
+        return CapabilityNotSupported()
+      }
+    }
   }
 }
