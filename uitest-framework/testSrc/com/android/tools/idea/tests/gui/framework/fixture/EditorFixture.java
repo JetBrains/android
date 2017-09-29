@@ -53,6 +53,8 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -103,7 +105,9 @@ public class EditorFixture {
     myFrame = frame;
   }
 
-  /** Returns the selected file with most recent focused editor, or {@code null} if there are no selected files. */
+  /**
+   * Returns the selected file with most recent focused editor, or {@code null} if there are no selected files.
+   */
   @Nullable
   public VirtualFile getCurrentFile() {
     VirtualFile[] selectedFiles = FileEditorManager.getInstance(myFrame.getProject()).getSelectedFiles();
@@ -390,7 +394,9 @@ public class EditorFixture {
     return open(relativePath, Tab.DEFAULT);
   }
 
-  /** Invokes {@code editorAction} via its (first) keyboard shortcut in the active keymap. */
+  /**
+   * Invokes {@code editorAction} via its (first) keyboard shortcut in the active keymap.
+   */
   public EditorFixture invokeAction(@NotNull EditorAction editorAction) {
     AnAction anAction = ActionManager.getInstance().getAction(editorAction.id);
     assertTrue(editorAction.id + " is not enabled", anAction.getTemplatePresentation().isEnabled());
@@ -673,7 +679,21 @@ public class EditorFixture {
 
   @NotNull
   public String getSelectedTab() {
-    return robot.finder().find(Matchers.byType(JBTabsImpl.class)).getSelectedInfo().getText();
+    return robot.finder().find(
+      new GenericTypeMatcher<JBEditorTabs>(JBEditorTabs.class) {
+        @Override
+        protected boolean isMatching(@NotNull JBEditorTabs component) {
+          for (TabInfo tabInfo : component.getTabs()) {
+            String text = tabInfo.getText();
+            if (!("Design".equals(text)
+                  || "Text".equals(text))) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+    ).getSelectedInfo().getText();
   }
 
   /**
@@ -712,10 +732,11 @@ public class EditorFixture {
     SPLIT_HORIZONTALLY("SplitHorizontally"),
     SPLIT_VERTICALLY("SplitVertically"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
-    UNDO("$Undo"),
-    ;
+    UNDO("$Undo"),;
 
-    /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
+    /**
+     * The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}.
+     */
     @NotNull private final String id;
 
     EditorAction(@NotNull String actionId) {
@@ -731,10 +752,11 @@ public class EditorFixture {
     EDITOR("Text"),
     DESIGN("Design"),
     DEFAULT(null),
-    MERGED_MANIFEST("Merged Manifest"),
-    ;
+    MERGED_MANIFEST("Merged Manifest"),;
 
-    /** The label in the editor, or {@code null} for the default (first) tab. */
+    /**
+     * The label in the editor, or {@code null} for the default (first) tab.
+     */
     private final String myTabName;
 
     Tab(String tabName) {

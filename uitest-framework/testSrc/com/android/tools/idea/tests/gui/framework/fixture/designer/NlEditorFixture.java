@@ -24,10 +24,12 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -35,6 +37,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -278,5 +281,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
     componentFixture.invokeContextMenuAction("Convert view...");
     return new MorphDialogFixture(robot());
+  }
+
+  public void invokeContextMenuAction(@NotNull String actionLabel) {
+    rightClick();
+    new JMenuItemFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 }

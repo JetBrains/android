@@ -263,6 +263,18 @@ public class NlEditorTest {
   }
 
   @Test
+  public void gotoAction() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor(true);
+    nlEditorFixture.invokeContextMenuAction("Go to XML");
+    assertThat(editor.getSelectedTab()).isEqualTo("Text");
+  }
+
+  @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
