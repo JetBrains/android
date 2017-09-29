@@ -81,6 +81,14 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     }
   }
 
+  public void tapBackButtonOnRunningAvd() {
+    try {
+      exec(getAdbBinary().getAbsolutePath() + " shell input keyevent 4");
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static void exec(@NotNull String cmd) {
     try {
       Runtime.getRuntime().exec(cmd).waitFor(10, TimeUnit.SECONDS);
