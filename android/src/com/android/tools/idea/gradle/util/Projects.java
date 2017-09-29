@@ -167,16 +167,13 @@ public final class Projects {
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      if (project.isDisposed()) {
+        return;
+      }
       SyncMessages.getInstance(project).removeProjectMessages();
+      disableExcludedModules(projectInfo, modulesToImport);
+      doSelectiveImport(modulesToImport, project);
 
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        if (!project.isDisposed()) {
-          ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(() -> {
-            disableExcludedModules(projectInfo, modulesToImport);
-            doSelectiveImport(modulesToImport, project);
-          });
-        }
-      });
       // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
       // sources for it. This happens on new projects.
       if (setupRequest != null) {
