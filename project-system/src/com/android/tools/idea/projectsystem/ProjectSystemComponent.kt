@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.components.AbstractProjectComponent
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.util.concurrent.atomic.AtomicReference
 
@@ -43,7 +44,17 @@ internal class ProjectSystemComponent(val project: Project) : AbstractProjectCom
       return cache
     }
 
+  private fun detectProjectSystem(project: Project): AndroidProjectSystem {
+    val extensions = EP_NAME.getExtensions(project)
+    val provider = extensions.find { it.isApplicable() }
+        ?: extensions.find { it.id == "" }
+        ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
+    return provider.projectSystem
+  }
+
   override fun projectClosed() {
     super.projectClosed()
   }
 }
+
+private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

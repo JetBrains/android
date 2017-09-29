@@ -17,6 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.util.concurrent.FutureCallback;
@@ -182,12 +183,11 @@ public class InstantRunConfigurable
       if (project.isDefault()) {
         continue;
       }
-      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           isGradle = true;
-          if (projectSystem.getInstantRunSupport(module).isSupported()) {
+          if (ProjectSystemUtil.getModuleSystem(module).getInstantRunSupport().isSupported()) {
             isCurrentPlugin = true;
             break;
           }

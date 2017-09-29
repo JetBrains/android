@@ -82,7 +82,6 @@ public final class AndroidPackageUtils {
    */
   @NotNull
   public static List<NamedModuleTemplate> getModuleTemplates(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
-    Module module = facet.getModule();
-    return ProjectSystemUtil.getProjectSystem(module.getProject()).getModuleTemplates(module, targetDirectory);
+    return ProjectSystemUtil.getModuleSystem(facet.getModule()).getModuleTemplates(targetDirectory);
   }
 }
