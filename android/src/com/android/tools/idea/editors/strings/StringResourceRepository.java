@@ -43,6 +43,7 @@ public class StringResourceRepository {
 
     for (LocalResourceRepository child : parent.getChildren()) {
       VirtualFile directory = child instanceof ResourceFolderRepository ? ((ResourceFolderRepository)child).getResourceDir() : null;
+      child.sync();
 
       for (String name : child.getItemsOfType(ResourceType.STRING)) {
         myKeyToRepositoryMap.put(new StringResourceKey(name, directory), child);

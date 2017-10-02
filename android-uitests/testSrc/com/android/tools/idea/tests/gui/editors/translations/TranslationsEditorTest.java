@@ -18,9 +18,12 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.adtui.ui.FixedColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.translations.FixedColumnTableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
 import com.android.tools.idea.tests.util.GuiTestFileUtils;
@@ -419,6 +422,17 @@ public final class TranslationsEditorTest {
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
     assertEquals("Invalid XML", component.myTooltipText);
+  }
+
+  @Test
+  public void selectedCellIsntLostAfterEnteringValue() throws IOException {
+    importSimpleApplication();
+
+    FixedColumnTableFixture table = myTranslationsEditor.getTable();
+    TableCell cell = TableCell.row(0).column(3);
+    table.enterValue(cell, "app_name");
+
+    assertEquals(cell, table.selectedCell());
   }
 
   @Test
