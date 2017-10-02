@@ -276,7 +276,6 @@ public class GuiTestRule implements TestRule {
       FileUtilRt.delete(projectPath);
     }
     FileUtil.copyDir(masterProjectPath, projectPath);
-    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
     return projectPath;
   }
 
