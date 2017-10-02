@@ -293,7 +293,7 @@ public class NewProjectModel extends WizardModel {
         .build();
       // @formatter:on
 
-      projectTemplate.render(context);
+      projectTemplate.render(context, dryRun);
     }
 
     private void performGradleImport() {

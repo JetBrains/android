@@ -130,6 +130,6 @@ public final class NewJavaModuleModel extends WizardModel {
       .build();
     // @formatter:on
 
-    return template.render(context);
+    return template.render(context, dryRun);
   }
 }
