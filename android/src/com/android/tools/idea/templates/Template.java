@@ -225,14 +225,14 @@ public class Template {
    * @return true if the template was rendered without finding any errors and there are no warnings
    * or the user selected to proceed with warnings.
    */
-  public boolean render(@NotNull final RenderingContext context) {
+  public boolean render(@NotNull final RenderingContext context, final boolean dryRun) {
     final Project project = context.getProject();
 
     boolean success = project.isInitialized() ?
       doRender(context) : PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(() -> doRender(context));
 
     String title = myMetadata.getTitle();
-    if (title != null) {
+    if (!dryRun && title != null) {
       Map<String, Object> paramMap = context.getParamMap();
       Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
       Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);

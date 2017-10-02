@@ -264,7 +264,7 @@ public final class RenderTemplateModel extends WizardModel {
       .intoTargetFiles(filesToReformat)
       .build();
     // @formatter:on
-      return template.render(context);
+      return template.render(context, dryRun);
     }
   }
 

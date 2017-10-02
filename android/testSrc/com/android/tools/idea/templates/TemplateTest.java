@@ -812,7 +812,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                                       new File(myFixture.getTempDirPath()),
                                                       new File("dummy"),
                                                       null);
-    template.render(context);
+    template.render(context, false);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     VirtualFile desired = fileSystem.findFileByIoFile(new File(getTestDataPath(),
@@ -1286,7 +1286,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           activityState.put(ATTR_SOURCE_PROVIDER_NAME, "main");
           activityState.populateDirectoryParameters();
           RenderingContext context = createRenderingContext(template, project, moduleRoot, moduleRoot, activityState.getParameters());
-          template.render(context);
+          template.render(context, false);
           // Add in icons if necessary
           if (activityState.getTemplateMetadata() != null && activityState.getTemplateMetadata().getIconName() != null) {
             File drawableFolder = new File(FileUtil.join(activityState.getString(ATTR_RES_OUT)),
@@ -1437,7 +1437,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         Template projectTemplate = projectState.getProjectTemplate();
         final RenderingContext projectContext =
           createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
-        projectTemplate.render(projectContext);
+        projectTemplate.render(projectContext, false);
         // check usage tracker after project render
         verifyLastLoggedUsage(Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()), projectContext.getParamMap());
         AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
@@ -1445,7 +1445,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         final RenderingContext moduleContext =
           createRenderingContext(moduleState.getTemplate(), project, projectRoot, moduleRoot, moduleState.getParameters());
         Template moduleTemplate = moduleState.getTemplate();
-        moduleTemplate.render(moduleContext);
+        moduleTemplate.render(moduleContext, false);
         // check usage tracker after module render
         verifyLastLoggedUsage(Template.titleToTemplateRenderer(moduleTemplate.getMetadata().getTitle()), moduleContext.getParamMap());
         if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
@@ -1454,7 +1454,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           assert activityTemplate != null;
           final RenderingContext activityContext =
             createRenderingContext(activityTemplate, project, moduleRoot, moduleRoot, activityTemplateState.getParameters());
-          activityTemplate.render(activityContext);
+          activityTemplate.render(activityContext, false);
           // check usage tracker after activity render
           verifyLastLoggedUsage(Template.titleToTemplateRenderer(activityTemplate.getMetadata().getTitle()), activityContext.getParamMap());
           moduleContext.getFilesToOpen().addAll(activityContext.getFilesToOpen());
