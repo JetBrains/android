@@ -23,6 +23,7 @@
   <name>Android Tests</name>
   <id>org.jetbrains.android.tests</id>
 
+  <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
