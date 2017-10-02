@@ -17,11 +17,9 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.messages.Topic
 import java.nio.file.Path
 
 /**
@@ -63,50 +61,9 @@ interface AndroidProjectSystem {
    * instant run, this will report failure without modifying the project.
    * <p>
    * Returns true iff the upgrade was successful. Callers must sync the
-   * project by calling [syncProject] after calling this method if it returns true.
+   * project via [ProjectSystemSyncManager] after calling this method if it returns true.
    */
   fun upgradeProjectToSupportInstantRun(): Boolean
-
-  /** The result of a sync request */
-  enum class SyncResult(val isSuccessful: Boolean) {
-    /** The user cancelled the sync */
-    CANCELLED(false),
-    /** Sync failed */
-    FAILURE(false),
-    /** The user has compilation errors or errors in build system files */
-    PARTIAL_SUCCESS(true),
-    /** The project state was loaded from a cache instead of performing an actual sync */
-    SKIPPED(true),
-    /** Sync succeeded */
-    SUCCESS(true);
-  }
-
-  /** The requestor's reason for syncing the project */
-  enum class SyncReason {
-    /** The project is being loaded */
-    PROJECT_LOADED,
-    /** The project has been modified */
-    PROJECT_MODIFIED,
-    /** The user requested the sync directly (by pushing the button) */
-    USER_REQUEST;
-  }
-
-  /** Listener which provides callbacks for the beginning and the end of syncs for an associated project */
-  interface SyncResultListener {
-    fun syncEnded(result: SyncResult)
-  }
-
-  /**
-   * Triggers synchronizing the IDE model with the build system model of the project. Source generation
-   * may be triggered regardless of the value of {@code requireSourceGeneration}, though implementing classes may
-   * use this flag for optimization.
-   *
-   * @param reason the caller's reason for requesting a sync
-   * @param requireSourceGeneration a hint to the underlying project system to optionally generate sources after a successful sync
-   *
-   * @return the future result of the sync request
-   */
-  fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean = true): ListenableFuture<SyncResult>
 
   /**
    * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
@@ -128,11 +85,12 @@ interface AndroidProjectSystem {
   fun mergeBuildFiles(dependencies: String,
                       destinationContents: String,
                       supportLibVersionFilter: String?): String
-}
 
-/** Endpoint for broadcasting changes in global sync status */
-@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic<AndroidProjectSystem.SyncResultListener>("Project sync",
-    AndroidProjectSystem.SyncResultListener::class.java)
+  /**
+   * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
+   */
+  fun getSyncManager(): ProjectSystemSyncManager
+}
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.

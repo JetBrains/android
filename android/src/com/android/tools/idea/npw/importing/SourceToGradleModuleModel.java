@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.importing;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -54,7 +54,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      ProjectSystemUtil.getProjectSystem(myProject).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     });
   }
 

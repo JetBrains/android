@@ -16,10 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -39,8 +36,12 @@ import java.nio.file.Path
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
   val ID = "com.android.tools.idea.GradleProjectSystem"
 
+  private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+
   override val id: String
     get() = ID
+
+  override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
 
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
@@ -64,10 +65,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
 
   override fun buildProject() {
     GradleProjectBuilder.getInstance(project).compileJava()
-  }
-
-  override fun syncProject(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
-    return syncProject(project, reason, requireSourceGeneration)
   }
 
   override fun mergeBuildFiles(dependencies: String,

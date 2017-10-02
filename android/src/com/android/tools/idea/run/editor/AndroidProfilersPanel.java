@@ -20,8 +20,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -125,14 +125,14 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   }
 
   private void requestSync() {
-    SettableFuture<AndroidProjectSystem.SyncResult> syncResult = SettableFuture.create();
+    SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
 
     ApplicationManager.getApplication().invokeLater(() -> {
       updateHyperlink("(Syncing...)");
 
       // TODO change trigger to plugin upgrade trigger if it is created
       syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
-        .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true));
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
     });
 
     // Block until sync finishes

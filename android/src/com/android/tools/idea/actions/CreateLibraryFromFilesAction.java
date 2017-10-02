@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -216,7 +216,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
       // Request a sync
       ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
-        .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true));
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
 
       super.doOKAction();
     }

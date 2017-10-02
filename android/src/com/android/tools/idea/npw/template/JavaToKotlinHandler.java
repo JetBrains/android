@@ -16,8 +16,7 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
@@ -39,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * A class for handling actions related to the java to kotlin conversion.
@@ -71,7 +70,7 @@ public class JavaToKotlinHandler {
 
       Disposable tempDisposable = Disposer.newDisposable();
       project.getMessageBus().connect(tempDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-        if (result == AndroidProjectSystem.SyncResult.SUCCESS || result == AndroidProjectSystem.SyncResult.FAILURE) {
+        if (result == ProjectSystemSyncManager.SyncResult.SUCCESS || result == ProjectSystemSyncManager.SyncResult.FAILURE) {
           callConverter(project, provider, files, postProcessFunction);
           Disposer.dispose(tempDisposable);
         }

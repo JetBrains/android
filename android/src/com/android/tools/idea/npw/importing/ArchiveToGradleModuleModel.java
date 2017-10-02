@@ -20,8 +20,8 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -94,7 +94,7 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       assert ApplicationManager.getApplication().isDispatchThread();
-      ProjectSystemUtil.getProjectSystem(myProject).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     }
   }
 

@@ -47,11 +47,13 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun buildProject() {
   }
 
-  override fun syncProject(reason: AndroidProjectSystem.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<AndroidProjectSystem.SyncResult> {
-    AppUIUtil.invokeLaterIfProjectAlive(project, {
-      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(AndroidProjectSystem.SyncResult.FAILURE)
-    })
-    return Futures.immediateFuture(AndroidProjectSystem.SyncResult.FAILURE)
+  override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
+    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+      AppUIUtil.invokeLaterIfProjectAlive(project, {
+        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.FAILURE)
+      })
+      return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.FAILURE)
+    }
   }
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {

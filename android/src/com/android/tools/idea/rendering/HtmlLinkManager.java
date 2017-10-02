@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -359,8 +359,9 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized()? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED:
-                                                       AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
+
+    ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
   }
 
   public String createEditClassPathUrl() {

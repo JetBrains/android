@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.util.concurrent.FutureCallback;
@@ -202,12 +202,12 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   private void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
     assert ApplicationManager.getApplication().isDispatchThread();
 
-    ListenableFuture<AndroidProjectSystem.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
-      .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, false);
+    ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
+      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false);
 
-    Futures.addCallback(syncResult, new FutureCallback<AndroidProjectSystem.SyncResult>() {
+    Futures.addCallback(syncResult, new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
       @Override
-      public void onSuccess(@Nullable AndroidProjectSystem.SyncResult syncResult) {
+      public void onSuccess(@Nullable ProjectSystemSyncManager.SyncResult syncResult) {
         if (syncResult != null && syncResult.isSuccessful()) {
           restartAnalysis(project, scope);
         }

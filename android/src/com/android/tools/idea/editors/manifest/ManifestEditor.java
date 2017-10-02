@@ -18,8 +18,7 @@ package com.android.tools.idea.editors.manifest;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,7 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
@@ -145,7 +144,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       // Parts of the merged manifest come from the project's build model, so we want to know
       // if that changes so we can get the latest values.
       project.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-        if (result == AndroidProjectSystem.SyncResult.FAILURE || result == AndroidProjectSystem.SyncResult.SUCCESS) {
+        if (result == ProjectSystemSyncManager.SyncResult.FAILURE || result == ProjectSystemSyncManager.SyncResult.SUCCESS) {
           reload();
         }
       });
