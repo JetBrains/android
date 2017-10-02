@@ -309,7 +309,7 @@ public final class NewModuleModel extends WizardModel {
         //.intoDependencies(myState.get(DEPENDENCIES_KEY))
         .build();
       // @formatter:on
-      return template.render(context);
+      return template.render(context, dryRun);
     }
   }
 
