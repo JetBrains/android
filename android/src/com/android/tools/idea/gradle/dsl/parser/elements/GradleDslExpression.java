@@ -132,7 +132,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
       resolvedElement = searchStartElement;
     }
     else {
-      // Search in the file the searchStartElement belongs to.
+      // Search in the file that searchStartElement belongs to.
       searchReferenceText = Joiner.on('.').join(referenceTextSegments.subList(index, segmentCount));
       resolvedElement = resolveReferenceInSameModule(searchStartElement, searchReferenceText);
     }
@@ -216,14 +216,14 @@ public abstract class GradleDslExpression extends GradleDslElement {
     GradleDslElement element = startElement;
     while (element != null) {
       if (element instanceof GradlePropertiesDslElement) {
-        GradleDslElement propertyElement = ((GradlePropertiesDslElement)element).getPropertyElement(referenceText);
+        GradleDslElement propertyElement = ((GradlePropertiesDslElement)element).resolveVariableElement(referenceText);
         if (propertyElement != null) {
           return propertyElement;
         }
         if (element instanceof GradleDslFile) {
           ExtDslElement extDslElement = ((GradleDslFile)element).getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
           if (extDslElement != null) {
-            GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
+            GradleDslElement extPropertyElement = extDslElement.resolveVariableElement(referenceText);
             if (extPropertyElement != null) {
               return extPropertyElement;
             }
