@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
+import com.android.tools.adtui.ui.FixedColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
-import com.android.tools.adtui.ui.FixedColumnTable;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
@@ -103,7 +103,7 @@ public final class TranslationsEditorFixture {
   }
 
   @NotNull
-  public JTableFixture getTable() {
+  public FixedColumnTableFixture getTable() {
     FixedColumnTableFixture tableFixture =
       new FixedColumnTableFixture(myRobot, (FixedColumnTable)myRobot.finder().findByName(myTranslationsEditor, "table"));
     tableFixture.replaceCellWriter(new TranslationsEditorTableCellWriter(myRobot));
