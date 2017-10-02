@@ -80,7 +80,6 @@ public class GuiTestRule implements TestRule {
       if (parentWindow instanceof Dialog && ((Dialog)parentWindow).isModal()) {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
-          System.out.println("Focus Listener: Request focus!");
           parent.requestFocus();
         }
       }
