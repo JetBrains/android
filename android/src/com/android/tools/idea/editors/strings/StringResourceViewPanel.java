@@ -19,18 +19,11 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
-import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceNotificationManager.Reason;
-import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -43,9 +36,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkLabel;
@@ -61,7 +52,6 @@ import javax.swing.event.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
@@ -75,9 +65,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
-
   private StringResourceRepository myResourceRepository;
-  private ResourceChangeListener myResourceChangeListener;
 
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
@@ -100,9 +88,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     initTable();
-
-    addResourceChangeListenerOrSubscribe();
-
     Disposer.register(parentDisposable, this);
 
     myLoadingPanel.setLoadingText("Loading string resource data");
@@ -140,7 +125,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createTable() {
-    myTable = new StringResourceTable(myFacet);
+    myTable = new StringResourceTable();
 
     myRemoveKeysAction = new RemoveKeysAction(this);
     myDeleteAction = new DeleteStringAction(this);
@@ -200,15 +185,12 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     return myFacet;
   }
 
+  // TODO Delete this method
   @Override
   public void dispose() {
-    if (myResourceChangeListener != null) {
-      Project project = myFacet.getModule().getProject();
-      ResourceNotificationManager.getInstance(project).removeListener(myResourceChangeListener, myFacet, null, null);
-    }
   }
 
-  public void reloadData() {
+  void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
@@ -224,9 +206,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");
 
-    group.add(new AddKeyAction(myTable, myFacet));
+    group.add(new AddKeyAction(this));
     group.add(myRemoveKeysAction);
-    group.add(new AddLocaleAction(myTable, myFacet));
+    group.add(new AddLocaleAction(this));
     group.add(new FilterKeysAction(myTable));
     group.add(new FilterLocalesAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
@@ -239,39 +221,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(listener);
     myTable.getSelectionModel().addListSelectionListener(listener);
-  }
 
-  private void addResourceChangeListenerOrSubscribe() {
-    if (!GradleProjectInfo.getInstance(myFacet.getModule().getProject()).isBuildWithGradle() || AndroidModuleModel.get(myFacet) != null) {
-      addResourceChangeListener();
-      return;
-    }
-
-    GradleSyncState.subscribe(myFacet.getModule().getProject(), new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        addResourceChangeListener();
-      }
-
-      @Override
-      public void syncSkipped(@NotNull Project project) {
-        addResourceChangeListener();
-      }
-    });
-  }
-
-  private void addResourceChangeListener() {
-    if (myResourceChangeListener != null) {
-      return;
-    }
-
-    myResourceChangeListener = reasons -> {
-      if (reasons.contains(Reason.RESOURCE_EDIT)) {
-        reloadData();
-      }
-    };
-
-    ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).addListener(myResourceChangeListener, myFacet, null, null);
+    myTable.getTableHeader().addMouseListener(new RemoveLocaleMouseListener(this));
   }
 
   @NotNull
@@ -338,9 +289,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private class ParseTask extends Task.Backgroundable {
-    private final AtomicReference<StringResourceRepository> myResourceRepositoryRef = new AtomicReference<>(null);
-    private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<>(null);
-
     public ParseTask(String description) {
       super(myFacet.getModule().getProject(), description, false);
     }
@@ -348,20 +296,13 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-
-      MultiResourceRepository parent = (MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet);
-      StringResourceRepository repository = new StringResourceRepository(parent);
-
-      myResourceRepositoryRef.set(repository);
-
-      Computable<StringResourceData> getData = () -> repository.getData(myFacet);
-      myResourceDataRef.set(ApplicationManager.getApplication().runReadAction(getData));
+      ModuleResourceRepository.getOrCreateInstance(myFacet);
     }
 
     @Override
     public void onSuccess() {
-      myResourceRepository = myResourceRepositoryRef.get();
-      myTable.setModel(new StringResourceTableModel(myResourceDataRef.get()));
+      myResourceRepository = new StringResourceRepository((MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet));
+      myTable.setModel(new StringResourceTableModel(myResourceRepository.getData(myFacet)));
 
       myLoadingPanel.stopLoading();
     }
