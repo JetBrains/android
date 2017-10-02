@@ -100,7 +100,7 @@ public class GuiTestRule implements TestRule {
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new TestPerformance())
+      .around(new LogStartAndStop())
       .around(new ScreenshotOnFailure())
       .around(myTimeout)
       .apply(base, description);
@@ -113,7 +113,6 @@ public class GuiTestRule implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
-          System.out.println("Starting " + description.getDisplayName());
           assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
           assumeOnlyWelcomeFrameShowing();
           setUp();
