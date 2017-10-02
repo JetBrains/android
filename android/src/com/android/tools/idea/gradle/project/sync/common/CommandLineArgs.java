@@ -24,7 +24,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -40,7 +40,6 @@ import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIO
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class CommandLineArgs {
-  public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;

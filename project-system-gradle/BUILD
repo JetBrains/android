@@ -21,7 +21,6 @@ iml_module(
         "//tools/idea:compiler-impl_and_others[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea:java-impl[module]",
-        "//tools/idea/.idea/libraries:swingx",
     ],
 )
 
