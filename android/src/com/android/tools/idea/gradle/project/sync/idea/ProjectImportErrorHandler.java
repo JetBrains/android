@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.analytics.UsageTracker;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Throwables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
@@ -25,14 +26,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.splitByLines;
 
@@ -59,20 +59,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
     // Create ExternalSystemException or LocationAwareExternalSystemException, so that it goes to SyncErrorHandlers directly.
     String location = rootCauseAndLocation.getSecond();
-    String errMessage;
-    if (rootCause.getMessage() == null) {
-      StringWriter writer = new StringWriter();
-      rootCause.printStackTrace(new PrintWriter(writer));
-      errMessage = writer.toString();
-    }
-    else {
-      errMessage = rootCause.getMessage();
-    }
-
-    if (!errMessage.isEmpty() && Character.isLowerCase(errMessage.charAt(0))) {
-      // Message starts with lower case letter. Sentences should start with uppercase.
-      errMessage = "Cause: " + errMessage;
-    }
+    String errMessage = createErrorMessage(rootCause);
 
     ExternalSystemException exception = null;
     if (isNotEmpty(location)) {
@@ -96,6 +83,20 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
            .setGradleSyncFailure(UNKNOWN_GRADLE_FAILURE);
     // @formatter:on
     UsageTracker.getInstance().log(event);
+  }
+
+  @NotNull
+  public static String createErrorMessage(@NotNull Throwable rootCause) {
+    String errMessage = rootCause.getMessage();
+    if (isEmpty(errMessage)) {
+      errMessage = Throwables.getStackTraceAsString(rootCause);
+    }
+
+    if (Character.isLowerCase(errMessage.charAt(0))) {
+      // Message starts with lower case letter. Sentences should start with uppercase.
+      errMessage = "Cause: " + errMessage;
+    }
+    return errMessage;
   }
 
   // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in

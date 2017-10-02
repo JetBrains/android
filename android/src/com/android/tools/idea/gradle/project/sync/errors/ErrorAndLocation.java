@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Throwables;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -27,6 +28,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import static com.android.tools.idea.gradle.project.sync.idea.ProjectImportErrorHandler.createErrorMessage;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.splitByLines;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -71,17 +74,7 @@ class ErrorAndLocation {
 
     @NotNull
     private static ExternalSystemException createErrorToReport(@NotNull Throwable rootCause) {
-      String errMessage = rootCause.getMessage();
-      if (errMessage == null) {
-        StringWriter writer = new StringWriter();
-        rootCause.printStackTrace(new PrintWriter(writer));
-        errMessage = writer.toString();
-      }
-
-      if (!errMessage.isEmpty() && Character.isLowerCase(errMessage.charAt(0))) {
-        // Message starts with lower case letter. Sentences should start with uppercase.
-        errMessage = "Cause: " + errMessage;
-      }
+      String errMessage = createErrorMessage(rootCause);
       ExternalSystemException exception = new ExternalSystemException(errMessage);
       exception.initCause(rootCause);
       return exception;
