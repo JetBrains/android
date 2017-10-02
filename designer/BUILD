@@ -72,7 +72,7 @@ iml_module(
         "cpu:3",
         "block-network",
     ],
-    test_timeout = "long",
+    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
