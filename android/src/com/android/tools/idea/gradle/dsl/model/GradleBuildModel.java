@@ -52,6 +52,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
@@ -341,21 +342,24 @@ public class GradleBuildModel extends GradleFileModel {
     protected void parse(@NotNull GroovyFile psiFile) {
       psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
-        public void visitMethodCallExpression(GrMethodCallExpression e) {
+        public void visitMethodCallExpression(@NotNull GrMethodCallExpression e) {
           process(e);
         }
 
         @Override
-        public void visitAssignmentExpression(GrAssignmentExpression e) {
+        public void visitAssignmentExpression(@NotNull GrAssignmentExpression e) {
           process(e);
         }
 
         @Override
-        public void visitApplicationStatement(GrApplicationStatement e) {
+        public void visitApplicationStatement(@NotNull GrApplicationStatement e) {
           process(e);
         }
 
-        void process(GroovyPsiElement e) {
+        @Override
+        public void visitVariableDeclaration(@NotNull GrVariableDeclaration e) { process(e); }
+
+        void process(@NotNull GroovyPsiElement e) {
           GradleDslParser.parse(e, GradleBuildDslFile.this);
         }
       }));

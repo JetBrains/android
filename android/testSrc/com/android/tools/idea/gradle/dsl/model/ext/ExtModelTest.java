@@ -472,4 +472,72 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("value_from_gradle_properties", first.value());
     assertEquals(0, first.getResolvedVariables().size());
   }
+
+  public void testFlatDefVariablesAreResolved() throws IOException {
+    String text = "def world = 'WORLD'\n" +
+                  "def foo = 'bar'\n" +
+                  "ext.first = \"Hello ${world}\"\n";
+
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = buildModel.ext();
+
+    // Make sure that we get the correct value for the property
+    GradleNullableValue<String> value = extModel.getLiteralProperty("first", String.class);
+    assertEquals("Hello WORLD", value);
+
+    // But we also can't get the value from the def'd variables.
+    // TODO: Work out if we need some way of accessing and editing these
+    GradleNullableValue<String> defValue = extModel.getLiteralProperty("world", String.class);
+    assertNull(defValue.value());
+  }
+
+  public void testNestedDefVariablesAreResolved() throws IOException {
+      String text = "def world = 'world'\n" +
+                    "def foo = 'bar'\n" +
+                    "ext {\n" +
+                    "    second = \"Welcome to $foo $world!\"\n" +
+                    "}";
+
+      writeToBuildFile(text);
+
+      GradleBuildModel buildModel = getGradleBuildModel();
+      ExtModel extModel = buildModel.ext();
+
+      GradleNullableValue<String> value = extModel.getLiteralProperty("second", String.class);
+      assertEquals("Welcome to bar world!", value.value());
+  }
+
+
+  public void testMultipleDefDeclarations() throws IOException {
+    String text = "def olleh = 'hello', dlrow = 'world'\n" +
+                  "ext.prop = \"hello $dlrow\"\n" +
+                  "ext.prop2 = \"$olleh world\"";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = buildModel.ext();
+
+    GradleNullableValue<String> propValue = extModel.getLiteralProperty("prop", String.class);
+    assertEquals("hello world", propValue.value());
+    GradleNullableValue<String> prop2Value = extModel.getLiteralProperty("prop2", String.class);
+    assertEquals("hello world", prop2Value.value());
+  }
+
+  public void testDefUsedInDefResolved() throws IOException {
+    String text = "def animal = 'penguin'\n" +
+                  "def message = \"${animal}s are cool!\"\n" +
+                  "ext.greeting = \"Hello, $message\"";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = buildModel.ext();
+
+    GradleNullableValue<String> value = extModel.getLiteralProperty("greeting", String.class);
+    assertEquals("Hello, penguins are cool!", value.value());
+  }
 }

@@ -51,6 +51,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -59,6 +61,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
@@ -114,6 +117,9 @@ public final class GradleDslParser {
     }
     else if (psiElement instanceof GrApplicationStatement) {
       return parse((GrApplicationStatement)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+    }
+    else if (psiElement instanceof GrVariableDeclaration) {
+      return parse((GrVariableDeclaration)psiElement, (GradlePropertiesDslElement)gradleDslFile);
     }
     return false;
   }
@@ -191,19 +197,23 @@ public final class GradleDslParser {
   private static void parse(@NotNull GrClosableBlock closure, @NotNull final GradlePropertiesDslElement blockElement) {
     closure.acceptChildren(new GroovyElementVisitor() {
       @Override
-      public void visitMethodCallExpression(GrMethodCallExpression methodCallExpression) {
+      public void visitMethodCallExpression(@NotNull GrMethodCallExpression methodCallExpression) {
         parse(methodCallExpression, blockElement);
       }
 
       @Override
-      public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+      public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
         parse(applicationStatement, blockElement);
       }
 
       @Override
-      public void visitAssignmentExpression(GrAssignmentExpression expression) {
+      public void visitAssignmentExpression(@NotNull GrAssignmentExpression expression) {
         parse(expression, blockElement);
       }
+
+      @Override
+      public void visitVariableDeclaration(@NotNull GrVariableDeclaration variableDeclaration) {
+        parse(variableDeclaration, blockElement); }
     });
   }
 
@@ -280,6 +290,53 @@ public final class GradleDslParser {
     return true;
   }
 
+  @Nullable
+  private static GradleDslElement createExpressionElement(@NotNull GradleDslElement parent,
+                                                          @NotNull GroovyPsiElement psiElement,
+                                                          @NotNull String name,
+                                                          @Nullable GrExpression expression) {
+    if (expression == null) {
+      return null;
+    }
+
+    GradleDslElement propertyElement;
+    if (expression instanceof GrListOrMap) {
+      GrListOrMap listOrMap = (GrListOrMap)expression;
+      if (listOrMap.isMap()) { // ex: manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
+        propertyElement = getExpressionMap(parent, listOrMap, name, listOrMap.getNamedArguments());
+      }
+      else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+        propertyElement = getExpressionList(parent, listOrMap, name, listOrMap.getInitializers());
+      }
+    }
+    else {
+      propertyElement = getExpressionElement(parent, psiElement, name, expression);
+    }
+
+    return propertyElement;
+  }
+
+  private static boolean parse(@NotNull GrVariableDeclaration declaration, @NotNull GradlePropertiesDslElement blockElement) {
+    if (declaration.getVariables().length == 0) {
+      return false;
+    }
+
+    for (GrVariable variable : declaration.getVariables()) {
+      if (variable == null) {
+        return false;
+      }
+
+      GradleDslElement variableElement =
+          createExpressionElement(blockElement, declaration, variable.getName(), variable.getInitializerGroovy());
+      if (variableElement == null) {
+        return false;
+      }
+
+      blockElement.setParsedVariable(variable.getName(), variableElement);
+    }
+    return true;
+  }
+
   private static boolean parse(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     PsiElement operationToken = assignment.getOperationToken();
     if (!operationToken.getText().equals("=")) {
@@ -309,20 +366,7 @@ public final class GradleDslParser {
       return false;
     }
 
-    GradleDslElement propertyElement;
-    if (right instanceof GrListOrMap) {
-      GrListOrMap listOrMap = (GrListOrMap)right;
-      if (listOrMap.isMap()) { // ex: manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-        propertyElement = getExpressionMap(blockElement, listOrMap, propertyName, listOrMap.getNamedArguments());
-      }
-      else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-        propertyElement = getExpressionList(blockElement, listOrMap, propertyName, listOrMap.getInitializers());
-      }
-    }
-    else {
-      propertyElement = getExpressionElement(blockElement, assignment, propertyName, right);
-    }
-
+    GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, propertyName, right);
     if (propertyElement == null) {
       return false;
     }
