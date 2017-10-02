@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.translations;
 import com.android.tools.adtui.ui.FixedColumnTable;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -30,9 +31,8 @@ import javax.swing.table.JTableHeader;
 
 import static org.fest.util.Preconditions.checkNotNull;
 
-class FixedColumnTableFixture extends JTableFixture {
-
-  final JTableFixture myFixed;
+public final class FixedColumnTableFixture extends JTableFixture {
+  private final JTableFixture myFixed;
 
   public FixedColumnTableFixture(@NotNull Robot robot, @NotNull FixedColumnTable target) {
     super(robot, target);
@@ -68,6 +68,20 @@ class FixedColumnTableFixture extends JTableFixture {
       return myFixed.enterValue(cell, value);
     }
     return super.enterValue(convertToMain(cell), value);
+  }
+
+  @NotNull
+  public TableCell selectedCell() {
+    return GuiQuery.getNonNull(() -> {
+      JTable target = target();
+
+      if (target.getSelectedColumn() == -1) {
+        target = myFixed.target();
+        return TableCell.row(target.getSelectedRow()).column(target.getSelectedColumn());
+      }
+
+      return TableCell.row(target.getSelectedRow()).column(target.getSelectedColumn() + getFixedColumnCount());
+    });
   }
 
   @NotNull
