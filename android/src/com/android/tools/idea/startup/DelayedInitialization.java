@@ -18,8 +18,8 @@ package com.android.tools.idea.startup;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.*;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Delay the initialization of various tasks until the build state is known.
@@ -64,7 +64,7 @@ public class DelayedInitialization {
     GradleBuildState.subscribe(project, new BuildListener());
 
     project.getMessageBus().connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result == AndroidProjectSystem.SyncResult.SKIPPED || result == AndroidProjectSystem.SyncResult.FAILURE) {
+      if (result == ProjectSystemSyncManager.SyncResult.SKIPPED || result == ProjectSystemSyncManager.SyncResult.FAILURE) {
         afterBuild();
       }
     });
@@ -91,7 +91,7 @@ public class DelayedInitialization {
       case BUILD_NEEDED:
         // Request a sync
         ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
-          .syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true));
+          .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
         break;
       case BUILD_ERROR:
         if (buildFailure != null) {

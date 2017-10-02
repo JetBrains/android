@@ -17,9 +17,9 @@ package com.android.tools.idea.fd;
 
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.BrowserUtil;
@@ -224,10 +224,10 @@ public class InstantRunConfigurable
       AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
       if (projectSystem.upgradeProjectToSupportInstantRun()) {
         updateUi(true, false);
-        Futures.addCallback(projectSystem.syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, false),
-                            new FutureCallback<AndroidProjectSystem.SyncResult>() {
+        Futures.addCallback(projectSystem.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false),
+                            new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
             @Override
-            public void onSuccess(AndroidProjectSystem.SyncResult result) {
+            public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
               updateUi(false, result.isSuccessful());
             }
 

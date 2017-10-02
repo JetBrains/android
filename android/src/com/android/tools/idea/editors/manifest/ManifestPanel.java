@@ -29,9 +29,9 @@ import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -807,7 +807,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
-    ProjectSystemUtil.getProjectSystem(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, true);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
   }
 
   private static void removePackageAttribute(XmlFile manifestFile) {

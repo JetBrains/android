@@ -25,7 +25,7 @@ import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Resource repository which contains dynamically registered resource items from the model.
@@ -71,7 +71,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
     MessageBusConnection parent = module.getProject().getMessageBus().connect(module);
     parent.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result == AndroidProjectSystem.SyncResult.SUCCESS) {
+      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS) {
         notifyProjectSynced();
       }
     });

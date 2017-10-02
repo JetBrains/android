@@ -78,7 +78,7 @@ public class GradleProjectSystemTest extends IdeaTestCase {
     when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
     GradleSyncInvoker mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
 
-    ProjectSystemUtil.getProjectSystem(project).syncProject(AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_LOADED, true);
     Mockito.verify(mySyncInvoker, never()).requestProjectSync(same(project), any(), any());
   }
 

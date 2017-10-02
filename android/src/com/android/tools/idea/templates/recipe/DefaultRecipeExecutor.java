@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -701,8 +701,8 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     public void requestSync(@NotNull Project project) {
-      ProjectSystemUtil.getProjectSystem(project).syncProject(project.isInitialized() ? AndroidProjectSystem.SyncReason.PROJECT_MODIFIED :
-                                                         AndroidProjectSystem.SyncReason.PROJECT_LOADED, true);
+      ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
+      ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
     }
   }
 

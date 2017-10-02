@@ -21,7 +21,7 @@ import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -63,7 +63,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -282,7 +282,7 @@ final class ManifestInfo {
 
       myLastSyncTimestamp = new AtomicLong(-1L);
       myFacet.getModule().getMessageBus().connect(myFacet).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-        if (result != AndroidProjectSystem.SyncResult.CANCELLED) {
+        if (result != ProjectSystemSyncManager.SyncResult.CANCELLED) {
           myLastSyncTimestamp.set(System.currentTimeMillis());
         }
       });

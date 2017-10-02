@@ -21,6 +21,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
@@ -281,10 +282,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     if (projectSystem.upgradeProjectToSupportInstantRun()) {
       setSyncLinkMessage("(Syncing)");
-      Futures.addCallback(projectSystem.syncProject(AndroidProjectSystem.SyncReason.PROJECT_MODIFIED, false),
-                          new FutureCallback<AndroidProjectSystem.SyncResult>() {
+      Futures.addCallback(projectSystem.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false),
+                          new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
           @Override
-          public void onSuccess(AndroidProjectSystem.SyncResult result) {
+          public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
             if (!result.isSuccessful()) {
               setSyncLinkMessage("(Sync Failed)");
             }
