@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.io.FileUtilKt;
 import com.android.resources.Density;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
@@ -50,6 +51,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -579,7 +581,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     /**
      * This cell renders an action panel for both the editor component and the display component
      */
-    private final Map<Object, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
+    private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
 
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
@@ -658,8 +660,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       long sizeInBytes = 0;
       if (avdInfo != null) {
         File avdDir = new File(avdInfo.getDataFolderPath());
-        for (File file : WizardUtils.listFiles(avdDir)) {
-          sizeInBytes += file.length();
+        try {
+          sizeInBytes = FileUtilKt.recursiveSize(avdDir.toPath());
+        } catch (IOException ee) {
+          // Just leave the size as zero
         }
       }
       return new Storage(sizeInBytes);
