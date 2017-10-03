@@ -362,8 +362,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
-    if (state.ADVANCED_PROFILING_ENABLED &&
-        (minVersion.getFeatureLevel() < 26 || !StudioFlags.PROFILER_USE_JVMTI.get())) {
+    if (state.ADVANCED_PROFILING_ENABLED && minVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
+        (minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O || !StudioFlags.PROFILER_USE_JVMTI.get())) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform(minVersion);
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 

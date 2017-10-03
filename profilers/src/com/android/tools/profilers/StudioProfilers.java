@@ -74,6 +74,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
+  /**
+   * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
+   */
   private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
 
   @Nullable
@@ -335,7 +338,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null &&
+      // Check whether myProcess id and name exists in processes from myDevice, it avoids calling stopProfiling() twice. Otherwise,
+      // second calling might be sent to device which api is under 21 and grpc exception is thrown.
+      if (myDevice != null && myProcess != null && processes != null &&
+          processes.stream().anyMatch(p -> p.getPid() == myProcess.getPid() && p.getName().equals(myProcess.getName())) &&
           myDevice.getState() == Profiler.Device.State.ONLINE &&
           myProcess.getState() == Profiler.Process.State.ALIVE) {
         myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
