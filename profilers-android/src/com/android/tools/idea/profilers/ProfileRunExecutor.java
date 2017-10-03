@@ -85,10 +85,8 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
   @Override
   public Icon getExecutorIcon(@NotNull Project project, @NotNull Executor executor) {
     ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
-    if (toolWindow != null) {
-      if (toolWindow.getContentManager().getContentCount() > 0) {
-        return ExecutionUtil.getLiveIndicator(getIcon());
-      }
+    if (toolWindow != null && toolWindow.getContentManager().getContentCount() > 0) {
+      return ExecutionUtil.getLiveIndicator(getIcon());
     }
     return getIcon();
   }
