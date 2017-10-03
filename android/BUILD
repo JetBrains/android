@@ -204,7 +204,6 @@ iml_module(
         "//tools/idea/.idea/libraries:sqlite[test]",
         "//tools/adt/idea/project-system[module, test]",
         "//tools/adt/idea/android-adb[module, test]",
-        "//tools/adt/idea/android-adb:android-adb-tests[module]",
         "//tools/adt/idea/project-system-gradle[module]",
     ],
 )
