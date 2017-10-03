@@ -132,7 +132,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       component.addKeyListener(new KeyAdapter() {
         @Override
         public void keyTyped(KeyEvent e) {
-          if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE) {
+          // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead we get the code from the char
+          // we are given.
+          int keyCode = KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar());
+          if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
             if (monitor.isFocused()) {
               expandMonitor(monitor);
             }
