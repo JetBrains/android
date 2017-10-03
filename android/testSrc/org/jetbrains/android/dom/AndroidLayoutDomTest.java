@@ -35,7 +35,7 @@ import java.util.Set;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
- * @author coyote
+ * Tests semantic highlighting and completion in layout XML files.
  */
 public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public AndroidLayoutDomTest() {
