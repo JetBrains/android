@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -32,15 +29,12 @@ import java.util.Collections;
  * Step for generating Android icons from some image asset source.
  */
 public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
-
-  private final GenerateImageAssetPanel myGenerateImageAssetPanel;
+  @NotNull private final GenerateImageAssetPanel myGenerateImageAssetPanel;
   @NotNull private final AndroidFacet myFacet;
 
   public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
-    AndroidVersion targetSdkVersion = AndroidModuleInfo.getInstance(facet).getTargetSdkVersion();
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths(), minSdkVersion, targetSdkVersion);
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths());
     myFacet = facet;
   }
 
