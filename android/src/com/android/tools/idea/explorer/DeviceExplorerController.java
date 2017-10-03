@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.*;
 import com.android.tools.idea.explorer.ui.TreeUtil;

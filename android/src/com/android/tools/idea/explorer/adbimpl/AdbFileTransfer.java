@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.explorer.FutureCallbackExecutor;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.fs.ThrottledProgress;
 import com.google.common.util.concurrent.Futures;
