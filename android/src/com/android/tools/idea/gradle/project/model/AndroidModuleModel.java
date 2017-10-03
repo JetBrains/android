@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
+import com.android.ide.common.gradle.model.*;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.model.ide.android.*;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;

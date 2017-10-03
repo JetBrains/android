@@ -16,8 +16,8 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;

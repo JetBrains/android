@@ -15,15 +15,15 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
-import com.android.tools.idea.Projects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;

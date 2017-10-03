@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.idea.Projects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.FacetManager;
 import com.intellij.lang.annotation.HighlightSeverity;

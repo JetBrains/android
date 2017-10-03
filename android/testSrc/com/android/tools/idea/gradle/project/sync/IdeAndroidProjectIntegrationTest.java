@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
-import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -66,13 +66,13 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   }
 
   private void syncProjectWithGradle2Dot2() throws Exception {
-    syncProjectWithGradle2Dot2(SIMPLE_APPLICATION);
+    syncProjectWithGradle2Dot2(TestProjectPaths.SIMPLE_APPLICATION);
   }
 
   private void syncProjectWithGradle2Dot2(@NotNull String projectName) throws Exception {
     loadProject(projectName);
     Project project = getProject();
-    updateGradleVersions(getBaseDirPath(project), "2.2.0");
+    AndroidGradleTests.updateGradleVersions(Projects.getBaseDirPath(project), "2.2.0");
     GradleWrapper wrapper = GradleWrapper.find(project);
     assertNotNull(wrapper);
     wrapper.updateDistributionUrl("3.5");
@@ -107,12 +107,12 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
   // TODO: Enable when plugin 2.2 is added to prebuilts.
   public void ignore_testLocalAarsAsModulesWithGradle2Dot2() throws Exception {
-    syncProjectWithGradle2Dot2(LOCAL_AARS_AS_MODULES);
+    syncProjectWithGradle2Dot2(TestProjectPaths.LOCAL_AARS_AS_MODULES);
     verifyAarModuleShowsAsAndroidLibrary("testLocalAarsAsModulesWithGradle2Dot2:library-debug:unspecified@aar");
   }
 
   public void testLocalAarsAsModulesWithHeadPlugin() throws Exception {
-    loadProject(LOCAL_AARS_AS_MODULES);
+    loadProject(TestProjectPaths.LOCAL_AARS_AS_MODULES);
     verifyAarModuleShowsAsAndroidLibrary("artifacts:library-debug:unspecified@jar");
   }
 

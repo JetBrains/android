@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.ide.common.gradle.model.stubs.ProductFlavorStub;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.ProductFlavorStub;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
