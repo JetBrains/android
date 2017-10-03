@@ -53,7 +53,7 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
       RunProfile runProfile = env.getRunProfile();
       int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
       AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
-                                                              InstantRunUtils.isInstantRunEnabled(env));
+                                                              env.getExecutor().getActionName(), InstantRunUtils.isInstantRunEnabled(env));
       processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
     }
 

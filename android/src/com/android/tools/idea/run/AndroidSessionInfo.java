@@ -38,7 +38,8 @@ public class AndroidSessionInfo {
 
   @NotNull private final ProcessHandler myProcessHandler;
   private final RunContentDescriptor myDescriptor;
-  private final String myExecutorId;
+  @NotNull private final String myExecutorId;
+  @NotNull private final String myExecutorActionName;
   private final int myRunConfigId;
   private final boolean myInstantRun;
 
@@ -46,11 +47,13 @@ public class AndroidSessionInfo {
                             @NotNull RunContentDescriptor descriptor,
                             int runConfigId,
                             @NotNull String executorId,
+                            @NotNull String executorActionName,
                             boolean instantRunEnabled) {
     myProcessHandler = processHandler;
     myDescriptor = descriptor;
     myRunConfigId = runConfigId;
     myExecutorId = executorId;
+    myExecutorActionName = executorActionName;
     myInstantRun = instantRunEnabled;
   }
 
@@ -67,6 +70,11 @@ public class AndroidSessionInfo {
   @NotNull
   public String getExecutorId() {
     return myExecutorId;
+  }
+
+  @NotNull
+  public String getExecutorActionName() {
+    return myExecutorActionName;
   }
 
   public boolean isInstantRun() {
