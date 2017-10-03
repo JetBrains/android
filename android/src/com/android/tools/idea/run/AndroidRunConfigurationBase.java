@@ -353,7 +353,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
             InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
           }
         }
-
       }
     }
     else {
@@ -493,18 +492,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private boolean promptAndKillSession(@NotNull Executor executor, @NotNull Project project, @NotNull AndroidSessionInfo info) {
-    String previousExecutor = info.getExecutorId();
-    String currentExecutor = executor.getId();
+    String previousExecutorId = info.getExecutorId();
+    String currentExecutorId = executor.getId();
 
     if (ourKillLaunchOption.isToBeShown()) {
       String msg, noText;
-      if (previousExecutor.equals(currentExecutor)) {
+      if (previousExecutorId.equals(currentExecutorId)) {
         msg = "Restart App?\nThe app is already running. Would you like to kill it and restart the session?";
         noText = "Cancel";
       }
       else {
-        msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
-        noText = "Cancel " + currentExecutor;
+        String previousExecutorActionName = info.getExecutorActionName();
+        String currentExecutorActionName = executor.getActionName();
+        msg = String
+          .format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutorActionName, currentExecutorActionName);
+        noText = "Cancel " + currentExecutorActionName;
       }
 
       String title = "Launching " + getName();
