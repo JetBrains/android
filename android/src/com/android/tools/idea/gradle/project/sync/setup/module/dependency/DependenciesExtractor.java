@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
@@ -78,7 +79,9 @@ public class DependenciesExtractor {
     IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
-      dependencies.add(new LibraryDependency(library.getArtifact(), scope));
+      LibraryDependency libraryDependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
+      libraryDependency.addPath(LibraryDependency.PathType.BINARY, library.getArtifact());
+      dependencies.add(libraryDependency);
     }
 
     for (Library library : artifactDependencies.getAndroidLibraries()) {
@@ -130,6 +133,9 @@ public class DependenciesExtractor {
         name += separator + version;
       }
       assert name != null;
+      if (StringUtil.isNotEmpty(coordinates.getGroupId())) {
+        return coordinates.getGroupId() + ":" + name;
+      }
       return name;
     }
     return trimLeading(artifactAddress, ':');
