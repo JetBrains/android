@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
 /**
  * Creates {@link DependencySet} from variant or artifact.
@@ -77,7 +79,9 @@ public class DependenciesExtractor {
     IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
-      dependencies.add(new LibraryDependency(library.getArtifact(), scope));
+      LibraryDependency libraryDependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
+      libraryDependency.addPath(LibraryDependency.PathType.BINARY, library.getArtifact());
+      dependencies.add(libraryDependency);
     }
 
     for (Library library : artifactDependencies.getAndroidLibraries()) {
@@ -122,10 +126,18 @@ public class DependenciesExtractor {
     // Artifact address for external libraries are in the format of groupId:artifactId:version@packing, thus can be converted to GradleCoordinate.
     // But artifact address for module dependency is in the format of :moduleName::variant, trim the leading : for module dependency.
     if (coordinates != null) {
-      return coordinates.getArtifactId() + separator + coordinates.getVersion();
+      String name = coordinates.getArtifactId();
+
+      GradleVersion version = coordinates.getVersion();
+      if (version != null && !"unspecified".equals(version.toString())) {
+        name += separator + version;
+      }
+      assert name != null;
+      if (StringUtil.isNotEmpty(coordinates.getGroupId())) {
+        return coordinates.getGroupId() + ":" + name;
+      }
+      return name;
     }
-    else {
-      return StringUtil.trimLeading(artifactAddress, ':');
-    }
+    return trimLeading(artifactAddress, ':');
   }
 }
