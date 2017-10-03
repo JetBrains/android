@@ -28,7 +28,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -157,7 +156,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.addSeparator();
     }
 
-    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
+    if (leafComponent != null) {
       group.add(new MorphComponentAction(leafComponent, mySurface));
     }
     group.add(new MockupEditAction(mySurface));
