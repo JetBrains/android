@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "android-uitests",
     iml_files = ["android-uitests.iml"],
+    tags = ["managed"],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
@@ -15,6 +16,7 @@ iml_module(
         "//tools/adt/idea/android[module, test]",
         "//tools/adt/idea/wizard[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/idea:community-main[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools:fest-swing[module, test]",
         "//tools/idea/java/debugger/openapi:debugger-openapi[module, test]",
