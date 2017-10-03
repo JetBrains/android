@@ -17,10 +17,6 @@ iml_module(
         "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/idea/platform/lang-api[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
-        "//tools/idea:platform-impl_and_others[module]",
-        "//tools/idea:compiler-impl_and_others[module]",
-        "//tools/idea/.idea/libraries:Gradle",
-        "//tools/idea:java-impl[module]",
     ],
 )
 

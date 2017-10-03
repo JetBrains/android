@@ -73,9 +73,10 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -103,14 +104,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
  */
 public final class GradleUtil {
   public static final ProjectSystemId GRADLE_SYSTEM_ID = GradleConstants.SYSTEM_ID;
-  /**
-   * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
-   * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
-   */
-  private static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
-  static {
-    System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
-  }
+
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 

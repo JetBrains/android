@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,10 +69,10 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -81,6 +81,15 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 
 /** Performs Gradle-specific IDE initialization */
 public class GradleSpecificInitializer implements Runnable {
+  /**
+   * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
+   * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
+   */
+  public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
+  static {
+    System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
+  }
+
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
   // Paths relative to the IDE installation folder where the Android SDK may be present.
