@@ -25,11 +25,15 @@ import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
+import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -99,6 +103,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myFacet = addAndroidFacet(myModule);
 
+    removeFacetOn(myFixture.getProjectDisposable(), myFacet);
+
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
       LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
@@ -114,6 +120,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
       AndroidFacet facet = addAndroidFacet(additionalModule);
+      removeFacetOn(myFixture.getProjectDisposable(), facet);
       facet.setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
       myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
@@ -247,12 +254,19 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
 
+    Sdk sdk;
     if (attachSdk) {
-      addLatestAndroidSdk(module);
+      sdk = addLatestAndroidSdk(module);
+    }
+    else {
+      sdk = null;
     }
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(facetModel::commit);
+    if (sdk != null) {
+      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
+    }
     return facet;
   }
 
@@ -372,5 +386,18 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     picoContainer.unregisterComponent(key.getName());
     picoContainer.registerComponentInstance(key.getName(), instance);
     return old;
+  }
+
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
+    Disposer.register(disposable, () -> WriteAction.run(() -> {
+      Module module = facet.getModule();
+      if (!module.isDisposed()) {
+        FacetManager facetManager = FacetManager.getInstance(module);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        model.removeFacet(facet);
+        model.commit();
+      }
+    }));
+
   }
 }

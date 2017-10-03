@@ -20,8 +20,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,13 +28,11 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
@@ -74,23 +70,7 @@ public class AndroidSdksTest extends IdeaTestCase {
     assertNotNull(myJdk);
 
     myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    ProjectJdkTable sdkTable = ProjectJdkTable.getInstance();
-    List<Sdk> sdks = sdkTable.getSdksOfType(AndroidSdkType.getInstance());
-    try {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        for (Sdk sdk : sdks) {
-          sdkTable.removeJdk(sdk);
-        }
-        sdkTable.removeJdk(myJdk);
-      });
-    }
-    finally {
-      super.tearDown();
-    }
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testTryToCreate() {
@@ -140,7 +120,7 @@ public class AndroidSdksTest extends IdeaTestCase {
   @NotNull
   private static Map<String, VirtualFile> getSdkRootsByName(@NotNull Sdk androidSdk, @NotNull OrderRootType type) {
     Map<String, VirtualFile> rootsByName = new HashMap<>();
-    VirtualFile[] roots = androidSdk.getSdkModificator().getRoots(type);
+    VirtualFile[] roots = androidSdk.getRootProvider().getFiles(type);
     for (VirtualFile root : roots) {
       rootsByName.put(root.getName(), root);
     }
@@ -164,7 +144,7 @@ public class AndroidSdksTest extends IdeaTestCase {
     assertNotNull(androidPlatform);
     assertSame(target, androidPlatform.getTarget());
 
-    VirtualFile[] sdkRoots = sdk.getSdkModificator().getRoots(CLASSES);
+    VirtualFile[] sdkRoots = sdk.getRootProvider().getFiles(CLASSES);
     assertThat(sdkRoots).isEmpty();
   }
 
