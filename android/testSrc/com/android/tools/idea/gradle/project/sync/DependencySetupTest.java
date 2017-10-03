@@ -178,7 +178,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).hasDependency("library-debug", COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*library\\-debug$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
@@ -237,7 +237,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "guava-.*", COMPILE, PROVIDED);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*guava.*$", COMPILE, PROVIDED);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -257,7 +257,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "commons-io-.*", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*commons\\-io.*$", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -331,11 +331,11 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-    assertAbout(libraryDependencies()).that(library2Module).hasDependency("fakelib", COMPILE, false);
+    assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, ".*fakelib.*", COMPILE);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).hasDependency("fakelib", COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, ".*fakelib.*", COMPILE);
   }
 }

@@ -51,6 +51,10 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
+  private static final String GSON = "com.google.code.gson:gson:2.2.4@jar";
+  private static final String GUAVA = "com.google.guava:guava:18.0@jar";
+  private static final String HAMCREST = "org.hamcrest:hamcrest-core:1.3@jar";
+  private static final String JUNIT = "junit:junit:4.12@jar";
   @Override
   protected boolean shouldRunTest() {
     if (SystemInfo.isWindows) {
@@ -92,10 +96,14 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
-    Library guava = libraryTable.getLibraryByName("guava-18.0"); // used by android test
-    Library hamcrest = libraryTable.getLibraryByName("hamcrest-core-1.3"); // used by android test and sometimes by unit test
-    Library junit = libraryTable.getLibraryByName("junit-4.12");  // used by unit test
-    Library gson = libraryTable.getLibraryByName("gson-2.2.4"); // used by android test
+    Library guava = libraryTable.getLibraryByName(GUAVA); // used by android test
+    assertNotNull(guava);
+    Library hamcrest = libraryTable.getLibraryByName(HAMCREST); // used by android test and sometimes by unit test
+    assertNotNull(hamcrest);
+    Library junit = libraryTable.getLibraryByName(JUNIT);  // used by unit test
+    assertNotNull(junit);
+    Library gson = libraryTable.getLibraryByName(GSON); // used by android test
+    assertNotNull(gson);
 
     FileRootSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
     assertScopeContainsLibrary(unitTestExcludeScope, guava, true);
@@ -114,7 +122,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
-    Library gson = libraryTable.getLibraryByName("gson-2.2.4");
+    Library gson = libraryTable.getLibraryByName(GSON);
     // In the beginning only unit test exclude gson
     assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, true);
     assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
@@ -148,7 +156,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     // Now both test should not exclude gson
     scopes = TestArtifactSearchScopes.get(scopes.getModule());
     assertNotNull(scopes);
-    gson = libraryTable.getLibraryByName("gson-2.2.4");
+    gson = libraryTable.getLibraryByName(GSON);
     assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, false);
     assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
   }
