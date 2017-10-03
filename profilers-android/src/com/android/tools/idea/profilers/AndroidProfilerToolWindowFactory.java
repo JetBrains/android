@@ -16,9 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.facet.ui.FacetDependentToolWindow;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -35,10 +33,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
   public static final String ID = "Android Profiler";
-  public static final String ANDROID_PROFILER_ACTIVE = "android.profiler.active";
+  private static final String ANDROID_PROFILER_ACTIVE = "android.profiler.active";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+    toolWindow.setToHideOnEmptyContent(true);
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
+      @Override
+      public void toolWindowRegistered(@NotNull String id) {
+      }
+
+      @Override
+      public void stateChanged() {
+        // We need to query the tool window again, because it might have been unregistered when closing the project.
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        if (window != null && window.isVisible() && window.getContentManager().getContentCount() == 0) {
+          createContent(project, window);
+        }
+      }
+    });
+
+    toolWindow.hide(null);
+    toolWindow.setShowStripeButton(false);
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -65,47 +81,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public boolean value(Project project) {
-    return false;
-  }
-
-  @NotNull
-  public static ToolWindow ensureToolWindowInitialized(@NotNull Project project) {
-    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(project);
-    ToolWindow window = windowManager.getToolWindow(ID);
-    if (window == null) {
-      for (FacetDependentToolWindow extension : Extensions.getExtensions(FacetDependentToolWindow.EXTENSION_POINT_NAME)) {
-        if (extension.id.equals(ID)) {
-          windowManager.initToolWindow(extension);
-          window = windowManager.getToolWindow(ID);
-        }
-      }
-      if (window == null) {
-        throw new RuntimeException("Could not find Android Profiler facet/extension.");
-      }
-
-      window.setToHideOnEmptyContent(true);
-      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
-        @Override
-        public void toolWindowRegistered(@NotNull String id) {
-        }
-
-        @Override
-        public void stateChanged() {
-          // We need to query the tool window again, because it might have been unregistered when closing the project.
-          ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-          if (window != null) {
-            if (window.isVisible() && window.getContentManager().getContentCount() == 0) {
-              createContent(project, window);
-            }
-          }
-        }
-      });
-
-      // We need to force the ToolWindow to a "hidden" state, otherwise the Tool Window will come up visible *but* empty if it had been made
-      // visible in a previous AS session.
-      window.hide(null);
-    }
-    return window;
+    return true;
   }
 }
 
