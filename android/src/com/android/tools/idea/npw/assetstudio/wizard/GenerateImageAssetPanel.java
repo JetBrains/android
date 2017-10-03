@@ -17,9 +17,9 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.Density;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureAdaptiveIconPanel;
@@ -132,8 +132,6 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   public GenerateImageAssetPanel(@NotNull AndroidFacet facet,
                                  @NotNull Disposable disposableParent,
                                  @NotNull AndroidModuleTemplate defaultPaths,
-                                 @NotNull AndroidVersion minSdkVersion,
-                                 @NotNull AndroidVersion targetSdkVersion,
                                  @NotNull AndroidAdaptiveIconType... supportedTypes) {
     super(new BorderLayout());
 
@@ -189,24 +187,26 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);
 
-    // Create a card and a view for each icon type
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    int minSdkVersion = androidModuleInfo.getMinSdkVersion().getApiLevel();
+
+    // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
     for (AndroidAdaptiveIconType iconType : supportedTypes) {
       ConfigureIconView view;
       switch (iconType) {
         case ADAPTIVE:
-          view = new ConfigureAdaptiveIconPanel(facet, this, minSdkVersion, targetSdkVersion,
-                                                myShowGridProperty, myShowSafeZoneProperty,
+          view = new ConfigureAdaptiveIconPanel(facet, this, myShowGridProperty, myShowSafeZoneProperty,
                                                 myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
-          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion.getApiLevel());
+          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion);
           break;
         case ACTIONBAR:
-          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion.getApiLevel());
+          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion);
           break;
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion.getApiLevel());
+          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion);
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");

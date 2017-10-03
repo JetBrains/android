@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -82,7 +83,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
-  @NotNull private final AndroidVersion myTargetSdkVersion;
+  @NotNull private final AndroidVersion myBuildSdkVersion;
   @NotNull private final BoolProperty myShowGridProperty;
   @NotNull private final BoolProperty myShowSafeZoneProperty;
   @NotNull private final AbstractProperty<Density> myPreviewDensityProperty;
@@ -252,19 +253,19 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    */
   public ConfigureAdaptiveIconPanel(@NotNull AndroidFacet facet,
                                     @NotNull Disposable disposableParent,
-                                    @NotNull AndroidVersion minSdkVersion,
-                                    @NotNull AndroidVersion targetSdkVersion,
                                     @NotNull BoolProperty showGridProperty,
                                     @NotNull BoolProperty showSafeZoneProperty,
                                     @NotNull AbstractProperty<Density> previewDensityProperty,
                                     @NotNull ValidatorPanel validatorPanel) {
     super(new BorderLayout());
-    myTargetSdkVersion = targetSdkVersion;
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
+    myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
     myShowGridProperty = showGridProperty;
     myShowSafeZoneProperty = showSafeZoneProperty;
     myPreviewDensityProperty = previewDensityProperty;
-    myIconGenerator = new AndroidAdaptiveIconGenerator(facet, minSdkVersion.getApiLevel());
+    myIconGenerator = new AndroidAdaptiveIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
     myValidatorPanel = validatorPanel;
 
     DefaultComboBoxModel<GraphicGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
@@ -557,16 +558,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     VisibleProperty isActive = new VisibleProperty(getRootComponent());
 
     // Validate the API level when our panel is active
-    Expression<AndroidVersion> targetSdkVersion = new Expression<AndroidVersion>(isActive) {
+    Expression<AndroidVersion> buildSdkVersion = new Expression<AndroidVersion>(isActive) {
       @NotNull
       @Override
       public AndroidVersion get() {
-        return myTargetSdkVersion;
+        return myBuildSdkVersion;
       }
     };
-    myValidatorPanel.registerValidator(targetSdkVersion, targetSdk -> {
-      if (isActive.get() && targetSdk.getFeatureLevel() < 26) {
-        return new Validator.Result(Validator.Severity.ERROR, "Project must target API 26 or later to use adaptive icons");
+    myValidatorPanel.registerValidator(buildSdkVersion, buildSdk -> {
+      if (isActive.get() && buildSdk.getFeatureLevel() < 26) {
+        return new Validator.Result(Validator.Severity.ERROR, "Project must be built with SDK 26 or later to use adaptive icons");
       }
       else {
         return Validator.Result.OK;
