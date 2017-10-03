@@ -74,7 +74,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
 
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), parentDisposable, 200);
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
     myLoadingPanel.add(myContainer);
 
     ActionToolbar toolbar = createToolbar();
@@ -96,6 +96,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ParseTask("Loading string resource data").queue();
     }
+  }
+
+  @Override
+  public void dispose() {
   }
 
   public void removeSelectedKeys() {
@@ -183,11 +187,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
-  }
-
-  // TODO Delete this method
-  @Override
-  public void dispose() {
   }
 
   void reloadData() {
