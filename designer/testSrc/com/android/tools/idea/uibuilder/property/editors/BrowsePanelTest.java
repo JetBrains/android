@@ -18,7 +18,9 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.SdkConstants;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -71,5 +73,14 @@ public class BrowsePanelTest extends PropertyTestCase {
     panel.mouseMoved(table, event, rect);
 
     verify(table).setExpandableItemsEnabled(false);
+  }
+
+  public void testPropertyToEmpty() {
+    BrowsePanel panel = new BrowsePanel(null, true);
+    ActionButton browseButton = (ActionButton)panel.getComponent(0);
+    panel.doLayout();
+
+    panel.setProperty(EmptyProperty.INSTANCE);
+    assertThat(browseButton.isVisible()).isFalse();
   }
 }
