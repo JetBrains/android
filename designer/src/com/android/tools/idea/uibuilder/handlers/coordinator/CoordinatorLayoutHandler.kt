@@ -78,42 +78,33 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return SceneInteraction(screenView)
   }
 
-  override fun createTargets(sceneComponent: SceneComponent) = createTargets(sceneComponent, true)
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): MutableList<Target> {
+    val listBuilder = ImmutableList.builder<Target>()
+    listBuilder.add(
+        CoordinatorDragTarget(),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.TOP),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+    )
 
-  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent) =
-      createTargets(childComponent, false)
-
-  /**
-   * Create resize and anchor targets for the given component
-   */
-  private fun createTargets(component: SceneComponent, isParent: Boolean): MutableList<Target> {
-    val result = ArrayList<Target>()
-    val showAnchors = !isParent
-
-    if (showAnchors) {
-      val dragTarget = CoordinatorDragTarget()
-      result.add(dragTarget)
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.TOP))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
-      result.add(ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
-    }
-    if (!component.isSelected && !isParent && interactionState == InteractionState.DRAGGING) {
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.TOP))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.BOTTOM))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_TOP))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_BOTTOM))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_TOP))
-      result.add(CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_BOTTOM))
+    if (!childComponent.isSelected && interactionState == InteractionState.DRAGGING) {
+      listBuilder.add(
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.TOP),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.BOTTOM),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_TOP),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_BOTTOM),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_TOP),
+          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_BOTTOM)
+      )
     }
 
-    return result
+    return listBuilder.build()
   }
-
 }

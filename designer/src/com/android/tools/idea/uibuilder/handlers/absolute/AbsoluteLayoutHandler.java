@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,33 +54,19 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
-
-  @NotNull
-  @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    return createTargets(sceneComponent, true);
-  }
-
   @NotNull
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
-    return createTargets(childComponent, false);
-  }
-
-  @NotNull
-  private List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
-    List<Target> result = new ArrayList<>();
-    if (!isParent) {
-      result.add(new AbsoluteDragTarget());
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.TOP));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.BOTTOM));
-      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
-    }
-    return result;
+    return ImmutableList.of(
+      new AbsoluteDragTarget(),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.TOP),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM)
+    );
   }
 }

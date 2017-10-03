@@ -34,15 +34,9 @@ import com.google.common.collect.ImmutableList
 
 /**
  * Handler of New Target Architecture for the `<RelativeLayout>` layout
- * Current progress:
- * 1. Delegate all non target related functions to RelativeLayoutHandler.java
- * 2. Resizing target for widgets
- * 3. Dragging a widget inside RelativeLayout
- * 4. Drag to other widgets
  *
  * TODO:
  * - Don't allow selecting multiple widgets.
- * - Render the decoration by SceneManager
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
@@ -57,31 +51,20 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
 
   override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
 
-  override fun createTargets(sceneComponent: SceneComponent) = createTargets(sceneComponent, true)
-
-  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent) = createTargets(childComponent, false)
-
-  private fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
+  override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
-    if (isParent) {
-      // RelativeLayout cases, create the target related to attributes of parent
-      createParentTargets(listBuilder)
-    }
-    else {
-      // children components cases
-      listBuilder.add(RelativeDragTarget())
-      createResizeTarget(listBuilder)
-
-      // create related target of this component.
-      createWidgetTargets(listBuilder, sceneComponent)
-    }
+    RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
     return listBuilder.build()
   }
 
-  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>) =
-      RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
+    val listBuilder = ImmutableList.builder<Target>()
+    listBuilder.add(RelativeDragTarget())
+    createResizeTarget(listBuilder)
+    createWidgetTargets(listBuilder, childComponent)
+    return listBuilder.build()
+  }
 
-  // TODO: limit resizing options. (e.g. alignParentLeft -> don't allow resizing from left sides)
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
       ResizeBaseTarget.Type.values().forEach { listBuilder.add(RelativeResizeTarget(it)) }
 

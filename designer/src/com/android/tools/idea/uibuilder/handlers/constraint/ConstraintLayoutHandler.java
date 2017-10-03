@@ -330,26 +330,25 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @NotNull
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    return createTargets(sceneComponent, true);
+    sceneComponent.setNotchProvider(new ConstraintLayoutNotchProvider());
+
+    return ImmutableList.of(
+      new LassoTarget(),
+      new AnchorTarget(AnchorTarget.Type.LEFT, false),
+      new AnchorTarget(AnchorTarget.Type.TOP, false),
+      new AnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new AnchorTarget(AnchorTarget.Type.BOTTOM, false)
+    );
   }
 
   @NotNull
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
-    return createTargets(childComponent, false);
-  }
+    ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
 
-  /**
-   * Create resize and anchor targets for the given component
-   */
-  @NotNull
-  private List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
-    List<Target> result = new ArrayList<>();
-    boolean showAnchors = !isParent;
-    NlComponent nlComponent = component.getAuthoritativeNlComponent();
+    NlComponent nlComponent = childComponent.getAuthoritativeNlComponent();
     ViewInfo vi = NlComponentHelperKt.getViewInfo(nlComponent);
     if (vi != null) {
-
       if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_GUIDELINE)) {
         String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
 
@@ -357,79 +356,68 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
           isHorizontal = false;
         }
-        result.add(new GuidelineTarget(isHorizontal));
-        if (isHorizontal) {
-          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
-        }
-        else {
-          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
-        }
-        result.add(new GuidelineCycleTarget(isHorizontal));
-        return result;
+
+        listBuilder
+          .add(new GuidelineTarget(isHorizontal))
+          .add(isHorizontal ? new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true)
+                            : new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false))
+          .add(new GuidelineCycleTarget(isHorizontal));
+        return listBuilder.build();
       }
 
       if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
         @NonNls String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
         boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
-        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT,
-                                           BarrierTarget.parseDirection(side)));
-        result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
-        return result;
+        listBuilder
+          .add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)))
+          .add(new BarrierTarget(BarrierTarget.parseDirection(side)));
+        return listBuilder.build();
       }
     }
 
-    if (!isParent) {
-      component.setComponentProvider(this);
-    }
-    if (showAnchors) {
-      ConstraintDragTarget dragTarget = new ConstraintDragTarget();
-      result.add(dragTarget);
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.TOP));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
-      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
-      component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
-    }
-    else {
-      result.add(new LassoTarget());
-      component.setNotchProvider(new ConstraintLayoutNotchProvider());
-    }
+    childComponent.setComponentProvider(this);
+    childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
 
-    result.add(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
-    result.add(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
-    result.add(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
-    result.add(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
+    listBuilder.add(
+      new ConstraintDragTarget(),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.TOP),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
+      new AnchorTarget(AnchorTarget.Type.LEFT, true),
+      new AnchorTarget(AnchorTarget.Type.TOP, true),
+      new AnchorTarget(AnchorTarget.Type.RIGHT, true),
+      new AnchorTarget(AnchorTarget.Type.BOTTOM, true)
+    );
 
-    if (showAnchors) {
-      ActionTarget previousAction = new ClearConstraintsTarget(null);
-      result.add(previousAction);
+    ActionTarget previousAction = new ClearConstraintsTarget(null);
+    listBuilder.add(previousAction);
 
-      int baseline = NlComponentHelperKt.getBaseline(component.getNlComponent());
-      ViewInfo info = NlComponentHelperKt.getViewInfo(component.getNlComponent());
-      if (baseline <= 0 && info != null) {
-        baseline = info.getBaseLine();
-      }
-      if (baseline > 0) {
-        result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
-        ActionTarget baselineActionTarget =
-          new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
-            @NotNull
-            @Override
-            public String getToolTipText() {
-              return EDIT_BASELINE_ACTION_TOOLTIP;
-            }
-          };
-        result.add(baselineActionTarget);
-        previousAction = baselineActionTarget;
-      }
-      ActionTarget chainCycleTarget = new ChainCycleTarget(previousAction, null);
-      result.add(chainCycleTarget);
+    int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
+    ViewInfo info = NlComponentHelperKt.getViewInfo(childComponent.getNlComponent());
+    if (baseline <= 0 && info != null) {
+      baseline = info.getBaseLine();
     }
-    return result;
+    if (baseline > 0) {
+      listBuilder.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
+      ActionTarget baselineActionTarget =
+        new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
+          @NotNull
+          @Override
+          public String getToolTipText() {
+            return EDIT_BASELINE_ACTION_TOOLTIP;
+          }
+        };
+      listBuilder.add(baselineActionTarget);
+      previousAction = baselineActionTarget;
+    }
+    listBuilder.add(new ChainCycleTarget(previousAction, null));
+
+    return listBuilder.build();
   }
 
   @Override
