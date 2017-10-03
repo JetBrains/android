@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.concurrent;
 
 import com.google.common.util.concurrent.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -56,6 +56,7 @@ public class FutureCallbackExecutor implements Executor {
    * Submits a {@link Callable} in this executor queue, and returns a {@link ListenableFuture}
    * that completes with the callable result or the exception thrown from the callable.
    */
+  @NotNull
   public <V> ListenableFuture<V> executeAsync(@NotNull Callable<V> function) {
     SettableFuture<V> futureResult = SettableFuture.create();
     myExecutor.execute(() -> {
@@ -116,6 +117,7 @@ public class FutureCallbackExecutor implements Executor {
    * the {@link ThrowableFunction function} can throw checked exceptions.
    * See {@link Futures.AbstractChainingFuture#run}
    */
+  @NotNull
   public <I, O> ListenableFuture<O> transform(@NotNull ListenableFuture<I> input,
                                               @NotNull ThrowableFunction<? super I, ? extends O> function) {
     return Futures.transform(input, wrapThrowableFunction(function)::apply, myExecutor);
@@ -125,6 +127,7 @@ public class FutureCallbackExecutor implements Executor {
    * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
    * using this instance as the executor.
    */
+  @NotNull
   public <I, O> ListenableFuture<O> transformAsync(@NotNull ListenableFuture<I> input,
                                                    @NotNull AsyncFunction<? super I, ? extends O> function) {
     return Futures.transformAsync(input, function, myExecutor);
@@ -158,6 +161,7 @@ public class FutureCallbackExecutor implements Executor {
    * using this instance as the executor, but executes the async function in both success and error
    * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
    */
+  @NotNull
   public <I> ListenableFuture<I> finallyAsync(@NotNull ListenableFuture<I> input,
                                               @NotNull Callable<ListenableFuture<Void>> finallyBlock) {
     SettableFuture<I> futureResult = SettableFuture.create();
@@ -231,16 +235,12 @@ public class FutureCallbackExecutor implements Executor {
    */
   @NotNull
   private static <I, O> Function<I, O> wrapThrowableFunction(@NotNull ThrowableFunction<I, O> function) {
-    return new Function<I, O>() {
-      @Nullable
-      @Override
-      public O apply(@Nullable I input) {
-        try {
-          return function.apply(input);
-        }
-        catch (Exception e) {
-          throw new UndeclaredThrowableException(e);
-        }
+    return input -> {
+      try {
+        return function.apply(input);
+      }
+      catch (Exception e) {
+        throw new UndeclaredThrowableException(e);
       }
     };
   }
