@@ -59,11 +59,7 @@ public final class AndroidProfilerToolWindowTaskContributor implements AndroidLa
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       ApplicationManager.getApplication().invokeLater(() -> {
-        ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(myProject);
-        ToolWindow toolWindow = windowManager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
-        if (toolWindow == null) {
-          AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(windowManager).hide(null);
-        }
+        AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(myProject);
       });
       return true;
     }
