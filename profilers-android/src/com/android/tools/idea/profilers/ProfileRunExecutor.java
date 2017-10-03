@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.run.ExecutorIconProvider;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ProfileRunExecutor extends DefaultRunExecutor {
+public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider {
   @NonNls public static final String EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID;
 
   @NotNull
@@ -73,5 +79,17 @@ public class ProfileRunExecutor extends DefaultRunExecutor {
 
   public static Executor getProfileExecutorInstance() {
     return ExecutorRegistry.getInstance().getExecutorById(EXECUTOR_ID);
+  }
+
+  @Nullable
+  @Override
+  public Icon getExecutorIcon(@NotNull Project project, @NotNull Executor executor) {
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    if (toolWindow != null) {
+      if (toolWindow.getContentManager().getContentCount() > 0) {
+        return ExecutionUtil.getLiveIndicator(getIcon());
+      }
+    }
+    return getIcon();
   }
 }
