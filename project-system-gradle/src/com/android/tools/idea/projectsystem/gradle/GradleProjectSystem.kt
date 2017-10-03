@@ -16,19 +16,24 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
@@ -68,14 +73,52 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
   }
 
   override fun mergeBuildFiles(dependencies: String,
-                      destinationContents: String,
-                      supportLibVersionFilter: String?): String {
+                               destinationContents: String,
+                               supportLibVersionFilter: String?): String {
     return if (project.isInitialized) {
       GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
     }
     else {
       GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
     }
+  }
+
+  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
+    val module = ProjectFileIndex.getInstance(project).getModuleForFile(sourceContext) ?:
+        throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
+            DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
+
+    // Check for android library dependencies from the build model
+    val androidModuleModel = AndroidModuleModel.get(module) ?:
+        throw DependencyManagementException("Could not find android module model for module $module",
+            DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
+
+    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
+        .asSequence()
+        .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+        .find { "${it.groupId}:${it.artifactId}" == artifactId.artifactCoordinate }
+        ?.let { GradleDependencyVersion(it.version) }
+  }
+
+  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
+    val module = ProjectFileIndex.getInstance(project).getModuleForFile(sourceContext) ?:
+        throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
+            DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
+
+    // Check for compile dependencies from the gradle build file
+    val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
+
+    return GradleBuildModel.get(module)?.let {
+      it.dependencies().artifacts(configurationName)
+          .filter { artifactId.artifactCoordinate == "${it.group().value()}:${it.name().value()}" }
+          .map { parseDependencyVersion(it.version().value()) }
+          .firstOrNull()
+    }
+  }
+
+  private fun parseDependencyVersion(version: String?): GradleDependencyVersion {
+    if (version == null) return GradleDependencyVersion(null)
+    return GradleDependencyVersion(GradleVersion.parse(version))
   }
 
   override val projectSystem = this

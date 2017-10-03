@@ -12,5 +12,6 @@
     <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="annotations-common" />
+    <orderEntry type="module" module-name="sdk-common" />
   </component>
 </module>

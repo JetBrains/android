@@ -60,6 +60,14 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return destinationContents
   }
 
+  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
+    return null
+  }
+
+  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
+    return null
+  }
+
   override val projectSystem = this
 
   override fun upgradeProjectToSupportInstantRun(): Boolean {
