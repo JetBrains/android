@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.relative.draw
 
 import com.android.SdkConstants.*
-import com.android.internal.R.attr.path
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -30,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionU
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.geom.Path2D
+import javax.naming.Context
 
 /**
  * The decorator for RelativeLayout
@@ -45,17 +45,24 @@ class RelativeLayoutDecorator : SceneDecorator() {
     val idMap = component.children.filter({ it.id != null }).associateBy { it.id }
     val connectionSet = mutableSetOf<Connection>()
     component.children.forEach { child ->
+      child.buildDisplayList(time, list, sceneContext)
+
+      if (sceneContext.showOnlySelection()) {
+        return@forEach
+      }
+
+      // TODO: Add preferences to toggle showing all contraints
+
       val authNlComponent = child.authoritativeNlComponent
 
       if (authNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_CENTER_IN_PARENT) == VALUE_TRUE) {
-        buildCenterInParentDecoration(list, sceneContext, time, component, child)
-        child.buildDisplayList(time, list, sceneContext)
+        buildCenterInParentDecoration(connectionSet, component, child)
         return@forEach
       }
 
       // build vertical decorations
       if (authNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_CENTER_VERTICAL) == VALUE_TRUE) {
-        buildCenterVerticalDecoration(list, sceneContext, time, component, child)
+        buildCenterVerticalDecoration(connectionSet, component, child)
       }
       else {
         val attrValue = authNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_BASELINE)
@@ -70,17 +77,15 @@ class RelativeLayoutDecorator : SceneDecorator() {
 
       // build horizontal decorations
       if (authNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_CENTER_HORIZONTAL) == VALUE_TRUE) {
-        buildCenterHorizontalDecoration(list, sceneContext, time, component, child)
+        buildCenterHorizontalDecoration(connectionSet, component, child)
       }
       else {
         buildLeftMarginDecoration(connectionSet, component, child, idMap)
         buildRightMarginDecoration(connectionSet, component, child, idMap)
       }
-      child.buildDisplayList(time, list, sceneContext)
     }
 
-    connectionSet.forEach { it.addDrawCommand(list, time, sceneContext, component) }
-
+    connectionSet.forEach { it.addDrawCommand(list, time, sceneContext) }
     list.add(unClip)
   }
 
@@ -110,14 +115,14 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildLeftMarginDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent,
                                         idMap: Map<String, SceneComponent>) {
     whenAlignParent(child.retrieveAlignParentLeftAttribute()) {
-      connectionSet.add(Connection(child, EdgeSide.LEFT, parent, EdgeSide.LEFT))
+      connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.LEFT, parent, EdgeSide.LEFT))
       return@whenAlignParent
     }
 
     whenAlignWidget(child.retrieveAlignLeftAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.LEFT, source, EdgeSide.LEFT))
+        connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.LEFT, source, EdgeSide.LEFT))
         return@whenAlignWidget
       }
     }
@@ -125,7 +130,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     whenAlignWidget(child.retrieveToRightAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.LEFT, source, EdgeSide.RIGHT))
+        connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.LEFT, source, EdgeSide.RIGHT))
         return@whenAlignWidget
       }
     }
@@ -138,14 +143,14 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildTopMarginDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent,
                                        idMap: Map<String, SceneComponent>) {
     whenAlignParent(child.retrieveAlignParentTopAttribute()) {
-      connectionSet.add(Connection(child, EdgeSide.TOP, parent, EdgeSide.TOP))
+      connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.TOP, parent, EdgeSide.TOP))
       return@whenAlignParent
     }
 
     whenAlignWidget(child.retrieveAlignTopAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.TOP, source, EdgeSide.TOP))
+        connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.TOP, source, EdgeSide.TOP))
         return@whenAlignWidget
       }
     }
@@ -153,7 +158,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     whenAlignWidget(child.retrieveBelowAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.TOP, source, EdgeSide.BOTTOM))
+        connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.TOP, source, EdgeSide.BOTTOM))
         return@whenAlignWidget
       }
     }
@@ -166,14 +171,14 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildRightMarginDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent,
                                          idMap: Map<String, SceneComponent>) {
     whenAlignParent(child.retrieveAlignParentRightAttribute()) {
-      connectionSet.add(Connection(child, EdgeSide.RIGHT, parent, EdgeSide.RIGHT))
+      connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.RIGHT, parent, EdgeSide.RIGHT))
       return@whenAlignParent
     }
 
     whenAlignWidget(child.retrieveAlignRightAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.RIGHT, source, EdgeSide.RIGHT))
+        connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.RIGHT, source, EdgeSide.RIGHT))
         return@whenAlignWidget
       }
     }
@@ -181,7 +186,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     whenAlignWidget(child.retrieveToLeftAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.RIGHT, source, EdgeSide.LEFT))
+        connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.RIGHT, source, EdgeSide.LEFT))
         return@whenAlignWidget
       }
     }
@@ -194,14 +199,14 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildBottomMarginDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent,
                                           idMap: Map<String, SceneComponent>) {
     whenAlignParent(child.retrieveAlignParentBottomAttribute()) {
-      connectionSet.add(Connection(child, EdgeSide.BOTTOM, parent, EdgeSide.BOTTOM))
+      connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.BOTTOM, parent, EdgeSide.BOTTOM))
       return@whenAlignParent
     }
 
     whenAlignWidget(child.retrieveAlignBottomAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.BOTTOM, source, EdgeSide.BOTTOM))
+        connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.BOTTOM, source, EdgeSide.BOTTOM))
         return@whenAlignWidget
       }
     }
@@ -209,7 +214,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     whenAlignWidget(child.retrieveAboveAttribute()) {
       val source = idMap[it]
       if (source != null) {
-        connectionSet.add(Connection(child, EdgeSide.BOTTOM, source, EdgeSide.TOP))
+        connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.BOTTOM, source, EdgeSide.TOP))
         return@whenAlignWidget
       }
     }
@@ -218,36 +223,25 @@ class RelativeLayoutDecorator : SceneDecorator() {
   /**
    * Used to build the aligning decoration of baseline in Layout Editor.
    */
-  private fun buildBaselineMarginDecoration(connectionSet: MutableSet<Connection>, child: SceneComponent,
+  private fun buildBaselineMarginDecoration(connectionSet: MutableSet<Connection>, component: SceneComponent,
                                             idMap: Map<String, SceneComponent>) {
-    whenAlignWidget(child.authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_BASELINE)) {
+    whenAlignWidget(component.authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_BASELINE)) {
       val source = idMap[it]
       if (source != null) {
-        val connection = Connection(child, EdgeSide.BASELINE, source, EdgeSide.BASELINE)
+        val connection = BaselineWidgetConnection(component, source)
         connectionSet.add(connection)
       }
     }
   }
 
-  private fun buildCenterHorizontalDecoration(list: DisplayList, sceneContext: SceneContext, time: Long,
-                                              parent: SceneComponent, child: SceneComponent) {
-    list.add(HorizontalZigZagLineCommand(sceneContext, parent.getLeft(time), child.getLeft(time), child.getDrawCenterY(time)))
-    list.add(HorizontalZigZagLineCommand(sceneContext, child.getRight(time), parent.getRight(time), child.getDrawCenterY(time)))
-  }
+  private fun buildCenterHorizontalDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent) =
+      connectionSet.add(CenterHorizontalConnection(parent, child))
 
-  private fun buildCenterVerticalDecoration(list: DisplayList, sceneContext: SceneContext, time: Long,
-                                            parent: SceneComponent, child: SceneComponent) {
-    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), parent.getTop(time), child.getTop(time)))
-    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), child.getBottom(time), parent.getBottom(time)))
-  }
+  private fun buildCenterVerticalDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent) =
+      connectionSet.add(CenterVerticalConnection(parent, child))
 
-  private fun buildCenterInParentDecoration(list: DisplayList, sceneContext: SceneContext, time: Long,
-                                            parent: SceneComponent, child: SceneComponent) {
-    list.add(HorizontalZigZagLineCommand(sceneContext, parent.getLeft(time), child.getLeft(time), child.getDrawCenterY(time)))
-    list.add(HorizontalZigZagLineCommand(sceneContext, child.getRight(time), parent.getRight(time), child.getDrawCenterY(time)))
-    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), parent.getTop(time), child.getTop(time)))
-    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), child.getBottom(time), parent.getBottom(time)))
-  }
+  private fun buildCenterInParentDecoration(connectionSet: MutableSet<Connection>, parent: SceneComponent, child: SceneComponent) =
+     connectionSet.add(CenterConnection(parent, child))
 }
 
 // Helper functions to get the coordinates of SceneComponent
@@ -321,64 +315,126 @@ private fun SceneComponent.retrieveBottomMarginAttribute(): String? =
 private enum class EdgeSide { LEFT, TOP, RIGHT, BOTTOM, BASELINE }
 
 /**
- * Helper class to record and generate the connection between Widgets
+ * Helper class to record and add draw command.
+ */
+private interface Connection {
+  fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext)
+}
+
+/**
+ * Horizontal Connections between Widgets.
  * @param component the widget aligns to [source]
  * @param componentSide the aligning side of [component]
  * @param source the widget is aligned by [component]
  * @param sourceSide the side of [source] which is aligned by [component]
  */
-private class Connection(val component: SceneComponent, val componentSide: EdgeSide, val source: SceneComponent, val sourceSide: EdgeSide) {
-  fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext, parent: SceneComponent) {
-    when (sourceSide) {
-      EdgeSide.LEFT, EdgeSide.RIGHT -> {
-        val arrowX1 = if (componentSide == EdgeSide.LEFT) component.getLeft(time) else component.getRight(time)
-        val arrowX2 = if (sourceSide == EdgeSide.LEFT) source.getLeft(time) else source.getRight(time)
-        val arrowY = component.getDrawCenterY(time)
+private class HorizontalWidgetConnectoin(val component: SceneComponent, val componentSide: EdgeSide,
+                                         val source: SceneComponent, val sourceSide: EdgeSide): Connection {
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    val arrowX1 = if (componentSide == EdgeSide.LEFT) component.getLeft(time) else component.getRight(time)
+    val arrowX2 = if (sourceSide == EdgeSide.LEFT) source.getLeft(time) else source.getRight(time)
+    val arrowY = component.getDrawCenterY(time)
 
-        val margin =
-            if (componentSide == EdgeSide.LEFT) component.retrieveLeftMarginAttribute()
-            else component.retrieveRightMarginAttribute()
-        val isReference = margin?.startsWith("@") ?: false
-        val marginDp = ConstraintUtilities.getDpValue(component.authoritativeNlComponent, margin)
-        val displayedMarginText = if (marginDp != 0) "$marginDp" else ""
+    val margin =
+        if (componentSide == EdgeSide.LEFT) component.retrieveLeftMarginAttribute()
+        else component.retrieveRightMarginAttribute()
+    val isReference = margin?.startsWith("@") ?: false
+    val marginDp = ConstraintUtilities.getDpValue(component.authoritativeNlComponent, margin)
+    val displayedMarginText = if (marginDp != 0) "$marginDp" else ""
 
-        list.add(DrawHorizontalArrowCommand(sceneContext, arrowX1, arrowX2, arrowY, isReference, displayedMarginText))
+    list.add(DrawHorizontalArrowCommand(sceneContext, arrowX1, arrowX2, arrowY, isReference, displayedMarginText))
 
-        if (source != parent) {
-          // Draw the extented dash line from edge of source
-          val lineY1 = minOf(source.getTop(time), component.getTop(time))
-          val lineY2 = maxOf(source.getBottom(time), component.getBottom(time))
-          list.add(DrawVerticalDashedLineCommand(sceneContext, arrowX2, lineY1, lineY2))
-        }
-      }
-      EdgeSide.TOP, EdgeSide.BOTTOM -> {
-        val arrowX = component.getDrawCenterX(time)
-        val arrowY1 = if (componentSide == EdgeSide.TOP) component.getTop(time) else component.getBottom(time)
-        val arrowY2 = if (sourceSide == EdgeSide.TOP) source.getTop(time) else source.getBottom(time)
-
-        val margin =
-            if (componentSide == EdgeSide.TOP) component.retrieveTopMarginAttribute()
-            else component.retrieveBottomMarginAttribute()
-        val isReference = margin?.startsWith("@") ?: false
-        val marginDp = ConstraintUtilities.getDpValue(component.authoritativeNlComponent, margin)
-        val displayedMarginText = if (marginDp != 0) "$marginDp" else ""
-
-        list.add(DrawVerticalArrowCommand(sceneContext, arrowX, arrowY1, arrowY2, isReference, displayedMarginText))
-
-        if (source != parent) {
-          // Draw the extended dash line from edge of source
-          val lineX1 = minOf(source.getLeft(time), component.getLeft(time))
-          val lineX2 = maxOf(source.getRight(time), component.getRight(time))
-          list.add(DrawHorizontalDashedLineCommand(sceneContext, lineX1, lineX2, arrowY2))
-        }
-      }
-      EdgeSide.BASELINE -> {
-        val lineY = source.getDrawY(time) + source.baseline
-        val lineX1 = minOf(source.getLeft(time), component.getLeft(time))
-        val lineX2 = maxOf(source.getRight(time), component.getRight(time))
-        list.add(DrawHorizontalDashedLineCommand(sceneContext, lineX1, lineX2, lineY))
-      }
+    if (source != component.parent) {
+      // Draw the extented dash line from edge of source
+      val lineY1 = minOf(source.getTop(time), component.getTop(time))
+      val lineY2 = maxOf(source.getBottom(time), component.getBottom(time))
+      list.add(DrawVerticalDashedLineCommand(sceneContext, arrowX2, lineY1, lineY2))
     }
+  }
+}
+
+/**
+ * Vertical Connections between Widgets.
+ * @param component the widget aligns to [source]
+ * @param componentSide the aligning side of [component]
+ * @param source the widget is aligned by [component]
+ * @param sourceSide the side of [source] which is aligned by [component]
+ */
+private class VerticalWidgetConnectoin(val component: SceneComponent, val componentSide: EdgeSide,
+                                       val source: SceneComponent, val sourceSide: EdgeSide): Connection {
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    val arrowX = component.getDrawCenterX(time)
+    val arrowY1 = if (componentSide == EdgeSide.TOP) component.getTop(time) else component.getBottom(time)
+    val arrowY2 = if (sourceSide == EdgeSide.TOP) source.getTop(time) else source.getBottom(time)
+
+    val margin =
+        if (componentSide == EdgeSide.TOP) component.retrieveTopMarginAttribute()
+        else component.retrieveBottomMarginAttribute()
+    val isReference = margin?.startsWith("@") ?: false
+    val marginDp = ConstraintUtilities.getDpValue(component.authoritativeNlComponent, margin)
+    val displayedMarginText = if (marginDp != 0) "$marginDp" else ""
+
+    list.add(DrawVerticalArrowCommand(sceneContext, arrowX, arrowY1, arrowY2, isReference, displayedMarginText))
+
+    if (source != component.parent) {
+      // Draw the extended dash line from edge of source
+      val lineX1 = minOf(source.getLeft(time), component.getLeft(time))
+      val lineX2 = maxOf(source.getRight(time), component.getRight(time))
+      list.add(DrawHorizontalDashedLineCommand(sceneContext, lineX1, lineX2, arrowY2))
+    }
+  }
+}
+
+/**
+ * Baseline Connections between Widgets.
+ * @param component the widget aligns to [source]
+ * @param source the widget is aligned by [component]
+ */
+private class BaselineWidgetConnection(val component: SceneComponent, val source: SceneComponent): Connection {
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    val lineY = source.getDrawY(time) + source.baseline
+    val lineX1 = minOf(source.getLeft(time), component.getLeft(time))
+    val lineX2 = maxOf(source.getRight(time), component.getRight(time))
+    list.add(DrawHorizontalDashedLineCommand(sceneContext, lineX1, lineX2, lineY))
+  }
+}
+
+/**
+ * Center horizontal Connectoin between parent (RelativeLayout) and child (a Widget)
+ * @param parent the RelativeLayout which [child] aligned
+ * @param child the widget in the the center of [parent] horizontally.
+ */
+private class CenterHorizontalConnection(val parent: SceneComponent, val child: SceneComponent): Connection {
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    list.add(HorizontalZigZagLineCommand(sceneContext, parent.getLeft(time), child.getLeft(time), child.getDrawCenterY(time)))
+    list.add(HorizontalZigZagLineCommand(sceneContext, child.getRight(time), parent.getRight(time), child.getDrawCenterY(time)))
+  }
+}
+
+/**
+ * Center horizontal Connectoin between parent (RelativeLayout) and child (a Widget)
+ * @param parent the RelativeLayout which [child] aligned
+ * @param child the widget in the the center of [parent] vertically.
+ */
+private class CenterVerticalConnection(val parent: SceneComponent, val child: SceneComponent): Connection {
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), parent.getTop(time), child.getTop(time)))
+    list.add(VerticalZigZagLineCommand(sceneContext, child.getDrawCenterX(time), child.getBottom(time), parent.getBottom(time)))
+  }
+}
+
+/**
+ * Center horizontal Connectoin between parent (RelativeLayout) and child (a Widget)
+ * @param parent the RelativeLayout which [child] aligned
+ * @param child the widget in the the center of [parent].
+ */
+private class CenterConnection(parent: SceneComponent, child: SceneComponent): Connection {
+  private val horizontal = CenterHorizontalConnection(parent, child)
+  private val vertical = CenterVerticalConnection(parent, child)
+
+  override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
+    horizontal.addDrawCommand(list, time, sceneContext)
+    vertical.addDrawCommand(list, time, sceneContext)
   }
 }
 
@@ -397,26 +453,30 @@ private abstract class ZigZagLineCommand : DrawCommand {
   }
 
   override fun getLevel(): Int = DrawCommand.CONNECTION_LEVEL
-
-  override fun serialize(): String = "${javaClass.name} - $path"
 }
 
 private class VerticalZigZagLineCommand(context: SceneContext, x: Int, y1: Int, y2: Int) : ZigZagLineCommand() {
+  val swingX = context.getSwingX(x.toFloat())
+  val swingY1 = context.getSwingY(y1.toFloat())
+  val swingY2 = context.getSwingY(y2.toFloat())
+
   init {
-    val swingX = context.getSwingX(x.toFloat())
-    val swingY1 = context.getSwingY(y1.toFloat())
-    val swingY2 = context.getSwingY(y2.toFloat())
     DrawConnectionUtils.drawVerticalZigZagLine(path, swingX, swingY1, swingY2)
   }
+
+  override fun serialize(): String = "${javaClass.simpleName} - ($swingX, $swingY1, $swingY2)"
 }
 
 private class HorizontalZigZagLineCommand(context: SceneContext, x1: Int, x2: Int, y: Int) : ZigZagLineCommand() {
+  val swingX1 = context.getSwingX(x1.toFloat())
+  val swingX2 = context.getSwingX(x2.toFloat())
+  val swingY = context.getSwingY(y.toFloat())
+
   init {
-    val swingX1 = context.getSwingX(x1.toFloat())
-    val swingX2 = context.getSwingX(x2.toFloat())
-    val swingY = context.getSwingY(y.toFloat())
     DrawConnectionUtils.drawHorizontalZigZagLine(path, swingX1, swingX2, swingY)
   }
+
+  override fun serialize(): String = "${javaClass.simpleName} - ($swingX1, $swingX2, $swingY)"
 }
 
 // TODO: refactr vertical and horizontal arrow drawing commands.
@@ -453,7 +513,7 @@ private class DrawVerticalArrowCommand(sceneContext: SceneContext, x: Int, y1: I
 
   override fun getLevel(): Int = DrawCommand.CONNECTION_LEVEL
 
-  override fun serialize(): String = "${javaClass.name} - ($swingX, $swingY1, $swingY2)"
+  override fun serialize(): String = "${javaClass.simpleName} - ($swingX, $swingY1, $swingY2)"
 }
 
 private class DrawHorizontalArrowCommand(sceneContext: SceneContext, x1: Int, x2: Int, y: Int,
@@ -489,7 +549,7 @@ private class DrawHorizontalArrowCommand(sceneContext: SceneContext, x1: Int, x2
 
   override fun getLevel(): Int = DrawCommand.CONNECTION_LEVEL
 
-  override fun serialize(): String = "${javaClass.name} - ($swingX1, $swingY, $swingY)"
+  override fun serialize(): String = "${javaClass.simpleName} - ($swingX1, $swingY, $swingY)"
 }
 
 private open class DrawDashedLineCommand(val swingX1: Int, val swingY1: Int, val swingX2: Int, val swingY2: Int) : DrawCommand {
@@ -507,7 +567,7 @@ private open class DrawDashedLineCommand(val swingX1: Int, val swingY1: Int, val
 
   override fun getLevel(): Int = DrawCommand.CONNECTION_LEVEL
 
-  override fun serialize(): String = "${javaClass.name}: ($swingX1, $swingY1) - ($swingX2, $swingY2)"
+  override fun serialize(): String = "${javaClass.simpleName}: ($swingX1, $swingY1) - ($swingX2, $swingY2)"
 }
 
 private class DrawVerticalDashedLineCommand(sceneContext: SceneContext, x: Int, y1: Int, y2: Int)
