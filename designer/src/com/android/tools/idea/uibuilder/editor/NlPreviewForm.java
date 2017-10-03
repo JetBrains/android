@@ -27,13 +27,13 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
@@ -284,8 +284,13 @@ public class NlPreviewForm implements Disposable, CaretListener {
       // mySurface.setModel(null);
     }
 
-    if (myContentPanel == null && GradleProjects.isBuildWithGradle(myProject)) {  // First time: Make sure we have compiled the project at least once...
-      DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
+    if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
+      }
+      else {
+        initPreviewForm();
+      }
     }
     else {
       initNeleModel();
