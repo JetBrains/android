@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;

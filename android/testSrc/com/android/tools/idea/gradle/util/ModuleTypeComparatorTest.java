@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.intellij.openapi.module.Module;
 import junit.framework.TestCase;
 import org.mockito.Mock;
@@ -24,7 +24,7 @@ import org.mockito.MockitoAnnotations;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ModuleTypeComparator}.

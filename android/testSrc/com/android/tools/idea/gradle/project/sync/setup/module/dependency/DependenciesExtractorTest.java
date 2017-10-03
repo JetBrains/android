@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;

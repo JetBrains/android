@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
-import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.ng.ModuleSetup.ModuleSetupImpl;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;

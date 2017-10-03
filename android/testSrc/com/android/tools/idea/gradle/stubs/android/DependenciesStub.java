@@ -17,15 +17,14 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeJavaLibrary;
+import com.android.ide.common.gradle.model.IdeAndroidLibrary;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeJavaLibrary;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 

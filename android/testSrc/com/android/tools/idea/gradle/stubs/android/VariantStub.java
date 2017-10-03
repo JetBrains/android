@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
