@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -191,7 +192,7 @@ public class BrowsePanel extends JPanel {
   }
 
   public static boolean hasBrowseDialog(@NotNull NlProperty property) {
-    return getBrowser(property) != null || !getResourceTypes(property).isEmpty();
+    return property != EmptyProperty.INSTANCE && (getBrowser(property) != null || !getResourceTypes(property).isEmpty());
   }
 
   /**
