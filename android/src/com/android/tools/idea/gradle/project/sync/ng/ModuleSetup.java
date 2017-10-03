@@ -201,7 +201,7 @@ abstract class ModuleSetup {
         myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
       }
       createAndSetUpModules(projectModels, cache, indicator);
-      myAndroidModuleProcessor.processAndroidModels(myAndroidModules, indicator);
+      myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
       myProjectCleanup.cleanUpProject(myProject, myModelsProvider, indicator);
       myModuleDisposer.disposeObsoleteModules(indicator);
 

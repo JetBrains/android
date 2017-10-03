@@ -530,7 +530,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     // Verify sync issues are reported properly.
     List<SyncMessage> messages = syncMessages.getReportedMessages();
-    assertThat(messages).isNotEmpty();
+    assertThat(messages).hasSize(4);
     SyncMessage message = messages.get(0);
     // @formatter:off
     // Verify text contains both of single line and multi-line message from SyncIssue.

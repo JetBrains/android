@@ -73,7 +73,7 @@ class SyncExecutor {
   }
 
   void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
-    Runnable removeMessagesTask = () -> mySyncMessages.removeMessages((String)null);
+    Runnable removeMessagesTask = mySyncMessages::removeProjectMessages;
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       removeMessagesTask.run();

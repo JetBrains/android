@@ -17,13 +17,10 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.IdeaTestCase;
@@ -37,7 +34,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -47,7 +43,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidModuleProcessorTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private AndroidModuleValidator.Factory myModuleValidatorFactory;
-  @Mock private AndroidModuleSetup myAndroidModuleSetup;
   @Mock private GradleModuleModels myAppModels;
   @Mock private GradleModuleModels myLibModels;
   @Mock private AndroidModuleModel myAppAndroidModel;
@@ -55,9 +50,7 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
 
   private Module myAppModule;
   private Module myLibModule;
-  private IdeModifiableModelsProvider myModelsProvider;
   private AndroidModuleValidatorStub myModuleValidator;
-  private ProgressIndicator myIndicator;
 
   private AndroidModuleProcessor myModuleProcessor;
 
@@ -71,12 +64,11 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
     myModuleValidator = new AndroidModuleValidatorStub();
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    myIndicator = new EmptyProgressIndicator();
     myAppModule = createAndroidModule("app", myAppModels, myAppAndroidModel);
     myLibModule = createAndroidModule("lib", myLibModels, myLibAndroidModel);
-    myModelsProvider = new IdeModifiableModelsProviderImpl(project);
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    myModuleProcessor = new AndroidModuleProcessor(project, myModelsProvider, mySyncState, myModuleValidatorFactory, myAndroidModuleSetup);
+    myModuleProcessor = new AndroidModuleProcessor(project, modelsProvider, myModuleValidatorFactory);
   }
 
   @NotNull
@@ -96,13 +88,10 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
     // sync skipped.
     when(mySyncState.isSyncSkipped()).thenReturn(true);
 
-    myModuleProcessor.processAndroidModels(Arrays.asList(myAppModule, myLibModule), myIndicator);
+    myModuleProcessor.processAndroidModels(Arrays.asList(myAppModule, myLibModule));
 
     myModuleValidator.assertModuleWasValidated(myAppModule, myAppAndroidModel);
     myModuleValidator.assertModuleWasValidated(myLibModule, myLibAndroidModel);
-
-    verify(myAndroidModuleSetup).setUpModule(myAppModule, myModelsProvider, myAppAndroidModel, myAppModels, myIndicator, true);
-    verify(myAndroidModuleSetup).setUpModule(myLibModule, myModelsProvider, myLibAndroidModel, myLibModels, myIndicator, true);
 
     myModuleValidator.assertFoundIssuesWereFixedAndReported(myAppModule, myLibModule);
   }
