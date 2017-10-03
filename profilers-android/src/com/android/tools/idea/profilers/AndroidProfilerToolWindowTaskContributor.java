@@ -24,7 +24,6 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,9 +57,8 @@ public final class AndroidProfilerToolWindowTaskContributor implements AndroidLa
 
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(myProject);
-      });
+      ApplicationManager.getApplication().invokeLater(
+        () -> ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID).setShowStripeButton(true));
       return true;
     }
   }

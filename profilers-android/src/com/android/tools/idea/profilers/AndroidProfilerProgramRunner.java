@@ -55,7 +55,7 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       descriptor.setActivateToolWindowWhenAdded(false);
     }
 
-    AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(env.getProject()).show(null);
+    ToolWindowManagerEx.getInstanceEx(env.getProject()).getToolWindow(AndroidProfilerToolWindowFactory.ID).show(null);
 
     return descriptor;
   }
