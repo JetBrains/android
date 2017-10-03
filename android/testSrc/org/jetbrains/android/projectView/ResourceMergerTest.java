@@ -5,6 +5,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.projectView.BaseProjectViewTestCase;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -22,7 +23,8 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected Module createMainModule() throws IOException {
     Module result = super.createMainModule();
-    AndroidTestCase.addAndroidFacet(result);
+    AndroidFacet facet = AndroidTestCase.addAndroidFacet(result);
+    AndroidTestCase.removeFacetOn(getTestRootDisposable(), facet);
     return result;
   }
 

@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -43,7 +44,10 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,9 +94,10 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
   }
 
-  protected static void addLatestAndroidSdk(Module module) {
+  protected static Sdk addLatestAndroidSdk(Module module) {
     Sdk androidSdk = createLatestAndroidSdk();
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    return androidSdk;
   }
 
   public static Sdk createLatestAndroidSdk() {
@@ -100,6 +105,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     String platformDir = TestUtils.getLatestAndroidPlatform();
 
     Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 

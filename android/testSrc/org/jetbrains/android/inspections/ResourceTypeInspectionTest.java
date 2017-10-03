@@ -54,7 +54,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Module must have Android facet or resource type inspection will become a no-op
     if (AndroidFacet.getInstance(myModule) == null) {
-      AndroidTestCase.addAndroidFacet(myModule);
+      AndroidFacet facet = AndroidTestCase.addAndroidFacet(myModule);
+      AndroidTestCase.removeFacetOn(myFixture.getProjectDisposable(), facet);
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
       assertNotNull(sdk);
       @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
