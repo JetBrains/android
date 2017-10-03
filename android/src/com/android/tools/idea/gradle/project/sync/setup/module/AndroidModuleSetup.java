@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.*;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -33,7 +34,8 @@ public class AndroidModuleSetup {
          new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep());
   }
 
-  public AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
+  @VisibleForTesting
+  AndroidModuleSetup(@NotNull AndroidModuleSetupStep... setupSteps) {
     mySetupSteps = setupSteps;
   }
 

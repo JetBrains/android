@@ -80,7 +80,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     doTestWithNonExistingInterModuleDependencies(false /* use old sync infrastructure */);
   }
 
-  public void testWithNonExistingInterModuleDependenciesWithNewSyn() throws Exception {
+  public void testWithNonExistingInterModuleDependenciesWithNewSync() throws Exception {
     doTestWithNonExistingInterModuleDependencies(true /* use new sync infrastructure */);
   }
 
@@ -144,7 +144,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     }
 
     List<SyncMessage> messages = syncMessages.getReportedMessages();
-    assertThat(messages).isNotEmpty();
+    assertThat(messages).hasSize(1);
 
     SyncMessage message = messages.get(0);
     // @formatter:off

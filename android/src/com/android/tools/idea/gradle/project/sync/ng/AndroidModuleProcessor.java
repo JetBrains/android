@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -38,38 +35,27 @@ class AndroidModuleProcessor {
 
   @NotNull private final Project myProject;
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
-  @NotNull private final GradleSyncState mySyncState;
   @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final AndroidModuleSetup myAndroidModuleSetup;
 
   AndroidModuleProcessor(@NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
-    this(project, modelsProvider, GradleSyncState.getInstance(project), new AndroidModuleValidator.Factory(),
-         new AndroidModuleSetup(new DependenciesAndroidModuleSetupStep()));
+    this(project, modelsProvider, new AndroidModuleValidator.Factory());
   }
 
-  public AndroidModuleProcessor(@NotNull Project project,
-                                @NotNull IdeModifiableModelsProvider modelsProvider,
-                                @NotNull GradleSyncState syncState,
-                                @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
-                                @NotNull AndroidModuleSetup moduleSetup) {
+  @VisibleForTesting
+  AndroidModuleProcessor(@NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider,
+                         @NotNull AndroidModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
     myModelsProvider = modelsProvider;
-    mySyncState = syncState;
     myModuleValidatorFactory = moduleValidatorFactory;
-    myAndroidModuleSetup = moduleSetup;
   }
 
-  void processAndroidModels(@NotNull List<Module> androidModules, @NotNull ProgressIndicator indicator) {
+  void processAndroidModels(@NotNull List<Module> androidModules) {
     AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
     for (Module module : androidModules) {
       AndroidModuleModel androidModel = findAndroidModel(module);
       if (androidModel != null) {
-        GradleModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
-        assert moduleModels != null;
-        // We need to set up dependencies once all modules are created.
-        boolean syncSkipped = mySyncState.isSyncSkipped();
-        myAndroidModuleSetup.setUpModule(module, myModelsProvider, androidModel, moduleModels, indicator, syncSkipped);
         moduleValidator.validate(module, androidModel);
       }
     }
