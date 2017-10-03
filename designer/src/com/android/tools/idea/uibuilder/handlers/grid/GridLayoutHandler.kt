@@ -38,22 +38,14 @@ open class GridLayoutHandler : ViewGroupHandler() {
 
   override fun handlesPainting() = true
 
-  override fun createTargets(sceneComponent: SceneComponent) = createTargets(sceneComponent, true)
-
-  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent) =
-      createTargets(childComponent, false)
-
-  private fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
-    if (!isParent) {
-      createDragTarget(listBuilder)
-      createResizeTarget(listBuilder)
-    }
+    createDragTarget(listBuilder)
+    createResizeTarget(listBuilder)
     return listBuilder.build()
   }
 
-  open internal fun createDragTarget(listBuilder: ImmutableList.Builder<Target>): ImmutableList.Builder<Target> =
-      listBuilder.add(GridDragTarget(isSupportLibrary = false))
+  open internal fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = false))
 
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
       ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }

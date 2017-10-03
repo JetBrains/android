@@ -27,6 +27,5 @@ class GridLayoutV7Handler : GridLayoutHandler() {
 
   override fun getGradleCoordinateId(viewTag: String) = GRID_LAYOUT_LIB_ARTIFACT
 
-  override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>): ImmutableList.Builder<Target> =
-      listBuilder.add(GridDragTarget(isSupportLibrary = true))
+  override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) = listBuilder.add(GridDragTarget(isSupportLibrary = true))
 }
