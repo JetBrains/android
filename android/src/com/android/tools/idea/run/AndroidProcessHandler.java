@@ -39,10 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
@@ -375,36 +372,47 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       AndroidLogcatService.getInstance().addListener(device, logListener, true);
 
       // Remember the listener for later cleanup
+      AndroidLogcatService.LogcatListener previousListener;
       synchronized (myLock) {
+        previousListener = myLogListeners.put(device, logListener);
+      }
+
+      // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
+      if (previousListener != null) {
         // This should not happen (and we have never seen it happening), but removing the existing listener
         // ensures there are no memory leaks.
-        if (myLogListeners.containsKey(device)) {
-          LOG.warn(String.format("The device \"%s\" already has a registered logcat listener for application \"%s\". Removing it",
-                                 device.getName(), myApplicationId));
-          AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-          myLogListeners.remove(device);
-        }
-        myLogListeners.put(device, logListener);
+        LOG.warn(String.format("The device \"%s\" already has a registered logcat listener for application \"%s\". Removing it",
+                               device.getName(), myApplicationId));
+        AndroidLogcatService.getInstance().removeListener(device, previousListener);
       }
     }
 
     public void stopCapture(@NotNull IDevice device) {
       LOG.info(String.format("stopCapture(\"%s\")", device.getName()));
+
+      AndroidLogcatService.LogcatListener previousListener;
       synchronized (myLock) {
-        if (myLogListeners.containsKey(device)) {
-          AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-          myLogListeners.remove(device);
-        }
+        previousListener = myLogListeners.remove(device);
+      }
+
+      // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
+      if (previousListener != null) {
+        AndroidLogcatService.getInstance().removeListener(device, previousListener);
       }
     }
 
     public void stopAll() {
       LOG.info("stopAll()");
+
+      List<Map.Entry<IDevice, AndroidLogcatService.LogcatListener>> listeners;
       synchronized (myLock) {
-        for (IDevice device : myLogListeners.keySet()) {
-          AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-        }
+        listeners = new ArrayList<>(myLogListeners.entrySet());
         myLogListeners.clear();
+      }
+
+      // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
+      for (Map.Entry<IDevice, AndroidLogcatService.LogcatListener> entry: listeners) {
+        AndroidLogcatService.getInstance().removeListener(entry.getKey(), entry.getValue());
       }
     }
   }
