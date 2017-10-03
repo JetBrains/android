@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,22 +53,26 @@ public class SyncErrorHandlerManager {
 
   // Create NotificationData and call sync error handlers
   public void handleError(@NotNull Throwable error) {
-    ErrorAndLocation errorAndLocation = myCauseAndLocationFactory.create(error);
-    ExternalSystemException errorToReport = errorAndLocation.getError();
+    Runnable runnable = () -> {
+      ErrorAndLocation errorAndLocation = myCauseAndLocationFactory.create(error);
+      ExternalSystemException errorToReport = errorAndLocation.getError();
 
-    String message = buildErrorMessage(errorToReport);
-    PositionInFile positionInFile = errorAndLocation.getPositionInFile();
-    NotificationData notificationData = mySyncMessages.createNotification(DEFAULT_GROUP, message, ERROR, positionInFile);
+      String message = buildErrorMessage(errorToReport);
+      PositionInFile positionInFile = errorAndLocation.getPositionInFile();
+      NotificationData notificationData = mySyncMessages.createNotification(DEFAULT_GROUP, message, ERROR, positionInFile);
 
-    for (SyncErrorHandler errorHandler : myErrorHandlers) {
-      if (errorHandler.handleError(errorToReport, notificationData, myProject)) {
-        break;
+      for (SyncErrorHandler errorHandler : myErrorHandlers) {
+        if (errorHandler.handleError(errorToReport, notificationData, myProject)) {
+          break;
+        }
       }
-    }
 
-    if (notificationData.getNavigatable() == null) {
-      notificationData.setNavigatable(NonNavigatable.INSTANCE);
-    }
-    mySyncMessages.report(notificationData);
+      if (notificationData.getNavigatable() == null) {
+        notificationData.setNavigatable(NonNavigatable.INSTANCE);
+      }
+      mySyncMessages.report(notificationData);
+    };
+
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(runnable);
   }
 }
