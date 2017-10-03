@@ -31,7 +31,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
 import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -159,5 +161,19 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);
+  }
+
+  public void testGetDependencyDisplayName() {
+    Library library1 = new JavaLibraryStub(LIBRARY_JAVA, "com.google.guava:guava:11.0.2@jar", new File(""));
+    assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
+
+    Library library2 = new JavaLibraryStub(LIBRARY_ANDROID, "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""));
+    assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
+
+    Library library3 = new JavaLibraryStub(LIBRARY_ANDROID, "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""));
+    assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
+
+    Library library4 = new JavaLibraryStub(LIBRARY_JAVA, "foo:bar:1.0", new File(""));
+    assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
   }
 }
