@@ -56,5 +56,3 @@ internal class ProjectSystemComponent(val project: Project) : AbstractProjectCom
     super.projectClosed()
   }
 }
-
-private val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
