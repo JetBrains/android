@@ -50,13 +50,12 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
     RunContentDescriptor descriptor = super.doExecute(state, env);
 
     ApplicationManager.getApplication().assertIsDispatchThread();
-    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(env.getProject());
 
     if (descriptor != null) {
       descriptor.setActivateToolWindowWhenAdded(false);
     }
 
-    AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(windowManager).show(null);
+    AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(env.getProject()).show(null);
 
     return descriptor;
   }

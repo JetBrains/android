@@ -52,9 +52,9 @@ public class AndroidProfilerAction extends DumbAwareAction {
   public void actionPerformed(@Nullable AnActionEvent e) {
     Project project = getEventProject(e);
     if (project == null) return;
-    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(project);
-    ToolWindow window = AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(windowManager);
+    ToolWindow window = AndroidProfilerToolWindowFactory.ensureToolWindowInitialized(project);
 
+    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(project);
     if (windowManager.isEditorComponentActive() || !AndroidProfilerToolWindowFactory.ID.equals(windowManager.getActiveToolWindowId())) {
       window.activate(null);
     }

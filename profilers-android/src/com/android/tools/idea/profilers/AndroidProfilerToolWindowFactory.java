@@ -39,37 +39,24 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    toolWindow.setToHideOnEmptyContent(true);
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
-      @Override
-      public void toolWindowRegistered(@NotNull String id) {
-      }
-
-      @Override
-      public void stateChanged() {
-        // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-        if (window != null) {
-          if (window.isVisible() && window.getContentManager().getContentCount() == 0) {
-            createContent(project, window);
-          }
-        }
-      }
-    });
   }
 
-  private static void createContent(Project project, ToolWindow toolWindow) {
+  private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(project);
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
     toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
+
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
     properties.setValue(ANDROID_PROFILER_ACTIVE, true);
+
+    // Forcibly synchronize the Tool Window to a visible state. Otherwise, the Tool Window may not auto-hide correctly.
+    toolWindow.show(null);
   }
 
-  public static void removeContent(Project project, ToolWindow toolWindow) {
+  public static void removeContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     toolWindow.getContentManager().removeAllContents(true);
     PropertiesComponent properties = PropertiesComponent.getInstance(project);
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
@@ -82,7 +69,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   @NotNull
-  public static ToolWindow ensureToolWindowInitialized(@NotNull ToolWindowManagerEx windowManager) {
+  public static ToolWindow ensureToolWindowInitialized(@NotNull Project project) {
+    ToolWindowManagerEx windowManager = ToolWindowManagerEx.getInstanceEx(project);
     ToolWindow window = windowManager.getToolWindow(ID);
     if (window == null) {
       for (FacetDependentToolWindow extension : Extensions.getExtensions(FacetDependentToolWindow.EXTENSION_POINT_NAME)) {
@@ -94,6 +82,25 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       if (window == null) {
         throw new RuntimeException("Could not find Android Profiler facet/extension.");
       }
+
+      window.setToHideOnEmptyContent(true);
+      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
+        @Override
+        public void toolWindowRegistered(@NotNull String id) {
+        }
+
+        @Override
+        public void stateChanged() {
+          // We need to query the tool window again, because it might have been unregistered when closing the project.
+          ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+          if (window != null) {
+            if (window.isVisible() && window.getContentManager().getContentCount() == 0) {
+              createContent(project, window);
+            }
+          }
+        }
+      });
+
       // We need to force the ToolWindow to a "hidden" state, otherwise the Tool Window will come up visible *but* empty if it had been made
       // visible in a previous AS session.
       window.hide(null);
