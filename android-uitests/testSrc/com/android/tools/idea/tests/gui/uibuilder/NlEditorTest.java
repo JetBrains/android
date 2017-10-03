@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import android.view.View;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,7 +27,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +43,7 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(GuiTestRunner.class)
 public class NlEditorTest {
@@ -184,44 +188,125 @@ public class NlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/67430437
   @Test
   public void morphComponent() throws IOException {
-    boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true)
+      .dragComponentToSurface("Buttons", "Button")
+      .waitForRenderToFinish();
 
-    try {
-      StudioFlags.NELE_CONVERT_VIEW.override(true);
+    // Test enter text manually
+    NlComponentFixture button = layout.findView("Button", 0);
+    button.rightClick();
+    layout.invokeContextMenuAction("Convert view...");
+    MorphDialogFixture fixture = layout.findMorphDialog();
+    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
-      guiTest.importSimpleApplication();
-      IdeFrameFixture ideFrame = guiTest.ideFrame();
-      EditorFixture editor = ideFrame.getEditor()
-        .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-      NlEditorFixture layout = editor.getLayoutEditor(true)
-        .dragComponentToSurface("Buttons", "Button")
-        .waitForRenderToFinish();
+    ideFrame.robot().enterText("TextView");
+    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+    assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+    fixture.getOkButton().click();
+    assertNotNull(layout.findView("TextView", 1));
+    assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
 
-      // Test enter text manually
-      NlComponentFixture button = layout.findView("Button", 0);
-      MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
-      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+    // Test click on a suggestion
+    NlComponentFixture textView = layout.findView("TextView", 0);
+    textView.rightClick();
+    textView.invokeContextMenuAction("Convert view...");
+    fixture = layout.findMorphDialog();
+    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
-      ideFrame.robot().enterText("TextView");
-      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
-      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
-      fixture.getOkButton().click();
-      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+    fixture.getSuggestionList().clickItem("Button");
+    assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
+    fixture.getOkButton().click();
+    layout.waitForRenderToFinish();
+    assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+  }
 
-      // Test click on a suggestion
-      NlComponentFixture textView = layout.findView("TextView", 0);
-      fixture = layout.openMorphDialogForComponent(textView);
-      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+  @Test
+  public void morphViewGroup() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
 
-      fixture.getSuggestionList().clickItem("Button");
-      assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
-      fixture.getOkButton().click();
-      layout.waitForRenderToFinish();
-      assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
-    }
-    finally {
-      StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
-    }
+    // Right click on AbsoluteLayout in the component tree
+    NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
+    JPopupMenuFixture popupMenu = layout.getTreePopupMenuItemForComponent(root.getComponent());
+
+    // Open the convert view dialog
+    popupMenu.menuItemWithPath("Convert view...").click();
+    MorphDialogFixture fixture = layout.findMorphDialog();
+
+    // Click the LinearLayout button
+    fixture.getSuggestionList().clickItem("LinearLayout");
+
+    // Apply change
+    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+
+    // Check if change is correctly applied:
+    //    - Root name change from AbsoluteLayout to LinearLayout
+    //    - Attributes specific to AbsoluteLayout are removed
+    assertThat(root.getComponent().getTag().getName()).isEqualTo("LinearLayout");
+    String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:layout_width=\"match_parent\"\n" +
+                      "    android:layout_height=\"match_parent\"\n" +
+                      "    android:paddingBottom=\"16dp\"\n" +
+                      "    android:paddingLeft=\"16dp\"\n" +
+                      "    android:paddingRight=\"16dp\"\n" +
+                      "    android:paddingTop=\"16dp\">\n" +
+                      "\n" +
+                      "    <Button\n" +
+                      "        android:id=\"@+id/button\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"Button\" />\n" +
+                      "\n" +
+                      "    <Button\n" +
+                      "        android:id=\"@+id/button2\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"Button\" />\n" +
+                      "\n" +
+                      "    <EditText\n" +
+                      "        android:id=\"@+id/editText\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:ems=\"10\"\n" +
+                      "        android:inputType=\"textPersonName\"\n" +
+                      "        android:text=\"Name\" />\n" +
+                      "\n" +
+                      "    <LinearLayout\n" +
+                      "        android:layout_width=\"359dp\"\n" +
+                      "        android:layout_height=\"89dp\">\n" +
+                      "\n" +
+                      "        <Button\n" +
+                      "            android:id=\"@+id/button3\"\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:layout_weight=\"1\"\n" +
+                      "            android:text=\"Button\" />\n" +
+                      "\n" +
+                      "        <Button\n" +
+                      "            android:id=\"@+id/button5\"\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:layout_weight=\"1\"\n" +
+                      "            android:text=\"Button\" />\n" +
+                      "\n" +
+                      "        <Button\n" +
+                      "            android:id=\"@+id/button6\"\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:layout_weight=\"1\"\n" +
+                      "            android:text=\"Button\" />\n" +
+                      "    </LinearLayout>\n" +
+                      "</LinearLayout>";
+    String text = ApplicationManager.getApplication()
+      .runReadAction((Computable<String>)() -> root.getComponent().getTag().getText());
+    assertThat(text).isEqualTo(expected);
   }
 
   @Test
@@ -270,6 +355,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture nlEditorFixture = editor.getLayoutEditor(true);
+    nlEditorFixture.rightClick();
     nlEditorFixture.invokeContextMenuAction("Go to XML");
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
   }
@@ -285,7 +371,7 @@ public class NlEditorTest {
       .waitForRenderToFinish()
       .mouseWheelZoomIn(-10)
       .getScrollPosition();
-    View  view = (View)layoutEditor.findView("android.support.v4.widget.NestedScrollView", 0).getViewObject();
+    View view = (View)layoutEditor.findView("android.support.v4.widget.NestedScrollView", 0).getViewObject();
     assertThat(view.getScrollY()).isEqualTo(0);
 
     // Scroll a little bit: the ScrollView moves, the Surface stays.
