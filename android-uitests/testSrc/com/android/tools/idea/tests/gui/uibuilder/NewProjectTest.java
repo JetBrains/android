@@ -376,7 +376,7 @@ public class NewProjectTest {
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
       "    android:layout_height=\"match_parent\"\n" +
-      "    tools:context=\"com.android.test.app.MainActivity\">\n" +
+      "    tools:context=\".MainActivity\">\n" +
       "\n" +
       "    <TextView\n" +
       "        android:layout_width=\"wrap_content\"\n" +
@@ -387,7 +387,7 @@ public class NewProjectTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>\n";
+      "</android.support.constraint.ConstraintLayout>";
 
     assertThat(actualXml).isEqualTo(expectedXml);
   }
