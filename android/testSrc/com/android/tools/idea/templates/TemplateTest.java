@@ -695,6 +695,27 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testFontFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "FontFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/font"));
+  }
+
+  @TemplateCheck
+  public void testRawFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "RawFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/raw"));
+  }
+
+  @TemplateCheck
+  public void testXmlFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "XmlFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/res/xml"));
+  }
+
+  @TemplateCheck
   public void testRenderSourceFolder() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "RsFolder", false,
