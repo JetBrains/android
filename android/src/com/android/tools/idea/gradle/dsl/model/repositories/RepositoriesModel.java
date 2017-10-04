@@ -97,6 +97,26 @@ public class RepositoriesModel extends GradleDslBlockModel {
   }
 
   /**
+   * Adds a flat directory repository if it is not already in the list of repositories.
+   *
+   * @param dirName Directory to add
+   */
+  public void addFlatDirRepository(@NotNull String dirName) {
+    GradleDslElementList repositoriesElementList = getRepositoryElementList();
+
+    List<FlatDirRepositoryDslElement> flatDirElements = repositoriesElementList.getElements(FlatDirRepositoryDslElement.class);
+    if (!flatDirElements.isEmpty()) {
+      // A repository already exists
+      new FlatDirRepositoryModel(flatDirElements.get(0)).addDir(dirName);
+    } else {
+      // We need to create one
+      GradlePropertiesDslElement gradleDslElement = new FlatDirRepositoryDslElement(myDslElement);
+      repositoriesElementList.addNewElement(gradleDslElement);
+      new FlatDirRepositoryModel(gradleDslElement).addDir(dirName);
+    }
+  }
+
+  /**
    * Looks for a repository by method name.
    *
    * @param methodName Method name of the repository

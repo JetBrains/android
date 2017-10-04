@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_NAME;
@@ -31,6 +35,11 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link RepositoriesModel}.
  */
 public class RepositoriesModelTest extends GradleFileModelTestCase {
+
+
+  @NotNull private static final String TEST_DIR = "hello/i/am/a/dir";
+  @NotNull private static final String OTHER_TEST_DIR = "/this/is/also/a/dir";
+
   public void testParseJCenterDefaultRepository() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -55,7 +64,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof JCenterRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(JCenterRepositoryModel.class);
     JCenterRepositoryModel repository = (JCenterRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "BintrayJCenter2", repository.name().value());
@@ -73,7 +82,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "MavenRepo", repository.name().value());
@@ -92,7 +101,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
     assertEquals("name", "nonDefaultName", repository.name().value());
@@ -113,7 +122,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "MavenRepo", repository.name().value());
@@ -135,7 +144,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenRepositoryModel.class);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
     assertEquals("name", "myRepoName", repository.name().value());
@@ -159,7 +168,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenRepositoryModel.class);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "maven", repository.name().value());
@@ -186,7 +195,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof MavenRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(MavenRepositoryModel.class);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "maven", repository.name().value());
@@ -212,7 +221,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "flatDir", repository.name().value());
@@ -229,7 +238,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
     assertEquals("name", "libs", repository.name().value());
@@ -246,7 +255,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
+    assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);;
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "flatDir", repository.name().value());
@@ -266,7 +275,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
 
     RepositoryModel mavenCentral = repositories.get(1);
-    assertTrue(mavenCentral instanceof MavenCentralRepositoryModel);
+    assertThat(mavenCentral).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel mavenCentralRepository = (MavenCentralRepositoryModel)mavenCentral;
     assertEquals("name", "MavenRepo", mavenCentralRepository.name());
     assertEquals("url", "https://repo1.maven.org/maven2/", mavenCentralRepository.url());
@@ -390,14 +399,14 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
   }
 
   private static void verifyGoogleDefaultRepositoryModel(RepositoryModel google) {
-    assertTrue(google instanceof GoogleDefaultRepositoryModel);
+    assertThat(google).isInstanceOf(GoogleDefaultRepositoryModel.class);
     GoogleDefaultRepositoryModel googleRepository = (GoogleDefaultRepositoryModel)google;
     assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, googleRepository.name());
     assertEquals("url", GOOGLE_DEFAULT_REPO_URL, googleRepository.url());
   }
 
   private static void verifyJCenterDefaultRepositoryModel(RepositoryModel jcenter) {
-    assertTrue(jcenter instanceof JCenterDefaultRepositoryModel);
+    assertThat(jcenter).isInstanceOf(JCenterDefaultRepositoryModel.class);
     JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
     assertNull("name", jCenterRepository.name().getPsiElement());
     assertEquals("name", "BintrayJCenter2", jCenterRepository.name().value());
@@ -442,11 +451,109 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
   }
 
    private static void verifyGoogleMavenRepositoryModel(RepositoryModel repository) {
-     assertTrue(repository instanceof MavenRepositoryModel);
+     assertThat(repository).isInstanceOf(MavenRepositoryModel.class);
      MavenRepositoryModel mavenRepository = (MavenRepositoryModel)repository;
      assertNotNull("url", mavenRepository.url().getPsiElement());
      assertEquals("url", GOOGLE_DEFAULT_REPO_URL, mavenRepository.url().value());
      assertNotNull("name", mavenRepository.name().getPsiElement());
      assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().value());
    }
+
+  public void testAddFlatRepository() throws IOException {
+    writeToBuildFile("repositories {\n\n}");
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(0);
+
+    repositoriesModel.addFlatDirRepository("/usr/local/repo");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    List<RepositoryModel> repos = buildModel.repositories().repositories();
+    assertThat(repos).hasSize(1);
+    assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
+
+    FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel) repos.get(0);
+    assertThat(flatModel.dirs()).hasSize(1);
+    assertEquals("/usr/local/repo", flatModel.dirs().get(0));
+  }
+
+  public void testAddFlatRepositoryFromEmpty() throws IOException {
+    writeToBuildFile("");
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(0);
+
+    repositoriesModel.addFlatDirRepository("/usr/local/repo");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    List<RepositoryModel> repos = buildModel.repositories().repositories();
+    assertThat(repos).hasSize(1);
+    assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
+
+    FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel) repos.get(0);
+    assertThat(flatModel.dirs()).hasSize(1);
+    assertEquals("/usr/local/repo", flatModel.dirs().get(0));
+  }
+
+  public void testAddToExistingFlatRepository() throws IOException {
+    String text = "repositories {\n" +
+                  "  flatDir {\n" +
+                  "    dirs '" + TEST_DIR + "'\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+
+    repositoriesModel.addFlatDirRepository(OTHER_TEST_DIR);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    List<RepositoryModel> repos = buildModel.repositories().repositories();
+    assertThat(repos).hasSize(1);
+    assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
+
+    FlatDirRepositoryModel flatDirRepositoryModel = (FlatDirRepositoryModel) repos.get(0);
+
+    List<GradleNotNullValue<String>> dirs = flatDirRepositoryModel.dirs();
+    dirs.sort(Comparator.comparing(GradleValue::value));
+
+    assertEquals(OTHER_TEST_DIR, dirs.get(0));
+    assertEquals(TEST_DIR, dirs.get(1));
+  }
+
+  public void testAddDuplicateToExistingFlatRepository() throws IOException {
+    String text = "repositories {\n" +
+                  "  flatDir.dirs '" + TEST_DIR + "'\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+
+    repositoriesModel.addFlatDirRepository(TEST_DIR);
+    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    List<RepositoryModel> repos = buildModel.repositories().repositories();
+    assertThat(repos).hasSize(1);
+    assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
+
+    FlatDirRepositoryModel flatDirRepositoryModel = (FlatDirRepositoryModel) repos.get(0);
+    assertThat(flatDirRepositoryModel.dirs()).hasSize(1);
+    assertEquals(TEST_DIR, flatDirRepositoryModel.dirs().get(0).value());
+  }
 }
