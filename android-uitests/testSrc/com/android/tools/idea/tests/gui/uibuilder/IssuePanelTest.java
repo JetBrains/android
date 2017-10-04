@@ -139,7 +139,7 @@ public class IssuePanelTest {
     assertThat(dialog.getTitle()).isEqualTo("Fragments");
     assertThat(dialog.getList().contents().length).isEqualTo(2);
 
-    dialog.getList().selectItem("google.fragmentapplication.YourCustomFragment");
+    dialog.getList().selectItem("PsiClass:YourCustomFragment");
     dialog.clickOk();
 
     editor.switchToTab("Text");
