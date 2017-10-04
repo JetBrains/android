@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +72,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testMultiBreakAndResume() throws Exception {
+  public void testNativeDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
@@ -174,7 +173,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testCAndJavaBreakAndResume() throws Exception {
+  public void testDualDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
