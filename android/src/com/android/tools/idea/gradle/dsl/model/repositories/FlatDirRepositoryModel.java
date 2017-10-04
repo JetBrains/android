@@ -53,4 +53,25 @@ public class FlatDirRepositoryModel extends RepositoryModel {
 
     return ImmutableList.of();
   }
+
+  public void addDir(@NotNull String dir) {
+    assert myDslElement != null;
+
+    // Check if what we are trying to add exists
+    List<GradleNotNullValue<String>> oldDirs = myDslElement.getListProperty(DIRS, String.class);
+    if (oldDirs != null) {
+      for (GradleNotNullValue<String> item : oldDirs) {
+        if (item.value().equals(dir)) {
+          return;
+        }
+      }
+    }
+
+    GradleNullableValue<String> oldDir = myDslElement.getLiteralProperty(DIRS, String.class);
+    if (oldDir.value() != null && oldDir.value().equals(dir)) {
+      return;
+    }
+
+    myDslElement.addToNewLiteralList(DIRS, dir);
+  }
 }
