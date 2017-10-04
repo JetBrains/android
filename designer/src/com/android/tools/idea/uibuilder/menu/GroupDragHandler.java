@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
@@ -74,7 +73,7 @@ final class GroupDragHandler extends DragHandler {
     NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      editor.addDependencies(myItems);
+      editor.getDependencyManger().addDependencies(myItems, editor.getModel().getFacet());
       editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
   }
@@ -170,7 +169,9 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return NlModelHelperKt.isModuleDependency(editor.getModel(), APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
+    return editor.getDependencyManger().isModuleDependency(APPCOMPAT_LIB_ARTIFACT, editor.getModel().getFacet())
+           ? AUTO_URI
+           : ANDROID_URI;
   }
 
   @Nullable

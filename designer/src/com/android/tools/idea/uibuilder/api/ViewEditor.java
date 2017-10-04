@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.Language;
@@ -171,9 +172,9 @@ public abstract class ViewEditor {
   /**
    * Open a dialog to pick a class among classes derived from a specified set of super classes.
    *
-   * @param title the title representing the class being picked ex: "Fragments", "Views"
-   * @param superTypes the possible super classes that the user is picking a class from
-   * @param filter a filter for the qualified name of the class, or null to specify user defined classes only
+   * @param title        the title representing the class being picked ex: "Fragments", "Views"
+   * @param superTypes   the possible super classes that the user is picking a class from
+   * @param filter       a filter for the qualified name of the class, or null to specify user defined classes only
    * @param currentValue the current value which may be initially selected in the class selector
    * @return class name if user has selected one, or null if either the user cancelled, no classes were found, or we are in dumb mode.
    */
@@ -218,10 +219,9 @@ public abstract class ViewEditor {
                                       @NotNull InsertType insertType);
 
   /**
-   * Add the dependencies required by the children.
-   * This method can optionally be called from within a write transaction.
-   *
-   * @param children the components to be inserted
+   * Get the dependency manager to handle adding missing dependency and
+   * check current dependencies
    */
-  public abstract void addDependencies(@NotNull List<NlComponent> children);
+  @NotNull
+  public abstract NlDependencyManager getDependencyManger();
 }

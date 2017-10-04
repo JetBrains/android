@@ -951,7 +951,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
                               @Nullable ViewEditor editor) {
-    NlModelHelperKt.addDependencies(this, added);
+    NlDependencyManager.Companion.get().addDependencies(added, getFacet());
 
     InsertType realInsertType = insertType;
     Set<String> ids = getIds();

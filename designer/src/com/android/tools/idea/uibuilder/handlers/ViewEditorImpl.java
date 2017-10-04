@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -28,7 +27,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
@@ -43,7 +41,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -82,7 +80,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 
@@ -98,6 +95,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @VisibleForTesting
   private Collection<ViewInfo> myRootViews;
+  private NlDependencyManager myDependencyManager;
 
   public ViewEditorImpl(@NotNull SceneView sceneView) {
     this(sceneView.getModel(), sceneView.getScene());
@@ -112,6 +110,7 @@ public class ViewEditorImpl extends ViewEditor {
     myModel = model;
     myScene = scene;
     mySceneManager = scene != null ? scene.getSceneManager() : null;
+    myDependencyManager = NlDependencyManager.Companion.get();
   }
 
   @Override
@@ -392,32 +391,15 @@ public class ViewEditorImpl extends ViewEditor {
     getModel().addComponents(children, parent, getChild(parent, index), insertType, this);
   }
 
+  @NotNull
   @Override
-  public void addDependencies(@NotNull List<NlComponent> children) {
-    NlModelHelperKt.addDependencies(getModel(), children);
+  public NlDependencyManager getDependencyManger() {
+    return myDependencyManager;
   }
 
   @Nullable
   private static NlComponent getChild(@NotNull NlComponent parent, int index) {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
-  }
-
-  @NotNull
-  private List<GradleCoordinate> getMissingDependencies(@NotNull Iterable<NlComponent> components) {
-    Set<String> artifacts = new HashSet<>();
-    components.forEach(component -> NlComponentHelperKt.getDependencies(component, artifacts));
-
-    List<GradleCoordinate> dependencies = artifacts.stream()
-      .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-
-    if (dependencies.isEmpty()) {
-      return dependencies;
-    }
-
-    Module module = getModel().getModule();
-    return GradleDependencyManager.getInstance(module.getProject()).findMissingDependencies(module, dependencies);
   }
 
   /**

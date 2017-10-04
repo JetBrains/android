@@ -361,21 +361,6 @@ val NlComponent.hasNlComponentInfo: Boolean
 val NlComponent.isMorphableToViewGroup: Boolean
   get() = VIEW == tagName && getAttribute(TOOLS_URI, ATTR_MOCKUP) != null
 
-fun NlComponent.getDependencies(artifacts: MutableSet<String>) {
-  if (!hasNlComponentInfo) {
-    return
-  }
-  val handler = ViewHandlerManager.get(model.project).getHandler(this)
-  if (handler != null) {
-    val artifactId = handler.getGradleCoordinateId(this)
-
-    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
-      artifacts.add(artifactId)
-    }
-  }
-  children?.forEach { it.getDependencies(artifacts) }
-}
-
 val NlComponent.componentClassName: String?
   get() = viewInfo?.className
 
