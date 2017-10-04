@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -48,7 +49,7 @@ import static org.mockito.Mockito.mock;
  * Integration test for gradle sync with old versions of android plugin.
  */
 public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
-  private TestSettings myTestSetting;
+  private TestSettings myTestSettings;
 
   @Override
   public void setUp() throws Exception {
@@ -56,20 +57,20 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    IdeComponents.replaceService(getProject(), PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
+    IdeComponents.replaceService(project, PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
     // Most of the tests in this class share the same settings, create in setUp for convenience, each test can overwrite the settings.
-    myTestSetting = new TestSettings("2.2.1", "1.5.0", true, true);
+    myTestSettings = new TestSettings("2.2.1", "1.5.0");
   }
 
   @Override
   @NotNull
   protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File projectRoot = super.prepareProjectForImport(relativePath);
-    createGradleWrapper(projectRoot, myTestSetting.getGradleVersion());
+    createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
     return projectRoot;
   }
 
@@ -106,8 +107,8 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
 
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", myTestSetting.getPluginVerion());
-      if (myTestSetting.removeConstraintLayout()) {
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", myTestSettings.pluginVersion);
+      if (myTestSettings.removeConstraintLayout) {
         // Remove constraint-layout, which was not supported by old plugins.
         contents = replaceRegexGroup(contents, "(compile 'com.android.support.constraint:constraint-layout:\\+')", "");
       }
@@ -120,19 +121,40 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
         write(contents, path, Charsets.UTF_8);
       }
     }
-    else if (myTestSetting.resetActivityMain() && path.getName().equals("activity_main.xml")) {
+    else if (myTestSettings.resetActivityMain && path.getName().equals("activity_main.xml")) {
       resetActivityMain(path);
     }
   }
 
   // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
   public void testWithPluginOneDotFive() throws Exception {
-    myTestSetting = new TestSettings("2.2.1", "1.5.0", true, false);
+    doTestWithPluginOneDotFive(false /* use old sync infrastructure */);
+  }
+
+  public void testWithPluginOneDotFiveWithNewSync() throws Exception {
+    doTestWithPluginOneDotFive(true /* use new sync infrastructure */);
+  }
+
+  private void doTestWithPluginOneDotFive(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
+    myTestSettings.resetActivityMain = false;
     // We are verifying that sync succeeds without errors.
     loadProject(PROJECT_WITH1_DOT5);
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {
+    doTestWithInterAndroidModuleDependencies(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/WithInterAndroidModuleDependenciesWithNewSync() throws Exception {
+    doTestWithInterAndroidModuleDependencies(true /* use new sync infrastructure */);
+  }
+
+  private void doTestWithInterAndroidModuleDependencies(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'library2'
@@ -141,6 +163,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testWithInterJavaModuleDependencies() throws Exception {
+    doTestWithInterJavaModuleDependencies(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/WithInterJavaModuleDependenciesWithNewSync() throws Exception {
+    doTestWithInterJavaModuleDependencies(true /* use new sync infrastructure */);
+  }
+
+  private void doTestWithInterJavaModuleDependencies(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'lib'
@@ -150,6 +183,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
+    doTestJavaLibraryDependenciesFromJavaModule(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/JavaLibraryDependenciesFromJavaModuleWithNewSync() throws Exception {
+    doTestJavaLibraryDependenciesFromJavaModule(true /* use new sync infrastructure */);
+  }
+
+  private void doTestJavaLibraryDependenciesFromJavaModule(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module javaLibModule = myModules.getModule("lib");
     // 'app' -> 'lib' -> 'guava'
@@ -159,6 +203,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
+    doTestLocalJarDependenciesFromAndroidModule(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/LocalJarDependenciesFromAndroidModuleWithNewSync() throws Exception {
+    doTestLocalJarDependenciesFromAndroidModule(true /* use new sync infrastructure */);
+  }
+
+  private void doTestLocalJarDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
@@ -167,6 +222,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
+    doTestJavaLibraryDependenciesFromAndroidModule(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/JavaLibraryDependenciesFromAndroidModuleWithNewSync() throws Exception {
+    doTestJavaLibraryDependenciesFromAndroidModule(true /* use new sync infrastructure */);
+  }
+
+  private void doTestJavaLibraryDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'gson'
@@ -175,6 +241,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
+    doTestAndroidModuleDependenciesFromAndroidModule(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/AndroidModuleDependenciesFromAndroidModuleWithNewSync() throws Exception {
+    doTestAndroidModuleDependenciesFromAndroidModule(true /* use new sync infrastructure */);
+  }
+
+  private void doTestAndroidModuleDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'library1'
@@ -182,6 +259,17 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
+    doTestAndroidLibraryDependenciesFromAndroidModule(false /* use old sync infrastructure */);
+  }
+
+  // Disabled: http://b/67420000
+  public void /*test*/AndroidLibraryDependenciesFromAndroidModuleWithNewSync() throws Exception {
+    doTestAndroidLibraryDependenciesFromAndroidModule(true /* use new sync infrastructure */);
+  }
+
+  private void doTestAndroidLibraryDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
+
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
@@ -189,38 +277,14 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   private static class TestSettings {
-    @NotNull private final String myGradleVersion;
-    @NotNull private final String myPluginVerion;
-    // Whether to remove dependencies on constraint-layout, which was not supported in old plugins.
-    private final boolean myRemoveConstraintLayout;
-    private final boolean myResetActivityMain;
+    @NotNull final String gradleVersion;
+    @NotNull final String pluginVersion;
+    private boolean removeConstraintLayout = true; // Remove dependencies on constraint-layout, which was not supported in old plugins.
+    private boolean resetActivityMain = true;
 
-    public TestSettings(@NotNull String gradleVersion,
-                        @NotNull String pluginVerion,
-                        boolean removeConstraintLayout,
-                        boolean resetActivityMain) {
-      myGradleVersion = gradleVersion;
-      myPluginVerion = pluginVerion;
-      myRemoveConstraintLayout = removeConstraintLayout;
-      myResetActivityMain = resetActivityMain;
-    }
-
-    @NotNull
-    String getGradleVersion() {
-      return myGradleVersion;
-    }
-
-    @NotNull
-    String getPluginVerion() {
-      return myPluginVerion;
-    }
-
-    boolean removeConstraintLayout() {
-      return myRemoveConstraintLayout;
-    }
-
-    boolean resetActivityMain() {
-      return myResetActivityMain;
+    public TestSettings(@NotNull String gradleVersion, @NotNull String pluginVersion) {
+      this.gradleVersion = gradleVersion;
+      this.pluginVersion = pluginVersion;
     }
   }
 }
