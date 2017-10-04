@@ -180,7 +180,7 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.L
  * </ul>
  * <p>
  */
-public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
+public class ResourceTypeInspection extends AbstractBaseJavaLocalInspectionTool implements CustomSuppressableInspectionTool {
   @NotNull
   @Override
   public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder,
