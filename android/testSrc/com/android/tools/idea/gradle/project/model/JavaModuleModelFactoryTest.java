@@ -43,23 +43,28 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link JavaModuleModelFactory}.
  */
 public class JavaModuleModelFactoryTest {
-  private static final String JAVA_LANGUAGE_LEVEL = "1.7";
-  private static final File BUILD_FOLDER_PATH = new File("/mock/project/build");
-  private static final File PROJECT_FOLDER_PATH = new File("/mock/project");
-  private static final String MODULE_NAME = "javaLib";
-
   @Mock private JavaProject myJavaProject;
   @Mock private GradleProject myGradleProject;
+
+  private String myJavaLanguageLevel;
+  private String myModuleName;
+  private File myBuildFolderPath;
+  private File myProjectFolderPath;
+
   private JavaModuleModelFactory myJavaModuleModelFactory;
 
   @Before
   public void setUpMethod() {
-    initMocks(this);
-    when(myJavaProject.getName()).thenReturn(MODULE_NAME);
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(JAVA_LANGUAGE_LEVEL);
+    myJavaLanguageLevel = "1.7";
+    myBuildFolderPath = new File("/mock/project/build");
+    myProjectFolderPath = new File("/mock/project");
+    myModuleName = "javaLib";
 
-    when(myGradleProject.getBuildDirectory()).thenReturn(BUILD_FOLDER_PATH);
-    when(myGradleProject.getProjectDirectory()).thenReturn(PROJECT_FOLDER_PATH);
+    initMocks(this);
+    when(myJavaProject.getName()).thenReturn(myModuleName);
+    when(myJavaProject.getJavaLanguageLevel()).thenReturn(myJavaLanguageLevel);
+
+    when(myGradleProject.getBuildDirectory()).thenReturn(myBuildFolderPath);
     doReturn(ImmutableDomainObjectSet.of(Collections.emptyList())).when(myGradleProject).getTasks();
 
     myJavaModuleModelFactory = new JavaModuleModelFactory();
@@ -67,12 +72,12 @@ public class JavaModuleModelFactoryTest {
 
   @Test
   public void verifyBasicProperties() {
-    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myGradleProject, myJavaProject);
-    assertEquals(MODULE_NAME, javaModuleModel.getModuleName());
+    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myProjectFolderPath, myGradleProject, myJavaProject);
+    assertEquals(myModuleName, javaModuleModel.getModuleName());
     assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
-    assertEquals(BUILD_FOLDER_PATH, javaModuleModel.getBuildFolderPath());
+    assertEquals(myBuildFolderPath, javaModuleModel.getBuildFolderPath());
     assertNotNull(javaModuleModel.getJavaLanguageLevel());
-    assertEquals(JAVA_LANGUAGE_LEVEL, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
+    assertEquals(myJavaLanguageLevel, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
   }
 
@@ -105,7 +110,7 @@ public class JavaModuleModelFactoryTest {
 
     when(myJavaProject.getSourceSets()).thenReturn(Arrays.asList(mainSourceSet, testSourceSet));
 
-    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myGradleProject, myJavaProject);
+    JavaModuleModel javaModuleModel = myJavaModuleModelFactory.create(myProjectFolderPath, myGradleProject, myJavaProject);
 
     // Verify project dependency
     Collection<JavaModuleDependency> javaModuleDependencies = javaModuleModel.getJavaModuleDependencies();

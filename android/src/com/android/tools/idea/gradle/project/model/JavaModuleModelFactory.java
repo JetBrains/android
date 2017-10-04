@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.AndroidProject;
+import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaLibrary;
 import com.android.java.model.JavaProject;
 import com.android.java.model.SourceSet;
@@ -52,21 +53,49 @@ public class JavaModuleModelFactory {
   }
 
   @NotNull
-  public JavaModuleModel create(@NotNull GradleProject gradleProject, @NotNull AndroidProject androidProject) {
-    return new JavaModuleModel(androidProject.getName(), Collections.emptyList(),Collections.emptyList(), Collections.emptyList(),
-                               Collections.emptyMap(),new IdeaCompilerOutputImpl(), gradleProject.getBuildDirectory(),
-                               androidProject.getJavaCompileOptions().getSourceCompatibility(), false /* not buildable */,
-                               true /* regular Java module */);
+  public JavaModuleModel create(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject, @NotNull ArtifactModel jarAarModel) {
+    Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, gradleProject);
+    return new JavaModuleModel(jarAarModel.getName(), contentRoots, Collections.emptyList() /* Java module dependencies */,
+                               Collections.emptyList() /* Jar library dependencies */, jarAarModel.getArtifactsByConfiguration(),
+                               null /* compiler output */, gradleProject.getBuildDirectory(), null /* Java language level */,
+                               isBuildable(gradleProject), false /* regular Java module */);
   }
 
   @NotNull
-  public JavaModuleModel create(@NotNull GradleProject gradleProject, @NotNull JavaProject javaProject) {
+  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject) {
+    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
+    // Manually add build directory.
+    Collection<File> excludeFolderPaths = Collections.singletonList(gradleProject.getBuildDirectory());
+    JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath,
+                                                                  Collections.emptyList() /* source folders */,
+                                                                  Collections.emptyList() /* generated source folders */,
+                                                                  Collections.emptyList() /* resource folders */,
+                                                                  Collections.emptyList() /* test folders */,
+                                                                  Collections.emptyList() /* generated test folders */,
+                                                                  Collections.emptyList() /* test resource folders */, excludeFolderPaths);
+    return Collections.singleton(contentRoot);
+  }
+
+  @NotNull
+  public JavaModuleModel create(@NotNull GradleProject gradleProject, @NotNull AndroidProject androidProject) {
+    String sourceCompatibility = androidProject.getJavaCompileOptions().getSourceCompatibility();
+    return new JavaModuleModel(androidProject.getName(), Collections.emptyList() /* content roots */,
+                               Collections.emptyList() /* Java module dependencies */,
+                               Collections.emptyList() /* Jar library dependencies */,
+                               Collections.emptyMap() /* artifacts by configuration */, new IdeaCompilerOutputImpl(),
+                               gradleProject.getBuildDirectory(), sourceCompatibility, false /* not buildable */,
+                               true /* Android project without variants */);
+  }
+
+  @NotNull
+  public JavaModuleModel create(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject, @NotNull JavaProject javaProject) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(javaProject);
     String projectName = javaProject.getName();
-    Collection<JavaModuleContentRoot> contentRoots = getContentRoots(javaProject, gradleProject);
-    return new JavaModuleModel(projectName, contentRoots, dependencies.first, dependencies.second, Collections.emptyMap(),
-                               getCompilerOutput(javaProject), gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(),
-                               isBuildable(gradleProject), false /* regular Java module */);
+    Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, javaProject, gradleProject);
+    return new JavaModuleModel(projectName, contentRoots, dependencies.first, dependencies.second,
+                               Collections.emptyMap() /* artifacts by configuration */, getCompilerOutput(javaProject),
+                               gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(), isBuildable(gradleProject),
+                               false /* regular Java module */);
   }
 
   @NotNull
@@ -134,34 +163,38 @@ public class JavaModuleModelFactory {
   }
 
   @NotNull
-  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull JavaProject javaProject, @NotNull GradleProject gradleProject) {
-    Collection<File> sourceDirPaths = new ArrayList<>();
-    Collection<File> resourceDirPaths = new ArrayList<>();
-    Collection<File> testDirPaths = new ArrayList<>();
-    Collection<File> testResourceDirPaths = new ArrayList<>();
+  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull File moduleFolderPath,
+                                                                   @NotNull JavaProject javaProject,
+                                                                   @NotNull GradleProject gradleProject) {
+    Collection<File> sourceFolderPaths = new ArrayList<>();
+    Collection<File> resourceFolderPaths = new ArrayList<>();
+    Collection<File> testFolderPaths = new ArrayList<>();
+    Collection<File> testResourceFolderPaths = new ArrayList<>();
 
     for (SourceSet sourceSet : javaProject.getSourceSets()) {
       if (sourceSet.getName().equals(TEST_SOURCE_SET_NAME)) {
-        testDirPaths.addAll(sourceSet.getSourceDirectories());
-        testResourceDirPaths.addAll(sourceSet.getResourcesDirectories());
+        testFolderPaths.addAll(sourceSet.getSourceDirectories());
+        testResourceFolderPaths.addAll(sourceSet.getResourcesDirectories());
       }
       else {
         // All sourceSets excepts for test.
-        sourceDirPaths.addAll(sourceSet.getSourceDirectories());
-        resourceDirPaths.addAll(sourceSet.getResourcesDirectories());
+        sourceFolderPaths.addAll(sourceSet.getSourceDirectories());
+        resourceFolderPaths.addAll(sourceSet.getResourcesDirectories());
       }
     }
 
     // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
     // Manually add build directory.
-    Collection<File> excludeDirPaths = new ArrayList<>();
-    excludeDirPaths.add(gradleProject.getBuildDirectory());
+    Collection<File> excludeFolderPaths = new ArrayList<>();
+    excludeFolderPaths.add(gradleProject.getBuildDirectory());
 
     // Generated sources and generated test sources come from idea plugin, leave them empty for now.
-    return Collections.singleton(
-      new JavaModuleContentRoot(gradleProject.getProjectDirectory(), sourceDirPaths, Collections.emptyList(), resourceDirPaths,
-                                testDirPaths,
-                                Collections.emptyList(), testResourceDirPaths, excludeDirPaths));
+    JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath, sourceFolderPaths,
+                                                                  Collections.emptyList() /* generated source folders */,
+                                                                  resourceFolderPaths, testFolderPaths,
+                                                                  Collections.emptyList() /* test generated source folders */,
+                                                                  testResourceFolderPaths, excludeFolderPaths);
+    return Collections.singleton(contentRoot);
   }
 
   private static class SourceSets {

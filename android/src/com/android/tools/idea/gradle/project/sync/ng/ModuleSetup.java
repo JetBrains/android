@@ -85,7 +85,6 @@ abstract class ModuleSetup {
                                  new CachedProjectModels.Factory(),
                                  new IdeNativeAndroidProjectImpl.FactoryImpl(),
                                  new JavaModuleModelFactory(),
-                                 new ArtifactModuleModelFactory(),
                                  new IdeDependenciesFactory());
     }
   }
@@ -106,7 +105,6 @@ abstract class ModuleSetup {
     @NotNull private final CachedProjectModels.Factory myCachedProjectModelsFactory;
     @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
     @NotNull private final JavaModuleModelFactory myJavaModuleModelFactory;
-    @NotNull private final ArtifactModuleModelFactory myArtifactModuleModelFactory;
     @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
     @NotNull private final IdeDependenciesFactory myDependenciesFactory;
 
@@ -127,7 +125,6 @@ abstract class ModuleSetup {
                     @NotNull CachedProjectModels.Factory cachedProjectModelsFactory,
                     @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                     @NotNull JavaModuleModelFactory javaModuleModelFactory,
-                    @NotNull ArtifactModuleModelFactory artifactModuleModelFactory,
                     @NotNull IdeDependenciesFactory dependenciesFactory) {
       myProject = project;
       myModelsProvider = modelsProvider;
@@ -143,7 +140,6 @@ abstract class ModuleSetup {
       myCachedProjectModelsFactory = cachedProjectModelsFactory;
       myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
       myJavaModuleModelFactory = javaModuleModelFactory;
-      myArtifactModuleModelFactory = artifactModuleModelFactory;
       myExtraModelsManager = extraModelsManager;
       myDependenciesFactory = dependenciesFactory;
     }
@@ -315,7 +311,8 @@ abstract class ModuleSetup {
       JavaProject javaProject = moduleModels.findModel(JavaProject.class);
       GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
       if (gradleProject != null && javaProject != null) {
-        JavaModuleModel javaModel = myJavaModuleModelFactory.create(gradleProject, javaProject  /* regular Java module */);
+        JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject,
+                                                                    javaProject /* regular Java module */);
         myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, moduleModels, indicator, false /* sync not skipped */);
         cachedModels.addModel(javaModel);
 
@@ -327,7 +324,7 @@ abstract class ModuleSetup {
       // This is a Jar/Aar module or root module.
       ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
       if (gradleProject != null && jarAarProject != null) {
-        JavaModuleModel javaModel = myArtifactModuleModelFactory.create(gradleProject, jarAarProject);
+        JavaModuleModel javaModel = myJavaModuleModelFactory.create(moduleRootFolderPath, gradleProject, jarAarProject);
         myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModel, moduleModels, indicator, false /* sync not skipped */);
         cachedModels.addModel(javaModel);
       }
