@@ -37,14 +37,6 @@
   </extensions>
 
   <actions>
-    <!-- Note: the action id "Android.HotswapChanges" is used in HotswapAction to determine the current shortcut. -->
-    <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
-      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop"/>
-      <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
-      <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
-      <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
-    </action>
-
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
     </action>
