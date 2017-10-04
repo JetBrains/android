@@ -50,7 +50,20 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     return myFixture.copyFileToProject("src/" + asPath + ".java");
   }
 
-  public void testResolveSimpleVariable() {
+  private static void assertMethod(PsiClass aClass, String name, String returnType, String... parameters) {
+    PsiMethod[] methods = aClass.findMethodsByName(name, true);
+    assertEquals(1, methods.length);
+    PsiMethod method = methods[0];
+    assertNotNull(method.getReturnType());
+    assertEquals(returnType, method.getReturnType().getCanonicalText());
+    PsiParameterList parameterList = method.getParameterList();
+    assertEquals(parameters.length, parameterList.getParametersCount());
+    for (String parameterQName : parameters) {
+      assertEquals(parameterQName, parameterList.getParameters()[0].getType().getCanonicalText());
+    }
+  }
+
+  public void testSimpleVariableResolution() {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
 
@@ -64,7 +77,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
   /**
    * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
    */
-  public void testResolveProperty() {
+  public void testPropertyResolution() {
     copyClass("p1.p2.ClassWithBindableProperty");
     VirtualFile virtualFile = copyLayout("data_binding_property_reference");
     myFixture.configureFromExistingVirtualFile(virtualFile);
@@ -75,7 +88,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     assertEquals("getProperty", ((PsiMethod)element).getName());
   }
 
-  public void testResolveImport() {
+  public void testImportResolution() {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
 
@@ -98,7 +111,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
   }
 
-  public void testResolveImportAlias() {
+  public void testImportAliasResolution() {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
 
@@ -122,19 +135,6 @@ public class AndroidDataBindingTest extends AndroidTestCase {
 
     assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
     assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
-  }
-
-  private static void assertMethod(PsiClass aClass, String name, String returnType, String... parameters) {
-    PsiMethod[] methods = aClass.findMethodsByName(name, true);
-    assertEquals(1, methods.length);
-    PsiMethod method = methods[0];
-    assertNotNull(method.getReturnType());
-    assertEquals(returnType, method.getReturnType().getCanonicalText());
-    PsiParameterList parameterList = method.getParameterList();
-    assertEquals(parameters.length, parameterList.getParametersCount());
-    for (String parameterQName : parameters) {
-      assertEquals(parameterQName, parameterList.getParameters()[0].getType().getCanonicalText());
-    }
   }
 }
 
