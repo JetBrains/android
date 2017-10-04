@@ -39,7 +39,6 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPanelFixture;
-import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -300,29 +299,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
-  public MorphDialogFixture findMorphDialog() {
+  public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
+    componentFixture.invokeContextMenuAction("Convert view...");
     return new MorphDialogFixture(robot());
-  }
-
-  /**
-   * Returns the popup menu item for the provided component in the component tree
-   */
-  @NotNull
-  public JPopupMenuFixture getTreePopupMenuItemForComponent(@NotNull NlComponent component) {
-    return getComponentTree().showPopupMenuAt(buildTreePathTo(component));
-  }
-
-  /**
-   * Build the string representation of the path to the provided component in the component tree
-   */
-  @NotNull
-  private static String buildTreePathTo(NlComponent current) {
-    StringBuilder builder = new StringBuilder(current.getTag().getName());
-    while ((current = current.getParent()) != null) {
-      builder.insert(0, current.getTag().getName() + "/");
-      current = current.getParent();
-    }
-    return builder.toString();
   }
 
   public void invokeContextMenuAction(@NotNull String actionLabel) {
