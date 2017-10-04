@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -35,6 +36,22 @@ import static java.awt.event.InputEvent.SHIFT_MASK;
 public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   @Nullable private AndroidModel myMockAndroidModel;
+
+  @Override
+  protected void setUp() throws Exception {
+    StudioFlags.NELE_TARGET_RELATIVE.override(false);
+    super.setUp();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.NELE_TARGET_RELATIVE.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
 
   public void testResizeToNowhereWithModifierKeepsPosition() {
     screen(createModel())
