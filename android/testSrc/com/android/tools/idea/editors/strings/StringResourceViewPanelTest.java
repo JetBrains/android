@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.adtui.TableUtils;
 import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
-import com.android.tools.adtui.TableUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -79,7 +79,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key8", getValueAt(8, 0));
     assertEquals("key9", getValueAt(9, 0));
 
-    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
+    myTable.setRowFilter(new NeedsTranslationsRowFilter());
 
     assertEquals(7, myTable.getRowCount());
     assertEquals("key1", getValueAt(0, 0));
@@ -92,7 +92,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingUntranslatableCell() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
+    myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
     assertEquals(6, myTable.getRowCount());
@@ -105,7 +105,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
+    myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt("Key 3 en-rGB", 2, 6);
 
     assertEquals(6, myTable.getRowCount());
@@ -118,7 +118,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSelectingCell() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
+    myTable.setRowFilter(new NeedsTranslationsRowFilter());
     TableUtils.selectCellAt(myTable, 2, 1);
 
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
