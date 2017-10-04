@@ -253,11 +253,6 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
             break;
           }
         }
-
-        if (formFactorInfo.newModuleModel.instantApp().get() && minTargetSdk < InstantApps.getMinTargetSdk()) {
-          message = message("android.wizard.project.invalid.iapp.min.sdk", formFactor, InstantApps.getMinTargetSdk());
-          break;
-        }
       }
     }
 
