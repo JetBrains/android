@@ -33,15 +33,13 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +48,12 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED;
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
+
+  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
+
   public HotswapAction() {
     super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload);
+    setShortcutSet(SHORTCUT_SET);
   }
 
   @Override
@@ -129,15 +131,8 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    presentation.setText("Apply Changes" + getShortcutText());
+    presentation.setText("Apply Changes");
     presentation.setEnabled(true);
-  }
-
-  @Nullable
-  private static String getShortcutText() {
-    Keymap activeKeymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut[] shortcuts = activeKeymap.getShortcuts("Android.HotswapChanges");
-    return shortcuts.length > 0 ? " (" + KeymapUtil.getShortcutText(shortcuts[0]) + ") " : "";
   }
 
   @Override
