@@ -166,7 +166,7 @@ public class NlPaletteTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-    layout.dragComponentToSurface("Containers", "fragment");
+    layout.dragComponentToSurface("Containers", "<fragment>");
 
     MessagesFixture classesDialog = MessagesFixture.findByTitle(myGuiTest.robot(), "No Fragments Found");
     classesDialog.requireMessageContains("You must first create one or more Fragments in code");
@@ -183,7 +183,7 @@ public class NlPaletteTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-    layout.dragComponentToSurface("Containers", "fragment");
+    layout.dragComponentToSurface("Containers", "<fragment>");
 
     ChooseClassDialogFixture dialog = ChooseClassDialogFixture.find(myGuiTest.ideFrame());
     assertThat(dialog.getTitle()).isEqualTo("Fragments");
