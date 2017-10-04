@@ -131,7 +131,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",
     "Enable the new Target architecture in relative layout",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_PALETTE = Flag.create(
     NELE, "new.palette", "Enable the new Palette",

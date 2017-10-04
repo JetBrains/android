@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
 
 public class ViewHandlerManagerTest extends LayoutTestCase {
   public void test() {
@@ -28,8 +30,14 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
 
     assertTrue(viewManager.getHandler("LinearLayout") instanceof LinearLayoutHandler);
     assertTrue(viewManager.getHandler("android.widget.LinearLayout") instanceof LinearLayoutHandler);
-    assertTrue(viewManager.getHandler("RelativeLayout") instanceof RelativeLayoutHandler);
-    assertTrue(viewManager.getHandler("android.widget.RelativeLayout") instanceof RelativeLayoutHandler);
+    if (StudioFlags.NELE_TARGET_RELATIVE.get()) {
+      assertTrue(viewManager.getHandler("RelativeLayout") instanceof RelativeLayoutHandlerKt);
+      assertTrue(viewManager.getHandler("android.widget.RelativeLayout") instanceof RelativeLayoutHandlerKt);
+    }
+    else {
+      assertTrue(viewManager.getHandler("RelativeLayout") instanceof RelativeLayoutHandler);
+      assertTrue(viewManager.getHandler("android.widget.RelativeLayout") instanceof RelativeLayoutHandler);
+    }
 
     assertSame(viewManager.getHandler("LinearLayout"), viewManager.getHandler("LinearLayout"));
     if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
