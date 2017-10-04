@@ -146,8 +146,6 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
             .forEach {
               myNlComponent.tag.setAttribute(it, null)
             }
-        myNlComponent.removeObsoleteAttributes()
-        myNlComponent.getChildren().forEach(NlComponent::removeObsoleteAttributes)
       }
     })
   }
@@ -186,7 +184,8 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
     IdeFocusManager.getInstance(myProject).requestFocus(morphDialog.preferredFocusComponent, true)
   }
 
-  private fun updateDocumentWithNewName(document: Document): (String) -> Unit = { newName ->
+  private fun updateDocumentWithNewName(document: Document): (String) -> Unit = {
+    newName ->
     myNewName = newName
     document.replaceString(myTagNameRange.startOffset, myTagNameRange.endOffset, newName)
   }
