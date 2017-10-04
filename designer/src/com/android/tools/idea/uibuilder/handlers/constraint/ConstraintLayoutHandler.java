@@ -878,7 +878,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiers) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -899,13 +899,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
       }
       if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
       }
 
       presentation.setVisible(show);

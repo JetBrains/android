@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
@@ -151,6 +152,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     Mockito.when(editor.canInsertChildren(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.anyInt())).thenReturn(true);
     Mockito.when(editor.getModel()).thenReturn(model);
+    Mockito.when(editor.getDependencyManger()).thenReturn(NlDependencyManager.Companion.get());
 
     return editor;
   }

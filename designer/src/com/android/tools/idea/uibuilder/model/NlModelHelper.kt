@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.SdkConstants.*
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
@@ -32,15 +30,10 @@ import com.android.tools.idea.common.util.XmlTagUtil.createTag
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -54,28 +47,6 @@ import java.util.*
  */
 
 const val CUSTOM_DENSITY_ID = "Custom Density"
-
-/**
- * Returns true if the current module depends on the specified library.
-
- * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
- */
-fun NlModel.isModuleDependency(artifact: String): Boolean {
-  val gradleModel = AndroidModuleModel.get(facet)
-  return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact)
-}
-
-/**
- * Returns the [GradleVersion] of the specified library that the current module depends on.
-
- * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
- * *
- * @return the revision or null if the module does not depend on the specified library.
- */
-fun NlModel.getModuleDependencyVersion(artifact: String): GradleVersion? {
-  val gradleModel = AndroidModuleModel.get(facet)
-  return if (gradleModel != null) GradleUtil.getModuleDependencyVersion(gradleModel, artifact) else null
-}
 
 /**
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
@@ -197,19 +168,7 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
       return false
     }
   }
-  val dependencies = getDependencies(toAdd)
-  val missing = GradleDependencyManager.getInstance(module.project).findMissingDependencies(module, dependencies)
-  if (missing.isEmpty()) {
-    return true
-  }
-  val application = ApplicationManager.getApplication() as ApplicationEx
-  if (application.isWriteActionInProgress) {
-    assert(false) {
-      "If you are wrapping addComponents inside an outer write command, you must add all dependencies before calling addComponents."
-    }
-    return true
-  }
-  return GradleDependencyManager.userWantToAddDependencies(module, dependencies)
+  return NlDependencyManager.get().checkIfUserWantsToAddDependencies(toAdd, facet)
 }
 
 /**
@@ -262,7 +221,7 @@ fun NlModel.createComponent(editor: ViewEditor,
   if (childHandler != null) {
     var ok = childHandler.onCreate(editor, parent, child, insertType)
     if (parent != null) {
-      ok = ok and addDependencies(ImmutableList.of<NlComponent>(child))
+      ok = ok and NlDependencyManager.get().addDependencies((ImmutableList.of<NlComponent>(child)), facet)
     }
     if (!ok) {
       parent?.removeChild(child)
@@ -278,32 +237,6 @@ fun NlModel.createComponent(editor: ViewEditor,
   }
 
   return child
-}
-
-/**
- * Make sure the dependencies of the components being added are present in the module.
- * If they are not: ask the user if they can be added now.
- * Return true if the dependencies are present now (they may have just been added).
- */
-fun NlModel.addDependencies(toAdd: List<NlComponent>?): Boolean {
-  val dependencies = getDependencies(toAdd)
-  if (dependencies.isEmpty()) {
-    return true
-  }
-  val manager = GradleDependencyManager.getInstance(project)
-  return manager.addDependencies(module, dependencies, null)
-}
-
-fun getDependencies(toAdd: List<NlComponent>?): List<GradleCoordinate?> {
-  if (toAdd == null) {
-    return emptyList()
-  }
-  val artifacts = HashSet<String>()
-  toAdd.forEach { it.getDependencies(artifacts) }
-  return artifacts.asSequence()
-      .map({ artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") })
-      .filter({ Objects.nonNull(it) })
-      .toList()
 }
 
 fun NlModel.createComponents(sceneView: SceneView,
