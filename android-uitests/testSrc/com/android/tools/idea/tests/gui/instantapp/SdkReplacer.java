@@ -53,11 +53,6 @@ public class SdkReplacer {
       }
 
       @Override
-      public int getMinTargetSdk() {
-        return 23;
-      }
-
-      @Override
       public long getCompatApiMinVersion() {
         return 1;
       }

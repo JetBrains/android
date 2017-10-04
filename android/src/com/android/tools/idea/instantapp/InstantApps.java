@@ -155,10 +155,6 @@ public class InstantApps {
     return sdk;
   }
 
-  public static int getMinTargetSdk() {
-    return InstantAppSdks.getInstance().getMinTargetSdk();
-  }
-
   public static long getCompatApiMinVersion() {
     return InstantAppSdks.getInstance().getCompatApiMinVersion();
   }
