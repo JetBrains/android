@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
