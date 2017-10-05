@@ -25,6 +25,19 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
 class RelativeLayoutHandlerKtTest : SceneTest() {
 
+  override fun setUp() {
+    // Trigger this flag to use RelativeLayoutHandlerKt
+    StudioFlags.NELE_TARGET_RELATIVE.override(true)
+
+    super.setUp()
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+
+    StudioFlags.NELE_TARGET_RELATIVE.clearOverride()
+  }
+
   fun testResizeFromTopLeft() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_TOP)
