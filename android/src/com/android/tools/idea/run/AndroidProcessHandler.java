@@ -33,7 +33,6 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +63,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   @NotNull private final String myApplicationId;
   private final boolean myMonitoringRemoteProcess;
 
-  @NotNull private final List<String> myDevices;
+  @NotNull private final Set<String> myDevices;
   @NotNull private final Set<Client> myClients;
   @NotNull private final LogcatOutputCapture myLogcatOutputCapture;
 
@@ -77,7 +76,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
 
   public AndroidProcessHandler(@NotNull String applicationId, boolean monitorRemoteProcess) {
     myApplicationId = applicationId;
-    myDevices = new SmartList<>();
+    myDevices = Sets.newConcurrentHashSet();
     myClients = Sets.newHashSet();
     myLogcatOutputCapture = new LogcatOutputCapture(applicationId);
 
