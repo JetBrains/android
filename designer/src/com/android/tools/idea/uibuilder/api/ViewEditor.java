@@ -198,14 +198,16 @@ public abstract class ViewEditor {
 
   /**
    * If the children have dependencies that are not met by the project, this method will add them after asking the developer.
+   * This method should NOT be called from within a write transaction.
    *
    * @return true if the children can be inserted into the parent
    */
   public abstract boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index);
 
   /**
-   * Inserts the children into the parent. This method will add missing dependencies without prompting the developer. Call canInsertChildren
-   * if you want to ask first.
+   * Inserts the children into the parent. This method will also add missing dependencies after prompting the developer.
+   * If no user interaction is wanted you can call canInsertChildren first and then addDependencies if neccessary.
+   * This method can optionally be called from within a write transaction.
    *
    * @param index the index at which to insert the children or -1 to insert them at the end. If existing children are being moved to a new
    *              position, the index is based on the state before the move.
@@ -214,4 +216,12 @@ public abstract class ViewEditor {
                                       @NotNull List<NlComponent> children,
                                       int index,
                                       @NotNull InsertType insertType);
+
+  /**
+   * Add the dependencies required by the children.
+   * This method can optionally be called from within a write transaction.
+   *
+   * @param children the components to be inserted
+   */
+  public abstract void addDependencies(@NotNull List<NlComponent> children);
 }

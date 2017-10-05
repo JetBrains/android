@@ -162,21 +162,17 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Ensures that all the specified dependencies are included in the specified module.
+   * Add all the specified dependencies to the module.
    * <p/>
-   * If some dependencies are missing a dialog is presented to the user if those dependencies should be added to the module.
-   * If the user agrees the dependencies are added. The caller may supply a callback to determine when the requested dependencies
-   * have been added (this make take several seconds).
+   * The caller may supply a callback to determine when the requested dependencies have been added
+   * (this make take several seconds).
    *
    * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest.
+   * @param dependencies the dependencies of interest
    * @param callback     an optional callback to signal to completion of the added dependencies
-   * @return true if the dependencies were already present in the module or if the user requested adding them, and
-   * false if the dependency was missing and the user declined adding them
+   * @return true if the dependencies were successfully added or were already present in the module
    */
-  public boolean ensureLibraryIsIncluded(@NotNull Module module,
-                                         @NotNull Iterable<GradleCoordinate> dependencies,
-                                         @Nullable Runnable callback) {
+  public boolean addDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies, @Nullable Runnable callback) {
     List<GradleCoordinate> missing = findMissingDependencies(module, dependencies);
     if (missing.isEmpty()) {
       return true;
@@ -187,12 +183,8 @@ public class GradleDependencyManager {
       return false;
     }
 
-    if (userWantToAddDependencies(module, missing)) {
-      addDependenciesInTransaction(buildModel, module, missing, callback);
-      return true;
-    }
-
-    return false;
+    addDependenciesInTransaction(buildModel, module, missing, callback);
+    return true;
   }
 
   /**
@@ -219,10 +211,10 @@ public class GradleDependencyManager {
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
-  public static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
-                                                  @NotNull Module module,
-                                                  @NotNull List<GradleCoordinate> coordinates,
-                                                  @Nullable Runnable callback) {
+  private static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
+                                                   @NotNull Module module,
+                                                   @NotNull List<GradleCoordinate> coordinates,
+                                                   @Nullable Runnable callback) {
     assert !coordinates.isEmpty();
 
     Project project = module.getProject();

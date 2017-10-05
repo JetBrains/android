@@ -158,7 +158,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     // Step #2: Ensure ConstraintLayout is available in the project
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    if (!manager.ensureLibraryIsIncluded(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
+    if (!manager.addDependencies(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
       return;
     }
 

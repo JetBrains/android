@@ -29,7 +29,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
@@ -45,6 +44,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
@@ -384,42 +384,17 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index) {
-    NlModel model = getModel();
-
-    if (!model.canAddComponents(children, parent, getChild(parent, index))) {
-      return false;
-    }
-
-    Collection<GradleCoordinate> dependencies = getMissingDependencies(children);
-
-    if (dependencies.isEmpty()) {
-      return true;
-    }
-
-    return GradleDependencyManager.userWantToAddDependencies(model.getModule(), dependencies);
+    return getModel().canAddComponents(children, parent, getChild(parent, index));
   }
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    addMissingDependencies(children);
     getModel().addComponents(children, parent, getChild(parent, index), insertType, this);
   }
 
-  private void addMissingDependencies(@NotNull Iterable<NlComponent> components) {
-    List<GradleCoordinate> dependencies = getMissingDependencies(components);
-
-    if (dependencies.isEmpty()) {
-      return;
-    }
-
-    Module module = getModel().getModule();
-    GradleBuildModel model = GradleBuildModel.get(module);
-
-    if (model == null) {
-      return;
-    }
-
-    GradleDependencyManager.addDependenciesInTransaction(model, module, dependencies, null);
+  @Override
+  public void addDependencies(@NotNull List<NlComponent> children) {
+    NlModelHelperKt.addDependencies(getModel(), children);
   }
 
   @Nullable

@@ -21,10 +21,8 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.Messages;
 
 import java.util.Collections;
 import java.util.List;
@@ -75,9 +73,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
 
-    Messages.setTestDialog(new TestMessagesDialog(Messages.OK));
-
-    boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
+    boolean found = dependencyManager.addDependencies(myModules.getAppModule(), dependencies, null);
     assertTrue(found);
 
     // @formatter:off
@@ -86,20 +82,6 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-  }
-
-  public void testDependencyCanBeCancelledByUser() throws Exception {
-    loadSimpleApplication();
-
-    List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
-    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-
-    Messages.setTestDialog(new TestMessagesDialog(Messages.NO));
-
-    boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
-    assertFalse(found);
-    assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
   }
 
   public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {

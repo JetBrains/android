@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlComponentUtil;
-import com.android.tools.idea.common.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

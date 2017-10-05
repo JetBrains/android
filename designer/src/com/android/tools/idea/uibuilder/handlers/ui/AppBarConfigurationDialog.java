@@ -325,7 +325,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
     myLoadingPanel.startLoading();
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
-    return manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
+    return manager.addDependencies(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
       if (isVisible()) {
         ApplicationManager.getApplication().invokeLater(this::generatePreviews);
       }

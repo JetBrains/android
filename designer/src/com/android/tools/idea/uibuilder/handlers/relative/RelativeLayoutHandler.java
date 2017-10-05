@@ -85,7 +85,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         for (NlComponent component : components) {
           NlComponent finalPrevious = previous;
 
-          NlWriteCommandAction.run(component, type.getDescription(), () -> {
+          NlWriteCommandAction.run(component, "Apply Constraints", () -> {
             if (finalPrevious == null) {
               moveHandler.applyConstraints(component);
             }

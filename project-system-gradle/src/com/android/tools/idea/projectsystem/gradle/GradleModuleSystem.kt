@@ -36,7 +36,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
     val manager = GradleDependencyManager.getInstance(module.project)
     val coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+")
     if (coordinate != null) {
-      manager.ensureLibraryIsIncluded(module, listOf(coordinate), null)
+      manager.addDependencies(module, listOf(coordinate), null)
     }
   }
 
