@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * A {@link LaunchTask} to show the profiler tool window button on run/debug.
  */
 public final class AndroidProfilerToolWindowTaskContributor implements AndroidLaunchTaskContributor {
+
   @NotNull
   @Override
   public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId) {
@@ -63,6 +64,10 @@ public final class AndroidProfilerToolWindowTaskContributor implements AndroidLa
           ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
+            AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerTooWindow(myProject);
+            if (profilerToolWindow != null) {
+              profilerToolWindow.profileProject(myProject);
+            }
           }
         });
       return true;
