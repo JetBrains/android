@@ -45,4 +45,12 @@ public class FlatButton extends JButton {
   public void updateUI() {
     setUI(new FlatButtonUI());
   }
+
+  /**
+   * Do not support keyboard accessibility until it is supported product-wide in Studio.
+   */
+  @Override
+  public boolean isFocusable() {
+    return false;
+  }
 }
