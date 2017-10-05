@@ -17,22 +17,18 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidResourceUtil;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,18 +38,16 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link ThumbnailManager}
  */
 public class ThumbnailManagerTest extends NavigationTestCase {
-  private static final float MAX_PERCENT_DIFFERENT = 6.5f;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TestableThumbnailManager.register(myAndroidFacet);
+    TestableThumbnailManager.register(myFacet);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      ((TestableThumbnailManager)ThumbnailManager.getInstance(myAndroidFacet)).deregister();
+      ((TestableThumbnailManager)ThumbnailManager.getInstance(myFacet)).deregister();
     }
     finally {
       super.tearDown();
@@ -61,12 +55,12 @@ public class ThumbnailManagerTest extends NavigationTestCase {
   }
 
   public void testCaching() throws Exception {
-    ThumbnailManager manager = ThumbnailManager.getInstance(myAndroidFacet);
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
+    VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(getTestRootDisposable(), myAndroidFacet, psiFile);
+    NlModel model = NlModel.create(getTestRootDisposable(), myFacet, psiFile);
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
@@ -80,10 +74,10 @@ public class ThumbnailManagerTest extends NavigationTestCase {
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertSame(image, imageFuture.get());
 
-    VirtualFile resDir = getProject().getBaseDir().findFileByRelativePath("app/src/main/res");
+    VirtualFile resDir = myFixture.findFileInTempDir("res");
     AndroidResourceUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
                                             Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
-    AppResourceRepository.getOrCreateInstance(myAndroidFacet).sync();
+    AppResourceRepository.getOrCreateInstance(myFacet).sync();
 
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertNotSame(image, imageFuture.get());
@@ -91,21 +85,5 @@ public class ThumbnailManagerTest extends NavigationTestCase {
     image = imageFuture.get();
     imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     assertSame(image, imageFuture.get());
-  }
-
-  public void testGeneratedImage() throws Exception {
-    File goldenFile = new File(getTestDataPath() + "/naveditor/thumbnails/basic_activity_1.png");
-    BufferedImage goldenImage = ImageIO.read(goldenFile);
-
-    ThumbnailManager manager = ThumbnailManager.getInstance(myAndroidFacet);
-
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
-
-    DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(getTestRootDisposable(), myAndroidFacet, psiFile);
-    CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
-    ImagePool.Image image = imageFuture.get();
-    ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image.getCopy(), MAX_PERCENT_DIFFERENT);
   }
 }

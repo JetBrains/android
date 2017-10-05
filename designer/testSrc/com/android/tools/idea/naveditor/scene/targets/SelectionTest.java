@@ -32,6 +32,8 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 
 import java.awt.event.InputEvent;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent;
 import static java.awt.event.MouseEvent.BUTTON1;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;

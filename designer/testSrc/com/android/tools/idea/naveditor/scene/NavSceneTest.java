@@ -48,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
+
 /**
  * Tests for the nav editor Scene.
  */
@@ -111,7 +113,7 @@ public class NavSceneTest extends NavigationTestCase {
             actionComponent("action1")
               .withDestinationAttribute("nav")),
         includeComponent("navigation"));
-    ModelBuilder modelBuilder = model("navigation.xml", root);
+    ModelBuilder modelBuilder = model("nav2.xml", root);
 
     SyncNlModel model = modelBuilder.build();
     Scene scene = model.getSurface().getScene();

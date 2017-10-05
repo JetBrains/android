@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.naveditor.model;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**

@@ -15,24 +15,19 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.xml.XmlFile;
 
 import java.awt.*;
-import java.io.File;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static com.android.tools.idea.naveditor.editor.NavActionManager.Destination;
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,30 +74,5 @@ public class NavActionManagerTest extends NavigationTestCase {
                  "        NlComponent{tag=<fragment>, instance=2}\n" +
                  "        NlComponent{tag=<activity>, instance=3}\n" +
                  "    NlComponent{tag=<fragment>, instance=4}", new NlTreeDumper().toTree(model.getComponents()));
-  }
-
-  public void testGetDestinations() throws Exception {
-    SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
-                                navigationComponent("subflow").
-                                  unboundedChildren(fragmentComponent("fragment2")),
-                                fragmentComponent("fragment1"))).build();
-    invokeGradleTasks(getProject(), "assembleDebug");
-    // TODO: why is this needed?
-    myFixture.getTempDirFixture().getFile("../testGetDestinations/app/build/generated/source/r/debug/mytest/navtest/R.java");
-
-    NavDesignSurface surface = (NavDesignSurface)model.getSurface();
-
-    NavActionManager actionManager = new NavActionManager(surface);
-    VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
-    assertThat(root).isNotNull();
-    VirtualFile virtualFile = root.findFileByRelativePath("../testGetDestinations/app/src/main/res/layout/activity_main2.xml");
-    XmlFile xmlFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(virtualFile);
-
-    Destination expected1 =
-      new Destination(xmlFile, "MainActivity", "mytest.navtest.MainActivity", "activity", NavActionManagerKt.ACTIVITY_IMAGE);
-    Destination expected2 =
-      new Destination(null, "BlankFragment", "mytest.navtest.BlankFragment", "fragment", NavActionManagerKt.ACTIVITY_IMAGE);
-    assertEquals(ImmutableList.of(expected1, expected2), actionManager.getDestinations());
   }
 }

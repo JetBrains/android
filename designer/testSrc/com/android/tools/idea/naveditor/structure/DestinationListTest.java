@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
