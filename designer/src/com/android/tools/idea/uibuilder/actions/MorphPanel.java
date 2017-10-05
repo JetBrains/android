@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.event.DocumentAdapter;
@@ -97,8 +99,10 @@ public class MorphPanel extends JPanel {
 
   private void setupButtonList(List<String> suggestions) {
     DefaultListModel<Palette.Item> model = new DefaultListModel<>();
+    ViewHandlerManager manager = ViewHandlerManager.get(myProject);
     for (String tagSuggestion : suggestions) {
-      model.addElement(new Palette.Item(tagSuggestion));
+      ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion);
+      model.addElement(new Palette.Item(tagSuggestion, handler));
     }
 
     mySuggestionsList.setModel(model);
