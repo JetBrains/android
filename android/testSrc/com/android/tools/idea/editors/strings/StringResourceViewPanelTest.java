@@ -91,30 +91,32 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key9", getValueAt(6, 0));
   }
 
-  public void testRefilteringAfterEditingUntranslatableCell() {
+  public void testTableDoesntRefilterAfterEditingUntranslatableCell() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
-    assertEquals(6, myTable.getRowCount());
-    assertEquals("key10", getValueAt(0, 0));
-    assertEquals("key3", getValueAt(1, 0));
-    assertEquals("key4", getValueAt(2, 0));
-    assertEquals("key7", getValueAt(3, 0));
-    assertEquals("key8", getValueAt(4, 0));
-    assertEquals("key9", getValueAt(5, 0));
+    assertEquals(7, myTable.getRowCount());
+    assertEquals("key1", getValueAt(0, 0));
+    assertEquals("key10", getValueAt(1, 0));
+    assertEquals("key3", getValueAt(2, 0));
+    assertEquals("key4", getValueAt(3, 0));
+    assertEquals("key7", getValueAt(4, 0));
+    assertEquals("key8", getValueAt(5, 0));
+    assertEquals("key9", getValueAt(6, 0));
   }
 
-  public void testRefilteringAfterEditingTranslationCells() {
+  public void testTableDoesntRefilterAfterEditingTranslationCell() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt("Key 3 en-rGB", 2, 6);
 
-    assertEquals(6, myTable.getRowCount());
+    assertEquals(7, myTable.getRowCount());
     assertEquals("key1", getValueAt(0, 0));
     assertEquals("key10", getValueAt(1, 0));
-    assertEquals("key4", getValueAt(2, 0));
-    assertEquals("key7", getValueAt(3, 0));
-    assertEquals("key8", getValueAt(4, 0));
-    assertEquals("key9", getValueAt(5, 0));
+    assertEquals("key3", getValueAt(2, 0));
+    assertEquals("key4", getValueAt(3, 0));
+    assertEquals("key7", getValueAt(4, 0));
+    assertEquals("key8", getValueAt(5, 0));
+    assertEquals("key9", getValueAt(6, 0));
   }
 
   public void testSelectingCell() {

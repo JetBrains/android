@@ -31,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.table.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
@@ -51,29 +49,13 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
   public StringResourceTable() {
     super(new StringResourceTableModel());
 
-    CellEditorListener editorListener = new CellEditorListener() {
-      @Override
-      public void editingStopped(ChangeEvent event) {
-        refilter();
-      }
-
-      @Override
-      public void editingCanceled(ChangeEvent event) {
-      }
-    };
-
-    getDefaultEditor(Boolean.class).addCellEditorListener(editorListener);
-
-    TableCellEditor editor = new StringTableCellEditor();
-    editor.addCellEditorListener(editorListener);
-
     InputMap inputMap = getInputMap(WHEN_FOCUSED);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
 
     setAutoResizeMode(AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);
-    setDefaultEditor(String.class, editor);
+    setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());
     setFixedColumnCount(2);
     setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
@@ -94,10 +76,6 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
   @Nullable
   public StringResourceData getData() {
     return getModel().getData();
-  }
-
-  public void refilter() {
-    getRowSorter().sort();
   }
 
   @Nullable
