@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import android.view.View;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -31,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
-import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -187,125 +187,141 @@ public class NlEditorTest {
 
   @Test
   public void morphComponent() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true)
-      .dragComponentToSurface("Buttons", "Button")
-      .waitForRenderToFinish();
+    boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
 
-    // Test enter text manually
-    NlComponentFixture button = layout.findView("Button", 0);
-    button.rightClick();
-    layout.invokeContextMenuAction("Convert view...");
-    MorphDialogFixture fixture = layout.findMorphDialog();
-    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+    try {
+      StudioFlags.NELE_CONVERT_VIEW.override(true);
+      guiTest.importSimpleApplication();
+      IdeFrameFixture ideFrame = guiTest.ideFrame();
+      EditorFixture editor = ideFrame.getEditor()
+        .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+      NlEditorFixture layout = editor.getLayoutEditor(true)
+        .dragComponentToSurface("Buttons", "Button")
+        .waitForRenderToFinish();
 
-    ideFrame.robot().enterText("TextView");
-    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
-    assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
-    fixture.getOkButton().click();
-    assertNotNull(layout.findView("TextView", 1));
-    assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+      // Test enter text manually
+      NlComponentFixture button = layout.findView("Button", 0);
+      button.rightClick();
+      layout.invokeContextMenuAction("Convert view...");
+      MorphDialogFixture fixture = layout.findMorphDialog();
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
-    // Test click on a suggestion
-    NlComponentFixture textView = layout.findView("TextView", 0);
-    textView.rightClick();
-    textView.invokeContextMenuAction("Convert view...");
-    fixture = layout.findMorphDialog();
-    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+      ideFrame.robot().enterText("TextView");
+      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+      fixture.getOkButton().click();
+      assertNotNull(layout.findView("TextView", 1));
+      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
 
-    fixture.getSuggestionList().clickItem("Button");
-    assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
-    fixture.getOkButton().click();
-    layout.waitForRenderToFinish();
-    assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+      // Test click on a suggestion
+      NlComponentFixture textView = layout.findView("TextView", 0);
+      textView.rightClick();
+      textView.invokeContextMenuAction("Convert view...");
+      fixture = layout.findMorphDialog();
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      fixture.getSuggestionList().clickItem("Button");
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
+      fixture.getOkButton().click();
+      layout.waitForRenderToFinish();
+      assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+    }
+    finally {
+      StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
+    }
   }
 
   @Test
   public void morphViewGroup() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor()
-      .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
+    boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
 
-    // Right click on AbsoluteLayout in the component tree
-    NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
-    JPopupMenuFixture popupMenu = layout.getTreePopupMenuItemForComponent(root.getComponent());
+    try {
+      StudioFlags.NELE_CONVERT_VIEW.override(true);
+      guiTest.importSimpleApplication();
+      IdeFrameFixture ideFrame = guiTest.ideFrame();
+      EditorFixture editor = ideFrame.getEditor()
+        .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+      NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
 
-    // Open the convert view dialog
-    popupMenu.menuItemWithPath("Convert view...").click();
-    MorphDialogFixture fixture = layout.findMorphDialog();
+      // Right click on AbsoluteLayout in the component tree
+      NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
+      JPopupMenuFixture popupMenu = layout.getTreePopupMenuItemForComponent(root.getComponent());
 
-    // Click the LinearLayout button
-    fixture.getSuggestionList().clickItem("LinearLayout");
+      // Open the convert view dialog
+      popupMenu.menuItemWithPath("Convert view...").click();
+      MorphDialogFixture fixture = layout.findMorphDialog();
 
-    // Apply change
-    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+      // Click the LinearLayout button
+      fixture.getSuggestionList().clickItem("LinearLayout");
 
-    // Check if change is correctly applied:
-    //    - Root name change from AbsoluteLayout to LinearLayout
-    //    - Attributes specific to AbsoluteLayout are removed
-    assertThat(root.getComponent().getTag().getName()).isEqualTo("LinearLayout");
-    String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    android:layout_width=\"match_parent\"\n" +
-                      "    android:layout_height=\"match_parent\"\n" +
-                      "    android:paddingBottom=\"16dp\"\n" +
-                      "    android:paddingLeft=\"16dp\"\n" +
-                      "    android:paddingRight=\"16dp\"\n" +
-                      "    android:paddingTop=\"16dp\">\n" +
-                      "\n" +
-                      "    <Button\n" +
-                      "        android:id=\"@+id/button\"\n" +
-                      "        android:layout_width=\"wrap_content\"\n" +
-                      "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:text=\"Button\" />\n" +
-                      "\n" +
-                      "    <Button\n" +
-                      "        android:id=\"@+id/button2\"\n" +
-                      "        android:layout_width=\"wrap_content\"\n" +
-                      "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:text=\"Button\" />\n" +
-                      "\n" +
-                      "    <EditText\n" +
-                      "        android:id=\"@+id/editText\"\n" +
-                      "        android:layout_width=\"wrap_content\"\n" +
-                      "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:ems=\"10\"\n" +
-                      "        android:inputType=\"textPersonName\"\n" +
-                      "        android:text=\"Name\" />\n" +
-                      "\n" +
-                      "    <LinearLayout\n" +
-                      "        android:layout_width=\"359dp\"\n" +
-                      "        android:layout_height=\"89dp\">\n" +
-                      "\n" +
-                      "        <Button\n" +
-                      "            android:id=\"@+id/button3\"\n" +
-                      "            android:layout_width=\"wrap_content\"\n" +
-                      "            android:layout_height=\"wrap_content\"\n" +
-                      "            android:layout_weight=\"1\"\n" +
-                      "            android:text=\"Button\" />\n" +
-                      "\n" +
-                      "        <Button\n" +
-                      "            android:id=\"@+id/button5\"\n" +
-                      "            android:layout_width=\"wrap_content\"\n" +
-                      "            android:layout_height=\"wrap_content\"\n" +
-                      "            android:layout_weight=\"1\"\n" +
-                      "            android:text=\"Button\" />\n" +
-                      "\n" +
-                      "        <Button\n" +
-                      "            android:id=\"@+id/button6\"\n" +
-                      "            android:layout_width=\"wrap_content\"\n" +
-                      "            android:layout_height=\"wrap_content\"\n" +
-                      "            android:layout_weight=\"1\"\n" +
-                      "            android:text=\"Button\" />\n" +
-                      "    </LinearLayout>\n" +
-                      "</LinearLayout>";
-    String text = ApplicationManager.getApplication()
-      .runReadAction((Computable<String>)() -> root.getComponent().getTag().getText());
-    assertThat(text).isEqualTo(expected);
+      // Apply change
+      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+
+      // Check if change is correctly applied:
+      //    - Root name change from AbsoluteLayout to LinearLayout
+      //    - Attributes specific to AbsoluteLayout are removed
+      assertThat(root.getComponent().getTag().getName()).isEqualTo("LinearLayout");
+      String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\"\n" +
+                        "    android:paddingBottom=\"16dp\"\n" +
+                        "    android:paddingLeft=\"16dp\"\n" +
+                        "    android:paddingRight=\"16dp\"\n" +
+                        "    android:paddingTop=\"16dp\">\n" +
+                        "\n" +
+                        "    <Button\n" +
+                        "        android:id=\"@+id/button\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:text=\"Button\" />\n" +
+                        "\n" +
+                        "    <Button\n" +
+                        "        android:id=\"@+id/button2\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:text=\"Button\" />\n" +
+                        "\n" +
+                        "    <EditText\n" +
+                        "        android:id=\"@+id/editText\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:ems=\"10\"\n" +
+                        "        android:inputType=\"textPersonName\"\n" +
+                        "        android:text=\"Name\" />\n" +
+                        "\n" +
+                        "    <LinearLayout\n" +
+                        "        android:layout_width=\"359dp\"\n" +
+                        "        android:layout_height=\"89dp\">\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button3\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button5\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button6\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "    </LinearLayout>\n" +
+                        "</LinearLayout>";
+      String text = ApplicationManager.getApplication()
+        .runReadAction((Computable<String>)() -> root.getComponent().getTag().getText());
+      assertThat(text).isEqualTo(expected);
+    }
+    finally {
+      StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
+    }
   }
 
   @Test
