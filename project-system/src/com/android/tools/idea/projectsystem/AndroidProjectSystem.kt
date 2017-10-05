@@ -100,6 +100,13 @@ fun Project.getProjectSystem(): AndroidProjectSystem {
 }
 
 /**
+ * Returns the instance of [ProjectSystemSyncManager] that applies to the given [Project].
+ */
+fun Project.getSyncManager(): ProjectSystemSyncManager {
+  return getProjectSystem().getSyncManager()
+}
+
+/**
  * Returns the instance of {@link AndroidModuleSystem} that applies to the given {@link Module}.
  */
 fun Module.getModuleSystem(): AndroidModuleSystem {
