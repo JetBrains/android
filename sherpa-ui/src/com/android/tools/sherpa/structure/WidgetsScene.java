@@ -85,17 +85,6 @@ public class WidgetsScene {
     }
 
     /**
-     * Create and insert a new group from a given list of widgets
-     *
-     * @param widgets list of widgets to put in the group
-     */
-    public void createGroupFromWidgets(ArrayList<ConstraintWidget> widgets) {
-        ConstraintWidgetContainer container = new ConstraintWidgetContainer();
-        container.setCompanionWidget(WidgetCompanion.create(container));
-        createContainerFromWidgets(widgets, container, createContainerName("group"));
-    }
-
-    /**
      * Transform the selected table to a normal container
      */
     public void transformTableToContainer(ConstraintTableLayout table) {
@@ -549,53 +538,6 @@ public class WidgetsScene {
         mWidgets.remove(getTag(oldContainer));
         setWidget(newContainer);
         if (mRoot != null) {
-            mRoot.layout();
-        }
-    }
-
-    /**
-     * Insert a new ConstraintWidgetContainer in place, from
-     * a list of widgets. The widgets will be cleared of their current
-     * constraints and put as children of the new container.
-     *
-     * @param widgets           widgets we want to group into the container
-     * @param containerInstance the container that will be the parent of the widget
-     */
-    public void createContainerFromWidgets(ArrayList<ConstraintWidget> widgets,
-            ConstraintWidgetContainer containerInstance, String name) {
-        Collections.sort(widgets, (o1, o2) -> {
-            if (o1.getY() + o1.getHeight() < o2.getY()) {
-                return -1;
-            }
-            if (o2.getY() + o2.getHeight() < o1.getY()) {
-                return 1;
-            }
-            return Integer.compare(o1.getX(), o2.getX());
-        });
-
-        if (widgets.isEmpty()) {
-            return;
-        }
-        for (ConstraintWidget w : mWidgets.values()) {
-            for (ConstraintWidget widget : widgets) {
-                w.disconnectWidget(widget);
-                widget.resetAnchors();
-                widget.setHorizontalBiasPercent(0.5f);
-                widget.setVerticalBiasPercent(0.5f);
-            }
-        }
-        WidgetContainer parent = (WidgetContainer) widgets.get(0).getParent();
-        if (parent == null) {
-            parent = mRoot;
-        }
-        ConstraintWidgetContainer container =
-                ConstraintWidgetContainer.createContainer(containerInstance, name, widgets, 8);
-        if (container != null) {
-            if (container.getCompanionWidget() == null) {
-                container.setCompanionWidget(WidgetCompanion.create(container));
-            }
-            parent.add(container);
-            setWidget(container);
             mRoot.layout();
         }
     }
