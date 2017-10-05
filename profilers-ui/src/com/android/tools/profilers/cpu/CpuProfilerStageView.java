@@ -312,6 +312,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
                           stage::getProfilingConfigurations, stage::getProfilingConfiguration, stage::setProfilingConfiguration);
     profilingConfiguration.bind();
+    // Do not support keyboard accessibility until it is supported product-wide in Studio.
+    myProfilingConfigurationCombo.setFocusable(false);
     myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
       /**
        * Select the next item, skipping over any separators encountered
