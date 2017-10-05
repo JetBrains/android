@@ -168,8 +168,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return Lists.newArrayList(myProcesses.keySet());
   }
 
+  /**
+   * Tells the profiler to select and profile the process of the same name next time it is detected.
+   */
   public void setPreferredProcessName(@Nullable String name) {
     myPreferredProcessName = name;
+    // Checks whether we can switch immediately if the process is already there.
+    setProcess(null);
   }
 
   @Override
@@ -408,6 +413,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (myPreferredProcessName != null) {
       for (Profiler.Process process : processes) {
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Profiler.Process.State.ALIVE) {
+          // Only switch to the preferred process once. If the user intentionally selects something else, the profiler should not switch
+          // back to the preferred process in any cases.
+          myPreferredProcessName = null;
           return process;
         }
       }

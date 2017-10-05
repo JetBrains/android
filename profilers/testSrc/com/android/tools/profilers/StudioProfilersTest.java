@@ -394,7 +394,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testProcessRestartedSetsAliveAsActive() throws Exception {
+  public void testRestartedPreferredProcessNotSelected() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     int nowInSeconds = 42;
@@ -429,7 +429,7 @@ public final class StudioProfilersTest {
       .build();
     myProfilerService.addProcess(session, process);
 
-    //Verify the process is in the dead state.
+    // Verify the process is in the dead state.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
     assertThat(profilers.getProcess().getState()).isEqualTo(Profiler.Process.State.DEAD);
@@ -440,10 +440,16 @@ public final class StudioProfilersTest {
       .build();
     myProfilerService.addProcess(session, process);
 
-    // Expect new process to have proper PID, and state.
+    // The profiler should not automatically selects the alive, preferred process again.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(20);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Profiler.Process.State.DEAD);
+
+    // Resets the preferred process and profiler should pick up the new process.
+    profilers.setPreferredProcessName(process.getName());
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
-    assertThat(profilers.getProcess().getState()).isEqualTo(Profiler.Process.State.ALIVE) ;
+    assertThat(profilers.getProcess().getState()).isEqualTo(Profiler.Process.State.ALIVE);
   }
 
   @Test
