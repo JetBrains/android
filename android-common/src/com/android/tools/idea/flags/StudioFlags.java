@@ -164,6 +164,11 @@ public final class StudioFlags {
     "Enable the Convert View Action when right clicking on a component",
     true);
 
+  public static final Flag<Boolean> ENABLE_NEW_SCOUT = Flag.create(
+    NELE, "exp.scout.engine", "Experimental version of the Scout inference system",
+    "Enable experimental version of the Scout inference system",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

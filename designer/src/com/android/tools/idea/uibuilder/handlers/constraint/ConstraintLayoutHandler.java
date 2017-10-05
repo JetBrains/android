@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -185,8 +186,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
-    actions.add(new InferAction());
-    actions.add(new ViewActionSeparator());
+    actions.add((new InferAction()));
+    if (StudioFlags.ENABLE_NEW_SCOUT.get()){
+      actions.add((new ScoutAction()));
+    }
+    actions.add((new ViewActionSeparator()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     // noinspection unchecked
@@ -615,6 +619,37 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiers) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
       presentation.setLabel("Infer Constraints");
+    }
+  }
+
+  private static class ScoutAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
+      try {
+        Scout.findConstraintSetAndCommit(component);
+        ensureLayersAreShown(editor, 1000);
+      }
+      catch (Exception e) {
+        // TODO show dialog the inference failed
+         Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
+      }
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
+      presentation.setLabel("Infer Constraints (new)");
     }
   }
 
