@@ -79,8 +79,6 @@ final class TranslationsEditorTextField extends JBTextField {
 
       addActionListener(event -> {
         table.getModel().setValueAt(myValue, row, column);
-        table.refilter();
-
         myDone = true;
       });
     }

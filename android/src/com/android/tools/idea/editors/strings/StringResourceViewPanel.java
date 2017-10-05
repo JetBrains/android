@@ -400,13 +400,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
           setTextAndEditable(myDefaultValueTextField.getTextField(), d.getDefaultValue(), isValueEditableInline(d.getDefaultValue()));
-          myTable.refilter();
         }
 
         if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
           model.setValueAt(d.getTranslation(), row, column);
           setTextAndEditable(myTranslationTextField.getTextField(), d.getTranslation(), isValueEditableInline(d.getTranslation()));
-          myTable.refilter();
         }
       }
     }
