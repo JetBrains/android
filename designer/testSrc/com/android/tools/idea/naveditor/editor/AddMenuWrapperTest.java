@@ -44,6 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 
@@ -78,7 +79,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testAddFromDestination() {
-    PsiFile layout = LocalResourceManager.getInstance(myAndroidFacet.getModule()).findResourceFiles(
+    PsiFile layout = LocalResourceManager.getInstance(myFacet.getModule()).findResourceFiles(
       ResourceFolderType.LAYOUT).stream().filter(file -> file.getName().equals("activity_main.xml")).findFirst().get();
     NavActionManager.Destination destination = new NavActionManager.Destination(
       (XmlFile)layout, "MainActivity", "mytest.navtest.MainActivity", "activity", null);

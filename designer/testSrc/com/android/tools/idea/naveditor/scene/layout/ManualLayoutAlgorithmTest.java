@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent;
 import static org.mockito.Mockito.*;
 
 /**
@@ -42,7 +44,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     positions.myPositions.put("fragment2", new ManualLayoutAlgorithm.Point(456, 789));
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet), positions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), positions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verifyZeroInteractions(fallback);
 
@@ -68,7 +70,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
       ((SceneComponent)invocation.getArgument(0)).setPosition(123, 456);
       return null;
     }).when(fallback).layout(fragment2);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet), positions);
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myFacet), positions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verify(fallback).layout(fragment2);
     verifyNoMoreInteractions(fallback);

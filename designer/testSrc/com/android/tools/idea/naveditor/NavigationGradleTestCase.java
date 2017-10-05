@@ -19,15 +19,9 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
-import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.PsiTestUtil;
-import com.intellij.util.io.ZipUtil;
 import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,50 +29,30 @@ import java.io.File;
 
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
 
-public abstract class NavigationTestCase extends AndroidTestCase {
-
-  public static final String TAG_FRAGMENT = "fragment";
-  public static final String TAG_NAVIGATION = "navigation";
-  private static final String PREBUILT_AAR_PATH =
-    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
-  private CodeStyleSettings mySettings;
-  private boolean myUseCustomSettings;
+/**
+ * Base class for navigation editor tests that require a full gradle project.
+ * In most cases this shouldn't be necessary, and extending NavigationTestCase will result in tests that run much faster.
+ * Only extend this one if you're testing something more deeply involved with the building of a complete project.
+ */
+public abstract class NavigationGradleTestCase extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/java", "src");
-    myFixture.copyDirectoryToProject(NAVIGATION_EDITOR_BASIC + "/app/src/main/res", "res");
-    File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
-    File tempDir = FileUtil.createTempDirectory("NavigationTest", null);
-    ZipUtil.extract(aar, tempDir, null);
-
-    PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
-    myFixture.setTestDataPath(tempDir.getPath());
-    myFixture.copyDirectoryToProject("res", "res");
-
+    loadProject(NAVIGATION_EDITOR_BASIC);
+    generateSources();
     myFixture.setTestDataPath(getTestDataPath());
-
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    AndroidCodeStyleSettingsModifier.modify(mySettings);
-    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
-    myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
-    getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
-    TestableThumbnailManager.register(myFacet);
+    TestableThumbnailManager.register(myAndroidFacet);
     System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true");
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      ThumbnailManager thumbnailManager = ThumbnailManager.getInstance(myFacet);
+      ThumbnailManager thumbnailManager = ThumbnailManager.getInstance(myAndroidFacet);
       if (thumbnailManager instanceof TestableThumbnailManager) {
         ((TestableThumbnailManager)thumbnailManager).deregister();
       }
-      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      mySettings = null;
-      deleteManifest();
     }
     finally {
       super.tearDown();
@@ -104,7 +78,6 @@ public abstract class NavigationTestCase extends AndroidTestCase {
 
   @NotNull
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
-    return NavModelBuilderUtil.model(name, root, myFacet, myFixture);
+    return NavModelBuilderUtil.model(name, root, myAndroidFacet, myFixture);
   }
-
 }

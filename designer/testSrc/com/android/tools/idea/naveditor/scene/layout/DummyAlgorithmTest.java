@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 
 /**
  * Tests for {@link DummyAlgorithm}
@@ -36,7 +38,7 @@ public class DummyAlgorithmTest extends NavigationTestCase {
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(1000, 1000, false);
-    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myFacet));
     root.flatten().forEach(c -> c.setPosition(0, 0));
     root.flatten().forEach(algorithm::layout);
 
@@ -64,7 +66,7 @@ public class DummyAlgorithmTest extends NavigationTestCase {
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(1000, 1000, false);
-    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
     root.flatten().forEach(c -> c.setPosition(0, 0));
     manual.setPosition(400, 300);

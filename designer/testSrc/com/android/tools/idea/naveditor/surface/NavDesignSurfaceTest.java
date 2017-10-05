@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.surface;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.naveditor.NavigationTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -25,11 +23,14 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
