@@ -74,6 +74,7 @@ final class GroupDragHandler extends DragHandler {
     NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
+      editor.addDependencies(myItems);
       editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
   }

@@ -841,11 +841,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Returns true if the specified components can be added to the specified receiver.
    */
-  public boolean canAddComponents(@Nullable List<NlComponent> toAdd, @NotNull NlComponent receiver, @Nullable NlComponent before) {
+  public boolean canAddComponents(@NotNull List<NlComponent> toAdd, @NotNull NlComponent receiver, @Nullable NlComponent before) {
     if (before != null && before.getParent() != receiver) {
       return false;
     }
-    if (toAdd == null || toAdd.isEmpty()) {
+    if (toAdd.isEmpty()) {
       return false;
     }
     if (!NlModelHelperKt.canAddComponents(this, receiver, toAdd)) {
@@ -870,7 +870,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
    */
-  public void addComponents(@Nullable List<NlComponent> toAdd,
+  public void addComponents(@NotNull List<NlComponent> toAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
@@ -878,15 +878,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
-    if (!NlModelHelperKt.addDependencies(this, toAdd, insertType)) {
-      return;
-    }
 
-    assert toAdd != null;
-    NlWriteCommandAction.run(toAdd, insertType.getDragType().getDescription(),
+    NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
                              () -> handleAddition(toAdd, receiver, before, insertType, editor));
 
     notifyModified(ChangeType.ADD_COMPONENTS);
+  }
+
+  @NotNull
+  private static String generateAddComponentsDescription(@NotNull List<NlComponent> toAdd, @NotNull InsertType insertType) {
+    DragType dragType = insertType.getDragType();
+    String componentType = "";
+    if (toAdd.size() == 1) {
+      String tagName = toAdd.get(0).getTagName();
+      componentType = tagName.substring(tagName.lastIndexOf('.') + 1);
+    }
+    return dragType.getDescription(componentType);
   }
 
   /**
@@ -896,7 +903,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       @NotNull NlComponent receiver,
                       @Nullable NlComponent before,
                       final @NotNull InsertType insertType) {
-    NlWriteCommandAction.run(added, insertType.getDragType().getDescription(), () -> {
+    NlWriteCommandAction.run(added, generateAddComponentsDescription(added, insertType), () -> {
       for (NlComponent component : added) {
         NlComponent parent = component.getParent();
         if (parent != null) {
@@ -944,6 +951,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
                               @Nullable ViewEditor editor) {
+    NlModelHelperKt.addDependencies(this, added);
+
     InsertType realInsertType = insertType;
     Set<String> ids = getIds();
 

@@ -19,7 +19,6 @@ import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.Density
-import com.android.resources.ResourceType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
@@ -36,12 +35,12 @@ import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
@@ -198,7 +197,19 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
       return false
     }
   }
-  return true
+  val dependencies = getDependencies(toAdd)
+  val missing = GradleDependencyManager.getInstance(module.project).findMissingDependencies(module, dependencies)
+  if (missing.isEmpty()) {
+    return true
+  }
+  val application = ApplicationManager.getApplication() as ApplicationEx
+  if (application.isWriteActionInProgress) {
+    assert(false) {
+      "If you are wrapping addComponents inside an outer write command, you must add all dependencies before calling addComponents."
+    }
+    return true
+  }
+  return GradleDependencyManager.userWantToAddDependencies(module, dependencies)
 }
 
 /**
@@ -251,7 +262,7 @@ fun NlModel.createComponent(editor: ViewEditor,
   if (childHandler != null) {
     var ok = childHandler.onCreate(editor, parent, child, insertType)
     if (parent != null) {
-      ok = ok and addDependencies(ImmutableList.of<NlComponent>(child), InsertType.CREATE)
+      ok = ok and addDependencies(ImmutableList.of<NlComponent>(child))
     }
     if (!ok) {
       parent?.removeChild(child)
@@ -274,18 +285,25 @@ fun NlModel.createComponent(editor: ViewEditor,
  * If they are not: ask the user if they can be added now.
  * Return true if the dependencies are present now (they may have just been added).
  */
-fun NlModel.addDependencies(toAdd: List<NlComponent>?, insertType: InsertType): Boolean {
-  if (toAdd == null || insertType.isMove) {
+fun NlModel.addDependencies(toAdd: List<NlComponent>?): Boolean {
+  val dependencies = getDependencies(toAdd)
+  if (dependencies.isEmpty()) {
     return true
+  }
+  val manager = GradleDependencyManager.getInstance(project)
+  return manager.addDependencies(module, dependencies, null)
+}
+
+fun getDependencies(toAdd: List<NlComponent>?): List<GradleCoordinate?> {
+  if (toAdd == null) {
+    return emptyList()
   }
   val artifacts = HashSet<String>()
   toAdd.forEach { it.getDependencies(artifacts) }
-  val dependencies = artifacts.asSequence()
+  return artifacts.asSequence()
       .map({ artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") })
       .filter({ Objects.nonNull(it) })
       .toList()
-  val manager = GradleDependencyManager.getInstance(project)
-  return manager.ensureLibraryIsIncluded(module, dependencies, null)
 }
 
 fun NlModel.createComponents(sceneView: SceneView,
