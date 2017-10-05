@@ -58,6 +58,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean isSimplePerfEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean isAtraceEnabled = false;
+
+  /**
    * Toggle for faking live allocation tracking support in tests.
    */
   private boolean isLiveTrackingEnabled = false;
@@ -143,6 +148,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isMemoryCaptureFilterEnabled() {
         return false;
       }
+
+      @Override
+      public boolean isAtraceEnabled() { return isAtraceEnabled; }
     };
   }
 
@@ -185,6 +193,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSimplePerf(boolean enabled) {
     isSimplePerfEnabled = enabled;
+  }
+
+  public void enableAtrace(boolean enabled) {
+    isAtraceEnabled = enabled;
   }
 
   public void enableLiveAllocationTracking(boolean enabled) {

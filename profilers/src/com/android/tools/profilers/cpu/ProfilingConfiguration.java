@@ -35,6 +35,8 @@ public class ProfilingConfiguration {
 
   public static final String SIMPLEPERF = "Sampled (Native)";
 
+  public static final String ATRACE = "Atrace";
+
   private static List<ProfilingConfiguration> ourDefaultConfigurations;
 
   /**
@@ -122,7 +124,10 @@ public class ProfilingConfiguration {
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                      CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                      CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-      ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf);
+      ProfilingConfiguration atrace = new ProfilingConfiguration(ATRACE,
+                                                                 CpuProfiler.CpuProfilerType.ATRACE,
+                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+      ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
     return ourDefaultConfigurations;
   }

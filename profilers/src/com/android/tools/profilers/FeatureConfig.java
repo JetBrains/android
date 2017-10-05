@@ -26,4 +26,5 @@ public interface FeatureConfig {
   boolean isLiveAllocationsEnabled();
   boolean isCpuCaptureFilterEnabled();
   boolean isMemoryCaptureFilterEnabled();
+  boolean isAtraceEnabled();
 }
