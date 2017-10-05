@@ -261,7 +261,7 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
-    Palette.Item item = new Palette.Item(tagName);
+    Palette.Item item = new Palette.Item(tagName, handler);
     group.getItems().add(item);
     item.setUp(palette, manager);
     item.setParent(group);

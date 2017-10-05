@@ -185,7 +185,6 @@ public class NlEditorTest {
       .waitForGradleProjectSyncToFinish();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/67430437
   @Test
   public void morphComponent() throws IOException {
     guiTest.importSimpleApplication();

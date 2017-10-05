@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
@@ -281,8 +282,9 @@ public class Palette {
     private Item() {
     }
 
-    public Item(@NotNull String tagName) {
+    public Item(@NotNull String tagName, @NotNull ViewHandler handler) {
       myTagName = tagName;
+      myHandler = handler;
     }
 
     @NotNull
