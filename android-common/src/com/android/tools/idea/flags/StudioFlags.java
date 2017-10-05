@@ -100,6 +100,11 @@ public final class StudioFlags {
     "Add a new tab in the network profiler that shows the connection request payload",
     false);
 
+  public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
+    PROFILER, "atrace", "Show the atrace option in CPU profiler",
+    "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
+    false);
+
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
     NELE, "animated.preview", "Show preview animations toolbar",

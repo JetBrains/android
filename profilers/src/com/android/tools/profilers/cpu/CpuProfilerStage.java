@@ -705,14 +705,27 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     List<ProfilingConfiguration> savedConfigs = getStudioProfilers().getIdeServices().getCpuProfilingConfigurations();
     List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
-    // Simpleperf profiling is not supported by devices older than O
+    // Simpleperf/Atrace profiling is not supported by devices older than O
     Profiler.Device selectedDevice = getStudioProfilers().getDevice();
-    boolean selectedDeviceSupportsSimpleperf = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
-    if (!selectedDeviceSupportsSimpleperf || !getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
-      Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF;
-      savedConfigs = savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
-      defaultConfigs = defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
+    boolean isDeviceAtLeastO = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
+    boolean isSimplePerfEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+    boolean isAtraceEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isAtraceEnabled();
+    Predicate<ProfilingConfiguration> filter = pref -> true;
+
+    // If neither simpleperf, or atrace is enabled, filter both out.
+    // else if only atrace is disabled filter that out.
+    // else if only simpleperf is disabled filter that out.
+    // else we don't filter anything use the default filer.
+    if (!isDeviceAtLeastO || (!isSimplePerfEnabled && !isAtraceEnabled)) {
+      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF && pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
+    } else if (!isAtraceEnabled) {
+      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
+    } else if (!isSimplePerfEnabled) {
+      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF;
     }
+
+    savedConfigs = savedConfigs.stream().filter(filter).collect(Collectors.toList());
+    defaultConfigs = defaultConfigs.stream().filter(filter).collect(Collectors.toList());
 
     myProfilingConfigurations.addAll(savedConfigs);
     if (!savedConfigs.isEmpty()) {
