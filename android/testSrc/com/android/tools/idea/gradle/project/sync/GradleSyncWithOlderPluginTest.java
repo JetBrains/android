@@ -127,7 +127,8 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
-  public void testWithPluginOneDotFive() throws Exception {
+  // Disabled: http://b/67473609
+  public void /*test*/WithPluginOneDotFive() throws Exception {
     doTestWithPluginOneDotFive(false /* use old sync infrastructure */);
   }
 
