@@ -32,6 +32,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
 
@@ -110,6 +112,11 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       val plus = JLabel("+")
       plus.font = Font(null, Font.BOLD, 14)
       plus.foreground = JBColor.GRAY
+      plus.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent?) {
+          addAction()
+        }
+      })
       val plusPanel = JPanel(BorderLayout())
       plusPanel.add(plus, BorderLayout.EAST)
 
@@ -121,6 +128,10 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
 
     companion object {
       private val WHITE_ACTION = WhiteIconGenerator.generateWhiteIcon(StudioIcons.NavEditor.Toolbar.ACTION)
+    }
+
+    fun addAction() {
+      AddActionDialog().showAndGet()
     }
   }
 }
