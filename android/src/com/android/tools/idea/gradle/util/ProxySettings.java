@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import static com.google.common.base.Strings.nullToEmpty;
@@ -144,26 +145,30 @@ public class ProxySettings {
     this.myPort = port;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof ProxySettings) {
-      ProxySettings other = (ProxySettings)o;
-      return myProxyType.equals(other.myProxyType) && nullableEquals(myHost, other.myHost) && myPort == other.myPort &&
-             nullableEquals(myExceptions, other.myExceptions) && nullableEquals(myUser, other.myUser) &&
-             nullableEquals(myPassword, other.myPassword);
-    }
-    return false;
-  }
-
-  private static boolean nullableEquals(@Nullable Object a, @Nullable Object b) {
-    if (a != null) {
-      return a.equals(b);
-    }
-    return b == null;
-  }
-
   public void setProxyType(@NotNull String proxyType) {
     myProxyType = proxyType;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ProxySettings)) {
+      return false;
+    }
+    ProxySettings settings = (ProxySettings)o;
+    return myPort == settings.myPort &&
+           Objects.equals(myProxyType, settings.myProxyType) &&
+           Objects.equals(myHost, settings.myHost) &&
+           Objects.equals(myExceptions, settings.myExceptions) &&
+           Objects.equals(myUser, settings.myUser) &&
+           Objects.equals(myPassword, settings.myPassword);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myProxyType, myHost, myExceptions, myUser, myPassword, myPort);
   }
 }
 
