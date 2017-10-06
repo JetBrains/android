@@ -170,5 +170,17 @@ public class ProxySettings {
   public int hashCode() {
     return Objects.hash(myProxyType, myHost, myExceptions, myUser, myPassword, myPort);
   }
+
+  @Override
+  public String toString() {
+    return "ProxySettings{" +
+           "myProxyType='" + myProxyType + '\'' +
+           ", myHost='" + myHost + '\'' +
+           ", myExceptions='" + myExceptions + '\'' +
+           ", myUser='" + myUser + '\'' +
+           ", myPassword='" + myPassword + '\'' +
+           ", myPort=" + myPort +
+           '}';
+  }
 }
 

@@ -64,7 +64,7 @@ public class GradlePreSyncTest {
     ideSettings.PROXY_PORT = port;
     ideSettings.PROXY_AUTHENTICATION = true;
     ideSettings.setProxyLogin("test");
-    ideSettings.setPlainProxyPassword("testPass");
+    ideSettings.setPlainProxyPassword("");
 
     ProxySettings ideProxySettings = new ProxySettings(ideSettings);
 
