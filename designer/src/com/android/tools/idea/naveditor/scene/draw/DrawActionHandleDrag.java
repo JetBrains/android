@@ -31,14 +31,17 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   public static final Stroke STROKE = new BasicStroke(3.0f);
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
+  @SwingCoordinate private final int myRadius;
   private final Color myColor;
 
 
   public DrawActionHandleDrag(@SwingCoordinate int x,
                               @SwingCoordinate int y,
+                              @SwingCoordinate int radius,
                               @NotNull Color color) {
     myX = x;
     myY = y;
+    myRadius = radius;
     myColor = color;
   }
 
@@ -55,20 +58,14 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Color previousColor = g.getColor();
-    g.setColor(myColor);
+    Graphics2D g2 = (Graphics2D)g.create();
 
-    g.fillOval(myX - DrawActionHandle.SMALL_RADIUS,
-               myY - DrawActionHandle.SMALL_RADIUS,
-               2 * DrawActionHandle.SMALL_RADIUS,
-               2 * DrawActionHandle.SMALL_RADIUS);
+    g2.setColor(myColor);
+    g2.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
 
-    Stroke previousStroke = g.getStroke();
-    g.setStroke(STROKE);
+    g2.setStroke(STROKE);
+    g2.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
 
-    g.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
-
-    g.setColor(previousColor);
-    g.setStroke(previousStroke);
+    g2.dispose();
   }
 }
