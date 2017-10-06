@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.LayoutPullParsers.*;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy
@@ -55,7 +56,7 @@ import static com.android.SdkConstants.*;
  *   <li> Be more resilient for custom themes not inheriting the necessary menu resources</li>
  * </ul>
  */
-public class MenuPreviewRenderer extends LayoutPullParserFactory {
+public class MenuPreviewRenderer {
   private static final String ATTR_ORDER_IN_CATEGORY = "orderInCategory";
   private static final String ATTR_MENU_CATEGORY = "menuCategory";
   private static final String ATTR_CHECKABLE = "checkable";

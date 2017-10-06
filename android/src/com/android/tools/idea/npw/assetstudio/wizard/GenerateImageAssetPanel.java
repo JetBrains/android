@@ -16,9 +16,9 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.assetstudiolib.*;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.ui.*;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -43,11 +43,17 @@ import com.google.common.primitives.Ints;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TitledSeparator;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.ui.AsyncProcessIcon;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +80,6 @@ import java.util.stream.Collectors;
  * web application.
  */
 public final class GenerateImageAssetPanel extends JPanel implements Disposable {
-
   @NotNull private final AndroidProjectPaths myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
@@ -109,6 +114,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private SelectedProperty myShowGridProperty;
   private SelectedProperty myShowSafeZoneProperty;
   private AbstractProperty<Density> myPreviewDensityProperty;
+  private JBLoadingPanel myLoadingPanel;
 
   @NotNull private AndroidProjectPaths myPaths;
   @NotNull private final BackgroundIconGenerator myBackgroundIconGenerator = new BackgroundIconGenerator();
@@ -118,12 +124,30 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
    * presented to the user in a dropdown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public GenerateImageAssetPanel(@NotNull Disposable disposableParent,
+  public GenerateImageAssetPanel(@NotNull AndroidFacet facet,
+                                 @NotNull Disposable disposableParent,
                                  @NotNull AndroidProjectPaths defaultPaths,
                                  @NotNull AndroidVersion minSdkVersion,
                                  @NotNull AndroidVersion targetSdkVersion,
                                  @NotNull AndroidAdaptiveIconType... supportedTypes) {
     super(new BorderLayout());
+
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
+      @Override
+      protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
+        final NonOpaquePanel panel = super.customizeLoadingLayer(parent, text, icon);
+        Font font = text.getFont();
+        text.setFont(font.deriveFont(font.getStyle(), font.getSize() + 6));
+        //noinspection UseJBColor
+        text.setForeground(ColorUtil.toAlpha(Color.BLACK, 100));
+        panel.setOpaque(true);
+        return panel;
+      }
+    });
+    myLoadingPanel.add(myOutputPreviewPanel);
+    myOutputPreviewScrollPane.getViewport().setView(myLoadingPanel);
+    myLoadingPanel.setLoadingText("Rendering preview images");
+    myLoadingPanel.startLoading();
 
     myDefaultPaths = defaultPaths;
     myPaths = myDefaultPaths;
@@ -166,7 +190,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       ConfigureIconView view;
       switch (iconType) {
         case ADAPTIVE:
-          view = new ConfigureAdaptiveIconPanel(this, minSdkVersion, targetSdkVersion, myShowGridProperty, myShowSafeZoneProperty, myPreviewDensityProperty, myValidatorPanel);
+          view = new ConfigureAdaptiveIconPanel(facet, this, minSdkVersion, targetSdkVersion,
+                                                myShowGridProperty, myShowSafeZoneProperty,
+                                                myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
           view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion.getApiLevel());
@@ -261,8 +287,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   }
 
   /**
-   * Update our output preview panel with icons generated in the output icon panel
-   * of the current icon type
+   * Updates our output preview panel with icons generated in the output icon panel
+   * of the current icon type.
    */
   private void updateOutputPreviewPanel() {
     myOutputPreviewPanel.removeAll();
@@ -292,7 +318,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       }
     }
 
-    throw new IllegalStateException("GenerateAdaptiveIconPanel configured incorrectly. Please report this error.");
+    throw new IllegalStateException(getClass().getSimpleName() + " is configured incorrectly. Please report this error.");
   }
 
   private void initializeValidators() {
@@ -347,7 +373,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   }
 
   private boolean iconExists() {
-    Map<File, BufferedImage> pathImageMap = getIconGenerator().generateIntoFileMap(myPaths);
+    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths);
     for (File path : pathImageMap.keySet()) {
       if (path.exists()) {
         return true;
@@ -382,6 +408,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
         return;
       }
 
+      myLoadingPanel.stopLoading();
       // Update the icon type specific output preview panel with the new preview images
       myOutputPreviewPanels.get(iconType).showPreviewImages(iconGeneratorResult);
 

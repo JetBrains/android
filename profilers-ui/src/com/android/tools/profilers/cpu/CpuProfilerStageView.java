@@ -159,6 +159,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
+    lineChart.setFillEndGap(true);
 
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
     LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
@@ -180,9 +181,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<CpuTraceInfo> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
+        .setDurationBg(ProfilerColors.CPU_CAPTURE_BACKGROUND)
         .setLabelProvider(this::formatCaptureLabel)
-        .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(traceInfo -> getStage().setAndSelectCapture(traceInfo.getTraceId()))
         .build();
@@ -199,8 +199,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
-        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
-        .setStroke(new BasicStroke(1))
+        .setDurationBg(ProfilerColors.CPU_CAPTURE_BACKGROUND)
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .build();
 
@@ -235,6 +234,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myStage.setSelectedThread(CaptureModel.NO_THREAD);
       }
     });
+
+    myThreads.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myThreads.getSelectedIndex() < 0 && myThreads.getItemsCount() > 0) {
+          myThreads.setSelectedIndex(0);
+        }
+      }
+    });
+
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setBorder(MONITOR_BORDER);
     scrollingThreads.setViewportView(myThreads);
@@ -304,6 +313,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
                           stage::getProfilingConfigurations, stage::getProfilingConfiguration, stage::setProfilingConfiguration);
     profilingConfiguration.bind();
+    // Do not support keyboard accessibility until it is supported product-wide in Studio.
+    myProfilingConfigurationCombo.setFocusable(false);
     myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
       /**
        * Select the next item, skipping over any separators encountered

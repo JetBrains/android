@@ -177,7 +177,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "guava-.*";
+    String libraryNameRegex = ".*guava.*";
     Library library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 

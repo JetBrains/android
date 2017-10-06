@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.awt.*;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -39,29 +40,30 @@ public class AdaptiveIconPreviewTest {
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
         .getLayoutPreview(true);
+    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.requireDensity("xxxhdpi")
       .chooseDensity("mdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
     // noinspection SpellCheckingInspection
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ffff0000");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ffff0000");
     toolbar.chooseDensity("hdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff0000ff");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff0000ff");
     toolbar.chooseDensity("xhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff0000ff");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff0000ff");
     toolbar.chooseDensity("xxhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff00ff00");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff00ff00");
     toolbar.chooseDensity("xxxhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff00ff00");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff00ff00");
   }
 
   @Test
@@ -71,12 +73,14 @@ public class AdaptiveIconPreviewTest {
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
         .getLayoutPreview(true);
+    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.chooseShape("Circle")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription())
       .isEqualTo("M50 0C77.6 0 100 22.4 100 50C100 77.6 77.6 100 50 100C22.4 100 0 77.6 0 50C0 22.4 22.4 0 50 0Z");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("fff2f2f2");
     toolbar.chooseShape("Rounded Corners")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
@@ -91,6 +95,7 @@ public class AdaptiveIconPreviewTest {
       .leaveConfigToolbar()
       .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription()).isEqualTo("M50,0L100,0 100,100 0,100 0,0z");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff00ff00");
   }
 
   @Test
@@ -100,18 +105,19 @@ public class AdaptiveIconPreviewTest {
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_theme_adaptive.xml")
         .getLayoutPreview(true);
+    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Light", "android:Theme.Material.Light")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("fff5f5f5");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("fff5f5f5");
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff212121");
+    assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff212121");
   }
 }

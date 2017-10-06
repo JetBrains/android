@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
@@ -25,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -36,8 +38,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import static com.intellij.ui.SimpleTextAttributes.*;
 
@@ -82,25 +86,41 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
     myListView.addListSelectionListener(e -> {
-      int index = myListView.getSelectedIndex();
-      if (index < 0 || index >= myListView.getItemsCount() || myListView.getItemsCount() == 0) {
+      if (myListView.getSelectedValue() == null) {
         myModel.clearSelection();
-        return;
       }
-
-      myModel.setSelectedIndex(index);
     });
+
+    Supplier<Boolean> navigationHandler = () -> {
+      int index = myListView.getSelectedIndex();
+      if (index >= 0 && index < myListView.getItemsCount()) {
+        myModel.setSelectedIndex(index);
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
 
     myListView.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          myListView.clearSelection();
-          e.consume();
+        // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead we get the code from the char
+        // we are given.
+        int keyCode = KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar());
+        if (keyCode == KeyEvent.VK_ENTER) {
+          if (navigationHandler.get()) {
+            e.consume();
+          }
         }
       }
     });
-
+    new DoubleClickListener() {
+      @Override
+      protected boolean onDoubleClick(MouseEvent event) {
+        return navigationHandler.get();
+      }
+    }.installOn(myListView);
 
     myModel.addDependency(this).
       onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> {
@@ -171,6 +191,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
+      setIpad(ProfilerLayout.LIST_ROW_INSETS);
       if (value instanceof CodeElement) {
         renderStackNavigation((CodeElement)value, selected);
       }

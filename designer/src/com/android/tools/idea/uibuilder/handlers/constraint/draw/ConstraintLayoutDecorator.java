@@ -446,6 +446,13 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         DrawConnection
           .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
+        if (currentMode == DrawConnection.MODE_WILL_DESTROY) {
+          if (destType == DrawConnection.DEST_GUIDELINE) {
+            int over_size_line = 3000;
+            dest_rect.grow((connect < 2)?1:over_size_line,(connect < 2)?over_size_line:1);
+          }
+          DrawAnimatedFrame.add(list, dest_rect,  connect);
+        }
       }
     }
 

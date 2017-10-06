@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
@@ -41,6 +43,19 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     myContainer.setOpaque(true);
     myContainer.setBorder(ProfilerLayout.MONITOR_BORDER);
     myContainer.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
+    // When the container gains focus we set our focus state on the monitor to
+    // keep the monitor in the same state.
+    myContainer.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        myMonitor.setFocus(true);
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        myMonitor.setFocus(false);
+      }
+    });
 
     myMonitor.addDependency(this).onChange(ProfilerMonitor.Aspect.ENABLE, this::monitorEnabledChanged);
     monitorEnabledChanged();

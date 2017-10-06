@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -80,7 +81,10 @@ public class ShapeMenuAction extends DropDownAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
       mySurface.setAdaptiveIconShape(myShape);
-      mySurface.requestRender();
+      NlModel model = mySurface.getModel();
+      if (model != null) {
+        model.notifyModified(NlModel.ChangeType.CONFIGURATION_CHANGE);
+      }
     }
   }
 }

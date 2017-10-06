@@ -71,7 +71,6 @@
     <orderEntry type="module" module-name="groovy-psi" scope="TEST" />
     <orderEntry type="module" module-name="layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="properties-psi-api" scope="TEST" />
-    <orderEntry type="module" module-name="assetstudio" scope="TEST" />
     <orderEntry type="module" module-name="instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />

@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.instantapp.run.InstantAppRunException.ErrorType.CANCELLED;
+import static com.android.instantapp.run.InstantAppRunException.ErrorType.NO_GOOGLE_ACCOUNT;
 import static com.android.tools.idea.instantapp.InstantApps.isPostO;
 import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
 import static com.google.common.io.Files.createTempDir;
@@ -142,6 +144,10 @@ public class DeployInstantAppTask implements LaunchTask {
           int choice = Messages
             .showYesNoDialog("Side loading failed with message: " + e.getMessage() + " Do you want to retry?", "Instant Apps", null);
           if (choice != Messages.OK) {
+            if (e.getErrorType() != NO_GOOGLE_ACCOUNT && e.getErrorType() != CANCELLED) {
+              // Log as error and allows submitting report
+              getLogger().error(e);
+            }
             tryAgain.set(false);
             // If there was an error while provisioning, we stop running the RunConfiguration
             result.set(false);

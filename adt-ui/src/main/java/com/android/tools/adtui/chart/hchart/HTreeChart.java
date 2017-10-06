@@ -247,16 +247,20 @@ public class HTreeChart<T> extends AnimatedComponent {
   }
 
   @Nullable
-  public HNode<T> getHoveredNode() {
-    Point p = getMousePosition();
-    if (p != null) {
+  public HNode<T> getNodeAt(Point point) {
+    if (point != null) {
       for (int i = 0; i < mDrawnNodes.size(); ++i) {
-        if (mDrawnRectangles.get(i).contains(p)) {
+        if (contains(mDrawnRectangles.get(i), point)) {
           return mDrawnNodes.get(i);
         }
       }
     }
     return null;
+  }
+
+  private static boolean contains(@NotNull Rectangle2D rectangle, @NotNull Point p) {
+    return rectangle.getMinX() <= p.getX() && p.getX() <= rectangle.getMaxX() &&
+           rectangle.getMinY() <= p.getY() && p.getY() <= rectangle.getMaxY();
   }
 
   @NotNull

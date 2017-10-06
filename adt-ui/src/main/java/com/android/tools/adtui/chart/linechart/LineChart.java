@@ -92,6 +92,11 @@ public class LineChart extends AnimatedComponent {
 
   private boolean myRedraw;
 
+  /**
+   * If true, extends the last available data point of each series all the way to the right to fill any remaining gap.
+   */
+  private boolean myFillEndGap;
+
   @NotNull
   private final LineChartReducer myReducer;
 
@@ -180,19 +185,15 @@ public class LineChart extends AnimatedComponent {
         }
         else {
           // If the current series is stacked, increment its value by the value of the last stacked
-          // series.
-          // As the series are constantly populated, the current series might have one more
-          // point than the last stacked series (meaning that the last one was populated in a
-          // prior iteration). In this case, value of the current series shouldn't change.
-          for (int i = 0; i < seriesList.size(); ++i) {
-            if (i < lastStackedSeries.size()) {
-              lastStackedSeries.get(i).value += seriesList.get(i).value;
-            }
-            else {
-              lastStackedSeries.add(seriesList.get(i));
-            }
+          // series. As the series are constantly populated, the current series might have more
+          // points than the last stacked series (meaning that the last one was populated in a
+          // prior iteration). In this case, ignore the new points (i.e. we take only the intersection
+          // across all series).
+          for (int i = 0; i < seriesList.size() && i < lastStackedSeries.size(); ++i) {
+            // An assumption is made here that the x values across series are aligned.
+            lastStackedSeries.get(i).value += seriesList.get(i).value;
           }
-          seriesList = lastStackedSeries.subList(0, seriesList.size());
+          seriesList = lastStackedSeries;
         }
       }
 
@@ -228,6 +229,11 @@ public class LineChart extends AnimatedComponent {
           }
           path.lineTo(xd, yd);
         }
+      }
+
+      if (myFillEndGap && path.getCurrentPoint() != null) {
+        // Extends the last point on the path to the end
+        path.lineTo(Math.max(path.getCurrentPoint().getX(), 1f), path.getCurrentPoint().getY());
       }
 
       if (config.isFilled() && path.getCurrentPoint() != null) {
@@ -491,5 +497,9 @@ public class LineChart extends AnimatedComponent {
 
   public void setTopPadding(int padding) {
     myTopPadding = padding;
+  }
+
+  public void setFillEndGap(boolean fillEndGap) {
+    myFillEndGap = fillEndGap;
   }
 }

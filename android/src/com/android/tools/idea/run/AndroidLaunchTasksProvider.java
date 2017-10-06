@@ -89,8 +89,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-        if (taskContributor.isApplicable(myFacet.getModule())) {
-          launchTasks.add(taskContributor.getTask(packageName));
+        LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName);
+        if (task != null) {
+          launchTasks.add(task);
         }
       }
 

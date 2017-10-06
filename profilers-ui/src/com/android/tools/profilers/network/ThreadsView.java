@@ -71,7 +71,6 @@ final class ThreadsView {
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myThreadsTable.setFont(AdtUiUtils.DEFAULT_FONT);
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
     myThreadsTable.setTableHeader(null);
@@ -79,6 +78,8 @@ final class ThreadsView {
     myThreadsTable.setFocusable(false);
     myThreadsTable.setRowMargin(0);
     myThreadsTable.setRowHeight(ROW_HEIGHT);
+    myThreadsTable.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+    myThreadsTable.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
     myThreadsTable.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
