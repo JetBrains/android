@@ -255,9 +255,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     if (enable) {
       timeline.getDataRange().addDependency(this)
-        .onChange(Range.Aspect.RANGE, () -> {
-          queryAndSelectCaptureObject(loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner);
-        });
+        .onChange(Range.Aspect.RANGE, () -> queryAndSelectCaptureObject(loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner));
     }
     else {
       // Removing the aspect observers on Ranges.
@@ -271,8 +269,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   private void queryAndSelectCaptureObject(@NotNull Executor loadJoiner) {
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
-    // Only tries to select a capture object if one is not already selected
-    if (mySelection.getCaptureObject() == null && myPendingCaptureStartTime != INVALID_START_TIME) {
+    if (myPendingCaptureStartTime != INVALID_START_TIME) {
       List<SeriesData<CaptureDurationData<CaptureObject>>> series =
         new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
       series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
