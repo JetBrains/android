@@ -16,11 +16,8 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
-import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -28,6 +25,9 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
+import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
@@ -43,11 +43,16 @@ import java.util.List;
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
 public class ActionHandleTarget extends NavBaseTarget {
-  private int myCurrentRadius = 0;
+  @AndroidDpCoordinate public static final int SMALL_RADIUS = 6;
+  @AndroidDpCoordinate public static final int LARGE_RADIUS = 8;
+  public static final int MAX_DURATION = 200;
+
+  @AndroidDpCoordinate private int myCurrentRadius = 0;
   private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
     super(component);
+    myCurrentRadius = (component.isSelected() ? SMALL_RADIUS : 0);
   }
 
   @Override
@@ -61,7 +66,7 @@ public class ActionHandleTarget extends NavBaseTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    layoutCircle(r, t + (b - t) / 2, DrawActionHandle.LARGE_RADIUS);
+    layoutCircle(r, t + (b - t) / 2, myCurrentRadius);
     return false;
   }
 
@@ -113,31 +118,35 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   private DrawCommand createDrawActionHandleDrag(@NotNull SceneContext sceneContext) {
     return new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
-                                    sceneContext.getColorSet().getSelectedFrames());
+                                    sceneContext.getSwingDimension(myCurrentRadius), sceneContext.getColorSet().getSelectedFrames());
   }
 
   private DrawCommand createDrawActionHandle(@NotNull SceneContext sceneContext) {
     int newRadius = 0;
 
     if (mIsOver) {
-      newRadius = DrawActionHandle.LARGE_RADIUS;
+      newRadius = LARGE_RADIUS;
     }
     else if (getComponent().getDrawState() == SceneComponent.DrawState.HOVER || getComponent().isSelected()) {
-      newRadius = DrawActionHandle.SMALL_RADIUS;
+      newRadius = SMALL_RADIUS;
     }
 
     Color fillColor = sceneContext.getColorSet().getBackground();
+    int duration = Math.abs(MAX_DURATION * (myCurrentRadius - newRadius) / SMALL_RADIUS);
 
     DrawActionHandle drawCommand =
-      new DrawActionHandle(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext), myCurrentRadius, newRadius,
-                           getFrameColor(sceneContext), fillColor);
+      new DrawActionHandle(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
+                           sceneContext.getSwingDimension(myCurrentRadius), sceneContext.getSwingDimension(newRadius),
+                           getFrameColor(sceneContext), fillColor, duration);
+
     myCurrentRadius = newRadius;
     return drawCommand;
   }
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform), DrawActionHandle.LARGE_RADIUS);
+    picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform),
+                     transform.getSwingDimension(LARGE_RADIUS));
   }
 
   @Override

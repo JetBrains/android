@@ -28,11 +28,8 @@ import java.awt.*;
  * and final sizes and the duration of the size change.
  */
 public class DrawActionHandle extends NavBaseDrawCommand {
-  public static final int BACKGROUND_RADIUS = 6;
-  public static final int SMALL_RADIUS = 8;
-  public static final int LARGE_RADIUS = 12;
-  public static final int BORDER_THICKNESS = 3;
-  public static final int MAX_DURATION = 200;
+  @SwingCoordinate public static final int INNER_CIRCLE_THICKNESS = 3;
+  public static final float INNER_CIRCLE_FRACTION = 0.8f;
 
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
@@ -40,6 +37,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @SwingCoordinate private final int myFinalRadius;
   private final Color myBorderColor;
   private final Color myFillColor;
+  private final int myDuration;
 
   private long myStartTime = -1;
 
@@ -48,13 +46,15 @@ public class DrawActionHandle extends NavBaseDrawCommand {
                           @SwingCoordinate int initialRadius,
                           @SwingCoordinate int finalRadius,
                           @NotNull Color borderColor,
-                          @NotNull Color fillColor) {
+                          @NotNull Color fillColor,
+                          int duration) {
     myX = x;
     myY = y;
     myInitialRadius = initialRadius;
     myFinalRadius = finalRadius;
     myBorderColor = borderColor;
     myFillColor = fillColor;
+    myDuration = duration;
   }
 
   @Override
@@ -66,7 +66,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @NotNull
   protected Object[] getProperties() {
     return new Object[]{myX, myY, myInitialRadius, myFinalRadius, String.format("%x", myBorderColor.getRGB()),
-      String.format("%x", myFillColor.getRGB())};
+      String.format("%x", myFillColor.getRGB()), myDuration};
   }
 
   @Override
@@ -78,25 +78,30 @@ public class DrawActionHandle extends NavBaseDrawCommand {
     }
 
     int delta = myFinalRadius - myInitialRadius;
-    int duration = Math.abs(delta) * MAX_DURATION / LARGE_RADIUS;
     int elapsed = (int)(currentTime - myStartTime);
 
-    int r = myFinalRadius;
+    Graphics2D g2 = (Graphics2D)g.create();
 
-    if (elapsed < duration) {
-      r = myInitialRadius + delta * elapsed / duration;
-    }
+    @SwingCoordinate int r = (elapsed < myDuration)
+                             ? myInitialRadius + delta * elapsed / myDuration
+                             : myFinalRadius;
+    fillCircle(g2, r, myFillColor);
 
-    fillCircle(g, myX, myY, Math.max(r, BACKGROUND_RADIUS), myBorderColor);
-    fillCircle(g, myX, myY, r - BORDER_THICKNESS, myFillColor);
+    r *= INNER_CIRCLE_FRACTION;
+    fillCircle(g2, r, myBorderColor);
 
-    if (r != myFinalRadius) {
+    r -= INNER_CIRCLE_THICKNESS;
+    fillCircle(g2, r, myFillColor);
+
+    g2.dispose();
+
+    if (elapsed < myDuration) {
       sceneContext.repaint();
     }
   }
 
-  private static void fillCircle(Graphics2D g, int x, int y, int r, Color color) {
+  private void fillCircle(Graphics2D g, @SwingCoordinate int r, Color color) {
     g.setColor(color);
-    g.fillOval(x - r, y - r, 2 * r, 2 * r);
+    g.fillOval(myX - r, myY - r, 2 * r, 2 * r);
   }
 }

@@ -25,10 +25,9 @@ import static org.mockito.Mockito.*;
 
 public class DrawActionHandleDragTest extends TestCase {
   private static final Color COLOR = Color.WHITE;
-  private static final Color PREVIOUS_COLOR = Color.BLACK;
-  private static final Stroke PREVIOUS_STROKE = new BasicStroke(1.0f);
   private static final int X = 10;
   private static final int Y = 10;
+  private static final int R = 5;
   private static final int MAX_DISTANCE = 5;
 
   public void testDrawActionHandleDrag() {
@@ -42,26 +41,19 @@ public class DrawActionHandleDragTest extends TestCase {
   private static void verifyDrawActionHandleDrag(int mouseX, int mouseY) {
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
-    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y, COLOR);
+    when(g.create()).thenReturn(g);
+    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y, R, COLOR);
 
     when(sceneContext.getMouseX()).thenReturn(mouseX);
     when(sceneContext.getMouseY()).thenReturn(mouseY);
 
-    when(g.getColor()).thenReturn(PREVIOUS_COLOR);
-    when(g.getStroke()).thenReturn(PREVIOUS_STROKE);
-
     InOrder inOrder = inOrder(g);
     drawActionHandleDrag.paint(g, sceneContext);
 
-    inOrder.verify(g).getColor();
     inOrder.verify(g).setColor(COLOR);
-    inOrder.verify(g).fillOval(X - DrawActionHandle.SMALL_RADIUS, Y - DrawActionHandle.SMALL_RADIUS, 2 * DrawActionHandle.SMALL_RADIUS,
-                               2 * DrawActionHandle.SMALL_RADIUS);
-    inOrder.verify(g).getStroke();
+    inOrder.verify(g).fillOval(X - R, Y - R, 2 * R, 2 * R);
+
     inOrder.verify(g).setStroke(DrawActionHandleDrag.STROKE);
     inOrder.verify(g).drawLine(X, Y, mouseX, mouseY);
-
-    inOrder.verify(g).setColor(PREVIOUS_COLOR);
-    inOrder.verify(g).setStroke(PREVIOUS_STROKE);
   }
 }

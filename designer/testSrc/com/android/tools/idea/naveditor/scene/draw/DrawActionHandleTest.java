@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
+import com.intellij.ui.JBColor;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
 
@@ -24,33 +26,34 @@ import java.awt.*;
 import static org.mockito.Mockito.*;
 
 public class DrawActionHandleTest extends TestCase {
-  private static final Color BORDER_COLOR = Color.WHITE;
-  private static final Color FILL_COLOR = Color.BLACK;
+  private static final Color BORDER_COLOR = JBColor.WHITE;
+  private static final Color FILL_COLOR = JBColor.BLACK;
   private static final int X = 10;
   private static final int Y = 10;
   private static final int INTERVAL = 50;
+  private static final int DURATION = 200;
 
   public void testDrawActionHandle() {
-    for (int initialRadius = 0; initialRadius <= DrawActionHandle.LARGE_RADIUS; initialRadius++) {
-      for (int finalRadius = 0; finalRadius <= DrawActionHandle.LARGE_RADIUS; finalRadius++) {
-        testDrawActionHandle(initialRadius, finalRadius);
+    for (int initialRadius = 0; initialRadius <= ActionHandleTarget.LARGE_RADIUS; initialRadius++) {
+      for (int finalRadius= 0; finalRadius <= ActionHandleTarget.LARGE_RADIUS; finalRadius++) {
+        drawActionHandleTest(initialRadius, finalRadius);
       }
     }
   }
 
-  private static void testDrawActionHandle(int initialRadius, int finalRadius) {
+  private static void drawActionHandleTest(int initialRadius, int finalRadius) {
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
-    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, BORDER_COLOR, FILL_COLOR);
+    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, BORDER_COLOR, FILL_COLOR, DURATION);
 
     when(sceneContext.getTime()).thenReturn(0L, 50L, 100L, 150L, 200L);
+    when(g.create()).thenReturn(g);
 
     int delta = (finalRadius - initialRadius);
-    int duration = Math.abs(delta) * DrawActionHandle.MAX_DURATION / DrawActionHandle.LARGE_RADIUS;
 
-    int n = duration / INTERVAL;
+    int n = DURATION / INTERVAL;
 
-    if (duration % INTERVAL != 0) {
+    if (DURATION % INTERVAL != 0) {
       n++;
     }
 
@@ -58,15 +61,18 @@ public class DrawActionHandleTest extends TestCase {
       int t = INTERVAL * i;
 
       int expectedRadius = finalRadius;
-      if (t < duration) {
-        expectedRadius = initialRadius + delta * t / duration;
+      if (t < DURATION) {
+        expectedRadius = initialRadius + delta * t / DURATION;
       }
 
       InOrder inOrder = inOrder(g);
       drawActionHandle.paint(g, sceneContext);
 
-      verifyCircle(inOrder, g, Math.max(expectedRadius, DrawActionHandle.BACKGROUND_RADIUS), BORDER_COLOR);
-      verifyCircle(inOrder, g, expectedRadius - DrawActionHandle.BORDER_THICKNESS, FILL_COLOR);
+      verifyCircle(inOrder, g, expectedRadius, FILL_COLOR);
+      expectedRadius *= DrawActionHandle.INNER_CIRCLE_FRACTION;
+      verifyCircle(inOrder, g, expectedRadius , BORDER_COLOR);
+      expectedRadius -= DrawActionHandle.INNER_CIRCLE_THICKNESS;
+      verifyCircle(inOrder, g, expectedRadius, FILL_COLOR);
 
       verify(sceneContext, times(Math.min(i + 1, n))).repaint();
     }
