@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -52,22 +52,24 @@ public final class GenerateVectorIconModel extends GenerateIconsModel {
     VectorAsset.ParseResult result = vectorAsset.parse();
 
     Map<File, BufferedImage> fileMap = iconGenerator.generateIntoFileMap(paths);
-    ArrayList<File> outputFiles = Lists.newArrayList(fileMap.keySet());
-    // Vector asset generator ONLY generates a single XML file
-    assert outputFiles.size() == 1;
-    File file = outputFiles.get(0);
 
-    VirtualFile directory = null;
-    try {
-      directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
-      VirtualFile xmlFile = directory.findChild(file.getName());
-      if (xmlFile == null || !xmlFile.exists()) {
-        xmlFile = directory.createChildData(this, file.getName());
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ArrayList<File> outputFiles = new ArrayList<>(fileMap.keySet());
+      // Vector asset generator ONLY generates a single XML file
+      assert outputFiles.size() == 1;
+      File file = outputFiles.get(0);
+
+      try {
+        VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+        VirtualFile xmlFile = directory.findChild(file.getName());
+        if (xmlFile == null || !xmlFile.exists()) {
+          xmlFile = directory.createChildData(this, file.getName());
+        }
+        VfsUtil.saveText(xmlFile, result.getXmlContent());
       }
-      VfsUtil.saveText(xmlFile, result.getXmlContent());
-    }
-    catch (IOException e) {
-      getLog().error(e);
-    }
+      catch (IOException e) {
+        getLog().error(e);
+      }
+    });
   }
 }

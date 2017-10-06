@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
@@ -31,7 +32,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,10 +42,13 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 
 /**
@@ -308,7 +311,6 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
-
     builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
@@ -335,11 +337,14 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     final DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
-    final JTree tree = new Tree(treeModel);
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    final JTree tree = new JTree(treeModel);
+    int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+    tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-
     // Not all nodes have been populated during buildReferenceColumnTree. Here we capture the TreeExpansionEvent to check whether any children
     // under the expanded node need to be populated.
     tree.addTreeExpansionListener(new TreeExpansionListener() {
@@ -412,6 +417,15 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           assert classifierSet != null && classifierSet instanceof ClassSet;
           myStage.selectClassSet((ClassSet)classifierSet);
           myStage.selectInstanceObject(targetInstance);
+        }
+      }
+    });
+
+    tree.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (tree.getSelectionCount() == 0 && tree.getRowCount() != 0) {
+          tree.setSelectionRow(0);
         }
       }
     });

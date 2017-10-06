@@ -112,6 +112,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final Map<String, ResourceValue> myFontFamilies;
   private ProjectFonts myProjectFonts;
   private String myAdaptiveIconMaskPath;
+  @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -124,6 +125,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param logger     the render logger
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
+   * @param parserFactory an optional factory for creating XML parsers.
    */
   public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -132,7 +134,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull AndroidFacet facet,
                                @NotNull IRenderLogger logger,
                                @Nullable Object credential,
-                               @Nullable ActionBarHandler actionBarHandler) {
+                               @Nullable ActionBarHandler actionBarHandler,
+                               @Nullable ILayoutPullParserFactory parserFactory) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
@@ -142,6 +145,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myLogger = logger;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
+    myLayoutPullParserFactory = parserFactory;
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
@@ -389,8 +393,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private ILayoutPullParser getParser(@NotNull String layoutName, boolean isFramework, @Nullable File xml) {
     if (myParserFiles != null && myParserFiles.contains(xml)) {
       if (myParserCount > MAX_PARSER_INCLUDES) {
-        // Unlikely large number of includes. Look for cyclic dependencies in the available
-        // files.
+        // Unlikely large number of includes. Look for cyclic dependencies in the available files.
         if (findCycles()) {
           throw new RuntimeException("Aborting rendering");
         }
@@ -400,11 +403,18 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     } else {
       if (myParserFiles == null) {
-        myParserFiles = Sets.newHashSet();
+        myParserFiles = new HashSet<>();
       }
       myParserFiles.add(xml);
     }
     myParserCount++;
+
+    if (myLayoutPullParserFactory != null) {
+      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this);
+      if (parser != null) {
+        return parser;
+      }
+    }
 
     if (layoutName.equals(myLayoutName) && !isFramework) {
       ILayoutPullParser parser = myLayoutEmbeddedParser;

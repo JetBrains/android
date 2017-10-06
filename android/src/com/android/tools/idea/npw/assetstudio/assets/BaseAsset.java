@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
-import com.android.ide.common.util.AssetUtil;
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.*;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Objects;
 
 /**
  * Base class for all asset types which can be converted into Android icons. See also
- * {@link AndroidIconGenerator}, which handles the conversion.
+ * {@link com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator}, which handles the conversion.
  *
  * Asset fields are all {@link AbstractProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
@@ -39,7 +37,7 @@ public abstract class BaseAsset {
   private final IntProperty myPaddingPercent = new IntValueProperty(0);
   private final IntProperty myScalingPercent = new IntValueProperty(100);
   private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(Color.BLACK);
-  private final OptionalProperty<Dimension> myTargetSize = new OptionalValueProperty<>();
+  private final BoolValueProperty myIsResizable = new BoolValueProperty(true);
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.
@@ -65,10 +63,6 @@ public abstract class BaseAsset {
     return myScalingPercent;
   }
 
-  public OptionalProperty<Dimension> targetSize() {
-    return myTargetSize;
-  }
-
   /**
    * A color to use when rendering this image. Not all asset types are affected by this color.
    */
@@ -78,37 +72,18 @@ public abstract class BaseAsset {
   }
 
   /**
-   * Returns the image represented by this asset (this will be an empty image if the asset is not
-   * in a valid state for generating the image).
+   * Returns an observable boolean reflecting whether the asset is resizable or not.
    */
   @NotNull
-  public final BufferedImage toImage() {
-    BufferedImage image = createAsImage(myColor.get());
-    if (myTrimmed.get()) {
-      image = AssetStudioUtils.trim(image);
-    }
-    if (myPaddingPercent.get() != 0) {
-      image = AssetStudioUtils.pad(image, myPaddingPercent.get());
-    }
-    if (myScalingPercent.get() != 100) {
-      image = AssetUtil.scaledImage(image,
-                                    image.getWidth() * myScalingPercent.get() / 100,
-                                    image.getHeight() * myScalingPercent.get() / 100);
-    }
-
-    // Set image size to target size
-    Dimension imageTargetSize = targetSize().getValueOrNull();
-    if (imageTargetSize != null && !Objects.equals(imageTargetSize, new Dimension(image.getWidth(), image.getHeight()))) {
-      BufferedImage source = image;
-      image = AssetUtil.newArgbBufferedImage(imageTargetSize.width, imageTargetSize.height);
-      Graphics2D gImage = (Graphics2D)image.getGraphics();
-      AssetUtil.drawCentered(gImage, source, new Rectangle(0, 0, image.getWidth(), image.getHeight()));
-      gImage.dispose();
-    }
-
-    return image;
+  public ObservableBool isResizable() {
+    return myIsResizable;
   }
 
-  @NotNull
-  protected abstract BufferedImage createAsImage(@NotNull Color color);
+  /**
+   * Returns the image represented by this asset, or null if the asset is not in a valid state for generating
+   * the image. In the latter case the method may also return a non-zero {@link ListenableFuture} wrapping
+   * a null value.
+   */
+  @Nullable
+  public abstract ListenableFuture<BufferedImage> toImage();
 }

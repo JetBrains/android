@@ -37,8 +37,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBScrollBar;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -55,8 +53,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -65,7 +63,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
@@ -172,7 +172,7 @@ class CpuCaptureView {
     selectedTab.revalidate();
   }
 
-  void setCaptureDetailToTab(ChangeEvent event) {
+  private void setCaptureDetailToTab(ChangeEvent event) {
     CaptureModel.Details.Type type = null;
     if (myTabsPanel.getSelectedIndex() >= 0) {
       String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
@@ -217,7 +217,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
@@ -231,7 +231,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
@@ -245,7 +245,7 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Total (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setComparator(DEFAULT_SORT_ORDER))
@@ -300,15 +300,11 @@ class CpuCaptureView {
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new SampledMethodUsageHRenderer());
     chart.setHTree(node);
+    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
+    chart.addMouseListener(handler);
     stageView.getIdeComponents()
-      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
-        HNode<MethodModel> n = chart.getHoveredNode();
-        if (n == null || n.getData() == null) {
-          return null;
-        }
-        MethodModel method = n.getData();
-        return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
-      });
+      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(),
+                                    handler::getCodeLocation);
     return chart;
   }
 
@@ -368,7 +364,11 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -402,7 +402,11 @@ class CpuCaptureView {
       }
 
       myPanel = new JPanel(new CardLayout());
-      JTree tree = new Tree();
+      // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+      final JTree tree = new JTree();
+      int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+      tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+      tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
       myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
@@ -447,7 +451,7 @@ class CpuCaptureView {
   static class CallChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @NotNull private final CaptureModel.CallChart myCallChart;
-    @NotNull protected HTreeChart<MethodModel> myChart;
+    @NotNull private final HTreeChart<MethodModel> myChart;
 
     private AspectObserver myObserver;
 
@@ -455,7 +459,6 @@ class CpuCaptureView {
                           @NotNull CaptureModel.CallChart callChart) {
       myCallChart = callChart;
       myChart = setUpChart(myCallChart.getRange(), myCallChart.getNode(), HTreeChart.Orientation.TOP_DOWN, stageView);
-
       if (myCallChart.getNode() == null) {
         myPanel = getNoDataForThread();
         return;
@@ -512,6 +515,7 @@ class CpuCaptureView {
     public FlameChartView(CpuProfilerStageView stageView, @NotNull CaptureModel.FlameChart flameChart) {
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
+
       myChart = setUpChart(myMasterRange, myFlameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP, stageView);
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
@@ -544,6 +548,46 @@ class CpuCaptureView {
     }
   }
 
+  private static class TreeChartNavigationHandler extends MouseAdapter {
+    @NotNull private final HTreeChart<MethodModel> myChart;
+    private Point myLastPopupPoint;
+
+    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart) {
+      myChart = chart;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    private void handlePopup(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        myLastPopupPoint = e.getPoint();
+      }
+    }
+
+    @Nullable
+    private CodeLocation getCodeLocation() {
+      HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
+      if (n == null || n.getData() == null) {
+        return null;
+      }
+      MethodModel method = n.getData();
+      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
+    }
+  }
+
   private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
     @Override
     public int compare(DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) {
@@ -569,10 +613,12 @@ class CpuCaptureView {
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
     private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
+    private final int myAlignment;
 
     public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage, int alignment) {
       myGetter = getter;
       myPercentage = percentage;
+      myAlignment = alignment;
       setTextAlign(alignment);
     }
 
@@ -594,11 +640,16 @@ class CpuCaptureView {
         else {
           append(String.format("%,.0f", v));
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         // TODO: We should improve the visual feedback when no data is available.
         append(value.toString());
+      }
+      if (myAlignment == SwingConstants.LEFT) {
+        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+      }
+      else {
+        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
   }
@@ -626,7 +677,6 @@ class CpuCaptureView {
             append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
           }
         }
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
       }
       else {
         append(value.toString());

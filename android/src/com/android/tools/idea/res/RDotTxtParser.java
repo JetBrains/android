@@ -147,7 +147,12 @@ class RDotTxtParser {
                 break;
               }
             }
-            assert myDeclaredAttrs[index].equals(name) : name + " does not equal " + myDeclaredAttrs[index];
+            // b/65813064
+            // Disabled for 3.0 since some Wear support libs are redeclaring styleables with the attribute names
+            // changed from camel case to snake case. The attributes still have the same IDs so, for that case, the
+            // assertion is not needed and it's breaking beta releases (with assertions enabled).
+            // This code does not exist anymore in master
+            //assert myDeclaredAttrs[index].equals(name) : name + " does not equal " + myDeclaredAttrs[index];
             index++;
           }
           return myValuesList;

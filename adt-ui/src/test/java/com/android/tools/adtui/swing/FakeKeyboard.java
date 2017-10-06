@@ -85,7 +85,7 @@ public final class FakeKeyboard {
     if (myPressedKeys.contains(Key.CTRL)) {
       modifiers |= InputEvent.CTRL_DOWN_MASK;
     }
-    if (myPressedKeys.contains(Key.ESC)) {
+    if (myPressedKeys.contains(Key.ESC) || myPressedKeys.contains(Key.SHIFT)) {
       modifiers |= InputEvent.SHIFT_DOWN_MASK;
     }
     if (myPressedKeys.contains(Key.META)) {
@@ -111,10 +111,13 @@ public final class FakeKeyboard {
   public enum Key {
     ALT(KeyEvent.VK_ALT),
     CTRL(KeyEvent.VK_CONTROL),
+    ENTER(KeyEvent.VK_ENTER),
     ESC(KeyEvent.VK_ESCAPE),
+    LEFT(KeyEvent.VK_LEFT),
     META(KeyEvent.VK_META),
+    RIGHT(KeyEvent.VK_RIGHT),
     SHIFT(KeyEvent.VK_SHIFT);
-    // Add more keys here as necessary
+    // Add more keys here (alphabetically) as necessary
 
     final int code;
 

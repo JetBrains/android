@@ -23,7 +23,9 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
-final class NavigationViewMenuLayoutPullParserFactory extends LayoutPullParserFactory {
+import static com.android.tools.idea.rendering.LayoutPullParsers.createEmptyParser;
+
+final class NavigationViewMenuLayoutPullParserFactory {
   private final RenderTask myTask;
 
   NavigationViewMenuLayoutPullParserFactory(@NotNull RenderTask task) {

@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="xml-psi-impl" />
     <orderEntry type="module" module-name="java-psi-impl" />
     <orderEntry type="module" module-name="java-indexing-api" />
-    <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-tracker" />

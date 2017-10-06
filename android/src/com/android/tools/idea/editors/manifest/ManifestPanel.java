@@ -91,7 +91,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyName;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 // TODO for permission if not from main file
@@ -983,7 +983,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       Library library =
         GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
       if (library != null) {
-        source = getDependencyName(library, ":");
+        source = getDependencyDisplayName(library);
       }
     }
     return source;

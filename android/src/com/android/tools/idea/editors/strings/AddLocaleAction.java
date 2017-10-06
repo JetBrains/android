@@ -18,18 +18,18 @@ package com.android.tools.idea.editors.strings;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.Icons;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.ScalableIcon;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,19 +39,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 final class AddLocaleAction extends AnAction {
-  private final StringResourceTable myTable;
-  private final AndroidFacet myFacet;
+  private final StringResourceViewPanel myPanel;
 
-  AddLocaleAction(@NotNull StringResourceTable table, @NotNull AndroidFacet facet) {
+  AddLocaleAction(@NotNull StringResourceViewPanel panel) {
     super("Add Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.ToolbarDecorator.Add));
-
-    myTable = table;
-    myFacet = facet;
+    myPanel = panel;
   }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    long count = myTable.getModel().getKeys().stream()
+    long count = myPanel.getTable().getModel().getKeys().stream()
       .filter(key -> key.getDirectory() != null)
       .count();
 
@@ -60,7 +57,7 @@ final class AddLocaleAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    StringResourceData data = myTable.getData();
+    StringResourceData data = myPanel.getTable().getData();
     assert data != null;
 
     JList list = new LocaleList(getLocales(data.getLocaleSet()));
@@ -97,21 +94,27 @@ final class AddLocaleAction extends AnAction {
   }
 
   private void createItem(@NotNull Locale locale) {
+    Project project = myPanel.getFacet().getModule().getProject();
     StringResource resource = findResource();
     StringResourceKey key = resource.getKey();
+    XmlFile file = StringPsiUtils.getStringResourceFile(project, key, locale);
 
-    VirtualFile directory = key.getDirectory();
-    assert directory != null;
+    if (file == null) {
+      return;
+    }
 
-    StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), resource.getDefaultValueAsString(), true);
+    WriteCommandAction.runWriteCommandAction(project, () -> {
+      StringPsiUtils.addString(file, key, resource.getDefaultValueAsString());
+      myPanel.reloadData();
+    });
   }
 
   @NotNull
   private StringResource findResource() {
-    StringResourceData data = myTable.getData();
+    StringResourceData data = myPanel.getTable().getData();
     assert data != null;
 
-    StringResourceKey key = new StringResourceKey("app_name", myFacet.getAllResourceDirectories().get(0));
+    StringResourceKey key = new StringResourceKey("app_name", myPanel.getFacet().getAllResourceDirectories().get(0));
 
     if (data.containsKey(key)) {
       return data.getStringResource(key);

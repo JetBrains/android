@@ -51,6 +51,7 @@ public final class FreemarkerUtils {
     paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
     paramMap.put("classToResource", new FmClassNameToResourceMethod());
     paramMap.put("compareVersions", new FmCompareVersionsMethod());
+    paramMap.put("compareVersionsIgnoringQualifiers", new FmCompareVersionsIgnoringQualifiersMethod());
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());

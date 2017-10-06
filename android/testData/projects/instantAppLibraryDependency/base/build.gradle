@@ -1,0 +1,17 @@
+apply plugin: 'com.android.feature'
+
+android {
+    compileSdkVersion 26
+    baseFeature true
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    application project(':app')
+    feature project(':feature')
+}

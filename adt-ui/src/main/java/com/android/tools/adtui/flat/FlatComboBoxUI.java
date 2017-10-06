@@ -106,7 +106,8 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   public void paint(Graphics g, JComponent c) {
-    if (myHover || isPopupVisible(comboBox)) {
+    // TODO: Create a unique style for showing focus, for now use the hover state visuals.
+    if (myHover || isPopupVisible(comboBox) || c.isFocusOwner())  {
       FlatUiUtils.paintBackground(g, c);
     }
     super.paint(g, c);
@@ -139,6 +140,11 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   private static class FlatArrowButton extends JButton {
     public FlatArrowButton() {
       setUI(null);
+    }
+
+    @Override
+    public boolean isFocusable() {
+      return false;
     }
 
     @Override

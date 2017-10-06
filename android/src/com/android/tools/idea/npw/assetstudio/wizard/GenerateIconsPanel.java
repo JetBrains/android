@@ -16,14 +16,19 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.assetstudiolib.NotificationIconGenerator;
+import com.android.tools.adtui.ImageComponent;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -32,8 +37,6 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
@@ -46,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -66,7 +68,6 @@ import java.util.Map;
  * web application.
  */
 public final class GenerateIconsPanel extends JPanel implements Disposable {
-
   private static final int ASSET_PREVIEW_HEIGHT = 96;
 
   private final AndroidProjectPaths myDefaultPaths;
@@ -84,7 +85,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   private ImageComponent mySourceAssetImage;
   private JPanel myOutputPreviewPanel;
   private JPanel myTopPanel;
-  private JComboBox myIconTypeCombo;
+  private JComboBox<AndroidIconType> myIconTypeCombo;
   private JPanel myBottomPanel;
   private JPanel myConfigureIconPanels;
   private JPanel mySourceAssetPanel;
@@ -111,7 +112,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       supportedTypes = AndroidIconType.values();
     }
 
-    DefaultComboBoxModel supportedTypesModel = new DefaultComboBoxModel(supportedTypes);
+    DefaultComboBoxModel<AndroidIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
 
@@ -123,7 +124,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     mySourceAssetMaxWidthPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        updateSourceAssetPreview(getActiveIconPanel().getAsset().toImage());
+        updateSourceAssetPreview(getTrimmedAndPaddedImage(getActiveIconPanel().getAsset()));
       }
     });
 
@@ -170,12 +171,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   }
 
   private void initializeListenersAndBindings() {
-    ActionListener onAssetModified = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        renderIconPreviews();
-      }
-    };
+    ActionListener onAssetModified = actionEvent -> renderIconPreviews();
 
     for (Component component : myConfigureIconPanels.getComponents()) {
       ((ConfigureIconPanel)component).addAssetListener(onAssetModified);
@@ -206,24 +202,20 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       }
     }
 
-    throw new IllegalStateException("GenerateIconPanel configured incorrectly. Please report this error.");
+    throw new IllegalStateException("GenerateIconsPanel configured incorrectly. Please report this error.");
   }
 
   private void initializeValidators() {
-    myValidatorPanel.registerValidator(myOutputName, new Validator<String>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull String outputName) {
-        String trimmedName = outputName.trim();
-        if (trimmedName.isEmpty()) {
-          return new Result(Severity.ERROR, "Icon name must be set");
-        }
-        else if (iconExists()) {
-          return new Result(Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
-        }
-        else {
-          return Result.OK;
-        }
+    myValidatorPanel.registerValidator(myOutputName, outputName -> {
+      String trimmedName = outputName.trim();
+      if (trimmedName.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, "Icon name must be set");
+      }
+      else if (iconExists()) {
+        return new Validator.Result(Validator.Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
+      }
+      else {
+        return Validator.Result.OK;
       }
     });
   }
@@ -275,19 +267,29 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
   private void renderIconPreviews() {
     // This method is often called as the result of a UI property changing which may also cause
-    // some other properties to change. Invoke its logic later just to make sure everything gets a
-    // chance to settle first.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        BufferedImage assetImage = getActiveIconPanel().getAsset().toImage();
-        updateSourceAssetPreview(assetImage);
-        enqueueGenerateNotificationIcons(assetImage);
-      }
-    }, ModalityState.any());
+    // some other properties to change. Invoke its logic later just to make sure everything gets
+    // a chance to settle first.
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
+        BaseAsset asset = getActiveIconPanel().getAsset();
+        // TODO: Move this call off the UI thread.
+        BufferedImage image = getTrimmedAndPaddedImage(asset);
+        updateSourceAssetPreview(image);
+        enqueueGenerateNotificationIcons(image);
+      },
+      ModalityState.any());
   }
 
-  private void updateSourceAssetPreview(BufferedImage assetImage) {
+  @NotNull
+  private static BufferedImage getTrimmedAndPaddedImage(@NotNull BaseAsset asset) {
+    BufferedImage image = GraphicGenerator.getTrimmedAndPaddedImage(asset.toImage(), asset.trimmed().get(), asset.paddingPercent().get());
+    if (image == null) {
+      image = AssetStudioUtils.createDummyImage();
+    }
+    return image;
+  }
+
+  private void updateSourceAssetPreview(@NotNull BufferedImage assetImage) {
     // Preserve aspect ratio as much as we can (up to a reasonable maximum width)
     int myMaxAssetPreviewWidth = mySourceAssetMaxWidthPanel.getWidth();
 
@@ -309,7 +311,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    * thread. If several requests are made in a row while an existing worker is still in progress,
    * only the most recently added will be handled, whenever the worker finishes.
    */
-  private void enqueueGenerateNotificationIcons(@NotNull final BufferedImage assetImage) {
+  private void enqueueGenerateNotificationIcons(@NotNull BufferedImage assetImage) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     boolean currentlyWorking = myEnqueuedImageToProcess != null;
@@ -320,7 +322,6 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     }
 
     SwingWorker<Void, Void> generateIconsWorker = new SwingWorker<Void, Void>() {
-
       @Nullable private CategoryIconMap myCategoryIconMap;
 
       @Override
@@ -350,12 +351,8 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
         if (nextImage != null) {
           final BufferedImage finalNextImage = nextImage;
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              enqueueGenerateNotificationIcons(finalNextImage);
-            }
-          }, ModalityState.any());
+          ApplicationManager.getApplication().invokeLater(() -> enqueueGenerateNotificationIcons(finalNextImage),
+                                                          ModalityState.any());
         }
       }
     };

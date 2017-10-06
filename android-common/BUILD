@@ -11,5 +11,6 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools/idea/platform/util[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/idea/platform/core-api[module]",
     ],
 )

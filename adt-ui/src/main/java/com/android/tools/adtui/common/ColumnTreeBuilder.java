@@ -102,6 +102,7 @@ public class ColumnTreeBuilder {
     myTable = new JBTable(myTableModel, tableColumnModel);
     myTable.setAutoCreateColumnsFromModel(true);
     myTable.setShowVerticalLines(false);
+    myTable.setFocusable(false);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myRowSorter = new TableRowSorter<>(myTable.getModel());
     myColumnBuilders = new LinkedList<>();
@@ -132,6 +133,11 @@ public class ColumnTreeBuilder {
 
   public ColumnTreeBuilder setShowVerticalLines(boolean showVerticalLines) {
     myTable.setShowVerticalLines(showVerticalLines);
+    return this;
+  }
+
+  public ColumnTreeBuilder setTableFocusable(boolean focusable) {
+    myTable.setFocusable(focusable);
     return this;
   }
 
@@ -268,6 +274,7 @@ public class ColumnTreeBuilder {
     public void layoutContainer(Container parent) {
       int size = parent.getComponentCount();
       int columns = myColumnModel.getColumnCount();
+      Insets insets = myTree.getInsets();
       assert size == columns;
 
       int padding = myTree.getWidth();
@@ -276,12 +283,19 @@ public class ColumnTreeBuilder {
       }
 
       // The parent component has no fixed start position, but it fills the whole width, so we fill in reverse.
-      int offset = parent.getWidth();
+      int offset = parent.getWidth() - (insets.left + insets.right);
       for (int i = size - 1; i >= 0; i--) {
         Component component = parent.getComponent(i);
-        TableColumn column = myColumnModel.getColumn(i);
-        int width = Math.min(column.getWidth() + padding, offset);
-
+        int columnWidth = myColumnModel.getColumn(i).getWidth();
+        if (i == size - 1) {
+          // Adjust the right most column's width to account for inset
+          columnWidth -= insets.right;
+        }
+        if (i == 0) {
+          // Adjust the left most column's width to account for inset
+          columnWidth -= insets.left;
+        }
+        int width = Math.min(columnWidth + padding, offset);
         component.setBounds(offset - width, 0, width, parent.getHeight());
         offset -= width;
         padding = 0;
