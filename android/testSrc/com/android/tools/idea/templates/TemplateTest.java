@@ -635,6 +635,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewListFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = true;
+    checkCreateTemplate("other", "ListFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewModalBottomSheet() throws Exception {
     myApiSensitiveTemplate = true;
     checkCreateTemplate("other", "ModalBottomSheet");
