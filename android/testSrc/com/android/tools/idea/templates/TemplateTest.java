@@ -611,6 +611,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewIntentServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "IntentService", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewNotification() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Notification");
@@ -656,6 +662,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewService() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "Service");
+  }
+
+  @TemplateCheck
+  public void testNewServiceWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "Service", false, withKotlin);
   }
 
   @TemplateCheck
