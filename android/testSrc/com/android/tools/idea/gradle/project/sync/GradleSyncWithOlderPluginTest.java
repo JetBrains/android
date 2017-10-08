@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -35,6 +33,8 @@ import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.AndroidGradleTests.*;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateTargetSdkVersion;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.io.Files.write;
@@ -46,9 +46,9 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.mockito.Mockito.mock;
 
 /**
- * Integration test for gradle sync with old versions of android plugin.
+ * Integration test for Gradle Sync with old versions of Android plugin.
  */
-public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
+public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase {
   private TestSettings myTestSettings;
 
   @Override
@@ -64,6 +64,11 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
     // Most of the tests in this class share the same settings, create in setUp for convenience, each test can overwrite the settings.
     myTestSettings = new TestSettings("2.2.1", "1.5.0");
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
   }
 
   @Override
@@ -127,35 +132,13 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
-  // Disabled: http://b/67473609
-  public void /*test*/WithPluginOneDotFive() throws Exception {
-    doTestWithPluginOneDotFive(false /* use old sync infrastructure */);
-  }
-
-  public void testWithPluginOneDotFiveWithNewSync() throws Exception {
-    doTestWithPluginOneDotFive(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithPluginOneDotFive(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
+  public void testWithPluginOneDotFive() throws Exception {
     myTestSettings.resetActivityMain = false;
     // We are verifying that sync succeeds without errors.
     loadProject(PROJECT_WITH1_DOT5);
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {
-    doTestWithInterAndroidModuleDependencies(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/WithInterAndroidModuleDependenciesWithNewSync() throws Exception {
-    doTestWithInterAndroidModuleDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithInterAndroidModuleDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'library2'
@@ -164,17 +147,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testWithInterJavaModuleDependencies() throws Exception {
-    doTestWithInterJavaModuleDependencies(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/WithInterJavaModuleDependenciesWithNewSync() throws Exception {
-    doTestWithInterJavaModuleDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithInterJavaModuleDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'lib'
@@ -184,17 +156,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
-    doTestJavaLibraryDependenciesFromJavaModule(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/JavaLibraryDependenciesFromJavaModuleWithNewSync() throws Exception {
-    doTestJavaLibraryDependenciesFromJavaModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestJavaLibraryDependenciesFromJavaModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module javaLibModule = myModules.getModule("lib");
     // 'app' -> 'lib' -> 'guava'
@@ -204,17 +165,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
-    doTestLocalJarDependenciesFromAndroidModule(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/LocalJarDependenciesFromAndroidModuleWithNewSync() throws Exception {
-    doTestLocalJarDependenciesFromAndroidModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestLocalJarDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
@@ -223,17 +173,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
-    doTestJavaLibraryDependenciesFromAndroidModule(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/JavaLibraryDependenciesFromAndroidModuleWithNewSync() throws Exception {
-    doTestJavaLibraryDependenciesFromAndroidModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestJavaLibraryDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'gson'
@@ -242,17 +181,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
-    doTestAndroidModuleDependenciesFromAndroidModule(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/AndroidModuleDependenciesFromAndroidModuleWithNewSync() throws Exception {
-    doTestAndroidModuleDependenciesFromAndroidModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestAndroidModuleDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'library1'
@@ -260,17 +188,6 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
-    doTestAndroidLibraryDependenciesFromAndroidModule(false /* use old sync infrastructure */);
-  }
-
-  // Disabled: http://b/67420000
-  public void /*test*/AndroidLibraryDependenciesFromAndroidModuleWithNewSync() throws Exception {
-    doTestAndroidLibraryDependenciesFromAndroidModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestAndroidLibraryDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module androidLibModule = myModules.getModule("library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
