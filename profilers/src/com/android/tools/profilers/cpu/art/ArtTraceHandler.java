@@ -55,7 +55,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
   @Override
   public void addMethod(long id, MethodInfo info) {
-    myMethods.put(id, new MethodModel(info.methodName, info.className, info.signature));
+    myMethods.put(id, new MethodModel(info.methodName, info.className, info.signature, "."));
   }
 
   @Override
@@ -68,7 +68,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
     // create method info if it doesn't exist
     if (!myMethods.containsKey(methodId)) {
-      myMethods.put(methodId, new MethodModel("unknown", "unknown", "unknown"));
+      myMethods.put(methodId, new MethodModel("unknown", "unknown", "unknown", ""));
     }
 
     CaptureNodeConstructor constructor = myNodeConstructors.get(threadId);

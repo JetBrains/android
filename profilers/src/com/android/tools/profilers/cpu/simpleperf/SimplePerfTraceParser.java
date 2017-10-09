@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
+ * TODO: rename the class to SimpleperfTraceParser. Simpleperf is a single word.
  */
 public class SimplePerfTraceParser implements TraceParser {
 
@@ -148,9 +149,9 @@ public class SimplePerfTraceParser implements TraceParser {
   }
 
   @NotNull
-  private static CaptureNode createCaptureNode(String name, long timestamp) {
+  private static CaptureNode createCaptureNode(MethodModel model, long timestamp) {
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(name));
+    node.setMethodModel(model);
     setNodeStartTime(node, timestamp);
     node.setDepth(0);
     return node;
@@ -278,7 +279,7 @@ public class SimplePerfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    CaptureNode root = createCaptureNode(myThreads.get(threadId), firstTimestamp);
+    CaptureNode root = createCaptureNode(new MethodModel(myThreads.get(threadId)), firstTimestamp);
     root.setDepth(0);
     myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
 
@@ -374,7 +375,7 @@ public class SimplePerfTraceParser implements TraceParser {
                                   CaptureNode node, int startIndex, long startTimestamp) {
     assert node != null;
     for (int i = startIndex; i < callChain.size(); i++) {
-      CaptureNode child = createCaptureNode(parseMethodName(callChain.get(i)), startTimestamp);
+      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i)), startTimestamp);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
       node = child;
@@ -383,22 +384,19 @@ public class SimplePerfTraceParser implements TraceParser {
     return node;
   }
 
-  private String parseMethodName(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
+  private MethodModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
     int symbolId = callChainEntry.getSymbolId();
     SimpleperfReport.File symbolFile = myFiles.get(callChainEntry.getFileId());
     if (symbolFile == null) {
       throw new IllegalStateException("Symbol file with id \"" + callChainEntry.getFileId() + "\" not found.");
     }
-    String methodName;
     if (symbolId == INVALID_SYMBOL_ID) {
       // if symbol_id is -1, we report the method as fileName+vAddress (e.g. program.so+0x3039)
       String hexAddress = "0x" + Long.toHexString(callChainEntry.getVaddrInFile());
-      methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
+      String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
+      return new MethodModel(methodName);
     }
-    else {
-      // otherwise, read the method name from the symbol table
-      methodName = symbolFile.getSymbol(symbolId);
-    }
-    return methodName;
+    // Otherwise, read the method from the symbol table and parse it into a MethodModel
+    return MethodNameParser.parseMethodName(symbolFile.getSymbol(symbolId));
   }
 }
