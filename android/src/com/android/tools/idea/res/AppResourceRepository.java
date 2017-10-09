@@ -40,7 +40,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
@@ -289,7 +288,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         }
       }
     }
-    catch (UnsupportedMethodException e) {
+    catch (UnsupportedOperationException e) {
       // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
       // cached model.
       // If we got here is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).

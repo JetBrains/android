@@ -63,7 +63,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
     // Most of the tests in this class share the same settings, create in setUp for convenience, each test can overwrite the settings.
-    myTestSettings = new TestSettings("2.2.1", "1.5.0");
+    myTestSettings = new TestSettings("2.4", "1.5.0");
   }
 
   @Override
