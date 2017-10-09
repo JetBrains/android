@@ -18,9 +18,11 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -44,7 +46,6 @@ import java.io.IOException;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
@@ -275,31 +276,6 @@ public class NewProjectTest {
 
     File gradleFile = new File(guiTest.getProjectPath(), SdkConstants.FN_GRADLE_WRAPPER_UNIX);
     assertTrue(gradleFile.canExecute());
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/66950214
-  @Test
-  public void testStillBuildingMessage() throws Exception {
-    // Create a new project and open a layout file.
-    // If the first build is still going on when the rendering happens, simply show a message that a build is going on,
-    // and check that the message disappears at the end of the build.
-    newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create(guiTest);
-    final EditorFixture editor = guiTest.ideFrame().getEditor();
-
-    Wait.seconds(5).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
-
-    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish();
-
-    if (layoutEditor.hasRenderErrors()) {
-      layoutEditor.waitForErrorPanelToContain("still building");
-      assertFalse(layoutEditor.getIssuePanel().containsText("Missing styles"));
-      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-      layoutEditor.waitForRenderToFinish();
-      assertThat(layoutEditor.hasRenderErrors()).isFalse();
-    }
   }
 
   @RunIn(TestGroup.UNRELIABLE)
