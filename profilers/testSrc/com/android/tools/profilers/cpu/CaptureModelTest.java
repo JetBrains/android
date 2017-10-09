@@ -142,7 +142,7 @@ public class CaptureModelTest {
     String methodName = fullMethodName.substring(index + 1);
 
     CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(methodName, className, ""));
+    node.setMethodModel(new MethodModel(methodName, className, "", "."));
     node.setClockType(ClockType.GLOBAL);
     node.setStartGlobal(start);
     node.setEndGlobal(end);

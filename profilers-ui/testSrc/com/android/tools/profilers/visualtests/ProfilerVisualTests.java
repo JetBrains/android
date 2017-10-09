@@ -26,6 +26,7 @@ public class ProfilerVisualTests {
         VisualTestsDialog dialog = new VisualTestsDialog();
         dialog.addTest(new CpuHTreeChartReducerVisualTest());
         dialog.addTest(new HoverColumnTreeVisualTest());
+        dialog.addTest(new MethodModelRendererVisualTest());
         dialog.setTitle("Visual Tests");
         dialog.pack();
         dialog.setVisible(true);

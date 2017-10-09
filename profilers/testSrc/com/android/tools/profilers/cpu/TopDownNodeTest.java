@@ -70,7 +70,7 @@ public class TopDownNodeTest {
 
   @Test
   public void testTreeData() {
-    MethodModel rootModel = new MethodModel("A", "com.package", "");
+    MethodModel rootModel = new MethodModel("A", "com.package", "", ".");
     TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
 
     assertEquals("com.package", topDown.getClassName());

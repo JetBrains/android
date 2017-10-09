@@ -23,17 +23,19 @@ public class MethodModel {
   @NotNull private final String myClassName;
   @NotNull private final String myName;
   @NotNull private final String mySignature;
+  @NotNull private final String mySeparator;
   private String myFullName;
   private String myId;
 
-  public MethodModel(@NotNull String name, @NotNull String className, @NotNull String signature) {
+  public MethodModel(@NotNull String name, @NotNull String className, @NotNull String signature, @NotNull String separator) {
     myName = name;
     myClassName = className;
     mySignature = signature;
+    mySeparator = separator;
   }
 
   public MethodModel(String name) {
-    this(name, "", "");
+    this(name, "", "", "");
   }
 
   @NotNull
@@ -52,12 +54,17 @@ public class MethodModel {
   }
 
   @NotNull
+  public String getSeparator() {
+    return mySeparator;
+  }
+
+  @NotNull
   public String getFullName() {
-    // Separator is only needed if we have a class name, otherwise we're gonna end up with a leading "." character.
+    // Separator is only needed if we have a class name, otherwise we're gonna end up with a leading separator.
     // We don't have a class name, for instance, for native methods (e.g. clock_gettime)
     // or the special nodes created to represent a thread (e.g. AsyncTask #1).
     if (myFullName == null) {
-      String separator = StringUtil.isEmpty(myClassName) ? "" : ".";
+      String separator = StringUtil.isEmpty(myClassName) ? "" : mySeparator;
       myFullName = String.format("%s%s%s", myClassName, separator, myName);
     }
     return myFullName;
