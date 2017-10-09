@@ -184,7 +184,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
 
-    actions.add(new NestedViewActionMenu("Align", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("Show", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
