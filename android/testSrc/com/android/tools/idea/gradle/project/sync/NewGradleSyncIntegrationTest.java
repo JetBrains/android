@@ -15,25 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-
-public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
+/**
+ * Integration tests for 'Gradle Sync' using the new Sync infrastructure.
+ */
+public class NewGradleSyncIntegrationTest extends GradleSyncIntegrationTest {
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewSyncInfrastructure();
+  protected boolean useNewSyncInfrastructure() {
+    return true;
   }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = false; // back to default value.
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  protected abstract boolean useNewSyncInfrastructure();
 }

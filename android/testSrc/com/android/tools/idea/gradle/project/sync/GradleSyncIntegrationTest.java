@@ -22,23 +22,18 @@ import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -66,12 +61,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
@@ -92,8 +87,20 @@ import static org.mockito.Mockito.*;
 /**
  * Integration tests for 'Gradle Sync'.
  */
-public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
+public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   private IdeComponents myIdeComponents;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    Project project = getProject();
+
+    myIdeComponents = new IdeComponents(project);
+
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    projectSettings.setDistributionType(DEFAULT_WRAPPED);
+    GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
 
   @Override
   protected void tearDown() throws Exception {
@@ -106,14 +113,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    Project project = getProject();
-
-    myIdeComponents = new IdeComponents(project);
-    GradleProjectSettings projectSettings = new GradleProjectSettings();
-    projectSettings.setDistributionType(DEFAULT_WRAPPED);
-    GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  protected boolean useNewSyncInfrastructure() {
+    return false;
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
@@ -131,16 +132,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=226802
   public void testNestedModule() throws Exception {
-    doTestNestedModule(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testNestedModuleWithNewSync() throws Exception {
-    doTestNestedModule(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestNestedModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     // Sync must be successful.
     loadProject(NESTED_MODULE);
 
@@ -153,30 +144,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     assertEquals(":", gradleModel.getGradlePath());
   }
 
-  // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.
-  // See: https://code.google.com/p/android/issues/detail?id=160899
-  public void testWithCacheMissingModules() throws Exception {
-    loadSimpleApplication();
-
-    // Simulate data node cache is missing modules.
-    //noinspection unchecked
-    DataNode<ProjectData> cache = mock(DataNode.class);
-    DataNodeCaches dataNodeCaches = myIdeComponents.mockProjectService(DataNodeCaches.class);
-    when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
-    when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
-
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    // @formatter:off
-    request.setGenerateSourcesOnSuccess(false)
-           .setUseCachedGradleModels(true);
-    // @formatter:on
-
-    // Sync again, and a full sync should occur, since the cache is missing modules.
-    // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
-    // finished.
-    requestSyncAndWait(request);
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=224985
   // Disabled until the prebuilt SDK has CMake.
   public void /*test*/ExternalSystemSourceFolderSync() throws Exception {
@@ -186,16 +153,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
   // Disabled until the prebuilt Maven repo has all dependencies.
   public void testWithUserDefinedLibrarySources() throws Exception {
-    doTestWithUserDefinedLibrarySources(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testWithUserDefinedLibrarySourcesWithNewSync() throws Exception {
-    doTestWithUserDefinedLibrarySources(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestWithUserDefinedLibrarySources(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -225,15 +182,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testSyncShouldNotChangeDependenciesInBuildFiles() throws Exception {
-    doTestSyncShouldNotChangeDependenciesInBuildFiles(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testSyncShouldNotChangeDependenciesInBuildFilesWithNewSync() throws Exception {
-    doTestSyncShouldNotChangeDependenciesInBuildFiles(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestSyncShouldNotChangeDependenciesInBuildFiles(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
     loadSimpleApplication();
 
     File appBuildFilePath = getBuildFilePath("app");
@@ -263,16 +211,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testModuleJavaLanguageLevel() throws Exception {
-    doTestModuleJavaLanguageLevel(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testModuleJavaLanguageLevelWithNewSync() throws Exception {
-    doTestModuleJavaLanguageLevel(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestModuleJavaLanguageLevel(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = myModules.getModule("library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
@@ -371,15 +309,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
   // See https://code.google.com/p/android/issues/detail?id=170722
   public void testWithAndroidProjectWithoutVariants() throws Exception {
-    doTestWithAndroidProjectWithoutVariants(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testWithAndroidProjectWithoutVariantsAndNewSync() throws Exception {
-    doTestWithAndroidProjectWithoutVariants(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestWithAndroidProjectWithoutVariants(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
     Project project = getProject();
 
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
@@ -408,16 +337,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=74259
   public void testWithCentralBuildDirectoryInRootModule() throws Exception {
-    doTestWithCentralBuildDirectoryInRootModule(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testWithCentralBuildDirectoryInRootModuleWithNewSync() throws Exception {
-    doTestWithCentralBuildDirectoryInRootModule(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestWithCentralBuildDirectoryInRootModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
     // outside the content root of the "app" module.
     File projectRootPath = prepareProjectForImport(CENTRAL_BUILD_DIRECTORY);
@@ -470,16 +389,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testGradleSyncActionAfterFailedSync() {
-    doTestGradleSyncActionAfterFailedSync(false /* use IDEA Sync infrastructure */);
-  }
-
-  public void testGradleSyncActionAfterFailedSyncWithNewSync() {
-    doTestGradleSyncActionAfterFailedSync(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestGradleSyncActionAfterFailedSync(boolean useNewGradleSync) {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     IdeInfo ideInfo = myIdeComponents.mockService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
@@ -507,15 +416,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // due to conflicts in variant attributes.
   // See b/64213214.
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
-    doTestSyncIssueWithNonMatchingVariantAttributes(false/* use IDEA Sync infrastructure */);
-  }
-
-  public void testSyncIssueWithNonMatchingVariantAttributesAndNewSync() throws Exception {
-    doTestSyncIssueWithNonMatchingVariantAttributes(true /* use new Sync infrastructure */);
-  }
-
-  private void doTestSyncIssueWithNonMatchingVariantAttributes(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -178,8 +177,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = false;
-
       Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
         try {
