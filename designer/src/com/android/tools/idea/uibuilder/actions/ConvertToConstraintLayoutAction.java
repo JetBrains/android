@@ -40,6 +40,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
@@ -156,10 +157,15 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
 
     // Step #2: Ensure ConstraintLayout is available in the project
+    Module module = screenView.getModel().getModule();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    if (!manager.addDependencies(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
-      return;
+    List<GradleCoordinate> toAdd = Collections.singletonList(GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+"));
+    List<GradleCoordinate> missing = manager.findMissingDependencies(module, toAdd);
+    if (!missing.isEmpty()) {
+      if (!GradleDependencyManager.userWantToAddDependencies(module, missing) ||
+          !manager.addDependencies(module, missing, null)) {
+        return;
+      }
     }
 
     // Step #3: Migrate

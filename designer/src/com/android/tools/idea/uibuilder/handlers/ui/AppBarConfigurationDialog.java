@@ -32,6 +32,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -55,6 +56,7 @@ import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -324,8 +326,16 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
     myLoadingPanel.startLoading();
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
-    return manager.addDependencies(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
+    Module module = myEditor.getModel().getModule();
+    List<GradleCoordinate> toAdd = Collections.singletonList(GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+"));
+    List<GradleCoordinate> missing = manager.findMissingDependencies(module, toAdd);
+    if (missing.isEmpty()) {
+      return true;
+    }
+    if (!GradleDependencyManager.userWantToAddDependencies(module, missing)) {
+      return false;
+    }
+    return manager.addDependencies(myEditor.getModel().getModule(), missing, () -> {
       if (isVisible()) {
         ApplicationManager.getApplication().invokeLater(this::generatePreviews);
       }

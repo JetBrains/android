@@ -88,8 +88,10 @@ public class DependencyManager {
     if (needsLibraryLoad(item)) {
       List<GradleCoordinate> dependencies =
         Collections.singletonList(GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+"));
-      GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-      manager.addDependencies(myModule, dependencies, null);
+      if (GradleDependencyManager.userWantToAddDependencies(myModule, dependencies)) {
+        GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
+        manager.addDependencies(myModule, dependencies, null);
+      }
     }
   }
 
