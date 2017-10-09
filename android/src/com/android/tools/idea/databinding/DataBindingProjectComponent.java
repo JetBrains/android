@@ -180,6 +180,7 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
       .flatMap(DataBindingProjectComponent::getPsiLiterals)
       .map(PsiLiteral::getValue)
       .filter(Objects::nonNull)
+      .distinct()
       .map(Object::toString);
   }
 }
