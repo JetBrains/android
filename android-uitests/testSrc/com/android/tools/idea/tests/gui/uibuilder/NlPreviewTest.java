@@ -357,6 +357,9 @@ public class NlPreviewTest {
     Wait.seconds(2).expecting("preview to update")
       .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
+
+    // Remove this hack when b/67590545 (IDEA-180279) has been fixed.
+    guiTest.robot().waitForIdle();
   }
 
   private static void navigateEditor(@NotNull EditorFixture editor,
