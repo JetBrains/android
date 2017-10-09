@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
-import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -53,11 +52,12 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.*;
+import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
+import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
 import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
@@ -231,7 +231,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
         extraInfo.addAll(multiLineMessage);
       }
     }
-    catch (UnsupportedMethodException ex) {
+    catch (UnsupportedOperationException ex) {
       // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
     }
 

@@ -53,7 +53,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -309,7 +308,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         try {
           myDependenciesFactory.findAndAddBuildFolderPath(gradleProject.getPath(), gradleProject.getBuildDirectory());
         }
-        catch (UnsupportedMethodException exception) {
+        catch (UnsupportedOperationException exception) {
           // getBuildDirectory is available for Gradle versions older than 2.0.
           // For older versions of gradle, there's no way to get build directory.
         }

@@ -42,7 +42,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -260,7 +259,7 @@ final class ManifestInfo {
     try {
       return config.getVersionNameSuffix();
     }
-    catch (UnsupportedMethodException e) {
+    catch (UnsupportedOperationException e) {
       Logger.getInstance(ManifestInfo.class).warn("Method 'getVersionNameSuffix' not found", e);
       return null;
     }

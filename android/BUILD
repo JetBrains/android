@@ -137,6 +137,7 @@ iml_module(
         "//tools/base/bazel:offline_repo_repo.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/external/gradle:gradle-distrib-2.2.1",
+        "//tools/external/gradle:gradle-distrib-2.4",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",

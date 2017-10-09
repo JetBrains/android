@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -172,7 +171,7 @@ public abstract class AndroidPluginGeneration {
         // only true for experimental plugin 0.6.0-betaX (or whenever the getPluginGeneration() was added) or later.
         return gradleModel.getAndroidProject().getPluginGeneration() == GENERATION_COMPONENT ? COMPONENT : ORIGINAL;
       }
-      catch (UnsupportedMethodException t) {
+      catch (UnsupportedOperationException t) {
         // happens for 2.0.0-alphaX or earlier stable version plugins and 0.6.0-alphax or earlier experimental plugin versions.
       }
     }
