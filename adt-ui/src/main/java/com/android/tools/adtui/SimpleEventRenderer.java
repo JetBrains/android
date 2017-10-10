@@ -56,10 +56,10 @@ public interface SimpleEventRenderer<E> {
    * @param borderColor  Color of the icon's border.
    */
   static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor) {
-    BufferedImage originalImage = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    BufferedImage originalImage = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     // Border image has a bigger size to fit the extra border
     BufferedImage borderImage =
-      UIUtil.createImage(icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);
+      new BufferedImage(icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g2d = originalImage.createGraphics();
 
     icon.paintIcon(null, g2d, 0, 0);
