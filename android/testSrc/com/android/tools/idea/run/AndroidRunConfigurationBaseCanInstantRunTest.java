@@ -75,7 +75,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     when(executor.getId()).thenReturn(ID);
 
     Messages.setTestDialog(message -> Messages.NO);
-    assertNull(myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), false, false));
+    assertNull(myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), null, false));
   }
 
   public void testPrepareInstantRunSession_Kill() {
@@ -85,7 +85,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
 
     Messages.setTestDialog(message -> Messages.YES);
     AndroidRunConfigurationBase.PrepareSessionResult result =
-      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), false, false);
+      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), null, false);
 
     assertNotNull(result);
     assertNull(result.futures);

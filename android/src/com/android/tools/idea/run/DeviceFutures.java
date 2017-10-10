@@ -79,4 +79,17 @@ public final class DeviceFutures {
     }
     return new DeviceFutures(futures.build());
   }
+
+  /**
+   * Checks if the other deviceFutures instance contains the same set of devices.
+   */
+  public boolean allMatch(@Nullable DeviceFutures other) {
+    if (other == null) {
+      return false;
+    }
+
+    return getDevices().stream()
+      .allMatch(device -> other.getDevices().stream()
+        .anyMatch(selectedDevice -> selectedDevice.getSerial().equals(device.getSerial())));
+  }
 }
