@@ -95,7 +95,7 @@ public class ActionHandleTarget extends NavBaseTarget {
       protected void run(@NotNull Result result) throws Throwable {
         XmlTag tag = myNlComponent.getTag().createChildTag(NavigationSchema.TAG_ACTION, null, null, false);
         NlComponent newComponent = myModel.createComponent(tag, myNlComponent, null);
-        NlComponentHelperKt.ensureId(newComponent);
+        newComponent.ensureId();
         newComponent.setAttribute(
           SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + destinationNlComponent.getId());
       }

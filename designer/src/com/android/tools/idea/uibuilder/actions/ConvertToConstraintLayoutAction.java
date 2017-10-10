@@ -241,7 +241,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       if (myLayout == null) {
         return;
       }
-      NlComponentHelperKt.ensureId(myLayout);
+      myLayout.ensureId();
 
       boolean directConvert = true;
       if (myFlatten) {

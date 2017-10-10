@@ -509,6 +509,17 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
+   * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
+   * not need one according to [.needsDefaultId]
+   */
+  public String ensureId() {
+    if (getId() != null) {
+      return getId();
+    }
+    return assignId();
+  }
+
+  /**
    * Assign a new unique and valid id to this component. The id will not be du-duped against any existing pending ids.
    *
    * @param baseName The base (prefix) for the new id.
