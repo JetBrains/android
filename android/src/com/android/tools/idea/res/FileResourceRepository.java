@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
@@ -58,7 +59,7 @@ public class FileResourceRepository extends LocalResourceRepository {
    * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
    * have the associated {@link ResourceItem} with it.
    */
-  @Nullable protected Collection<String> myAarDeclaredIds;
+  @Nullable protected Map<String, Integer> myAarDeclaredIds;
 
   @NotNull private final File myFile;
   @Nullable private final String myNamespace;
@@ -111,7 +112,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
     if (rDotTxt.exists()) {
       repository.myResourceTextFile = rDotTxt;
-      repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
+      repository.myAarDeclaredIds = RDotTxtParser.getIds(rDotTxt);
     }
 
     return repository;
@@ -189,7 +190,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   /** @see #myAarDeclaredIds */
   @Nullable
-  protected Collection<String> getAllDeclaredIds() {
+  public Map<String, Integer> getAllDeclaredIds() {
     return myAarDeclaredIds;
   }
 

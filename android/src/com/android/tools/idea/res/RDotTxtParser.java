@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods to extract information from R.txt files.
@@ -41,14 +42,15 @@ class RDotTxtParser {
   private static final Splitter COMMA_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
 
   @NotNull
-  static Collection<String> getIdNames(@NotNull final File rFile) {
+  static Map<String, Integer> getIds(@NotNull final File rFile) {
     try {
       SymbolTable symbolTable = SymbolIo.readFromAapt(rFile, null);
-      return symbolTable.getSymbols().row(ResourceType.ID).keySet();
+      return symbolTable.getSymbols().row(ResourceType.ID).entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> Integer.decode(e.getValue().getValue())));
     }
     catch (IOException e) {
       getLog().warn("Unable to read file: " + rFile.getPath(), e);
-      return Collections.emptyList();
+      return Collections.emptyMap();
     }
   }
 

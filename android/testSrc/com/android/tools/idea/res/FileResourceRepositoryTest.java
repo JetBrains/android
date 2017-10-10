@@ -62,7 +62,10 @@ public class FileResourceRepositoryTest extends TestCase {
 
   public void testGetAllDeclaredIds() throws IOException {
     FileResourceRepository repository = getTestRepository();
-    assertThat(repository.getAllDeclaredIds()).containsExactly("id1", "id2", "id3");
+    assertThat(repository.getAllDeclaredIds()).containsExactly(
+      "id1", 0x7f0b0000,
+      "id2", 0x7f0b0001,
+      "id3", 0x7f0b0002);
   }
 
   public void testMultipleValues() throws IOException {

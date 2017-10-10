@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -29,6 +30,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.SparseArray;
@@ -103,7 +105,7 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull final FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    final LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
+    final AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
     if (resources == null) {
       return ResourceResolver.create(Collections.emptyMap(), Collections.emptyMap(), null, false);
     }
@@ -175,6 +177,21 @@ public class ResourceResolverCache {
       boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
       String themeName = ResourceHelper.styleToTheme(themeStyle);
       resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
+
+      resolver.setLibrariesIdProvider(new RenderResources.ResourceIdProvider() {
+        @Override
+        public Integer getId(ResourceType resType, String resName) {
+          for (FileResourceRepository library : resources.getLibraries()) {
+            Integer id = library.getAllDeclaredIds().get(resName);
+
+            if (id != null) {
+              return id;
+            }
+          }
+
+          return null;
+        }
+      });
 
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();
