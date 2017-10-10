@@ -45,6 +45,21 @@ fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
   }
 }
 
+val NlComponent.visibleDestinations: List<NlComponent>
+  get() {
+    val schema = NavigationSchema.getOrCreateSchema(model.facet)
+    val result = arrayListOf<NlComponent>()
+    var p = parent
+    while (p != null) {
+      p.getChildren().stream().filter { c -> schema.getDestinationType(c.tagName) != null }.forEach { result.add(it) }
+      p = p.parent
+    }
+    // The above won't add the root itself
+    result.addAll(model.components)
+    return result
+  }
+
+
 val NlComponent.resolvedId
     get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
 

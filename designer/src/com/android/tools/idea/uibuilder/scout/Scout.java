@@ -185,7 +185,7 @@ public class Scout {
       return;
     }
     for (NlComponent child : root.getChildren()) {
-      NlComponentHelperKt.ensureId(child);
+      child.ensureId();
     }
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
       return;

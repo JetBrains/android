@@ -708,7 +708,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
             assert guideline != null;
-            NlComponentHelperKt.ensureId(guideline);
+            guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
@@ -719,7 +719,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           case VERTICAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
             assert guideline != null;
-            NlComponentHelperKt.ensureId(guideline);
+            guideline.ensureId();
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
 
@@ -731,21 +731,21 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           case GROUP: {
             NlComponent group = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
             assert group != null;
-            NlComponentHelperKt.ensureId(group);
+            group.ensureId();
           }
           break;
           case CONSTRAINT_SET: {
             NlComponent constraints =
               NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
             assert constraints != null;
-            NlComponentHelperKt.ensureId(constraints);
+            constraints.ensureId();
             ConstraintReferenceManagement.populateConstraints(constraints);
           }
           break;
           case LAYER: {
             NlComponent layer = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
             assert layer != null;
-            NlComponentHelperKt.ensureId(layer);
+            layer.ensureId();
           }
           break;
           case HORIZONTAL_BARRIER: {
@@ -785,7 +785,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
             NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
             assert barrier != null;
-            NlComponentHelperKt.ensureId(barrier);
+            barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
 
             // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());
@@ -843,7 +843,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             }
             NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
             assert barrier != null;
-            NlComponentHelperKt.ensureId(barrier);
+            barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
 
             // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(editor.getScene().getDesignSurface());

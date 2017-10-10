@@ -114,7 +114,7 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       plus.foreground = JBColor.GRAY
       plus.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent?) {
-          addAction()
+          (inspector as? NavInspectorPanel)?.addAction()
         }
       })
       val plusPanel = JPanel(BorderLayout())
@@ -128,10 +128,6 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
 
     companion object {
       private val WHITE_ACTION = WhiteIconGenerator.generateWhiteIcon(StudioIcons.NavEditor.Toolbar.ACTION)
-    }
-
-    fun addAction() {
-      AddActionDialog().showAndGet()
     }
   }
 }

@@ -68,7 +68,7 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
     `when`(manager.facet).thenReturn(myFacet)
 
     val panel = NavInspectorPanel(myRootDisposable)
-    panel.setComponent(listOf(model.find("f1")), HashBasedTable.create<String, String, NlProperty>(), manager)
+    panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     assertNotNull(panel.components[0])
   }

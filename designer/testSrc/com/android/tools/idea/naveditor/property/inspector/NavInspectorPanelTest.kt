@@ -20,7 +20,6 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.uibuilder.property.NlProperties
-import com.google.common.collect.ImmutableList
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
@@ -39,7 +38,7 @@ class NavInspectorPanelTest: NavigationTestCase() {
     val manager = spy(NavPropertiesManager(myFacet, model.surface))
     val inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
-    val components = ImmutableList.of(model.find("f1"))
+    val components = listOf(model.find("f1")!!)
     panel.setComponent(components, NlProperties.getInstance().getProperties(manager, model.components), manager)
 
     @Suppress("UNCHECKED_CAST")

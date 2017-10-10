@@ -136,14 +136,6 @@ fun NlComponent.getBaseIdName(): String? {
 }
 
 /**
- * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
- * not need one according to [.needsDefaultId]
- */
-fun NlComponent.ensureId(): String {
-  return id ?: assignId()
-}
-
-/**
  * Ensure that there's a id, if not execute a write command to add
  * the id to the component.
 
