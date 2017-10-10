@@ -18,10 +18,53 @@ package com.android.tools.idea.gradle.project.sync;
 /**
  * Integration test for Gradle Sync with old versions of Android plugin and the new Sync infrastructure.
  */
-@SuppressWarnings("JUnitTestCaseWithNoTests")
 public class NewGradleSyncWithOlderPluginTest extends GradleSyncWithOlderPluginTest {
   @Override
   protected boolean useNewSyncInfrastructure() {
     return true;
+  }
+
+  @Override
+  public void testWithInterAndroidModuleDependencies() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testWithInterJavaModuleDependencies() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testLocalJarDependenciesFromAndroidModule() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
+    notifySkippedTest();
+  }
+
+  @Override
+  public void testWithPluginOneDotFive() throws Exception {
+    notifySkippedTest();
+  }
+
+  private void notifySkippedTest() {
+    System.out.println(String.format("Skipped '%1$s#%2$s'. See http://b/67420000 .", getClass().getSimpleName(), getName()));
   }
 }
