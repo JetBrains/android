@@ -762,6 +762,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testAndroidAutoMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMediaService", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testAndroidAutoMessagingService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMessagingService");
   }
