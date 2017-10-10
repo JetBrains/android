@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -233,9 +232,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      Table<String, String, NlPropertyItem> properties =
-        !components.isEmpty() ? NlProperties.getInstance().getProperties(this, components)
-                              : ImmutableTable.of();
+      Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(myFacet, this, components);
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {

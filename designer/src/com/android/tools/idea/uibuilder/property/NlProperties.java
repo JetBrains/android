@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -31,7 +30,8 @@ import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
@@ -47,7 +47,9 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -65,27 +67,23 @@ public class NlProperties {
   }
 
   @NotNull
-  public Table<String, String, NlPropertyItem> getProperties(@NotNull PropertiesManager propertiesManager,
+  public Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
+                                                             @NotNull PropertiesManager propertiesManager,
                                                              @NotNull List<NlComponent> components) {
-    AndroidFacet facet = getFacet(components);
-    if (facet == null) {
+    assert !EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode();
+
+    if (components.isEmpty()) {
       return ImmutableTable.of();
     }
-    return getProperties(facet, propertiesManager, components);
-  }
 
-  @VisibleForTesting
-  Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                      @NotNull PropertiesManager propertiesManager,
-                                                      @NotNull List<NlComponent> components) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Table<String, String, NlPropertyItem>>)() ->
-      getPropertiesWithReadLock(facet, propertiesManager, components));
+    Project project = facet.getModule().getProject();
+    return DumbService.getInstance(project).runReadActionInSmartMode(() -> getPropertiesImpl(facet, propertiesManager, components));
   }
 
   @NotNull
-  private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull AndroidFacet facet,
-                                                                          @NotNull PropertiesManager propertiesManager,
-                                                                          @NotNull List<NlComponent> components) {
+  private Table<String, String, NlPropertyItem> getPropertiesImpl(@NotNull AndroidFacet facet,
+                                                                  @NotNull PropertiesManager propertiesManager,
+                                                                  @NotNull List<NlComponent> components) {
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
     ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
@@ -150,14 +148,6 @@ public class NlProperties {
 
     //noinspection ConstantConditions
     return combinedProperties;
-  }
-
-  @Nullable
-  private static AndroidFacet getFacet(@NotNull List<NlComponent> components) {
-    if (components.isEmpty()) {
-      return null;
-    }
-    return components.get(0).getModel().getFacet();
   }
 
   private static void initStarState(@NotNull Table<String, String, NlPropertyItem> properties) {

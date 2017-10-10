@@ -21,9 +21,9 @@ import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
@@ -410,7 +410,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   @NotNull
   protected Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
     NlProperties propertiesProvider = NlProperties.getInstance();
-    return propertiesProvider.getProperties(myPropertiesManager, components);
+    return propertiesProvider.getProperties(myFacet, myPropertiesManager, components);
   }
 
   @NotNull
