@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -32,13 +33,17 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -87,9 +92,29 @@ public class IdeaGradleSync implements GradleSync {
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
     Set<String> androidProjectCandidatesPaths = ContainerUtil.newLinkedHashSet();
-    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
-      String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
-      ContainerUtil.addIfNotNull(androidProjectCandidatesPaths, projectPath);
+    if (request.isNewProject()) {
+      GradleSettings gradleSettings = GradleSettings.getInstance(project);
+      Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
+      if (projectsSettings.isEmpty()) {
+        GradleProjectOpenProcessor gradleProjectOpenProcessor =
+          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
+        if (project.getBasePath() != null && gradleProjectOpenProcessor.canOpenProject(project.getBaseDir())) {
+          GradleProjectSettings projectSettings = new GradleProjectSettings();
+          String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(project.getBasePath());
+          projectSettings.setExternalProjectPath(externalProjectPath);
+          gradleSettings.setLinkedProjectsSettings(ContainerUtil.list(projectSettings));
+          androidProjectCandidatesPaths.add(externalProjectPath);
+        }
+      }
+      else if (projectsSettings.size() == 1) {
+        androidProjectCandidatesPaths.add(projectsSettings.iterator().next().getExternalProjectPath());
+      }
+    }
+    else {
+      for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+        String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+        ContainerUtil.addIfNotNull(androidProjectCandidatesPaths, projectPath);
+      }
     }
     if (androidProjectCandidatesPaths.isEmpty()) {
       // try to discover the project in the IDE project base dir if there is no linked gradle projects at all
