@@ -16,10 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.AxisComponentModel;
-import com.android.tools.adtui.model.FpsTimer;
-import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
@@ -127,6 +124,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     myRelativeTimeConverter = new RelativeTimeConverter(0);
     myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
+    myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
+      if (!myTimeline.getSelectionRange().isEmpty()) {
+        myTimeline.setStreaming(false);
+      }
+    });
 
     myProcesses = Maps.newHashMap();
     myConnected = false;
