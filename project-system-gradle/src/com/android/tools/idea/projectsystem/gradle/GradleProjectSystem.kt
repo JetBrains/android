@@ -88,16 +88,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
         throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
             DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
 
-    // Check for android library dependencies from the build model
-    val androidModuleModel = AndroidModuleModel.get(module) ?:
-        throw DependencyManagementException("Could not find android module model for module $module",
-            DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
-
-    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
-        .asSequence()
-        .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
-        .find { "${it.groupId}:${it.artifactId}" == artifactId.artifactCoordinate }
-        ?.let { GradleDependencyVersion(it.version) }
+    return GradleModuleSystem(module).getResolvedVersion(artifactId)
   }
 
   override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
@@ -105,20 +96,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
         throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
             DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
 
-    // Check for compile dependencies from the gradle build file
-    val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
-
-    return GradleBuildModel.get(module)?.let {
-      it.dependencies().artifacts(configurationName)
-          .filter { artifactId.artifactCoordinate == "${it.group().value()}:${it.name().value()}" }
-          .map { parseDependencyVersion(it.version().value()) }
-          .firstOrNull()
-    }
-  }
-
-  private fun parseDependencyVersion(version: String?): GradleDependencyVersion {
-    if (version == null) return GradleDependencyVersion(null)
-    return GradleDependencyVersion(GradleVersion.parse(version))
+    return GradleModuleSystem(module).getDeclaredVersion(artifactId)
   }
 
   override val projectSystem = this

@@ -21,8 +21,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
@@ -292,7 +294,7 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open(@NotNull final XmlFile file) {
     Project project = file.getProject();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    boolean syncNeeded = !manager.dependsOn(myEditor.getModel().getModule(), DESIGN_LIB_ARTIFACT);
+    boolean syncNeeded = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN_LIB);
     if (syncNeeded && !addDesignLibrary(manager)) {
       return false;
     }

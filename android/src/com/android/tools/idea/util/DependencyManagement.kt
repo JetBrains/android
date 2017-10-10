@@ -19,6 +19,7 @@ package com.android.tools.idea.util
 
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -27,6 +28,14 @@ import com.intellij.openapi.vfs.VirtualFile
  * @param artifactId the dependency's maven artifact id.
  * @param sourceContext location of the dependent.
  */
-fun Project.hasDependency(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): Boolean {
+fun Project.dependsOn(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): Boolean {
   return getProjectSystem().getResolvedVersion(artifactId, sourceContext) != null
+}
+
+/**
+ * Returns true iff the dependency with [artifactId] is transitively available to this [module].
+ * @param artifactId the dependency's maven artifact id.
+ */
+fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
+  return project.getProjectSystem().getModuleSystem(this).getResolvedVersion(artifactId) != null
 }

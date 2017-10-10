@@ -19,10 +19,11 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
@@ -52,18 +53,15 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
 
   /**
    * Returns true if the current module depends on the specified library.
-
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
    */
-  fun isModuleDependency(artifact: String, facet: AndroidFacet) = dependencyManger.dependsOn(artifact, facet)
+  fun isModuleDependency(artifact: GoogleMavenArtifactId, facet: AndroidFacet): Boolean = facet.module.dependsOn(artifact)
 
   /**
-   * Returns the [GradleVersion] of the` specified library that the current module depends on.
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
-   * @return the revision or null if the module does not depend on the specified library.
+   * Returns the [GradleVersion] of the library with specified [artifactId] that the current module depends on.
+   * @return the revision or null if the module does not depend on the specified library or the maven version is unknown.
    */
-  fun getModuleDependencyVersion(artifact: String, facet: AndroidFacet): GradleVersion? =
-      dependencyManger.getVersionOfDependency(artifact, facet)
+  fun getModuleDependencyVersion(artifactId: GoogleMavenArtifactId, facet: AndroidFacet): GradleVersion? =
+      facet.module.project.getProjectSystem().getModuleSystem(facet.module).getResolvedVersion(artifactId)?.mavenVersion
 
   /**
    * Check if there is any missing dependencies and ask the user only if they are some.
@@ -128,8 +126,6 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
     fun dependenciesAccepted(module: Module, missingDependencies: Iterable<GradleCoordinate>): Boolean
     fun findMissingDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Iterable<GradleCoordinate>
     fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Boolean
-    fun dependsOn(artifact: String, facet: AndroidFacet): Boolean
-    fun getVersionOfDependency(artifact: String, facet: AndroidFacet): GradleVersion?
   }
 
   private class GradleManager : DependencyManager {
@@ -143,16 +139,6 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
 
     override fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Boolean {
       return GradleDependencyManager.getInstance(module.project).addDependencies(module, dependencies, null)
-    }
-
-    override fun dependsOn(artifact: String, facet: AndroidFacet): Boolean {
-      val gradleModel = AndroidModuleModel.get(facet) ?: return false
-      return GradleUtil.dependsOn(gradleModel, artifact)
-    }
-
-    override fun getVersionOfDependency(artifact: String, facet: AndroidFacet): GradleVersion? {
-      val gradleModel = AndroidModuleModel.get(facet) ?: return null
-      return GradleUtil.getModuleDependencyVersion(gradleModel, artifact)
     }
   }
 }

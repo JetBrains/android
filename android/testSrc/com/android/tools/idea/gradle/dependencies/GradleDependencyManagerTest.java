@@ -43,14 +43,6 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
-  public void testDependsOn() throws Exception {
-    loadSimpleApplication();
-    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    Module appModule = myModules.getAppModule();
-    assertTrue(dependencyManager.dependsOn(appModule, APPCOMPAT_LIB_ARTIFACT));
-    assertFalse(dependencyManager.dependsOn(appModule, LEANBACK_V17_ARTIFACT));
-  }
-
   public void testFindMissingDependenciesWithRegularProject() throws Exception {
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());

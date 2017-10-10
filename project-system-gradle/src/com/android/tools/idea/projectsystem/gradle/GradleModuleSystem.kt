@@ -16,11 +16,14 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.CapabilityStatus
-import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -40,6 +43,31 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
     }
   }
 
+  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
+    // Check for android library dependencies from the build model
+    val androidModuleModel = AndroidModuleModel.get(module) ?:
+        throw DependencyManagementException("Could not find android module model for module $module",
+            DependencyManagementException.ErrorCodes.BUILD_SYSTEM_NOT_READY)
+
+    return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
+        .asSequence()
+        .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+        .find { "${it.groupId}:${it.artifactId}" == artifactId.artifactCoordinate }
+        ?.let { GradleDependencyVersion(it.version) }
+  }
+
+  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
+    // Check for compile dependencies from the gradle build file
+    val configurationName = GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
+
+    return GradleBuildModel.get(module)?.let {
+      it.dependencies().artifacts(configurationName)
+          .filter { artifactId.artifactCoordinate == "${it.group().value()}:${it.name().value()}" }
+          .map { parseDependencyVersion(it.version().value()) }
+          .firstOrNull()
+    }
+  }
+
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
   }
@@ -50,5 +78,10 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
 
   override fun getInstantRunSupport(): CapabilityStatus {
     return getInstantRunCapabilityStatus(module)
+  }
+
+  private fun parseDependencyVersion(version: String?): GradleDependencyVersion {
+    if (version == null) return GradleDependencyVersion(null)
+    return GradleDependencyVersion(GradleVersion.parse(version))
   }
 }

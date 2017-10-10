@@ -153,7 +153,7 @@ public class ImageViewHandler extends ViewHandler {
   private static boolean moduleDependsOnAppCompat(@NotNull NlModel model) {
     VirtualFile modelFile = model.getFile().getVirtualFile();
     if (modelFile != null) {
-      return DependencyManagementUtil.hasDependency(model.getProject(), GoogleMavenArtifactId.APPCOMPAT_V7, modelFile);
+      return DependencyManagementUtil.dependsOn(model.getProject(), GoogleMavenArtifactId.APPCOMPAT_V7, modelFile);
     }
     return false;
   }

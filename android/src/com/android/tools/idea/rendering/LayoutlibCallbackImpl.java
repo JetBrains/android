@@ -22,14 +22,14 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -146,9 +146,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
+    myHasAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APPCOMPAT_V7);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();
     if (javaPackage != null && !javaPackage.isEmpty()) {

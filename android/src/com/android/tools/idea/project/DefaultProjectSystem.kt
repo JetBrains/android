@@ -79,6 +79,10 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       override fun addDependency(dependency: String) {
       }
 
+      override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
+
+      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
+
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()
       }
