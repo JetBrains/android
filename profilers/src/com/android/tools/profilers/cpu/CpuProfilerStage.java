@@ -553,11 +553,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void selectionChanged() {
     Range range = getStudioProfilers().getTimeline().getSelectionRange();
 
-    if (!range.isEmpty()) {
-      // Stop timeline when selection is not empty.
-      getStudioProfilers().getTimeline().setStreaming(false);
-    }
-
     List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();

@@ -31,6 +31,8 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
@@ -508,6 +510,36 @@ public final class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
+  }
+
+  @Test
+  public void timelineShouldStopStreamingWhenRangeIsSelected() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    ProfilerTimeline timeline = profilers.getTimeline();
+    assertTrue(timeline.isStreaming());
+    timeline.getDataRange().set(0, FakeTimer.ONE_SECOND_IN_NS);
+    timeline.getSelectionRange().set(0, 0);
+    assertFalse(timeline.isStreaming());
+
+    timeline.setStreaming(true);
+    assertTrue(timeline.isStreaming());
+    timeline.getSelectionRange().set(0, FakeTimer.ONE_SECOND_IN_NS);
+    assertFalse(timeline.isStreaming());
   }
 
   @Test
