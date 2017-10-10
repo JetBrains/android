@@ -37,6 +37,13 @@
   </extensions>
 
   <actions>
+    <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
+      <!-- run button short cuts must be declared in xml to work without focus! Do not remove -->
+      <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
+      <!-- Registered in code in AndroidPlugin to RunnerActions group after "Run" button. -->
+    </action>
+
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
     </action>
