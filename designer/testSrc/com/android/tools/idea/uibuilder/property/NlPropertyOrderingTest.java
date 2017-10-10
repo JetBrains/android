@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -40,7 +40,10 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
     NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
+
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
 
@@ -69,7 +72,10 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
 
     NlComponent component = getFirstComponent(source);
     NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
+
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<NlPropertyItem> sortedList = new NlPropertiesSorter().sort(propertyList, ImmutableList.of(component));
     List<PTableItem> items = new NlPropertiesGrouper().group(sortedList, ImmutableList.of(component));

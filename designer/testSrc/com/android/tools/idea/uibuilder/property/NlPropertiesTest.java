@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.adtui.ptable.StarState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
@@ -36,9 +36,7 @@ import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PRO
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class NlPropertiesTest extends PropertyTestCase {
   private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
@@ -72,8 +70,9 @@ public class NlPropertiesTest extends PropertyTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(myPropertiesManager,
-      ImmutableList.of(MockNlComponent.create(rootTag)));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(rootTag)));
+
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
@@ -105,7 +104,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
@@ -131,7 +130,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
@@ -150,7 +149,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlPropertyItem p = properties.get(ANDROID_URI, "id");
     assertNotNull(p);
@@ -253,7 +252,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertEquals(1, subTags.length);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
@@ -265,7 +264,7 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testVisibleIsStarredPropertyByDefault() {
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
     List<NlPropertyItem> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .collect(Collectors.toList());
@@ -278,7 +277,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   public void testStarredPropertiesAreReadFromComponentProperties() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myPropertiesManager, ImmutableList.of(myTextView));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
     List<String> starred = properties.values().stream()
       .filter(property -> property.getStarState() == StarState.STARRED)
       .map(NlPropertyItem::getName)

@@ -48,7 +48,7 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     PTable table = mock(PTable.class);
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(manager, ImmutableList.of(MockNlComponent.create(subTags[0])));
+      NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 

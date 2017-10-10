@@ -39,7 +39,7 @@ class NavInspectorPanelTest: NavigationTestCase() {
     val inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
     val components = listOf(model.find("f1")!!)
-    panel.setComponent(components, NlProperties.getInstance().getProperties(manager, model.components), manager)
+    panel.setComponent(components, NlProperties.getInstance().getProperties(myFacet, manager, model.components), manager)
 
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
