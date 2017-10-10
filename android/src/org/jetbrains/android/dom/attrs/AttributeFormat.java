@@ -57,6 +57,7 @@ public enum AttributeFormat {
                     types.add(ResourceType.STRING);
                     types.add(ResourceType.ID);
                     types.add(ResourceType.STYLE);
+                    types.add(ResourceType.ARRAY);
                     break;
                 default:
                     break;

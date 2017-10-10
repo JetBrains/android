@@ -298,7 +298,7 @@ public class ChooseResourceDialogTest {
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("che");
     JListFixture projectList = dialog.getList("Project");
@@ -391,7 +391,7 @@ public class ChooseResourceDialogTest {
 
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
-    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
 
     dialog.getSearchField().enterText("ic_launcher ");
     JListFixture projectList = dialog.getList("Project");
@@ -400,5 +400,46 @@ public class ChooseResourceDialogTest {
                  listToString(projectList));
 
     dialog.clickCancel();
+  }
+
+  @Test
+  public void testArray() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/spinner.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture spinner = layout.findView("Spinner", 0);
+    spinner.click();
+    assertThat(layout.getSelection()).containsExactly(spinner.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
+    NlPropertyFixture property = fixture.findProperty("entries");
+    assert property != null;
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
+
+    dialog.clickOnTab("Array");
+
+    // This should jump to the project list and select the first one: ic_launcher
+    JTableFixture nameTable = dialog.getResourceNameTable();
+
+    assertEquals("Project             \n" +
+                 "my_array  one       \n",
+                 tableToString(nameTable, 0, 2, 0, 5, 10));
+    nameTable.cell("my_array").click();
+
+    dialog.clickOK();
+
+    Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@array/my_array"));
   }
 }
