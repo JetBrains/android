@@ -101,6 +101,7 @@
     <orderEntry type="library" scope="TEST" name="sqlite" level="project" />
     <orderEntry type="module" module-name="project-system" scope="TEST" />
     <orderEntry type="module" module-name="android-adb" scope="TEST" />
-    <orderEntry type="module" module-name="project-system-gradle" />
+    <orderEntry type="module" module-name="project-system-gradle" scope="TEST" />
+    <orderEntry type="module" module-name="project-system-tests" scope="TEST" />
   </component>
 </module>

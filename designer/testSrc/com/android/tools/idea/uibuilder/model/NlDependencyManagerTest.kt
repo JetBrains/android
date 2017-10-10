@@ -19,18 +19,28 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.EP_NAME
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.testFramework.PlatformTestUtil
+import junit.framework.TestCase
 
 open class NlDependencyManagerTest : LayoutTestCase() {
 
+  private lateinit var projectSystem: TestProjectSystem
   private lateinit var model: NlModel
   private lateinit var dummyDependenciesManager: DummyDependenciesManager
   private lateinit var nlDependencyManager: NlDependencyManager
 
   override fun setUp() {
     super.setUp()
+    projectSystem = TestProjectSystem()
+    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
+        projectSystem, testRootDisposable)
     dummyDependenciesManager = DummyDependenciesManager()
     nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
     model = model("model.xml",
@@ -52,6 +62,17 @@ open class NlDependencyManagerTest : LayoutTestCase() {
             GradleCoordinate("com.android.support", "cardview-v7", "+")))
   }
 
+  fun testIdentifiesMissingDependency() {
+    val nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
+    TestCase.assertFalse(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet))
+  }
+
+  fun testIdentifiesCorrectDependency() {
+    val nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
+    projectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet.module, GradleVersion(1, 1))
+    TestCase.assertTrue(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet))
+  }
+
   private open class DummyDependenciesManager : NlDependencyManager.DependencyManager {
 
     val dependencies = mutableSetOf(GradleCoordinate("com.android.support.constraint", "constraint-layout", "+"))
@@ -68,8 +89,6 @@ open class NlDependencyManagerTest : LayoutTestCase() {
       return true
     }
 
-    override fun dependsOn(artifact: String, facet: AndroidFacet) = true
-    override fun getVersionOfDependency(artifact: String, facet: AndroidFacet): GradleVersion? = null
     override fun dependenciesAccepted(module: Module, missingDependencies: Iterable<GradleCoordinate>) = true
   }
 

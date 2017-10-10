@@ -101,6 +101,7 @@ iml_module(
         "//tools/base/flags:studio.flags[module, test]",
         "//tools/adt/idea/artwork[module, test]",
         "//tools/adt/idea/android-common[module, test]",
-        "//tools/adt/idea/project-system[module]",
+        "//tools/adt/idea/project-system[module, test]",
+        "//tools/adt/idea/project-system:project-system-tests[module, test]",
     ],
 )

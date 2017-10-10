@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -169,7 +170,7 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return editor.getDependencyManger().isModuleDependency(APPCOMPAT_LIB_ARTIFACT, editor.getModel().getFacet())
+    return editor.getDependencyManger().isModuleDependency(GoogleMavenArtifactId.APPCOMPAT_V7, editor.getModel().getFacet())
            ? AUTO_URI
            : ANDROID_URI;
   }

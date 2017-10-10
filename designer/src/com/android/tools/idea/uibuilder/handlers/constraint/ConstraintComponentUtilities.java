@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -793,8 +794,8 @@ public final class ConstraintComponentUtilities {
   public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor,
                                                      int major,
                                                      int... version) {
-    String constraint_artifact = CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
-    GradleVersion v = editor.getDependencyManger().getModuleDependencyVersion(constraint_artifact, editor.getModel().getFacet());
+    GradleVersion v = editor.getDependencyManger().getModuleDependencyVersion(
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
                                (version.length > 1) ? version[1] : -1, 0, 0));

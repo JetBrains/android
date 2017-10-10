@@ -18,12 +18,11 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.projectsystem.TestProjectSystem;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.project.DefaultProjectSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.util.text.StringUtil;
@@ -48,7 +47,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
     myModel = createModel();
     myModelFile = myModel.getFile().getVirtualFile();
 
-    myTestProjectSystem = new TestProjectSystem(new DefaultProjectSystem(getProject()));
+    myTestProjectSystem = new TestProjectSystem();
     PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
 

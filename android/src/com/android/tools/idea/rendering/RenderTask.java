@@ -32,18 +32,18 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -54,7 +54,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -76,7 +75,6 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -441,8 +439,7 @@ public class RenderTask implements IImageFactory {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
-      AndroidModuleModel androidModel = AndroidModuleModel.get(myRenderService.getFacet());
-      boolean useSrcCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getModule(), GoogleMavenArtifactId.APPCOMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
