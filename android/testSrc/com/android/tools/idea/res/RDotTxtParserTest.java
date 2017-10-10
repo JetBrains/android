@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -43,7 +44,9 @@ public class RDotTxtParserTest {
                      "int styleable ActionBar_titleTextStyle 1\n" +
                      "int drawable abc_list_selector_holo_dark 0x7f020031\n" +
                      "int drawable abc_list_selector_holo_light 0x7f020032\n" +
-                     "int drawable abc_menu_hardkey_panel_mtrl_mult 0x7f02003";
+                     "int drawable abc_menu_hardkey_panel_mtrl_mult 0x7f02003\n" +
+                     "int id id1 0x7f09001\n" +
+                     "int id id2 0x7f09002\n";
 
     File rFile = FileUtil.createTempFile("R", ".txt");
     FileUtil.writeToFile(rFile, content);
@@ -55,6 +58,10 @@ public class RDotTxtParserTest {
     assertEquals(0x7f010001, r[0].intValue());
     assertEquals(0x7f010003, r[1].intValue());
 
+    Map<String, Integer> ids = RDotTxtParser.getIds(rFile);
+    assertEquals(0x7f09001, ids.get("id1").intValue());
+    assertEquals(0x7f09002, ids.get("id2").intValue());
+
     // Test that:
     //  - We can still parse the content correctly even having interleaved elements
     //  - The order of the attribute indexes does not break the parsing (having the pointer to the second
@@ -64,8 +71,10 @@ public class RDotTxtParserTest {
               "int styleable ActionBar_titleTextStyle 1\n" +
               "int styleable ActionBar_title 0\n" +
               "int anim abc_popup_exit 0x7f040004\n" +
+              "int id id1 0x7f09001\n" +
               "int anim abc_shrink_fade_out_from_bottom 0x7f040005\n" +
               "int drawable abc_list_selector_holo_light 0x7f020032\n" +
+              "int id id2 0x7f09002\n" +
               "int drawable abc_list_selector_holo_dark 0x7f020031\n" +
               "int drawable abc_menu_hardkey_panel_mtrl_mult 0x7f02003";
     rFile = FileUtil.createTempFile("R", ".txt");
@@ -73,6 +82,10 @@ public class RDotTxtParserTest {
     r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "ActionBar");
     assertEquals(0x7f010001, r[0].intValue());
     assertEquals(0x7f010003, r[1].intValue());
+
+    ids = RDotTxtParser.getIds(rFile);
+    assertEquals(0x7f09001, ids.get("id1").intValue());
+    assertEquals(0x7f09002, ids.get("id2").intValue());
   }
 
   // Regression test for http://b/62578429#comment66
@@ -121,7 +134,7 @@ public class RDotTxtParserTest {
     File rFile = FileUtil.createTempFile("R", ".txt");
     FileUtil.writeToFile(rFile, emptyRFile);
     assertNull(RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "CollapsingToolbarLayout_Layout"));
-    assertTrue(RDotTxtParser.getIdNames(rFile).isEmpty());
+    assertTrue(RDotTxtParser.getIds(rFile).isEmpty());
 
     final String emptyArray = "int[] styleable CollapsingToolbarLayout_Layout {}\n";
     FileUtil.writeToFile(rFile, emptyArray);

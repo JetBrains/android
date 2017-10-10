@@ -348,7 +348,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
       for (FileResourceRepository library : myLibraries) {
         if (library.getAllDeclaredIds() != null) {
-          myIds.addAll(library.getAllDeclaredIds());
+          myIds.addAll(library.getAllDeclaredIds().keySet());
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
