@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.frame
 
-import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.scene.target.DragBaseTarget
 
-import java.util.List;
-
-import static com.android.SdkConstants.ATTR_STYLE;
-
-public class ImageSwitcherHandler extends FrameLayoutHandler {
-  @Override
-  @NotNull
-  public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_STYLE);
+class FrameDragTarget: DragBaseTarget() {
+  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
+    // TODO: provide attribute:layout_gravity for FrameLayoutHandler
   }
 }

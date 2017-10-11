@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
+import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
+
 class BottomNavigationViewHandler : FrameLayoutHandler() {
   // TODO
 }

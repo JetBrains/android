@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
