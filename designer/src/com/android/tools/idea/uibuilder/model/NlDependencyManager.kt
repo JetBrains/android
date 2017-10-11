@@ -72,18 +72,19 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
    * Calls to this method should be made outside a write action, or all dependencies should already be added.
    */
   fun checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>, facet: AndroidFacet): Boolean {
+    val dependencies = collectDependencies(toAdd)
+    val module = facet.module
+    val missing = dependencyManger.findMissingDependencies(module, dependencies)
+    if (missing.none()) {
+      return true
+    }
+
     val application = ApplicationManagerEx.getApplicationEx()
     if (application.isWriteActionInProgress) {
       kotlin.assert(false) {
         "User cannot be asked to accept dependencies int a write action." +
             "Calls to this method should be made outside a write action"
       }
-      return true
-    }
-    val dependencies = collectDependencies(toAdd)
-    val module = facet.module
-    val missing = dependencyManger.findMissingDependencies(module, dependencies)
-    if (missing.none()) {
       return true
     }
     return dependencyManger.dependenciesAccepted(module, dependencies)
@@ -109,7 +110,7 @@ class NlDependencyManager private constructor(private val dependencyManger: Depe
     }
     val artifacts = mutableSetOf<String>()
     val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(component.tagName)
+    val artifactId = handler.getGradleCoordinateId(component)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
