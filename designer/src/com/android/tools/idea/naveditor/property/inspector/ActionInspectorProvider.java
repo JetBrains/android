@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
+import com.android.tools.idea.naveditor.property.editor.VisibleDestinationsEditor;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -80,14 +81,15 @@ public class ActionInspectorProvider implements InspectorProvider<NavPropertiesM
 
     private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NavPropertiesManager propertiesManager) {
       for (String propertyName : ACTION_PROPERTIES) {
-        boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
-        propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          if (designPropertyRequired) {
-            property = property.getDesignTimeProperty();
+          NlComponentEditor editor;
+          if (property.getName().equals(NavigationSchema.ATTR_DESTINATION)) {
+            editor = new VisibleDestinationsEditor();
           }
-          NlComponentEditor editor = propertiesManager.getPropertyEditors().create(property);
+          else {
+            editor = propertiesManager.getPropertyEditors().create(property);
+          }
           editor.setProperty(property);
           myEditors.add(editor);
         }

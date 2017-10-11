@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.uibuilder.property.EmptyProperty;
+import com.android.tools.idea.common.property.editors.EnumEditor;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.uibuilder.property.fixtures.NlEnumEditorFixture;
+import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture;
 
 import static com.android.SdkConstants.*;
 import static java.awt.event.KeyEvent.*;
 
+/**
+ * TODO: probably some of these tests should be moved up to {@link EnumEditorTest}.
+ */
 public class NlEnumEditorTest extends PropertyTestCase {
-  private NlEnumEditorFixture myEditorFixture;
+  private EnumEditorFixture myEditorFixture;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
-    myEditorFixture = NlEnumEditorFixture.create();
+    myEditorFixture = EnumEditorFixture.create(NlEnumEditor::createForTest);
   }
 
   @Override
@@ -48,20 +51,6 @@ public class NlEnumEditorTest extends PropertyTestCase {
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static String getTestDataPath() {
     return getAndroidPluginHome() + "/testData";
-  }
-
-  public void testEscapeRestoresOriginalAfterTyping() {
-    myEditorFixture
-      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
-      .expectText("wrap_content")
-      .expectSelectedText(null)
-      .gainFocus()
-      .expectSelectedText("wrap_content")
-      .type("5")
-      .key(VK_ESCAPE)
-      .verifyCancelEditingCalled()
-      .expectValue("wrap_content")
-      .expectSelectedText("wrap_content");
   }
 
   public void testEscapeRestoresOriginalSelecting() {
@@ -83,22 +72,6 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectValue("wrap_content")
       .expectText("wrap_content")
       .expectSelectedText("wrap_content");
-  }
-
-  public void testFocusLoss() {
-    myEditorFixture
-      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
-      .expectText("wrap_content")
-      .expectSelectedText(null)
-      .gainFocus()
-      .expectSelectedText("wrap_content")
-      .type("match_parent")
-      .expectValue("wrap_content")
-      .expectSelectedText(null)
-      .loseFocus()
-      .expectSelectedText(null)
-      .expectText("match_parent")
-      .expectValue("match_parent");
   }
 
   public void testReplaceAddedValue() {
@@ -148,24 +121,6 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectSelectedText("55dp")
       .loseFocus()
       .expectValue("55dp");
-  }
-
-  public void testEnterDimensionFromResourceValue() {
-    myEditorFixture
-      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
-      .gainFocus()
-      .type("@android:dimen/notification_large_icon_width")
-      .key(VK_ENTER)
-      .expectValue("@android:dimen/notification_large_icon_width")
-      .expectSelectedText("@android:dimen/notification_large_icon_width")
-      .loseFocus()
-      .expectText("64dp")
-      .expectSelectedText(null)
-      .gainFocus()
-      .expectText("@android:dimen/notification_large_icon_width")
-      .loseFocus()
-      .expectText("64dp")
-      .expectValue("@android:dimen/notification_large_icon_width");
   }
 
   public void testSelectFromDimensionList() {
@@ -719,19 +674,6 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectValue(null);
   }
 
-  public void testEnterOnClick() {
-    myEditorFixture
-      .setProperty(getProperty(myButton, ATTR_ON_CLICK))
-      .expectText("none")
-      .gainFocus()
-      .expectText("")
-      .type("sendEmail")
-      .key(VK_ENTER)
-      .loseFocus()
-      .expectText("sendEmail")
-      .expectValue("sendEmail");
-  }
-
   public void testSelectVisibility() {
     myEditorFixture
       .setProperty(getProperty(myButton, ATTR_VISIBILITY))
@@ -750,11 +692,5 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .key(VK_ENTER)
       .expectText("invisible")
       .expectValue("invisible");
-  }
-
-  public void testSetEmptyProperty() {
-    myEditorFixture
-      .setProperty(getProperty(myButton, ATTR_VISIBILITY))
-      .setProperty(EmptyProperty.INSTANCE);
   }
 }
