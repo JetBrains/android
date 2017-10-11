@@ -47,7 +47,7 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               boolean exported) {
-    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, EMPTY_FILE_ARRAY, exported);
+    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, exported);
   }
 
   void setUpLibraryDependency(@NotNull Module module,
@@ -56,7 +56,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               @NotNull File[] binaryPaths,
-                              @NotNull File[] documentationPaths,
                               boolean exported) {
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
@@ -86,7 +85,10 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       if (sourceJarPath != null) {
         updateLibraryRootTypePaths(library, SOURCES, modelsProvider, sourceJarPath);
       }
-      updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, documentationPaths);
+      File javadocJarPath = myLibraryFilePaths.findJavadocJarPath(artifactPath);
+      if (javadocJarPath != null) {
+        updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, javadocJarPath);
+      }
 
       // Add external annotations.
       // TODO: Add this to the model instead!

@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -69,7 +68,7 @@ class ExcludedRoots {
     addRemainingModelsIfNecessary();
 
     for (LibraryDependency libraryDependency : dependenciesToInclude.onLibraries()) {
-      File[] binaryPaths = libraryDependency.getPaths(BINARY);
+      File[] binaryPaths = libraryDependency.getBinaryPaths();
       for (File binaryPath : binaryPaths) {
         myIncludedRootNames.add(binaryPath.getName());
       }
@@ -160,13 +159,13 @@ class ExcludedRoots {
 
   private void addLibraryPaths(@NotNull DependencySet dependencies) {
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      Collections.addAll(myExcludedRoots, dependency.getPaths(BINARY));
+      Collections.addAll(myExcludedRoots, dependency.getBinaryPaths());
     }
   }
 
   void removeLibraryPaths(@NotNull DependencySet dependencies) {
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      for (File path : dependency.getPaths(BINARY)) {
+      for (File path : dependency.getBinaryPaths()) {
         myExcludedRoots.remove(path);
       }
     }

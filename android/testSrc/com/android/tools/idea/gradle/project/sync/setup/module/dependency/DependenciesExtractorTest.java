@@ -34,7 +34,6 @@ import java.util.List;
 import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
 import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -87,7 +86,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
 
-    File[] binaryPaths = dependency.getPaths(BINARY);
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);
   }
@@ -134,7 +133,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     assertNotNull(dependency);
     assertEquals("com.android.support:support-core-ui-25.3.1", dependency.getName());
 
-    File[] binaryPaths = dependency.getPaths(BINARY);
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);
     assertThat(binaryPaths).asList().containsAllOf(localJar, libJar, resFolder);
   }

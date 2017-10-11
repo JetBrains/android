@@ -85,9 +85,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    File[] documentationPaths = {javadocPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, documentationPaths,
-                                               false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -125,15 +123,14 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
     File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
     when(myLibraryFilePaths.findSourceJarPath(binaryPath)).thenReturn(sourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(binaryPath)).thenReturn(javadocPath);
 
     String libraryName = binaryPath.getName();
     Module module = getModule();
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    File[] documentationPaths = {javadocPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, documentationPaths,
-                                               false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
