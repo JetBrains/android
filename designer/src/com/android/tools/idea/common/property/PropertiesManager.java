@@ -238,6 +238,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
         if (myProject.isDisposed()) {
           return;
         }
+        // noinspection unchecked
         getPropertiesPanel().setItems(components, properties, (Self)this);
         if (postUpdateRunnable != null) {
           myLoading = false;
@@ -389,6 +390,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
 
   @Override
   public void modelChanged(@NotNull NlModel model) {
+    // noinspection unchecked
     getPropertiesPanel().modelRendered((Self)this);
   }
 
