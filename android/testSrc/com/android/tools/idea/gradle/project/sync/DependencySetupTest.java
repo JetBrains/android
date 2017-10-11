@@ -71,6 +71,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = false;
     //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
