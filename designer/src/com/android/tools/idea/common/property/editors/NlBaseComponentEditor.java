@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.common.property.editors;
 
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
+import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -33,16 +35,16 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfo.isMac ? 0 : 2;
 
   /** Horizontal spacing between label and editor in inspector */
-  protected static final int HORIZONTAL_SPACING = 4;
+  public static final int HORIZONTAL_SPACING = 4;
 
   /** Vertical spacing between editors in inspector */
-  protected static final int VERTICAL_SPACING = 2;
+  public static final int VERTICAL_SPACING = 2;
 
   /** Horizontal padding inside the edit control */
-  protected static final int HORIZONTAL_PADDING = 7;
+  public static final int HORIZONTAL_PADDING = 7;
 
   /** Vertical padding inside the edit control */
-  protected static final int VERTICAL_PADDING = 2;
+  public static final int VERTICAL_PADDING = 2;
 
   /** Vertical padding inside the edit control with small font */
   protected static final int VERTICAL_PADDING_FOR_SMALL_FONT = 3;

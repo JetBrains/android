@@ -16,7 +16,8 @@
 package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
+import com.android.tools.idea.common.property.editors.EnumEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.base.Objects;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
@@ -33,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.function.BiFunction;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.VK_DOWN;
@@ -40,15 +42,15 @@ import static java.awt.event.KeyEvent.VK_UP;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static org.mockito.Mockito.*;
 
-public class NlEnumEditorFixture extends NlEditorFixtureBase {
-  private static final String COMBO_BOX_UI = "ComboBoxUI";
+public class EnumEditorFixture extends NlEditorFixtureBase {
+  protected static final String COMBO_BOX_UI = "ComboBoxUI";
 
-  private final NlEnumEditor myComponentEditor;
+  private final EnumEditor myComponentEditor;
   private final ComboBox myCombo;
   private final JTextField myEditor;
   private final String myOldComboBoxUI;
 
-  private NlEnumEditorFixture(@NotNull NlEnumEditor editor, @NotNull ComboBox comboBox, @NotNull String oldComboBoxUI) {
+  EnumEditorFixture(@NotNull EnumEditor editor, @NotNull ComboBox comboBox, @NotNull String oldComboBoxUI) {
     super(editor);
     myComponentEditor = editor;
     myCombo = comboBox;
@@ -69,35 +71,35 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     super.tearDown();
   }
 
-  public static NlEnumEditorFixture create() {
+  public static EnumEditorFixture create(BiFunction<NlEditingListener, EnumEditor.CustomComboBox, ? extends EnumEditor> editorFactory) {
     // AquaComboBoxUI installs a DocumentListener that is not removed when the UI is replaced.
     // Override the default ComboBoxUI here to avoid errors from that.
     String oldComboUI = UIManager.get(COMBO_BOX_UI).toString();
     UIManager.put(COMBO_BOX_UI, DarculaComboBoxUI.class.getName());
 
-    NlEnumEditor.CustomComboBox comboBox = spy(new NlEnumEditor.CustomComboBox());
+    EnumEditor.CustomComboBox comboBox = spy(new EnumEditor.CustomComboBox());
     when(comboBox.isShowing()).thenReturn(true);
 
-    NlEnumEditor editor = NlEnumEditor.createForTest(createListener(), comboBox);
-    return new NlEnumEditorFixture(editor, comboBox, oldComboUI);
+    EnumEditor editor = editorFactory.apply(createListener(), comboBox);
+    return new EnumEditorFixture(editor, comboBox, oldComboUI);
   }
 
-  public NlEnumEditorFixture setProperty(@NotNull NlProperty property) {
+  public EnumEditorFixture setProperty(@NotNull NlProperty property) {
     myComponentEditor.setProperty(property);
     return this;
   }
 
-  public NlEnumEditorFixture gainFocus() {
+  public EnumEditorFixture gainFocus() {
     setFocusedComponent(myEditor);
     return this;
   }
 
-  public NlEnumEditorFixture loseFocus() {
+  public EnumEditorFixture loseFocus() {
     setFocusedComponent(null);
     return this;
   }
 
-  public NlEnumEditorFixture showPopup() {
+  public EnumEditorFixture showPopup() {
     assertThat(myCombo).isNotNull();
     myCombo.isPopupVisible();
     myCombo.showPopup();
@@ -108,7 +110,7 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     return this;
   }
 
-  public NlEnumEditorFixture hidePopup() {
+  public EnumEditorFixture hidePopup() {
     assertThat(myCombo).isNotNull();
     myCombo.hidePopup();
     assertThat(myCombo.isPopupVisible()).isFalse();
@@ -116,39 +118,39 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     return this;
   }
 
-  public NlEnumEditorFixture expectPopupVisible(boolean expected) {
+  public EnumEditorFixture expectPopupVisible(boolean expected) {
     assertThat(myCombo.isPopupVisible()).isEqualTo(expected);
     return this;
   }
 
-  public NlEnumEditorFixture setSelectedModelItem(@Nullable Object item) {
+  public EnumEditorFixture setSelectedModelItem(@Nullable Object item) {
     @SuppressWarnings("unchecked")
     ComboBoxModel<ValueWithDisplayString> model = myCombo.getModel();
     model.setSelectedItem(item);
     return this;
   }
 
-  public NlEnumEditorFixture verifyStopEditingCalled() {
+  public EnumEditorFixture verifyStopEditingCalled() {
     verifyStopEditingCalled(myComponentEditor);
     return this;
   }
 
-  public NlEnumEditorFixture verifyCancelEditingCalled() {
+  public EnumEditorFixture verifyCancelEditingCalled() {
     verifyCancelEditingCalled(myComponentEditor);
     return this;
   }
 
-  public NlEnumEditorFixture type(@NotNull String value) {
+  public EnumEditorFixture type(@NotNull String value) {
     value.chars().forEach(key -> fireKeyStroke(KeyStroke.getKeyStroke((char)key)));
     return this;
   }
 
-  public NlEnumEditorFixture key(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode) {
+  public EnumEditorFixture key(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode) {
     return key(keyCode, 0);
   }
 
-  public NlEnumEditorFixture key(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode,
-                                 @MagicConstant(flagsFromClass = InputEvent.class) int modifiers) {
+  public EnumEditorFixture key(@MagicConstant(flagsFromClass = KeyEvent.class) int keyCode,
+                               @MagicConstant(flagsFromClass = InputEvent.class) int modifiers) {
     fireKeyStroke(KeyStroke.getKeyStroke(keyCode, modifiers));
     return this;
   }
@@ -178,23 +180,23 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     }
   }
 
-  public NlEnumEditorFixture expectValue(@Nullable String expectedValue) {
+  public EnumEditorFixture expectValue(@Nullable String expectedValue) {
     assertThat(myComponentEditor.getProperty()).isNotNull();
     assertThat(myComponentEditor.getProperty().getValue()).isEqualTo(expectedValue);
     return this;
   }
 
-  public NlEnumEditorFixture expectText(@Nullable String expectedText) {
+  public EnumEditorFixture expectText(@Nullable String expectedText) {
     assertThat(myEditor.getText()).isEqualTo(expectedText);
     return this;
   }
 
-  public NlEnumEditorFixture expectSelectedText(@Nullable String expectedSelectedText) {
+  public EnumEditorFixture expectSelectedText(@Nullable String expectedSelectedText) {
     assertThat(myEditor.getSelectedText()).isEqualTo(expectedSelectedText);
     return this;
   }
 
-  public NlEnumEditorFixture expectChoices(@NotNull String... choices) {
+  public EnumEditorFixture expectChoices(@NotNull String... choices) {
     @SuppressWarnings("unchecked")
     ComboBoxModel<ValueWithDisplayString> model = myCombo.getModel();
     int rows = choices.length / 2;
@@ -207,7 +209,7 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     return this;
   }
 
-  public NlEnumEditorFixture expectFirstChoices(int count, @NotNull String... choices) {
+  public EnumEditorFixture expectFirstChoices(int count, @NotNull String... choices) {
     @SuppressWarnings("unchecked")
     ComboBoxModel<ValueWithDisplayString> model = myCombo.getModel();
     int rows = choices.length / 2;
