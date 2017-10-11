@@ -451,9 +451,15 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       SystemImageDescription image = getModel().systemImage().getValue();
 
       String codeName = SdkVersionInfo.getCodeName(image.getVersion().getFeatureLevel());
-      if (codeName != null) {
-        getModel().systemImageName().set(codeName);
+      String displayName = codeName;
+      if (displayName == null) {
+        displayName = image.getVersion().getCodename();
       }
+      if (displayName == null) {
+        displayName = "";
+      }
+      getModel().systemImageName().set(displayName);
+
       Icon icon = null;
       try {
         icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
