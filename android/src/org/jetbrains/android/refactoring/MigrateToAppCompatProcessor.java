@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.GoogleMavenVersionLookup;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,7 +49,6 @@ import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.SmartList;
 import com.intellij.util.containers.SmartHashSet;
 import com.siyeh.ig.psiutils.MethodUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -67,7 +66,6 @@ import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 /**
  * A RefactoringProcessor that can operate on a list of {@link AppCompatMigrationEntry}
  * objects and complete a migration.
- *
  */
 public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
 
@@ -78,12 +76,14 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   static final String ANDROID_WIDGET_SHARE_PROVIDER_CLASS = "android.widget.ShareActionProvider";
   static final String ATTR_ACTION_PROVIDER_CLASS = "actionProviderClass";
   static final String CLASS_SUPPORT_FRAGMENT_ACTIVITY = "android.support.v4.app.FragmentActivity";
+
   /**
    * Dependency to add to build.gradle
    */
   private static class AppCompatLibraryDescriptor extends ExternalLibraryDescriptor {
     private AppCompatLibraryDescriptor(@Nullable String minVersion) {
-      super(SupportLibrary.APP_COMPAT_V7.getGroupId(), SupportLibrary.APP_COMPAT_V7.getArtifactId(), minVersion, null);
+      super(GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), minVersion,
+            null);
     }
 
     @NotNull
@@ -577,7 +577,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     Predicate<GradleVersion> filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
 
     GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(
-      SupportLibrary.APP_COMPAT_V7.getGroupId(), SupportLibrary.APP_COMPAT_V7.getArtifactId(), filter, finalAndroidVersion.isPreview());
+      GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), filter,
+      finalAndroidVersion.isPreview());
 
     myAppCompatStyleMigration = AppCompatPublicDotTxtLookup.getInstance()
       .createAppCompatStyleMigration(version == null ? "26.1.0" : version.toString());

@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleLocalCache;
 import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
@@ -59,7 +60,7 @@ import java.util.function.Predicate;
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
-import static com.android.tools.idea.templates.SupportLibrary.PLAY_SERVICES;
+import static com.android.tools.idea.projectsystem.GoogleMavenArtifactId.PLAY_SERVICES;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
@@ -96,14 +97,14 @@ public class RepositoryUrlManager {
   }
 
   @Nullable
-  public String getLibraryStringCoordinate(SupportLibrary library, boolean preview) {
+  public String getArtifactStringCoordinate(GoogleMavenArtifactId artifactId, boolean preview) {
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
     }
 
-    String revision = getLibraryRevision(library.getGroupId(),
-                                         library.getArtifactId(),
+    String revision = getLibraryRevision(artifactId.getMavenGroupId(),
+                                         artifactId.getMavenArtifactId(),
                                          null,
                                          preview,
                                          sdk.getLocation(),
@@ -112,7 +113,7 @@ public class RepositoryUrlManager {
       return null;
     }
 
-    return library.getGradleCoordinate(revision).toString();
+    return artifactId.getCoordinate(revision).toString();
   }
 
   /**
@@ -283,7 +284,7 @@ public class RepositoryUrlManager {
             //noinspection StatementWithEmptyBody
             if (!includePreviews &&
                 "5.2.08".equals(revision) &&
-                metadataFile.getPath().contains(PLAY_SERVICES.getArtifactId())) {
+                metadataFile.getPath().contains(PLAY_SERVICES.getMavenArtifactId())) {
               // This version (despite not having -rcN in its version name is actually a preview
               // (See https://code.google.com/p/android/issues/detail?id=75292).
               // Ignore it.
@@ -340,10 +341,10 @@ public class RepositoryUrlManager {
    * artifacts not found on disk or on the network, or for valid artifacts but where
    * there is no local cache and the network query is not successful.
    *
-   * @param coordinate  the coordinate whose version we want to resolve
-   * @param project     the current project, if known. This is required if you want to
-   *                    perform a network lookup of the current best version if we can't
-   *                    find a locally cached version of the library
+   * @param coordinate the coordinate whose version we want to resolve
+   * @param project    the current project, if known. This is required if you want to
+   *                   perform a network lookup of the current best version if we can't
+   *                   find a locally cached version of the library
    * @return the resolved coordinate, or null if not successful
    */
   @Nullable
@@ -420,7 +421,7 @@ public class RepositoryUrlManager {
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter,false, sdkLocation, sdkHandler.getFileOp());
+      String libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false, sdkLocation, sdkHandler.getFileOp());
       if (libraryCoordinate != null) {
         return libraryCoordinate;
       }
@@ -504,10 +505,11 @@ public class RepositoryUrlManager {
           Predicate<GradleVersion> filter = prefix != null ? version -> version.toString().startsWith(prefix) : null;
 
           String version =
-              getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
+            getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
           if (version == null && filter != null) {
             // No library found at the support lib version filter level, so look for any match.
-            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
+            version =
+              getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
           }
           if (version == null && !includePreviews) {
             // Still no library found, check preview versions.

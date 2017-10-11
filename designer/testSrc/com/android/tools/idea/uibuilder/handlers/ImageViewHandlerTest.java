@@ -67,7 +67,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   }
 
   public void testSrcCompatUsedIfNoActivityClassName() {
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myModelFile, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModelFile, new GradleVersion(1, 1));
 
     ImageViewHandler handler = new ImageViewHandler();
     assertThat(handler.shouldUseSrcCompat(myModel)).isTrue();
@@ -76,7 +76,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatNotUsedIfActivityIsDerivedFromSystemActivity() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity("com.example.MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myModelFile, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModelFile, new GradleVersion(1, 1));
     addAppCompatActivity();
     addMyActivityAsSystemActivity();
 
@@ -87,7 +87,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatUsedIfActivityIsDerivedFromAppCompatActivity() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity("com.example.MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myModelFile, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModelFile, new GradleVersion(1, 1));
     addAppCompatActivity();
     addMyActivityAsAppCompatActivity();
 
@@ -98,7 +98,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatUsedIfActivityIsDerivedFromAppCompatActivityUsingReletiveActivityName() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity(".MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myModelFile, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModelFile, new GradleVersion(1, 1));
     addAppCompatActivity();
     addMyActivityAsAppCompatActivity();
 

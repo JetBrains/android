@@ -146,7 +146,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APPCOMPAT_V7);
+    myHasAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();
     if (javaPackage != null && !javaPackage.isEmpty()) {

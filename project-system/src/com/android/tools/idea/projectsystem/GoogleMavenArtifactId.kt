@@ -16,32 +16,65 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GradleCoordinate
 
 /**
  * Enumeration of known artifacts used in Android Studio
  */
-enum class GoogleMavenArtifactId(val artifactCoordinate: String) {
-  // Layout and view libs
-  CONSTRAINT_LAYOUT(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT),
-  FLEXBOX_LAYOUT(SdkConstants.FLEXBOX_LAYOUT_LIB_ARTIFACT),
-  GRID_LAYOUT(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT),
-  CARD_VIEW(SdkConstants.CARD_VIEW_LIB_ARTIFACT),
-  RECYCLER_VIEW(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT),
+enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: String) {
 
-  // General support
-  SUPPORT_LIB(SdkConstants.SUPPORT_LIB_ARTIFACT),
-  DESIGN_LIB(SdkConstants.DESIGN_LIB_ARTIFACT),
-  APPCOMPAT_V7(SdkConstants.APPCOMPAT_LIB_ARTIFACT),
-  ANNOTATIONS_LIB(SdkConstants.ANNOTATIONS_LIB_ARTIFACT),
-  LEANBACK_V17(SdkConstants.LEANBACK_V17_ARTIFACT),
+  // Platform support libraries
+  SUPPORT_ANNOTATIONS("com.android.support", "support-annotations"),
+  SUPPORT_V4("com.android.support", "support-v4"),
+  SUPPORT_V13("com.android.support", "support-v13"),
+  APP_COMPAT_V7("com.android.support", "appcompat-v7"),
+  SUPPORT_VECTOR_DRAWABLE("com.android.support", "support-vector-drawable"),
+  DESIGN("com.android.support", "design"),
+  GRID_LAYOUT_V7("com.android.support", "gridlayout-v7"),
+  MEDIA_ROUTER_V7("com.android.support", "mediarouter-v7"),
+  CARDVIEW_V7("com.android.support", "cardview-v7"),
+  PALETTE_V7("com.android.support", "palette-v7"),
+  LEANBACK_V17("com.android.support", "leanback-v17"),
+  RECYCLERVIEW_V7("com.android.support", "recyclerview-v7"),
+  EXIF_INTERFACE("com.android.support", "exifinterface"),
 
-  // Databinding
-  DATA_BINDING_LIB(SdkConstants.DATA_BINDING_LIB_ARTIFACT),
-  DATA_BINDING_BASELIB(SdkConstants.DATA_BINDING_BASELIB_ARTIFACT),
-  DATA_BINDING_ANNOTATION_PROCESSOR(SdkConstants.DATA_BINDING_ANNOTATION_PROCESSOR_ARTIFACT),
-  DATA_BINDING_ADAPTERS(SdkConstants.DATA_BINDING_ADAPTER_LIB_ARTIFACT),
+  // Misc. layouts
+  CONSTRAINT_LAYOUT("com.android.support.constraint", "constraint-layout"),
+  FLEXBOX_LAYOUT("com.google.android", "flexbox"),
 
-  // Misc.
-  MAPS(SdkConstants.MAPS_ARTIFACT),
-  ADS(SdkConstants.ADS_ARTIFACT),
+  // Testing
+  TEST_RUNNER("com.android.support.test", "runner"),
+  ESPRESSO_CORE("com.android.support.test.espresso", "espresso-core"),
+  ESPRESSO_CONTRIB("com.android.support.test.espresso", "espresso-contrib"),
+
+  // Data binding
+  DATA_BINDING_LIB("com.android.databinding", "library"),
+  DATA_BINDING_BASELIB("com.android.databinding", "baseLibrary"),
+  DATA_BINDING_ANNOTATION_PROCESSOR("com.android.databinding", "compiler"),
+  DATA_BINDING_ADAPTERS("com.android.databinding", "adapters"),
+
+  // Google repo
+  PLAY_SERVICES("com.google.android.gms", "play-services"),
+  PLAY_SERVICES_ADS("com.google.android.gms", "play-services-ads"),
+  PLAY_SERVICES_WEARABLE("com.google.android.gms", "play-services-wearable"),
+  PLAY_SERVICES_MAPS("com.google.android.gms", "play-services-maps"),
+  WEARABLE("com.google.android.support", "wearable"),
+  ;
+
+  fun getCoordinate(revision: String): GradleCoordinate =
+    GradleCoordinate(mavenGroupId, mavenArtifactId, GradleCoordinate.StringComponent(revision))
+
+  override fun toString(): String = "$mavenGroupId:$mavenArtifactId"
+
+  companion object {
+    fun find(groupId: String, artifactId: String): GoogleMavenArtifactId? =
+        values().asSequence().find { it.mavenGroupId == groupId && it.mavenArtifactId == artifactId }
+
+    fun forCoordinate(coordinate: GradleCoordinate): GoogleMavenArtifactId? {
+      val groupId = coordinate.groupId ?: return null
+      val artifactId = coordinate.artifactId ?: return null
+
+      return find(groupId, artifactId)
+    }
+  }
 }

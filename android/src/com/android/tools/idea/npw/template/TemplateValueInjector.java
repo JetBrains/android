@@ -34,11 +34,11 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -142,7 +142,7 @@ public final class TemplateValueInjector {
    * not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
-   * @param project Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
+   * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
    */
   public TemplateValueInjector setBuildVersion(@NotNull AndroidVersionsInfo.VersionItem buildVersion, @Nullable Project project) {
     addDebugKeyStore(myTemplateValues, null);
@@ -292,8 +292,8 @@ public final class TemplateValueInjector {
     if (sdkLocation != null) {
       myTemplateValues.put(ATTR_SDK_DIR, sdkLocation.getPath());
 
-      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
-                                                                             SupportLibrary.ESPRESSO_CORE.getArtifactId(),
+      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ESPRESSO_CORE.getMavenGroupId(),
+                                                                             GoogleMavenArtifactId.ESPRESSO_CORE.getMavenArtifactId(),
                                                                              null, false, sdkLocation, FileOpUtils.create());
       if (espressoVersion != null) {
         myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);

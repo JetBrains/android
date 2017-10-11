@@ -20,13 +20,13 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -174,7 +174,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
                                    pluralize("module", count),
                                    moduleNames,
                                    count > 1 ? "do" : "does",
-                                   SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
+                                   GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.getMavenArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
@@ -183,7 +183,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }

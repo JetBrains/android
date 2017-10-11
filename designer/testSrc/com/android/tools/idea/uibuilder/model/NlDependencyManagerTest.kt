@@ -64,13 +64,13 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   fun testIdentifiesMissingDependency() {
     val nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
-    TestCase.assertFalse(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet))
+    TestCase.assertFalse(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
   }
 
   fun testIdentifiesCorrectDependency() {
     val nlDependencyManager = NlDependencyManager.get(dummyDependenciesManager)
-    projectSystem.addDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet.module, GradleVersion(1, 1))
-    TestCase.assertTrue(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APPCOMPAT_V7, myFacet))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
+    TestCase.assertTrue(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
   }
 
   private open class DummyDependenciesManager : NlDependencyManager.DependencyManager {

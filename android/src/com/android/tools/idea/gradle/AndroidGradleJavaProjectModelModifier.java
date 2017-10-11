@@ -36,10 +36,10 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -244,9 +244,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     String groupAndId = libraryGroupId + ":" + libraryArtifactId;
     String version = EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
     if (version == null) {
-      SupportLibrary library = SupportLibrary.find(libraryGroupId, libraryArtifactId);
+      GoogleMavenArtifactId library = GoogleMavenArtifactId.Companion.find(libraryGroupId, libraryArtifactId);
       if (library != null) {
-        String gc = RepositoryUrlManager.get().getLibraryStringCoordinate(library, false);
+        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, false);
         if (gc == null) {
           AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
           if (sdk == null) {

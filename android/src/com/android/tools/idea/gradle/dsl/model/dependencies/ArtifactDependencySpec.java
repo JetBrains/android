@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -98,6 +99,10 @@ public class ArtifactDependencySpec {
                                       dependency.version().value(),
                                       dependency.classifier().value(),
                                       dependency.extension().value());
+  }
+
+  public ArtifactDependencySpec(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version) {
+    this(artifactId.getMavenArtifactId(), artifactId.getMavenGroupId(), version, null, null);
   }
 
   public ArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {

@@ -16,29 +16,18 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.SdkConstants;
-import com.android.builder.model.Version;
-import com.android.ide.common.blame.Message;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTests;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.util.HashSet;
 import java.util.Set;
 
-import static com.android.tools.idea.templates.SupportLibrary.APP_COMPAT_V7;
 import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
 
 /**
@@ -253,6 +242,6 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
   }
 
   private static String getAppCompatGradleCoordinate() {
-    return RepositoryUrlManager.get().getLibraryStringCoordinate(APP_COMPAT_V7, false);
+    return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7, false);
   }
 }

@@ -16,20 +16,13 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -43,19 +36,12 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeStyleUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeThemeUsageInfo;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarFile;
 
 import static com.android.SdkConstants.*;
 
