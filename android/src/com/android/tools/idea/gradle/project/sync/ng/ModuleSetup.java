@@ -38,6 +38,8 @@ import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -146,6 +148,12 @@ abstract class ModuleSetup {
     @Override
     void setUpModules(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
       throws ModelNotFoundInCacheException {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isUnitTestMode()) {
+        // Tests always run in EDT
+        assert !application.isDispatchThread();
+      }
+
       notifyModuleConfigurationStarted(indicator);
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
@@ -161,6 +169,12 @@ abstract class ModuleSetup {
 
     private void setUpModule(@NotNull GradleFacet gradleFacet, @NotNull CachedModuleModels cache, @NotNull ProgressIndicator indicator)
       throws ModelNotFoundInCacheException {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isUnitTestMode()) {
+        // Tests always run in EDT
+        assert !application.isDispatchThread();
+      }
+
       Module module = gradleFacet.getModule();
       GradleModuleModel gradleModel = cache.findModel(GradleModuleModel.class);
       if (gradleModel == null) {

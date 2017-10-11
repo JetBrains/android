@@ -24,7 +24,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
@@ -63,12 +62,7 @@ abstract class ProjectSetup {
     void setUpProject(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator) {
       ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
       try {
-        executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
-          @Override
-          public void execute() {
-            moduleSetup.setUpModules(projectModels, indicator);
-          }
-        });
+        moduleSetup.setUpModules(projectModels, indicator);
       }
       catch (Throwable e) {
         disposeChanges();
@@ -79,28 +73,13 @@ abstract class ProjectSetup {
     @Override
     void setUpProject(@NotNull CachedProjectModels projectModels, @NotNull ProgressIndicator indicator)
       throws ModelNotFoundInCacheException {
-      Ref<ModelNotFoundInCacheException> error = new Ref<>();
       ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
       try {
-        executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
-          @Override
-          public void execute() {
-            try {
-              moduleSetup.setUpModules(projectModels, indicator);
-            }
-            catch (ModelNotFoundInCacheException e) {
-              error.set(e);
-            }
-          }
-        });
+        moduleSetup.setUpModules(projectModels, indicator);
       }
       catch (Throwable e) {
         disposeChanges();
         throw e;
-      }
-      ModelNotFoundInCacheException caughtError = error.get();
-      if (caughtError != null) {
-        throw caughtError;
       }
     }
 
