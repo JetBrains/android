@@ -31,24 +31,9 @@ public class LibraryDependencyTest extends IdeaTestCase {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);
     assertEquals("guava-11.0.2", dependency.getName());
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+    File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(1);
     assertEquals(jarFile, binaryPaths[0]);
     assertEquals(DependencyScope.TEST, dependency.getScope());
-  }
-
-  public void testConstructorWithAarAndJavadoc() throws IOException {
-    // Simulate maven layout for LibraryFilePaths to perform the lookup (both aar and javadoc in the same folder)
-    File aarFile = createTempFile("fakeAndroidLibrary-1.2.3.aar", "");
-    File javadocFile = createTempFile("fakeAndroidLibrary-1.2.3-javadoc.jar", "");
-
-    LibraryDependency dependency = new LibraryDependency(aarFile, "fakeAndroidLibraryName-1.2.3", DependencyScope.COMPILE);
-    assertEquals("fakeAndroidLibraryName-1.2.3", dependency.getName());
-    File[] binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    // Binary paths for aar are populated by DependenciesExtractor.createLibraryDependencyFromAndroidLibrary
-    assertEmpty(binaryPaths);
-    File[] documentationPaths = dependency.getPaths(LibraryDependency.PathType.DOCUMENTATION);
-    assertThat(documentationPaths).hasLength(1);
-    assertEquals(javadocFile, documentationPaths[0]);
   }
 }

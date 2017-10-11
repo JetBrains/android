@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.tools.idea.gradle.LibraryFilePaths;
+import com.android.tools.idea.io.FilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
  * An IDEA module's dependency on a library (e.g. a jar file.)
  */
 public class LibraryDependency extends Dependency {
-  @NotNull private final Map<PathType, Collection<File>> myPathsByType = new EnumMap<>(PathType.class);
+  @NotNull private final Collection<File> myBinaryPaths = new HashSet<>();
   @NotNull private final File myArtifactPath;
 
   private String myName;
@@ -45,7 +45,7 @@ public class LibraryDependency extends Dependency {
   @VisibleForTesting
   public LibraryDependency(@NotNull File artifactPath, @NotNull DependencyScope scope) {
     this(artifactPath, getNameWithoutExtension(artifactPath), scope);
-    addPath(PathType.BINARY, artifactPath);
+    addBinaryPath(artifactPath);
   }
 
   /**
@@ -60,32 +60,19 @@ public class LibraryDependency extends Dependency {
     super(scope);
     myArtifactPath = artifactPath;
     setName(name);
-
-    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance();
-    File javadocJarPath = libraryFilePaths.findJavadocJarPath(artifactPath);
-    if (javadocJarPath != null) {
-      addPath(PathType.DOCUMENTATION, javadocJarPath);
-    }
   }
 
-  @VisibleForTesting
-  public void addPath(@NotNull PathType type, @NotNull File path) {
-    Collection<File> paths = myPathsByType.get(type);
-    if (paths == null) {
-      paths = new HashSet<>();
-      myPathsByType.put(type, paths);
-    }
-    paths.add(path);
+  void addBinaryPath(@NotNull File path) {
+    myBinaryPaths.add(path);
   }
 
-  void addPath(@NotNull PathType type, @NotNull String path) {
-    addPath(type, new File(path));
+  void addBinaryPath(@NotNull String path) {
+    addBinaryPath(FilePaths.toSystemDependentPath(path));
   }
 
   @NotNull
-  public File[] getPaths(@NotNull PathType type) {
-    Collection<File> paths = myPathsByType.get(type);
-    return paths == null || paths.isEmpty() ? EMPTY_FILE_ARRAY : paths.toArray(new File[paths.size()]);
+  public File[] getBinaryPaths() {
+    return myBinaryPaths.isEmpty() ? EMPTY_FILE_ARRAY : myBinaryPaths.toArray(new File[myBinaryPaths.size()]);
   }
 
   @NotNull
@@ -111,14 +98,14 @@ public class LibraryDependency extends Dependency {
       return false;
     }
     LibraryDependency that = (LibraryDependency)o;
-    return Objects.equals(myPathsByType, that.myPathsByType) &&
+    return Objects.equals(myBinaryPaths, that.myBinaryPaths) &&
            Objects.equals(myArtifactPath, that.myArtifactPath) &&
            Objects.equals(myName, that.myName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myPathsByType, myArtifactPath, myName);
+    return Objects.hash(myBinaryPaths, myArtifactPath, myName);
   }
 
   @Override
@@ -126,11 +113,7 @@ public class LibraryDependency extends Dependency {
     return getClass().getSimpleName() + "[" +
            "name='" + myName + '\'' +
            ", scope=" + getScope() +
-           ", pathsByType=" + myPathsByType +
+           ", pathsByType=" + myBinaryPaths +
            "]";
-  }
-
-  public enum PathType {
-    BINARY, DOCUMENTATION
   }
 }

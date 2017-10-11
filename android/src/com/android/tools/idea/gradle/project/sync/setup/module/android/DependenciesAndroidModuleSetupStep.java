@@ -51,8 +51,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -138,7 +136,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     String name = dependency.getName();
     DependencyScope scope = dependency.getScope();
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
-                                               dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), getExported(moduleModel));
+                                               dependency.getBinaryPaths(), getExported(moduleModel));
 
     File buildFolder = moduleModel.getAndroidProject().getBuildFolder();
 
@@ -146,7 +144,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     // see https://code.google.com/p/android/issues/detail?id=123788
     ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
     if (contentEntries.length > 0) {
-      for (File binaryPath : dependency.getPaths(BINARY)) {
+      for (File binaryPath : dependency.getBinaryPaths()) {
         File parent = binaryPath.getParentFile();
         if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
           ContentEntry parentContentEntry = findParentContentEntry(parent, Arrays.stream(contentEntries));

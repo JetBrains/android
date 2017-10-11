@@ -43,13 +43,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ArrayUtil.EMPTY_FILE_ARRAY;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -99,11 +98,11 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
     verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, "myLibrary", COMPILE, dependency.getArtifactPath(),
-                                                       dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), exported);
+                                                       dependency.getBinaryPaths(), exported);
   }
 
   @NotNull
-  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) throws IOException {
+  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) {
     // Create mock IdeAndroidProject.
     createContentRoot(myModule);
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
@@ -134,9 +133,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
-    LibraryDependency dependency = new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
-    dependency.addPath(DOCUMENTATION, new File(jarsFolderPath, "myLibrary-javadoc.jar"));
-    return dependency;
+    return new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
   }
 
   @NotNull
@@ -146,17 +143,17 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
     return moduleFile.getParent();
   }
 
-  public void testUpdateModuleDependencyWithPlugin2dot3() throws IOException {
+  public void testUpdateModuleDependencyWithPlugin2dot3() {
     // Verify that module dependency is exported for plugin 2.3.
     updateModuleDependency("2.3.0", true);
   }
 
-  public void testUpdateModuleDependencyWithPlugin3dot0() throws IOException {
+  public void testUpdateModuleDependencyWithPlugin3dot0() {
     // Verify that module dependency is not exported for plugin 3.0.
     updateModuleDependency("3.0.0", false);
   }
 
-  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) throws IOException {
+  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) {
     String libModulePath = "mylib";
     // Create a lib module.
     Module libModule = createModule(libModulePath);

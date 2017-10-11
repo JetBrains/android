@@ -27,7 +27,6 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
@@ -80,7 +79,7 @@ public class DependenciesExtractor {
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
-      libraryDependency.addPath(LibraryDependency.PathType.BINARY, library.getArtifact());
+      libraryDependency.addBinaryPath(library.getArtifact());
       dependencies.add(libraryDependency);
     }
 
@@ -102,11 +101,11 @@ public class DependenciesExtractor {
                                                                              @NotNull DependencyScope scope) {
     LibraryDependency dependency =
       new LibraryDependency(library.getArtifact(), getDependencyName(library, "-"), scope);
-    dependency.addPath(BINARY, library.getJarFile());
-    dependency.addPath(BINARY, library.getResFolder());
+    dependency.addBinaryPath(library.getJarFile());
+    dependency.addBinaryPath(library.getResFolder());
 
     for (String localJar : library.getLocalJars()) {
-      dependency.addPath(BINARY, localJar);
+      dependency.addBinaryPath(localJar);
     }
     return dependency;
   }
