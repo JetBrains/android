@@ -28,14 +28,11 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link GradleSpecificInitializer}
  */
 public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
-  public void testDisableAll() {
-    // tests cannot run because issues while loading androidstudio.xml (see ag/2695439)
-  }
 
   /**
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
    */
-  public void /*test*/AndroidTemplateProjectSettingsGroup() {
+  public void testAndroidTemplateProjectSettingsGroup() {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction action = actionManager.getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
     assertThat(action).isNotNull();
@@ -45,7 +42,7 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
   /**
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
    */
-  public void /*test*/AndroidTemplateProjectSettingsGroupInWelcomeDialog() {
+  public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
     assertThat(configureIdeaAction).isNotNull();
