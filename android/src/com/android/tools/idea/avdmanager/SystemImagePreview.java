@@ -113,14 +113,24 @@ public class SystemImagePreview {
       }
       int apiLevel = version.getApiLevel();
       myApiLevelListener.setApiLevel(apiLevel);
+      // Get our hard-coded code name for this API level
       String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getFeatureLevel());
       if (codeName != null) {
         myReleaseName.setText(codeName);
+      } else {
+        // Must be a preview version. Display the code name from the image.
+        myReleaseName.setText(version.getCodename());
       }
       Icon icon = getIcon(codeName);
-      if (icon != null) {
-        myReleaseIcon.setIcon(icon);
+      if (icon == null) {
+        try {
+          icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
+        } catch (RuntimeException ignored) {
+          // Just leave 'icon' null
+        }
       }
+      myReleaseIcon.setIcon(icon);
+
       myApiLevel.setText(image.getVersion().getApiString());
       myAndroidVersion.setVisible(!image.getVersion().isPreview());
       myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
