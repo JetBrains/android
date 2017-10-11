@@ -16,15 +16,10 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.sdk.AndroidSdks

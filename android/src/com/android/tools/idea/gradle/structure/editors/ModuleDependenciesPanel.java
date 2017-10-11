@@ -19,10 +19,10 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -269,15 +269,15 @@ public class ModuleDependenciesPanel extends EditorPanel {
   }
 
   private String installRepositoryIfNeeded(String coordinateText) {
-    GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(coordinateText);
-    assert gradleCoordinate != null;  // Only allowed to click ok when the string is valid.
-    SupportLibrary supportLibrary = SupportLibrary.forGradleCoordinate(gradleCoordinate);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
+    assert coordinate != null;  // Only allowed to click ok when the string is valid.
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.Companion.forCoordinate(coordinate);
 
-    if (!REVISION_ANY.equals(gradleCoordinate.getRevision()) || supportLibrary == null) {
+    if (!REVISION_ANY.equals(coordinate.getRevision()) || artifactId == null) {
       // No installation needed, or it's not a local repository.
       return coordinateText;
     }
-    String message = "Library " + gradleCoordinate.getArtifactId() + " is not installed. Install repository?";
+    String message = "Library " + coordinate.getArtifactId() + " is not installed. Install repository?";
     if (Messages.showYesNoDialog(myProject, message, "Install Repository", Messages.getQuestionIcon()) != Messages.YES) {
       // User cancelled installation.
       return null;
@@ -300,7 +300,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        return RepositoryUrlManager.get().getLibraryStringCoordinate(supportLibrary, true);
+        return RepositoryUrlManager.get().getArtifactStringCoordinate(artifactId, true);
       }
     }
 

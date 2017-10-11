@@ -439,7 +439,7 @@ public class RenderTask implements IImageFactory {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getModule(), GoogleMavenArtifactId.APPCOMPAT_V7);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }

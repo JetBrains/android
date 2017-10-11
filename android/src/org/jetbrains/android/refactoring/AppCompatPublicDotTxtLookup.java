@@ -18,6 +18,7 @@ package org.jetbrains.android.refactoring;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Splitter;
@@ -46,7 +47,6 @@ import java.util.Set;
 import java.util.jar.JarFile;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.SupportLibrary.APP_COMPAT_V7;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -148,12 +148,12 @@ public class AppCompatPublicDotTxtLookup {
 
   @Nullable
   private static JarFile findLocalAppCompatAar(@NotNull String appCompatVersion) throws IOException {
-    GradleCoordinate gradleCoordinate = new GradleCoordinate(APP_COMPAT_V7.getGroupId(), APP_COMPAT_V7.getArtifactId(), appCompatVersion);
+    GradleCoordinate coordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(appCompatVersion);
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData == null) {
       return null;
     }
-    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(gradleCoordinate, sdkData.getLocation(), FileOpUtils.create());
+    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocation(), FileOpUtils.create());
     if (appCompatAarFile == null || !appCompatAarFile.exists()) {
       return null;
     }

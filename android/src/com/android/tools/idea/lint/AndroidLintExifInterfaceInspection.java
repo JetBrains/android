@@ -20,10 +20,10 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.lint.checks.ExifInterfaceDetector;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -136,7 +136,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
     private static String getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
-      String libraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.EXIF_INTERFACE, true);
+      String libraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.EXIF_INTERFACE, true);
       if (libraryCoordinate != null) {
         GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
         if (coordinate != null) {

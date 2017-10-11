@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -88,15 +88,15 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
-    for (SupportLibrary library : SupportLibrary.values()) {
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
       // Coordinate for any version available
-      GradleCoordinate libraryCoordinate = library.getGradleCoordinate("+");
+      GradleCoordinate coordinate = id.getCoordinate("+");
 
       // Get from the library coordinate only the group and artifactId to check if we have already added it
-      if (!existingDependencies.contains(libraryCoordinate.getId())) {
-        GradleCoordinate coordinate = repositoryUrlManager.resolveDynamicCoordinate(libraryCoordinate, buildModel.getProject());
-        if (coordinate != null) {
-          dependenciesBuilder.add(coordinate.toString());
+      if (!existingDependencies.contains(coordinate.getId())) {
+        GradleCoordinate resolvedCoordinate = repositoryUrlManager.resolveDynamicCoordinate(coordinate, buildModel.getProject());
+        if (resolvedCoordinate != null) {
+          dependenciesBuilder.add(resolvedCoordinate.toString());
         }
       }
     }

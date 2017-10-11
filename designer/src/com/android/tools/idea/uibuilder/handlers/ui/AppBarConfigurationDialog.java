@@ -294,7 +294,7 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open(@NotNull final XmlFile file) {
     Project project = file.getProject();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN_LIB);
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN);
     if (!hasDesignLib && !addDesignLibrary(manager)) {
       return false;
     }

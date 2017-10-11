@@ -52,7 +52,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
     return androidModuleModel.selectedMainCompileLevel2Dependencies.androidLibraries
         .asSequence()
         .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
-        .find { "${it.groupId}:${it.artifactId}" == artifactId.artifactCoordinate }
+        .find { "${it.groupId}:${it.artifactId}" == artifactId.toString() }
         ?.let { GradleDependencyVersion(it.version) }
   }
 
@@ -62,7 +62,7 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
 
     return GradleBuildModel.get(module)?.let {
       it.dependencies().artifacts(configurationName)
-          .filter { artifactId.artifactCoordinate == "${it.group().value()}:${it.name().value()}" }
+          .filter { artifactId.toString() == "${it.group().value()}:${it.name().value()}" }
           .map { parseDependencyVersion(it.version().value()) }
           .firstOrNull()
     }

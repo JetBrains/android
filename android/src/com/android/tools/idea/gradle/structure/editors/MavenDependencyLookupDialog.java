@@ -20,8 +20,8 @@ import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -127,8 +127,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     @Nullable
-    public static Artifact fromCoordinate(@NotNull String libraryCoordinate) {
-      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+    public static Artifact fromCoordinate(@NotNull String artifactCoordinate) {
+      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate);
       if (gradleCoordinate == null) {
         return null;
       }
@@ -237,12 +237,12 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    for (SupportLibrary library : SupportLibrary.values()) {
-      String libraryCoordinate = manager.getLibraryStringCoordinate(library, true);
-      if (libraryCoordinate != null) {
-        Artifact artifact = Artifact.fromCoordinate(libraryCoordinate);
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
+      String artifactCoordinate = manager.getArtifactStringCoordinate(id, true);
+      if (artifactCoordinate != null) {
+        Artifact artifact = Artifact.fromCoordinate(artifactCoordinate);
         if (artifact != null) {
-          myAndroidSdkLibraries.add(libraryCoordinate);
+          myAndroidSdkLibraries.add(artifactCoordinate);
           myShownItems.add(artifact);
         }
       }
@@ -271,8 +271,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       @Override
       protected void doAction(ActionEvent e) {
         String text = mySearchField.getText();
-        if (text != null && !hasVersion(text) && isKnownLocalLibrary(text)) {
-          // If it's a known library that doesn't exist in the local repository, we don't display the version for it. Add it back so that
+        if (text != null && !hasVersion(text) && isKnownLocalArtifact(text)) {
+          // If it's a known artifact that doesn't exist in the local repository, we don't display the version for it. Add it back so that
           // final string is a valid gradle coordinate.
           mySearchField.setText(text + ':' + REVISION_ANY);
         }
@@ -282,7 +282,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     init();
   }
 
-  private static boolean isKnownLocalLibrary(@NotNull String text) {
+  private static boolean isKnownLocalArtifact(@NotNull String text) {
     String group = getGroup(text);
     String artifact = getArtifact(text);
 
@@ -290,8 +290,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       return false;
     }
 
-    SupportLibrary library = SupportLibrary.find(group, artifact);
-    return library != null;
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.Companion.find(group, artifact);
+    return artifactId != null;
   }
 
   @Nullable
