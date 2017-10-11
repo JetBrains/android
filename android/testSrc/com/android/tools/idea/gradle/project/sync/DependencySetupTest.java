@@ -17,13 +17,11 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -54,7 +52,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 /**
  * Tests dependency configuration during Gradle Sync.
  */
-public class DependencySetupTest extends AndroidGradleTestCase {
+public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   private Modules myModules;
 
   @Override
@@ -71,23 +69,17 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = false;
     //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
   }
 
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
+
   public void testWithNonExistingInterModuleDependencies() throws Exception {
-    doTestWithNonExistingInterModuleDependencies(false /* use old sync infrastructure */);
-  }
-
-  public void testWithNonExistingInterModuleDependenciesWithNewSync() throws Exception {
-    doTestWithNonExistingInterModuleDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithNonExistingInterModuleDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
@@ -103,16 +95,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testWithUnresolvedDependencies() throws Exception {
-    doTestWithUnresolvedDependencies(false /* use old sync infrastructure */);
-  }
-
-  public void testWithUnresolvedDependenciesWithNewSync() throws Exception {
-    doTestWithUnresolvedDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithUnresolvedDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadSimpleApplication();
 
     File buildFilePath = getBuildFilePath("app");
@@ -156,16 +138,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testWithLocalAarsAsModules() throws Exception {
-    doTestWithLocalAarsAsModules(false /* use old sync infrastructure */);
-  }
-
-  public void testWithLocalAarsAsModulesWithNewSync() throws Exception {
-    doTestWithLocalAarsAsModules(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithLocalAarsAsModules(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(LOCAL_AARS_AS_MODULES);
 
     Module localAarModule = myModules.getModule("library-debug");
@@ -183,16 +155,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
-    doTestWithLocalJarsAsModules(false /* use old sync infrastructure */);
-  }
-
-  public void testWithLocalJarsAsModulesWithNewSync() throws Exception {
-    doTestWithLocalJarsAsModules(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithLocalJarsAsModules(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(LOCAL_JARS_AS_MODULES);
 
     Module localJarModule = myModules.getModule("localJarAsModule");
@@ -205,16 +167,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testWithInterModuleDependencies() throws Exception {
-    doTestWithInterModuleDependencies(false /* use old sync infrastructure */);
-  }
-
-  public void testWithInterModuleDependenciesWithNewSync() throws Exception {
-    doTestWithInterModuleDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestWithInterModuleDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
@@ -223,16 +175,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
   public void testTransitiveDependenciesFromJavaModule() throws Exception {
-    doTestTransitiveDependenciesFromJavaModule(false /* use old sync infrastructure */);
-  }
-
-  public void testTransitiveDependenciesFromJavaModuleWithNewSync() throws Exception {
-    doTestTransitiveDependenciesFromJavaModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestTransitiveDependenciesFromJavaModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -243,16 +185,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
   public void testTransitiveDependenciesFromAndroidModule() throws Exception {
-    doTestTransitiveDependenciesFromAndroidModule(false /* use old sync infrastructure */);
-  }
-
-  public void testTransitiveDependenciesFromAndroidModuleWithNewSync() throws Exception {
-    doTestTransitiveDependenciesFromAndroidModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestTransitiveDependenciesFromAndroidModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -263,16 +195,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
   public void testTransitiveAndroidModuleDependency() throws Exception {
-    doTestTransitiveAndroidModuleDependency(false /* use old sync infrastructure */);
-  }
-
-  public void testTransitiveAndroidModuleDependencyWithNewSync() throws Exception {
-    doTestTransitiveAndroidModuleDependency(true /* use new sync infrastructure */);
-  }
-
-  private void doTestTransitiveAndroidModuleDependency(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -282,16 +204,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryModuleDependencies() throws Exception {
-    doTestJavaLibraryModuleDependencies(false /* use old sync infrastructure */);
-  }
-
-  public void testJavaLibraryModuleDependenciesWithNewSync() throws Exception {
-    doTestJavaLibraryModuleDependencies(true /* use new sync infrastructure */);
-  }
-
-  private void doTestJavaLibraryModuleDependencies(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -301,16 +213,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
-    doTestDependencySetUpInJavaModule(false /* use old sync infrastructure */);
-  }
-
-  public void testDependencySetUpInJavaModuleWithNewSync() throws Exception {
-    doTestDependencySetUpInJavaModule(true /* use new sync infrastructure */);
-  }
-
-  private void doTestDependencySetUpInJavaModule(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
     assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib", COMPILE);
@@ -318,16 +220,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
   public void testJarsInLibsFolder() throws Exception {
-    doTestJarsInLibsFolder(false /* use old sync infrastructure */);
-  }
-
-  public void testJarsInLibsFolderWithNewSync() throws Exception {
-    doTestJarsInLibsFolder(true /* use new sync infrastructure */);
-  }
-
-  private void doTestJarsInLibsFolder(boolean useNewGradleSync) throws Exception {
-    GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC = useNewGradleSync;
-
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
