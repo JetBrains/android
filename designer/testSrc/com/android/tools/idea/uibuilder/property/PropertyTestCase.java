@@ -24,7 +24,6 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -47,7 +46,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
 import static com.google.common.truth.Truth.assertThat;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
@@ -68,8 +68,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myAutoCompleteTextView;
   protected NlComponent myRadioGroup;
   protected NlComponent myButtonInConstraintLayout;
-  protected NlComponent myTextViewInLinearLayout;
-  protected NlComponent myButtonInLinearLayout;
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
@@ -77,11 +75,10 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myFragment;
   protected SyncNlModel myModel;
   protected DesignSurface myDesignSurface;
-  protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
   protected NlUsageTracker myUsageTracker;
-  protected AndroidDomElementDescriptorProvider myDescriptorProvider;
-  protected Map<String, NlComponent> myComponentMap;
+  private AndroidDomElementDescriptorProvider myDescriptorProvider;
+  private Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
 
   @Override
@@ -104,15 +101,12 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myConstraintLayout = myComponentMap.get("constraintLayout");
     myConstraintLayoutWithConstraintSet = myComponentMap.get("constraintLayoutWithConstraintSet");
     myButtonInConstraintLayout = myComponentMap.get("button2");
-    myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
-    myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = myModel.getSurface();
-    myScreenView = createScreen(myModel);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -144,14 +138,11 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       myAutoCompleteTextView = null;
       myRadioGroup = null;
       myButtonInConstraintLayout = null;
-      myTextViewInLinearLayout = null;
-      myButtonInLinearLayout = null;
       myImageViewInCollapsingToolbarLayout = null;
       myTabLayout = null;
       myRelativeLayout = null;
       myModel = null;
       myDesignSurface = null;
-      myScreenView = null;
       myPropertiesManager = null;
       myUsageTracker = null;
       myDescriptorProvider = null;
@@ -342,7 +333,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     clearSnapshots(myModel.getComponents());
   }
 
-  protected static void clearSnapshots(@NotNull List<NlComponent> components) {
+  private static void clearSnapshots(@NotNull List<NlComponent> components) {
     for (NlComponent component : components) {
       component.setSnapshot(null);
       clearSnapshots(component.getChildren());
@@ -383,7 +374,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @Nullable
-  protected static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+  private static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     AndroidFacet facet = component.getModel().getFacet();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();

@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 public class NlPropertyOrderingTest extends LayoutTestCase {
   public void testGrouping() {
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
                     "  <TextView />" +
@@ -60,7 +61,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
     //assertNotNull("Attribute password missing inside textview attributes", findItemByName(textView.getChildren(), "password"));
 
     // certain special attrs should be at the top level
-                  assertNotNull("Missing attribute id at the top level after grouping", findItemByName(items, "id"));
+    assertNotNull("Missing attribute ID at the top level after grouping", findItemByName(items, "id"));
   }
 
   public void testSorting() {

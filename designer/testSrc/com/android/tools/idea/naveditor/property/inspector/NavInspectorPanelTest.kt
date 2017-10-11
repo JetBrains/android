@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.property.NlProperties
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
-class NavInspectorPanelTest: NavigationTestCase() {
+class NavInspectorPanelTest : NavigationTestCase() {
   fun testCollectProperties() {
     val model = model("nav.xml",
         rootComponent().unboundedChildren(
@@ -45,7 +45,7 @@ class NavInspectorPanelTest: NavigationTestCase() {
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     val propertyMap = captor.value
-    assertEquals(model.find("a1"), propertyMap.get("@id/f2")!!.components[0])
-    assertEquals(model.find("a2"), propertyMap.get("@id/f3")!!.components[0])
+    assertEquals(model.find("a1"), propertyMap["@id/f2"]!!.components[0])
+    assertEquals(model.find("a2"), propertyMap["@id/f3"]!!.components[0])
   }
 }
