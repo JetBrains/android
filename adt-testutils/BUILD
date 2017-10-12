@@ -14,5 +14,6 @@ iml_module(
         "//tools/base/repository:studio.repository[module]",
         "//tools/idea/.idea/libraries:JUnit4",
         "//tools/idea/.idea/libraries:Gradle",
+        "//tools/idea/.idea/libraries:jna",
     ],
 )
