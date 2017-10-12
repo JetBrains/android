@@ -367,4 +367,5 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/5.0.3:jar",
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/5.0.3:jar",
     ],
+    visibility = ["//visibility:public"],
 )

@@ -331,9 +331,7 @@ public final class GuiTests {
       return createTempDir().getCanonicalFile();
     }
     catch (IOException ex) {
-      // For now, keep the original behavior and point inside the source tree.
-      ex.printStackTrace();
-      return new File(getTestProjectsRootDirPath(), "newProjects");
+      throw new IllegalStateException(ex);
     }
   }
 

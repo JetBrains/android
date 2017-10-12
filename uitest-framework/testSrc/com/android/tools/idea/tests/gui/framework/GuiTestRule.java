@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -112,8 +113,11 @@ public class GuiTestRule implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
-          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-          assumeOnlyWelcomeFrameShowing();
+          if (!TestUtils.runningFromBazel()) {
+            // when state can be bad from previous tests, check and skip in that case
+            assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
+            assumeOnlyWelcomeFrameShowing();
+          }
           setUp();
           List<Throwable> errors = new ArrayList<>();
           try {
