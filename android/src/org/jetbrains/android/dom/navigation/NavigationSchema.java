@@ -56,6 +56,13 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_NAV_TYPE = "navType";
   public static final String ATTR_START_DESTINATION = "startDestination";
   public static final String ATTR_GRAPH = "graph";
+  public static final String ATTR_POP_UP_TO = "popUpTo";
+  public static final String ATTR_POP_UP_TO_INCLUSIVE = "popUpToInclusive";
+  public static final String ATTR_SINGLE_TOP = "launchSingleTop";
+  public static final String ATTR_DOCUMENT = "launchDocument";
+  public static final String ATTR_CLEAR_TASK = "clearTask";
+  public static final String ATTR_ENTER_ANIM = "enterAnim";
+  public static final String ATTR_EXIT_ANIM = "exitAnim";
 
   // TODO: get these from the xml metadata once supported by platform
   public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
