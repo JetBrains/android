@@ -22,7 +22,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameterList;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -79,10 +78,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
    */
   public void testPropertyResolution() {
     copyClass("p1.p2.ClassWithBindableProperty");
-    VirtualFile virtualFile = copyLayout("data_binding_property_reference");
-    myFixture.configureFromExistingVirtualFile(virtualFile);
-    // Allow all queued events to propagate to make sure that ResourceFolderRepository is up to date.
-    UIUtil.dispatchAllInvocationEvents();
+    myFixture.configureByFile("res/layout/data_binding_property_reference.xml");
     PsiElement element = myFixture.getElementAtCaret();
     assertTrue(element instanceof PsiMethod);
     assertEquals("getProperty", ((PsiMethod)element).getName());
