@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.tools.idea.welcome.wizard.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;

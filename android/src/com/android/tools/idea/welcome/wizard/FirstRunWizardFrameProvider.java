@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WelcomeFrameProvider;
 import com.intellij.openapi.wm.WelcomeScreenProvider;

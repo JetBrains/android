@@ -19,6 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
+import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;

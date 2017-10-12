@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
+package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -30,11 +30,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.OptionAction;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
-import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
-import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;

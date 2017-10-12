@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
-
-import com.android.tools.idea.welcome.install.WizardException;
 
 /**
- * Interface for paths that have a long-running operation running after the wizard completes.
+ * @deprecated All classes in this package will be forked but will extend ModelWizard instead of DynamicWizard. Once that is done this
+ * package should be deleted.
  */
-public interface LongRunningOperationPath {
-  void runLongOperation() throws WizardException;
-}
+package com.android.tools.idea.welcome.wizard.deprecated;
+
