@@ -14,6 +14,9 @@
   <item name="android.os.storage.StorageManager android.os.storage.StorageVolume getStorageVolume(java.io.File)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.storage.StorageManager boolean isAllocationSupported(java.io.FileDescriptor) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.storage.StorageManager java.util.List&lt;android.os.storage.StorageVolume&gt; getStorageVolumes()">
     <annotation name="android.support.annotation.NonNull" />
   </item>

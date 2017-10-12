@@ -196,6 +196,9 @@
   <item name="android.widget.AutoCompleteTextView void setDropDownBackgroundResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.widget.BaseAdapter void setAutofillOptions(java.lang.CharSequence...) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CalendarView CalendarView(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -496,7 +499,7 @@
   </item>
   <item name="android.widget.LinearLayout.LayoutParams gravity">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.Gravity.NO_GRAVITY, android.view.Gravity.TOP, android.view.Gravity.BOTTOM, android.view.Gravity.LEFT, android.view.Gravity.RIGHT, android.view.Gravity.START, android.view.Gravity.END, android.view.Gravity.CENTER_VERTICAL, android.view.Gravity.FILL_VERTICAL, android.view.Gravity.CENTER_HORIZONTAL, android.view.Gravity.FILL_HORIZONTAL, android.view.Gravity.CENTER, android.view.Gravity.FILL}" />
+      <val name="value" val="{android.view.Gravity.NO_GRAVITY, android.view.Gravity.TOP, android.view.Gravity.BOTTOM, android.view.Gravity.LEFT, android.view.Gravity.RIGHT, android.view.Gravity.START, android.view.Gravity.END, android.view.Gravity.CENTER_VERTICAL, android.view.Gravity.FILL_VERTICAL, android.view.Gravity.CENTER_HORIZONTAL, android.view.Gravity.FILL_HORIZONTAL, android.view.Gravity.CENTER, android.view.Gravity.FILL, android.view.Gravity.DISPLAY_CLIP_VERTICAL, android.view.Gravity.DISPLAY_CLIP_HORIZONTAL}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
