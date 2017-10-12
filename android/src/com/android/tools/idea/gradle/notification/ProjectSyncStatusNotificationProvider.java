@@ -21,15 +21,20 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +49,9 @@ import static com.intellij.util.ThreeState.YES;
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
-public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
+  implements DumbAware {
+
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
   @NotNull private final Project myProject;
@@ -70,7 +77,17 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
     NotificationPanel.Type newPanelType = notificationPanelType();
-    return (oldPanel != null && oldPanel.type == newPanelType) ? oldPanel : newPanelType.create(myProject);
+
+    if (oldPanel != null) {
+      if (oldPanel.type == newPanelType) {
+        return oldPanel;
+      }
+      if (oldPanel instanceof Disposable) {
+        Disposer.dispose((Disposable)oldPanel);
+      }
+    }
+
+    return newPanelType.create(myProject);
   }
 
   @VisibleForTesting
@@ -156,18 +173,50 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  private static class StaleGradleModelNotificationPanel extends NotificationPanel {
-    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+  // Notification panel which may contain actions which we don't want to be executed during indexing (e.g.,
+  // retrying sync itself)
+  @VisibleForTesting
+  static class IndexingSensitiveNotificationPanel extends NotificationPanel implements Disposable {
+    IndexingSensitiveNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
+
+      Disposer.register(project, this);
+      MessageBusConnection connection = project.getMessageBus().connect(this);
+      connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+        @Override
+        public void enteredDumbMode() {
+          setVisible(false);
+        }
+
+        @Override
+        public void exitDumbMode() {
+          setVisible(true);
+        }
+      });
+
+      // First subscribe, then update visibility
+      setVisible(!DumbService.getInstance(project).isDumb());
+    }
+
+    @Override
+    public void dispose() {
+      // Empty - we have nothing to dispose explicitly but this class has to be Disposable in order for the child
+      // message bus connection to get disposed once the panel is no longer needed
+    }
+  }
+
+  private static class StaleGradleModelNotificationPanel extends IndexingSensitiveNotificationPanel {
+    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      super(project, type, text);
 
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null));
     }
   }
 
-  private static class SyncProblemNotificationPanel extends NotificationPanel {
+  private static class SyncProblemNotificationPanel extends IndexingSensitiveNotificationPanel {
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(type, text);
+      super(project, type, text);
 
       createActionLabel("Try Again",
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null));

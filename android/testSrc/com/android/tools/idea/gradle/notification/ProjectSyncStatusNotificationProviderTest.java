@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.intellij.openapi.project.DumbService.DumbModeListener;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
+import static com.intellij.openapi.project.DumbService.DUMB_MODE;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -75,6 +79,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.FAILED, type);
+    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncErrors() {
@@ -82,6 +87,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.ERRORS, type);
+    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncNeeded() {
@@ -89,5 +95,24 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
+    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+  }
+
+  public void testIndexingSensitiveNotificationPanel() {
+    IndexingSensitiveNotificationPanel notificationPanel = new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test");
+    assertTrue(notificationPanel.isVisible());
+
+    DumbModeListener publisher = myProject.getMessageBus().syncPublisher(DUMB_MODE);
+    publisher.enteredDumbMode();
+    assertFalse(notificationPanel.isVisible());
+    publisher.exitDumbMode();
+    assertTrue(notificationPanel.isVisible());
+
+    // Must dispose the message bus connection
+    Disposer.dispose(notificationPanel);
+    publisher.enteredDumbMode();
+    assertTrue(notificationPanel.isVisible());
+    publisher.exitDumbMode();
+    assertTrue(notificationPanel.isVisible());
   }
 }
