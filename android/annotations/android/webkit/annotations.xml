@@ -1,9 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.webkit.ClientCertRequest java.lang.String[] getKeyTypes()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.ClientCertRequest java.security.Principal[] getPrincipals()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.CookieManager void removeAllCookies(android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.CookieManager void removeSessionCookies(android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.CookieManager void setCookie(java.lang.String, java.lang.String, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.MimeTypeMap java.lang.String getExtensionFromMimeType(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.MimeTypeMap java.lang.String getMimeTypeFromExtension(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.webkit.RenderProcessGoneDetail int rendererPriorityAtExit()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
     </annotation>
+  </item>
+  <item name="android.webkit.ServiceWorkerClient android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebResourceRequest)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.webkit.ServiceWorkerController android.webkit.ServiceWorkerController getInstance()">
     <annotation name="android.support.annotation.NonNull" />
@@ -23,6 +47,42 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
     </annotation>
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebBackForwardList android.webkit.WebHistoryItem getCurrentItem()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient android.graphics.Bitmap getDefaultVideoPoster()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient android.view.View getVideoLoadingProgressView()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient.FileChooserParams android.net.Uri[] parseResult(int, android.content.Intent)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient.FileChooserParams java.lang.CharSequence getTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient.FileChooserParams java.lang.String getFilenameHint()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebHistoryItem android.graphics.Bitmap getFavicon()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebMessage android.webkit.WebMessagePort[] getPorts()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebResourceResponse WebResourceResponse(java.lang.String, java.lang.String, int, java.lang.String, java.util.Map&lt;java.lang.String,java.lang.String&gt;, java.io.InputStream) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.WebResourceResponse void setStatusCodeAndReasonPhrase(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.webkit.WebSettings int getCacheMode()">
     <annotation name="android.support.annotation.IntDef">
@@ -46,15 +106,116 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.webkit.WebSettings void setUserAgentString(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView android.content.pm.PackageInfo getCurrentWebViewPackage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView android.net.Uri getSafeBrowsingPrivacyPolicyUrl()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.WebView android.net.http.SslCertificate getCertificate()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView android.view.textclassifier.TextClassifier getTextClassifier()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.WebView android.webkit.WebBackForwardList restoreState(android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView android.webkit.WebBackForwardList saveState(android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView android.webkit.WebChromeClient getWebChromeClient()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView boolean showFindDialog(java.lang.String, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.webkit.WebView int getRendererRequestedPriority()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
     </annotation>
   </item>
+  <item name="android.webkit.WebView java.lang.String findAddress(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView java.lang.String[] getHttpAuthUsernamePassword(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void clearClientCertPreferences(java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void evaluateJavascript(java.lang.String, android.webkit.ValueCallback&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadData(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadData(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadDataWithBaseURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadDataWithBaseURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadDataWithBaseURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void loadDataWithBaseURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void removeJavascriptInterface(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.WebView void requestFocusNodeHref(android.os.Message) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void saveWebArchive(java.lang.String, boolean, android.webkit.ValueCallback&lt;java.lang.String&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.webkit.WebView void setRendererPriorityPolicy(int, boolean) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
     </annotation>
+  </item>
+  <item name="android.webkit.WebView void setSafeBrowsingWhitelist(java.util.List&lt;java.lang.String&gt;, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.WebView void setSafeBrowsingWhitelist(java.util.List&lt;java.lang.String&gt;, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void setTextClassifier(android.view.textclassifier.TextClassifier) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void startSafeBrowsing(android.content.Context, android.webkit.ValueCallback&lt;java.lang.Boolean&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView.HitTestResult java.lang.String getExtra()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebView.PictureListener void onNewPicture(android.webkit.WebView, android.graphics.Picture) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebViewClient android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView, android.webkit.WebResourceRequest)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebViewClient android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebViewClient void onReceivedLoginRequest(android.webkit.WebView, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.WebViewClient void onSafeBrowsingHit(android.webkit.WebView, android.webkit.WebResourceRequest, int, android.webkit.SafeBrowsingResponse) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebViewClient.SAFE_BROWSING_THREAT_UNKNOWN, android.webkit.WebViewClient.SAFE_BROWSING_THREAT_MALWARE, android.webkit.WebViewClient.SAFE_BROWSING_THREAT_PHISHING, android.webkit.WebViewClient.SAFE_BROWSING_THREAT_UNWANTED_SOFTWARE}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebViewDatabase java.lang.String[] getHttpAuthUsernamePassword(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>
 

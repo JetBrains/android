@@ -88,6 +88,9 @@
   <item name="android.graphics.Bitmap android.graphics.ColorSpace getColorSpace()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.Bitmap boolean compress(android.graphics.Bitmap.CompressFormat, int, java.io.OutputStream)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
   <item name="android.graphics.Bitmap int getPixel(int, int)">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1422,6 +1425,9 @@
       <val name="min" val="1" />
     </annotation>
   </item>
+  <item name="android.graphics.Paint float getRunAdvance(java.lang.CharSequence, int, int, int, int, boolean, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Paint int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1545,6 +1551,11 @@
   </item>
   <item name="android.graphics.Typeface android.graphics.Typeface createFromFile(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Typeface android.graphics.Typeface defaultFromStyle(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Typeface.NORMAL, android.graphics.Typeface.BOLD, android.graphics.Typeface.ITALIC, android.graphics.Typeface.BOLD_ITALIC}" />
+    </annotation>
   </item>
   <item name="android.graphics.Typeface int getStyle()">
     <annotation name="android.support.annotation.IntDef">
