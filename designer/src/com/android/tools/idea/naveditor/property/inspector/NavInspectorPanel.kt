@@ -68,6 +68,21 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
         newComponent.ensureId()
         newComponent.setAttribute(
             SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + addActionDialog.destination.id!!)
+        addActionDialog.popTo?.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)?.let {
+          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, it)
+        }
+        if (addActionDialog.isInclusive) {
+          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "true")
+        }
+        if (addActionDialog.isSingleTop) {
+          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP, "true")
+        }
+        if (addActionDialog.isDocument) {
+          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT, "true")
+        }
+        if (addActionDialog.isClearTask) {
+          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
+        }
       })
     }
   }
