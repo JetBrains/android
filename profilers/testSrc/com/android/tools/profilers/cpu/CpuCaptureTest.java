@@ -128,7 +128,7 @@ public class CpuCaptureTest {
       Throwable executionExceptionCause = e.getCause();
       assertTrue(executionExceptionCause instanceof IllegalStateException);
 
-      // Expected BufferUnderflowException to be thrown in SimplePerfTraceParser.
+      // Expected BufferUnderflowException to be thrown in SimpleperfTraceParser.
       assertTrue(executionExceptionCause.getCause() instanceof BufferUnderflowException);
       // CpuCaptureParser#traceBytesToCapture  catches the BufferUnderflowException and throw an IllegalStateException instead.
     }

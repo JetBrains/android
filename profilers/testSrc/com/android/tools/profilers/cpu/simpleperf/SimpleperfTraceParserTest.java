@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
 import static org.junit.Assert.*;
 
-public class SimplePerfTraceParserTest {
+public class SimpleperfTraceParserTest {
 
-  private SimplePerfTraceParser myParser;
+  private SimpleperfTraceParser myParser;
 
   private File myTraceFile;
 
@@ -48,7 +48,7 @@ public class SimplePerfTraceParserTest {
       out.write(traceBytes.toByteArray());
     }
     myTraceFile = trace;
-    myParser = new SimplePerfTraceParser();
+    myParser = new SimpleperfTraceParser();
   }
 
   @Test
@@ -153,7 +153,7 @@ public class SimplePerfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser = new SimplePerfTraceParser();
+    myParser = new SimpleperfTraceParser();
 
     try {
       myParser.parse(trace);
