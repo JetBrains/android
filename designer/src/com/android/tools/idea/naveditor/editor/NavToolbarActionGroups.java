@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.tools.idea.common.actions.SetZoomAction;
 import com.android.tools.idea.common.actions.ZoomLabelAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -56,9 +55,6 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
       super.actionPerformed(e);
       //noinspection ConstantConditions  In practice we'll always have a view at this point
       mySurface.getCurrentSceneView().setLocation(0, 0);
-      //noinspection ConstantConditions  And we'll also always have a scene with a root.
-      mySurface.scrollRectToVisible(Coordinates.getSwingRectDip(mySurface.getCurrentSceneView(),
-                                                                mySurface.getScene().getRoot().fillRect(null)));
     }
   }
 }
