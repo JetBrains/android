@@ -17,23 +17,21 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
-import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -56,8 +54,10 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 public class NavSceneManager extends SceneManager {
   private static final int SUBNAV_WIDTH = 100;
   private static final int SUBNAV_HEIGHT = 25;
+  @SwingCoordinate private static int PAN_LIMIT = 150;
+  @AndroidDpCoordinate private static final int BOUNDING_BOX_PADDING = 100;
   private final NavScreenTargetProvider myScreenTargetProvider;
-  
+
   // TODO: enable layout algorithm switching
   @SuppressWarnings("CanBeFinal") private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
@@ -67,7 +67,6 @@ public class NavSceneManager extends SceneManager {
     super(model, surface);
     NavigationSchema schema = surface.getSchema();
     myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
-    surface.zoomActual();
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
   }
 
@@ -142,43 +141,30 @@ public class NavSceneManager extends SceneManager {
   }
 
   private void updateRootBounds(@NotNull SceneComponent root) {
-    Rectangle bounds = new Rectangle(0, 0, -1, -1);
-    Rectangle temp = new Rectangle();
-    Rectangle rootBounds = root.fillRect(null);
-    // TODO: include targets
-    root.flatten().filter(c -> c != root).forEach(component -> {
-      if (component.isDragging()) {
-        // If we're dragging, don't shrink
-        if (bounds.width < 0) {
-          bounds.setBounds(rootBounds);
-        }
-        else {
-          bounds.add(rootBounds);
-        }
-        // Add the center of the component, so you have to actually drag it properly outside the current bounds to have an effect.
-        bounds.add(component.getCenterX(), component.getCenterY());
-      }
-      else {
-        Rectangle componentBounds = component.fillDrawRect(0, temp);
-        componentBounds.setLocation(componentBounds.x - 50, componentBounds.y - 50);
-        componentBounds.setSize(componentBounds.width + 100, componentBounds.height + 100);
-        if (bounds.width < 0) {
-          bounds.setBounds(componentBounds);
-        }
-        else {
-          bounds.add(componentBounds);
-        }
-      }
-    });
     NavDesignSurface surface = getDesignSurface();
+    @SwingCoordinate Dimension extentSize = surface.getExtentSize();
+
+    @AndroidDpCoordinate int extentWidth = Coordinates.getAndroidDimensionDip(surface, extentSize.width);
+    @AndroidDpCoordinate int extentHeight = Coordinates.getAndroidDimensionDip(surface, extentSize.height);
+    @AndroidDpCoordinate int panLimit = Coordinates.getAndroidDimensionDip(surface, PAN_LIMIT);
+
+    @AndroidDpCoordinate Rectangle rootBounds = getBoundingBox(root);
+    rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit);
+
+    @AndroidDpCoordinate int drawX = root.getDrawX();
+    @AndroidDpCoordinate int drawY = root.getDrawY();
+
+    root.setPosition(rootBounds.x, rootBounds.y);
+    root.setSize(rootBounds.width, rootBounds.height, false);
+
     SceneView view = surface.getCurrentSceneView();
     if (view != null) {
-      // If the origin of the root has shifted, offset the view so the screen doesn't jump around
-      surface.getCurrentSceneView().setLocation(Math.max(0, Coordinates.getSwingXDip(view, bounds.x)),
-                                                Math.max(0, Coordinates.getSwingYDip(view, bounds.y)));
+      @SwingCoordinate int deltaX = Coordinates.getSwingDimensionDip(view, root.getDrawX() - drawX);
+      @SwingCoordinate int deltaY = Coordinates.getSwingDimensionDip(view, root.getDrawY() - drawY);
+
+      @SwingCoordinate Point point = surface.getScrollPosition();
+      surface.setScrollPosition(point.x - deltaX, point.y - deltaY);
     }
-    root.setPosition(bounds.x, bounds.y);
-    root.setSize(bounds.width, bounds.height, false);
   }
 
   @Override
@@ -324,4 +310,23 @@ public class NavSceneManager extends SceneManager {
     return result;
   }
 
+  @AndroidDpCoordinate
+  @NotNull
+  public static Rectangle getBoundingBox(@NotNull SceneComponent root) {
+    @AndroidDpCoordinate Rectangle boundingBox = new Rectangle(0, 0, -1, -1);
+
+    for (SceneComponent child : root.getChildren()) {
+      @AndroidDpCoordinate Rectangle childRect = child.fillDrawRect(0, null);
+      if (boundingBox.width < 0) {
+        boundingBox.setBounds(childRect);
+      }
+      else {
+        boundingBox.add(childRect);
+      }
+    }
+
+    boundingBox.grow(BOUNDING_BOX_PADDING, BOUNDING_BOX_PADDING);
+
+    return boundingBox;
+  }
 }

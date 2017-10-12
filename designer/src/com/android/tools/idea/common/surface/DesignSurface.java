@@ -615,35 +615,34 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
     }
-    myScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
 
-    Dimension oldSize = myScrollPane.getViewport().getViewSize();
-    Point viewPortTargetCoordinates;
+    Point oldViewPosition = getScrollPosition();
+
     if (x < 0 || y < 0) {
-      // Get the coordinates of the point of the view showing at the center of the viewport
-      Point viewPortPosition = myScrollPane.getViewport().getViewPosition();
-      x = viewPortPosition.x + myScrollPane.getWidth() / 2;
-      y = viewPortPosition.y + myScrollPane.getHeight() / 2;
-
-      // Set the center of the viewPort as the target for centering the scale
-      viewPortTargetCoordinates = new Point(myScrollPane.getWidth() / 2, myScrollPane.getHeight() / 2);
-    }
-    else {
-      viewPortTargetCoordinates = SwingUtilities.convertPoint(myLayeredPane, x, y, myScrollPane.getViewport());
+      x = oldViewPosition.x + myScrollPane.getWidth() / 2;
+      y = oldViewPosition.y + myScrollPane.getHeight() / 2;
     }
 
-    // Normalized value (between 0.0 and 1.0) of the target position
-    double nx = x / (double)oldSize.width;
-    double ny = y / (double)oldSize.height;
+    SceneView view = getCurrentSceneView();
 
+    @AndroidDpCoordinate int androidX = 0;
+    @AndroidDpCoordinate int androidY = 0;
+    if (view != null) {
+      androidX = Coordinates.getAndroidXDip(view, x);
+      androidY = Coordinates.getAndroidYDip(view, y);
+    }
+
+    myScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     layoutContent();
-    final Dimension newSize = updateScrolledAreaSize();
-    if (newSize != null) {
-      viewPortTargetCoordinates.setLocation(nx * newSize.getWidth() - viewPortTargetCoordinates.x,
-                                            ny * newSize.getHeight() - viewPortTargetCoordinates.y);
-      myScrollPane.getViewport().setViewPosition(viewPortTargetCoordinates);
-      notifyScaleChanged();
+    updateScrolledAreaSize();
+
+    if (view != null) {
+      @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
+      @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
+      myScrollPane.getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
     }
+
+    notifyScaleChanged();
   }
 
   /**

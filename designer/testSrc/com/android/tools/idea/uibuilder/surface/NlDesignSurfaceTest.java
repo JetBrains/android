@@ -417,21 +417,21 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     SceneView view = mySurface.getCurrentSceneView();
     JViewport viewport = mySurface.getScrollPane().getViewport();
-    assertEquals(new Point(1605, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
     mySurface.zoom(ZoomType.IN);
     double scale = mySurface.getScale();
     assertTrue(scale > origScale);
-    assertEquals(new Point(1594, 11), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
     mySurface.zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getScale() > scale);
-    assertEquals(new Point(1438, 25), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
     mySurface.zoom(ZoomType.OUT, 100, 100);
-    assertEquals(new Point(1594, 13), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
-    assertEquals(new Point(1486, -121), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getScale(), origScale);
