@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
+package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.util.SystemInfo;

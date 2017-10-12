@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
+package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.collect.ComparisonChain;

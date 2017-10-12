@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard;
+package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.npw.PathValidationResult;
@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
+import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
