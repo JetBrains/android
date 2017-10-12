@@ -61,7 +61,7 @@ public class PrivateResourceTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/67511891
+  @RunIn(TestGroup.QA)
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
