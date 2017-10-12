@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
@@ -52,6 +53,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
    */
   @Nullable
   public static FirstRunWizardMode getWizardMode() {
+    if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) {
+      // TODO: Remove this temporary code, once the Welcome Wizard is more completely ported.
+      // This code forces the first run wizard to run every time, but eventually it should only run the first time.
+      return FirstRunWizardMode.NEW_INSTALL;
+    }
+
     AndroidFirstRunPersistentData persistentData = AndroidFirstRunPersistentData.getInstance();
     if (isHandoff(persistentData)) {
       return FirstRunWizardMode.INSTALL_HANDOFF;
@@ -141,7 +148,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourWasShown = true;
-    return new FirstRunWizardHost(wizardMode);
+    return StudioFlags.NPW_FIRST_RUN_WIZARD.get() ? new StudioFirstRunWelcomeScreen(wizardMode) : new FirstRunWizardHost(wizardMode);
   }
 
   @Override
