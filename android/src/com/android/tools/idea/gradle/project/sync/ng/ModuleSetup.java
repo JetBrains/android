@@ -86,7 +86,8 @@ abstract class ModuleSetup {
                                  new CachedProjectModels.Factory(),
                                  new IdeNativeAndroidProjectImpl.FactoryImpl(),
                                  new JavaModuleModelFactory(),
-                                 new IdeDependenciesFactory());
+                                 new IdeDependenciesFactory(),
+                                 new ProjectDataNodeSetup());
     }
   }
 
@@ -108,6 +109,7 @@ abstract class ModuleSetup {
     @NotNull private final JavaModuleModelFactory myJavaModuleModelFactory;
     @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
     @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+    @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -126,7 +128,8 @@ abstract class ModuleSetup {
                     @NotNull CachedProjectModels.Factory cachedProjectModelsFactory,
                     @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                     @NotNull JavaModuleModelFactory javaModuleModelFactory,
-                    @NotNull IdeDependenciesFactory dependenciesFactory) {
+                    @NotNull IdeDependenciesFactory dependenciesFactory,
+                    @NotNull ProjectDataNodeSetup projectDataNodeSetup) {
       myProject = project;
       myModelsProvider = modelsProvider;
       myModuleFactory = moduleFactory;
@@ -143,6 +146,7 @@ abstract class ModuleSetup {
       myJavaModuleModelFactory = javaModuleModelFactory;
       myExtraModelsManager = extraModelsManager;
       myDependenciesFactory = dependenciesFactory;
+      myProjectDataNodeSetup = projectDataNodeSetup;
     }
 
     @Override
@@ -211,6 +215,7 @@ abstract class ModuleSetup {
         myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
       }
       createAndSetUpModules(projectModels, cache, indicator);
+      myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
       myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
       myProjectCleanup.cleanUpProject(myProject, myModelsProvider, indicator);
       myModuleDisposer.disposeObsoleteModules(indicator);

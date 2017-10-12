@@ -33,8 +33,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.scheduleExternalViewStructureUpdate;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 class SyncResultHandler {
   @NotNull private final Project myProject;
@@ -113,6 +115,7 @@ class SyncResultHandler {
       ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
       projectSetup.setUpProject(models, indicator);
       projectSetup.commit();
+      scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
 
       if (syncListener != null) {
         syncListener.syncSucceeded(myProject);
