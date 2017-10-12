@@ -23,6 +23,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -212,8 +213,12 @@ public final class VectorAsset extends BaseAsset {
           previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : originalWidth;
         }
 
-        final VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(previewWidth);
-        image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errorBuffer);
+        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(previewWidth);
+        try {
+          image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errorBuffer);
+        } catch (Throwable e) {
+          Logger.getInstance(getClass()).error(e);
+        }
       }
     }
 

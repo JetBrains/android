@@ -42,6 +42,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -55,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,9 +65,8 @@ import java.util.Locale;
 /**
  * Step for generating Android icons from some vector source.
  */
-@SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
+@SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI.
 public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> {
-
   private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
   private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
@@ -247,7 +248,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   }
 
   private void saveAssetPath() {
-
     PropertiesComponent properties = PropertiesComponent.getInstance(myFacet.getModule().getProject());
     File path = myBrowser.getAsset().path().get();
     properties.setValue(VECTOR_ASSET_PATH_PROPERTY, path.getParent());
@@ -280,7 +280,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    * Call {@link #enqueueUpdate()} in order to kickstart the generation of a new preview.
    */
   private final class VectorPreviewUpdater {
-
     @Nullable private SwingWorker<Void, Void> myCurrentWorker;
     @Nullable private SwingWorker<Void, Void> myEnqueuedWorker;
 
@@ -311,8 +310,13 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         VectorAsset.ParseResult myParseResult;
 
         @Override
-        protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+        protected Void doInBackground() {
+          try {
+            myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+          } catch (Throwable t) {
+            Logger.getInstance(getClass()).error(t);
+            myParseResult = new VectorAsset.ParseResult("Internal error parsing " + myActiveAsset.get().path().get().getName());
+          }
           return null;
         }
 
@@ -322,7 +326,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           // it IS possible to have invalid asset, but no error, in fact that is the initial state before a file is chosen.
           isValidAsset.set(myParseResult.isValid());
           if (myParseResult.isValid()) {
-            myImagePreview.setIcon(new ImageIcon(myParseResult.getImage()));
+            BufferedImage image = myParseResult.getImage();
+            myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
             myOriginalSize.setValue(new Dimension(myParseResult.getOriginalWidth(), myParseResult.getOriginalHeight()));
           }
           else {
