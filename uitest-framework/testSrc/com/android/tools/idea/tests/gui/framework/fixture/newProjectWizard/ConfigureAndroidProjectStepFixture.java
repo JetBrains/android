@@ -48,6 +48,12 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
   }
 
   @NotNull
+  public ConfigureAndroidProjectStepFixture setKotlinSupport(boolean select) {
+    selectCheckBoxWithText("Include Kotlin support", select);
+    return this;
+  }
+
+  @NotNull
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
     LabelWithEditButton editLabel = robot().finder().findByType(target(), LabelWithEditButton.class);
 
