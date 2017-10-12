@@ -38,9 +38,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
- * TODO: rename the class to SimpleperfTraceParser. Simpleperf is a single word.
  */
-public class SimplePerfTraceParser implements TraceParser {
+public class SimpleperfTraceParser implements TraceParser {
 
   /**
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
@@ -83,7 +82,7 @@ public class SimplePerfTraceParser implements TraceParser {
    */
   private Range myRange;
 
-  public SimplePerfTraceParser() {
+  public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
     myCaptureTrees = new HashMap<>();
@@ -113,7 +112,7 @@ public class SimplePerfTraceParser implements TraceParser {
   }
 
   private static Logger getLog() {
-    return Logger.getInstance(SimplePerfTraceParser.class);
+    return Logger.getInstance(SimpleperfTraceParser.class);
   }
 
   private static ByteBuffer byteBufferFromFile(File f, ByteOrder byteOrder) throws IOException {

@@ -24,7 +24,7 @@ import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.simpleperf.SimplePerfTraceParser;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -93,7 +93,7 @@ public class MethodModelRendererVisualTest extends VisualTest {
       parser = new ArtTraceParser();
     }
     else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      parser = new SimplePerfTraceParser();
+      parser = new SimpleperfTraceParser();
     }
     else {
       throw new IllegalArgumentException("There is no parser available for profiler type " + profilerType);
