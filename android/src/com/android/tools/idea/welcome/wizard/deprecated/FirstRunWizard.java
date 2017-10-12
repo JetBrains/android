@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -35,7 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Wizard to setup Android Studio before the first run
+ * @deprecated use {@link StudioFirstRunWelcomeScreen}
  */
+@Deprecated
 public class FirstRunWizard extends DynamicWizard {
   private static final String WIZARD_TITLE = "Android Studio Setup Wizard";
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =

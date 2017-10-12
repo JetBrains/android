@@ -56,6 +56,11 @@ public final class StudioFlags {
     "Dump the variables used in creating a template to a scrach file that is opened after creating the project.",
     false);
 
+  public static final Flag<Boolean> NPW_FIRST_RUN_WIZARD = Flag.create(
+    NPW, "first.run.wizard", "Show new Welcome Wizard",
+    "Show new version of the Welcome Wizard when Studio starts",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
   public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
     PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
