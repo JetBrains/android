@@ -267,6 +267,14 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  protected double getMinScale() {
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      return 0.05;
+    }
+    return 0.1;
+  }
+
+  @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
     String tagName = component.getTagName();
     String id;
