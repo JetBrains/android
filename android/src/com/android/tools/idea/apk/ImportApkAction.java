@@ -18,6 +18,7 @@ package com.android.tools.idea.apk;
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
@@ -55,7 +56,12 @@ public class ImportApkAction extends DumbAwareAction {
     }
     VirtualFile file = files[0];
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
+    String lastProjectCreation = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
+
     CustomProjectTypeImporter.getMain().importFileAsProject(file);
+
+    // Importing a project changes the project creation location. Put it value back.
+    RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectCreation);
   }
 
   @Override
