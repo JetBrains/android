@@ -104,7 +104,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
-    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent());
+    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent(), 60);
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
@@ -116,13 +116,15 @@ public class ProjectViewFixture extends ToolWindowFixture {
     GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
   }
 
-  private static void waitForTreeToFinishLoading(@NotNull Robot robot, @NotNull Container root) {
+  private static void waitForTreeToFinishLoading(@NotNull Robot robot,
+                                                 @NotNull Container root,
+                                                 long secondsToWait) {
     GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
       @Override
       protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
         return !component.isRunning();
       }
-    });
+    }, secondsToWait);
   }
 
   @NotNull
@@ -239,7 +241,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
-      waitForTreeToFinishLoading(myRobot, myTree.target());
+      waitForTreeToFinishLoading(myRobot, myTree.target(), 60);
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
         myTree.expandPath(totalPath.toString());

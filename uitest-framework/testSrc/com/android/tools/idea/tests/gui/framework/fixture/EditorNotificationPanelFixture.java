@@ -21,6 +21,7 @@ import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -39,14 +40,18 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
     return myIdeFrameFixture;
   }
 
-  public IdeFrameFixture performActionWithoutWaitingForDisappearance(@NotNull final String label) {
+  public IdeFrameFixture performActionWithoutWaitingForDisappearance(@Nullable final String label) {
     checkState(target().isShowing(), "cannot click link on hidden notification");
     HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
       protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
         // IntelliJ's HyperLinkLabel class does not expose the getText method (it is package private)
-        return hyperlinkLabel.isShowing() &&
-               label.equals(Reflection.method("getText").withReturnType(String.class).in(hyperlinkLabel).invoke());
+        if (label != null) {
+          return hyperlinkLabel.isShowing() &&
+                 label.equals(Reflection.method("getText").withReturnType(String.class).in(hyperlinkLabel).invoke());
+        } else {
+          return hyperlinkLabel.isShowing() && hyperlinkLabel.isEnabled() && hyperlinkLabel.isVisible();
+        }
       }
     });
     driver().click(link);
