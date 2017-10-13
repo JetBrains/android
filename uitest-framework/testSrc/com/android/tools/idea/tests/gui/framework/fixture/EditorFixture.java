@@ -528,7 +528,7 @@ public class EditorFixture {
 
   /**
    * Waits for the quickfix bulb to appear before invoking the show intentions action,
-   * then waits for the actions to be displayed and finally picks the one with the given
+   * then waits for the actions to be displayed and finally picks the one with
    * {@code labelPrefix}
    *
    */
@@ -540,7 +540,7 @@ public class EditorFixture {
 
   /**
    * Invokes the show intentions action, without waiting for the quickfix bulb icon
-   * then waits for the actions to be displayed and finally picks the one with the given
+   * then waits for the actions to be displayed and finally picks the one with
    * {@code labelPrefix}
    *
    */
