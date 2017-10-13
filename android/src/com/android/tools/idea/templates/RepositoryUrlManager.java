@@ -456,7 +456,7 @@ public class RepositoryUrlManager {
       GradleVersion latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, filter, coordinate.isPreview());
       if (latest != null) {
         String latestString = latest.toString();
-        if (latestString.startsWith(revision)) {
+        if (latestString.startsWith(versionPrefix)) {
           return latestString;
         }
       }
