@@ -621,6 +621,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public DialogFixture waitForDialog(@NotNull String title, long secondsToWait) {
+    return new DialogFixture(robot(), GuiTests.waitUntilShowing(robot(), null, Matchers.byTitle(JDialog.class, title), secondsToWait));
+  }
+
+  @NotNull
   public IdeFrameFixture setGradleJvmArgs(@NotNull String jvmArgs) {
     Project project = getProject();
 

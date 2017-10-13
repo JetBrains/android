@@ -533,6 +533,18 @@ public final class GuiTests {
   }
 
   /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}
+   * up to {@code secondsToWait} seconds.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
+                                                         @Nullable Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher,
+                                                         long secondsToWait) {
+    return waitUntilFound(robot, root, FluentMatcher.wrap(matcher).andIsShowing(), secondsToWait);
+}
+
+  /**
    * Waits for a single AWT or Swing {@link Component} showing, enabled and matched by {@code matcher} under {@code root}.
    */
   @NotNull
@@ -556,9 +568,20 @@ public final class GuiTests {
   public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
                                                        @Nullable Container root,
                                                        @NotNull GenericTypeMatcher<T> matcher) {
+    return waitUntilFound(robot, root, matcher, 10);
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
+                                                       @Nullable Container root,
+                                                       @NotNull GenericTypeMatcher<T> matcher,
+                                                       long secondsToWait) {
     AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.seconds(10).expecting("matching " + typeName)
+    Wait.seconds(secondsToWait).expecting("matching " + typeName)
       .until(() -> {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);

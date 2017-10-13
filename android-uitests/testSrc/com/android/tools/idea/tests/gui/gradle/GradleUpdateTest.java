@@ -66,7 +66,11 @@ public class GradleUpdateTest {
       .enterText("2.14.1-all");
 
     ideFrameFixture.requestProjectSync();
-    GuiTests.findAndClickButtonWhenEnabled(ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended"), "Update");
+
+    // Project sync can take a very long time
+    GuiTests.findAndClickButtonWhenEnabled(
+      ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
+      "Update");
     guiTest.waitForBackgroundTasks();
     String contents = ideFrameFixture.getEditor()
       .open("build.gradle")
