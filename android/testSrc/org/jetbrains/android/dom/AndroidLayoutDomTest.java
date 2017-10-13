@@ -234,10 +234,15 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("missing_attrs.xml");
   }
 
-  public void testDataBindingHighlighting() throws Throwable {
+  public void testDataBindingHighlighting1() throws Throwable {
     ModuleDataBinding.enable(myFacet);
     copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
     doTestHighlighting("binding1.xml");
+  }
+
+  public void testDataBindingHighlighting2() throws Throwable {
+    ModuleDataBinding.enable(myFacet);
+    doTestHighlighting("binding5.xml");
   }
 
   public void testDataBindingCompletion1() throws Throwable {
