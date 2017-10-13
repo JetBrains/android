@@ -245,7 +245,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
             }
           }
         }
-        catch (FileNotFoundException | ProvisionException e) {
+        catch (FileNotFoundException e) {
+          result.set(false);
+        }
+        catch (ProvisionException e) {
           getLogger().error("Error while provisioning devices", e);
           result.set(false);
         }
