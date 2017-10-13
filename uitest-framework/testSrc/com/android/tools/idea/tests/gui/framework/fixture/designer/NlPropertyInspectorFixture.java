@@ -23,11 +23,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlProp
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +52,12 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspectorFixture, Component> {
   private final NlPropertiesPanel myPanel;
+  private final ToggleXmlPropertyEditor myXmlPropertyToggleAction;
 
   public NlPropertyInspectorFixture(@NotNull Robot robot, @NotNull NlPropertiesPanel panel) {
     super(NlPropertyInspectorFixture.class, robot, panel);
     myPanel = panel;
+    myXmlPropertyToggleAction = new ToggleXmlPropertyEditor(myPanel.getPropertiesManager());
   }
 
   public static NlPropertiesPanel create(@NotNull Robot robot) {
@@ -66,6 +73,8 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     return false;
   }
 
+  @NotNull
+  @SuppressWarnings("UnusedReturnValue")
   public ComponentAssistantFixture getComponentAssistantPanel() {
     return new ComponentAssistantFixture(robot(), waitUntilFound(robot(), null, Matchers.byType(ComponentAssistant.class)));
   }
@@ -82,6 +91,21 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   public NlPropertyTableFixture openAsTable() {
     if (!myPanel.isAllPropertiesPanelVisible()) {
       myPanel.setAllPropertiesPanelVisible(true);
+    }
+    if (isSliceEditorActive()) {
+      toggleShowSliceEditor();
+    }
+    return NlPropertyTableFixture.create(robot());
+  }
+
+  @NotNull
+  @SuppressWarnings("UnusedReturnValue")
+  public NlPropertyTableFixture openAsSliceEditor() {
+    if (!myPanel.isAllPropertiesPanelVisible()) {
+      myPanel.setAllPropertiesPanelVisible(true);
+    }
+    if (!isSliceEditorActive()) {
+      toggleShowSliceEditor();
     }
     return NlPropertyTableFixture.create(robot());
   }
@@ -143,10 +167,12 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   }
 
   @NotNull
+  @SuppressWarnings("UnusedReturnValue")
   public NlPropertyInspectorFixture pressKeyInUnknownProperty(int keyCode, int... modifiers) {
     Component component = FocusManager.getCurrentManager().getFocusOwner();
     assertThat(component).isNotNull();
     assertThat(SwingUtilities.isDescendingFrom(component, myPanel)).isTrue();
+    //noinspection unchecked
     driver().pressAndReleaseKey(component, keyCode, modifiers);
     IdeFocusManager.findInstance().doWhenFocusSettlesDown(() -> {
     });
@@ -233,5 +259,22 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
       component = ((EditorTextField)component).getEditor().getContentComponent();
     }
     return component;
+  }
+
+  private boolean isSliceEditorActive() {
+    AnActionEvent event = AnActionEvent.createFromAnAction(myXmlPropertyToggleAction, null, "", DataContext.EMPTY_CONTEXT);
+    myXmlPropertyToggleAction.update(event);
+    // The slice editor is shown if the action is allowing the user to go back to the all proeprties table:
+    return event.getPresentation().getText().contains("All attributes table");
+  }
+
+  private void toggleShowSliceEditor() {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        AnActionEvent event = AnActionEvent.createFromAnAction(myXmlPropertyToggleAction, null, "", DataContext.EMPTY_CONTEXT);
+        myXmlPropertyToggleAction.actionPerformed(event);
+      }
+    });
   }
 }

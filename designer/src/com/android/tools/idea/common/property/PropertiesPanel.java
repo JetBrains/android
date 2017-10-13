@@ -39,10 +39,9 @@ public abstract class PropertiesPanel<PropMgr extends PropertiesManager<PropMgr>
 
   public abstract void activatePreferredEditor(@NotNull String propertyName, boolean afterload);
 
-  public void modelRendered(@NotNull PropMgr propertiesManager) {
+  public void modelRendered() {
   }
 
   public abstract void setItems(@NotNull List<NlComponent> components,
-                                @NotNull Table<String, String, NlPropertyItem> properties,
-                                @NotNull PropMgr propertiesManager);
+                                @NotNull Table<String, String, NlPropertyItem> properties);
 }

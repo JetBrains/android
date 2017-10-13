@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
@@ -69,6 +68,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
+  private final NlPropertiesManager myPropertiesManager;
   private final TableRowSorter<PTableModel> myRowSorter;
   private final MyFilter myFilter;
   private final MyFilterKeyListener myFilterKeyListener;
@@ -86,18 +86,19 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private PropertiesViewMode myPropertiesViewMode;
   private Runnable myRestoreToolWindowCallback;
 
-  public NlPropertiesPanel(@NotNull Disposable parentDisposable) {
-    this(parentDisposable, new NlPTable(new PTableModel()), null);
+  public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager) {
+    this(propertiesManager, new NlPTable(new PTableModel()), null);
   }
 
   @VisibleForTesting
-  NlPropertiesPanel(@NotNull Disposable parentDisposable,
+  NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager,
                     @NotNull PTable table,
                     @Nullable InspectorPanel inspectorPanel) {
     super(new BorderLayout());
     setOpaque(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
+    myPropertiesManager = propertiesManager;
     myRowSorter = new TableRowSorter<>();
     myFilter = new MyFilter();
     myFilterKeyListener = new MyFilterKeyListener();
@@ -121,9 +122,9 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
     myInspectorPanel = inspectorPanel != null
                        ? inspectorPanel
-                       : new NlInspectorPanel(parentDisposable, createViewAllPropertiesLinkPanel(true));
+                       : new NlInspectorPanel(myPropertiesManager, createViewAllPropertiesLinkPanel(true));
 
-    Disposer.register(parentDisposable, this);
+    Disposer.register(myPropertiesManager, this);
 
     myCardLayout = new JBCardLayout();
     myCardPanel = new JPanel(myCardLayout);
@@ -161,6 +162,11 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   public void removeNotify() {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myPropertyChangeListener);
+  }
+
+  @NotNull
+  public NlPropertiesManager getPropertiesManager() {
+    return myPropertiesManager;
   }
 
   public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
@@ -227,21 +233,20 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   @Override
   public void setItems(@NotNull List<NlComponent> components,
-                       @NotNull Table<String, String, NlPropertyItem> properties,
-                       @NotNull NlPropertiesManager propertiesManager) {
+                       @NotNull Table<String, String, NlPropertyItem> properties) {
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
-    Project project = propertiesManager.getProject();
+    Project project = myPropertiesManager.getProject();
 
     if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR)) {
-      myTablePanel.setVisible(new NlXmlPropertyBuilder(propertiesManager, myTable, components, properties).build());
+      myTablePanel.setVisible(new NlXmlPropertyBuilder(myPropertiesManager, myTable, components, properties).build());
     }
     else {
       myTablePanel.setVisible(new NlPropertyTableBuilder(project, myTable, components, myProperties).build());
     }
 
-    updateDefaultProperties(propertiesManager);
-    myInspectorPanel.setComponent(components, properties, propertiesManager);
+    updateDefaultProperties(myPropertiesManager);
+    myInspectorPanel.setComponent(components, properties, myPropertiesManager);
   }
 
   @NotNull
@@ -265,14 +270,14 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   }
 
   @Override
-  public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
+  public void modelRendered() {
     UIUtil.invokeLaterIfNeeded(() -> {
       // Bug:219552 : Make sure updateDefaultProperties is always called from the same thread (the UI thread)
       if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR)) {
-        propertiesManager.updateSelection();
+        myPropertiesManager.updateSelection();
       }
       else {
-        updateDefaultProperties(propertiesManager);
+        updateDefaultProperties(myPropertiesManager);
       }
       myInspectorPanel.refresh();
     });

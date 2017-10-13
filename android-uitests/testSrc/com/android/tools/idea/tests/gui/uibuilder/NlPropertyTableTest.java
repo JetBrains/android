@@ -25,12 +25,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import org.fest.swing.data.TableCellInSelectedRow;
 import org.fest.swing.fixture.AbstractComponentFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -134,7 +134,7 @@ public class NlPropertyTableTest {
     NlComponentFixture textView = layout.findView("TextView", 0).click();
 
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
-    table.waitForMinimumRowCount(10, Wait.seconds(5));
+    table.waitForMinimumRowCount(10);
     table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
     CompletionFixture completions = new CompletionFixture(frame);
@@ -168,11 +168,11 @@ public class NlPropertyTableTest {
       .waitForRenderToFinish();
 
     NlComponentFixture textView = layout.findView("TextView", 0).click();
-    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
-    table.waitForMinimumRowCount(10, Wait.seconds(5));
+    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
+      .waitForMinimumRowCount(10)
+      .selectRows(7)
+      .type('s');
 
-    table.selectRows(7);
-    table.type('s');
     CompletionFixture completions = new CompletionFixture(frame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
@@ -182,6 +182,37 @@ public class NlPropertyTableTest {
 
     assertThat(textView.getTextAttribute()).isEqualTo("@android:string/copy");
     assertThat(table.target()).isEqualTo(getFocusOwner());
+  }
+
+  @Test
+  @Ignore // Need to sort the groups and items before this test can be reliable
+  public void testKeyboardNavigationInSliceEditor() throws Exception {
+    NlEditorFixture layout = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutEditor(true)
+      .waitForRenderToFinish();
+
+    layout.findView("TextView", 0).click();
+    layout.getPropertiesPanel()
+      .openAsSliceEditor()
+      .waitForMinimumRowCount(5)
+      .focus()
+      .pressAndReleaseKeys(VK_DOWN)
+      .pressAndReleaseKeys(VK_ENTER)
+      .tab()
+      .requireContent("layout_width", "wrap_content")
+      .enterText("@dimen/activity_vertical_margin")
+      .tab()
+      .requireContent("text", "@string/hello_world")
+      .tab()
+      .requireContent("", null)
+      .tab()
+      .requireContent("activity_vertical_margin", "16dp")
+      .tab()
+      .requireContent("hello_world", "Hello world!")
+      .tab()
+      .requireContent("layout_width", "wrap_content");
   }
 
   @Test
@@ -214,7 +245,7 @@ public class NlPropertyTableTest {
     final int newRowSize = 4;
     table.adjustIdeFrameHeightToShowNumberOfRow(newRowSize);
     Wait.seconds(10).expecting("The table to resize").until(
-      () -> table.target().getVisibleRect().getHeight() == table.target().getRowHeight() * newRowSize
+      () -> Math.abs(table.target().getVisibleRect().getHeight() - table.target().getRowHeight() * newRowSize) < 0.001
     );
     testNavigationInTable(table, newRowSize);
   }
