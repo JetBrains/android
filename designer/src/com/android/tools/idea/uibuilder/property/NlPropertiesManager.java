@@ -25,12 +25,11 @@ import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.scene.RenderListener;
-import com.android.util.PropertiesMap;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -217,7 +216,7 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
 
   @Override
   public void onRenderCompleted() {
-    getPropertiesPanel().modelRendered(this);
+    getPropertiesPanel().modelRendered();
   }
 
   @NotNull

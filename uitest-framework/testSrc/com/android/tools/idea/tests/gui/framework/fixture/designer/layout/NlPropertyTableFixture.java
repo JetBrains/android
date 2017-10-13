@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
-import com.android.tools.adtui.ptable.PTable;
 import org.fest.swing.core.Robot;
+import org.fest.swing.data.TableCellFinder;
+import org.fest.swing.driver.JTableDriver;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.AbstractJPopupMenuInvokerFixture;
+import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -26,16 +34,20 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.truth.Truth.assertThat;
 
-public class NlPropertyTableFixture extends JTableFixture {
+public class NlPropertyTableFixture extends AbstractJPopupMenuInvokerFixture<NlPropertyTableFixture, PTable, JTableDriver> {
+  private static final int POPULATE_TABLE_TIMEOUT_SECONDS = 5;
 
-  public NlPropertyTableFixture(@Nonnull Robot robot, @Nonnull PTable target) {
-    super(robot, target);
+  private final JTableFixture myTableFixture;
+
+  private NlPropertyTableFixture(@Nonnull Robot robot, @Nonnull PTable target) {
+    super(NlPropertyTableFixture.class, robot, target);
+    myTableFixture = new JTableFixture(robot, target);
   }
 
   @NotNull
@@ -44,17 +56,60 @@ public class NlPropertyTableFixture extends JTableFixture {
     return new NlPropertyTableFixture(robot, table);
   }
 
-  public NlPropertyTableFixture waitForMinimumRowCount(int minimumRowCount, @NotNull Wait waitForRowCount) {
-    waitForRowCount.expecting("table data to load").until(() -> target().getRowCount() > minimumRowCount);
+  @Override
+  @NotNull
+  protected JTableDriver createDriver(@NotNull Robot robot) {
+    return new JTableDriver(robot);
+  }
+
+  public NlPropertyTableFixture waitForMinimumRowCount(int minimumRowCount) throws Exception {
+    Wait.seconds(POPULATE_TABLE_TIMEOUT_SECONDS).expecting("table data to load").until(() -> target().getRowCount() > minimumRowCount);
     return this;
   }
 
+  @NotNull
   public NlPropertyTableFixture type(char character) {
     robot().type(character, target());
     return this;
   }
 
   @NotNull
+  public NlPropertyTableFixture enterText(@NotNull String text) {
+    robot().enterText(text);
+    return this;
+  }
+
+  @NotNull
+  public NlPropertyTableFixture tab() {
+    robot().pressAndReleaseKey(KeyEvent.VK_TAB);
+    return this;
+  }
+
+  @NotNull
+  public NlPropertyTableFixture requireContent(@NotNull String key, @Nullable String value) {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        PTableItem item = target().getItemAt(target().getSelectedRow());
+        assertThat(item.getName()).isEqualTo(key);
+        assertThat(item.getValue()).isEqualTo(value);
+      }
+    });
+    return this;
+  }
+
+  @Nullable
+  private static String getItemValue(@NotNull PTableItem item) {
+    return GuiActionRunner.execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        return item.getValue();
+      }
+    });
+  }
+
+  @NotNull
+  @SuppressWarnings("UnusedReturnValue")
   public NlPropertyTableFixture adjustIdeFrameHeightToShowNumberOfRow(int rowCount) {
     Component table = target();
     assertThat(table).isNotNull();
@@ -87,5 +142,30 @@ public class NlPropertyTableFixture extends JTableFixture {
       c = parent;
     }
     return null;
+  }
+
+  // It would be nice if we could extend JTableFixture and still get NlPropertyTableFixture as the return type for the methods.
+  // Then we could avoid the following redirects.
+
+  @NotNull
+  public JTableCellFixture cell(@NotNull TableCellFinder cellFinder) {
+    return myTableFixture.cell(cellFinder);
+  }
+
+  @NotNull
+  public NlPropertyTableFixture selectRows(@NotNull int... rows) {
+    myTableFixture.selectRows(rows);
+    return this;
+  }
+
+  public int rowCount() {
+    return myTableFixture.rowCount();
+  }
+
+  @NotNull
+  @SuppressWarnings("UnusedReturnValue")
+  public NlPropertyTableFixture requireSelectedRows(@NotNull int... rows) {
+    myTableFixture.requireSelectedRows(rows);
+    return this;
   }
 }

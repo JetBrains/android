@@ -88,8 +88,8 @@ public class NlXmlPropertyBuilder {
     int editingRow = myTable.getEditingRow();
     PTableItem editingItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
 
-    myTable.getModel().setItems(items);
     myTable.setRendererProvider(NlXmlRenderers.getInstance());
+    myTable.getModel().setItems(items);
     myTable.setEditorProvider(NlXmlEditors.getInstance(myPropertiesManager.getProject()));
 
     if (myTable.getRowCount() > 0) {

@@ -33,10 +33,12 @@ import java.util.List;
  */
 public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
 
+  private final NavPropertiesManager myPropertiesManager;
   private final InspectorPanel<NavPropertiesManager> myInspectorPanel;
 
-  public NavPropertiesPanel() {
+  public NavPropertiesPanel(@NotNull NavPropertiesManager propertiesManager) {
     super(new BorderLayout());
+    myPropertiesManager = propertiesManager;
     myInspectorPanel = new NavInspectorPanel(this);
     add(myInspectorPanel, BorderLayout.CENTER);
   }
@@ -48,9 +50,8 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
 
   @Override
   public void setItems(@NotNull List<NlComponent> components,
-                       @NotNull Table<String, String, NlPropertyItem> properties,
-                       @NotNull NavPropertiesManager propertiesManager) {
-    myInspectorPanel.setComponent(components, properties, propertiesManager);
+                       @NotNull Table<String, String, NlPropertyItem> properties) {
+    myInspectorPanel.setComponent(components, properties, myPropertiesManager);
   }
 
   @Override

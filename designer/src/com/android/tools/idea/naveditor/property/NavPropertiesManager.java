@@ -32,7 +32,7 @@ public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager
   @NotNull
   @Override
   protected NavPropertiesPanel createPropertiesPanel() {
-    return new NavPropertiesPanel();
+    return new NavPropertiesPanel(this);
   }
 
   @Override
