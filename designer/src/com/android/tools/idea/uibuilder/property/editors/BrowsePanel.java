@@ -31,6 +31,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -218,7 +219,14 @@ public class BrowsePanel extends JPanel {
 
   @Nullable
   private static AttributeBrowser getBrowser(@NotNull NlProperty property) {
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(property.getModel().getProject());
+    Project project = property.getModel().getProject();
+
+    if (project.isDisposed()) {
+      return null;
+    }
+
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
+
     for (NlComponent component : property.getComponents()) {
       ViewHandler handler = viewHandlerManager.getHandler(component);
       if (handler != null) {

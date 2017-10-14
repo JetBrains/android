@@ -602,7 +602,13 @@ public class NlDesignSurface extends DesignSurface {
           return;
         }
 
-        BuildMode gradleBuildMode = BuildSettings.getInstance(getProject()).getBuildMode();
+        Project project = getProject();
+
+        if (project.isDisposed()) {
+          return;
+        }
+
+        BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
         RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                  ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                  : RenderErrorModelFactory
