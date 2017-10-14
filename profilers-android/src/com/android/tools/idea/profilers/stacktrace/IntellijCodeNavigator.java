@@ -48,6 +48,11 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     }
   }
 
+  @Override
+  public boolean isNavigatable(@NotNull CodeLocation location) {
+    return getNavigatable(location) != null;
+  }
+
   @Nullable
   private Navigatable getNavigatable(@NotNull CodeLocation location) {
     PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());

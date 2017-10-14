@@ -99,6 +99,19 @@ public final class CodeLocation {
     return mySignature;
   }
 
+  /**
+   * Return this object if the given {@link CodeNavigator} can navigate to it; otherwise, return null.
+   */
+  @Nullable
+  public CodeLocation filterNavigatable(CodeNavigator navigator) {
+    if (navigator.isNavigatable(this)) {
+      return this;
+    }
+    else {
+      return null;
+    }
+  }
+
   @Override
   public int hashCode() {
     return myHashcode;

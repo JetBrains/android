@@ -28,6 +28,7 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -209,9 +210,8 @@ class CpuCaptureView {
     CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
     sorter.setModel(model, DEFAULT_SORT_ORDER);
 
-    stageView.getIdeComponents()
-      .installNavigationContextMenu(tree, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(),
-                                    () -> getCodeLocation(tree));
+    CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+    stageView.getIdeComponents().installNavigationContextMenu(tree, navigator, () -> getNavigatableCodeLocation(tree, navigator));
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -271,13 +271,14 @@ class CpuCaptureView {
   }
 
   @Nullable
-  private static CodeLocation getCodeLocation(@NotNull JTree tree) {
+  private static CodeLocation getNavigatableCodeLocation(@NotNull JTree tree, @NotNull CodeNavigator navigator) {
     if (tree.getSelectionPath() == null) {
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
     CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
-    return new CodeLocation.Builder(cpuNode.getClassName()).setMethodSignature(cpuNode.getMethodName(), cpuNode.getSignature()).build();
+    return new CodeLocation.Builder(cpuNode.getClassName()).setMethodSignature(cpuNode.getMethodName(), cpuNode.getSignature()).build()
+      .filterNavigatable(navigator);
   }
 
   /**
@@ -314,11 +315,10 @@ class CpuCaptureView {
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new MethodModelHRenderer(type));
     chart.setHTree(node);
-    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
+    CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
     chart.addMouseListener(handler);
-    stageView.getIdeComponents()
-      .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(),
-                                    handler::getCodeLocation);
+    stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getNavigatableCodeLocation);
     return chart;
   }
 
@@ -564,10 +564,12 @@ class CpuCaptureView {
 
   private static class TreeChartNavigationHandler extends MouseAdapter {
     @NotNull private final HTreeChart<MethodModel> myChart;
+    @NotNull private final CodeNavigator myNavigator;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart, @NotNull CodeNavigator navigator) {
       myChart = chart;
+      myNavigator = navigator;
     }
 
     @Override
@@ -592,13 +594,14 @@ class CpuCaptureView {
     }
 
     @Nullable
-    private CodeLocation getCodeLocation() {
+    private CodeLocation getNavigatableCodeLocation() {
       HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
       if (n == null || n.getData() == null) {
         return null;
       }
       MethodModel method = n.getData();
-      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
+      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build()
+        .filterNavigatable(myNavigator);
     }
   }
 
