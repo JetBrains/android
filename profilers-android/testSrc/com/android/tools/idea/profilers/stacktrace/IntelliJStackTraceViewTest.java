@@ -67,11 +67,7 @@ public class IntelliJStackTraceViewTest {
 
   @Before
   public void before() {
-    StackTraceModel model = new StackTraceModel(new CodeNavigator(new FakeFeatureTracker()) {
-      @Override
-      protected void handleNavigate(@NotNull CodeLocation location) {
-      }
-    });
+    StackTraceModel model = new StackTraceModel(new FakeCodeNavigator(new FakeFeatureTracker()));
     myStackView = new IntelliJStackTraceView(myProject, model, (project, location) -> new FakeCodeElement(location));
     myStackView.getComponent().setSize(100, 400); // Arbitrary size just so we can click on it
     myStackView.getListView().setUI(new HeadlessListUI());

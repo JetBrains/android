@@ -19,6 +19,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,11 +32,7 @@ import java.util.function.Consumer;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final CodeNavigator myFakeNavigationService = new CodeNavigator(myFakeFeatureTracker) {
-    @Override
-    protected void handleNavigate(@NotNull CodeLocation location) {
-    }
-  };
+  private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
 
   /**
    * Callback to be run after the executor calls its execute() method.
