@@ -129,6 +129,10 @@
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
 
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+    </action>
+
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
     </action>
@@ -164,7 +168,6 @@
     </action>
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
-      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
           icon="AndroidIcons.AvdManager"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
