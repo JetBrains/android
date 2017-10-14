@@ -199,6 +199,7 @@ public class BrowsePanel extends JPanel {
 
   /**
    * Show a browse dialog depending on the property type.
+   *
    * @return a new value or null if the dialog was cancelled.
    */
   @Nullable
