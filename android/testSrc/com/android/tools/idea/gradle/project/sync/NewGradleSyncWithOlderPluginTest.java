@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.project.sync.NewGradleSyncIntegrationTest.verifyTaskViewPopulated;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+
 /**
  * Integration test for Gradle Sync with old versions of Android plugin and the new Sync infrastructure.
  */
@@ -65,6 +68,12 @@ public class NewGradleSyncWithOlderPluginTest extends GradleSyncWithOlderPluginT
   }
 
   private void notifySkippedTest() {
-    System.out.println(String.format("Skipped '%1$s#%2$s'. See http://b/67420000 .", getClass().getSimpleName(), getName()));
+    System.out.println(String.format("Skipped '%1$s#%2$s'. See http://b/67390792 .", getClass().getSimpleName(), getName()));
+  }
+
+  // See http://b/67390792 - NPE with Gradle 2.2.1.
+  public void /*test*/TaskViewPopulated() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    verifyTaskViewPopulated(getProject());
   }
 }
