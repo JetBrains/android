@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -417,6 +416,8 @@ public class NlDesignSurface extends DesignSurface {
 
   private void doCreateSceneViewsForMenu() {
     mySceneMode = SceneMode.SCREEN_ONLY;
+
+    assert myModel != null;
     XmlTag tag = myModel.getFile().getRootTag();
 
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
@@ -587,7 +588,7 @@ public class NlDesignSurface extends DesignSurface {
    * Notifies the design surface that the given screen view (which must be showing in this design surface)
    * has been rendered (possibly with errors)
    */
-  public void updateErrorDisplay() {
+  private void updateErrorDisplay() {
     assert ApplicationManager.getApplication().isDispatchThread() ||
            !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
 
@@ -633,7 +634,14 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected boolean useSmallProgressIcon() {
-    return getCurrentSceneView() != null && getSceneManager().getRenderResult() != null;
+    if (getCurrentSceneView() == null) {
+      return false;
+    }
+
+    LayoutlibSceneManager manager = getSceneManager();
+    assert manager != null;
+
+    return manager.getRenderResult() != null;
   }
 
   @Override
