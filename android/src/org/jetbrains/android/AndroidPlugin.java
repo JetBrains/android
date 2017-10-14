@@ -22,6 +22,8 @@ import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.startup.Actions.moveAction;
+
 /**
  * @author coyote
  */
@@ -42,6 +44,8 @@ public class AndroidPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
     if (!IdeInfo.getInstance().isAndroidStudio()) {
+      // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android to keep low profile.
+      moveAction("Android.SyncProject", "FileMenu", "AndroidToolsGroup", new Constraints(Anchor.FIRST, null));
       return;
     }
 
