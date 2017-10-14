@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
@@ -31,6 +31,7 @@ import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.lookup.LookupAdapter;
 import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -62,6 +63,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
+  private final ComponentManager myProject;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private final BrowsePanel myBrowsePanel;
   private final boolean myHasSliderSupport;
@@ -128,6 +130,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
     size.setSize(size.width * 2, size.height);
     mySlider.setPreferredSize(size);
     mySlider.setVisible(includeSliderSupport);
+
+    myProject = project;
 
     //noinspection UseDPIAwareInsets
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
@@ -245,6 +249,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor {
 
   @Override
   public void setEnabled(boolean enabled) {
+    if (myProject.isDisposed()) {
+      return;
+    }
+
     myTextEditorWithAutoCompletion.setEnabled(enabled);
     if (myBrowsePanel != null) {
       myBrowsePanel.setVisible(enabled);
