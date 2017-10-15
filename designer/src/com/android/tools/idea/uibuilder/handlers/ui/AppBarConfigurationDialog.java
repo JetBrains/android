@@ -294,8 +294,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open(@NotNull final XmlFile file) {
     Project project = file.getProject();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    boolean syncNeeded = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN_LIB);
-    if (syncNeeded && !addDesignLibrary(manager)) {
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(myEditor.getModel().getModule(), GoogleMavenArtifactId.DESIGN_LIB);
+    if (!hasDesignLib && !addDesignLibrary(manager)) {
       return false;
     }
 
@@ -309,7 +309,7 @@ public class AppBarConfigurationDialog extends JDialog {
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
     myButtonOK.requestFocus();
-    if (!syncNeeded) {
+    if (hasDesignLib) {
       generatePreviews();
     }
 
