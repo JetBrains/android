@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adb;
+package com.android.tools.tests;
 
-import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.runner.RunWith;
+import org.junit.rules.ExternalResource;
 
-@RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(AndroidAdbTestSuite.class)  // a suite mustn't contain itself
-public class AndroidAdbTestSuite extends IdeaTestSuiteBase {
+public class LeakCheckerRule extends ExternalResource {
+  @Override
+  protected void after() {
+    try {
+      Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
+      leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    }
+  }
 }
-

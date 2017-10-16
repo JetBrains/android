@@ -103,5 +103,6 @@ iml_module(
         "//tools/adt/idea/android-common[module, test]",
         "//tools/adt/idea/project-system[module, test]",
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

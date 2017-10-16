@@ -14,5 +14,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="IntelliLang-java" scope="RUNTIME" />
     <orderEntry type="module" module-name="IntelliLang-xml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>
 </module>

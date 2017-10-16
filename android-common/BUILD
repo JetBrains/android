@@ -29,5 +29,6 @@ iml_module(
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/platform/projectModel-api[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

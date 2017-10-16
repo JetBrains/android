@@ -40,5 +40,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/plugins/IntelliLang:IntelliLang-java[module]",
         "//tools/idea/plugins/IntelliLang:IntelliLang-xml[module]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

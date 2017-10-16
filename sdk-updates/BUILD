@@ -43,5 +43,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

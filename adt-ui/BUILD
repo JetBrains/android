@@ -25,6 +25,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/observable[module]",
         "//tools/adt/idea/adt-ui/lib:libwebp",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
 

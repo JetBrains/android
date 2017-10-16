@@ -22,5 +22,6 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

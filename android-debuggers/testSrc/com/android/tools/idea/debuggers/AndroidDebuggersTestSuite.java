@@ -16,39 +16,15 @@
 package com.android.tools.idea.debuggers;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.android.tools.tests.IdeaTestSuiteBase;
+import com.android.tools.tests.LeakCheckerRule;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.junit.AfterClass;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidDebuggersTestSuite.class)  // a suite mustn't contain itself
-public class AndroidDebuggersTestSuite {
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+public class AndroidDebuggersTestSuite extends IdeaTestSuiteBase {
 
-  static {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
-    VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-  }
-
-  private static Path createTmpDir(String p) {
-    Path path = Paths.get(TMP_DIR, p);
-    try {
-      Files.createDirectories(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return path;
-  }
-
-  @AfterClass
-  public static void leakChecker() throws Exception {
-    Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
-    leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
-  }
+  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 }
 

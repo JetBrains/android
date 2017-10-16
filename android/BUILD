@@ -207,6 +207,7 @@ iml_module(
         "//tools/adt/idea/android-adb[module, test]",
         "//tools/adt/idea/project-system-gradle[module, test]",
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
 

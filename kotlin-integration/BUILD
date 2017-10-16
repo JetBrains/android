@@ -31,5 +31,6 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-branding[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

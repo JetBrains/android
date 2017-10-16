@@ -33,5 +33,6 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )

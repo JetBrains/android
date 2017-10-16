@@ -16,49 +16,17 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.testutils.TestUtils;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(com.android.tools.idea.AndroidCommonTestSuite.class)  // a suite mustn't contain itself
-public class AndroidCommonTestSuite {
-
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+public class AndroidCommonTestSuite extends IdeaTestSuiteBase {
 
   static {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
-    VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-
-    symbolicLinkInTmpDir("tools/adt/idea/adt-ui/lib/libwebp");
-    symbolicLinkInTmpDir("tools/adt/idea/artwork/resources/device-art-resources");
-  }
-
-  private static void symbolicLinkInTmpDir(String target) {
-    Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
-    Path linkName = Paths.get(TMP_DIR, target);
-    try {
-      Files.createDirectories(linkName.getParent());
-      Files.createSymbolicLink(linkName, targetPath);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static Path createTmpDir(String p) {
-    Path path = Paths.get(TMP_DIR, p);
-    try {
-      Files.createDirectories(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return path;
+    symlinkToIdeaHome(
+        "tools/adt/idea/adt-ui/lib/libwebp",
+        "tools/adt/idea/artwork/resources/device-art-resources");
   }
 }
 
