@@ -26,6 +26,10 @@ public class MethodModel {
   @NotNull private final String mySeparator;
   private String myFullName;
   private String myId;
+  /**
+   * Whether the method is native.
+   */
+  private boolean myNative;
 
   public MethodModel(@NotNull String name, @NotNull String className, @NotNull String signature, @NotNull String separator) {
     myName = name;
@@ -56,6 +60,14 @@ public class MethodModel {
   @NotNull
   public String getSeparator() {
     return mySeparator;
+  }
+
+  public boolean isNative() {
+    return myNative;
+  }
+
+  public void setNative(boolean isNative) {
+    myNative = isNative;
   }
 
   @NotNull
