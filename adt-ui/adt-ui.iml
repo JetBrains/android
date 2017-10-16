@@ -32,5 +32,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>
 </module>

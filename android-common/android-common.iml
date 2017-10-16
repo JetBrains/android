@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="projectModel-api" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>
 </module>

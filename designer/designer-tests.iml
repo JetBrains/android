@@ -35,5 +35,6 @@
     <orderEntry type="module" module-name="android-common" scope="TEST" />
     <orderEntry type="module" module-name="project-system" scope="TEST" />
     <orderEntry type="module" module-name="project-system-tests" scope="TEST" />
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
   </component>
 </module>

@@ -16,37 +16,14 @@
 package com.android.tools.idea.wizard;
 
 import com.android.testutils.JarTestSuiteRunner;
-import org.junit.AfterClass;
+import com.android.tools.tests.IdeaTestSuiteBase;
+import com.android.tools.tests.LeakCheckerRule;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(WizardModelTestSuite.class)  // a suite mustn't contain itself
-public class WizardModelTestSuite {
+public class WizardModelTestSuite extends IdeaTestSuiteBase {
 
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
-
-  static {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
-  }
-
-  private static Path createTmpDir(String p) {
-    Path path = Paths.get(TMP_DIR, p);
-    try {
-      Files.createDirectories(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return path;
-  }
-
-  @AfterClass
-  public static void leakChecker() throws Exception {
-    Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
-    leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
-  }
+  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 }

@@ -34,5 +34,6 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jre8[test]",
         "//tools/idea/.idea/libraries:sqlite",
+        "//tools/adt/idea/adt-testutils[module, test]",
     ],
 )
