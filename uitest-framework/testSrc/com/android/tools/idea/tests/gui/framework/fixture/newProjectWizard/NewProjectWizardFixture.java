@@ -80,7 +80,8 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     super.clickFinish();
 
     // Wait for gradle project importing to finish
-    Wait.seconds(30).expecting("Modal Progress Indicator to finish")
+    // b/66170375
+    Wait.seconds(60).expecting("Modal Progress Indicator to finish")
       .until(() -> {
         robot().waitForIdle();
         return !ProgressManager.getInstance().hasModalProgressIndicator();
