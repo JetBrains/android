@@ -398,7 +398,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener.reset();
 
     waitForGradleSyncAction(wait);
-    invokeMenuPath("Tools", "Android", "Sync Project with Gradle Files");
+    invokeMenuPath("File", "Sync Project with Gradle Files");
 
     return this;
   }
