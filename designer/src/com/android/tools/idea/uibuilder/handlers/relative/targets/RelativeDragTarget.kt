@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
@@ -141,6 +142,26 @@ class RelativeDragTarget : DragBaseTarget() {
     myTargetX?.myIsHighlight = false
     myTargetY?.myIsHighlight = false
 
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+  }
+
+  fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
+    myComponent.isDragging = false
+    if (myComponent.parent != null) {
+      val attributes = component.startAttributeTransaction()
+      trySnap(x, y)
+      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+      updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+      attributes.apply()
+
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+      }
+    }
     if (myChangedComponent) {
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     }

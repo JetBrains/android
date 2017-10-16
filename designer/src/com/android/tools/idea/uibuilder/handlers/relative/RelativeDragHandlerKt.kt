@@ -41,12 +41,6 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
 
   private val component: SceneComponent
   private val dragTarget = RelativeDragTarget()
-  /**
-   * The selected components when this handler created.
-   * The selection will be changed when dragging from Palette since the [components] is a mutable List.
-   * We need to use the original components when dragging from Palette, and using the muted components when dragging from Component Tree.
-   */
-  private val initialComponents = components.toList()
 
   init {
     assert(!components.isEmpty())
@@ -73,34 +67,40 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    layout.scene.removeComponent(component)
-
+    editor.insertChildren(layout.nlComponent, components, -1, insertType)
     when (insertType) {
-      InsertType.CREATE -> {
-        // Dragging from Palette, use initial components.
-        editor.insertChildren(layout.nlComponent, initialComponents, -1, insertType)
-        @AndroidDpCoordinate val dx = x + startX - lastX - component.drawWidth / 2
-        @AndroidDpCoordinate val dy = y + startY - lastY - component.drawHeight / 2
-        dragTarget.mouseRelease(dx, dy, null)
-      }
-      InsertType.MOVE_INTO -> {
-        // Dragging from Component Tree, use initial components.
-        editor.insertChildren(layout.nlComponent, components, -1, insertType)
-        for (c in components) {
-          val sceneComponent = layout.getSceneComponent(c) ?: continue
-          dragTarget.component = sceneComponent
-
-          @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
-          @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
-
-          dragTarget.mouseDrag(dx, dy, null)
-          dragTarget.mouseRelease(dx, dy, null)
-        }
-      }
+      InsertType.CREATE -> dragWidgetFromPalette(x, y)
+      InsertType.MOVE_INTO -> dragWidgetFromComponentTree(x, y)
       else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
     }
 
+    // Remove Temporary SceneComponent
+    layout.scene.removeComponent(component)
     layout.scene.checkRequestLayoutStatus()
+  }
+
+  private fun dragWidgetFromPalette(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
+    layout.scene.needsRebuildList()
+    for (child in components) {
+      @AndroidDpCoordinate val dx = x + startX - lastX - component.drawWidth / 2
+      @AndroidDpCoordinate val dy = y + startY - lastY - component.drawHeight / 2
+      for (target in component.targets) {
+        if (target is RelativeDragTarget) {
+          target.mouseRelease(dx, dy, child)
+        }
+      }
+    }
+  }
+
+  private fun dragWidgetFromComponentTree(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
+    for (child in components) {
+      val sceneComponent = layout.getSceneComponent(child) ?: continue
+      dragTarget.component = sceneComponent
+      @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
+      @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
+      dragTarget.mouseDrag(dx, dy, null)
+      dragTarget.mouseRelease(dx, dy, null)
+    }
   }
 
   override fun cancel() {
