@@ -70,8 +70,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
  * </p>
  */
 public class AndroidStudioInitializer implements Runnable {
-  private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
-
   @Override
   public void run() {
     checkInstallation();
@@ -82,6 +80,7 @@ public class AndroidStudioInitializer implements Runnable {
     setupAnalytics();
     disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
+    hideRarelyUsedIntellijActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -111,17 +110,17 @@ public class AndroidStudioInitializer implements Runnable {
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
-      LOG.info("Unable to find Studio home directory");
+      getLog().info("Unable to find Studio home directory");
       return;
     }
     File studioHomePath = toSystemDependentPath(studioHome);
     if (!studioHomePath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
+      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;
     }
     File androidPluginLibFolderPath = new File(studioHomePath, join("plugins", "android", "lib"));
     if (!androidPluginLibFolderPath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
+      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
       return;
     }
 
@@ -210,7 +209,7 @@ public class AndroidStudioInitializer implements Runnable {
           }
         }
 
-        LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
+        getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
 
     });
@@ -265,5 +264,15 @@ public class AndroidStudioInitializer implements Runnable {
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
     hideAction("excludeFromSuite");
     hideAction("AddToISuite");
+  }
+
+  private static void hideRarelyUsedIntellijActions() {
+    // Hide the Save File as Template action due to its rare use in Studio.
+    hideAction("SaveFileAsTemplate");
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(AndroidStudioInitializer.class);
   }
 }
