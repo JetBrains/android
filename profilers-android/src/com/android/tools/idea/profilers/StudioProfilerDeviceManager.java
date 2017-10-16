@@ -351,6 +351,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
                         .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
                         .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
                         .build())
+        .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
         .setSocketType(socketType)
         .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
         // Using "@" to indicate an abstract socket in unix.
