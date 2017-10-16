@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.WizardDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
@@ -38,7 +40,9 @@ public class FirstRunWizardFixture extends WizardDialogFixture<FirstRunWizardFix
   public static void show() {
     GuiTask.execute(() -> {
       JFrame welcomeFrame = new WelcomeFrame();
-      WelcomeScreen welcomeScreen = new FirstRunWizardHost(FirstRunWizardMode.NEW_INSTALL);
+      WelcomeScreen welcomeScreen = StudioFlags.NPW_FIRST_RUN_WIZARD.get()
+                                    ? new StudioFirstRunWelcomeScreen(FirstRunWizardMode.NEW_INSTALL)
+                                    : new FirstRunWizardHost(FirstRunWizardMode.NEW_INSTALL);
       welcomeFrame.setContentPane(welcomeScreen.getWelcomePanel());
       welcomeScreen.setupFrame(welcomeFrame);
 

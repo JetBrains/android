@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard.deprecated;
+package com.android.tools.idea.welcome.wizard;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-/**
- * @deprecated by {@link com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog}
- */
 public class ConfirmFirstRunWizardCloseDialog extends JDialog {
   private boolean myWasCanceled;
 
