@@ -573,7 +573,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage ram) {
         return (ram.getSizeAsUnit(Storage.Unit.MiB) < 128)
-               ? new Result(Severity.ERROR, "RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.")
+               ? new Result(Severity.ERROR, "RAM must be a numeric (integer) value of at least 128 MiB. Recommendation is 1 GiB.")
                : Result.OK;
       }
     });
@@ -583,7 +583,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage heap) {
         return (heap.getSizeAsUnit(Storage.Unit.MiB) < 16)
-               ? new Result(Severity.ERROR, "VM Heap must be a numeric (integer) value of at least 16MB.")
+               ? new Result(Severity.ERROR, "VM Heap must be a numeric (integer) value of at least 16 MiB.")
                : Result.OK;
       }
     });
@@ -593,7 +593,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage heap) {
         return (heap.getSizeAsUnit(Storage.Unit.MiB) < 200)
-               ? new Result(Severity.ERROR, "Internal storage must be a numeric (integer) value of at least 200MB.")
+               ? new Result(Severity.ERROR, "Internal storage must be a numeric (integer) value of at least 200 MiB.")
                : Result.OK;
       }
     });
@@ -620,7 +620,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
         if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
             getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10) {
-          return new Result(Severity.ERROR, "The SD card must be larger than 10MB");
+          return new Result(Severity.ERROR, "The SD card must be at least 10 MiB.");
         }
         if (!getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
           return new Result(Severity.WARNING, "Modifying the SD card size will erase the card's contents! " +
