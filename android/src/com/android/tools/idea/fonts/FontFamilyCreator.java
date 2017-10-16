@@ -160,7 +160,7 @@ public class FontFamilyCreator {
     FontProvider provider = family.getProvider();
     AndroidModuleInfo info = AndroidModuleInfo.getInstance(myFacet);
     AndroidVersion minSdkVersion = info.getMinSdkVersion();
-    if (minSdkVersion.getApiLevel() >= VersionCodes.O) {
+    if (minSdkVersion.getApiLevel() > VersionCodes.O_MR1) {
       return String.format(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
         "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
@@ -168,21 +168,6 @@ public class FontFamilyCreator {
         "        android:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
         "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
         "        android:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
-        "</font-family>%n");
-    }
-    else if (minSdkVersion.getApiLevel() == VersionCodes.N_MR1 && minSdkVersion.isPreview()) {  // O Preview
-      return String.format(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-        "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
-        "        xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-        "        android:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
-        "        android:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
-        "        android:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\"%n" +
-        "        app:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
-        "        app:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        app:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
-        "        app:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
     else {
