@@ -31,6 +31,7 @@ public class AndroidPlugin implements ApplicationComponent {
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
   public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
   public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
+  private static final String ANDROID_TOOLS_GROUP_ID = "AndroidToolsGroup";
 
   private static boolean ourGuiTestingMode;
   private static GuiTestSuiteState ourGuiTestSuiteState;
@@ -43,12 +44,17 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android to keep low profile.
-      moveAction("Android.SyncProject", "FileMenu", "AndroidToolsGroup", new Constraints(Anchor.FIRST, null));
-      return;
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      initializeForStudio();
+    } else {
+      initializeForNonStudio();
     }
+  }
 
+  /**
+   * Initializes the Android plug-in when it runs as part of Android Studio.
+   */
+  private static void initializeForStudio() {
     // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
     // in code as well (instead of xml).
     ActionManager actionManager = ActionManager.getInstance();
@@ -56,6 +62,25 @@ public class AndroidPlugin implements ApplicationComponent {
     if (runnerActions instanceof DefaultActionGroup) {
       ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, "Run"));
     }
+  }
+
+  /**
+   * Initializes the Android plug-in when it runs outside of Android Studio.
+   * Reduces prominence of the Android related UI elements to keep low profile.
+   */
+  private static void initializeForNonStudio() {
+    // Move the Android-related actions from the Tools menu into the Android submenu.
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction group = actionManager.getAction(ANDROID_TOOLS_GROUP_ID);
+    if (group instanceof ActionGroup) {
+      ((ActionGroup)group).setPopup(true);
+    }
+
+    // Move the Android submenu to the end of the Tools menu.
+    moveAction(ANDROID_TOOLS_GROUP_ID, "ToolsMenu", "ToolsMenu", new Constraints(Anchor.LAST, null));
+
+    // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
+    moveAction("Android.SyncProject", "FileMenu", ANDROID_TOOLS_GROUP_ID, new Constraints(Anchor.FIRST, null));
   }
 
   @Override
