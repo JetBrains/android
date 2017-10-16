@@ -67,7 +67,9 @@ public class MethodNameParser {
     if (returnTypeSeparatorIndex >= 0) {
       methodFullName = methodFullName.substring(returnTypeSeparatorIndex + 1);
     }
-    return createMethodModel(methodFullName, "::", NATIVE_SEPARATOR_PATTERN, signature);
+    MethodModel methodModel = createMethodModel(methodFullName, "::", NATIVE_SEPARATOR_PATTERN, signature);
+    methodModel.setNative(true);
+    return methodModel;
   }
 
   /**
