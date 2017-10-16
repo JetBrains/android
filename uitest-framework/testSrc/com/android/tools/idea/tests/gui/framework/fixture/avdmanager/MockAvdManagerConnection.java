@@ -63,21 +63,13 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   }
 
   public void killEmulator() {
-    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
-    for (IDevice device : adb.getDevices()) {
-      EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
-      if (emulatorConsole != null) {
-        emulatorConsole.kill();
-      }
-    }
-
-    // Kill emulator crash report dialogs left behind
-    killEmulatorCrashReportProcess();
+    killEmulatorProcesses();
+    // TODO kill the emulator gracefully. Need to kill through adb, using SIGTERM, and then using SIGKILL
   }
 
   public void killEmulatorProcesses() {
     // Note that pgrep matches up to 15 characters.
-    exec(isWindows ? "taskkill /F /IM qemu*" : "pkill qemu");
+    exec(isWindows ? "taskkill /F /IM qemu*" : "pkill -9 qemu");
     killEmulatorCrashReportProcess();
   }
 
