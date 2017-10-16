@@ -442,7 +442,9 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       if (subDirectory != null) {
         return subDirectory;
       }
-      return directory.createSubdirectory(ourTargetFolderName);
+
+      Computable<PsiDirectory> createDirComputable = () -> directory.createSubdirectory(ourTargetFolderName);
+      return ApplicationManager.getApplication().runWriteAction(createDirComputable);
     }
     CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
       project, null, folderType, directory, null,
