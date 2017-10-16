@@ -17,6 +17,7 @@ package com.android.tools.idea.apk;
 
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
@@ -29,23 +30,46 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static java.util.Objects.requireNonNull;
 
 public class ImportApkAction extends DumbAwareAction {
-  @NonNls private static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
+  @VisibleForTesting
+  @NonNls static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
+
+  @NotNull private final PropertiesComponent myPropertiesComponent;
+  @NotNull private final CustomProjectTypeImporter.MainImporter myProjectTypeImporter;
+  @NotNull private final RecentProjectsManager myRecentProjectsManager;
+  @NotNull private final FileChooserDialogFactory myFileChooserDialogFactory;
+  @NotNull private final ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
 
   public ImportApkAction() {
+    this(PropertiesComponent.getInstance(), CustomProjectTypeImporter.getMain(), new FileChooserDialogFactory(),
+         RecentProjectsManager.getInstance(), requireNonNull(getManager(ApkDebugging.SYSTEM_ID)));
+  }
+
+  @VisibleForTesting
+  ImportApkAction(@NotNull PropertiesComponent propertiesComponent,
+                  @NotNull CustomProjectTypeImporter.MainImporter projectTypeImporter,
+                  @NotNull FileChooserDialogFactory fileChooserDialogFactory,
+                  @NotNull RecentProjectsManager recentProjectsManager,
+                  @NotNull ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
     super("Profile or debug APK", null, AllIcons.Css.Import);
+    myPropertiesComponent = propertiesComponent;
+    myProjectTypeImporter = projectTypeImporter;
+    myRecentProjectsManager = recentProjectsManager;
+    myFileChooserDialogFactory = fileChooserDialogFactory;
+    myExternalSystemManager = externalSystemManager;
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ExternalSystemManager<?, ?, ?, ?, ?> manager = getManager(ApkDebugging.SYSTEM_ID);
-    assert manager != null;
-    FileChooserDialog chooser = new FileChooserDialogImpl(manager.getExternalProjectDescriptor(), (Project)null);
+    FileChooserDialog chooser = myFileChooserDialogFactory.create(myExternalSystemManager);
     VirtualFile toSelect = null;
-    String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
+    String lastLocation = myPropertiesComponent.getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
       toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(lastLocation);
     }
@@ -55,18 +79,26 @@ public class ImportApkAction extends DumbAwareAction {
       return;
     }
     VirtualFile file = files[0];
-    PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
-    String lastProjectCreation = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
+    myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, toSystemDependentName(file.getPath()));
+    String lastProjectCreation = myRecentProjectsManager.getLastProjectCreationLocation();
 
-    CustomProjectTypeImporter.getMain().importFileAsProject(file);
+    myProjectTypeImporter.importFileAsProject(file);
 
-    // Importing a project changes the project creation location. Put it value back.
-    RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectCreation);
+    // Importing a project changes the project creation location. Set the original value back.
+    myRecentProjectsManager.setLastProjectCreationLocation(lastProjectCreation);
   }
 
   @Override
   public void update(AnActionEvent e) {
     boolean enabled = ApkDebugging.isEnabled();
     e.getPresentation().setEnabledAndVisible(enabled);
+  }
+
+  @VisibleForTesting
+  static class FileChooserDialogFactory {
+    @NotNull
+    FileChooserDialog create(ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
+      return new FileChooserDialogImpl(externalSystemManager.getExternalProjectDescriptor(), (Project)null);
+    }
   }
 }
