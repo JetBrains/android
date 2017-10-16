@@ -80,6 +80,22 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
+  @VisibleForTesting
+  @NotNull
+  public static String storageSizeDisplayString(@NotNull Storage size) {
+    String unitString = "MiB";
+    double value = size.getPreciseSizeAsUnit(Storage.Unit.MiB);
+    if (value >= 1024.0) {
+      unitString = "GiB";
+      value = size.getPreciseSizeAsUnit(Storage.Unit.GiB);
+    }
+    if (value > 9.94) {
+      return String.format(Locale.getDefault(), "%1$.0f %2$s", value, unitString);
+    } else {
+      return String.format(Locale.getDefault(), "%1$.1f %2$s", value, unitString);
+    }
+  }
+
   public AvdDisplayList(@NotNull AvdListDialog dialog, @Nullable Project project) {
     myDialog = dialog;
     myProject = project;
@@ -672,13 +688,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public String valueOf(AvdInfo avdInfo) {
       Storage size = getSize(avdInfo);
-      String unitString = "MB";
-      Long value = size.getSizeAsUnit(Storage.Unit.MiB);
-      if (value > 1024) {
-        unitString = "GB";
-        value = size.getSizeAsUnit(Storage.Unit.GiB);
-      }
-      return String.format(Locale.getDefault(), "%1$d %2$s", value, unitString);
+      return storageSizeDisplayString(size);
     }
 
     @Nullable
