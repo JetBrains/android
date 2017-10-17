@@ -102,6 +102,12 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myCache.put(id, contents);
   }
 
+  public void removeFile(String id) {
+    if (myCache.containsKey(id)) {
+      myCache.remove(id);
+    }
+  }
+
   public void setTimestampNs(long timestamp) {
     myTimestampNs = timestamp;
   }

@@ -108,7 +108,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
     PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
     "Add a new tab in the network profiler that shows the connection request payload",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
     PROFILER, "atrace", "Show the atrace option in CPU profiler",

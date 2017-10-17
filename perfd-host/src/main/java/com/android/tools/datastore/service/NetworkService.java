@@ -110,6 +110,9 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
       case REQUEST:
         response.setRequest(storedResponse.getRequest());
         break;
+      case REQUEST_BODY:
+        response.setRequestBody(storedResponse.getRequestBody());
+        break;
       case RESPONSE:
         response.setResponse(storedResponse.getResponse());
         break;
@@ -118,8 +121,8 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
         break;
       case ACCESSING_THREADS:
         response.setAccessingThreads(storedResponse.getAccessingThreads());
+        break;
       case UNSPECIFIED:
-      case REQUEST_BODY:
       case UNRECOGNIZED:
         // do nothing
         break;

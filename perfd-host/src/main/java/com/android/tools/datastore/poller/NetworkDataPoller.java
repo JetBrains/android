@@ -78,18 +78,23 @@ public class NetworkDataPoller extends PollRunner {
                                                                                                   NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
 
       NetworkProfiler.HttpDetailsResponse request = initialData;
+      NetworkProfiler.HttpDetailsResponse requestBody =
+        myNetworkTable.getHttpDetailsResponseById(data.getConnId(), mySession, NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
       NetworkProfiler.HttpDetailsResponse responseData = null;
       NetworkProfiler.HttpDetailsResponse body = null;
       NetworkProfiler.HttpDetailsResponse threads = null;
       if (initialData == null) {
         request = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
       }
+      if (data.getUploadedTimestamp() != 0) {
+        requestBody = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
+      }
       if (data.getEndTimestamp() != 0) {
         responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
         body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
       }
       threads = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, threads, data);
+      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, threads, requestBody, data);
     }
   }
 

@@ -50,7 +50,9 @@ public class HttpData {
 
   public static final String FIELD_CONTENT_TYPE = "content-type";
   public static final String FIELD_CONTENT_LENGTH = "content-length";
+  public static final String FIELD_CONTENT_ENCODING = "content-encoding";
   public static final int NO_STATUS_CODE = -1;
+  public static final String APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded";
 
   private final long myId;
   private final long myStartTimeUs;
@@ -71,6 +73,9 @@ public class HttpData {
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
+  @Nullable private final String myRequestPayloadId;
+  @Nullable private File myRequestPayloadFile;
+
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
     myStartTimeUs = builder.myStartTimeUs;
@@ -82,6 +87,7 @@ public class HttpData {
     myThreads = builder.myThreads;
 
     myResponsePayloadId = builder.myResponsePayloadId;
+    myRequestPayloadId = builder.myRequestPayloadId;
 
     if (builder.myResponseFields != null) {
       parseResponseFields(builder.myResponseFields);
@@ -135,6 +141,20 @@ public class HttpData {
 
   public int getStatusCode() {
     return myStatusCode;
+  }
+
+  @Nullable
+  public String getRequestPayloadId() {
+    return myRequestPayloadId;
+  }
+
+  @Nullable
+  public File getRequestPayloadFile() {
+    return myRequestPayloadFile;
+  }
+
+  public void setRequestPayloadFile(@NotNull File file) {
+    myRequestPayloadFile = file;
   }
 
   @Nullable
@@ -290,6 +310,7 @@ public class HttpData {
   }
 
   public static final class ContentType {
+
     @NotNull private final String myContentType;
 
     public ContentType(@NotNull String contentType) {
@@ -332,6 +353,32 @@ public class HttpData {
     public String toString() {
       return getContentType();
     }
+
+    public boolean isFormData() {
+      return getMimeType().equalsIgnoreCase(APPLICATION_FORM_MIME_TYPE);
+    }
+
+    /**
+     * Returns display name with the first letter in upper case.
+     * <ul>
+     *   <li>If type is form data, returns "Form Data".</li>
+     *   <li>If type is "text" or "application", returns the sub type, for example, "application/json" => "Json".</li>
+     *   <li>Otherwise, return the type, for example, "image/png" => "Image".</li>
+     * </ul>
+     */
+    public String getTypeDisplayName() {
+      String mimeType = getMimeType().trim();
+      if (mimeType.isEmpty()) {
+        return mimeType;
+      }
+      if (isFormData()) {
+        return "Form Data";
+      }
+      String[] typeAndSubType = mimeType.split("/", 2);
+      boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
+      String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
+      return name.isEmpty() ? name : name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
   }
 
   // Thread information fetched from the JVM, as opposed to from native code.
@@ -367,6 +414,7 @@ public class HttpData {
     private String myResponseFields;
     private String myRequestFields;
     private String myResponsePayloadId;
+    private String myRequestPayloadId;
     private String myTrace = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
@@ -412,6 +460,12 @@ public class HttpData {
     @NotNull
     public Builder setResponsePayloadId(@NotNull String payloadId) {
       myResponsePayloadId = payloadId;
+      return this;
+    }
+
+    @NotNull
+    public Builder setRequestPayloadId(@NotNull String payloadId) {
+      myRequestPayloadId = payloadId;
       return this;
     }
 

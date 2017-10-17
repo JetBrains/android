@@ -82,7 +82,7 @@ public class NetworkTableTest {
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
                                .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
         .build();
-      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, requestData, null, null, threadsData, data);
+      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, requestData, null, null, threadsData, null, data);
     }
   }
 

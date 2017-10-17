@@ -38,7 +38,6 @@ import java.util.zip.GZIPOutputStream;
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -58,7 +57,7 @@ public class NetworkProfilerStageTest {
     new ImmutableList.Builder<HttpData>()
       .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
       .build();
-
+  private static final String TEST_PAYLOAD_ID = "test";
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(true);
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
@@ -291,15 +290,14 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
-  public void getConnectionPayloadRespectsContentEncodingGzip() throws IOException {
+  public void setSelectionWithGzipEncodingResponsePayload() throws IOException {
     HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
-    builder.setResponsePayloadId("test");
+    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
 
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
-
     ByteArrayOutputStream zippedBytes = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(zippedBytes)) {
       compressor.write(unzippedBytes);
@@ -307,33 +305,99 @@ public class NetworkProfilerStageTest {
     assertTrue(zippedBytes.toByteArray().length > 0);
     assertNotEquals(unzippedBytes.length, zippedBytes.toByteArray().length);
     ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
+    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
-    File file = myStage.getConnectionPayload(zippedBytesString, data);
-    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+    assertTrue(myStage.setSelectedConnection(data));
+    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
       String output = reader.readLine();
       assertEquals(unzippedPayload, output);
     }
   }
 
   @Test
-  public void getConnectionPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
+  public void responsePayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
     HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
-    builder.setResponsePayloadId("test");
+    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
 
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
     ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
+    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
-    File file = myStage.getConnectionPayload(unzippedBytesString, data);
-    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+    assertTrue(myStage.setSelectedConnection(data));
+    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
       String output = reader.readLine();
       assertEquals(unzippedPayload, output);
     }
   }
 
-  private ByteString gzip(String input) {
+  @Test
+  public void setSelectionWithGzipEncodingRequestPayload() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
+    builder.setRequestPayloadId(TEST_PAYLOAD_ID);
+    builder.setRequestFields("content-encoding=gzip \n");
+    HttpData data = builder.build();
+
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+    ByteArrayOutputStream zippedBytes = new ByteArrayOutputStream();
+    try (GZIPOutputStream compressor = new GZIPOutputStream(zippedBytes)) {
+      compressor.write(unzippedBytes);
+    }
+    assertTrue(zippedBytes.toByteArray().length > 0);
+    assertNotEquals(unzippedBytes.length, zippedBytes.toByteArray().length);
+    ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
+    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
+
+    myStage.setSelectedConnection(data);
+    try (BufferedReader reader = Files.newBufferedReader(data.getRequestPayloadFile().toPath())) {
+      String output = reader.readLine();
+      assertEquals(unzippedPayload, output);
+    }
+  }
+
+  @Test
+  public void requestPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
+    builder.setRequestPayloadId(TEST_PAYLOAD_ID);
+    builder.setRequestFields(" content-encoding=gzip \n");
+    HttpData data = builder.build();
+
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+    ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
+    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
+
+    myStage.setSelectedConnection(data);
+    try (BufferedReader reader = Files.newBufferedReader(data.getRequestPayloadFile().toPath())) {
+      String output = reader.readLine();
+      assertEquals(unzippedPayload, output);
+    }
+  }
+
+  @Test
+  public void setSelectionWithExistingPayloadFile() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
+    builder.setResponsePayloadId(TEST_PAYLOAD_ID);
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
+    HttpData data = builder.build();
+    String payload = "payload";
+    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFrom(payload.getBytes(Charset.defaultCharset())));
+    myStage.setSelectedConnection(data);
+    // After payload file exists, remove file from profiler service.
+    myProfilerService.removeFile(TEST_PAYLOAD_ID);
+    // Set to a different selection because set the same selection twice will be skipped.
+    myStage.setSelectedConnection(new HttpData.Builder(2, 2, 20, 20).build());
+
+    myStage.setSelectedConnection(data);
+    try (BufferedReader reader = Files.newBufferedReader(data.getResponsePayloadFile().toPath())) {
+      assertEquals(payload, reader.readLine());
+    }
+  }
+
+  private static ByteString gzip(String input) {
     ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
       compressor.write(input.getBytes());
@@ -357,11 +421,11 @@ public class NetworkProfilerStageTest {
     spyStage.getAspect().addDependency(observer).
       onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> connectionChanged[0] = true);
 
-    doThrow(IOException.class).when(spyStage).getConnectionPayload(any(ByteString.class), any(HttpData.class));
-    spyStage.setSelectedConnection(data);
+    doThrow(IOException.class).when(spyStage).getConnectionsModel();
+    assertFalse(spyStage.setSelectedConnection(data));
     assertNull(data.getResponsePayloadFile());
     assertNull(spyStage.getSelectedConnection());
-    assertEquals(false, connectionChanged[0]);
+    assertFalse(connectionChanged[0]);
   }
 
   @Test
