@@ -33,8 +33,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
@@ -47,11 +46,8 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
@@ -89,6 +85,8 @@ public class GradleFilePsiMerger {
       projectNeedsCleanup = true;
     }
 
+    source = source.trim();
+    dest = dest.trim();
 
     final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
                                                                                                              GroovyFileType.GROOVY_FILE_TYPE,
@@ -99,6 +97,10 @@ public class GradleFilePsiMerger {
     String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
       protected void run(@NotNull Result<String> result) throws Throwable {
+        // Make sure that the file we are merging in to has a trailing new line. This ensures that
+        // any added elements appear at the buttom of the file, it also keeps consistency with
+        // how projects created with the Wizards look.
+        addTrailingNewLine(existingBuildFile);
         mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
         PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
         result.setResult(formatted.getText());
@@ -142,10 +144,12 @@ public class GradleFilePsiMerger {
         else if (child instanceof GrAssignmentExpression && child.getChildren().length == 2 &&
                  child.getChildren()[1] instanceof GrLiteral && child.getText().startsWith("ext.")) {
           // Put assignment expressions like, ext.kotlin_version = 'x.x.x', at the top, as they may be used later on the file
-          toRoot.addAfter(child, toRoot.getFirstChild());
+          child = toRoot.addAfter(child, toRoot.getFirstChild());
+          ensureCorrectSpacing(child);
         }
         else {
-          toRoot.addBefore(child, toRoot.getLastChild());
+          child = toRoot.addBefore(child, toRoot.getLastChild());
+          ensureCorrectSpacing(child);
         }
         // And we're done for this branch
       }
@@ -208,6 +212,107 @@ public class GradleFilePsiMerger {
         PsiElement dependencyElement = factory.createStatementFromText(dependency);
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
+    }
+  }
+
+  private static void addTrailingNewLine(@NotNull final GroovyFile file) {
+    PsiElement newLineElement = getNewLineElement(file, 1);
+    file.addAfter(newLineElement, file.getLastChild());
+  }
+
+  /**
+   * Checks to see whether two PsiElements are both {@code LeafPsiNode}s and that they are
+   * of the same type.
+   */
+  private static boolean isSameLeafNode(@NotNull PsiElement element, @NotNull PsiElement leaf) {
+    if (!(element instanceof LeafPsiElement) || !(leaf instanceof LeafPsiElement)) {
+      return false;
+    }
+
+    LeafPsiElement e1 = (LeafPsiElement) element;
+    LeafPsiElement e2 = (LeafPsiElement) leaf;
+
+    return e1.getElementType().equals(e2.getElementType());
+  }
+
+  /**
+   * Returns a {@code PsiElement} representing the line terminator in the context of a given
+   * {@code PsiElement}.
+   */
+  @NotNull
+  private static PsiElement getNewLineElement(@NotNull PsiElement context, int length) {
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(context.getProject());
+    return factory.createLineTerminator(length);
+  }
+
+  private static boolean scanForNewLineOrNull(@NotNull PsiElement element , boolean searchForward) {
+    return scanAndCountNewLinesOrNulls(element, searchForward, 1) > 0;
+  }
+
+  /**
+   * Scans forwards or backwards along the siblings of a given {@code PsiElement} until a given amount of new lines,
+   * a non whitespace element or null are found. Returns the number of new lines found, or Integer.MAX_VALUE
+   * if there was a cycle in the {@code PsiElement}s or we hit the end of the siblings. {@code numberOfNewLines} can
+   * be set to terminate as soon as we find that many lines.
+   */
+  private static int scanAndCountNewLinesOrNulls(@NotNull PsiElement element , boolean searchForward, int numberOfNewLines) {
+    PsiElement newLineElement = getNewLineElement(element, 1);
+
+    int foundNewLines = 0;
+
+    Set<PsiElement> seen = new HashSet<>();
+    while (!seen.contains(element)) {
+      if (element == null) {
+        return Integer.MAX_VALUE;
+      } else if (isSameLeafNode(element, newLineElement)) {
+        foundNewLines += element.getTextLength();
+      } else if (!(element instanceof PsiWhiteSpace)) {
+        return foundNewLines;
+      }
+
+      if (foundNewLines >= numberOfNewLines) {
+        return foundNewLines;
+      }
+
+      seen.add(element);
+      if (!searchForward) {
+        element = element.getPrevSibling();
+      } else {
+        element = element.getNextSibling();
+      }
+    }
+    return Integer.MAX_VALUE;
+  }
+
+  /**
+   * Returns whether or not an element should be wrapped by new lines in the gradle build file.
+   */
+  private static boolean shouldBeWrappedByNewLines(@NotNull PsiElement element) {
+    return element.getParent() != null &&
+           (element instanceof GrMethodCall || element instanceof GrAssignmentExpression) &&
+           (element.getParent() instanceof GroovyFile || element.getParent() instanceof GrClosableBlock);
+  }
+
+  private static void ensureCorrectSpacing(@NotNull PsiElement element) {
+    // We only care about elements that should be wrapped with whitespace
+    if (!shouldBeWrappedByNewLines(element)) {
+      return;
+    }
+
+    PsiElement newLineElement = getNewLineElement(element, 1);
+    if (element.getParent() instanceof GroovyFile) {
+      // If we are a top level element being added to the end of a file then make sure to add two new lines to
+      // keep formatting consistent with the project wizards generated files.
+      int newLines = scanAndCountNewLinesOrNulls(element.getPrevSibling(), false, 2);
+      if (newLines >= 0 && newLines < 2) {
+        PsiElement doubleNewLineElement = getNewLineElement(element, 2 - newLines);
+        element.getParent().addBefore(doubleNewLineElement, element);
+      }
+    } else if (!scanForNewLineOrNull(element.getPrevSibling(), false)) {
+      element.getParent().addBefore(newLineElement, element);
+    }
+    if (!scanForNewLineOrNull(element.getNextSibling(), true)) {
+      element.getParent().addAfter(newLineElement, element);
     }
   }
 
