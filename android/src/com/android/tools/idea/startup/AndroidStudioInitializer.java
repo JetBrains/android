@@ -30,6 +30,9 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -81,6 +84,7 @@ public class AndroidStudioInitializer implements Runnable {
     disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
+    renameSynchronizeAction();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -269,6 +273,12 @@ public class AndroidStudioInitializer implements Runnable {
   private static void hideRarelyUsedIntellijActions() {
     // Hide the Save File as Template action due to its rare use in Studio.
     hideAction("SaveFileAsTemplate");
+  }
+
+  private static void renameSynchronizeAction() {
+    // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
+    AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
+    action.getTemplatePresentation().setText("S_ync with File System", true);
   }
 
   @NotNull
