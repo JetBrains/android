@@ -42,6 +42,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -55,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -312,7 +314,12 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @Override
         protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+          try {
+            myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+          } catch (Throwable t) {
+            Logger.getInstance(getClass()).error(t);
+            myParseResult = new VectorAsset.ParseResult("Internal error parsing " + myActiveAsset.get().path().get().getName());
+          }
           return null;
         }
 
@@ -322,7 +329,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           // it IS possible to have invalid asset, but no error, in fact that is the initial state before a file is chosen.
           isValidAsset.set(myParseResult.isValid());
           if (myParseResult.isValid()) {
-            myImagePreview.setIcon(new ImageIcon(myParseResult.getImage()));
+            BufferedImage image = myParseResult.getImage();
+            myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
             myOriginalSize.setValue(new Dimension(myParseResult.getOriginalWidth(), myParseResult.getOriginalHeight()));
           }
           else {
