@@ -25,11 +25,11 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
-import java.util.*
 
 /**
  * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
@@ -39,6 +39,8 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   enum class InteractionState { NORMAL, DRAGGING }
 
   var interactionState = InteractionState.NORMAL
+
+  override fun handlesPainting() = true
 
   override fun getInspectorProperties(): List<String> {
     return ImmutableList.of<String>(
@@ -82,14 +84,14 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     val listBuilder = ImmutableList.builder<Target>()
     listBuilder.add(
         CoordinatorDragTarget(),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
     )
 
     if (!childComponent.isSelected && interactionState == InteractionState.DRAGGING) {
@@ -108,3 +110,6 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listBuilder.build()
   }
 }
+
+// The resize behaviour is similar to the FrameResizeTarget so far.
+private class CoordinatorResizeTarget(type: ResizeBaseTarget.Type): FrameResizeTarget(type)
