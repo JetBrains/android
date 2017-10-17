@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -30,29 +28,17 @@ import javax.swing.*;
  * Base class for actions that perform Gradle-specific tasks in Android Studio.
  */
 public abstract class AndroidStudioGradleAction extends AnAction {
-  protected final boolean myAndroidStudio;
-
   protected AndroidStudioGradleAction(@Nullable String text) {
-    this(text, IdeInfo.getInstance().isAndroidStudio());
-  }
-
-  @VisibleForTesting
-  AndroidStudioGradleAction(@Nullable String text, boolean androidStudio) {
-    this(text, null, null, androidStudio);
+    super(text);
   }
 
   protected AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
-    this(text, description, icon, IdeInfo.getInstance().isAndroidStudio());
-  }
-
-  private AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, boolean androidStudio) {
     super(text, description, icon);
-    myAndroidStudio = androidStudio;
   }
 
   @Override
   public final void update(AnActionEvent e) {
-    if (!isGradleProjectInAndroidStudio(e)) {
+    if (!isGradleProject(e)) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
@@ -69,7 +55,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   @Override
   public final void actionPerformed(AnActionEvent e) {
-    if (!isGradleProjectInAndroidStudio(e)) {
+    if (!isGradleProject(e)) {
       return;
     }
     Project project = e.getProject();
@@ -79,11 +65,8 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected abstract void doPerform(@NotNull AnActionEvent e, @NotNull Project project);
 
-  private boolean isGradleProjectInAndroidStudio(@NotNull AnActionEvent e) {
-    if (myAndroidStudio) {
-      Project project = e.getProject();
-      return project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle();
-    }
-    return false;
+  private static boolean isGradleProject(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    return project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 }
