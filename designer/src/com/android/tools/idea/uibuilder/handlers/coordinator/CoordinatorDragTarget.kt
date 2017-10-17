@@ -16,29 +16,25 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.scene.Scene.ANIMATED_LAYOUT
+import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.target.BaseTarget
+import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
 import java.util.*
 
 /**
  * Drag target for CoordinatorLayout
  */
-class CoordinatorDragTarget : BaseTarget() {
-
+class CoordinatorDragTarget : DragBaseTarget() {
   private val DEBUG: Boolean = false
 
-  private var myFirstMouseX: Int = 0
-  private var myFirstMouseY: Int = 0
-
-  private var  myOffsetX: Int = 0
-  private var  myOffsetY: Int = 0
-
-  private var myChangedComponent: Boolean = false
   private var mySnapTarget: CoordinatorSnapTarget? = null
 
   override fun getPreferenceLevel(): Int = Target.DRAG_LEVEL
@@ -88,8 +84,7 @@ class CoordinatorDragTarget : BaseTarget() {
     }
   }
 
-  private fun restoreAttributes() {
-    val transaction = myComponent.nlComponent.startAttributeTransaction()
+  private fun restoreAttributes(transaction: AttributesTransaction) {
     for (attribute in myAttributes) {
       val value = myOriginalAttributes[attribute]
       transaction.setAttribute(SdkConstants.AUTO_URI, attribute, value)
@@ -106,14 +101,10 @@ class CoordinatorDragTarget : BaseTarget() {
   }
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    super.mouseDown(x, y)
     if (myComponent.parent == null) {
       return
     }
-    myFirstMouseX = x
-    myFirstMouseY = y
-    myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis())
-    myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis())
-    myChangedComponent = false
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.DRAGGING)
     rememberAttributes()
   }
@@ -122,32 +113,54 @@ class CoordinatorDragTarget : BaseTarget() {
     if (myComponent.parent == null) {
       return
     }
+    mySnapTarget?.setMouseHovered(false)
     mySnapTarget = null
     val snapTarget : Target? = closestTarget?.filter { it is CoordinatorSnapTarget }?.firstOrNull()
-    snapTarget?.setMouseHovered(true)
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
+      snapTarget.setMouseHovered(true)
     }
     myComponent.isDragging = true
     myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
     myComponent.scene.repaint()
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
+    super.mouseRelease(x, y, closestTargets)
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
-    if (!myComponent.isDragging) {
-      return
-    }
-    myComponent.isDragging = false
-    if (myComponent.parent == null) {
-      return
-    }
-    if (mySnapTarget == null) {
-      restoreAttributes()
-    } else {
-      val attributes = myComponent.nlComponent.startAttributeTransaction()
+  }
+
+  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
+    if (mySnapTarget != null) {
       mySnapTarget!!.snap(attributes)
     }
-    myComponent.scene.needsLayout(ANIMATED_LAYOUT)
+    else {
+      restoreAttributes(attributes)
+    }
+  }
+
+  override fun cancel() {
+    super.cancel()
+    myComponent.setPosition(myFirstMouseX - myOffsetX, myFirstMouseY - myOffsetY)
+    myComponent.scene.repaint()
+  }
+
+  fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
+    myComponent.isDragging = false
+    if (myComponent.parent != null) {
+      val attributes = component.startAttributeTransaction()
+      updateAttributes(attributes, x, y)
+      attributes.apply()
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+      }
+    }
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+    updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
   }
 }

@@ -68,6 +68,32 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
             "        android:layout_height=\"80dp\" />")
   }
 
+  fun testDragComponentToLeftTopSide() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(51f, 51f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        app:layout_anchor=\"@+id/button\"\n" +
+            "        app:layout_anchorGravity=\"left|top\" />")
+  }
+
+  fun testDragComponentToRightBottomSide() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(99f, 99f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"20dp\"\n" +
+            "        android:layout_height=\"20dp\"\n" +
+            "        app:layout_anchor=\"@+id/button\"\n" +
+            "        app:layout_anchorGravity=\"right|bottom\" />")
+  }
+
   override fun createModel(): ModelBuilder {
     val builder = model("coordinator.xml",
         component(SdkConstants.COORDINATOR_LAYOUT)
