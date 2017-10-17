@@ -81,6 +81,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
 
+  /**
+   * Whether network request payload is tracked and shown.
+   */
+  private boolean myIsRequestPayloadEnabled = false;
+
   @NotNull private final ProfilerPreferences myPreferences;
 
   public FakeIdeProfilerServices() {
@@ -173,6 +178,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isAtraceEnabled() {
         return isAtraceEnabled;
       }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return myIsRequestPayloadEnabled;
+      }
     };
   }
 
@@ -242,5 +252,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableMemorySnapshot(boolean enabled) {
     isMemorySnapshotEnabled = enabled;
+  }
+
+  public void enableRequestPayload(boolean enabled) {
+    myIsRequestPayloadEnabled = enabled;
   }
 }

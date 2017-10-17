@@ -190,6 +190,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isAtraceEnabled() {
         return StudioFlags.PROFILER_USE_ATRACE.get();
       }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
+      }
     };
   }
 

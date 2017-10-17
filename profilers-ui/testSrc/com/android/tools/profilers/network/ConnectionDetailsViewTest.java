@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -53,6 +54,8 @@ public class ConnectionDetailsViewTest {
   private ConnectionDetailsView myView;
 
   private NetworkProfilerStage myStage;
+  private NetworkProfilerStageView myStageView;
+  private FakeIdeProfilerServices myIdeProfilerServices;
 
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService(false),
@@ -61,13 +64,57 @@ public class ConnectionDetailsViewTest {
   @Before
   public void before() {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, timer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
-    NetworkProfilerStageView networkView = (NetworkProfilerStageView)view.getStageView();
-    myStage = networkView.getStage();
-    myView = new ConnectionDetailsView(networkView);
+    myStageView = (NetworkProfilerStageView)view.getStageView();
+    myStage = myStageView.getStage();
+    myView = new ConnectionDetailsView(myStageView);
+  }
+
+  @Test
+  public void requestTabIsOnlyPresentWhenEnabled() {
+    BiPredicate<ConnectionDetailsView, String> hasComponentWithName = (ConnectionDetailsView view, String name) -> {
+      Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+      return stream.anyMatch(c -> name.equals(c.getName()));
+    };
+    assertThat(hasComponentWithName.test(myView, "Headers")).isTrue();
+    assertThat(hasComponentWithName.test(myView, "Request")).isFalse();
+
+    myIdeProfilerServices.enableRequestPayload(true);
+    myView = new ConnectionDetailsView(myStageView);
+    assertThat(hasComponentWithName.test(myView, "Headers")).isFalse();
+    assertThat(hasComponentWithName.test(myView, "Request")).isTrue();
+  }
+
+  @Test
+  public void fileViewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
+    myIdeProfilerServices.enableRequestPayload(true);
+    myView = new ConnectionDetailsView(myStageView);
+    File file = new File("temp");
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    data.setRequestPayloadFile(file);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
+    myView.setHttpData(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    Component requestBody = stream.filter(c -> "REQUEST_BODY".equals(c.getName())).findFirst().get();
+    stream = new TreeWalker(requestBody).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isTrue();
+  }
+
+  @Test
+  public void fileViewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
+    myIdeProfilerServices.enableRequestPayload(true);
+    myView = new ConnectionDetailsView(myStageView);
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.setHttpData(data);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    Component requestBody = stream.filter(c -> "REQUEST_BODY".equals(c.getName())).findFirst().get();
+    stream = new TreeWalker(requestBody).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
   }
 
   @Test

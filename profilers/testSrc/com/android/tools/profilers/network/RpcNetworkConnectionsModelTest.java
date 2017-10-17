@@ -67,18 +67,15 @@ public class RpcNetworkConnectionsModelTest {
   }
 
   @Test
-  public void requestResponsePayload() {
+  public void nonEmptyRequestPayload() {
     myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId(FAKE_PAYLOAD_ID).build();
-    assertEquals("Dummy Contents", myModel.requestResponsePayload(data).toStringUtf8());
+    assertEquals("Dummy Contents", myModel.requestPayload(FAKE_PAYLOAD_ID).toStringUtf8());
   }
 
   @Test
-  public void emptyRequestResponsePayload() {
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).build();
-    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
-    data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("").build();
-    assertEquals(ByteString.EMPTY, myModel.requestResponsePayload(data));
+  public void emptyRequestPayload() {
+    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
+    assertEquals(ByteString.EMPTY, myModel.requestPayload(""));
   }
 
   @Test

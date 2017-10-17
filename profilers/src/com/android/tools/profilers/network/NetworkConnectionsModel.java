@@ -36,10 +36,10 @@ public interface NetworkConnectionsModel {
   List<HttpData> getData(@NotNull Range timeCurrentRangeUs);
 
   /**
-   * Returns the network response payload contents corresponding to the given {@code httpData} on demand. If there
+   * Returns the network request or response payload contents corresponding to the given {@code payloadId} on demand. If there
    * is no such content associated with the data, or if it can't be fetched for any reason,
    * {@link ByteString#EMPTY} will be returned.
    */
   @NotNull
-  ByteString requestResponsePayload(@NotNull HttpData httpData);
+  ByteString requestPayload(@NotNull String payloadId);
 }
