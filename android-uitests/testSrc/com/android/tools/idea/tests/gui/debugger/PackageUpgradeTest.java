@@ -30,6 +30,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,7 @@ public class PackageUpgradeTest extends DebuggerTestBase {
    *      Android Studio.
    *   </pre>
    */
+  @Ignore("b/67897493")
   @RunIn(TestGroup.QA)
   @Test
   public void testWithOlderLldb() throws Exception {
