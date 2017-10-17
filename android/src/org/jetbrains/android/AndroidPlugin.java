@@ -82,6 +82,9 @@ public class AndroidPlugin implements ApplicationComponent {
 
     // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
     moveAction("Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
+    // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
+    moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
+               new Constraints(Anchor.LAST, null));
   }
 
   @Override
