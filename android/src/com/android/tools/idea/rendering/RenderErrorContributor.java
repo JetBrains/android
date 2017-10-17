@@ -41,6 +41,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -1323,7 +1324,9 @@ public class RenderErrorContributor {
           assert module != null;
           Project project = module.getProject();
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
+          PsiClass clz = DumbService.getInstance(project).isDumb() ?
+                         null :
+                         JavaPsiFacade.getInstance(project).findClass(className, scope);
           String layoutName = myResult.getFile().getName();
           boolean separate = false;
           if (clz != null) {
