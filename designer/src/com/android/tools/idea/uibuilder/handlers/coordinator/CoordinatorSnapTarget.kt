@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -77,21 +78,21 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     DrawSnapTarget.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver)
   }
 
+  fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x in myLeft..myRight && y in myTop..myBottom)
+
   fun snap(attributes: AttributesTransaction) {
-    var value : String = ""
-    when (myType) {
-      Type.LEFT -> value = "left|center"
-      Type.RIGHT -> value = "right|center"
-      Type.TOP -> value = "top|center"
-      Type.BOTTOM -> value = "bottom|center"
-      Type.LEFT_TOP -> value = "left|top"
-      Type.LEFT_BOTTOM -> value = "left|bottom"
-      Type.CENTER -> value = "center"
-      Type.RIGHT_TOP -> value = "right|top"
-      Type.RIGHT_BOTTOM -> value = "right|bottom"
+    val value = when (myType) {
+      Type.LEFT -> "left|center"
+      Type.RIGHT -> "right|center"
+      Type.TOP -> "top|center"
+      Type.BOTTOM -> "bottom|center"
+      Type.LEFT_TOP -> "left|top"
+      Type.LEFT_BOTTOM -> "left|bottom"
+      Type.CENTER -> "center"
+      Type.RIGHT_TOP -> "right|top"
+      Type.RIGHT_BOTTOM -> "right|bottom"
     }
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, value)
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())
-    applyAndCommit(attributes, "Set gravity")
   }
 }
