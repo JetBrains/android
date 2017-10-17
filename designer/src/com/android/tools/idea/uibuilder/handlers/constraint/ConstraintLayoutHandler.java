@@ -269,7 +269,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static boolean isConstraintLayoutChild(List<NlComponent> children) {
     for (NlComponent child : children) {
       NlComponent parent = child.getParent();
-      assert parent != null;
+      if (parent == null) { // can be null when an element has just been deleted
+        continue;
+      }
 
       if (NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT)) {
         return true;
