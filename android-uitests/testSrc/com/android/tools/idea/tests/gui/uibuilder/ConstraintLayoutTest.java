@@ -329,8 +329,8 @@ public class ConstraintLayoutTest {
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio and import a simple application
-   *   2. Open Theme Editor (Verify 1) (Tools > Android > Theme Editor)
-   *   3. From the right pane, select a different theme from the list , say a dark theme like Material Dark .(Verify 2)
+   *   2. Open Theme Editor (Verify 1) (Tools > Theme Editor)
+   *   3. From the right pane, select a different theme from the list, say a dark theme like Material Dark (Verify 2)
    *   4. Choose a different API from the list, say Android 5.0 or Android 4.0.3 (Verify 3)
    *   5. Choose a different device from the list, say N5 or N6 (Verify 4)
    *   6. Switch between portrait and landscape modes (Verify 5)
