@@ -18,7 +18,8 @@ package org.jetbrains.android.dom;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -683,9 +684,8 @@ public class AttributeProcessingUtil {
       // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
       // .lint.checks.AppCompatResourceDetector.
       if (name.equals(ATTR_SHOW_AS_ACTION)) {
-        AndroidModuleModel model = AndroidModuleModel.get(facet);
-
-        if (model != null && GradleUtil.dependsOn(model, APPCOMPAT_LIB_ARTIFACT)) {
+        boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
+        if (hasAppCompat) {
           if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
             registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
           }
