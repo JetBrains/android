@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -72,7 +73,7 @@ public class NavModelBuilderUtil {
   @NotNull
   public static IncludeComponentDescriptor includeComponent(@NotNull String graphId) {
     IncludeComponentDescriptor descriptor = new IncludeComponentDescriptor();
-    descriptor.withAttribute(AUTO_URI, ATTR_GRAPH, "@navigation/" + graphId);
+    descriptor.withAttribute(AUTO_URI, SdkConstants.ATTR_GRAPH, SdkConstants.NAVIGATION_PREFIX + graphId);
     return descriptor;
   }
 
