@@ -16,14 +16,15 @@
 package com.android.tools.idea.startup;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.*;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -41,8 +42,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 /**
  * Delay the initialization of various tasks until the build state is known.
  */
-public class DelayedInitialization {
-  private final Project myProject;
+public class DelayedInitialization extends AbstractProjectComponent {
   private final GradleSyncState mySyncState;
   private final GradleBuildState myBuildState;
   @GuardedBy("myLock")
@@ -51,19 +51,24 @@ public class DelayedInitialization {
 
   @NotNull
   public static DelayedInitialization getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DelayedInitialization.class);
+    return project.getComponent(DelayedInitialization.class);
   }
 
-  public DelayedInitialization(@NotNull Project project,
-                               @NotNull GradleSyncState syncState,
-                               @NotNull GradleBuildState buildState) {
-    myProject = project;
+  private DelayedInitialization(@NotNull Project project,
+                                @NotNull GradleSyncState syncState,
+                                @NotNull GradleBuildState buildState) {
+    super(project);
+
     mySyncState = syncState;
     myBuildState = buildState;
     myRunnables = new ArrayList<>();
-    GradleBuildState.subscribe(project, new BuildListener());
+  }
 
-    project.getMessageBus().connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+  @Override
+  public void projectOpened() {
+    GradleBuildState.subscribe(myProject, new BuildListener());
+
+    myProject.getMessageBus().connect(myProject).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       if (result == ProjectSystemSyncManager.SyncResult.SKIPPED || result == ProjectSystemSyncManager.SyncResult.FAILURE) {
         afterBuild();
       }
