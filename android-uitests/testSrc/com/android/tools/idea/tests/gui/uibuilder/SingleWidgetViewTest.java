@@ -47,6 +47,7 @@ public class SingleWidgetViewTest {
 
     design
       .showOnlyDesignView()
+      .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createConstraintFromBottomToTopOf(design.findView("TextView", 0))
@@ -54,7 +55,10 @@ public class SingleWidgetViewTest {
       .createConstraintFromLeftToLeftOfLayout()
       .createConstraintFromRightToRightOfLayout();
 
-    ConstraintLayoutViewInspectorFixture view = design.getPropertiesPanel().getConstraintLayoutViewInspector();
+    // Make sure the Button is been selected.
+    design.findView("Button", 0).click();
+
+    ConstraintLayoutViewInspectorFixture view = design.getPropertiesPanel().waitForPanelLoading().getConstraintLayoutViewInspector();
     view.setAllMargins(8);
     waitForScout();
     view.scrollAllMargins(-5);

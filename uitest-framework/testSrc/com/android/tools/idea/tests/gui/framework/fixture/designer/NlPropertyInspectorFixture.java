@@ -35,6 +35,7 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,6 +152,12 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     Component component = findFocusablePropertyComponent(name, icon);
     assertThat(component).isNotNull();
     driver().focusAndWaitForFocusGain(component);
+    return this;
+  }
+
+  @NotNull
+  public NlPropertyInspectorFixture waitForPanelLoading() {
+    Wait.seconds(5).expecting("NlPropertiesPanel Loading").until(() -> !myPanel.getPropertiesManager().isLoading());
     return this;
   }
 
