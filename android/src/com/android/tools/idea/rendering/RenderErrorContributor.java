@@ -22,6 +22,7 @@ import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -1076,13 +1077,13 @@ public class RenderErrorContributor {
       if (CLASS_CONSTRAINT_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.CONSTRAINT_LAYOUT));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(FLEXBOX_LAYOUT_LIB_ARTIFACT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
         builder.add(", ");
       }
 
