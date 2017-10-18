@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.SdkConstants
+import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -24,6 +26,7 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.common.util.WhiteIconGenerator
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
@@ -75,11 +78,16 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
 
   private class NavActionListInspectorComponent : InspectorComponent<NavPropertiesManager> {
     private val myProperties = LinkedHashMap<NlProperty, String>()
+    private val myComponents = mutableListOf<NlComponent>()
+    private var myResourceResolver: ResourceResolver? = null
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
                                   propertiesManager: NavPropertiesManager) {
       myProperties.clear()
+      myComponents.clear()
+      myComponents.addAll(components)
+      propertiesManager.designSurface?.configuration?.resourceResolver?.let { myResourceResolver = it }
 
       for (name in TreeSet(properties.keys)) {
         val value = properties[name]
@@ -94,7 +102,6 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
     override fun getMaxNumberOfRows() = 1
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
-      refresh()
       val panel = JPanel(BorderLayout())
       val list = JBList(myProperties.keys)
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
@@ -107,6 +114,14 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
           return this
         }
       }
+      list.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent?) {
+          if (e?.clickCount == 2 && list.selectedValuesList.size == 1) {
+            val actionComponent = list.selectedValue.components[0]
+            addOrUpdateAction(AddActionDialog(actionComponent, null), { actionComponent })
+          }
+        }
+      })
 
       panel.add(list, BorderLayout.CENTER)
       val plus = JLabel("+")
@@ -114,7 +129,7 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       plus.foreground = JBColor.GRAY
       plus.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent?) {
-          (inspector as? NavInspectorPanel)?.addAction()
+          addAction()
         }
       })
       val plusPanel = JPanel(BorderLayout())
@@ -124,10 +139,48 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       inspector.addPanel(panel)
     }
 
-    override fun refresh() {}
+    override fun refresh() {
+      // TODO
+    }
+
+    fun addAction() {
+      val addActionDialog = AddActionDialog(myComponents, myResourceResolver)
+      val componentProducer = {
+        val source = addActionDialog.source
+        val tag = source.tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
+        source.model.createComponent(tag, source, null)
+      }
+      addOrUpdateAction(addActionDialog, componentProducer)
+      this.refresh()
+    }
 
     companion object {
       private val WHITE_ACTION = WhiteIconGenerator.generateWhiteIcon(StudioIcons.NavEditor.Toolbar.ACTION)
+
+      fun addOrUpdateAction(addActionDialog: AddActionDialog, componentProducer: () -> NlComponent) {
+        if (addActionDialog.showAndGet()) {
+          WriteCommandAction.runWriteCommandAction(null, {
+            val newComponent = componentProducer()
+            newComponent.ensureId()
+            newComponent.setAttribute(
+                SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + addActionDialog.destination.id!!)
+            addActionDialog.popTo?.let { newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, it) }
+                ?: newComponent.removeAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO)
+            if (addActionDialog.isInclusive) {
+              newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "true")
+            }
+            if (addActionDialog.isSingleTop) {
+              newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP, "true")
+            }
+            if (addActionDialog.isDocument) {
+              newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT, "true")
+            }
+            if (addActionDialog.isClearTask) {
+              newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
+            }
+          })
+        }
+      }
     }
   }
 }
