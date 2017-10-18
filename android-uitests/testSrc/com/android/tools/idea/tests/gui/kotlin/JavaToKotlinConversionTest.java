@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +62,7 @@ public class JavaToKotlinConversionTest {
    *   </pre>
    * <p>
    */
+  @Ignore("b/67956060")
   @RunIn(TestGroup.QA)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
