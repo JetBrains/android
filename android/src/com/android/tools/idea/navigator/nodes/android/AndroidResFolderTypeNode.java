@@ -25,6 +25,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -80,7 +81,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     Multimap<String, PsiFile> multimap = HashMultimap.create();
     for (PsiDirectory resFolder : getResFolders()) {
       for (PsiFile file : resFolder.getFiles()) {
-        String resName = file.getName();
+        String resName = FileUtilRt.getNameWithoutExtension(file.getName());
         multimap.put(resName, file);
       }
     }
