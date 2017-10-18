@@ -481,7 +481,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         if (SystemInfo.isMac && UIUtil.isRetina()) {
           scale /= 2;
         }
-        setScale(scale);
+        setScale(scale, x, y);
         repaint();
         break;
       }

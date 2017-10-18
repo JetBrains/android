@@ -913,7 +913,7 @@ public class InteractionManager {
           mySurface.zoom(ZoomType.IN, x, y);
         }
         else if (scrollAmount > 0) {
-          mySurface.zoomOut();
+          mySurface.zoom(ZoomType.OUT, x, y);
         }
         return;
       }

@@ -215,7 +215,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimensionDip(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
-    return pxToDp(view, getSwingDimension(view, swingDimension));
+    return pxToDp(view, getAndroidDimension(view, swingDimension));
   }
 
   /**
