@@ -14,6 +14,9 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+
+  <depends>org.intellij.intelliLang</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
@@ -36,7 +39,7 @@
     <lang.syntaxHighlighterFactory language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
 
-    <!-- Room SQL support. -->
+    <!-- Room SQL support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>
     <lang.parserDefinition language="RoomSql"
                            implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>

@@ -17,7 +17,8 @@ package com.android.tools.idea.lang.roomSql.psi
 
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_ICON
-import com.android.tools.idea.lang.roomSql.ROOM_SQL_LANGUAGE
+import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
+import com.android.tools.idea.lang.roomSql.RoomSqlLanguage.INSTANCE
 import com.android.tools.idea.lang.roomSql.SqlContext
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
@@ -27,7 +28,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import javax.swing.Icon
 
-class RoomTokenType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
+class RoomTokenType(debugName: String) : IElementType(debugName, RoomSqlLanguage.INSTANCE) {
   override fun toString(): String = when (super.toString()) {
     "," -> "comma"
     ";" -> "semicolon"
@@ -37,14 +38,14 @@ class RoomTokenType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUA
   }
 }
 
-class RoomAstNodeType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE)
+class RoomAstNodeType(debugName: String) : IElementType(debugName, RoomSqlLanguage.INSTANCE)
 
-class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, ROOM_SQL_LANGUAGE) {
+class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RoomSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
   override fun getIcon(flags: Int): Icon? = ROOM_SQL_ICON
 }
 
-val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(ROOM_SQL_LANGUAGE)
+val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(RoomSqlLanguage.INSTANCE)
 
 interface QueryWithSqlContext : PsiElement {
   val sqlContext: SqlContext?

@@ -72,7 +72,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("* from") { psi, _ ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from User", psi.text)
     }
   }
@@ -95,7 +95,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("* from") { psi, places ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from User where id = :id", psi.text)
       assertEquals(2, places.size)
     }
@@ -120,7 +120,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("* from") { psi, _ ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("select * from UserTable", psi.text)
     }
   }
@@ -143,7 +143,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("delete from") { psi, _ ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("delete from User", psi.text)
     }
   }
@@ -166,7 +166,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("delete from") { psi, _ ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
       assertEquals("delete from User", psi.text)
     }
   }
@@ -208,7 +208,7 @@ class RoomSqlLanguageInjectionTest : LightRoomTestCase() {
     )
 
     checkInjection("* from") { psi, _ ->
-      assertSame(ROOM_SQL_LANGUAGE, psi.language)
+      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
     }
 
     checkNoInjection("tableName")

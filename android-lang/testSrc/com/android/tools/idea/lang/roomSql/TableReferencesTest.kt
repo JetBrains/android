@@ -390,7 +390,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE }).isNotNull()
+    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == RoomSqlLanguage.INSTANCE }).isNotNull()
   }
 
   fun testUsages_caseInsensitive() {
@@ -408,7 +408,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -427,7 +427,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -446,7 +446,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -465,7 +465,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -484,7 +484,7 @@ class TableReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 }
