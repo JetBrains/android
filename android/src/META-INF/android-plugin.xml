@@ -75,6 +75,20 @@
       <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
       <skipForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
+      <loadForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -1294,15 +1308,6 @@
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
-    </component>
-  </project-components>
-
   <!-- data binding-->
   <extensions defaultExtensionNs="com.intellij">
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
@@ -1318,17 +1323,6 @@
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
-      <skipForDefaultProject/>
-    </component>
-  </project-components>
 
   <module-components>
     <component>
