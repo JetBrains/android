@@ -23,6 +23,7 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentSkipListSet
@@ -48,12 +49,15 @@ private fun log(message: String) {
  * Integration test that invokes our unit test run configurations.
  *
  * Test code is executed on the main thread, not EDT. This way we can block waiting for testing to finish.
+ *
+ * The test project uses 3.0 features, so you may need to set STUDIO_CUSTOM_REPO to point to a recent build of our gradle plugin.
  */
 class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
-
-
   override fun runInDispatchThread(): Boolean = false
   override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
+
+  /** This fails on macOS buildbot for some reason. See b/67325961. */
+  override fun shouldRunTest() = !SystemInfo.isMac
 
   override fun setUp() {
     super.setUp()
