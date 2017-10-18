@@ -88,22 +88,6 @@ interface AndroidProjectSystem {
                       supportLibVersionFilter: String?): String
 
   /**
-   * Returns the version of the given [artifactId] as accessible at [sourceContext] by the project system, or null if that dependency
-   * is not available at that [sourceContext].
-   */
-  @Throws(DependencyManagementException::class)
-  fun getResolvedVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion?
-
-  /**
-   * Returns the version of the given [artifactId] that is accessible at [sourceContext] as declared in the build system, or null if it
-   * is not specified. Build systems such as Gradle allow users to specify a dependency such as x.y.+, which it will resolve to a specific
-   * version at build time. This method returns the version declared in the build script. Use [AndroidProjectSystem.getResolvedVersion] if
-   * you want the resolved version.
-   */
-  @Throws(DependencyManagementException::class)
-  fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion?
-
-  /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
    */
   fun getSyncManager(): ProjectSystemSyncManager
