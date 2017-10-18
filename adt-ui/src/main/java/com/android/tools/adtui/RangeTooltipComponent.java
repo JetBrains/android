@@ -52,9 +52,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     myViewRange = view;
     myDataRange = data;
 
-    myTooltipComponent = new TooltipComponent(component);
-    add(myTooltipComponent);
-
+    myTooltipComponent = new TooltipComponent(component, this);
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::viewRangeChanged);
     myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
   }
@@ -131,8 +129,5 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     path.moveTo(pos, 0);
     path.lineTo(pos, dim.getHeight());
     g.draw(path);
-
-    myTooltipComponent.setBounds(0, 0, getWidth(), getHeight());
-    myTooltipComponent.repaint();
   }
 }
