@@ -86,6 +86,11 @@ public final class StudioFlags {
     "Show a text input field in the CPU profiler that is used to filter methods in the method trace pane.",
     false);
 
+  public static final Flag<Boolean> PROFILER_MEMORY_CAPTURE_FILTER = Flag.create(
+    PROFILER, "memory.capture.filter", "Enable Memory Capture Filter",
+    "Show a text input field in the Memory profiler that is used to filter class names.",
+    false);
+
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",

@@ -25,4 +25,5 @@ public interface FeatureConfig {
   boolean isSimplePerfEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isCpuCaptureFilterEnabled();
+  boolean isMemoryCaptureFilterEnabled();
 }

@@ -138,6 +138,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isCpuCaptureFilterEnabled() {
         return false;
       }
+
+      @Override
+      public boolean isMemoryCaptureFilterEnabled() {
+        return false;
+      }
     };
   }
 

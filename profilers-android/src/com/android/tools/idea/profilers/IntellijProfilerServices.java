@@ -169,6 +169,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isCpuCaptureFilterEnabled() {
         return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
       }
+
+      @Override
+      public boolean isMemoryCaptureFilterEnabled() {
+        return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
+      }
     };
   }
 
