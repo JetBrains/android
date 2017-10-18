@@ -78,22 +78,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
     }
   }
 
-  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
-    val module = ProjectFileIndex.getInstance(project).getModuleForFile(sourceContext) ?:
-        throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
-            DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
-
-    return GradleModuleSystem(module).getResolvedVersion(artifactId)
-  }
-
-  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
-    val module = ProjectFileIndex.getInstance(project).getModuleForFile(sourceContext) ?:
-        throw DependencyManagementException("Could not find module encapsulating source context $sourceContext",
-            DependencyManagementException.ErrorCodes.BAD_SOURCE_CONTEXT)
-
-    return GradleModuleSystem(module).getDeclaredVersion(artifactId)
-  }
-
   override val projectSystem = this
 
   override fun upgradeProjectToSupportInstantRun(): Boolean {

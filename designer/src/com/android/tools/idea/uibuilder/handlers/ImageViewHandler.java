@@ -33,7 +33,6 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
@@ -151,11 +150,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   private static boolean moduleDependsOnAppCompat(@NotNull NlModel model) {
-    VirtualFile modelFile = model.getFile().getVirtualFile();
-    if (modelFile != null) {
-      return DependencyManagementUtil.dependsOn(model.getProject(), GoogleMavenArtifactId.APP_COMPAT_V7, modelFile);
-    }
-    return false;
+    return DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
   }
 
   private static boolean currentActivityIsDerivedFromAppCompatActivity(@NotNull NlModel model) {

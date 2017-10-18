@@ -25,12 +25,11 @@ import java.nio.file.Path
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem() : AndroidProjectSystem, AndroidProjectSystemProvider {
+class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
   data class Artifact(val id: GoogleMavenArtifactId, val version: GoogleMavenArtifactVersion)
 
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion
 
-  private val dependenciesBySource: HashMultimap<VirtualFile, Artifact> = HashMultimap.create()
   private val dependenciesByModule: HashMultimap<Module, Artifact> = HashMultimap.create()
 
   override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
@@ -38,18 +37,6 @@ class TestProjectSystem() : AndroidProjectSystem, AndroidProjectSystemProvider {
   override val projectSystem = this
 
   override fun isApplicable(): Boolean = true
-
-  override fun getResolvedVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
-    return dependenciesBySource[sourceContext].firstOrNull { it.id == artifactId }?.version
-  }
-
-  override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile): GoogleMavenArtifactVersion? {
-    return dependenciesBySource[sourceContext].firstOrNull { it.id == artifactId }?.version
-  }
-
-  fun addDependency(artifactId: GoogleMavenArtifactId, sourceContext: VirtualFile, mavenVersion: GradleVersion) {
-    dependenciesBySource.put(sourceContext, Artifact(artifactId, TestDependencyVersion(mavenVersion)))
-  }
 
   fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
     dependenciesByModule.put(module, Artifact(artifactId, TestDependencyVersion(mavenVersion)))
