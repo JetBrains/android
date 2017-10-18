@@ -37,7 +37,7 @@ import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -54,7 +54,7 @@ import java.util.List;
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
-public final class InstantRunManager implements ProjectComponent {
+public final class InstantRunManager {
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
   public static final Logger LOG = Logger.getInstance("#InstantRun");
@@ -75,17 +75,13 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull private final Project myProject;
 
-  /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
-  @SuppressWarnings("WeakerAccess") // Called by infrastructure
-  public InstantRunManager(@NotNull Project project) {
-    myProject = project;
-  }
-
-  /** Returns the per-project instance of the fast deploy manager */
   @NotNull
   public static InstantRunManager get(@NotNull Project project) {
-    //noinspection ConstantConditions
-    return project.getComponent(InstantRunManager.class);
+    return ServiceManager.getService(project, InstantRunManager.class);
+  }
+
+  private InstantRunManager(@NotNull Project project) {
+    myProject = project;
   }
 
   @Nullable
@@ -118,28 +114,6 @@ public final class InstantRunManager implements ProjectComponent {
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache cache = context.getInstalledPatchCache();
     return cache.getInstalledManifestResourcesHash(device, context.getApplicationId()) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "InstantRunManager";
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
   }
 
   @Nullable
