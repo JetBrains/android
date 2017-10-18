@@ -18,13 +18,12 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.*;
-
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
@@ -45,7 +44,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myLabel = new JLabel();
     myLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 12, 0));
+    myLabel.setBorder(new JBEmptyBorder(0, 4, 8, 0));
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
     myMaximumLabelWidth = 0;
   }
@@ -74,7 +73,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     panel.add(tooltip, BorderLayout.CENTER);
     panel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+    panel.setBorder(new JBEmptyBorder(10, 12, 10, 12));
     timeChanged();
     return panel;
   }
