@@ -15,24 +15,97 @@
  */
 package com.android.tools.adtui;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
 public final class TooltipComponent extends AnimatedComponent {
+  @NotNull
+  private final Component myContent;
 
-  private final Component myComponent;
+  @NotNull
+  private final Component myOwner;
 
   @Nullable
   private Point myLastPoint;
 
-  public TooltipComponent(Component component) {
-    myComponent = component;
-    add(component);
+  private final ComponentListener myParentListener;
+
+  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
+    myContent = content;
+    myOwner = owner;
+    add(content);
+    recomputeParent();
+
+    owner.addHierarchyListener(event -> {
+      if (!owner.isDisplayable()) {
+        removeFromParent();
+      } else {
+        recomputeParent();
+      }
+    });
+
+    myParentListener = new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        setBounds();
+      }
+
+      @Override
+      public void componentMoved(ComponentEvent e) {
+        setBounds();
+      }
+    };
+
+  }
+
+  private void recomputeParent() {
+    Component parent = myOwner;
+    JLayeredPane layeredPane = null;
+
+    while (parent != null) {
+      if (parent instanceof RootPaneContainer) {
+        layeredPane = ((RootPaneContainer)parent).getLayeredPane();
+      }
+      if (parent instanceof JLayeredPane) {
+        layeredPane = (JLayeredPane)parent;
+      }
+      parent = parent.getParent();
+    }
+
+    if (layeredPane == getParent()) {
+      return;
+    }
+
+    removeFromParent();
+    if (layeredPane != null) {
+      setParent(layeredPane);
+    }
+  }
+
+  private void removeFromParent() {
+    if (getParent() != null) {
+      getParent().removeComponentListener(myParentListener);
+      getParent().remove(this);
+    }
+  }
+
+  private void setParent(@NotNull JLayeredPane parent) {
+    parent.add(this, JLayeredPane.POPUP_LAYER);
+    parent.addComponentListener(myParentListener);
+    setBounds();
+  }
+
+  private void setBounds() {
+    Container parent = getParent();
+    if (parent == null) {
+      return;
+    }
+    setBounds(0, 0, parent.getWidth(), parent.getHeight());
   }
 
   public void registerListenersOn(Component component) {
@@ -65,13 +138,13 @@ public final class TooltipComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (myLastPoint == null) {
-      myComponent.setVisible(false);
+      myContent.setVisible(false);
       return;
     }
-    myComponent.setVisible(true);
+    myContent.setVisible(true);
 
-    Dimension size = myComponent.getPreferredSize();
-    Dimension minSize = myComponent.getMinimumSize();
+    Dimension size = myContent.getPreferredSize();
+    Dimension minSize = myContent.getMinimumSize();
     size = new Dimension(Math.max(size.width, minSize.width), Math.max(size.height, minSize.height));
 
     g.setColor(Color.WHITE);
@@ -93,7 +166,7 @@ public final class TooltipComponent extends AnimatedComponent {
       rect.setRoundRect(x1 - 1 - i, y1 - 1 - i, width + 1 + i * 2, height + 1 + i * 2, i * 2 + 2, i * 2 + 2);
       g.draw(rect);
     }
-    myComponent.setBounds(x1, y1, width, height);
-    myComponent.repaint();
+    myContent.setBounds(x1, y1, width, height);
+    myContent.repaint();
   }
 }

@@ -371,11 +371,10 @@ final class ThreadsView {
       myLabel.setOpaque(true);
 
       myComponent = new JPanel(new TabularLayout("*", "*"));
-      myTooltipComponent = new TooltipComponent(myLabel);
+      myTooltipComponent = new TooltipComponent(myLabel, myComponent);
       myTooltipComponent.registerListenersOn(myComponent);
       myTooltipComponent.setVisible(false);
 
-      myComponent.add(myTooltipComponent, new TabularLayout.Constraint(0, 0));
       myComponent.setOpaque(false);
       myComponent.addMouseMotionListener(this);
       myComponent.addMouseListener(this);
