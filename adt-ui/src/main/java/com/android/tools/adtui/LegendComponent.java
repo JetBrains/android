@@ -178,8 +178,11 @@ public class LegendComponent extends AnimatedComponent {
 
       LegendConfig config = getConfig(legend);
       if (config.getIcon() != LegendConfig.IconType.NONE) {
-        myInstructions.add(new IconInstruction(config.getIcon(), config.getColor()));
-        myInstructions.add(new GapInstruction(ICON_MARGIN_PX));
+        IconInstruction iconInstruction = new IconInstruction(config.getIcon(), config.getColor());
+        myInstructions.add(iconInstruction);
+        // For vertical legends, Components after icons need be aligned to left, so adjust the gap width after icon.
+        int gapAdjust = myOrientation == Orientation.VERTICAL ? IconInstruction.ICON_MAX_WIDTH - iconInstruction.getSize().w : 0;
+        myInstructions.add(new GapInstruction(ICON_MARGIN_PX + gapAdjust));
       }
 
       String name = legend.getName();
@@ -292,7 +295,7 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * The size of a legend's area represented by an instruction.
    */
-  private static final class LegendSize {
+  static final class LegendSize {
     private static final LegendSize EMPTY = new LegendSize(0, 0);
 
     public final int w;
@@ -373,6 +376,7 @@ public class LegendComponent extends AnimatedComponent {
                                                                    new float[]{5.0f, 2f},  // Dash pattern in pixel
                                                                    0.0f);  // Dash phase - just starts at zero.
     private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
+    private static int ICON_MAX_WIDTH = Math.max(BOX_SIZE.w, LINE_SIZE.w);
 
     @VisibleForTesting
     @NotNull

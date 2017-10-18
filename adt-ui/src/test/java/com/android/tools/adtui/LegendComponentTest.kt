@@ -233,6 +233,28 @@ class LegendComponentTest {
     assertThat(currWidth).isEqualTo(prevWidth)
   }
 
+  @Test
+  fun gapAndIconTotalWidthForVerticalLegendsKeepTheSame() {
+    val model = LegendComponentModel(0)
+    val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
+    for (type in LegendConfig.IconType.values()) {
+      if (type != LegendConfig.IconType.NONE) {
+        val legend = FakeLegend(type.name, "1 b/s")
+        val legendConfig = LegendConfig(type, Color.BLUE)
+        legendComponent.configure(legend, legendConfig)
+        model.add(legend)
+      }
+    }
+    model.update(TimeUnit.SECONDS.toNanos(1))
+
+    val instructions = legendComponent.instructions
+    val first = instructions.first { it is IconInstruction }
+    val getNext = { item: LegendInstruction -> instructions.get(instructions.indexOf(item) + 1) }
+    instructions.filterIsInstance<IconInstruction>().forEach {
+      assertThat(it.size.w + getNext(it).size.w).isEqualTo(first.size.w + getNext(first).size.w)
+    }
+  }
+
   private fun assertText(legend: LegendComponent, text: List<String>) {
     assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.myText })
         .containsExactlyElementsIn(text).inOrder()
