@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
@@ -35,6 +36,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.mockito.Mockito;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -373,15 +376,23 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
+    SceneView view = mySurface.getCurrentSceneView();
+    JViewport viewport = mySurface.getScrollPane().getViewport();
+    assertEquals(new Point(1605, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
     mySurface.zoom(ZoomType.IN);
     double scale = mySurface.getScale();
     assertTrue(scale > origScale);
+    assertEquals(new Point(1594, 11), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
-    mySurface.zoom(ZoomType.IN);
+    mySurface.zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getScale() > scale);
+    assertEquals(new Point(1438, 25), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
+    mySurface.zoom(ZoomType.OUT, 100, 100);
+    assertEquals(new Point(1594, 13), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
-    mySurface.zoom(ZoomType.OUT);
+    assertEquals(new Point(1486, -121), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getScale(), origScale);
