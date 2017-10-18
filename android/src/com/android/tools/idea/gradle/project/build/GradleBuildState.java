@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -37,14 +36,10 @@ public class GradleBuildState {
   @VisibleForTesting
   static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle build", GradleBuildListener.class);
 
-  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 10000;
-
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
 
   @NotNull private final Object myLock = new Object();
-  @NotNull private final Object myIndexingLock = new Object();
-  private boolean myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
 
   @GuardedBy("myLock")
   @Nullable
@@ -81,22 +76,9 @@ public class GradleBuildState {
   public void buildStarted(@NotNull BuildContext context) {
     synchronized (myLock) {
       myCurrentContext = context;
-      myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
-      ensureNoIndexingDuringBuild();
+      IndexingSuspender.getInstance(myProject).activate("Gradle Build", this::isBuildInProgress);
     }
     syncPublisher(listener -> listener.buildStarted(context));
-  }
-
-  private void ensureNoIndexingDuringBuild() {
-    // Although there won't be a deadlock in such a case per se, we must signal such a situation
-    // loudly because it most likely signifies an incorrect sequence of actions.
-    assert isBuildInProgress() : "Attempt to suspend indexing when gradle build is not in " +
-                                 "progress.";
-
-    if (myFlagIsIndexingAware) {
-      IndexingSuspender.queue(myProject, "Gradle Build", myIndexingLock,
-                              this::isBuildInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);
-    }
   }
 
   public void buildFinished(@NotNull BuildStatus status) {
@@ -105,19 +87,9 @@ public class GradleBuildState {
       context = myCurrentContext;
       myCurrentContext = null;
       mySummary = new BuildSummary(status, context);
-      if (myFlagIsIndexingAware) {
-        unblockIndexing();
-      }
+      IndexingSuspender.getInstance(myProject).deactivateIfPossible();
     }
     syncPublisher(listener -> listener.buildFinished(status, context));
-  }
-
-  private void unblockIndexing() {
-    if (myFlagIsIndexingAware) {
-      synchronized (myIndexingLock) {
-        myIndexingLock.notifyAll();
-      }
-    }
   }
 
   private void syncPublisher(@NotNull Consumer<GradleBuildListener> consumer) {

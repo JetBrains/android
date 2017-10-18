@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -65,8 +64,6 @@ public class GradleSyncState {
   @VisibleForTesting
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
-  private static final int INDEXING_WAIT_TIMEOUT_MILLIS = 5000;
-
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
@@ -76,8 +73,6 @@ public class GradleSyncState {
   @NotNull private final GradleFiles myGradleFiles;
 
   @NotNull private final Object myLock = new Object();
-  @NotNull private final Object myIndexingLock = new Object();
-  private boolean myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
 
   @GuardedBy("myLock")
   private boolean mySyncNotificationsEnabled;
@@ -177,9 +172,8 @@ public class GradleSyncState {
       }
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
-      myFlagIsIndexingAware = StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get();
       if (myProject.isInitialized()) {
-        ensureNoIndexingDuringSync();
+        IndexingSuspender.getInstance(myProject).activate("Gradle Sync", this::isSyncInProgress);
       }
     }
 
@@ -199,21 +193,6 @@ public class GradleSyncState {
     UsageTracker.getInstance().log(event);
 
     return true;
-  }
-
-  /**
-   * In the context of gradle sync, request indexing suspension. Gradle sync must be in progress,
-   * and the project must be initialised in order for this to have the intended effect.
-   */
-  public void ensureNoIndexingDuringSync() {
-    // Although there won't be a deadlock in such a case per se, we must signal such a situation
-    // loudly because it most likely signifies an incorrect sequence of actions.
-    assert isSyncInProgress() : "Attempt to suspend indexing when gradle sync is not in progress.";
-
-    if (myFlagIsIndexingAware) {
-      IndexingSuspender.queue(myProject, "Gradle Sync", myIndexingLock,
-                              this::isSyncInProgress, INDEXING_WAIT_TIMEOUT_MILLIS);
-    }
   }
 
   @VisibleForTesting
@@ -358,15 +337,7 @@ public class GradleSyncState {
     synchronized (myLock) {
       mySyncInProgress = false;
       mySyncSkipped = false;
-      unblockIndexing();
-    }
-  }
-
-  private void unblockIndexing() {
-    if (myFlagIsIndexingAware) {
-      synchronized (myIndexingLock) {
-        myIndexingLock.notifyAll();
-      }
+      IndexingSuspender.getInstance(myProject).deactivateIfPossible();
     }
   }
 
