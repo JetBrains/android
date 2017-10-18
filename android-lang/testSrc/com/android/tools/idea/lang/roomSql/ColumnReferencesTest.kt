@@ -460,7 +460,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE })
+    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -486,11 +486,11 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!).isNotNull()
+    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == RoomSqlLanguage.INSTANCE }!!).isNotNull()
 
     assertThat(
         myFixture.findUsages(myFixture.findField("com.example.User", "name"))
-            .find { it.file!!.language == ROOM_SQL_LANGUAGE })
+            .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -511,7 +511,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
     assertThat(
         myFixture.findUsages(myFixture.findField("com.example.User", "name"))
-            .find { it.file!!.language == ROOM_SQL_LANGUAGE })
+            .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -535,7 +535,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
     assertThat(
         myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
-            .find { it.file!!.language == ROOM_SQL_LANGUAGE })
+            .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -559,7 +559,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
     assertThat(
         myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
-            .find { it.file!!.language == ROOM_SQL_LANGUAGE })
+            .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 
@@ -580,7 +580,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
 
     assertThat(
         myFixture.findUsages(myFixture.findField("com.example.Item", "desc"))
-            .find { it.file!!.language == ROOM_SQL_LANGUAGE })
+            .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-import com.intellij.lang.Language
 import com.intellij.openapi.fileTypes.FileTypeConsumer
 import com.intellij.openapi.fileTypes.FileTypeFactory
 import com.intellij.openapi.fileTypes.LanguageFileType
@@ -24,14 +23,10 @@ import javax.swing.Icon
 
 val ROOM_SQL_DESCRIPTION = "Android Room SQL"
 
-object ROOM_SQL_LANGUAGE : Language("RoomSql") {
-  override fun getDisplayName(): String = ROOM_SQL_DESCRIPTION
-}
-
-object ROOM_SQL_FILE_TYPE : LanguageFileType(ROOM_SQL_LANGUAGE) {
+object ROOM_SQL_FILE_TYPE : LanguageFileType(RoomSqlLanguage.INSTANCE) {
   override fun getName(): String = ROOM_SQL_DESCRIPTION
   override fun getDescription(): String = ROOM_SQL_DESCRIPTION
-  override fun getDefaultExtension(): String = "rsql"
+  override fun getDefaultExtension(): String = ""
   override fun getIcon(): Icon = ROOM_SQL_ICON
 }
 
