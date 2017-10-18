@@ -17,14 +17,26 @@
 
 package com.android.tools.idea.util
 
+import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this [module].
+ * This function returns false if the project's dependency model is unavailable and therefore dependencies
+ * could not be checked (e.g. Project is syncing with build system or any dependency management error occurs).
+ * To handle dependency management errors, use methods defined in [AndroidProjectSystem] and catch
+ * [DependencyManagementException].
  * @param artifactId the dependency's maven artifact id.
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
-  return project.getProjectSystem().getModuleSystem(this).getResolvedVersion(artifactId) != null
+  try {
+    return project.getProjectSystem().getModuleSystem(this).getResolvedVersion(artifactId) != null
+  }
+  catch (e: DependencyManagementException) {
+    Logger.getInstance(this.javaClass.name).warn(e.message)
+  }
+  return false
 }
