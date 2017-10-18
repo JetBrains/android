@@ -56,25 +56,26 @@ class NavComponentHelperTest {
 }
 
 class NavComponentHelperTest2 : NavigationTestCase() {
+
   fun testVisibleComponents() {
     val model = model("nav.xml",
         rootComponent().id("@+id/root")
             .unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(
-                    actionComponent("a1").withDestinationAttribute("subnav1"),
-                    actionComponent("a2").withDestinationAttribute("activity1")),
-            activityComponent("activity1"),
-            navigationComponent("subnav1")
-                .unboundedChildren(
-                    fragmentComponent("f2"),
-                    fragmentComponent("f3")),
-            navigationComponent("subnav2")
-                .unboundedChildren(
-                    fragmentComponent("f4"),
-                    navigationComponent("subsubnav")
-                        .unboundedChildren(
-                            fragmentComponent("f5")))))
+                fragmentComponent("f1")
+                    .unboundedChildren(
+                        actionComponent("a1").withDestinationAttribute("subnav1"),
+                        actionComponent("a2").withDestinationAttribute("activity1")),
+                activityComponent("activity1"),
+                navigationComponent("subnav1")
+                    .unboundedChildren(
+                        fragmentComponent("f2"),
+                        fragmentComponent("f3")),
+                navigationComponent("subnav2")
+                    .unboundedChildren(
+                        fragmentComponent("f4"),
+                        navigationComponent("subsubnav")
+                            .unboundedChildren(
+                                fragmentComponent("f5")))))
         .build()
 
     val root = model.find("root")
@@ -93,5 +94,28 @@ class NavComponentHelperTest2 : NavigationTestCase() {
     assertContainsElements(listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav), f4?.visibleDestinations!!)
     assertContainsElements(listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav, f5), f5?.visibleDestinations!!)
 
+  }
+
+  fun testFindVisibleDestination() {
+    val model = model("nav.xml",
+        rootComponent().id("@+id/root")
+            .unboundedChildren(
+                fragmentComponent("f1"),
+                activityComponent("activity1"),
+                navigationComponent("subnav1")
+                    .unboundedChildren(
+                        fragmentComponent("f3")),
+                navigationComponent("subnav2")
+                    .unboundedChildren(
+                        fragmentComponent("f1"),
+                        navigationComponent("subsubnav")
+                            .unboundedChildren(
+                                fragmentComponent("f5")))))
+        .build()
+
+
+    assertEquals(model.components[0].getChild(0), model.find("activity1")!!.findVisibleDestination("f1"))
+    assertEquals(model.components[0].getChild(0), model.find("f3")!!.findVisibleDestination("f1"))
+    assertEquals(model.find("subnav2")!!.getChild(0), model.find("f5")!!.findVisibleDestination("f1"))
   }
 }

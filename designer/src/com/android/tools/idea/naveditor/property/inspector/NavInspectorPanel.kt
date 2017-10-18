@@ -20,18 +20,13 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
-import com.google.common.collect.Table
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Panel shown in the nav editor properties inspector. Notably includes actions, deeplinks, and arguments.
  */
 class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavPropertiesManager>(parentDisposable, null) {
-
-  var myAddActionDialogFactory: () -> AddActionDialog = { throw IncorrectOperationException() }
 
   override fun collectExtraProperties(components: List<NlComponent>,
                                       propertiesManager: NavPropertiesManager,
@@ -50,40 +45,6 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
           }
         }
       }
-    }
-  }
-
-  override fun setComponent(components: List<NlComponent>, properties: Table<String, String, out NlProperty>, propertiesManager: NavPropertiesManager) {
-    myAddActionDialogFactory = { AddActionDialog(components, propertiesManager.designSurface?.configuration?.resourceResolver) }
-    super.setComponent(components, properties, propertiesManager)
-  }
-
-  fun addAction() {
-    val addActionDialog = myAddActionDialogFactory()
-    if (addActionDialog.showAndGet()) {
-      WriteCommandAction.runWriteCommandAction(null, {
-        val source = addActionDialog.source
-        val tag = source.tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
-        val newComponent = source.model.createComponent(tag, source, null)
-        newComponent.ensureId()
-        newComponent.setAttribute(
-            SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + addActionDialog.destination.id!!)
-        addActionDialog.popTo?.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)?.let {
-          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO, it)
-        }
-        if (addActionDialog.isInclusive) {
-          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, "true")
-        }
-        if (addActionDialog.isSingleTop) {
-          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP, "true")
-        }
-        if (addActionDialog.isDocument) {
-          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT, "true")
-        }
-        if (addActionDialog.isClearTask) {
-          newComponent.setAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK, "true")
-        }
-      })
     }
   }
 }

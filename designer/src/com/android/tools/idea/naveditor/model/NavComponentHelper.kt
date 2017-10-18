@@ -51,7 +51,7 @@ val NlComponent.visibleDestinations: List<NlComponent>
     val result = arrayListOf<NlComponent>()
     var p = parent
     while (p != null) {
-      p.getChildren().stream().filter { c -> schema.getDestinationType(c.tagName) != null }.forEach { result.add(it) }
+      p.getChildren().filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
       p = p.parent
     }
     // The above won't add the root itself
@@ -59,6 +59,16 @@ val NlComponent.visibleDestinations: List<NlComponent>
     return result
   }
 
+fun NlComponent.findVisibleDestination(id: String): NlComponent? {
+  val schema = NavigationSchema.getOrCreateSchema(model.facet)
+  var p = parent
+  while (p != null) {
+    p.getChildren().firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }
+    p = p.parent
+  }
+  // The above won't pick up the root
+  return model.components.firstOrNull { c -> c.id == id }
+}
 
 val NlComponent.resolvedId
     get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
