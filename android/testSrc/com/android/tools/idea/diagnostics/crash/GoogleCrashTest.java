@@ -65,7 +65,7 @@ public class GoogleCrashTest {
     STACK_TRACE;
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, new IndexNotReadyException());
+  private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, IndexNotReadyException.create());
   private static final Charset UTF_8 = Charset.forName(SdkConstants.UTF_8);
 
   // Most of the tests do a future.get(), but since they are uploaded to a local server, they should complete relatively quickly.
