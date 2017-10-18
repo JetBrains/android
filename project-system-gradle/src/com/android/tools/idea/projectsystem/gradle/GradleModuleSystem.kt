@@ -24,23 +24,36 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.templates.GoogleMavenVersionLookup
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import java.util.*
 
 class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
-  /**
-   * This method will add the ":+" to the given dependency.
-   * For Guava, for example: the dependency coordinate will not include the version:
-   * com.google.guava:guava
-   * and this method will add "+" as the version of the dependency to add.
-   * @param dependency The dependency dependency without version.
-   */
-  override fun addDependency(dependency: String) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    val coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+")
-    if (coordinate != null) {
-      manager.addDependencies(module, listOf(coordinate), null)
+
+  override fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+    val gradleVersion = if (version == null) {
+      // Here we add a ":+" to the end of the artifact string because GradleCoordinate.parseCoordinateString uses a regex matcher
+      // that won't match a coordinate within just it's group and artifact id.  Adding a ":+" to the end in the case passes the
+      // regex matcher and does not impact version lookup.
+      val artifactCoordinate = "$artifactId:+"
+      val coordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate)
+          ?: throw DependencyManagementException("Could not parse known artifact string $artifactCoordinate into gradle coordinate!",
+          DependencyManagementException.ErrorCodes.MALFORMED_PROJECT)
+      GoogleMavenVersionLookup.findVersion(coordinate, null, allowPreview = false)
+          ?: throw DependencyManagementException("Could not find an $coordinate artifact for addition!",
+          DependencyManagementException.ErrorCodes.UNSUPPORTED)
     }
+    else {
+      version.mavenVersion ?: throw DependencyManagementException("Adding dependencies without specified gradle version is not supported" +
+          " gradle projects.", DependencyManagementException.ErrorCodes.UNSUPPORTED)
+    }
+
+    val gradleDependencyManager = GradleDependencyManager.getInstance(module.project)
+    val coordinateToAdd = GradleCoordinate.parseCoordinateString("$artifactId:$gradleVersion")
+    val singleCoordinateList = Collections.singletonList(coordinateToAdd)
+
+    gradleDependencyManager.addDependencies(module, singleCoordinateList, null)
   }
 
   override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {

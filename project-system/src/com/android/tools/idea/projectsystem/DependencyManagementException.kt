@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-class DependencyManagementException(override val message: String, val errorCode: ErrorCodes): Exception() {
+class DependencyManagementException(override val message: String, val errorCode: ErrorCodes): RuntimeException() {
   /**
    * Error codes that describe the general category of failure.  The caller of dependency management
    * functions can use these error codes to determine a proper response to the exception.

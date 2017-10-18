@@ -37,13 +37,6 @@ interface AndroidModuleSystem {
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Adds a dependency to the module.
-   *
-   * TODO: Figure out and document the format for the dependency strings
-   */
-  fun addDependency(dependency: String)
-
-  /**
    * Returns the version of the given [artifactId] as accessible to sources contained in this module, or null if that dependency is
    * not available to sources contained in this module.
    */
@@ -58,6 +51,17 @@ interface AndroidModuleSystem {
    */
   @Throws(DependencyManagementException::class)
   fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
+
+  /**
+   * Adds an artifact of given [artifactId] as a dependency available to the sources contained in this module.
+   * The caller may specify a specific [version] of the artifact to add.  If no [version] is passed or the passed [version] is null,
+   * the artifact added will be of the latest version supported by the underlying build system of this project.
+   * @param artifactId  Id of artifact needed by the dependent.
+   * @param version   Version of the artifact to add.  If left blank this parameter defaults to {@link GoogleMavenArtifact.VERSION_LATEST}
+   * @throws DependencyManagementException if an error occurs when trying to add the dependency.
+   */
+  @Throws(DependencyManagementException::class)
+  fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null)
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

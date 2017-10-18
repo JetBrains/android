@@ -17,8 +17,10 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.DependencyManagementException;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -926,13 +928,20 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createAddDependencyUrl(String artifact) {
-    return URL_ADD_DEPENDENCY + artifact;
+  public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
+    return URL_ADD_DEPENDENCY + artifactId;
   }
 
   private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
+    assert module.getModuleFile() != null;
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    String dependency = url.substring(URL_ADD_DEPENDENCY.length());
-    ProjectSystemUtil.getModuleSystem(module).addDependency(dependency);
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.valueOf(url.substring(URL_ADD_DEPENDENCY.length()));
+
+    try {
+      ProjectSystemUtil.getModuleSystem(module).addDependency(artifactId, null);
+    }
+    catch (DependencyManagementException e) {
+      Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());
+    }
   }
 }
