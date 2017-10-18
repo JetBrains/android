@@ -36,17 +36,16 @@ import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
 /**
  * A chart component that renders lines with a title that have the ability to stack.
  */
-public class StackedEventComponent extends MouseAdapterComponent {
+public class StackedEventComponent extends AnimatedComponent {
 
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
 
-  private static final float DEFAULT_LINE_THICKNESS = .5f;
-  private static final float EXPANDED_LINE_THICKNESS = 1.2f;
+  private static final float DEFAULT_LINE_THICKNESS = .3f;
   private static final float FONT_PADDING = 10;
-  private static final int FONT_SPACING = 7;
+  private static final int FONT_SPACING = 10;
 
   @NotNull
   private final EventModel<StackedEventType> myModel;
@@ -60,7 +59,6 @@ public class StackedEventComponent extends MouseAdapterComponent {
   private boolean myRender;
 
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
-    super(DEFAULT_LINE_THICKNESS, EXPANDED_LINE_THICKNESS);
     myModel = model;
     setFont(AdtUiUtils.DEFAULT_FONT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
@@ -102,8 +100,7 @@ public class StackedEventComponent extends MouseAdapterComponent {
       if (normalizedStartPosition < 0) {
         normalizedStartPosition = 0;
       }
-      //updateRect(rectangle, (previousX - minX) / (maxX - minX), rectY,(currentX - previousX) / (maxX - minX), gap);
-      Rectangle2D.Float rect = setRectangleData(data, data.getStartUs(), endTime , min, max, 0.3f, .2f);
+      Rectangle2D.Double rect = new Rectangle2D.Double(normalizedStartPosition, 1-DEFAULT_LINE_THICKNESS, normalizedEndPosition, DEFAULT_LINE_THICKNESS);
       myActivities.add(new EventRenderData(data, rect));
     }
 
@@ -160,22 +157,18 @@ public class StackedEventComponent extends MouseAdapterComponent {
                                      / (max - min);
       float startPosition = (float)normalizedStartPosition * scaleFactor;
       float endPosition = (float)normalizedEndPosition * scaleFactor;
-      boolean ellipsis = true;
 
       if (startPosition <= FONT_PADDING) {
         startPosition = FONT_PADDING;
       }
-
-      if (ellipsis) {
-        text = getFittedString(metrics, text, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
-        if (text.isEmpty()) {
-          continue;
-        }
+      
+      text = getFittedString(metrics, text, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
+      if (text.isEmpty()) {
+        continue;
       }
 
       g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-      float normalizedLineHeight = getRectangle(event).height - DEFAULT_LINE_THICKNESS;
-      g2d.drawString(text, startPosition, FONT_SPACING - normalizedLineHeight * (float)dim.getHeight());
+      g2d.drawString(text, startPosition, FONT_SPACING);
     }
   }
 
