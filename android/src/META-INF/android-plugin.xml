@@ -79,9 +79,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
@@ -989,6 +986,7 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
+    <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunManager" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
