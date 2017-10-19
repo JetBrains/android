@@ -73,8 +73,7 @@ public final class StudioFlags {
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
     "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
     "Simpleperf is a native profiler tool built for Android.",
-    false
-  );
+    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
