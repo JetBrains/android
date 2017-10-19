@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +44,7 @@ public class LayoutInspectorTest {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
+  @Ignore("b/63850391")
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {

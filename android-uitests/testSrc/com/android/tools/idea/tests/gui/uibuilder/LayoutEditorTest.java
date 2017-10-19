@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAs
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.MouseButton;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -124,6 +125,7 @@ public class LayoutEditorTest {
    *   For unsupported files, “Errors” dialog should display at the bottom of Configure vector asset window with appropriate message.
    *   </pre>
    */
+  @Ignore("b/68001739")
   @RunIn(TestGroup.QA)
   @Test
   public void imageAssetErrorCheck() throws Exception {
