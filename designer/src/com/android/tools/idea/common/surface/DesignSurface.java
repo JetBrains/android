@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
@@ -68,7 +69,6 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -230,7 +230,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  public Transferable getSelectionAsTransferable() {
+  public ItemTransferable getSelectionAsTransferable() {
     return getSelectionModel().getTransferable(myModel != null ? myModel.getId() : 0);
   }
 

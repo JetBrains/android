@@ -15,33 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Sets;
-import com.intellij.ide.CopyProvider;
-import com.intellij.ide.CutProvider;
-import com.intellij.ide.DeleteProvider;
-import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -65,7 +52,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -81,13 +67,12 @@ import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DE
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
-                                                     DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+                                                     DataProvider {
   private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
   private static final Color LINE_COLOR = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(), 10);
 
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
-  private final CopyPasteManager myCopyPasteManager;
   private final NlTreeBadgeHandler myBadgeHandler;
 
   private SceneView myScreenView;
@@ -100,15 +85,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private NlDesignSurface mySurface;
 
   public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
-    this(project, designSurface, CopyPasteManager.getInstance());
-  }
-
-  @VisibleForTesting
-  NlComponentTree(@NotNull Project project,
-                  @Nullable NlDesignSurface designSurface,
-                  @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
-    myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
     myBadgeHandler = new NlTreeBadgeHandler();
@@ -595,77 +572,17 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   // ---- Implements DataProvider ----
-
   @Override
   public Object getData(@NonNls String dataId) {
     if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
         PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
         PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
         PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return this;
-    }
-    return null;
-  }
-
-  // ---- Implements CopyProvider ----
-
-  @Override
-  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-    return myModel != null && !mySurface.getSelectionModel().isEmpty();
-  }
-
-  @Override
-  public boolean isCopyVisible(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  @Override
-  public void performCopy(@NotNull DataContext dataContext) {
-    if (mySurface == null || mySurface.getSelectionModel().isEmpty()) {
-      return;
-    }
-    myCopyPasteManager.setContents(mySurface.getSelectionAsTransferable());
-  }
-
-  // ---- Implements CutProvider ----
-
-  @Override
-  public boolean isCutEnabled(@NotNull DataContext dataContext) {
-    return myModel == null || !mySurface.getSelectionModel().isEmpty();
-  }
-
-  @Override
-  public boolean isCutVisible(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  @Override
-  public void performCut(@NotNull DataContext dataContext) {
-    performCopy(dataContext);
-    deleteElement(dataContext);
-  }
-
-  // ---- Implements DeleteProvider ----
-
-  @Override
-  public boolean canDeleteElement(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  @Override
-  public void deleteElement(@NotNull DataContext dataContext) {
-    SelectionModel selectionModel = mySurface.getSelectionModel();
-    if (selectionModel.isEmpty()) {
-      TreePath[] selectedPath = getSelectionModel().getSelectionPaths();
-      if (selectedPath.length != 0) {
-        deleteNonNlComponent(selectedPath);
+      if (mySurface != null) {
+        return new DesignSurfaceActionHandler(mySurface);
       }
     }
-    else {
-      NlModel model = myScreenView.getModel();
-      skipNextUpdateDelay();
-      model.delete(selectionModel.getSelection());
-    }
+    return null;
   }
 
   /**
@@ -680,77 +597,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (component instanceof NlComponent) {
         NlTreeUtil.delegateEvent(DelegatedTreeEvent.Type.DELETE, this, ((NlComponent)component), -1);
       }
-    }
-  }
-
-  // ---- Implements PasteProvider ----
-
-  @Override
-  public boolean isPastePossible(@NotNull DataContext dataContext) {
-    return getInsertSpecification() != null;
-  }
-
-  @Override
-  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
-    return true;
-  }
-
-  @Override
-  public void performPaste(@NotNull DataContext dataContext) {
-    InsertSpecification spec = getInsertSpecification();
-    if (spec == null || myModel == null) {
-      return;
-    }
-    Transferable transferable = myCopyPasteManager.getContents();
-    if (transferable == null) {
-      return;
-    }
-    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, true /* allow placeholders */);
-    if (item == null) {
-      return;
-    }
-    List<NlComponent> components = ApplicationManager.getApplication().runWriteAction(
-      (Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(myModel, myScreenView, item, InsertType.PASTE));
-    myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE, ViewEditorImpl.getOrCreate(myScreenView));
-  }
-
-  private static class InsertSpecification {
-    private final NlComponent layout;
-    private final NlComponent before;
-
-    private InsertSpecification(@NotNull NlComponent layout, @Nullable NlComponent before) {
-      this.layout = layout;
-      this.before = before;
-    }
-  }
-
-  @Nullable
-  private InsertSpecification getInsertSpecification() {
-    if (myModel == null) {
-      return null;
-    }
-    int selectionCount = mySurface.getSelectionModel().getSelection().size();
-    if (selectionCount > 1) {
-      return null;
-    }
-    else if (selectionCount == 1) {
-      NlComponent component = mySurface.getSelectionModel().getSelection().get(0);
-      if (NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler) {
-        return new InsertSpecification(component, component.getChild(0));
-      }
-      else {
-        NlComponent parent = component.getParent();
-        return parent != null ? new InsertSpecification(parent, component.getNextSibling()) : null;
-      }
-    }
-    else {
-      if (myModel.getComponents().size() != 1) {
-        return null;
-      }
-      NlComponent component = myModel.getComponents().get(0);
-      return NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler
-             ? new InsertSpecification(component, component.getChild(0))
-             : null;
     }
   }
 }
