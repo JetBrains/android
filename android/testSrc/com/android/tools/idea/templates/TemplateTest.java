@@ -593,6 +593,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewBroadcastReceiverWithKotlin() throws Exception {
+    // No need to try this template with multiple platforms, one is adequate
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "BroadcastReceiver", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewContentProvider() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "ContentProvider");
