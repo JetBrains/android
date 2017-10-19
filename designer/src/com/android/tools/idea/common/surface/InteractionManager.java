@@ -510,6 +510,12 @@ public class InteractionManager {
         return;
       }
 
+      if (!SwingUtilities.isLeftMouseButton(event)) {
+        // mouse drag from a popup click (the popup menu was posted on
+        // the mousePressed event
+        return;
+      }
+
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
