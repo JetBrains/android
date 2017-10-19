@@ -90,6 +90,8 @@ public class GradleSyncState {
   private long mySyncFailedTimeStamp = -1L;
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
 
+  private long myLastSyncStartTime = -1L;
+
   @NotNull
   public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
     return subscribe(project, listener, project);
@@ -198,6 +200,7 @@ public class GradleSyncState {
   @VisibleForTesting
   void setSyncStartedTimeStamp(long timeStampMs, GradleSyncStats.Trigger trigger) {
     mySyncStartedTimestamp = timeStampMs;
+    myLastSyncStartTime = timeStampMs;
     mySyncSetupStartedTimeStamp = -1;
     mySyncEndedTimeStamp = -1;
     mySyncFailedTimeStamp = -1;
@@ -325,7 +328,8 @@ public class GradleSyncState {
     LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
   }
 
-  private void syncFinished(long timestamp) {
+  @VisibleForTesting
+  void syncFinished(long timestamp) {
     stopSyncInProgress();
     mySyncStartedTimestamp = -1L;
     mySummary.setSyncTimestamp(timestamp);
@@ -401,19 +405,21 @@ public class GradleSyncState {
 
   /**
    * Indicates whether a project sync with Gradle is needed. A Gradle sync is usually needed when a build.gradle or settings.gradle file has
-   * been updated <b>after</b> the last project sync was performed.
+   * been updated <b>after</b> the last project sync began.
    *
    * @return {@code YES} if a sync with Gradle is needed, {@code FALSE} otherwise, or {@code UNSURE} If the timestamp of the last Gradle
    * sync cannot be found.
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    long lastSync = mySummary.getSyncTimestamp();
-    if (lastSync < 0) {
+    boolean modifiedAfterSyncStarted = myLastSyncStartTime > 0 && myGradleFiles.areGradleFilesModified(myLastSyncStartTime);
+
+    if (!modifiedAfterSyncStarted && mySummary.getSyncTimestamp() <= 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
       return ThreeState.UNSURE;
     }
-    return myGradleFiles.areGradleFilesModified(lastSync) ? ThreeState.YES : ThreeState.NO;
+
+    return modifiedAfterSyncStarted? ThreeState.YES: ThreeState.NO;
   }
 
   @NotNull
