@@ -201,8 +201,12 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   @Override
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
-    // Use Android Studio Icons
-    presentation.setIcon(getModuleIcon(getModule()));
+    // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
+    // This can happen when a module was just deleted, see b/67838273.
+    Module module = getValue();
+    if (module != null) {
+      presentation.setIcon(getModuleIcon(module));
+    }
   }
 
   @Override
