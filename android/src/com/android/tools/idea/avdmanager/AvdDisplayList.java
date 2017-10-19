@@ -83,10 +83,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   @VisibleForTesting
   @NotNull
   public static String storageSizeDisplayString(@NotNull Storage size) {
-    String unitString = "MiB";
+    String unitString = "MB";
     double value = size.getPreciseSizeAsUnit(Storage.Unit.MiB);
     if (value >= 1024.0) {
-      unitString = "GiB";
+      unitString = "GB";
       value = size.getPreciseSizeAsUnit(Storage.Unit.GiB);
     }
     if (value > 9.94) {
