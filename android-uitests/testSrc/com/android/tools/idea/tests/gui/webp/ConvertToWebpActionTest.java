@@ -40,6 +40,7 @@ import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -228,6 +229,7 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
+  @Ignore("b/68008423")
   @RunIn(TestGroup.QA)
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
