@@ -224,7 +224,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Cut a component and check that the id of the new component has been conserved
    */
   public void testCutPasteWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -251,7 +250,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Cut a component and check that the id of the new component has been conserved
    */
   public void testMultipleCutPasteWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -322,6 +320,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlComponent button3 = model.find("cuteLittleButton3");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCopy(dataContext);
+    mySurface.getSelectionModel().clear();
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton4");
     assertComponentWithId(model, "cuteLittleButton5");
@@ -329,7 +328,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testCutThenCopyWithId() {
-    Assume.assumeFalse("Test is failing on mac, ignoring for now", SystemInfo.isMac); // TODO remove once mac cut is fixed
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -355,6 +353,47 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button2));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
+    assertComponentWithId(model, "cuteLittleButton2");
+  }
+
+  /**
+   * Cut component1, paste it, copy it, cut the copy and paste it.
+   * The copy should keep the same id as the first time.
+   */
+  public void testCutPasteCut() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent buttonCut = model.find("cuteLittleButton");
+    assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut);
+
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCut));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    assertComponentWithId(model, "cuteLittleButton2");
+
+    NlComponent buttonCopied = model.find("cuteLittleButton2");
+    mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCopied));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    handler.performPaste(dataContext);
+    assertNull(model.find("cuteLittleButton4"));
     assertComponentWithId(model, "cuteLittleButton2");
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -33,12 +34,9 @@ import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.mac.foundation.MacUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
@@ -46,15 +44,23 @@ import java.util.List;
 
 public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private final DesignSurface mySurface;
+  private CopyPasteManager myCopyPasteManager;
 
   public DesignSurfaceActionHandler(@NotNull DesignSurface surface) {
+    this(surface, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  DesignSurfaceActionHandler(@NotNull DesignSurface surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
+    myCopyPasteManager = copyPasteManager;
   }
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    CopyPasteManager.getInstance().setContents(
-      CopyCutTransferable.createCopyTransferable(mySurface.getSelectionAsTransferable()));
+    if (!mySurface.getSelectionModel().isEmpty()) {
+      myCopyPasteManager.setContents(mySurface.getSelectionAsTransferable());
+    }
   }
 
   @Override
@@ -69,25 +75,18 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void performCut(@NotNull DataContext dataContext) {
-    {// TODO Remove this dirty fix
-      // The Mac AWT copy paste manager is wrappring the Transferable into a ProxyTransferable that just delegate
-      // method call to its delegate without giving access to it so it is impossible to use the CopyCutTransferable
-      // For now, we just use the old way that was half broken
-      //
-      if (SystemInfo.isMac) {
-        performCopy(dataContext);
-        deleteElement(dataContext);
-        return;
+    if (!mySurface.getSelectionModel().isEmpty()) {
+      ItemTransferable transferable = mySurface.getSelectionAsTransferable();
+      try {
+        DnDTransferItem transferItem = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        transferItem.setIsCut();
+        myCopyPasteManager.setContents(transferable);
       }
+      catch (UnsupportedFlavorException e) {
+        performCopy(dataContext); // Fallback to simple copy/delete
+      }
+      deleteElement(dataContext);
     }
-
-    NlModel model = mySurface.getModel();
-    if (model == null) {
-      return;
-    }
-    CopyPasteManager.getInstance().setContents(
-      CopyCutTransferable.createCutTransferable(mySurface.getSelectionAsTransferable()));
-    deleteElement(dataContext);
   }
 
   @Override
@@ -102,12 +101,11 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
-    if (sceneView == null) {
+    NlModel model = mySurface.getModel();
+    if (model == null) {
       return;
     }
-    SelectionModel selectionModel = sceneView.getSelectionModel();
-    NlModel model = sceneView.getModel();
+    SelectionModel selectionModel = mySurface.getSelectionModel();
     model.delete(selectionModel.getSelection());
     selectionModel.clear();
   }
@@ -122,19 +120,26 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
     pasteOperation(false /* check and perform the actual paste */);
   }
 
+  /**
+   * returns true if the action should be shown.
+   */
   @Override
   public boolean isPastePossible(@NotNull DataContext dataContext) {
-    return true;
+    // The execution of this method must be quick as it is called in regularly when updating
+    // the actions' presentations
+    return mySurface.getSelectionModel().getSelection().size() <= 1;
   }
 
+  /**
+   * Called by {@link com.intellij.ide.actions.PasteAction} to check if pasteOperation() should be called
+   */
   @Override
   public boolean isPasteEnabled(@NotNull DataContext dataContext) {
     return pasteOperation(true /* check only */);
   }
 
   private boolean hasNonEmptySelection() {
-    SceneView sceneView = mySurface.getCurrentSceneView();
-    return sceneView != null && !sceneView.getSelectionModel().isEmpty();
+    return !mySurface.getSelectionModel().isEmpty();
   }
 
   private boolean pasteOperation(boolean checkOnly) {
@@ -143,7 +148,13 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       return false;
     }
 
-    List<NlComponent> selection = sceneView.getSelectionModel().getSelection();
+    List<NlComponent> selection = mySurface.getSelectionModel().getSelection();
+    if(selection.size() > 1) {
+      // This is aleady reflected in isPastePossible but let's ensure we
+      // can' past an element if two components are selected to avoid unexpected behaviors like
+      // when two ViewGroup are selected.
+      return false;
+    }
     NlComponent receiver = !selection.isEmpty() ? selection.get(0) : null;
 
     if (receiver == null) {
@@ -172,139 +183,39 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       }
     }
 
-    DnDTransferItem dndTransferItem;
-    InsertType insertType;
-    DragType dragType;
+    DnDTransferItem transferItem = getClipboardData();
+    if (transferItem == null) {
+      return false;
+    }
 
-    if (!SystemInfo.isMac) {
-      CopyCutTransferable item = getClipboardData(checkOnly);
-      dndTransferItem = item != null ? item.getDndTransferItem() : null;
-      if (dndTransferItem == null) {
-        return false;
-      }
-      dragType = item.isCut() ? DragType.MOVE : DragType.PASTE;
-    }
-    else {
-      dragType = DragType.PASTE;
-      dndTransferItem = getMacClipboardData();
-      if (dndTransferItem == null) {
-        return false;
-      }
-    }
-    insertType = model.determineInsertType(dragType, dndTransferItem, checkOnly);
+    DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
+    InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
 
     // TODO: support nav editor
-    List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, dndTransferItem, insertType);
+    List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, transferItem, insertType);
     if (!model.canAddComponents(pasted, receiver, before)) {
       return false;
     }
     if (checkOnly) {
       return true;
     }
+    transferItem.consumeCut();
     model.addComponents(pasted, receiver, before, insertType, ViewEditorImpl.getOrCreate(sceneView));
     return true;
   }
 
   @Nullable
-  private static CopyCutTransferable getClipboardData(boolean checkOnly) {
+  private static DnDTransferItem getClipboardData() {
     CopyPasteManager instance = CopyPasteManager.getInstance();
     Transferable contents = instance.getContents();
-    if (contents == null || !(contents instanceof CopyCutTransferable)) {
+    if (contents == null) {
       return null;
     }
-    CopyCutTransferable transferItem = (CopyCutTransferable)contents;
-
-    if (!checkOnly && transferItem.isCut()) {
-      // Once we used a cut item, it should behave has a copied item to avoid duplicate ids.
-      // Since we can't modify the clipboard directly, we only modify the item
-      // and return a copy of it.
-      transferItem.consumeCut();
-      return new CopyCutTransferable(transferItem.myTransferable, true);
-    }
-    return transferItem;
-  }
-
-  @Nullable
-  private static DnDTransferItem getMacClipboardData() {
     try {
-      Object data = CopyPasteManager.getInstance().getContents(ItemTransferable.DESIGNER_FLAVOR);
-      if (!(data instanceof DnDTransferItem)) {
-        return null;
-      }
-      return (DnDTransferItem)data;
+      return (DnDTransferItem)contents.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
     }
-    catch (Exception e) {
+    catch (UnsupportedFlavorException | IOException e) {
       return null;
-    }
-  }
-
-  private static class CopyCutTransferable implements Transferable {
-
-    private final Transferable myTransferable;
-    private boolean myCut;
-
-    /**
-     * Wrapper class to mark the underlying {@link Transferable} as cut if needed.
-     * This is used to make a cut/paste action behave like a move and not a copy or insertion.
-     */
-    private CopyCutTransferable(@NotNull Transferable transferable, boolean isCut) {
-      myTransferable = transferable;
-      myCut = isCut;
-    }
-
-    /**
-     * @see #consumeCut()
-     * @see #isCut()
-     */
-    @NotNull
-    private static CopyCutTransferable createCutTransferable(@NotNull Transferable transferable) {
-      return new CopyCutTransferable(transferable, true);
-    }
-
-    @NotNull
-    private static CopyCutTransferable createCopyTransferable(@NotNull Transferable transferable) {
-      return new CopyCutTransferable(transferable, false);
-    }
-
-    @Override
-    public DataFlavor[] getTransferDataFlavors() {
-      return myTransferable.getTransferDataFlavors();
-    }
-
-    @Override
-    public boolean isDataFlavorSupported(@NotNull DataFlavor flavor) {
-      return myTransferable.isDataFlavorSupported(flavor);
-    }
-
-    @Override
-    public Object getTransferData(@NotNull DataFlavor dataFlavor) throws UnsupportedFlavorException, IOException {
-      return myTransferable.getTransferData(dataFlavor);
-    }
-
-    /**
-     * @return true if the {@link Transferable} is coming from a cut action false otherwise
-     */
-    public boolean isCut() {
-      return myCut;
-    }
-
-    /**
-     * Once the cut item has been paste, if it is pasted again, it should behave as a copy/paste.
-     * This method should be called to mark the cut as consumed.
-     */
-    private void consumeCut() {
-      myCut = false;
-    }
-
-    @Nullable
-    private DnDTransferItem getDndTransferItem() {
-      try {
-        Object data = getTransferData(ItemTransferable.DESIGNER_FLAVOR);
-        return data instanceof DnDTransferItem ? ((DnDTransferItem)data) : null;
-      }
-      catch (UnsupportedFlavorException | IOException e) {
-        return null;
-      }
     }
   }
 }

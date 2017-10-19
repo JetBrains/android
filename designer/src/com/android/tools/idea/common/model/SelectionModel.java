@@ -155,7 +155,7 @@ public class SelectionModel {
     return mySelection.contains(component);
   }
 
-  public Transferable getTransferable(long modelId) {
+  public ItemTransferable getTransferable(long modelId) {
     ImmutableList<DnDTransferComponent> components =
       mySelection.stream().map(component -> new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
                                                                      NlComponentHelperKt.getW(component),
