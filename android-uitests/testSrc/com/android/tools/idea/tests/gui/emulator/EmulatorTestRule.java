@@ -26,6 +26,8 @@ import org.junit.rules.ExternalResource;
 
 public class EmulatorTestRule extends ExternalResource {
 
+  public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 240;
+
   private static final String DEFAULT_AVD_NAME = "device under test";
 
   @NotNull
