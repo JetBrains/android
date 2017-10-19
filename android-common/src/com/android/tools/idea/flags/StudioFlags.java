@@ -161,6 +161,12 @@ public final class StudioFlags {
     "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
     false);
 
+  private static final FlagGroup RESOURCES_MANAGEMENT = new FlagGroup(FLAGS, "res.manag", "Resource Management");
+  public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
+    RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
+    "If enabled, the new resource magement tool are enabled. Subflags will also need to be enabled to enable all available new tools",
+    false);
+
   private StudioFlags() {
   }
 }
