@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.naveditor.scene.draw.DrawColor;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
@@ -118,7 +118,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   private DrawCommand createDrawActionHandleDrag(@NotNull SceneContext sceneContext) {
     return new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
-                                    sceneContext.getSwingDimension(myCurrentRadius), sceneContext.getColorSet().getSelectedFrames());
+                                    sceneContext.getSwingDimension(myCurrentRadius));
   }
 
   private DrawCommand createDrawActionHandle(@NotNull SceneContext sceneContext) {
@@ -131,13 +131,13 @@ public class ActionHandleTarget extends NavBaseTarget {
       newRadius = SMALL_RADIUS;
     }
 
-    Color fillColor = sceneContext.getColorSet().getBackground();
+    DrawColor borderColor = getComponent().isSelected() ? DrawColor.SELECTED_FRAMES : DrawColor.FRAMES;
     int duration = Math.abs(MAX_DURATION * (myCurrentRadius - newRadius) / SMALL_RADIUS);
 
     DrawActionHandle drawCommand =
       new DrawActionHandle(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
                            sceneContext.getSwingDimension(myCurrentRadius), sceneContext.getSwingDimension(newRadius),
-                           getFrameColor(sceneContext), fillColor, duration);
+                           borderColor, duration);
 
     myCurrentRadius = newRadius;
     return drawCommand;

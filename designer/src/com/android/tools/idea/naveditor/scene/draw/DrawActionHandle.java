@@ -35,8 +35,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myInitialRadius;
   @SwingCoordinate private final int myFinalRadius;
-  private final Color myBorderColor;
-  private final Color myFillColor;
+  private final DrawColor myBorderColor;
   private final int myDuration;
 
   private long myStartTime = -1;
@@ -45,16 +44,23 @@ public class DrawActionHandle extends NavBaseDrawCommand {
                           @SwingCoordinate int y,
                           @SwingCoordinate int initialRadius,
                           @SwingCoordinate int finalRadius,
-                          @NotNull Color borderColor,
-                          @NotNull Color fillColor,
+                          @NotNull DrawColor borderColor,
                           int duration) {
     myX = x;
     myY = y;
     myInitialRadius = initialRadius;
     myFinalRadius = finalRadius;
     myBorderColor = borderColor;
-    myFillColor = fillColor;
     myDuration = duration;
+  }
+
+  public DrawActionHandle(String s) {
+    this(parse(s, 8));
+  }
+
+  private DrawActionHandle(String[] sp) {
+    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), Integer.parseInt(sp[4]),
+         Integer.parseInt(sp[5]), DrawColor.valueOf(sp[6]), Integer.parseInt(sp[7]));
   }
 
   @Override
@@ -65,8 +71,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   @Override
   @NotNull
   protected Object[] getProperties() {
-    return new Object[]{myX, myY, myInitialRadius, myFinalRadius, String.format("%x", myBorderColor.getRGB()),
-      String.format("%x", myFillColor.getRGB()), myDuration};
+    return new Object[]{myX, myY, myInitialRadius, myFinalRadius, myBorderColor, myDuration};
   }
 
   @Override
@@ -85,13 +90,13 @@ public class DrawActionHandle extends NavBaseDrawCommand {
     @SwingCoordinate int r = (elapsed < myDuration)
                              ? myInitialRadius + delta * elapsed / myDuration
                              : myFinalRadius;
-    fillCircle(g2, r, myFillColor);
+    fillCircle(g2, r, sceneContext.getColorSet().getBackground());
 
     r *= INNER_CIRCLE_FRACTION;
-    fillCircle(g2, r, myBorderColor);
+    fillCircle(g2, r, myBorderColor.color(sceneContext));
 
     r -= INNER_CIRCLE_THICKNESS;
-    fillCircle(g2, r, myFillColor);
+    fillCircle(g2, r, sceneContext.getColorSet().getBackground());
 
     g2.dispose();
 

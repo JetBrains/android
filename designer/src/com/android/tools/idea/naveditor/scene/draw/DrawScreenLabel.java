@@ -27,18 +27,15 @@ import java.awt.*;
 public class DrawScreenLabel extends NavBaseDrawCommand {
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
-  private final Color myColor;
   private final Font myFont;
   private final String myText;
 
   public DrawScreenLabel(@SwingCoordinate int x,
                          @SwingCoordinate int y,
-                         @NotNull Color color,
                          @NotNull Font font,
                          @NotNull String text) {
     myX = x;
     myY = y;
-    myColor = color;
     myFont = font;
     myText = text;
   }
@@ -51,20 +48,18 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
   @Override
   @NotNull
   protected Object[] getProperties() {
-    return new Object[]{myX, myY, String.format("%x", myColor.getRGB()), myFont, myText};
+    return new Object[]{myX, myY, myFont, myText};
   }
 
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Color previousColor = g.getColor();
-    Font previousFont = g.getFont();
+    Graphics2D g2 = (Graphics2D)g.create();
 
-    g.setColor(myColor);
-    g.setFont(myFont);
-    g.drawString(myText, myX, myY);
+    g2.setColor(sceneContext.getColorSet().getSubduedText());
+    g2.setFont(myFont);
+    g2.drawString(myText, myX, myY);
 
-    g.setColor(previousColor);
-    g.setFont(previousFont);
+    g2.dispose();
   }
 }

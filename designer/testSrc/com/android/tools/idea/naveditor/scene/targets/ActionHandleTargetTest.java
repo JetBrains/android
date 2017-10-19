@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
+import com.android.tools.idea.naveditor.scene.draw.DrawColor;
 import com.android.tools.sherpa.drawing.ColorSet;
 import junit.framework.TestCase;
 
@@ -35,27 +36,16 @@ public class ActionHandleTargetTest extends TestCase {
   private static int Y = 5;
   private static int DRAGX = X + 20;
   private static int DRAGY = Y - 10;
-  private static Color FRAMES = Color.RED;
-  private static Color SELECTEDFRAMES = Color.GREEN;
-  private static Color HIGHLIGHTEDFRAMES = Color.BLUE;
-  private static Color BACKGROUND = Color.WHITE;
 
   private Scene myScene;
-  private ColorSet myColorSet;
   private SceneContext mySceneContext;
   private SceneComponent mySceneComponent;
   private ActionHandleTarget myActionHandleTarget;
 
   private void setup() {
     myScene = mock(Scene.class);
-    myColorSet = mock(ColorSet.class);
-    when(myColorSet.getFrames()).thenReturn(FRAMES);
-    when(myColorSet.getSelectedFrames()).thenReturn(SELECTEDFRAMES);
-    when(myColorSet.getHighlightedFrames()).thenReturn(HIGHLIGHTEDFRAMES);
-    when(myColorSet.getBackground()).thenReturn(BACKGROUND);
 
     mySceneContext = mock(SceneContext.class);
-    when(mySceneContext.getColorSet()).thenReturn(myColorSet);
     when(mySceneContext.getSwingX(anyFloat())).thenReturn(X);
     when(mySceneContext.getSwingY(anyFloat())).thenReturn(Y);
     when(mySceneContext.getSwingDimension(anyFloat())).thenAnswer(i -> (int)(float)i.getArguments()[0]);
@@ -70,38 +60,38 @@ public class ActionHandleTargetTest extends TestCase {
 
   public void testActionHandle() {
     setup();
-    verifyDrawCommands(0, 0, FRAMES, 0);
+    verifyDrawCommands(0, 0, DrawColor.FRAMES, 0);
 
     int smallDuration = ActionHandleTarget.MAX_DURATION
                         * (ActionHandleTarget.LARGE_RADIUS - ActionHandleTarget.SMALL_RADIUS) / ActionHandleTarget.SMALL_RADIUS;
 
     // hover over component
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
-    verifyDrawCommands(0, ActionHandleTarget.SMALL_RADIUS, HIGHLIGHTEDFRAMES, ActionHandleTarget.MAX_DURATION);
+    verifyDrawCommands(0, ActionHandleTarget.SMALL_RADIUS, DrawColor.FRAMES, ActionHandleTarget.MAX_DURATION);
 
     // hover over target
     myActionHandleTarget.setMouseHovered(true);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, HIGHLIGHTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, DrawColor.FRAMES, smallDuration);
 
     // move away from target
     myActionHandleTarget.setMouseHovered(false);
-    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, HIGHLIGHTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, DrawColor.FRAMES, smallDuration);
 
     // move away from component
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, 0, FRAMES, ActionHandleTarget.MAX_DURATION);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, 0, DrawColor.FRAMES, ActionHandleTarget.MAX_DURATION);
 
     // hover over component
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
-    verifyDrawCommands(0, ActionHandleTarget.SMALL_RADIUS, HIGHLIGHTEDFRAMES, ActionHandleTarget.MAX_DURATION);
+    verifyDrawCommands(0, ActionHandleTarget.SMALL_RADIUS, DrawColor.FRAMES, ActionHandleTarget.MAX_DURATION);
 
     // select component
     when(mySceneComponent.isSelected()).thenReturn(true);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.SMALL_RADIUS, SELECTEDFRAMES, 0);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.SMALL_RADIUS, DrawColor.SELECTED_FRAMES, 0);
 
     // hover over target
     myActionHandleTarget.setMouseHovered(true);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, SELECTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, DrawColor.SELECTED_FRAMES, smallDuration);
 
     // mouse down and drag
     myActionHandleTarget.mouseDown(X, Y);
@@ -112,29 +102,29 @@ public class ActionHandleTargetTest extends TestCase {
     myActionHandleTarget.setMouseHovered(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
     myActionHandleTarget.mouseRelease(DRAGX, DRAGY, null);
-    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, SELECTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, DrawColor.SELECTED_FRAMES, smallDuration);
 
     // hover over target
     myActionHandleTarget.setMouseHovered(true);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, SELECTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, ActionHandleTarget.LARGE_RADIUS, DrawColor.SELECTED_FRAMES, smallDuration);
 
     // move away from component and target
     myActionHandleTarget.setMouseHovered(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
-    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, SELECTEDFRAMES, smallDuration);
+    verifyDrawCommands(ActionHandleTarget.LARGE_RADIUS, ActionHandleTarget.SMALL_RADIUS, DrawColor.SELECTED_FRAMES, smallDuration);
 
     // deselect component
     when(mySceneComponent.isSelected()).thenReturn(false);
-    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, 0, FRAMES, ActionHandleTarget.MAX_DURATION);
+    verifyDrawCommands(ActionHandleTarget.SMALL_RADIUS, 0, DrawColor.FRAMES, ActionHandleTarget.MAX_DURATION);
   }
 
-  private void verifyDrawCommands(int initialRadius, int finalRadius, Color borderColor, int duration) {
-    verifyDrawCommands(new DrawActionHandle(X, Y, initialRadius, finalRadius, borderColor, BACKGROUND, duration));
+  private void verifyDrawCommands(int initialRadius, int finalRadius, DrawColor borderColor, int duration) {
+    verifyDrawCommands(new DrawActionHandle(X, Y, initialRadius, finalRadius, borderColor, duration));
   }
 
   private void verifyDrawCommands() {
-    verifyDrawCommands(new DrawActionHandleDrag(X, Y, ActionHandleTarget.LARGE_RADIUS, SELECTEDFRAMES));
+    verifyDrawCommands(new DrawActionHandleDrag(X, Y, ActionHandleTarget.LARGE_RADIUS));
   }
 
   private void verifyDrawCommands(DrawCommand drawCommand) {

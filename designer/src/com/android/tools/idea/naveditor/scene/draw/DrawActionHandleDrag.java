@@ -32,17 +32,21 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myRadius;
-  private final Color myColor;
-
 
   public DrawActionHandleDrag(@SwingCoordinate int x,
                               @SwingCoordinate int y,
-                              @SwingCoordinate int radius,
-                              @NotNull Color color) {
+                              @SwingCoordinate int radius) {
     myX = x;
     myY = y;
     myRadius = radius;
-    myColor = color;
+  }
+
+  public DrawActionHandleDrag(String s) {
+    this(parse(s, 5));
+  }
+
+  private DrawActionHandleDrag(String[] sp) {
+    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), Integer.parseInt(sp[4]));
   }
 
   @Override
@@ -53,14 +57,14 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   @Override
   @NotNull
   protected Object[] getProperties() {
-    return new Object[]{myX, myY, String.format("%x", myColor.getRGB())};
+    return new Object[]{myX, myY, myRadius};
   }
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     Graphics2D g2 = (Graphics2D)g.create();
 
-    g2.setColor(myColor);
+    g2.setColor(sceneContext.getColorSet().getSelectedFrames());
     g2.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
 
     g2.setStroke(STROKE);

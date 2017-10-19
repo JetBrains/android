@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.sherpa.drawing.ColorSet;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
 
@@ -42,10 +43,13 @@ public class DrawActionHandleDragTest extends TestCase {
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
     when(g.create()).thenReturn(g);
-    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y, R, COLOR);
+    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y, R);
+    ColorSet colorSet = mock(ColorSet.class);
 
+    when(colorSet.getSelectedFrames()).thenReturn(COLOR);
     when(sceneContext.getMouseX()).thenReturn(mouseX);
     when(sceneContext.getMouseY()).thenReturn(mouseY);
+    when(sceneContext.getColorSet()).thenReturn(colorSet);
 
     InOrder inOrder = inOrder(g);
     drawActionHandleDrag.paint(g, sceneContext);
