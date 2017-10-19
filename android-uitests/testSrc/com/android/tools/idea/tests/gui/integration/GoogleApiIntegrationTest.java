@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ConfirmUninstallServiceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,7 @@ public class GoogleApiIntegrationTest {
    *   2. All dependencies are removed from module/build.gradle
    *   </pre>
    */
+  @Ignore("b/68002637")
   @Test
   @RunIn (TestGroup.QA)
   public void testGoogleApiIntegration() throws Exception {

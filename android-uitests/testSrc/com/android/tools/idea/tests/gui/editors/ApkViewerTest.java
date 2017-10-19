@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.Pan
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import org.fest.swing.core.MouseButton;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,7 @@ public class ApkViewerTest {
    *   1. Ensure APK entries appear for classes.dex, AndroidManifest.xml
    * </pre>
    */
+  @Ignore("b/68002392")
   @RunIn(TestGroup.QA)
   @Test
   public void launchApkViewer() throws Exception {
