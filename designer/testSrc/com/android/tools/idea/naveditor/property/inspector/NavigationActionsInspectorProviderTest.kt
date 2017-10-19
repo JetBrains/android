@@ -15,38 +15,36 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
-import com.android.tools.idea.naveditor.model.resolvedId
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
+import com.intellij.openapi.util.Disposer
 import org.mockito.Mockito.*
 
 class NavigationActionsInspectorProviderTest: NavigationTestCase() {
   fun testIsApplicable() {
-    val model = model("nav.xml",
-        rootComponent().unboundedChildren(
-            fragmentComponent("f1")
-                .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2")),
-            fragmentComponent("f2")
-                .unboundedChildren(actionComponent("a2").withDestinationAttribute("f1")),
-            fragmentComponent("f2"),
-            activityComponent("a1"),
-            navigationComponent("subnav"),
-            includeComponent("navigation")))
-        .build()
-
     val provider = NavigationActionsInspectorProvider()
-    val propertes = mapOf<String, NlProperty>()
-    val manager = NavPropertiesManager(myFacet, model.surface)
-    assertTrue(provider.isApplicable(listOf(model.find("f1")!!), propertes, manager))
-    assertTrue(provider.isApplicable(listOf(model.find("f2")!!), propertes, manager))
-    assertFalse(provider.isApplicable(listOf(model.find("f1")!!, model.find("f2")!!), propertes, manager))
-    assertFalse(provider.isApplicable(listOf(model.find("a1")!!), propertes, manager))
-    assertTrue(provider.isApplicable(listOf(model.find("subnav")!!), propertes, manager))
-    val navComponent = model.flattenComponents().filter({ c -> "nav" == c.resolvedId }).findFirst().orElse(null)
-    assertFalse(provider.isApplicable(listOf(navComponent!!), propertes, manager))
+    val surface = mock(NavDesignSurface::class.java)
+    val manager = NavPropertiesManager(myFacet, surface)
+    val component1 = mock(NlComponent::class.java)
+    val component2 = mock(NlComponent::class.java)
+    // Simple case: one component, actions property
+    assertTrue(provider.isApplicable(listOf(component1), mapOf("Actions" to NavActionsProperty(listOf(component1))), manager))
+    // One component, actions + other property
+    assertTrue(provider.isApplicable(listOf(component1),
+        mapOf("Actions" to NavActionsProperty(listOf(component1)), "foo" to mock(NlProperty::class.java)), manager))
+    // Two components
+    assertFalse(provider.isApplicable(listOf(component1, component2),
+        mapOf("Actions" to NavActionsProperty(listOf(component1, component2))), manager))
+    // zero components
+    assertFalse(provider.isApplicable(listOf(), mapOf("Actions" to NavActionsProperty(listOf())), manager))
+    // Non-actions property only
+    assertFalse(provider.isApplicable(listOf(component1), mapOf("foo" to mock(NlProperty::class.java)), manager))
+    Disposer.dispose(surface)
   }
 
   fun testListContent() {

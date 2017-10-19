@@ -15,37 +15,72 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.uibuilder.property.NlProperties
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.google.common.collect.Table
+import com.intellij.testFramework.UsefulTestCase
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
 class NavInspectorPanelTest : NavigationTestCase() {
-  fun testCollectProperties() {
-    val model = model("nav.xml",
+  private lateinit var model: SyncNlModel
+  private lateinit var panel: NavInspectorPanel
+  private lateinit var manager: NavPropertiesManager
+  private lateinit var inspectorProviders: NavInspectorProviders
+  private lateinit var properties: Table<String, String, NlPropertyItem>
+
+  override fun setUp() {
+    super.setUp()
+    model = model("nav.xml",
         rootComponent().unboundedChildren(
             fragmentComponent("f1")
-                .withLayoutAttribute("activty_main")
                 .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2"),
                     actionComponent("a2").withDestinationAttribute("f3")),
             fragmentComponent("f2"),
-            fragmentComponent("f3")))
+            fragmentComponent("f3"),
+            activityComponent("activity")))
         .build()
-    val panel = NavInspectorPanel(testRootDisposable)
-    val manager = spy(NavPropertiesManager(myFacet, model.surface))
-    val inspectorProviders = mock(NavInspectorProviders::class.java)
+    panel = NavInspectorPanel(testRootDisposable)
+    manager = spy(NavPropertiesManager(myFacet, model.surface))
+    inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
-    val components = listOf(model.find("f1")!!)
-    panel.setComponent(components, NlProperties.getInstance().getProperties(myFacet, manager, model.components), manager)
+    properties = NlProperties.getInstance().getProperties(myFacet, manager, model.components)
+  }
 
+  fun testMultipleActions() {
+    panel.setComponent(listOf(model.find("f1")!!), properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
-    val propertyMap = captor.value
-    assertEquals(model.find("a1"), propertyMap["@id/f2"]!!.components[0])
-    assertEquals(model.find("a2"), propertyMap["@id/f3"]!!.components[0])
+    UsefulTestCase.assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+  }
+
+  fun testNoActions() {
+    panel.setComponent(listOf(model.find("f2")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    UsefulTestCase.assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+  }
+
+  fun testNoActionsInActivity() {
+    panel.setComponent(listOf(model.find("activity")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    assertFalse(captor.value.containsKey("Actions"))
+  }
+
+  fun testNoActionsInAction() {
+    panel.setComponent(listOf(model.find("a2")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    assertFalse(captor.value.containsKey("Actions"))
   }
 }
