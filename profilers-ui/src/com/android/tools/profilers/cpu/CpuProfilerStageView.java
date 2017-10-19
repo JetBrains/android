@@ -526,7 +526,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      myCaptureStatus.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
+      myCaptureStatus.setText("Recording - " + TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
     }
   }
 
