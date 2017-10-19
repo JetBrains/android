@@ -48,6 +48,22 @@ class SerializationTest : TestCase() {
     testSerialization("DrawNavigationBackground,20,20x10x200x100", DrawNavigationBackground(Rectangle(20, 10, 200, 100)), factory)
   }
 
+  fun testDrawActionHandle() {
+    val factory = { s: String -> DrawActionHandle(s) }
+
+    testSerialization("DrawActionHandle,25,10,20,5,10,FRAMES,100", DrawActionHandle(10, 20, 5, 10, DrawColor.FRAMES, 100), factory)
+    testSerialization("DrawActionHandle,25,20,40,10,5,SELECTED_FRAMES,200", DrawActionHandle(20, 40, 10, 5, DrawColor.SELECTED_FRAMES, 200), factory)
+    testSerialization("DrawActionHandle,25,10,60,5,20,FRAMES,300", DrawActionHandle(10, 60, 5, 20, DrawColor.FRAMES, 300), factory)
+    testSerialization("DrawActionHandle,25,20,80,5,10,SELECTED_FRAMES,400", DrawActionHandle(20, 80, 5, 10, DrawColor.SELECTED_FRAMES, 400), factory)
+  }
+
+  fun testDrawActionHandleDrag() {
+    val factory = { s: String -> DrawActionHandleDrag(s) }
+
+    testSerialization("DrawActionHandleDrag,26,10,20,5", DrawActionHandleDrag(10, 20, 5), factory)
+    testSerialization("DrawActionHandleDrag,26,30,50,10", DrawActionHandleDrag(30, 50, 10), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()

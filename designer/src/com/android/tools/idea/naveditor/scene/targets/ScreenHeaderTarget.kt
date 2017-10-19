@@ -75,10 +75,9 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
       l += iconSize + sceneContext.getSwingDimension(PADDING.toFloat())
     }
 
-    val color = sceneContext.colorSet.subduedText
     val font = Font(FONT_NAME, FONT_STYLE, sceneContext.getSwingDimension(FONT_SIZE.toFloat()))
     val text = component.nlComponent.id ?: ""
-    list.add(DrawScreenLabel(l, b - sceneContext.getSwingDimension(PADDING.toFloat()), color, font, text))
+    list.add(DrawScreenLabel(l, b - sceneContext.getSwingDimension(PADDING.toFloat()), font, text))
 
     if (hasDeepLink) {
       list.add(DrawIcon(Rectangle(r - iconSize, t, iconSize, iconSize), DrawIcon.IconType.DEEPLINK))

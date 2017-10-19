@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.ui.JBColor;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
@@ -26,8 +27,8 @@ import java.awt.*;
 import static org.mockito.Mockito.*;
 
 public class DrawActionHandleTest extends TestCase {
-  private static final Color BORDER_COLOR = JBColor.WHITE;
-  private static final Color FILL_COLOR = JBColor.BLACK;
+  private static final Color FRAMES_COLOR = JBColor.WHITE;
+  private static final Color BACKGROUND_COLOR = JBColor.BLACK;
   private static final int X = 10;
   private static final int Y = 10;
   private static final int INTERVAL = 50;
@@ -35,18 +36,22 @@ public class DrawActionHandleTest extends TestCase {
 
   public void testDrawActionHandle() {
     for (int initialRadius = 0; initialRadius <= ActionHandleTarget.LARGE_RADIUS; initialRadius++) {
-      for (int finalRadius= 0; finalRadius <= ActionHandleTarget.LARGE_RADIUS; finalRadius++) {
+      for (int finalRadius = 0; finalRadius <= ActionHandleTarget.LARGE_RADIUS; finalRadius++) {
         drawActionHandleTest(initialRadius, finalRadius);
       }
     }
   }
 
   private static void drawActionHandleTest(int initialRadius, int finalRadius) {
+    ColorSet colorSet = mock(ColorSet.class);
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
-    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, BORDER_COLOR, FILL_COLOR, DURATION);
+    DrawActionHandle drawActionHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, DrawColor.FRAMES, DURATION);
 
+    when(colorSet.getBackground()).thenReturn(BACKGROUND_COLOR);
+    when(colorSet.getFrames()).thenReturn(FRAMES_COLOR);
     when(sceneContext.getTime()).thenReturn(0L, 50L, 100L, 150L, 200L);
+    when(sceneContext.getColorSet()).thenReturn(colorSet);
     when(g.create()).thenReturn(g);
 
     int delta = (finalRadius - initialRadius);
@@ -68,11 +73,11 @@ public class DrawActionHandleTest extends TestCase {
       InOrder inOrder = inOrder(g);
       drawActionHandle.paint(g, sceneContext);
 
-      verifyCircle(inOrder, g, expectedRadius, FILL_COLOR);
+      verifyCircle(inOrder, g, expectedRadius, BACKGROUND_COLOR);
       expectedRadius *= DrawActionHandle.INNER_CIRCLE_FRACTION;
-      verifyCircle(inOrder, g, expectedRadius , BORDER_COLOR);
+      verifyCircle(inOrder, g, expectedRadius, FRAMES_COLOR);
       expectedRadius -= DrawActionHandle.INNER_CIRCLE_THICKNESS;
-      verifyCircle(inOrder, g, expectedRadius, FILL_COLOR);
+      verifyCircle(inOrder, g, expectedRadius, BACKGROUND_COLOR);
 
       verify(sceneContext, times(Math.min(i + 1, n))).repaint();
     }
