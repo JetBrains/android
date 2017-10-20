@@ -23,6 +23,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -39,7 +40,6 @@ import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
 import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
@@ -205,7 +205,7 @@ public abstract class AndroidPluginGeneration {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      if (IdeInfo.getInstance().isAndroidStudio() && !isGuiTestingMode() &&
+      if (IdeInfo.getInstance().isAndroidStudio() && !GuiTestingService.getInstance().isGuiTestingMode() &&
           !ApplicationManager.getApplication().isInternal() &&
           !ApplicationManager.getApplication().isUnitTestMode()) {
         // In a release build, Android Studio must find the latest version in its offline repo(s).
