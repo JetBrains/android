@@ -221,7 +221,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   public static final class Builder {
-    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(5);
+    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(1); // Should at least be 1 to avoid borders getting clipped.
     private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);
 
     private final LegendComponentModel myModel;

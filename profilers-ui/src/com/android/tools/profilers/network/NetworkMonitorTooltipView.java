@@ -22,7 +22,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioMonitorStageView;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 public class NetworkMonitorTooltipView extends ProfilerTooltipView {
   @NotNull
@@ -33,8 +33,9 @@ public class NetworkMonitorTooltipView extends ProfilerTooltipView {
     myMonitor = monitor;
   }
 
+  @NotNull
   @Override
-  public Component createTooltip() {
+  public JComponent createTooltip() {
     NetworkMonitor.NetworkLegends legends = myMonitor.getTooltipLegends();
 
     LegendComponent legend =

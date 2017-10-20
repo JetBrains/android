@@ -20,8 +20,9 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 public class CpuMonitorTooltipView extends ProfilerTooltipView {
   private final CpuMonitor myMonitor;
@@ -31,8 +32,9 @@ public class CpuMonitorTooltipView extends ProfilerTooltipView {
     myMonitor = monitor;
   }
 
+  @NotNull
   @Override
-  public Component createTooltip() {
+  public JComponent createTooltip() {
     CpuMonitor.Legends legends = myMonitor.getTooltipLegends();
 
     LegendComponent legend =
