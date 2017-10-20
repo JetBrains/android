@@ -45,23 +45,8 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      initializeForStudio();
-    } else {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
-    }
-  }
-
-  /**
-   * Initializes the Android plug-in when it runs as part of Android Studio.
-   */
-  private static void initializeForStudio() {
-    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
-    // in code as well (instead of xml).
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
-    if (runnerActions instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
     }
   }
 

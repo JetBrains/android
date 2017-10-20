@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.gradle.actions.RefreshProjectAction;
@@ -104,6 +105,7 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
+    setUpInstantRunActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
@@ -181,6 +183,16 @@ public class GradleSpecificInitializer implements Runnable {
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
+  }
+
+  private static void setUpInstantRunActions() {
+    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
+    // in code as well (instead of xml).
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
+    if (runnerActions instanceof DefaultActionGroup) {
+      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+    }
   }
 
   private static void setUpWelcomeScreenActions() {
