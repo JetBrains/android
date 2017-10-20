@@ -100,7 +100,8 @@ public class SmartStepIntoTest extends DebuggerTestBase {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    Wait.seconds(60).expecting("Java file should be opened when breakpoint hit")
+    Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
+      .expecting("Java file should be opened when breakpoint hit")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
 
     ideFrame.smartStepInto();
@@ -171,7 +172,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
     Wait.seconds(5).expecting("Java file should be opened.")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
     currentLine = ideFrame.getEditor().getCurrentLine().trim();
-    expectedLine = "public void setMyString(String s) {";
+    expectedLine = "String myString = s;";
     assertThat(currentLine.equals(expectedLine)).isTrue();
   }
 }
