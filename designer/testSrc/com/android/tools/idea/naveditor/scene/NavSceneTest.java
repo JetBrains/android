@@ -89,18 +89,18 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawAction,21,NORMAL,50x50x180x300,440x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,50x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,66,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,66,46,fragment1\n" +
                  "\n" +
                  "DrawNavigationBackground,20,310x50x100x25\n" +
                  "DrawTextRegion,310,50,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
                  "DrawNavigationFrame,20,310x50x100x25,false,false\n" +
                  "DrawAction,21,NORMAL,310x50x100x25,440x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,410,62,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,310,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],subnav\n" +
+                 "DrawScreenLabel,22,310,46,subnav\n" +
                  "\n" +
                  "DrawComponentBackground,440,50,180,300,1\n" +
                  "DrawScreenFrame,20,440x50x180x300,false,false\n" +
-                 "DrawScreenLabel,22,440,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],activity\n" +
+                 "DrawScreenLabel,22,440,46,activity\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -125,12 +125,12 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawAction,21,NORMAL,50x50x180x300,310x50x100x25,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "DrawNavigationBackground,20,310x50x100x25\n" +
                  "DrawTextRegion,310,50,100,25,0,17,true,false,4,4,30,0.5,\"myCoolLabel\"\n" +
                  "DrawNavigationFrame,20,310x50x100x25,false,false\n" +
-                 "DrawScreenLabel,22,310,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],\n" +
+                 "DrawScreenLabel,22,310,46,\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -170,19 +170,19 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,250x50x180x300,false,false\n" +
                  "DrawActionHandle,25,430,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,250x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,266,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,266,46,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,50,250,180,300,1\n" +
                  "DrawNavScreen,24,51,251,179,299\n" +
                  "DrawScreenFrame,20,50x250x180x300,false,false\n" +
                  "DrawActionHandle,25,230,400,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,246,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment2\n" +
+                 "DrawScreenLabel,22,50,246,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,550,450,180,300,1\n" +
                  "DrawNavScreen,24,551,451,179,299\n" +
                  "DrawScreenFrame,20,550x450x180x300,false,false\n" +
                  "DrawActionHandle,25,730,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,550,446,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment3\n" +
+                 "DrawScreenLabel,22,550,446,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -222,19 +222,19 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,250x50x180x300,false,false\n" +
                  "DrawActionHandle,25,430,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,250x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,266,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,266,46,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,50,250,180,300,1\n" +
                  "DrawNavScreen,24,51,251,179,299\n" +
                  "DrawScreenFrame,20,50x250x180x300,false,false\n" +
                  "DrawActionHandle,25,230,400,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,246,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment2\n" +
+                 "DrawScreenLabel,22,50,246,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,550,450,180,300,1\n" +
                  "DrawNavScreen,24,551,451,179,299\n" +
                  "DrawScreenFrame,20,550x450x180x300,false,false\n" +
                  "DrawActionHandle,25,730,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,550,446,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment3\n" +
+                 "DrawScreenLabel,22,550,446,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -270,19 +270,19 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawAction,21,NORMAL,50x50x180x300,310x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,310,50,180,300,1\n" +
                  "DrawNavScreen,24,311,51,179,299\n" +
                  "DrawScreenFrame,20,310x50x180x300,false,false\n" +
                  "DrawActionHandle,25,490,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,310x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,326,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment2\n" +
+                 "DrawScreenLabel,22,326,46,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,570,50,180,300,1\n" +
                  "DrawScreenFrame,20,570x50x180x300,false,false\n" +
                  "DrawActionHandle,25,750,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,570,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment3\n" +
+                 "DrawScreenLabel,22,570,46,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -314,7 +314,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,24,51,51,179,299\n" +
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -331,14 +331,14 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawAction,21,NORMAL,50x50x180x300,310x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,310,50,180,300,1\n" +
                  "DrawNavScreen,24,311,51,179,299\n" +
                  "DrawScreenFrame,20,310x50x180x300,false,false\n" +
                  "DrawActionHandle,25,490,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,310x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,326,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment2\n" +
+                 "DrawScreenLabel,22,326,46,fragment2\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -404,21 +404,21 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,180x50x180x300,false,false\n" +
                  "DrawAction,21,NORMAL,180x50x180x300,440x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,360,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,180,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,180,46,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,440,50,180,300,1\n" +
                  "DrawNavScreen,24,441,51,179,299\n" +
                  "DrawScreenFrame,20,440x50x180x300,false,false\n" +
                  "DrawActionHandle,25,620,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,440x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,456,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment2\n" +
+                 "DrawScreenLabel,22,456,46,fragment2\n" +
                  "\n" +
                  "DrawNavigationBackground,20,50x50x100x25\n" +
                  "DrawTextRegion,50,50,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
                  "DrawNavigationFrame,20,50x50x100x25,false,false\n" +
                  "DrawAction,21,NORMAL,50x50x100x25,180x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,150,62,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],subnav\n" +
+                 "DrawScreenLabel,22,50,46,subnav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
     list.clear();
@@ -430,12 +430,12 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawAction,21,NORMAL,50x50x180x300,310x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment3\n" +
+                 "DrawScreenLabel,22,50,46,fragment3\n" +
                  "\n" +
                  "DrawComponentBackground,310,50,180,300,1\n" +
                  "DrawScreenFrame,20,310x50x180x300,false,false\n" +
                  "DrawActionHandle,25,490,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,310,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment4\n" +
+                 "DrawScreenLabel,22,310,46,fragment4\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -459,7 +459,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentBackground,50,50,180,300,1\n" +
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -519,7 +519,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawAction,21,SELF,50x50x180x300,50x50x180x300,NORMAL\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,50x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,66,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,66,46,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -547,7 +547,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
                  "DrawIcon,23,50x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,66,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,66,46,fragment1\n" +
                  "DrawIcon,23,218x38x12x12,DEEPLINK\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
@@ -578,13 +578,13 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawScreenFrame,20,50x50x180x300,true,false\n" +
                  "DrawActionHandle,25,230,200,0,6,SELECTED_FRAMES,200\n" +
                  "DrawIcon,23,50x38x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,66,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,66,46,fragment1\n" +
                  "\n" +
                  "DrawNavigationBackground,20,310x50x100x25\n" +
                  "DrawTextRegion,310,50,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
                  "DrawNavigationFrame,20,310x50x100x25,true,false\n" +
                  "DrawActionHandle,25,410,62,0,6,SELECTED_FRAMES,200\n" +
-                 "DrawScreenLabel,22,310,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],subnav\n" +
+                 "DrawScreenLabel,22,310,46,subnav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -602,7 +602,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentBackground,50,50,180,300,1\n" +
                  "DrawScreenFrame,20,50x50x180x300,false,false\n" +
                  "DrawActionHandle,25,230,200,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -616,7 +616,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentBackground,37,37,112,112,1\n" +
                  "DrawScreenFrame,20,37x37x112x112,false,false\n" +
                  "DrawActionHandle,25,150,94,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,37,34,java.awt.Font[family=Dialog,name=Default,style=plain,size=8],fragment1\n" +
+                 "DrawScreenLabel,22,37,34,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -629,7 +629,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentBackground,50,50,300,168,1\n" +
                  "DrawScreenFrame,20,50x50x300x168,false,false\n" +
                  "DrawActionHandle,25,350,134,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,50,46,java.awt.Font[family=Dialog,name=Default,style=plain,size=11],fragment1\n" +
+                 "DrawScreenLabel,22,50,46,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
