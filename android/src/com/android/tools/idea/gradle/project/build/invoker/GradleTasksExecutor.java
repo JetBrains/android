@@ -293,7 +293,9 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
           executionSettings
             .withVmOptions(myRequest.getJvmArguments())
-            .withArguments(commandLineArguments);
+            .withArguments(commandLineArguments)
+            .withEnvironmentVariables(myRequest.getEnv())
+            .passParentEnvs(myRequest.isPassParentEnvs());
           BuildLauncher launcher = connection.newBuild();
 
           prepare(launcher, id, executionSettings, new ExternalSystemTaskNotificationListenerAdapter() {
