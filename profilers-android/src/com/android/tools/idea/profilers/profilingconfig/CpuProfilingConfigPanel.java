@@ -269,16 +269,16 @@ public class CpuProfilingConfigPanel {
     myArtSampledButton = new JRadioButton(ProfilingConfiguration.ART_SAMPLED);
     createRadioButtonUi(myArtSampledButton, "Samples Java code using Android Runtime.", TraceTechnology.ART_SAMPLED, profilersType);
 
-    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
-    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-      createRadioButtonUi(mySimpleperfButton, "<html>Samples Java and native code using simpleperf. " +
-                                              "Available for Android O and greater.</html>",
-                          TraceTechnology.SIMPLEPERF, profilersType);
-    }
-
     myArtInstrumentedButton = new JRadioButton(ProfilingConfiguration.ART_INSTRUMENTED);
     createRadioButtonUi(myArtInstrumentedButton, "Instruments Java code using Android Runtime.",
                         TraceTechnology.ART_INSTRUMENTED, profilersType);
+
+    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
+    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+      createRadioButtonUi(mySimpleperfButton, "<html>Samples native code using simpleperf. " +
+                                              "Available for Android 8.0 (API level 26) and higher.</html>",
+                          TraceTechnology.SIMPLEPERF, profilersType);
+    }
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
@@ -366,7 +366,7 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimitUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android O or greater, " +
+    JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android 8.0 (API level 26) and higher, " +
                                     "there is no limit on the file size and the value is ignored.</html>");
     description.setFont(description.getFont().deriveFont(12f));
     myConfigPanel.add(description);
