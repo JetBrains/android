@@ -525,15 +525,25 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     @Override
+    @Nullable
     public PsiFile getContainingFile() {
       PsiClass containingClass = super.getContainingClass();
       return containingClass == null ? null : containingClass.getContainingFile();
     }
 
-    @NotNull
     @Override
+    @NotNull
     public PsiElement getNavigationElement() {
       return myViewWithId.tag;
+    }
+
+    @Override
+    @NotNull
+    public PsiElement setName(@NotNull String name) {
+      // This method is called by rename refactoring and has to succeed in order for the refactoring to succeed.
+      // There no need to change the name since once the refactoring is complete, this object will be replaced
+      // by a new one reflecting the changed source code.
+      return this;
     }
   }
 }
