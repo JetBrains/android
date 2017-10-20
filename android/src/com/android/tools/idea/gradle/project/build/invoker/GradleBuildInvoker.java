@@ -642,6 +642,9 @@ public class GradleBuildInvoker {
     @NotNull private final List<String> myGradleTasks;
     @NotNull private final List<String> myJvmArguments;
     @NotNull private final List<String> myCommandLineArguments;
+    @NotNull
+    private final Map<String, String> myEnv;
+    private boolean myPassParentEnvs = true;
     @NotNull private final ExternalSystemTaskId myTaskId;
 
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
@@ -666,6 +669,7 @@ public class GradleBuildInvoker {
       myJvmArguments = new ArrayList<>();
       myCommandLineArguments = new ArrayList<>();
       myTaskId = taskId;
+      myEnv = new LinkedHashMap<>();
     }
 
     @NotNull
@@ -700,6 +704,24 @@ public class GradleBuildInvoker {
       myCommandLineArguments.clear();
       myCommandLineArguments.addAll(commandLineArguments);
       return this;
+    }
+
+    public Request withEnvironmentVariables(Map<String, String> envs) {
+      myEnv.putAll(envs);
+      return this;
+    }
+
+    public Map<String, String> getEnv() {
+      return Collections.unmodifiableMap(myEnv);
+    }
+
+    public Request passParentEnvs(boolean passParentEnvs) {
+      myPassParentEnvs = passParentEnvs;
+      return this;
+    }
+
+    public boolean isPassParentEnvs() {
+      return myPassParentEnvs;
     }
 
     @Nullable

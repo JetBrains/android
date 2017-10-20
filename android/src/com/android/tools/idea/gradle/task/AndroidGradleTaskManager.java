@@ -80,6 +80,8 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       // @formatter:off
       request.setJvmArguments(new ArrayList<>(effectiveSettings.getVmOptions()))
              .setCommandLineArguments(effectiveSettings.getArguments())
+             .withEnvironmentVariables(effectiveSettings.getEnv())
+             .passParentEnvs(effectiveSettings.isPassParentEnvs())
              .setTaskListener(listener)
              .setWaitForCompletion(true);
       // @formatter:on
