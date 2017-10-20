@@ -19,39 +19,55 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
+import com.intellij.util.ThreeState
 import org.jetbrains.annotations.Contract
 
 class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncManager {
+  private var lastSyncResult: SyncResult = SyncResult.UNKNOWN
+
+  init {
+    // Listen for syncs to finish and update lastSyncResult accordingly.
+    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: SyncResultListener {
+      override fun syncEnded(result: SyncResult) {
+        lastSyncResult = result
+      }
+    })
+  }
+
   @Contract(pure = true)
-  private fun convertReasonToTrigger(reason: ProjectSystemSyncManager.SyncReason): GradleSyncStats.Trigger {
+  private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger {
     return when {
-      reason === ProjectSystemSyncManager.SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
-      reason === ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
+      reason === SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
+      reason === SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
       else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
     }
   }
 
-  private fun requestSync(project: Project, reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+  private fun requestSync(project: Project, reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
     val trigger = convertReasonToTrigger(reason)
-    val syncResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
+    val syncResult = SettableFuture.create<SyncResult>()
 
     val listener = object : GradleSyncListener.Adapter() {
       override fun syncSucceeded(project: Project) {
-        syncResult.set(ProjectSystemSyncManager.SyncResult.SUCCESS)
+        syncResult.set(SyncResult.SUCCESS)
       }
 
       override fun syncFailed(project: Project, errorMessage: String) {
-        syncResult.set(ProjectSystemSyncManager.SyncResult.FAILURE)
+        syncResult.set(SyncResult.FAILURE)
       }
 
       override fun syncSkipped(project: Project) {
-        syncResult.set(ProjectSystemSyncManager.SyncResult.SKIPPED)
+        syncResult.set(SyncResult.SKIPPED)
       }
     }
 
@@ -72,8 +88,8 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-    val syncResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
+  override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+    val syncResult = SettableFuture.create<SyncResult>()
 
     if (GradleSyncState.getInstance(project).isSyncInProgress) {
       syncResult.setException(RuntimeException("A sync was requested while one is already in progress. Use"
@@ -91,7 +107,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
           syncResult.setFuture(requestSync(project, reason, requireSourceGeneration))
         }
         else {
-          syncResult.set(ProjectSystemSyncManager.SyncResult.SKIPPED)
+          syncResult.set(SyncResult.SKIPPED)
         }
       }
     }
@@ -99,5 +115,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun isSyncInProgress(): Boolean = GradleSyncState.getInstance(project).isSyncInProgress
+  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress
+  override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded != ThreeState.NO
+  override fun getLastSyncResult() = lastSyncResult
 }

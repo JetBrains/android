@@ -18,7 +18,6 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
@@ -26,6 +25,7 @@ import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -103,7 +103,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564
     boolean buildWithGradle = GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
-    if (children.isEmpty() && buildWithGradle && GradleSyncState.getInstance(myProject).lastSyncFailed()) {
+    boolean lastSyncFailed = !ProjectSystemUtil.getSyncManager(myProject).getLastSyncResult().isSuccessful();
+
+    if (children.isEmpty() && buildWithGradle && lastSyncFailed) {
       PsiDirectory folder = PsiManager.getInstance(myProject).findDirectory(myProject.getBaseDir());
       if (folder != null) {
         children.add(new PsiDirectoryNode(myProject, folder, settings));

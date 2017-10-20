@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
@@ -44,7 +44,7 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
   protected boolean isEnabledOnDataContext(DataContext dataContext) {
     // Hide action if last Gradle sync was unsuccessful.
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    if (project != null && GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues()) {
+    if (project != null && !ProjectSystemUtil.getSyncManager(project).getLastSyncResult().isSuccessful()) {
       return false;
     }
 
@@ -64,7 +64,7 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
                                                         @NotNull PsiFile file,
                                                         @NotNull DataContext context) {
     Project project = file.getProject();
-    return !GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues();
+    return ProjectSystemUtil.getSyncManager(project).getLastSyncResult().isSuccessful();
   }
 
   @Override

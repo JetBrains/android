@@ -33,22 +33,13 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
-class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
-  val ID = "com.android.tools.idea.GradleProjectSystem"
-
+class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
-
-  override val id: String
-    get() = ID
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
 
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
-  }
-
-  override fun isApplicable(): Boolean {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle
   }
 
   override fun allowsFileCreation() = true
@@ -77,8 +68,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem, AndroidP
       GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
     }
   }
-
-  override val projectSystem = this
 
   override fun upgradeProjectToSupportInstantRun(): Boolean {
     return updateProjectToInstantRunTools(project)
