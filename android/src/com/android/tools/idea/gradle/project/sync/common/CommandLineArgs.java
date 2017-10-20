@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -37,7 +38,6 @@ import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsActi
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
@@ -103,7 +103,7 @@ public class CommandLineArgs {
     }
 
     Application application = ApplicationManager.getApplication();
-    if (isGuiTestingMode() || application.isUnitTestMode()) {
+    if (GuiTestingService.getInstance().isGuiTestingMode() || application.isUnitTestMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }

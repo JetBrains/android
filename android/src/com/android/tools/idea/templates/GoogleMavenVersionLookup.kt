@@ -16,13 +16,13 @@
 package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.PathUtil
 import com.intellij.util.net.HttpConfigurable
-import org.jetbrains.android.AndroidPlugin
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -52,7 +52,7 @@ object GoogleMavenVersionLookup : GoogleMavenRepository(getCacheDir()) {
 }
 
 private fun getCacheDir(): File? =
-    if (ApplicationManager.getApplication().isUnitTestMode || AndroidPlugin.isGuiTestingMode())
+    if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
       null
     else
       File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), "maven.google")

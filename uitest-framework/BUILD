@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "uitest-framework",
+    srcs = ["src"],
     iml_files = ["uitest-framework.iml"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
@@ -9,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.common[module, test]",
-        "//tools/adt/idea/android[module, test]",
+        "//tools/adt/idea/android[module]",
         "//tools/idea/platform/platform-api[module, test]",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools:fest-swing[module, test]",

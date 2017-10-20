@@ -21,6 +21,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
@@ -30,7 +31,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +115,7 @@ public class AppCompatPublicDotTxtLookup {
   }
 
   private File getCacheDir() {
-    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
+    if (ApplicationManager.getApplication().isUnitTestMode() || GuiTestingService.getInstance().isGuiTestingMode()) {
       return null;
     }
     else {

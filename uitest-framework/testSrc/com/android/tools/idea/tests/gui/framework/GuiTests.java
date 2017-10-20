@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
@@ -52,7 +53,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +79,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -91,15 +89,15 @@ public final class GuiTests {
   /**
    * Environment variable set by users to point to sources
    */
-  public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
+  private static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
   /**
    * Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility
    */
-  public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
+  private static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
   /**
    * AOSP-relative path to directory containing GUI test data
    */
-  public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
+  private static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
@@ -131,7 +129,7 @@ public final class GuiTests {
     ideSettings.PROXY_HOST = "";
     ideSettings.PROXY_PORT = 80;
 
-    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
+    GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
 
     FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
@@ -142,8 +140,7 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("unused")
   public static void setUpDefaultGeneralSettings() {
-    setGuiTestingMode(true);
-
+    GuiTestingService.getInstance().setGuiTestingMode(true);
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
   }
 
