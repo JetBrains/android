@@ -44,14 +44,13 @@ public class LayoutInspectorTest {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
-  @Ignore("b/63850391")
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {
     guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
-    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Android", "Layout Inspector");
+    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
     AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();
     List<String> layoutElements = new LayoutInspectorFixture(guiTest.robot()).getLayoutElements();
