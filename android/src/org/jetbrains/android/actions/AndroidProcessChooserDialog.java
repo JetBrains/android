@@ -19,8 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.actions.MeetAndroidStudioHelpAction;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;
@@ -241,9 +243,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     return myProcessTree;
   }
 
+  @Nullable
   @Override
-  protected void doHelpAction() {
-    BrowserUtil.browse("https://developer.android.com/studio/debug/index.html");
+  protected String getHelpId() {
+    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/debug/index.html";
   }
 
   @Override

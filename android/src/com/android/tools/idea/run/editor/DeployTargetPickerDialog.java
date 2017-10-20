@@ -221,6 +221,12 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     super.doOKAction();
   }
 
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "android.deploy.target.picker";
+  }
+
   @Override
   protected void doHelpAction() {
     myDevicePicker.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE);
