@@ -356,6 +356,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68046183 - this test is flaking out
   public void modifyVariableDuringDebugSession() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Project204792");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
