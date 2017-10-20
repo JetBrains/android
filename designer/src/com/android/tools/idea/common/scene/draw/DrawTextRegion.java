@@ -17,15 +17,13 @@ package com.android.tools.idea.common.scene.draw;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,22 +31,13 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base Class for drawing text components
  */
 public class DrawTextRegion extends DrawRegion {
-  private static Cache<String, Font> ourFontCache = CacheBuilder.newBuilder()
-    .maximumSize(100)
-    .expireAfterAccess(10, TimeUnit.SECONDS)
-    .build();
-
   protected static final int DEFAULT_FONT_SIZE = 14;
   protected static final float DEFAULT_SCALE = 1.0f;
-  public static final float SCALE_ADJUST = .88f; // a factor to scale funts from android to Java2d
   @SuppressWarnings("UseJBColor")
   private static final Color TEXT_PANE_BACKGROUND = new Color(0, 0, 0, 0);
 
@@ -84,20 +73,6 @@ public class DrawTextRegion extends DrawRegion {
    */
   public static void setDoWrap(boolean doWrap) {
     DO_WRAP = doWrap;
-  }
-
-  @NotNull
-  private static Font getFont(int size, float scale) {
-    String key = String.valueOf(size) + ' ' + scale;
-
-    // Convert to swing size font
-    try {
-      return ourFontCache.get(key, () -> new Font("Helvetica", Font.PLAIN, size)
-        .deriveFont(AffineTransform.getScaleInstance(scale * SCALE_ADJUST, scale * SCALE_ADJUST)));
-    }
-    catch (ExecutionException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
@@ -180,7 +155,7 @@ public class DrawTextRegion extends DrawRegion {
     mFontSize = fontSize;
     mScale = scale;
 
-    mFont = getFont(mFontSize, mScale);
+    mFont = FontCache.INSTANCE.getFont(mFontSize, mScale);
 
     switch (mMode) {
       case DecoratorUtilities.ViewStates.SELECTED_VALUE:

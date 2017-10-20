@@ -27,7 +27,6 @@ import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawScreenLabel
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
-import java.awt.Font
 import java.awt.Rectangle
 
 /**
@@ -75,9 +74,8 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
       l += iconSize + sceneContext.getSwingDimension(PADDING.toFloat())
     }
 
-    val font = Font(FONT_NAME, FONT_STYLE, sceneContext.getSwingDimension(FONT_SIZE.toFloat()))
     val text = component.nlComponent.id ?: ""
-    list.add(DrawScreenLabel(l, b - sceneContext.getSwingDimension(PADDING.toFloat()), font, text))
+    list.add(DrawScreenLabel(l, b - sceneContext.getSwingDimension(PADDING.toFloat()), text))
 
     if (hasDeepLink) {
       list.add(DrawIcon(Rectangle(r - iconSize, t, iconSize, iconSize), DrawIcon.IconType.DEEPLINK))
@@ -91,10 +89,5 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
   companion object {
     private const val HEIGHT = 12
     private const val PADDING = 4
-
-    // TODO: finalize values for the following constants
-    private const val FONT_NAME: String = "Default"
-    private const val FONT_STYLE = Font.PLAIN
-    private const val FONT_SIZE = 11
   }
 }

@@ -34,7 +34,7 @@ class SerializationTest : TestCase() {
     testSerialization("DrawNavigationFrame,20,20x10x200x100,false,true", DrawNavigationFrame(Rectangle(20, 10, 200, 100), false, true), factory)
   }
 
-  fun testDrawFragmentFrame() {
+  fun testDrawScreenFrame() {
     val factory = { s: String -> DrawScreenFrame(s) }
 
     testSerialization("DrawScreenFrame,20,10x20x100x200,true,false", DrawScreenFrame(Rectangle(10, 20, 100, 200), true, false), factory)
@@ -62,6 +62,13 @@ class SerializationTest : TestCase() {
 
     testSerialization("DrawActionHandleDrag,26,10,20,5", DrawActionHandleDrag(10, 20, 5), factory)
     testSerialization("DrawActionHandleDrag,26,30,50,10", DrawActionHandleDrag(30, 50, 10), factory)
+  }
+
+  fun testDrawScreenLabel() {
+    val factory = { s: String -> DrawScreenLabel(s) }
+
+    testSerialization("DrawScreenLabel,22,10,20,foo", DrawScreenLabel(10, 20, "foo"), factory)
+    testSerialization("DrawScreenLabel,22,30,40,bar", DrawScreenLabel(30, 40, "bar"), factory)
   }
 
   companion object {
