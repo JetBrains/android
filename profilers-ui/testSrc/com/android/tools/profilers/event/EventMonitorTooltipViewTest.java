@@ -123,7 +123,7 @@ public class EventMonitorTooltipViewTest {
     }
 
     public String getTitleText() {
-      return myLabel.getText();
+      return myHeadingLabel.getText();
     }
   }
   private static final class ActivityStateData {

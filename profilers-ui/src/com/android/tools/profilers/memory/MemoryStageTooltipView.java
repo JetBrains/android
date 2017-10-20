@@ -21,7 +21,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 class MemoryStageTooltipView extends ProfilerTooltipView {
   @NotNull private final MemoryProfilerStage myStage;
@@ -31,8 +31,9 @@ class MemoryStageTooltipView extends ProfilerTooltipView {
     myStage = stage;
   }
 
+  @NotNull
   @Override
-  protected Component createTooltip() {
+  protected JComponent createTooltip() {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();

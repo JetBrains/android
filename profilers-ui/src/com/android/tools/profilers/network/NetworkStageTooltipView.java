@@ -19,8 +19,9 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 class NetworkStageTooltipView extends ProfilerTooltipView {
   private final NetworkProfilerStage myStage;
@@ -30,8 +31,9 @@ class NetworkStageTooltipView extends ProfilerTooltipView {
     myStage = stage;
   }
 
+  @NotNull
   @Override
-  protected Component createTooltip() {
+  protected JComponent createTooltip() {
     NetworkProfilerStage.NetworkStageLegends legends = myStage.getTooltipLegends();
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
