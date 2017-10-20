@@ -29,12 +29,11 @@ public class ProfilingConfiguration {
 
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
 
-  // TODO: change ART sampled configuration name to Sampled (Java) when we enable simpleperf flag on
-  public static final String ART_SAMPLED = "Sampled";
+  public static final String ART_SAMPLED = "Sampled (Java)";
 
-  public static final String ART_INSTRUMENTED = "Instrumented";
+  public static final String ART_INSTRUMENTED = "Instrumented (Java)";
 
-  public static final String SIMPLEPERF = "Sampled (Hybrid)";
+  public static final String SIMPLEPERF = "Sampled (Native)";
 
   private static List<ProfilingConfiguration> ourDefaultConfigurations;
 
