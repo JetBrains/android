@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
+import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -69,10 +70,10 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -107,6 +108,7 @@ public class GradleSpecificInitializer implements Runnable {
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
     replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
+    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
     checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
