@@ -36,5 +36,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager"/>
+    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS" id="Resources Explorer"
+                factoryClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"
+                conditionClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"/>
   </extensions>
 </idea-plugin>
