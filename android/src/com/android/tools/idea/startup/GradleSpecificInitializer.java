@@ -108,7 +108,7 @@ public class GradleSpecificInitializer implements Runnable {
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
     replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
-    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
+    setUpGradleViewToolbarActions();
     checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
@@ -160,6 +160,11 @@ public class GradleSpecificInitializer implements Runnable {
         }
       });
     }
+  }
+
+  private static void setUpGradleViewToolbarActions() {
+    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
+    hideAction("ExternalSystem.SelectProjectDataToImport");
   }
 
   private static void setUpNewProjectActions() {
