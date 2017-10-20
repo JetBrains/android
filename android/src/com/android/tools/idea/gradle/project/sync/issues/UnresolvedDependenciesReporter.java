@@ -33,19 +33,12 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,12 +53,12 @@ import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildMo
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
 
 public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
   private static final String OPEN_FILE_HYPERLINK_TEXT = "Open File";
+
+  private DependencyPositionFinder myDependencyPositionFinder = new DependencyPositionFinder();
 
   @NotNull
   public static UnresolvedDependenciesReporter getInstance() {
@@ -138,7 +131,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
 
     SyncMessage message;
     if (buildFile != null) {
-      PositionInFile position = findDependencyPosition(dependency, buildFile);
+      PositionInFile position = myDependencyPositionFinder.findDependencyPosition(dependency, buildFile);
       message = new SyncMessage(module.getProject(), group, ERROR, position, text);
       String hyperlinkText = position.line > -1 ? "Show in File" : OPEN_FILE_HYPERLINK_TEXT;
       quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, position.line, position.column));
@@ -158,51 +151,10 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   }
 
   @NotNull
-  private static PositionInFile findDependencyPosition(@NotNull String dependency, @NotNull VirtualFile buildFile) {
-    int line = -1;
-    int column = -1;
-
-    Document document = FileDocumentManager.getInstance().getDocument(buildFile);
-    if (document != null) {
-      TextRange textRange = findDependency(dependency, document);
-      if (textRange != null) {
-        line = document.getLineNumber(textRange.getStartOffset());
-        if (line > -1) {
-          int lineStartOffset = document.getLineStartOffset(line);
-          column = textRange.getStartOffset() - lineStartOffset;
-        }
-      }
-    }
-
-    return new PositionInFile(buildFile, line, column);
-  }
-
-  @NotNull
   private static Collection<RemotePackage> getRemotePackages(@NotNull ProgressIndicator indicator) {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     RepositoryPackages packages = sdkHandler.getSdkManager(indicator).getPackages();
     return packages.getRemotePackages().values();
-  }
-
-  @Nullable
-  private static TextRange findDependency(@NotNull String dependency, @NotNull Document buildFile) {
-    Function<Pair<String, GroovyLexer>, TextRange> consumer = pair -> {
-      GroovyLexer lexer = pair.getSecond();
-      return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
-    };
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(buildFile.getText());
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == mSTRING_LITERAL) {
-        String text = unquoteString(lexer.getTokenText());
-        if (text.startsWith(dependency)) {
-          return consumer.fun(Pair.create(text, lexer));
-        }
-      }
-      lexer.advance();
-    }
-    return null;
   }
 
   private void reportWithoutDependencyInfo(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
