@@ -20,16 +20,17 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class JavaToKotlinConversionTest {
@@ -62,36 +63,23 @@ public class JavaToKotlinConversionTest {
    *   </pre>
    * <p>
    */
-  @Ignore("b/67956060")
   @RunIn(TestGroup.QA)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
 
-    ideFrameFixture.getEditor()
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    EditorFixture editor = ideFrameFixture.getEditor();
 
-    Wait.seconds(3).expecting("Wait for the convertion option is enabled.").until(() -> {
-      try {
-        ideFrameFixture.invokeMenuPath("Code", "Convert Java File to Kotlin File");
-        return true;
-      } catch (AssertionError e) {
-      }
-      return false;
-    });
+    editor.open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .waitUntilErrorAnalysisFinishes();
 
-    Wait.seconds(10).expecting("Wait for kt file is generated.").until(() -> {
-      try {
-        ideFrameFixture.getEditor()
-          .open("app/src/main/java/google/simpleapplication/MyActivity.kt")
-          // Check activity is getting coverted to Kotlin.
-          .moveBetween("class MyActivity : Activity() {", "");
-        return true;
-      } catch (AssertionError e) {
-      }
-      return false;
-    });
+    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+
+    Wait.seconds(10).expecting("Wait for kt file is generated.")
+      .until(() -> "MyActivity.kt".equals(editor.getCurrentFileName()));
+
+    assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
     ideFrameFixture.runApp(APP_NAME)
