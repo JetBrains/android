@@ -49,7 +49,7 @@ val NlComponent.visibleDestinations: List<NlComponent>
   get() {
     val schema = NavigationSchema.getOrCreateSchema(model.facet)
     val result = arrayListOf<NlComponent>()
-    var p = parent
+    var p: NlComponent? = this
     while (p != null) {
       p.getChildren().filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
       p = p.parent

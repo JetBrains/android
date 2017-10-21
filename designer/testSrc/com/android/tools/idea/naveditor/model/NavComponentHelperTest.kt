@@ -57,7 +57,7 @@ class NavComponentHelperTest {
 
 class NavComponentHelperTest2 : NavigationTestCase() {
 
-  fun testVisibleComponents() {
+  fun testVisibleDestinations() {
     val model = model("nav.xml",
         rootComponent().id("@+id/root")
             .unboundedChildren(
@@ -89,11 +89,12 @@ class NavComponentHelperTest2 : NavigationTestCase() {
     val subnav2 = model.find("subnav2")
     val subsubnav = model.find("subsubnav")
 
-    assertContainsElements(listOf(root, f1, a1, subnav1, subnav2), f1?.visibleDestinations!!)
-    assertContainsElements(listOf(root, f1, a1, f2, f3, subnav1, subnav2), f2?.visibleDestinations!!)
-    assertContainsElements(listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav), f4?.visibleDestinations!!)
-    assertContainsElements(listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav, f5), f5?.visibleDestinations!!)
-
+    assertSameElements(f1!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
+    assertSameElements(f2!!.visibleDestinations, listOf(root, f1, a1, f2, f3, subnav1, subnav2))
+    assertSameElements(f4!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav))
+    assertSameElements(f5!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav, f5))
+    assertSameElements(model.find("root")!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
+    assertSameElements(subnav1!!.visibleDestinations, listOf(root, f1, a1, subnav1, f2, f3, subnav2))
   }
 
   fun testFindVisibleDestination() {
