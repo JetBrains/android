@@ -21,7 +21,10 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.icon.*;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
+import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureAdaptiveIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
@@ -75,7 +78,7 @@ import java.util.stream.Collectors;
 
 /**
  * A panel which presents a UI for selecting some source asset and converting it to a target set of
- * Android Icons. See {@link AndroidAdaptiveIconType} for the types of icons this can generate.
+ * Android Icons. See {@link AndroidIconType} for the types of icons this can generate.
  *
  * Before generating icons, you should first check {@link #hasErrors()} to make sure there won't be
  * any errors in the generation process.
@@ -91,12 +94,12 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   @NotNull private final BindingsManager myBindings = new BindingsManager();
   @NotNull private final ListenerManager myListeners = new ListenerManager();
 
-  private final Map<AndroidAdaptiveIconType, PreviewIconsPanel> myOutputPreviewPanels;
-  private final ObservableValue<AndroidAdaptiveIconType> myOutputIconType;
+  private final Map<AndroidIconType, PreviewIconsPanel> myOutputPreviewPanels;
+  private final ObservableValue<AndroidIconType> myOutputIconType;
   private final StringProperty myOutputName = new StringValueProperty();
 
   private JPanel myRootPanel;
-  private JComboBox<AndroidAdaptiveIconType> myIconTypeCombo;
+  private JComboBox<AndroidIconType> myIconTypeCombo;
   private JPanel myConfigureIconPanels;
   private List<ConfigureIconView> myConfigureIconViews = new ArrayList<>();
   private CheckeredBackgroundPanel myOutputPreviewPanel;
@@ -132,7 +135,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   public GenerateImageAssetPanel(@NotNull AndroidFacet facet,
                                  @NotNull Disposable disposableParent,
                                  @NotNull AndroidModuleTemplate defaultPaths,
-                                 @NotNull AndroidAdaptiveIconType... supportedTypes) {
+                                 @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
@@ -156,10 +159,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myPaths = myDefaultPaths;
 
     if (supportedTypes.length == 0) {
-      supportedTypes = AndroidAdaptiveIconType.values();
+      supportedTypes = AndroidIconType.values();
     }
 
-    DefaultComboBoxModel<AndroidAdaptiveIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
+    DefaultComboBoxModel<AndroidIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
     myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
@@ -192,21 +195,17 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
 
     // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
-    for (AndroidAdaptiveIconType iconType : supportedTypes) {
+    for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view;
       switch (iconType) {
-        case ADAPTIVE:
+        case LAUNCHER:
           view = new ConfigureAdaptiveIconPanel(facet, this, myShowGridProperty, myShowSafeZoneProperty,
                                                 myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
-          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion);
-          break;
         case ACTIONBAR:
-          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion);
-          break;
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion);
+          view = new ConfigureIconPanel(this, iconType, minSdkVersion);
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
@@ -217,11 +216,11 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
 
 
     // Create an output preview panel for each icon type
-    ImmutableMap.Builder<AndroidAdaptiveIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
-    previewPanelBuilder.put(AndroidAdaptiveIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.LAUNCHER_LEGACY, new LegacyLauncherIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.ADAPTIVE, new AdaptiveIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
+    ImmutableMap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
+    previewPanelBuilder.put(AndroidIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER_LEGACY, new LegacyLauncherIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER, new AdaptiveIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
     myOutputPreviewPanels = previewPanelBuilder.build();
 
     WrappedFlowLayout previewLayout = new WrappedFlowLayout(FlowLayout.LEADING);
@@ -262,7 +261,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     Runnable updatePreview = () -> {
       ConfigureIconView iconView = getActiveIconView();
       myBindings.bind(myOutputName, iconView.outputName());
-      if (myOutputIconType.get() == AndroidAdaptiveIconType.NOTIFICATION) {
+      if (myOutputIconType.get() == AndroidIconType.NOTIFICATION) {
         myOutputPreviewLabel.setText("Preview (API 11+)");
       }
       else {
@@ -283,7 +282,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       @NotNull
       @Override
       public Boolean get() {
-        return myOutputIconType.get() == AndroidAdaptiveIconType.ADAPTIVE;
+        return myOutputIconType.get() == AndroidIconType.LAUNCHER;
       }
     };
     myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
@@ -305,7 +304,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       previewPanel.setImage(previewInfo.getImage());
       previewPanel.setImageBackground(previewInfo.getImageBackground());
       previewPanel.setImageOpaque(previewInfo.isImageOpaque());
-      if (myOutputIconType.get() != AndroidAdaptiveIconType.ADAPTIVE) {
+      if (myOutputIconType.get() != AndroidIconType.LAUNCHER) {
         previewPanel.setImageBorder(previewInfo.getImageBorder());
       }
 
@@ -404,7 +403,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private void enqueueGenerateNotificationIcons() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    AndroidAdaptiveIconType iconType = myOutputIconType.get();
+    AndroidIconType iconType = myOutputIconType.get();
     AndroidIconGenerator iconGenerator = getActiveIconView().getIconGenerator();
 
     myBackgroundIconGenerator.enqueue(iconType, iconGenerator, iconGeneratorResult -> {

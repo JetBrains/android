@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconType;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -40,7 +40,7 @@ public class BackgroundIconGenerator {
   @NotNull private final List<Request> myImageRequests = new ArrayList<>();
   @Nullable private Request myRunningRequest;
 
-  public void enqueue(@NotNull AndroidAdaptiveIconType iconType,
+  public void enqueue(@NotNull AndroidIconType iconType,
                       @NotNull AndroidIconGenerator iconGenerator,
                       @NotNull Consumer<IconGeneratorResult> onDone) {
     ApplicationManager.getApplication().assertIsDispatchThread();
@@ -80,13 +80,13 @@ public class BackgroundIconGenerator {
   }
 
   private static class Request {
-    @NotNull private final AndroidAdaptiveIconType myType;
+    @NotNull private final AndroidIconType myType;
     @NotNull private final AndroidIconGenerator myIconGenerator;
     @NotNull private final Consumer<IconGeneratorResult> myOnDone;
     @NotNull private final GraphicGenerator.Options myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
 
-    public Request(@NotNull AndroidAdaptiveIconType iconType,
+    public Request(@NotNull AndroidIconType iconType,
                    @NotNull AndroidIconGenerator iconGenerator,
                    @NotNull GraphicGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
@@ -107,7 +107,7 @@ public class BackgroundIconGenerator {
     }
 
     @NotNull
-    public AndroidAdaptiveIconType getIconType() {
+    public AndroidIconType getIconType() {
       return myType;
     }
   }
