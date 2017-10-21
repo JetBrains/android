@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
@@ -21,7 +20,6 @@ import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.*;
-import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -33,7 +31,6 @@ import com.android.tools.idea.observable.expressions.optional.AsOptionalExpressi
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
@@ -47,6 +44,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,12 +53,8 @@ import java.util.Map;
  * generate the icon plus some other options. Note that this panel provides a superset of all
  * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
- *
- * See also {@link GenerateIconsPanel} which owns a couple of these panels, one for each
- * {@link AndroidIconType}.
  */
 public final class ConfigureIconPanel extends JPanel implements Disposable, ConfigureIconView {
-
   /**
    * Source material icons are provided in a vector graphics format, but their default resolution
    * is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
@@ -68,7 +62,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
    */
   private static final Dimension CLIPART_RESOLUTION = new Dimension(256, 256);
 
-  @NotNull private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
+  @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   @NotNull private final AndroidIconType myIconType;
   @NotNull private final AndroidIconGenerator myIconGenerator;
@@ -88,11 +82,11 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
   // @formatter:off
   private final Map<GraphicGenerator.Shape, String> myShapeNames = ImmutableMap.of(
-    GraphicGenerator.Shape.NONE, "None",
-    GraphicGenerator.Shape.CIRCLE, "Circle",
-    GraphicGenerator.Shape.SQUARE, "Square",
-    GraphicGenerator.Shape.VRECT, "Vertical",
-    GraphicGenerator.Shape.HRECT, "Horizontal");
+      GraphicGenerator.Shape.NONE, "None",
+      GraphicGenerator.Shape.CIRCLE, "Circle",
+      GraphicGenerator.Shape.SQUARE, "Square",
+      GraphicGenerator.Shape.VRECT, "Vertical",
+      GraphicGenerator.Shape.HRECT, "Horizontal");
   // @formatter:on
 
   private JPanel myRootPanel;
@@ -127,10 +121,10 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JRadioButton myNoEffectRadioButton;
   private JRadioButton myDogEarRadioButton;
   private JPanel myThemeRowPanel;
-  private JComboBox myThemeComboBox;
+  private JComboBox<ActionBarIconGenerator.Theme> myThemeComboBox;
   private JPanel myEffectRowPanel;
   private JBScrollPane myScrollPane;
-  private JComboBox myShapeComboBox;
+  private JComboBox<GraphicGenerator.Shape> myShapeComboBox;
   private JPanel myCustomThemeRowPanel;
   private ColorPanel myCustomThemeColorPanel;
   private JPanel myAssetPanels;
@@ -165,9 +159,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private AbstractProperty<Color> myThemeColor;
 
   /**
-   * Create a panel which can generate Android icons. The supported types passed in will be
-   * presented to the user in a pulldown menu (unless there's only one supported type). If no
-   * supported types are passed in, then all types will be supported by default.
+   * Creates a panel which can generate Android icons.
    */
   public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidIconType iconType, int minSdkVersion) {
     super(new BorderLayout());
@@ -175,10 +167,10 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myIconType = iconType;
     myIconGenerator = createIconGenerator(iconType, minSdkVersion);
 
-    DefaultComboBoxModel themesModel = new DefaultComboBoxModel(ActionBarIconGenerator.Theme.values());
+    DefaultComboBoxModel<ActionBarIconGenerator.Theme> themesModel = new DefaultComboBoxModel<>(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
 
-    DefaultComboBoxModel shapesModel = new DefaultComboBoxModel();
+    DefaultComboBoxModel<GraphicGenerator.Shape> shapesModel = new DefaultComboBoxModel<>();
     for (GraphicGenerator.Shape shape : myShapeNames.keySet()) {
       shapesModel.addElement(shape);
     }
@@ -198,9 +190,9 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
     // @formatter:off
     myAssetPanelMap = ImmutableMap.of(
-      myImageRadioButton, myImageAssetBrowser,
-      myClipartRadioButton, myClipartAssetButton,
-      myTextRadioButton, myTextAssetEditor
+        myImageRadioButton, myImageAssetBrowser,
+        myClipartRadioButton, myClipartAssetButton,
+        myTextRadioButton, myTextAssetEditor
     );
     // @formatter:on
 
@@ -241,22 +233,22 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull
   private static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
     switch (iconType) {
-      case LAUNCHER:
+      case LAUNCHER_LEGACY:
         return new AndroidLauncherIconGenerator(minSdkVersion);
       case ACTIONBAR:
         return new AndroidActionBarIconGenerator(minSdkVersion);
       case NOTIFICATION:
         return new AndroidNotificationIconGenerator(minSdkVersion);
+      default:
+        throw new IllegalArgumentException("Unexpected icon type: " + iconType);
     }
-
-    throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);
   }
 
   private void initializeListenersAndBindings() {
-    final BoolProperty trimmed = new SelectedProperty(myTrimmedRadioButton);
+    BoolProperty trimmed = new SelectedProperty(myTrimmedRadioButton);
 
-    final IntProperty paddingPercent = new SliderValueProperty(myPaddingSlider);
-    final StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
+    IntProperty paddingPercent = new SliderValueProperty(myPaddingSlider);
+    StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
     myIgnoreForegroundColor = new SelectedProperty(myImageRadioButton);
@@ -265,8 +257,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myCropped = new SelectedProperty(myCropRadioButton);
     myDogEared = new SelectedProperty(myDogEarRadioButton);
 
-    myTheme = new OptionalToValuePropertyAdapter<>(
-      new SelectedItemProperty<>(myThemeComboBox));
+    myTheme = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myThemeComboBox));
     myThemeColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myCustomThemeColorPanel));
 
     myShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myShapeComboBox));
@@ -291,8 +282,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
     final Runnable onAssetModified = this::fireAssetListeners;
     myListeners
-      .listenAll(trimmed, paddingPercent, myForegroundColor, myBackgroundColor, myCropped, myDogEared, myTheme, myThemeColor, myShape)
-      .with(onAssetModified);
+        .listenAll(trimmed, paddingPercent, myForegroundColor, myBackgroundColor, myCropped, myDogEared, myTheme, myThemeColor, myShape)
+        .with(onAssetModified);
 
     myListeners.listenAndFire(myActiveAsset, sender -> {
       myActiveAssetBindings.releaseAll();
@@ -304,14 +295,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       onAssetModified.run();
     });
 
-    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER));
+    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER_LEGACY));
     ObservableBool isActionBarIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.ACTIONBAR));
     ObservableBool isCustomTheme = myTheme.isEqualTo(ActionBarIconGenerator.Theme.CUSTOM);
     ObservableValue<Boolean> isClipartOrText =
-      myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);
+        myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);
     ObservableBool supportsEffects = new BooleanExpression(myShape) {
-      @NotNull
       @Override
+      @NotNull
       public Boolean get() {
         GraphicGenerator.Shape shape = myShape.get();
         switch (shape) {
@@ -325,7 +316,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       }
     };
 
-    /**
+    /*
      * Hook up a bunch of UI <- boolean expressions, so that when certain conditions are met,
      * various components show/hide. This also requires refreshing the panel explicitly, as
      * otherwise Swing doesn't realize it should trigger a relayout.
@@ -359,7 +350,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   }
 
   /**
-   * Return an icon generator which will create Android icons using the panel's current settings.
+   * Returns an icon generator which will create Android icons using the panel's current settings.
    */
   @Override
   @NotNull
@@ -367,14 +358,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     return myIconGenerator;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public JComponent getRootComponent() {
     return this;
   }
 
   /**
-   * Add a listener which will be triggered whenever the asset represented by this panel is
+   * Adds a listener which will be triggered whenever the asset represented by this panel is
    * modified in any way.
    */
   @Override
@@ -402,7 +393,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
 
     switch (myIconType) {
-      case LAUNCHER:
+      case LAUNCHER_LEGACY:
         AndroidLauncherIconGenerator launcherIconGenerator = (AndroidLauncherIconGenerator)myIconGenerator;
         myGeneralBindings.bind(launcherIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
         myGeneralBindings.bindTwoWay(myForegroundColor, launcherIconGenerator.foregroundColor());
@@ -421,6 +412,9 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       case NOTIFICATION:
         // No special options
         break;
+
+      default:
+        throw new IllegalStateException("Unexpected icon type: " + myIconType);
     }
   }
 

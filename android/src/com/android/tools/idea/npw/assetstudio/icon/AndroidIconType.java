@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public enum AndroidIconType {
   /**
-   * Launcher icon to be shown in the application list
+   * Launcher icon to be shown in the application list.
    */
-  LAUNCHER("Launcher Icons", "ic_launcher"),
+  LAUNCHER("Launcher Icons (Adaptive and Legacy)", "ic_launcher"),
+
+  /**
+   * Launcher icon to be shown in the application list.
+   */
+  LAUNCHER_LEGACY("Launcher Icons (Legacy only)", "ic_launcher"),
 
   /**
    * Icons shown in the action bar
@@ -38,10 +43,7 @@ public enum AndroidIconType {
   NOTIFICATION("Notification Icons", "ic_stat_%s");
 
   @NotNull private final String myDisplayName;
-
-  /**
-   * Default asset name format, for use in generating a name for the final asset.
-   */
+  /** Default asset name format, for use in generating a name for the final asset. */
   @NotNull private final String myDefaultNameFormat;
 
   AndroidIconType(@NotNull String displayName, @NotNull String defaultNameFormat) {
@@ -55,8 +57,7 @@ public enum AndroidIconType {
   }
 
   /**
-   * Convert a value like 'name' to the icon appropriate version, e.g. 'icon_stat_name' for
-   * notification icons.
+   * Converts a value like 'name' to the icon appropriate version, e.g. 'icon_stat_name' for notification icons.
    */
   @NotNull
   public String toOutputName(@NotNull String baseName) {

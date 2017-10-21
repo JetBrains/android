@@ -25,8 +25,7 @@ import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconType;
-import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -72,11 +71,8 @@ import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
  * generate the icon plus some other options. Note that this panel provides a superset of all
- * options used by each {@link AndroidAdaptiveIconType}, but the relevant options are shown / hidden based
+ * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
- *
- * See also {@link GenerateIconsPanel} which owns a couple of these panels, one for each
- * {@link AndroidAdaptiveIconType}.
  */
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
@@ -653,7 +649,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   }
 
   private void updateBindingsAndUiForActiveIconType() {
-    myOutputName.set(AndroidAdaptiveIconType.ADAPTIVE.toOutputName("name"));
+    myOutputName.set(AndroidIconType.LAUNCHER.toOutputName("name"));
     myForegroundLayerName.set("ic_launcher_foreground");
     myBackgroundLayerName.set("ic_launcher_background");
 
