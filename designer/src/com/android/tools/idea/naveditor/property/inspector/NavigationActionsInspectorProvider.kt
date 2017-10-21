@@ -24,6 +24,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.common.util.WhiteIconGenerator
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.SortedListModel
@@ -76,6 +77,7 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
     private val myActions = SortedListModel<NlProperty>(compareBy { it.name } )
     private val myProperties = mutableListOf<NavActionsProperty>()
     private val myComponents = mutableListOf<NlComponent>()
+    private var mySurface: NavDesignSurface? = null
 
     override fun updateProperties(components: List<NlComponent>,
                                   properties: Map<String, NlProperty>,
@@ -83,6 +85,8 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       myProperties.clear()
       myComponents.clear()
       myComponents.addAll(components)
+
+      mySurface = propertiesManager.designSurface as? NavDesignSurface
 
       properties.values.filterIsInstanceTo(myProperties, NavActionsProperty::class.java)
       refresh()
@@ -136,7 +140,8 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
       val plusPanel = JPanel(BorderLayout())
       plusPanel.add(plus, BorderLayout.EAST)
 
-      inspector.addExpandableComponent("Actions", null, plusPanel, plusPanel)
+      val title = if (myComponents.size == 1 && myComponents[0] == mySurface?.currentNavigation) { "Global Actions" } else { "Actions" }
+      inspector.addExpandableComponent(title, null, plusPanel, plusPanel)
       inspector.addPanel(panel)
     }
 
