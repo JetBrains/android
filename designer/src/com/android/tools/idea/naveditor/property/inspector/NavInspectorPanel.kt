@@ -18,7 +18,10 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
+import com.android.tools.idea.naveditor.property.NavActionsProperty
+import com.android.tools.idea.naveditor.property.NavComponentTypeProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.intellij.openapi.Disposable
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -34,6 +37,8 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
     if (components.isEmpty()) {
       return
     }
+
+    propertiesByName.put(TYPE_EDITOR_PROPERTY_LABEL, NavComponentTypeProperty(components))
 
     val schema = NavigationSchema.getOrCreateSchema(components[0].model.facet)
 

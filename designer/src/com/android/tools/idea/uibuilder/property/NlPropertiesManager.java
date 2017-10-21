@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +50,7 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   private NlInspectorProviders myInspectorProviders;
 
   public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
-    super(facet, designSurface);
+    super(facet, designSurface, NlPropertyEditors.getInstance(facet.getModule().getProject()));
   }
 
   @NotNull

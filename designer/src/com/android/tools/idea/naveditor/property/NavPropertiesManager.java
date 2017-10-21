@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.naveditor.property;
 
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.naveditor.property.editors.NavPropertyEditors;
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.Disposable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager> {
   public NavPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
-    super(facet, designSurface);
+    super(facet, designSurface, NavPropertyEditors.Factory.getInstance(facet.getModule().getProject()));
   }
 
   @NotNull
