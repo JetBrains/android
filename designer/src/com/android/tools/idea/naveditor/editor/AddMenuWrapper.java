@@ -77,7 +77,6 @@ public class AddMenuWrapper extends DropDownAction {
   private static final JLabel RENDERER_COMPONENT = new JLabel();
   private static final String NEW_PANEL_NAME = "new";
   private static final String SELECTION_PANEL_NAME = "selection";
-  private static final String INCLUDE_GRAPH_LABEL = "Include Graph";
   private final NavDesignSurface mySurface;
   @VisibleForTesting
   public final List<NavActionManager.Destination> myDestinations;
@@ -247,7 +246,7 @@ public class AddMenuWrapper extends DropDownAction {
       //noinspection ConstantConditions  At this point we know that there's a tag associated with this type
       NavActionManager.Destination dest =
         new NavActionManager.Destination(null, "", "",
-                                         mySchema.getAnyRootTag(type), null);
+                                         mySchema.getDefaultTag(type), null);
       addElement(dest, mySurface, myIdField.getText(), myLabelField.getText());
     }
     else if (type == NAVIGATION) {
@@ -301,7 +300,7 @@ public class AddMenuWrapper extends DropDownAction {
     createKindPopup();
     selectionGrid.add(myKindPopup, new TabularLayout.Constraint(0, 2));
 
-    myKindPopup.setSelectedItem(mySchema.getAnyRootTag(FRAGMENT));
+    myKindPopup.setSelectedItem(mySchema.getDefaultTag(FRAGMENT));
     updateDefaultIdAndLabel();
     return selectionGrid;
   }
@@ -324,7 +323,7 @@ public class AddMenuWrapper extends DropDownAction {
       Matcher m = Pattern.compile("\\d*$").matcher(myDefaultId);
       if (m.find()) {
         String n = m.group();
-        myDefaultLabel = getTypeLabel(tag) + (n.isEmpty() ? "" : " " + n);
+        myDefaultLabel = mySchema.getTagLabel(tag) + (n.isEmpty() ? "" : " " + n);
         myLabelField.setText(myDefaultLabel);
       }
     }
@@ -363,11 +362,11 @@ public class AddMenuWrapper extends DropDownAction {
     Multimap<String, PsiClass> tagToClass = HashMultimap.create();
     mySchema.getNavigatorClassTagMap().forEach((psiClass, tag) -> tagToClass.put(tag, psiClass));
     Pair<String, PsiClass> defaultSelection = null;
-    String defaultTag = mySchema.getAnyRootTag(FRAGMENT);
+    String defaultTag = mySchema.getDefaultTag(FRAGMENT);
     // Iterate over tagTypeMap since it includes <include>
     for (String tag : mySchema.getTagTypeMap().keySet()) {
       Collection<PsiClass> classes = tagToClass.get(tag);
-      String label = getTypeLabel(tag);
+      String label = mySchema.getTagLabel(tag);
       for (PsiClass psiClass : classes) {
         if (classes.size() > 1) {
           label += " " + psiClass.getName();
@@ -386,7 +385,7 @@ public class AddMenuWrapper extends DropDownAction {
 
     myKindPopup.addItemListener(itemEvent -> {
       //noinspection unchecked
-      if (INCLUDE_GRAPH_LABEL.equals(((Pair<String, PsiClass>)itemEvent.getItem()).getFirst())) {
+      if (NavigationSchema.INCLUDE_GRAPH_LABEL.equals(((Pair<String, PsiClass>)itemEvent.getItem()).getFirst())) {
         myIdField.setVisible(false);
         myLabelField.setVisible(false);
         myIdLabel.setVisible(false);
@@ -406,34 +405,6 @@ public class AddMenuWrapper extends DropDownAction {
     });
 
     myKindPopup.setSelectedItem(defaultSelection);
-  }
-
-  @NotNull
-  private String getTypeLabel(String tag) {
-    NavigationSchema.DestinationType type = mySchema.getDestinationType(tag);
-    String text = null;
-    if (TAG_INCLUDE.equals(tag)) {
-      text = INCLUDE_GRAPH_LABEL;
-    }
-    else {
-      if (type == NAVIGATION) {
-        text = "Nested Graph";
-      }
-      else if (type == FRAGMENT) {
-        text = "Fragment";
-      }
-      else if (type == ACTIVITY) {
-        text = "Activity";
-      }
-      if (type != null && !tag.equals(mySchema.getAnyRootTag(type))) {
-        // If it's a custom tag, show it
-        text += " (" + tag + ")";
-      }
-    }
-    if (text == null) {
-      text = tag;
-    }
-    return text;
   }
 
   @NotNull

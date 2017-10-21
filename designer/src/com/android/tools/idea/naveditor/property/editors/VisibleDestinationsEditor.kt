@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property.editor
+package com.android.tools.idea.naveditor.property.editors
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
@@ -25,13 +25,12 @@ import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 
+// TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
 class VisibleDestinationsEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true) {
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
-  override fun getEnumSupport(property: NlProperty): EnumSupport {
-    return VisibleDestinationEnumSupport(property)
-  }
+  override fun getEnumSupport(property: NlProperty) = VisibleDestinationEnumSupport(property)
 
   class VisibleDestinationEnumSupport(property : NlProperty) : EnumSupport(property) {
     override fun getAllValues(): MutableList<ValueWithDisplayString> {

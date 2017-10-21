@@ -37,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
+
 /**
  * Provides information on OOTB and user-specified navigation tags and attributes.
  *
@@ -47,6 +49,10 @@ public class NavigationSchema implements Disposable {
   public static final String TAG_DEEPLINK = "deeplink";
   public static final String TAG_ARGUMENT = "argument";
   public static final String ATTR_DESTINATION = "destination";
+
+  // TODO: move these to a UI-specific place
+  public static final String INCLUDE_GRAPH_LABEL = "Include Graph";
+  public static final String ACTION_LABEL = "Action";
 
   public static final String TAG_INCLUDE = "include";
 
@@ -211,7 +217,7 @@ public class NavigationSchema implements Disposable {
   }
 
   @Nullable
-  public String getAnyRootTag(@NotNull DestinationType type) {
+  public String getDefaultTag(@NotNull DestinationType type) {
     return myTypeToRootTag.get(type);
   }
 
@@ -219,7 +225,7 @@ public class NavigationSchema implements Disposable {
   public String getTagForComponentSuperclass(@NotNull String superclassName) {
     DestinationType type = DESTINATION_SUPERCLASS_TO_TYPE.get(superclassName);
     if (type != null) {
-      return getAnyRootTag(type);
+      return getDefaultTag(type);
     }
     return null;
   }
@@ -279,5 +285,39 @@ public class NavigationSchema implements Disposable {
       throw new RuntimeException(className + " not found");
     }
     return result;
+  }
+
+  @NotNull
+  public String getTagLabel(@NotNull String tag) {
+    String text = null;
+    if (TAG_INCLUDE.equals(tag)) {
+      text = INCLUDE_GRAPH_LABEL;
+    }
+    else if (TAG_ACTION.equals(tag)) {
+      text = ACTION_LABEL;
+    }
+    else {
+      NavigationSchema.DestinationType type = getDestinationType(tag);
+      if (type == NAVIGATION) {
+        text = "Nested Graph";
+      }
+      else if (type == FRAGMENT) {
+        text = "Fragment";
+      }
+      else if (type == ACTIVITY) {
+        text = "Activity";
+      }
+
+      if (type == OTHER) {
+        text = tag;
+      }
+      else if (type != null && !tag.equals(getDefaultTag(type))) {
+        // If it's a custom tag, show it
+        text += " (" + tag + ")";
+      }
+    }
+
+    assert text != null;
+    return text;
   }
 }

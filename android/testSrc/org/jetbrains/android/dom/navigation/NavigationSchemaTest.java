@@ -129,8 +129,23 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testTagByType() {
     NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
-    assertEquals("activity", schema.getAnyRootTag(NavigationSchema.DestinationType.ACTIVITY));
-    assertEquals("navigation", schema.getAnyRootTag(NavigationSchema.DestinationType.NAVIGATION));
-    assertEquals("fragment", schema.getAnyRootTag(NavigationSchema.DestinationType.FRAGMENT));
+    assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
+    assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
+    assertEquals("fragment", schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT));
+  }
+
+  public void testTagLabel() {
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    assertEquals("Activity", schema.getTagLabel("activity"));
+    assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));
+    assertEquals("Fragment", schema.getTagLabel("fragment"));
+    assertEquals("Fragment (fragment_sub)", schema.getTagLabel("fragment_sub"));
+    assertEquals("Fragment (fragment_sub_sub)", schema.getTagLabel("fragment_sub_sub"));
+    assertEquals("Nested Graph", schema.getTagLabel("navigation"));
+    assertEquals("Nested Graph (navigation_sub)", schema.getTagLabel("navigation_sub"));
+    assertEquals("other_1", schema.getTagLabel("other_1"));
+    assertEquals("other_2", schema.getTagLabel("other_2"));
+    assertEquals("Include Graph", schema.getTagLabel("include"));
+    assertEquals("Action", schema.getTagLabel("action"));
   }
 }

@@ -21,13 +21,13 @@ import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.editors.PropertyEditors;
 import com.android.tools.idea.common.property.inspector.InspectorProviders;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
@@ -63,7 +63,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
 
   private final Project myProject;
   private final AndroidFacet myFacet;
-  private final NlPropertyEditors myEditors;
+  private final PropertyEditors myEditors;
   protected boolean myLoading;
   private JBLoadingPanel myLoadingPanel;
   private PropertiesPanel<Self> myPropertiesPanel;
@@ -75,15 +75,14 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private JBSplitter mySplitter;
 
 
-  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
+  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors) {
     myProject = facet.getModule().getProject();
     myFacet = facet;
     mySurface = designSurface;
-    myEditors = NlPropertyEditors.getInstance(getProject());
+    myEditors = editors;
     setToolContextWithoutCheck(designSurface);
     Disposer.register(facet.getModule().getProject(), this);
   }
-
 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
@@ -213,7 +212,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @NotNull
-  public NlPropertyEditors getPropertyEditors() {
+  public PropertyEditors getPropertyEditors() {
     return myEditors;
   }
 

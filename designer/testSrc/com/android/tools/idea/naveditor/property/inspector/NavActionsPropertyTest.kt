@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.property.NavActionsProperty
 
 class NavActionsPropertyTest : NavigationTestCase() {
   private lateinit var model: SyncNlModel

@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.adtui.ptable.PTableCellEditorProvider;
 import com.android.tools.adtui.ptable.PTableItem;
-import com.intellij.ide.ui.LafManager;
-import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.editors.PropertyEditors;
+import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -35,14 +33,14 @@ import java.util.Set;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class NlPropertyEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
+public class NlPropertyEditors extends PropertyEditors implements PTableCellEditorProvider{
   private Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;
   private NlTableCellEditor myComboEditor;
   private NlTableCellEditor myDefaultEditor;
 
-  public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO, COMBO_WITH_BROWSE}
+  private enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO, COMBO_WITH_BROWSE}
 
   @NotNull
   public static NlPropertyEditors getInstance(@NotNull Project project) {
@@ -72,6 +70,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     }
   }
 
+  @Override
   @NotNull
   public NlComponentEditor create(@NotNull NlProperty property) {
     switch (getEditorType(property)) {
@@ -88,7 +87,8 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     }
   }
 
-  private void resetCachedEditors() {
+  @Override
+  protected void resetCachedEditors() {
     myBooleanEditor = null;
     myFlagEditor = null;
     myComboEditor = null;
@@ -146,7 +146,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     return myBooleanEditor;
   }
 
-  public PTableCellEditor getMyFlagEditor() {
+  private PTableCellEditor getMyFlagEditor() {
     if (myFlagEditor == null) {
       myFlagEditor = NlFlagEditor.createForTable();
     }
@@ -168,34 +168,5 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     }
 
     return myDefaultEditor;
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
-    LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @Override
-  public void lookAndFeelChanged(LafManager source) {
-    resetCachedEditors();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return NlPropertyEditors.class.getSimpleName();
   }
 }

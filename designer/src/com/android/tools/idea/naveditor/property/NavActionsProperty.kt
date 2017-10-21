@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property.inspector
+package com.android.tools.idea.naveditor.property
 
 import com.android.SdkConstants
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.naveditor.property.inspector.PropertyAdapter
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -56,40 +56,4 @@ class NavActionsProperty(components: List<NlComponent>) : NlProperty by Property
     // Nothing?
   }
 
-  /**
-   * Dummy property with simple implementations for some methods.
-   */
-  private class PropertyAdapter(val myName: String, val myComponents: List<NlComponent>) : NlProperty {
-    override fun getNamespace() = null
-
-    override fun getResolvedValue() = null
-
-    override fun isDefaultValue(value: String?) = true
-
-    override fun getName() = myName
-
-    override fun getValue() = null
-
-    override fun setValue(value: Any?) {}
-
-    override fun resolveValue(value: String?) = null
-
-    override fun getTooltipText() = ""
-
-    override fun getDefinition() = null
-
-    override fun getComponents() = myComponents
-
-    override fun getResolver(): ResourceResolver? = model.configuration.resourceResolver
-
-    override fun getModel() = myComponents[0].model
-
-    override fun getTag() = if (myComponents.size > 1) null else myComponents[0].tag
-
-    override fun getTagName() = tag?.localName
-
-    override fun getChildProperty(name: String) = throw IllegalStateException()
-
-    override fun getDesignTimeProperty() = throw IllegalStateException()
-  }
 }
