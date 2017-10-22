@@ -81,6 +81,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.uast.UCallExpression;
+import org.jetbrains.uast.UExpression;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -314,6 +316,15 @@ public class LintIdeClient extends LintClient implements Disposable {
     return new LintIdeJavaParser(this, myProject, project);
   }
 
+  /**
+   * Whether we should skip attempting to use reflection in
+   * {@link JavaEvaluator#computeArgumentMapping(UCallExpression, PsiMethod)}.
+   *
+   * We need a separate flag rather than just checking for {@link #mappingMethod} != null since
+   * the method may not be available (for example if the Kotlin plugin is disabled.
+   */
+  private static boolean skipMappingReflection = false;
+
   @Nullable
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
@@ -335,6 +346,26 @@ public class LintIdeClient extends LintClient implements Disposable {
               }
             }
             return null;
+          }
+
+          @NotNull
+          @Override
+          public Map<UExpression, PsiParameter> computeArgumentMapping(@NotNull UCallExpression call, @NotNull PsiMethod method) {
+            // Call into lint-kotlin to look up the argument mapping if this call is a Kotlin method.
+            if (!skipMappingReflection) {
+              try {
+                Map<UExpression, PsiParameter> map = LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
+                if (map != null) {
+                  return map;
+                }
+              }
+              catch (Throwable ignore) {
+                //noinspection AssignmentToStaticFieldFromInstanceMethod
+                skipMappingReflection = true;
+              }
+            }
+
+            return super.computeArgumentMapping(call, method);
           }
         };
       }
