@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.ActionBarOptions;
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator.Theme;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -28,21 +26,21 @@ import java.io.IOException;
 @RunWith(JUnit4.class)
 public class ActionBarIconGeneratorTest {
 
-    private static void checkGraphic(String baseName, Theme theme) throws IOException {
-        ActionBarOptions options = new ActionBarOptions();
-        options.theme = theme;
+  private static void checkGraphic(String baseName, Theme theme) throws IOException {
+    ActionBarOptions options = new ActionBarOptions();
+    options.theme = theme;
 
-        ActionBarIconGenerator generator = new ActionBarIconGenerator();
-        BitmapGeneratorTests.checkGraphic(4, "actions", baseName, generator, options);
-    }
+    ActionBarIconGenerator generator = new ActionBarIconGenerator();
+    BitmapGeneratorTests.checkGraphic(4, "actions", baseName, generator, options);
+  }
 
-    @Test
-    public void testDark() throws Exception {
-        checkGraphic("ic_action_dark", Theme.HOLO_DARK);
-    }
+  @Test
+  public void testDark() throws Exception {
+    checkGraphic("ic_action_dark", Theme.HOLO_DARK);
+  }
 
-    @Test
-    public void testLight() throws Exception {
-        checkGraphic("ic_action_light", Theme.HOLO_LIGHT);
-    }
+  @Test
+  public void testLight() throws Exception {
+    checkGraphic("ic_action_light", Theme.HOLO_LIGHT);
+  }
 }

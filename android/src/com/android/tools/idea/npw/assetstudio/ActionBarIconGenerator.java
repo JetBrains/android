@@ -27,76 +27,69 @@ import java.awt.image.BufferedImage;
  * Generate icons for the action bar
  */
 public class ActionBarIconGenerator extends GraphicGenerator {
-
-    /** Creates a new {@link ActionBarIconGenerator}. */
-    public ActionBarIconGenerator() {
+  @NonNull
+  @Override
+  public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
     }
 
-    @NonNull
-    @Override
-    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
-        if (options.usePlaceholders) {
-            return PLACEHOLDER_IMAGE;
-        }
+    BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
+    if (sourceImage == null) {
+      sourceImage = AssetStudioUtils.createDummyImage();
+    }
+    ActionBarOptions actionBarOptions = (ActionBarOptions) options;
+    Rectangle iconSizeMdpi = new Rectangle(0, 0, 32, 32);
+    Rectangle targetRectMdpi = actionBarOptions.sourceIsClipart
+        ? new Rectangle(0, 0, 32, 32)
+        : new Rectangle(4, 4, 24, 24);
+    final float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
+    Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
+    Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
+    BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    Graphics2D g = (Graphics2D) outImage.getGraphics();
 
-        BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
-        if (sourceImage == null) {
-            sourceImage = AssetStudioUtils.createDummyImage();
-        }
-        ActionBarOptions actionBarOptions = (ActionBarOptions) options;
-        Rectangle iconSizeMdpi = new Rectangle(0, 0, 32, 32);
-        Rectangle targetRectMdpi = actionBarOptions.sourceIsClipart
-                ? new Rectangle(0, 0, 32, 32)
-                : new Rectangle(4, 4, 24, 24);
-        final float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
-        Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
-        Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
-        BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-        Graphics2D g = (Graphics2D) outImage.getGraphics();
+    BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    Graphics2D g2 = (Graphics2D)tempImage.getGraphics();
+    AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
 
-        BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-        Graphics2D g2 = (Graphics2D)tempImage.getGraphics();
-        AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
-
-        if (actionBarOptions.theme == Theme.CUSTOM) {
-            AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{
-              new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8),});
-        } else if (actionBarOptions.theme == Theme.HOLO_LIGHT) {
-            AssetUtil.drawEffects(g, tempImage, 0, 0,
-                                  new Effect[]{new FillEffect(new Color(0x333333), 0.6),});
-        } else {
-            assert actionBarOptions.theme == Theme.HOLO_DARK;
-            AssetUtil.drawEffects(g, tempImage, 0, 0,
-                                  new Effect[]{new FillEffect(new Color(0xFFFFFF), 0.8)});
-        }
-
-        g.dispose();
-        g2.dispose();
-
-        return outImage;
+    if (actionBarOptions.theme == Theme.CUSTOM) {
+      AssetUtil.drawEffects(g, tempImage, 0, 0,
+                            new Effect[] {new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8),});
+    } else if (actionBarOptions.theme == Theme.HOLO_LIGHT) {
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0x333333), 0.6),});
+    } else {
+      assert actionBarOptions.theme == Theme.HOLO_DARK;
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0xFFFFFF), 0.8)});
     }
 
-    /** Options specific to generating action bar icons */
-    public static class ActionBarOptions extends GraphicGenerator.Options {
-        /** The theme to generate icons for */
-        public Theme theme = Theme.HOLO_LIGHT;
+    g.dispose();
+    g2.dispose();
 
-        /** Whether or not the source image is a clipart source */
-        public boolean sourceIsClipart = false;
+    return outImage;
+  }
 
-        /** Custom color for use with the custom theme */
-        public int customThemeColor = 0;
-    }
+  /** Options specific to generating action bar icons. */
+  public static class ActionBarOptions extends GraphicGenerator.Options {
+    /** The theme to generate icons for */
+    public Theme theme = Theme.HOLO_LIGHT;
 
-    /** The themes to generate action bar icons for */
-    public enum Theme {
-        /** Theme.Holo - a dark (and default) version of the Honeycomb theme */
-        HOLO_DARK,
+    /** Whether or not the source image is a clipart source. */
+    public boolean sourceIsClipart = false;
 
-        /** Theme.HoloLight - a light version of the Honeycomb theme */
-        HOLO_LIGHT,
+    /** Custom color for use with the custom theme. */
+    public int customThemeColor = 0;
+  }
 
-        /** Theme.Custom - custom colors */
-        CUSTOM
-    }
+  /** The themes to generate action bar icons for. */
+  public enum Theme {
+    /** Theme.Holo - a dark (and default) version of the Honeycomb theme. */
+    HOLO_DARK,
+
+    /** Theme.HoloLight - a light version of the Honeycomb theme. */
+    HOLO_LIGHT,
+
+    /** Theme.Custom - custom colors. */
+    CUSTOM
+  }
 }
