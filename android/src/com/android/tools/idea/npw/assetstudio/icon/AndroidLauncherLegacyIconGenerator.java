@@ -98,7 +98,7 @@ public final class AndroidLauncherLegacyIconGenerator extends AndroidIconGenerat
   @Override
   @NotNull
   public GraphicGenerator.Options createOptions(boolean forPreview) {
-    LauncherLegacyIconGenerator.LauncherOptions options = new LauncherLegacyIconGenerator.LauncherOptions();
+    LauncherLegacyIconGenerator.LauncherLegacyOptions options = new LauncherLegacyIconGenerator.LauncherLegacyOptions();
     options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {

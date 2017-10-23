@@ -67,7 +67,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -298,7 +298,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private static Dimension getDpSize(@NotNull GeneratedXmlResource xml) {
     IconCategory xmlCategory = xml.getCategory();
     if (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER) {
-      return AdaptiveIconGenerator.SIZE_FULL_BLEED_DP;
+      return LauncherIconGenerator.SIZE_FULL_BLEED_DP;
     }
     return null;
   }
@@ -311,7 +311,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     if (generator != null
         && (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER)) {
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
-      // Use the same scale as a full bleed preview at xhdpi (see AdaptiveIconGenerator.generatePreviewImage).
+      // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
       Rectangle rectangle =
           AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, GraphicGenerator.getMdpiScaleFactor(Density.XHIGH) * 0.8f);
       ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());

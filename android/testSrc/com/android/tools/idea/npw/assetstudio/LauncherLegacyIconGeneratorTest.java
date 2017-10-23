@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator.LauncherOptions;
+import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator.LauncherLegacyOptions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,7 +37,7 @@ public class LauncherLegacyIconGeneratorTest {
       int background,
       boolean isWebGraphic)
       throws IOException {
-    LauncherOptions options = new LauncherOptions();
+    LauncherLegacyOptions options = new LauncherLegacyOptions();
     options.shape = shape;
     options.crop = crop;
     options.style = style;
