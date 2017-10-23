@@ -365,7 +365,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                myMemoryStageTooltipView.createComponent());
+                                myMemoryStageTooltipView.createComponent(), ProfilerLayeredPane.class);
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);

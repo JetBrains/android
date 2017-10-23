@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
@@ -371,7 +372,7 @@ final class ThreadsView {
       myLabel.setOpaque(true);
 
       myComponent = new JPanel(new TabularLayout("*", "*"));
-      myTooltipComponent = new TooltipComponent(myLabel, myComponent);
+      myTooltipComponent = new TooltipComponent(myLabel, myComponent, ProfilerLayeredPane.class);
       myTooltipComponent.registerListenersOn(myComponent);
       myTooltipComponent.setVisible(false);
 

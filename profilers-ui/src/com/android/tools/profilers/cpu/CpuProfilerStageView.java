@@ -428,7 +428,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     myTooltip = new JPanel(new BorderLayout());
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
-                                                              timeline.getDataRange(), myTooltip);
+                                                              timeline.getDataRange(), myTooltip, ProfilerLayeredPane.class);
     // TODO: This needs to be refactored, because probably we don't handle mouse events
     //       properly when components are layered, currently mouse events should happen on the OverlayComponent.
     tooltip.registerListenersOn(overlay);

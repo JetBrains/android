@@ -35,16 +35,21 @@ public final class TooltipComponent extends AnimatedComponent {
 
   private final ComponentListener myParentListener;
 
-  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
+  @Nullable
+  private Class<? extends JLayeredPane> myPreferredParent;
+
+  public TooltipComponent(@NotNull Component content, @NotNull Component owner, @Nullable Class<? extends JLayeredPane> preferredParent) {
     myContent = content;
     myOwner = owner;
+    myPreferredParent = preferredParent;
     add(content);
     recomputeParent();
 
     owner.addHierarchyListener(event -> {
       if (!owner.isDisplayable()) {
         removeFromParent();
-      } else {
+      }
+      else {
         recomputeParent();
       }
     });
@@ -60,7 +65,10 @@ public final class TooltipComponent extends AnimatedComponent {
         setBounds();
       }
     };
+  }
 
+  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
+    this(content, owner, null);
   }
 
   private void recomputeParent() {
@@ -68,11 +76,14 @@ public final class TooltipComponent extends AnimatedComponent {
     JLayeredPane layeredPane = null;
 
     while (parent != null) {
-      if (parent instanceof RootPaneContainer) {
-        layeredPane = ((RootPaneContainer)parent).getLayeredPane();
-      }
       if (parent instanceof JLayeredPane) {
         layeredPane = (JLayeredPane)parent;
+        if (parent.getClass() == myPreferredParent) {
+          break;
+        }
+      }
+      else if (parent instanceof RootPaneContainer) {
+        layeredPane = ((RootPaneContainer)parent).getLayeredPane();
       }
       parent = parent.getParent();
     }

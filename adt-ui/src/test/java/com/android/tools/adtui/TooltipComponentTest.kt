@@ -98,4 +98,20 @@ class TooltipComponentTest {
     assertThat(root.components).asList().doesNotContain(tooltip)
     assertThat(tooltip.parent).isNull()
   }
+
+  @Test
+  fun withPrefferedParent() {
+    val root = JLayeredPane()
+    val preffered = FakeLayeredPane()
+    val owner = Mockito.spy(JLayeredPane()).apply {
+      Mockito.doReturn(true).`when`(this).isDisplayable
+    }
+
+    root.add(preffered)
+    preffered.add(owner)
+    val tooltip = TooltipComponent(JLabel(), owner, FakeLayeredPane::class.java)
+    assertThat(tooltip.parent).isEqualTo(preffered)
+  }
+
+  private class FakeLayeredPane: JLayeredPane()
 }
