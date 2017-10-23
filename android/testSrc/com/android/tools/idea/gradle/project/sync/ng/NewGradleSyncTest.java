@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.intellij.openapi.progress.Task;
@@ -34,6 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link NewGradleSync}.
  */
 public class NewGradleSyncTest extends IdeaTestCase {
+  @Mock private GradleSyncMessages mySyncMessages;
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
   @Mock private GradleSyncListener mySyncListener;
@@ -50,8 +52,9 @@ public class NewGradleSyncTest extends IdeaTestCase {
     initMocks(this);
 
     myCallback = new SyncExecutionCallback();
-    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler, myBuildFileChecksumsLoader, myProjectModelsLoader,
-                                     myCallbackFactory);
+    myGradleSync =
+      new NewGradleSync(getProject(), mySyncMessages, mySyncExecutor, myResultHandler, myBuildFileChecksumsLoader, myProjectModelsLoader,
+                        myCallbackFactory);
   }
 
   public void testSyncFromCachedModels() throws Exception {
@@ -68,6 +71,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    verify(mySyncMessages).removeAllMessages();
     verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
   }
 
@@ -94,6 +98,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     myGradleSync.sync(request, mySyncListener);
 
     // Full sync should have been executed.
+    verify(mySyncMessages).removeAllMessages();
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
   }
 
@@ -112,6 +117,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    verify(mySyncMessages).removeAllMessages();
     // Full sync should have been executed.
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
   }
@@ -131,6 +137,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    verify(mySyncMessages).removeAllMessages();
     // Full sync should have been executed.
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
   }
@@ -152,6 +159,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    verify(mySyncMessages).removeAllMessages();
     // Full sync should have been executed.
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
   }
@@ -166,6 +174,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    verify(mySyncMessages).removeAllMessages();
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
     verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
   }
@@ -180,7 +189,9 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
+    verify(mySyncMessages).removeAllMessages();
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener),
+                                                    eq(request.isNewOrImportedProject()));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 

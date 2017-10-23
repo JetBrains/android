@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
@@ -47,7 +44,6 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 
 class SyncExecutor {
   @NotNull private final Project myProject;
-  @NotNull private final GradleSyncMessages mySyncMessages;
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
   @NotNull private final ExtraGradleSyncModelsManager myExtraModelsManager;
@@ -55,33 +51,22 @@ class SyncExecutor {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, ExtraGradleSyncModelsManager.getInstance(), GradleSyncMessages.getInstance(project),
-         new CommandLineArgs(true /* apply Java library plugin */), new SyncErrorHandlerManager(project));
+    this(project, ExtraGradleSyncModelsManager.getInstance(), new CommandLineArgs(true /* apply Java library plugin */),
+         new SyncErrorHandlerManager(project));
   }
 
   @VisibleForTesting
   SyncExecutor(@NotNull Project project,
                @NotNull ExtraGradleSyncModelsManager extraModelsManager,
-               @NotNull GradleSyncMessages syncMessages,
                @NotNull CommandLineArgs commandLineArgs,
                @NotNull SyncErrorHandlerManager errorHandlerManager) {
     myProject = project;
-    mySyncMessages = syncMessages;
     myCommandLineArgs = commandLineArgs;
     myErrorHandlerManager = errorHandlerManager;
     myExtraModelsManager = extraModelsManager;
   }
 
   void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
-    Runnable removeMessagesTask = mySyncMessages::removeProjectMessages;
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      removeMessagesTask.run();
-    }
-    else {
-      application.invokeAndWait(removeMessagesTask);
-    }
-
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }

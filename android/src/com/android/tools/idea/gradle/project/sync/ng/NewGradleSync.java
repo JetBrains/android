@@ -20,10 +20,12 @@ import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,11 +38,14 @@ import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
 public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
+  @NotNull private final GradleSyncMessages mySyncMessages;
   @NotNull private final SyncExecutor mySyncExecutor;
   @NotNull private final SyncResultHandler myResultHandler;
-  private ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
+  @NotNull private final ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
   @NotNull private final CachedProjectModels.Loader myProjectModelsCacheLoader;
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
@@ -57,18 +62,20 @@ public class NewGradleSync implements GradleSync {
   }
 
   public NewGradleSync(@NotNull Project project) {
-    this(project, new SyncExecutor(project), new SyncResultHandler(project), new ProjectBuildFileChecksums.Loader(),
-         new CachedProjectModels.Loader(), new SyncExecutionCallback.Factory());
+    this(project, GradleSyncMessages.getInstance(project), new SyncExecutor(project), new SyncResultHandler(project),
+         new ProjectBuildFileChecksums.Loader(), new CachedProjectModels.Loader(), new SyncExecutionCallback.Factory());
   }
 
   @VisibleForTesting
   NewGradleSync(@NotNull Project project,
+                @NotNull GradleSyncMessages syncMessages,
                 @NotNull SyncExecutor syncExecutor,
                 @NotNull SyncResultHandler resultHandler,
                 @NotNull ProjectBuildFileChecksums.Loader buildFileChecksumsLoader,
                 @NotNull CachedProjectModels.Loader projectModelsCacheLoader,
                 @NotNull SyncExecutionCallback.Factory callbackFactory) {
     myProject = project;
+    mySyncMessages = syncMessages;
     mySyncExecutor = syncExecutor;
     myResultHandler = resultHandler;
     myBuildFileChecksumsLoader = buildFileChecksumsLoader;
@@ -78,12 +85,18 @@ public class NewGradleSync implements GradleSync {
 
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      mySyncMessages.removeAllMessages();
       sync(request, new EmptyProgressIndicator(), listener, request.isNewOrImportedProject());
       return;
     }
     Task task = createSyncTask(request, listener);
-    ApplicationManager.getApplication().invokeLater(task::queue, ModalityState.defaultModalityState());
+    application.invokeLater(() -> {
+      // IDEA's own sync infrastructure removes all messages at the beginning of every sync: ExternalSystemUtil#refreshProject.
+      mySyncMessages.removeAllMessages();
+      task.queue();
+    }, ModalityState.defaultModalityState());
   }
 
   @VisibleForTesting
