@@ -210,7 +210,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
                                                               timeline.getDataRange(),
-                                                              myTooltipView.createComponent());
+                                                              myTooltipView.createComponent(),
+                                                              ProfilerLayeredPane.class);
     tooltip.registerListenersOn(selection);
 
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));

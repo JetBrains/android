@@ -49,8 +49,8 @@ public class StudioProfilersView extends AspectObserver {
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
-  private BorderLayout myLayout;
-  private JPanel myComponent;
+  private final BorderLayout myLayout;
+  private final JPanel myComponent;
   private JPanel myStageToolbar;
   private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
@@ -63,6 +63,9 @@ public class StudioProfilersView extends AspectObserver {
     myProfiler = profiler;
     myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
+    myLayout = new BorderLayout();
+    myComponent = new JPanel(myLayout);
+
     initializeUi();
 
     myBinder = new ViewBinder<>();
@@ -88,9 +91,6 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   private void initializeUi() {
-    myLayout = new BorderLayout();
-    myComponent = new JPanel(myLayout);
-
     JComboBox<Profiler.Device> deviceCombo = new FlatComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
