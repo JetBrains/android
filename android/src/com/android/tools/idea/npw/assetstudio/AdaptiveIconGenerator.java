@@ -435,7 +435,7 @@ public class AdaptiveIconGenerator extends GraphicGenerator {
 
     // The sub-rectangle of the 48x48dp "Legacy" icon that corresponds to the "Legacy" icon
     // shape, scaled according to the density.
-    Rectangle legacyShapeRect = LauncherIconGenerator.getTargetRect(options.legacyIconShape, legacyOrWebDensity);
+    Rectangle legacyShapeRect = LauncherLegacyIconGenerator.getTargetRect(options.legacyIconShape, legacyOrWebDensity);
 
     // Generate full bleed and viewport images.
     Layers layers = generateIconLayers(context, options);
@@ -456,9 +456,9 @@ public class AdaptiveIconGenerator extends GraphicGenerator {
     BufferedImage shapeImageFore = null;
     BufferedImage shapeImageMask = null;
     if (options.legacyIconShape != Shape.NONE) {
-      shapeImageBack = LauncherIconGenerator.loadBackImage(context, options.legacyIconShape, legacyOrWebDensity);
-      shapeImageFore = LauncherIconGenerator.loadStyleImage(context, options.legacyIconShape, legacyOrWebDensity, Style.SIMPLE);
-      shapeImageMask = LauncherIconGenerator.loadMaskImage(context, options.legacyIconShape, legacyOrWebDensity);
+      shapeImageBack = LauncherLegacyIconGenerator.loadBackImage(context, options.legacyIconShape, legacyOrWebDensity);
+      shapeImageFore = LauncherLegacyIconGenerator.loadStyleImage(context, options.legacyIconShape, legacyOrWebDensity, Style.SIMPLE);
+      shapeImageMask = LauncherLegacyIconGenerator.loadMaskImage(context, options.legacyIconShape, legacyOrWebDensity);
     }
 
     // Generate legacy image by merging shadow, mask and (scaled) adaptive icon

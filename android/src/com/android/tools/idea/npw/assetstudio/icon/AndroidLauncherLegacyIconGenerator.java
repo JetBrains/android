@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.icon;
 
 import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -41,7 +41,7 @@ public final class AndroidLauncherLegacyIconGenerator extends AndroidIconGenerat
   private final BoolProperty myDogEared = new BoolValueProperty();
 
   public AndroidLauncherLegacyIconGenerator(int minSdkVersion) {
-    super(minSdkVersion, new LauncherIconGenerator());
+    super(minSdkVersion, new LauncherLegacyIconGenerator());
   }
 
   /**
@@ -98,7 +98,7 @@ public final class AndroidLauncherLegacyIconGenerator extends AndroidIconGenerat
   @Override
   @NotNull
   public GraphicGenerator.Options createOptions(boolean forPreview) {
-    LauncherIconGenerator.LauncherOptions options = new LauncherIconGenerator.LauncherOptions();
+    LauncherLegacyIconGenerator.LauncherOptions options = new LauncherLegacyIconGenerator.LauncherOptions();
     options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
