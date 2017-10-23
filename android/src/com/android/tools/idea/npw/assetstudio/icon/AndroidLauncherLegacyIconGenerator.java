@@ -32,7 +32,7 @@ import java.awt.*;
  * Defaults from https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
-public final class LauncherLegacyIconGenerator extends AndroidIconGenerator {
+public final class AndroidLauncherLegacyIconGenerator extends AndroidIconGenerator {
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
@@ -40,7 +40,7 @@ public final class LauncherLegacyIconGenerator extends AndroidIconGenerator {
   private final ObjectProperty<GraphicGenerator.Shape> myShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myDogEared = new BoolValueProperty();
 
-  public LauncherLegacyIconGenerator(int minSdkVersion) {
+  public AndroidLauncherLegacyIconGenerator(int minSdkVersion) {
     super(minSdkVersion, new LauncherIconGenerator());
   }
 

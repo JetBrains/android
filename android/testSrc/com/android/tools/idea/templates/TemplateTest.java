@@ -34,7 +34,7 @@ import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.LauncherLegacyIconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -1478,7 +1478,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
-      AndroidIconGenerator assetGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
+      AndroidIconGenerator assetGenerator = new AndroidLauncherLegacyIconGenerator(minSdkVersion);
       assetGenerator.name().set("ic_launcher");
       assetGenerator.sourceAsset().setValue(new ImageAsset());
       createProject(projectState, myFixture.getProject(), assetGenerator);
