@@ -2,7 +2,7 @@
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
-    Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
+    Supports the development of Android applications with IntelliJ IDEA.
   </description>
   <version>10.2.3</version>
   <vendor>JetBrains</vendor>
