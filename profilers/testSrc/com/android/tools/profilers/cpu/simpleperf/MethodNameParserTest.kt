@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.simpleperf
 
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.fail
 import org.junit.Test
 
 class MethodNameParserTest {
@@ -39,6 +40,31 @@ class MethodNameParserTest {
     assertThat(model.className).isEqualTo("art::SomeClass")
     assertThat(model.signature).isEmpty()
     assertThat(model.separator).isEqualTo("::")
+
+    model = MethodNameParser.parseMethodName("Shader::Render(glm::detail::tmat4x4<float, (glm::precision)0>*)")
+    assertThat(model.name).isEqualTo("Render")
+    assertThat(model.className).isEqualTo("Shader")
+    assertThat(model.signature).isEqualTo("glm::detail::tmat4x4*")
+    assertThat(model.separator).isEqualTo("::")
+
+    model = MethodNameParser.parseMethodName("art::StackVisitor::GetDexPc(bool) const")
+    assertThat(model.name).isEqualTo("GetDexPc")
+    assertThat(model.className).isEqualTo("art::StackVisitor")
+    assertThat(model.signature).isEqualTo("bool")
+    assertThat(model.separator).isEqualTo("::")
+
+    model = MethodNameParser.parseMethodName("Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)")
+    assertThat(model.name).isEqualTo("FuncTemplate")
+    assertThat(model.className).isEqualTo("Type2")
+    assertThat(model.signature).isEqualTo("Type4")
+    assertThat(model.separator).isEqualTo("::")
+
+    try {
+      MethodNameParser.parseMethodName("malformed::method<)")
+      fail()
+    } catch (e: IllegalStateException) {
+      assertThat(e.message).isEqualTo("Native method signature must have matching parentheses and brackets.")
+    }
   }
 
   @Test
