@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,6 +85,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   2. APK generated should explicitly for the ABI X86
    *   </pre>
    */
+  @Ignore("b/68138951")
   @Test
   @RunIn(TestGroup.QA)
   public void testX86AbiSplitApks() throws Exception {
