@@ -34,6 +34,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.EmulatorAdvFeatures;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -464,7 +465,9 @@ public class AvdManagerConnection {
     }
 
     // Control fast boot
-    if (AvdWizardUtils.emulatorSupportsFastBoot(mySdkHandler)) {
+    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler,
+                                                     new StudioLoggerProgressIndicator(AvdManagerConnection.class),
+                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
       if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
         // Do not fast boot and do not store a snapshot on exit
         commandLine.addParameter("-no-snapstorage");

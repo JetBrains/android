@@ -16,9 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.EmulatorAdvFeatures;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -143,7 +147,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import
     actionList.add(new WipeAvdDataAction(this));
 
-    if (AvdWizardUtils.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
+    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
+                                                     new StudioLoggerProgressIndicator(AvdActionPanel.class),
+                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
       actionList.add(new ColdBootNowAction(this));
     }
     actionList.add(new ShowAvdOnDiskAction(this));
