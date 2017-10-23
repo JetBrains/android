@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.Density;
@@ -25,9 +24,9 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
-import com.android.tools.idea.npw.assetstudio.ui.ConfigureAdaptiveIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureLauncherIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
@@ -199,7 +198,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       ConfigureIconView view;
       switch (iconType) {
         case LAUNCHER:
-          view = new ConfigureAdaptiveIconPanel(facet, this, myShowGridProperty, myShowSafeZoneProperty,
+          view = new ConfigureLauncherIconPanel(facet, this, myShowGridProperty, myShowSafeZoneProperty,
                                                 myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
@@ -217,9 +216,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
 
     // Create an output preview panel for each icon type
     ImmutableMap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER, new LauncherIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER_LEGACY, new LauncherLegacyIconsPreviewPanel());
     previewPanelBuilder.put(AndroidIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidIconType.LAUNCHER_LEGACY, new LegacyLauncherIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidIconType.LAUNCHER, new AdaptiveIconsPreviewPanel());
     previewPanelBuilder.put(AndroidIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
     myOutputPreviewPanels = previewPanelBuilder.build();
 
@@ -430,9 +429,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myListeners.releaseAll();
   }
 
-  private static class AdaptiveIconsPreviewPanel extends PreviewIconsPanel {
-
-    public AdaptiveIconsPreviewPanel() {
+  private static class LauncherIconsPreviewPanel extends PreviewIconsPanel {
+    public LauncherIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -447,7 +445,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       List<Pair<String, BufferedImage>> list = generatedIcons.getList().stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
-        .filter(icon -> filterPreviewIcon(icon, ((AdaptiveIconGenerator.AdaptiveIconOptions)result.getOptions()).previewDensity))
+        .filter(icon -> filterPreviewIcon(icon, ((LauncherIconGenerator.LauncherIconOptions)result.getOptions()).previewDensity))
         .map(pair -> Pair.of(getPreviewShapeFromId(pair.getName()), pair.getImage()))
         .sorted((pair1, pair2) -> comparePreviewShapes(pair1.getFirst(), pair2.getFirst()))
         .map(pair -> Pair.of(pair.getFirst().displayName, pair.getSecond()))
@@ -461,11 +459,11 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
         Objects.equals(icon.getDensity(), density);
     }
 
-    private static int comparePreviewShapes(@NotNull AdaptiveIconGenerator.PreviewShape x, @NotNull AdaptiveIconGenerator.PreviewShape y) {
+    private static int comparePreviewShapes(@NotNull LauncherIconGenerator.PreviewShape x, @NotNull LauncherIconGenerator.PreviewShape y) {
       return Ints.compare(getPreviewShapeDisplayOrder(x), getPreviewShapeDisplayOrder(y));
     }
 
-    private static int getPreviewShapeDisplayOrder(@NotNull AdaptiveIconGenerator.PreviewShape previewShape) {
+    private static int getPreviewShapeDisplayOrder(@NotNull LauncherIconGenerator.PreviewShape previewShape) {
       switch (previewShape) {
         case CIRCLE:
           return 1;
@@ -490,18 +488,18 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     }
 
     @NotNull
-    private static AdaptiveIconGenerator.PreviewShape getPreviewShapeFromId(@NotNull String previewShapeId) {
-      for (AdaptiveIconGenerator.PreviewShape shape : AdaptiveIconGenerator.PreviewShape.values()) {
+    private static LauncherIconGenerator.PreviewShape getPreviewShapeFromId(@NotNull String previewShapeId) {
+      for (LauncherIconGenerator.PreviewShape shape : LauncherIconGenerator.PreviewShape.values()) {
         if (Objects.equals(shape.id, previewShapeId)) {
           return shape;
         }
       }
-      return AdaptiveIconGenerator.PreviewShape.SQUARE;
+      return LauncherIconGenerator.PreviewShape.SQUARE;
     }
   }
 
-  private static class LegacyLauncherIconsPreviewPanel extends PreviewIconsPanel {
-    public LegacyLauncherIconsPreviewPanel() {
+  private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {
+    public LauncherLegacyIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -543,11 +541,11 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       // Default
       GeneratedIcons generatedIcons = iconGeneratorResult.getIcons();
       List<Pair<Density, BufferedImage>> list = generatedIcons.getList().stream()
-        .filter(x -> x instanceof GeneratedImageIcon)
-        .map(x -> (GeneratedImageIcon)x)
-        .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)
-        .map(x -> Pair.of(x.getDensity(), x.getImage()))
-        .collect(Collectors.toList());
+          .filter(x -> x instanceof GeneratedImageIcon)
+          .map(x -> (GeneratedImageIcon)x)
+          .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)
+          .map(x -> Pair.of(x.getDensity(), x.getImage()))
+          .collect(Collectors.toList());
       showPreviewImagesWithDensity(list.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
     }
   }

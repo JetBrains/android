@@ -24,8 +24,8 @@ import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidAdaptiveIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -66,7 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
 
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
@@ -74,7 +74,7 @@ import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE
  * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
  */
-public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView {
+public class ConfigureLauncherIconPanel extends JPanel implements Disposable, ConfigureIconView {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
@@ -83,7 +83,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   @NotNull private final BoolProperty myShowGridProperty;
   @NotNull private final BoolProperty myShowSafeZoneProperty;
   @NotNull private final AbstractProperty<Density> myPreviewDensityProperty;
-  @NotNull private final AndroidAdaptiveIconGenerator myIconGenerator;
+  @NotNull private final AndroidLauncherIconGenerator myIconGenerator;
   @NotNull private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
@@ -247,7 +247,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    * presented to the user in a combo box (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureAdaptiveIconPanel(@NotNull AndroidFacet facet,
+  public ConfigureLauncherIconPanel(@NotNull AndroidFacet facet,
                                     @NotNull Disposable disposableParent,
                                     @NotNull BoolProperty showGridProperty,
                                     @NotNull BoolProperty showSafeZoneProperty,
@@ -261,7 +261,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myShowGridProperty = showGridProperty;
     myShowSafeZoneProperty = showSafeZoneProperty;
     myPreviewDensityProperty = previewDensityProperty;
-    myIconGenerator = new AndroidAdaptiveIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    myIconGenerator = new AndroidLauncherIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
     myValidatorPanel = validatorPanel;
 
     DefaultComboBoxModel<GraphicGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
@@ -616,7 +616,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    */
   @Override
   @NotNull
-  public AndroidAdaptiveIconGenerator getIconGenerator() {
+  public AndroidLauncherIconGenerator getIconGenerator() {
     return myIconGenerator;
   }
 

@@ -45,13 +45,13 @@ import java.util.List;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 
 /**
- * Tests for {@link AndroidAdaptiveIconGenerator}.
+ * Tests for {@link AndroidLauncherIconGenerator}.
  */
-public class AndroidAdaptiveIconGeneratorTest extends AndroidTestCase {
+public class AndroidLauncherIconGeneratorTest extends AndroidTestCase {
   private static final double MAX_PERCENT_DIFFERENT = 0.005;
 
   private List<String> myWarnings = new ArrayList<>();
-  private AndroidAdaptiveIconGenerator myIconGenerator;
+  private AndroidLauncherIconGenerator myIconGenerator;
   private AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
     @Override
     @Nullable
@@ -95,7 +95,7 @@ public class AndroidAdaptiveIconGeneratorTest extends AndroidTestCase {
     super.setUp();
     makeSureThatProjectVirtualFileIsNotNull();
 
-    myIconGenerator = new AndroidAdaptiveIconGenerator(myFacet, 15);
+    myIconGenerator = new AndroidLauncherIconGenerator(myFacet, 15);
     myIconGenerator.name().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");

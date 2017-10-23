@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+
 import java.nio.file.Path;
 
 /**
@@ -31,7 +32,7 @@ public abstract class GeneratedIcon {
     /**
      * The icon name, never null or empty. The meaning of the name depends on the category. For
      * example, the name {@link IconCategory#PREVIEW} is a {@link
-     * AdaptiveIconGenerator.PreviewShape#id}.
+     * LauncherIconGenerator.PreviewShape#id}.
      */
     @NonNull
     public abstract String getName();

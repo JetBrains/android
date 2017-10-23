@@ -198,7 +198,7 @@ public class LauncherLegacyIconGenerator extends GraphicGenerator {
     if (sourceImage == null) {
       sourceImage = AssetStudioUtils.createDummyImage();
     }
-    LauncherOptions launcherOptions = (LauncherOptions) options;
+    LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions) options;
 
     if (launcherOptions.isDogEar) {
       launcherOptions.shape = applyDog(launcherOptions.shape);
@@ -277,7 +277,7 @@ public class LauncherLegacyIconGenerator extends GraphicGenerator {
   @Override
   public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
                        @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
-    LauncherOptions launcherOptions = (LauncherOptions) options;
+    LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions) options;
     boolean generateWebImage = launcherOptions.isWebGraphic;
     launcherOptions.isWebGraphic = false;
     super.generate(category, categoryMap, context, options, name);
@@ -295,7 +295,7 @@ public class LauncherLegacyIconGenerator extends GraphicGenerator {
   @Override
   @NonNull
   protected String getIconPath(@NonNull Options options, @NonNull String name) {
-    if (((LauncherOptions) options).isWebGraphic) {
+    if (((LauncherLegacyOptions) options).isWebGraphic) {
       return name + "-web.png"; // Store at the root of the project
     }
 
@@ -303,8 +303,8 @@ public class LauncherLegacyIconGenerator extends GraphicGenerator {
   }
 
   /** Options specific to generating launcher icons */
-  public static class LauncherOptions extends GraphicGenerator.Options {
-    public LauncherOptions() {
+  public static class LauncherLegacyOptions extends GraphicGenerator.Options {
+    public LauncherLegacyOptions() {
       iconFolderKind = IconFolderKind.MIPMAP;
     }
 

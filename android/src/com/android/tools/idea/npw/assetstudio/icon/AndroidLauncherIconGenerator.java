@@ -25,8 +25,8 @@ import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.AdaptiveIconOptions;
-import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.ImageAssetSnapshot;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.ImageAssetSnapshot;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.LauncherIconOptions;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
@@ -58,8 +58,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_SAFE_ZONE_DP;
-import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_SAFE_ZONE_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 /**
  * Settings when generating a launcher icon.
@@ -67,7 +67,7 @@ import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.SIZE_
  * Defaults from https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
-public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
+public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(new Color(0x26A69A));
@@ -89,8 +89,8 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
    * @param facet the Android facet
    * @param minSdkVersion the minimal supported Android SDK version
    */
-  public AndroidAdaptiveIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
-    super(minSdkVersion, new AdaptiveIconGenerator(), new GraphicGeneratorContext(40, new MyDrawableRenderer(facet)));
+  public AndroidLauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
+    super(minSdkVersion, new LauncherIconGenerator(), new GraphicGeneratorContext(40, new MyDrawableRenderer(facet)));
   }
 
   /**
@@ -191,7 +191,7 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   @Override
   @NotNull
   public GraphicGenerator.Options createOptions(boolean forPreview) {
-    AdaptiveIconOptions options = new AdaptiveIconOptions();
+    LauncherIconOptions options = new LauncherIconOptions();
     options.generateOutputIcons = !forPreview;
     options.generatePreviewIcons = forPreview;
 
@@ -239,7 +239,7 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
 
   @NotNull
   private static Logger getLog() {
-    return Logger.getInstance(AndroidAdaptiveIconGenerator.class);
+    return Logger.getInstance(AndroidLauncherIconGenerator.class);
   }
 
   /**
@@ -299,7 +299,7 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
 
     public MyDrawableRenderer(@NotNull AndroidFacet facet) {
       Module module = facet.getModule();
-      RenderLogger logger = new RenderLogger(AndroidAdaptiveIconGenerator.class.getSimpleName(), module);
+      RenderLogger logger = new RenderLogger(AndroidLauncherIconGenerator.class.getSimpleName(), module);
       myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
       // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
       // Executing them off the UI thread.
