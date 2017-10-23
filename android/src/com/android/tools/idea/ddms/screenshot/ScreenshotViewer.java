@@ -43,6 +43,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -552,7 +553,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private String getDefaultFileName() {
     Calendar now = Calendar.getInstance();
-    return String.format("%s-%tF-%tH%tM%tS.png", myDevice != null ? "device" : "layout", now, now, now, now);
+    String fileName = "%s-%tF-%tH%tM%tS";
+    // add extension to filename on Mac only see: b/38447816
+    return String.format(SystemInfo.isMac ? fileName + ".png" : fileName, myDevice != null ? "device" : "layout", now, now, now, now);
   }
 
   public File getScreenshot() {
