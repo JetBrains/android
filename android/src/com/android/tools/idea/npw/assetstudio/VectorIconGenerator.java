@@ -20,26 +20,26 @@ import com.android.annotations.NonNull;
 import java.awt.image.BufferedImage;
 
 /**
- * Generate icons for the vector drawable.
+ * Generates icons for the vector drawable.
  */
 public class VectorIconGenerator extends GraphicGenerator {
-    @Override
-    @NonNull
-    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
-        if (options.usePlaceholders) {
-            return PLACEHOLDER_IMAGE;
-        }
-
-        BufferedImage image = getTrimmedAndPaddedImage(options);
-        if (image == null) {
-            image = AssetStudioUtils.createDummyImage();
-        }
-        return image;
+  @Override
+  @NonNull
+  public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
     }
 
-    public static class VectorIconOptions extends GraphicGenerator.Options {
-        public VectorIconOptions() {
-            iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
-        }
+    BufferedImage image = getTrimmedAndPaddedImage(options);
+    if (image == null) {
+      image = AssetStudioUtils.createDummyImage();
     }
+    return image;
+  }
+
+  public static class VectorIconOptions extends GraphicGenerator.Options {
+    public VectorIconOptions() {
+      iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
+    }
+  }
 }
