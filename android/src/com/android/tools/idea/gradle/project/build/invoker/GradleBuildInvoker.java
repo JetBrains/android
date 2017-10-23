@@ -36,6 +36,7 @@ import com.intellij.build.events.impl.*;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
+import com.intellij.build.output.KotlincOutputParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -346,7 +347,7 @@ public class GradleBuildInvoker {
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
-    List<BuildOutputParser> buildOutputParsers = Lists.newArrayList(new JavacOutputParser());
+    List<BuildOutputParser> buildOutputParsers = Lists.newArrayList(new JavacOutputParser(), new KotlincOutputParser());
     //noinspection IOResourceOpenedButNotSafelyClosed
     final BuildOutputInstantReaderImpl buildOutputInstantReader =
       new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
