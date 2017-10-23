@@ -1497,8 +1497,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void createProject(@NotNull final TestNewProjectWizardState projectState, @NotNull Project project,
-                                    @Nullable AndroidIconGenerator assetGenerator) {
+  private void createProject(@NotNull TestNewProjectWizardState projectState, @NotNull Project project,
+                             @Nullable AndroidIconGenerator assetGenerator) {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     List<String> errors = Lists.newArrayList();
     try {
@@ -1515,7 +1515,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
         final RenderingContext projectContext =
-          createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
+            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.getParameters());
         projectTemplate.render(projectContext, false);
         // check usage tracker after project render
         verifyLastLoggedUsage(Template.titleToTemplateRenderer(projectTemplate.getMetadata().getTitle()), projectContext.getParamMap());
