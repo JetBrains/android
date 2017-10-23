@@ -33,6 +33,9 @@ import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.impl.*;
+import com.intellij.build.output.BuildOutputInstantReaderImpl;
+import com.intellij.build.output.BuildOutputParser;
+import com.intellij.build.output.JavacOutputParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -342,9 +345,12 @@ public class GradleBuildInvoker {
 
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
+    BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
+    List<BuildOutputParser> buildOutputParsers = Lists.newArrayList(new JavacOutputParser());
+    //noinspection IOResourceOpenedButNotSafelyClosed
+    final BuildOutputInstantReaderImpl buildOutputInstantReader =
+      new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
     return new ExternalSystemTaskNotificationListenerAdapter() {
-      BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
-
       @Override
       public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
         AnAction restartAction = new AnAction() {
@@ -380,6 +386,12 @@ public class GradleBuildInvoker {
       @Override
       public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
         buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
+        buildOutputInstantReader.append(text);
+      }
+
+      @Override
+      public void onEnd(@NotNull ExternalSystemTaskId id) {
+        buildOutputInstantReader.close();
       }
 
       @Override
