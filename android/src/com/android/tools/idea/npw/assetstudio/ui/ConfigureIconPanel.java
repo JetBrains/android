@@ -234,7 +234,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
     switch (iconType) {
       case LAUNCHER_LEGACY:
-        return new AndroidLauncherIconGenerator(minSdkVersion);
+        return new LauncherLegacyIconGenerator(minSdkVersion);
       case ACTIONBAR:
         return new AndroidActionBarIconGenerator(minSdkVersion);
       case NOTIFICATION:
@@ -394,7 +394,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
     switch (myIconType) {
       case LAUNCHER_LEGACY:
-        AndroidLauncherIconGenerator launcherIconGenerator = (AndroidLauncherIconGenerator)myIconGenerator;
+        LauncherLegacyIconGenerator launcherIconGenerator = (LauncherLegacyIconGenerator)myIconGenerator;
         myGeneralBindings.bind(launcherIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
         myGeneralBindings.bindTwoWay(myForegroundColor, launcherIconGenerator.foregroundColor());
         myGeneralBindings.bindTwoWay(myBackgroundColor, launcherIconGenerator.backgroundColor());
