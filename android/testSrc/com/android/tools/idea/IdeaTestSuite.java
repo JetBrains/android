@@ -74,5 +74,8 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
     // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
     System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
+
+    // Run Kotlin in-process for easier control over its JVM args.
+    System.setProperty("kotlin.compiler.execution.strategy", "in-process");
   }
 }
