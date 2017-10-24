@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
@@ -29,9 +30,10 @@ import java.awt.geom.Rectangle2D;
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
  * instances of {@link MethodModel}.
  */
-public class MethodModelHRenderer extends HRenderer<MethodModel> {
+public class MethodModelHRenderer implements HRenderer<MethodModel> {
 
   private static final int LEFT_MARGIN_PX = 3;
+
   @NotNull
   private CaptureModel.Details.Type myType;
 
@@ -77,8 +79,7 @@ public class MethodModelHRenderer extends HRenderer<MethodModel> {
     return method.getFullName().startsWith("openjdkjvmti::");
   }
 
-  @Override
-  protected Color getFillColor(MethodModel m) {
+  private Color getFillColor(MethodModel m) {
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
       if (isMethodVendor(m)) {
         return ProfilerColors.CPU_CALLCHART_VENDOR;
@@ -103,8 +104,7 @@ public class MethodModelHRenderer extends HRenderer<MethodModel> {
     }
   }
 
-  @Override
-  protected Color getBordColor(MethodModel m) {
+  private Color getBordColor(MethodModel m) {
     if (myType == CaptureModel.Details.Type.CALL_CHART) {
       if (isMethodVendor(m)) {
         return ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
@@ -129,11 +129,30 @@ public class MethodModelHRenderer extends HRenderer<MethodModel> {
     }
   }
 
+  @Override
+  public void render(Graphics2D g, HNode<MethodModel> node, Rectangle2D drawingArea) {
+    // Draw rectangle background
+    g.setPaint(getFillColor(node.getData()));
+    g.fill(drawingArea);
+
+    // Draw rectangle outline.
+    g.setPaint(getBordColor(node.getData()));
+    g.draw(drawingArea);
+
+    // Draw text
+    FontMetrics fontMetrics = g.getFontMetrics(g.getFont());
+    String text = generateFittingText(node.getData(), drawingArea, fontMetrics);
+    g.setPaint(Color.BLACK);
+
+    float textPositionX = LEFT_MARGIN_PX + (float)drawingArea.getX();
+    float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
+    g.drawString(text, textPositionX, textPositionY);
+  }
+
   /**
    * Find the best text for the given rectangle constraints.
    */
-  @Override
-  protected String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
+  private String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
     String methodSeparator = node.getSeparator();
 
     double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
@@ -161,13 +180,6 @@ public class MethodModelHRenderer extends HRenderer<MethodModel> {
 
     // Try: t...
     return AdtUiUtils.getFittedString(fontMetrics, name, (float)maxWidth, 1);
-  }
-
-  @Override
-  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
-    float textPositionX = LEFT_MARGIN_PX + rect.x;
-    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
-    g.drawString(text, textPositionX, textPositionY);
   }
 
   /**
