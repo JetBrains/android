@@ -47,7 +47,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   private final Orientation myOrientation;
 
   @Nullable
-  private HRenderer<T> myHRenderer;
+  private HRenderer<T> myRenderer;
 
   @Nullable
   private HNode<T> myRoot;
@@ -114,7 +114,7 @@ public class HTreeChart<T> extends AnimatedComponent {
       render();
       myRender = false;
     }
-
+    g.setFont(getFont());
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (myRoot == null || myRoot.getChildCount() == 0) {
@@ -150,6 +150,7 @@ public class HTreeChart<T> extends AnimatedComponent {
       myCanvas = createImage(dim.width, dim.height);
       g = (Graphics2D)myCanvas.getGraphics();
     }
+    g.setFont(getFont());
     myDrawnNodes.clear();
     myDrawnNodes.addAll(myNodes);
 
@@ -172,9 +173,9 @@ public class HTreeChart<T> extends AnimatedComponent {
     myReducer.reduce(myDrawnRectangles, myDrawnNodes);
 
     assert myDrawnRectangles.size() == myDrawnNodes.size();
-    assert myHRenderer != null;
+    assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
-      myHRenderer.render(g, myDrawnNodes.get(i).getData(), myDrawnRectangles.get(i));
+      myRenderer.render(g, myDrawnNodes.get(i), myDrawnRectangles.get(i));
     }
 
     g.dispose();
@@ -229,12 +230,7 @@ public class HTreeChart<T> extends AnimatedComponent {
   }
 
   public void setHRenderer(@NotNull HRenderer<T> r) {
-    this.myHRenderer = r;
-    if (getFont() != null) {
-      this.myHRenderer.setFont(getFont());
-    } else {
-      this.myHRenderer.setFont(AdtUiUtils.DEFAULT_FONT);
-    }
+    this.myRenderer = r;
   }
 
   public void setHTree(@Nullable HNode<T> root) {
