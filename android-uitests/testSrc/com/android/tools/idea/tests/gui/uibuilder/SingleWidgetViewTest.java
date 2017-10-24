@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.ConstraintLayoutViewInspectorFixture;
-import com.intellij.openapi.application.ApplicationManager;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +34,7 @@ public class SingleWidgetViewTest {
 
   @Test
   public void testScrollMargin() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = ideFrameFixture.getEditor()
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest").getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture design = editor
@@ -47,7 +45,7 @@ public class SingleWidgetViewTest {
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
-      .createConstraintFromBottomToTopOf(design.findView("TextView", 0))
+      .createConstraintFromBottomToBottomOfLayout()
       .createConstraintFromTopToTopOfLayout()
       .createConstraintFromLeftToLeftOfLayout()
       .createConstraintFromRightToRightOfLayout();
@@ -56,29 +54,14 @@ public class SingleWidgetViewTest {
     design.findView("Button", 0).click();
 
     ConstraintLayoutViewInspectorFixture view = design.getPropertiesPanel().waitForPanelLoading().getConstraintLayoutViewInspector();
-    view.setAllMargins(8);
-    waitForScout();
-    view.scrollAllMargins(-5);
+    view.setAllMargins(10);
+    design.waitForRenderToFinish();
+    view.scrollAllMargins(3);
     design.waitForRenderToFinish();
     String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginBottom=\"13dp\"");
     assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginEnd=\"13dp\"");
     assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginStart=\"13dp\"");
     assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginTop=\"13dp\"");
-    editor.selectEditorTab(EditorFixture.Tab.DESIGN);
-    view.scrollAllMargins(3);
-    design.waitForRenderToFinish();
-    layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
-    assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginBottom=\"10dp\"");
-    assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginEnd=\"10dp\"");
-    assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginStart=\"10dp\"");
-    assertThat(layoutContents).containsMatch("<Button(?s).*android:layout_marginTop=\"10dp\"");
-  }
-
-  private void waitForScout() {
-    ApplicationManager.getApplication().invokeLater(() -> {
-    });
-
-    guiTest.robot().waitForIdle();
   }
 }
