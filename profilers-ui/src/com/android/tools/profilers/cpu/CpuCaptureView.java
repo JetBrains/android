@@ -327,6 +327,8 @@ class CpuCaptureView {
     TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
     chart.addMouseListener(handler);
     stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    CpuChartTooltipView.install(chart, stageView);
+
     return chart;
   }
 
