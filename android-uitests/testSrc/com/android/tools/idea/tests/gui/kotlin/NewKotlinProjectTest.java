@@ -76,7 +76,7 @@ public class NewKotlinProjectTest {
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), 60);
+      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), emulator.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.stopApp();
   }
 
@@ -114,7 +114,7 @@ public class NewKotlinProjectTest {
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), 60);
+      .waitForOutput(new PatternTextMatcher(CONNECTED_TO_PROCESS_OUTPUT), emulator.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.stopApp();
   }
 
