@@ -53,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
@@ -190,8 +191,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       validateTemplate();
     });
 
-    myListeners.receiveAndFire(getModel().enableCppSupport(), src -> {
-      TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers, src.booleanValue());
+    myListeners.receiveAndFire(getModel().enableCppSupport().or(getModel().instantApp()), src -> {
+      TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers);
       myActivityGallery.setModel(JBList.createDefaultListModel((Object[])listItems));
       myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener
     });
@@ -249,12 +250,22 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     return myFacet == null;
   }
 
-  private static TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers, boolean isCppProject) {
-    if (isCppProject) {
-      List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(TemplateRenderer::isCppTemplate).collect(Collectors.toList());
-      if (filteredTemplates.size() > 1) {
-        return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
-      }
+  private TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers) {
+    // Cpp and Iapp Templates are mutually exclusive, and Cpp take priority
+    Predicate<TemplateRenderer> predicate;
+    if (getModel().enableCppSupport().get()) {
+      predicate = TemplateRenderer::isCppTemplate;
+    }
+    else if (getModel().instantApp().get()) {
+      predicate = TemplateRenderer::isIappTemplate;
+    }
+    else {
+      predicate = templateRenderer -> true;
+    }
+
+    List<TemplateRenderer> filteredTemplates = templateRenderers.stream().filter(predicate).collect(Collectors.toList());
+    if (filteredTemplates.size() > 1) {
+      return filteredTemplates.toArray(new TemplateRenderer[filteredTemplates.size()]);
     }
 
     return templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
@@ -320,6 +331,11 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       // TODO: 2 - We should have a dedicated list for Cpp files, or at least add a specific flag to the Templates that are allowed.
       String title = myTemplate.getMetadata().getTitle();
       return "Empty Activity".equals(title) || "Basic Activity".equals(title);
+    }
+
+    boolean isIappTemplate() {
+      // TODO: See comments for #isCppTemplate()
+      return !"Settings Activity".equals(getTitle());
     }
 
     /**
