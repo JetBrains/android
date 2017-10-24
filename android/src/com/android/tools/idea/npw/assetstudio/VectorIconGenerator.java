@@ -15,17 +15,44 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
+import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
 /**
  * Generates icons for the vector drawable.
  */
-public class VectorIconGenerator extends GraphicGenerator {
+public class VectorIconGenerator extends IconGenerator {
+  /**
+   * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
+   *
+   * @param minSdkVersion the minimal supported Android SDK version
+   */
+  public VectorIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
+  }
+
   @Override
-  @NonNull
-  public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+  @NotNull
+  public VectorIconOptions createOptions(boolean forPreview) {
+    VectorIconOptions options = new VectorIconOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
+
+    options.density = Density.ANYDPI;
+    return options;
+  }
+
+  @Override
+  @NotNull
+  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -37,7 +64,7 @@ public class VectorIconGenerator extends GraphicGenerator {
     return image;
   }
 
-  public static class VectorIconOptions extends GraphicGenerator.Options {
+  public static class VectorIconOptions extends Options {
     public VectorIconOptions() {
       iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
     }

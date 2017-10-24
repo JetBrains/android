@@ -31,8 +31,8 @@ public class LauncherLegacyIconGeneratorTest {
   @SuppressWarnings("SameParameterValue")
   private static void checkGraphic(
       @NonNull String baseName,
-      @NonNull GraphicGenerator.Shape shape,
-      @NonNull GraphicGenerator.Style style,
+      @NonNull IconGenerator.Shape shape,
+      @NonNull IconGenerator.Style style,
       boolean crop,
       int background,
       boolean isWebGraphic)
@@ -44,13 +44,14 @@ public class LauncherLegacyIconGeneratorTest {
     options.backgroundColor = background;
     options.isWebGraphic = isWebGraphic;
 
-    LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator();
+    LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(15);
     BitmapGeneratorTests.checkGraphic(5 + (isWebGraphic ? 1 : 0), "launcher", baseName, generator, options);
+    generator.dispose();
   }
 
   @Test
   public void testLauncher_simpleCircle() throws Exception {
-    checkGraphic("red_simple_circle", GraphicGenerator.Shape.CIRCLE,
-                 GraphicGenerator.Style.SIMPLE, true, 0xFF0000, true);
+    checkGraphic("red_simple_circle", IconGenerator.Shape.CIRCLE,
+                 IconGenerator.Style.SIMPLE, true, 0xFF0000, true);
   }
 }

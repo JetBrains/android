@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
 import com.android.ide.common.util.AssetUtil.ShadowEffect;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,14 +30,35 @@ import java.util.Map;
 /**
  * Generates icons for the notifications bar.
  */
-public class NotificationIconGenerator extends GraphicGenerator {
-  /** Creates a new NotificationIconGenerator. */
-  public NotificationIconGenerator() {
+public class NotificationIconGenerator extends IconGenerator {
+  /**
+   * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
+   *
+   * @param minSdkVersion the minimal supported Android SDK version
+   */
+  public NotificationIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
   }
 
-  @NonNull
   @Override
-  public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+  @NotNull
+  public NotificationOptions createOptions(boolean forPreview) {
+    NotificationOptions options = new NotificationOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
+
+    return options;
+  }
+
+  @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
+  @Override
+  @NotNull
+  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -48,7 +69,7 @@ public class NotificationIconGenerator extends GraphicGenerator {
     }
     Rectangle iconSizeMdpi;
     Rectangle targetRectMdpi;
-    NotificationOptions notificationOptions = (NotificationOptions) options;
+    NotificationOptions notificationOptions = (NotificationOptions)options;
     if (notificationOptions.version == Version.OLDER) {
       iconSizeMdpi = new Rectangle(0, 0, 25, 25);
       targetRectMdpi = new Rectangle(4, 4, 17, 17);
@@ -61,7 +82,7 @@ public class NotificationIconGenerator extends GraphicGenerator {
       targetRectMdpi = new Rectangle(0, 5, 16, 16);
     }
 
-    float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
+    float scaleFactor = getMdpiScaleFactor(options.density);
     Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
     Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
 
@@ -81,14 +102,13 @@ public class NotificationIconGenerator extends GraphicGenerator {
       AssetUtil.drawCenterInside(g, filled, targetRect);
     } else if (notificationOptions.version == Version.V11) {
       AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(Color.WHITE),});
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(Color.WHITE)});
     } else {
       assert notificationOptions.version == Version.V9;
       AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[]{new FillEffect(
-        new GradientPaint(0, 0, new Color(0x919191), 0, imageRect.height,
-                new Color(0x828282))),
-        new ShadowEffect(0, 1, 0, Color.WHITE, 0.10, true),});
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(
+          new GradientPaint(0, 0, new Color(0x919191), 0, imageRect.height, new Color(0x828282))),
+          new ShadowEffect(0, 1, 0, Color.WHITE, 0.10, true),});
     }
 
     g.dispose();
@@ -113,9 +133,9 @@ public class NotificationIconGenerator extends GraphicGenerator {
     super.generate(options.minSdk < 11 ? options.version.getDisplayName() : null, categoryMap, context, options, name);
   }
 
-  @NonNull
   @Override
-  protected String getIconFolder(@NonNull Options options) {
+  @NotNull
+  protected String getIconFolder(@NotNull Options options) {
     String folder = super.getIconFolder(options);
     Version version = ((NotificationOptions) options).version;
     if (version == Version.V11 && options.minSdk < 11) {
@@ -128,12 +148,10 @@ public class NotificationIconGenerator extends GraphicGenerator {
   }
 
   /**
-   * Options specific to generating notification icons
+   * Options specific to generating notification icons.
    */
-  public static class NotificationOptions extends GraphicGenerator.Options {
-    /**
-     * The version of the icon to generate - different styles are used for different versions of Android.
-     */
+  public static class NotificationOptions extends Options {
+    /** The version of the icon to generate - different styles are used for different versions of Android. */
     public Version version = Version.V9;
   }
 

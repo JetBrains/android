@@ -29,8 +29,9 @@ public class NotificationIconGeneratorTest {
     NotificationOptions options = new NotificationOptions();
     options.minSdk = minSdk;
 
-    NotificationIconGenerator generator = new NotificationIconGenerator();
+    NotificationIconGenerator generator = new NotificationIconGenerator(7);
     BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
+    generator.dispose();
   }
 
   @SuppressWarnings("SameParameterValue")

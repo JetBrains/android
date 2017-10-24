@@ -20,12 +20,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -83,7 +83,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   @NotNull private final BoolProperty myShowGridProperty;
   @NotNull private final BoolProperty myShowSafeZoneProperty;
   @NotNull private final AbstractProperty<Density> myPreviewDensityProperty;
-  @NotNull private final AndroidLauncherIconGenerator myIconGenerator;
+  @NotNull private final LauncherIconGenerator myIconGenerator;
   @NotNull private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
@@ -103,12 +103,12 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
 
   private final ImmutableMap<JRadioButton, AssetComponent> myForegroundAssetPanelMap;
 
-  private final Map<GraphicGenerator.Shape, String> myShapeNames = ImmutableMap.of(
-    GraphicGenerator.Shape.NONE, "None",
-    GraphicGenerator.Shape.CIRCLE, "Circle",
-    GraphicGenerator.Shape.SQUARE, "Square",
-    GraphicGenerator.Shape.VRECT, "Vertical",
-    GraphicGenerator.Shape.HRECT, "Horizontal");
+  private final Map<IconGenerator.Shape, String> myShapeNames = ImmutableMap.of(
+    IconGenerator.Shape.NONE, "None",
+    IconGenerator.Shape.CIRCLE, "Circle",
+    IconGenerator.Shape.SQUARE, "Square",
+    IconGenerator.Shape.VRECT, "Vertical",
+    IconGenerator.Shape.HRECT, "Horizontal");
 
   private JPanel myRootPanel;
   private JBLabel myOutputNameLabel;
@@ -168,7 +168,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JPanel myGenerateRoundIconRadioButtonsPanel;
   private JRadioButton myGenerateRoundIconYesRadioButton;
   private JBScrollPane myBackgroundScrollPane;
-  private JComboBox<GraphicGenerator.Shape> myLegacyIconShapeComboBox;
+  private JComboBox<IconGenerator.Shape> myLegacyIconShapeComboBox;
   private JPanel myBackgroundImageAssetRowPanel;
   private ImageAssetBrowser myBackgroundImageAssetBrowser;
   private JBLabel myBackgroundLayerNameLabel;
@@ -227,7 +227,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myGenerateWebIconYesRadioButton;
   private JRadioButton myBackgroundTrimNoRadioButton;
   private JBLabel myWebIconShapeLabel;
-  private JComboBox<GraphicGenerator.Shape> myWebIconShapeComboBox;
+  private JComboBox<IconGenerator.Shape> myWebIconShapeComboBox;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myWebIconShapePanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
@@ -239,8 +239,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private BoolProperty myGenerateLegacyIcon;
   private BoolProperty myGenerateRoundIcon;
   private BoolProperty myGenerateWebIcon;
-  private AbstractProperty<GraphicGenerator.Shape> myLegacyIconShape;
-  private AbstractProperty<GraphicGenerator.Shape> myWebIconShape;
+  private AbstractProperty<IconGenerator.Shape> myLegacyIconShape;
+  private AbstractProperty<IconGenerator.Shape> myWebIconShape;
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -261,34 +261,34 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myShowGridProperty = showGridProperty;
     myShowSafeZoneProperty = showSafeZoneProperty;
     myPreviewDensityProperty = previewDensityProperty;
-    myIconGenerator = new AndroidLauncherIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
+    myIconGenerator = new LauncherIconGenerator(facet, androidModuleInfo.getMinSdkVersion().getApiLevel());
     myValidatorPanel = validatorPanel;
 
-    DefaultComboBoxModel<GraphicGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
-    for (GraphicGenerator.Shape shape : myShapeNames.keySet()) {
+    DefaultComboBoxModel<IconGenerator.Shape> legacyShapesModel = new DefaultComboBoxModel<>();
+    for (IconGenerator.Shape shape : myShapeNames.keySet()) {
       legacyShapesModel.addElement(shape);
     }
-    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<GraphicGenerator.Shape>() {
+    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<IconGenerator.Shape>() {
       @Override
-      public void customize(JList list, GraphicGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, IconGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
         setText(myShapeNames.get(shape));
       }
     });
     myLegacyIconShapeComboBox.setModel(legacyShapesModel);
-    myLegacyIconShapeComboBox.setSelectedItem(GraphicGenerator.Shape.SQUARE);
+    myLegacyIconShapeComboBox.setSelectedItem(IconGenerator.Shape.SQUARE);
 
-    DefaultComboBoxModel<GraphicGenerator.Shape> webShapesModel = new DefaultComboBoxModel<>();
-    for (GraphicGenerator.Shape shape : myShapeNames.keySet()) {
+    DefaultComboBoxModel<IconGenerator.Shape> webShapesModel = new DefaultComboBoxModel<>();
+    for (IconGenerator.Shape shape : myShapeNames.keySet()) {
       webShapesModel.addElement(shape);
     }
-    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<GraphicGenerator.Shape>() {
+    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<IconGenerator.Shape>() {
       @Override
-      public void customize(JList list, GraphicGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, IconGenerator.Shape shape, int index, boolean selected, boolean hasFocus) {
         setText(myShapeNames.get(shape));
       }
     });
     myWebIconShapeComboBox.setModel(webShapesModel);
-    myWebIconShapeComboBox.setSelectedItem(GraphicGenerator.Shape.SQUARE);
+    myWebIconShapeComboBox.setSelectedItem(IconGenerator.Shape.SQUARE);
 
     myForegroundScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     myForegroundScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -616,12 +616,12 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
    */
   @Override
   @NotNull
-  public AndroidLauncherIconGenerator getIconGenerator() {
+  public LauncherIconGenerator getIconGenerator() {
     return myIconGenerator;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public JComponent getRootComponent() {
     return this;
   }

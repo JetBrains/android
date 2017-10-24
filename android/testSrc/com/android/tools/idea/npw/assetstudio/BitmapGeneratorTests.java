@@ -29,6 +29,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -43,14 +44,14 @@ public final class BitmapGeneratorTests {
 
   private BitmapGeneratorTests() {}
 
-  static void checkGraphic(int expectedFileCount, String folderName, String baseName, GraphicGenerator generator,
-                           GraphicGenerator.Options options) throws IOException {
+  static void checkGraphic(int expectedFileCount, String folderName, String baseName, IconGenerator generator,
+                           IconGenerator.Options options) throws IOException {
     checkGraphic(expectedFileCount, folderName, baseName, generator, options, 1.0f);
   }
 
-  static void checkGraphic(int expectedFileCount, String folderName, String baseName, GraphicGenerator generator,
-                           GraphicGenerator.Options options, float sourceAssetScale) throws IOException {
-    BufferedImage sourceImage = GraphicGenerator.getClipartImage("android.png");
+  private static void checkGraphic(int expectedFileCount, String folderName, String baseName, IconGenerator generator,
+                                   IconGenerator.Options options, float sourceAssetScale) throws IOException {
+    BufferedImage sourceImage = IconGenerator.getClipartImage("android.png");
     if (sourceAssetScale != 1.0f) {
       int width = sourceImage.getWidth();
       int height = sourceImage.getHeight();
@@ -64,11 +65,11 @@ public final class BitmapGeneratorTests {
     }
     options.sourceImageFuture = Futures.immediateFuture(sourceImage);
 
-    GeneratedIcons icons = generator.generateIcons(GRAPHIC_GENERATOR_CONTEXT, options, baseName);
+    Collection<GeneratedIcon> icons = generator.generateIcons(GRAPHIC_GENERATOR_CONTEXT, options, baseName);
 
     List<String> errors = new ArrayList<>();
     int fileCount = 0;
-    for (GeneratedIcon generatedIcon : icons.getList()) {
+    for (GeneratedIcon generatedIcon : icons) {
       Path relativePath = generatedIcon.getOutputPath();
       if (relativePath == null) {
         relativePath = Paths.get("extra").resolve(generatedIcon.getName() + ".png");
@@ -163,7 +164,7 @@ public final class BitmapGeneratorTests {
   }
 
   @SuppressWarnings("SameParameterValue")
-  public static void assertImageSimilar(String imageName, BufferedImage goldenImage, BufferedImage image, float maxPercentDifferent)
+  private static void assertImageSimilar(String imageName, BufferedImage goldenImage, BufferedImage image, float maxPercentDifferent)
       throws IOException {
     assertThat(Math.abs(goldenImage.getWidth() - image.getWidth()))
         .named("difference in " + imageName + " width")

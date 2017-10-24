@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -31,10 +31,10 @@ import org.jetbrains.annotations.Nullable;
  * assets to disk.
  *
  * A wizard that owns this model is expected to call
- * {@link #setIconGenerator(AndroidIconGenerator)} at some point before finishing.
+ * {@link #setIconGenerator(IconGenerator)} at some point before finishing.
  */
 public abstract class GenerateIconsModel extends WizardModel {
-  @Nullable private AndroidIconGenerator myIconGenerator;
+  @Nullable private IconGenerator myIconGenerator;
 
   @NotNull private AndroidModuleTemplate myPaths;
 
@@ -61,11 +61,11 @@ public abstract class GenerateIconsModel extends WizardModel {
   }
 
   @Nullable
-  public final AndroidIconGenerator getIconGenerator() {
+  public final IconGenerator getIconGenerator() {
     return myIconGenerator;
   }
 
-  public final void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
+  public final void setIconGenerator(@NotNull IconGenerator iconGenerator) {
     myIconGenerator = iconGenerator;
   }
 
@@ -80,7 +80,7 @@ public abstract class GenerateIconsModel extends WizardModel {
   }
 
   /**
-   * Serialize the icons into files on disk. This method will be called within a WriteAction.
+   * Serializes the icons into files on disk. This method will be called within a WriteAction.
    */
-  protected abstract void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull AndroidIconGenerator iconGenerator);
+  protected abstract void generateIntoPath(@NotNull AndroidModuleTemplate paths, @NotNull IconGenerator iconGenerator);
 }

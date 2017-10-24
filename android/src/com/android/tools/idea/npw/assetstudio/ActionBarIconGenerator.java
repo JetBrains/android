@@ -15,21 +15,76 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.AssetUtil.Effect;
 import com.android.ide.common.util.AssetUtil.FillEffect;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
- * Generate icons for the action bar
+ * Generates icons for the action bar.
  */
-public class ActionBarIconGenerator extends GraphicGenerator {
-  @NonNull
+@SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
+public class ActionBarIconGenerator extends IconGenerator {
+  private final ObjectProperty<Theme> myTheme = new ObjectValueProperty<>(Theme.HOLO_LIGHT);
+  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(new Color(51, 181, 229));
+
+  /**
+   * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
+   *
+   * @param minSdkVersion the minimal supported Android SDK version
+   */
+  public ActionBarIconGenerator(int minSdkVersion) {
+    super(minSdkVersion);
+  }
+
+  /**
+   * The theme for this icon, which influences its foreground/background colors.
+   */
+  @NotNull
+  public ObjectProperty<Theme> theme() {
+    return myTheme;
+  }
+
+  /**
+   * A custom color which will be used if {@link #theme()} is set to {@link Theme#CUSTOM}.
+   */
+  @NotNull
+  public ObjectProperty<Color> customColor() {
+    return myCustomColor;
+  }
+
   @Override
-  public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
+  @NotNull
+  public ActionBarOptions createOptions(boolean forPreview) {
+    ActionBarOptions options = new ActionBarOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
+    }
+
+    options.theme = myTheme.get();
+    if (options.theme == Theme.CUSTOM) {
+      options.customThemeColor = myCustomColor.get().getRGB();
+    }
+
+    options.sourceIsClipart = asset instanceof VectorAsset;
+
+    return options;
+  }
+
+  @Override
+  @NotNull
+  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -38,12 +93,12 @@ public class ActionBarIconGenerator extends GraphicGenerator {
     if (sourceImage == null) {
       sourceImage = AssetStudioUtils.createDummyImage();
     }
-    ActionBarOptions actionBarOptions = (ActionBarOptions) options;
+    ActionBarOptions actionBarOptions = (ActionBarOptions)options;
     Rectangle iconSizeMdpi = new Rectangle(0, 0, 32, 32);
     Rectangle targetRectMdpi = actionBarOptions.sourceIsClipart
         ? new Rectangle(0, 0, 32, 32)
         : new Rectangle(4, 4, 24, 24);
-    final float scaleFactor = GraphicGenerator.getMdpiScaleFactor(options.density);
+    final float scaleFactor = getMdpiScaleFactor(options.density);
     Rectangle imageRect = AssetUtil.scaleRectangle(iconSizeMdpi, scaleFactor);
     Rectangle targetRect = AssetUtil.scaleRectangle(targetRectMdpi, scaleFactor);
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
@@ -54,10 +109,9 @@ public class ActionBarIconGenerator extends GraphicGenerator {
     AssetUtil.drawCenterInside(g2, sourceImage, targetRect);
 
     if (actionBarOptions.theme == Theme.CUSTOM) {
-      AssetUtil.drawEffects(g, tempImage, 0, 0,
-                            new Effect[] {new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8),});
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(actionBarOptions.customThemeColor), 0.8)});
     } else if (actionBarOptions.theme == Theme.HOLO_LIGHT) {
-      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0x333333), 0.6),});
+      AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0x333333), 0.6)});
     } else {
       assert actionBarOptions.theme == Theme.HOLO_DARK;
       AssetUtil.drawEffects(g, tempImage, 0, 0, new Effect[] {new FillEffect(new Color(0xFFFFFF), 0.8)});
@@ -70,8 +124,8 @@ public class ActionBarIconGenerator extends GraphicGenerator {
   }
 
   /** Options specific to generating action bar icons. */
-  public static class ActionBarOptions extends GraphicGenerator.Options {
-    /** The theme to generate icons for */
+  public static class ActionBarOptions extends Options {
+    /** The theme to generate icons for. */
     public Theme theme = Theme.HOLO_LIGHT;
 
     /** Whether or not the source image is a clipart source. */

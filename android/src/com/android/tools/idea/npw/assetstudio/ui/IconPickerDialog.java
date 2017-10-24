@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.adtui.SearchField;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -282,7 +282,7 @@ public final class IconPickerDialog extends DialogWrapper {
 
   @Nullable
   public static VdIcon getDefaultIcon() {
-    URL url = GraphicGenerator.class.getClassLoader().getResource(MaterialDesignIcons.PATH + DEFAULT_ICON_NAME);
+    URL url = IconGenerator.class.getClassLoader().getResource(MaterialDesignIcons.PATH + DEFAULT_ICON_NAME);
     assert url != null;
 
     try {
@@ -310,9 +310,9 @@ public final class IconPickerDialog extends DialogWrapper {
       String categoryName = ICON_CATEGORIES[i];
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
       String fullDirName = MaterialDesignIcons.PATH + categoryNameLowerCase + '/';
-      for (Iterator<String> iterator = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
+      for (Iterator<String> iterator = IconGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
         final String iconName = iterator.next();
-        URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
+        URL url = IconGenerator.class.getClassLoader().getResource(fullDirName + iconName);
         assert url != null;
 
         try {

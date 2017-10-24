@@ -16,11 +16,10 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.Density;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.ui.FileTreeCellRenderer;
-import com.android.tools.idea.ui.FileTreeModel;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -28,9 +27,9 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.ui.FileTreeCellRenderer;
+import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -50,12 +49,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
 public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
-
   private static final DefaultTreeModel EMPTY_MODEL = new DefaultTreeModel(null);
 
   /**
@@ -129,7 +129,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   protected void onEntering() {
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
     myListeners.receiveAndFire(mySelectedTemplate, template -> {
-      AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
+      IconGenerator iconGenerator = getModel().getIconGenerator();
       File resDir = template.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
@@ -150,8 +150,8 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         public int compare(File file1, File file2) {
           String path1 = file1.getAbsolutePath();
           String path2 = file2.getAbsolutePath();
-          Density density1 = CategoryIconMap.pathToDensity(path1);
-          Density density2 = CategoryIconMap.pathToDensity(path2);
+          Density density1 = pathToDensity(path1);
+          Density density2 = pathToDensity(path2);
 
           if (density1 != null && density2 != null && density1 != density2) {
             // Sort least dense to most dense
@@ -209,7 +209,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
       myOutputPreviewTree.setModel(treeModel);
 
-      // The tree should be totally expanded by default
+      // The tree should be totally expanded by default.
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
         myOutputPreviewTree.expandRow(i);
       }

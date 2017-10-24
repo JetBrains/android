@@ -28,7 +28,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
@@ -42,7 +42,6 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlDependencyManager;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
@@ -186,7 +185,7 @@ public class ViewEditorImpl extends ViewEditor {
   public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
     String path = MaterialDesignIcons.getPathForBasename(asset);
 
-    try (Reader reader = new InputStreamReader(GraphicGenerator.class.getClassLoader().getResourceAsStream(path), StandardCharsets.UTF_8)) {
+    try (Reader reader = new InputStreamReader(IconGenerator.class.getClassLoader().getResourceAsStream(path), StandardCharsets.UTF_8)) {
       createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader));
     }
     catch (IOException exception) {
