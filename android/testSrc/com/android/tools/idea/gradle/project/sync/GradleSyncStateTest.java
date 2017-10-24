@@ -28,7 +28,6 @@ import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -256,67 +255,14 @@ public class GradleSyncStateTest extends IdeaTestCase {
     assertEquals("1h 2m 10s 100ms", mySyncState.getFormattedSyncDuration(3730100));
   }
 
-  public void testIsSyncNeeded_unsureIfNeverSynced() {
-    when(mySummary.getSyncTimestamp()).thenReturn(-1L);
-    modifyGradleFile(1L);
-    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.UNSURE);
+  public void testIsSyncNeeded_IfNeverSynced() {
+    when(myGradleFiles.areGradleFilesModified()).thenAnswer((invocation) -> true);
+    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
   }
 
-  public void testIsSyncNeeded_cleanAfterSync() {
-    modifyGradleFile(1L);
-
-    // Emulate a sync.
-    mySyncState.setSyncStartedTimeStamp(2L, TRIGGER_UNKNOWN);
-    mySyncState.syncFinished(3L);
-    when(mySummary.getSyncTimestamp()).thenReturn(3L);
-
-    // Since no Gradle files have changed and the last sync succeeded, we don't need another one.
+  public void testSyncNotNeeded_IfNothingModified() {
+    when(myGradleFiles.areGradleFilesModified()).thenAnswer((invocation -> false));
     assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.NO);
   }
 
-  public void testIsSyncNeeded_dirtyIfChangedDuringFirstSync() {
-    // Modify a Gradle file in the middle of a sync.
-    mySyncState.setSyncStartedTimeStamp(1L, TRIGGER_UNKNOWN);
-    modifyGradleFile(2L);
-
-    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
-
-    mySyncState.syncFinished(3L);
-    when(mySummary.getSyncTimestamp()).thenReturn(3L);
-
-    // Even though the last sync was succesful, the latest Gradle file changes weren't
-    // accounted for. We need to sync again.
-    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
-  }
-
-  public void testIsSyncNeeded_dirtyIfChangedDuringSecondSync() {
-    // Emulate a sync.
-    mySyncState.setSyncStartedTimeStamp(1L, TRIGGER_UNKNOWN);
-    mySyncState.syncFinished(2L);
-    when(mySummary.getSyncTimestamp()).thenReturn(2L);
-
-    // Modify a Gradle file in the middle of a sync.
-    mySyncState.setSyncStartedTimeStamp(3L, TRIGGER_UNKNOWN);
-    modifyGradleFile(4L);
-
-    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
-
-    mySyncState.syncFinished(5L);
-    when(mySummary.getSyncTimestamp()).thenReturn(5L);
-
-    // Even though the last sync was succesful, the latest Gradle file changes weren't
-    // accounted for. We need to sync again.
-    assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.YES);
-  }
-
-  /**
-   *  Emulates modifying a Gradle file by having GradleFiles#areGradleFilesModified return true for
-   *  reference times before the given timestamp.
-   */
-  private void modifyGradleFile(long modifiedTime) {
-    when(myGradleFiles.areGradleFilesModified(anyLong())).thenAnswer(invocation -> {
-      long referenceTime = invocation.getArgument(0);
-      return modifiedTime > referenceTime;
-    });
-  }
 }
