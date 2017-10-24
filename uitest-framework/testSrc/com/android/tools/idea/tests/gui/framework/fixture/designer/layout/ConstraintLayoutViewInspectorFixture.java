@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
+import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -45,37 +46,38 @@ public final class ConstraintLayoutViewInspectorFixture {
     new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
   }
 
-  public void setAllMargins(int n) {
-    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
+  public ConstraintLayoutViewInspectorFixture setAllMargins(int marginValue) {
+    setMargin(SingleWidgetView.TOP_MARGIN_WIDGET, marginValue);
+    setMargin(SingleWidgetView.BOTTOM_MARGIN_WIDGET, marginValue);
+    setMargin(SingleWidgetView.RIGHT_MARGIN_WIDGET, marginValue);
+    setMargin(SingleWidgetView.LEFT_MARGIN_WIDGET, marginValue);
+    myRobot.click(findMarginWidget(SingleWidgetView.BOTTOM_MARGIN_WIDGET));
+    return this;
   }
 
-  public void scrollAllMargins(int scroll) {
-    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
+  private void setMargin(String widgetName, int marginValue) {
+    MarginWidget widget = findMarginWidget(widgetName);
+    myRobot.click(widget);
+    myRobot.doubleClick(widget);
+    myRobot.enterText(Integer.toString(marginValue), widget);
+  }
+
+  public ConstraintLayoutViewInspectorFixture scrollAllMargins(int scroll) {
+    scrollMargin(SingleWidgetView.TOP_MARGIN_WIDGET, scroll);
+    scrollMargin(SingleWidgetView.BOTTOM_MARGIN_WIDGET, scroll);
+    scrollMargin(SingleWidgetView.RIGHT_MARGIN_WIDGET, scroll);
+    scrollMargin(SingleWidgetView.LEFT_MARGIN_WIDGET, scroll);
+    return this;
+  }
+
+  private void scrollMargin(String widgetName, int scroll){
+    MarginWidget widget = findMarginWidget(widgetName);
+    myRobot.rotateMouseWheel(widget, -scroll);  // Robot.rotateMouseWheel interprets positive numbers as rotation towards user
+  }
+
+  @NotNull
+  private MarginWidget findMarginWidget(String name) {
+    return myRobot.finder().findByName(name, MarginWidget.class);
   }
 
   @NotNull
