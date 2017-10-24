@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio.icon;
+package com.android.tools.idea.npw.assetstudio;
 
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
@@ -45,13 +41,14 @@ import java.util.List;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 
 /**
- * Tests for {@link AndroidLauncherIconGenerator}.
+ * Tests for {@link LauncherIconGenerator}.
  */
-public class AndroidLauncherIconGeneratorTest extends AndroidTestCase {
+public class LauncherIconGeneratorTest extends AndroidTestCase {
   private static final double MAX_PERCENT_DIFFERENT = 0.005;
 
   private List<String> myWarnings = new ArrayList<>();
-  private AndroidLauncherIconGenerator myIconGenerator;
+  private LauncherIconGenerator myIconGenerator;
+
   private AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
     @Override
     @Nullable
@@ -95,7 +92,7 @@ public class AndroidLauncherIconGeneratorTest extends AndroidTestCase {
     super.setUp();
     makeSureThatProjectVirtualFileIsNotNull();
 
-    myIconGenerator = new AndroidLauncherIconGenerator(myFacet, 15);
+    myIconGenerator = new LauncherIconGenerator(myFacet, 15);
     myIconGenerator.name().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");
@@ -254,8 +251,8 @@ public class AndroidLauncherIconGeneratorTest extends AndroidTestCase {
     //noinspection UseJBColor
     myIconGenerator.backgroundColor().set(new Color(0x26A69A));
     myIconGenerator.generateRoundIcon().set(false);
-    myIconGenerator.legacyIconShape().set(GraphicGenerator.Shape.VRECT);
-    myIconGenerator.webIconShape().set(GraphicGenerator.Shape.CIRCLE);
+    myIconGenerator.legacyIconShape().set(IconGenerator.Shape.VRECT);
+    myIconGenerator.webIconShape().set(IconGenerator.Shape.CIRCLE);
     checkGeneratedIcons(expectedFilenames);
   }
 }

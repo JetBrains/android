@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.tools.idea.npw.assetstudio.GeneratedIcons;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import org.jetbrains.annotations.NotNull;
 
-public class IconGeneratorResult {
-  private GeneratedIcons icons;
-  private GraphicGenerator.Options options;
+import java.util.Collection;
 
-  public IconGeneratorResult(@NotNull GeneratedIcons icons, @NotNull GraphicGenerator.Options options) {
+public class IconGeneratorResult {
+  private Collection<GeneratedIcon> icons;
+  private IconGenerator.Options options;
+
+  public IconGeneratorResult(@NotNull Collection<GeneratedIcon> icons, @NotNull IconGenerator.Options options) {
     this.icons = icons;
     this.options = options;
   }
 
-  public GeneratedIcons getIcons() {
+  public Collection<GeneratedIcon> getIcons() {
     return icons;
   }
 
-  public GraphicGenerator.Options getOptions() {
+  public IconGenerator.Options getOptions() {
     return options;
   }
 }

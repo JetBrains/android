@@ -32,9 +32,9 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -1478,11 +1478,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
-      AndroidIconGenerator assetGenerator = new AndroidLauncherLegacyIconGenerator(minSdkVersion);
-      assetGenerator.name().set("ic_launcher");
-      assetGenerator.sourceAsset().setValue(new ImageAsset());
-      createProject(projectState, myFixture.getProject(), assetGenerator);
-      assetGenerator.dispose();
+      IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
+      iconGenerator.name().set("ic_launcher");
+      iconGenerator.sourceAsset().setValue(new ImageAsset());
+      createProject(projectState, myFixture.getProject(), iconGenerator);
+      iconGenerator.dispose();
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
@@ -1498,7 +1498,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private void createProject(@NotNull TestNewProjectWizardState projectState, @NotNull Project project,
-                             @Nullable AndroidIconGenerator assetGenerator) {
+                             @Nullable IconGenerator iconGenerator) {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     List<String> errors = Lists.newArrayList();
     try {
@@ -1507,8 +1507,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (moduleState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
-          assetGenerator.generateImageIconsIntoPath(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
+        if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
+          iconGenerator.generateImageIconsIntoPath(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
         }
         projectState.updateParameters();
 

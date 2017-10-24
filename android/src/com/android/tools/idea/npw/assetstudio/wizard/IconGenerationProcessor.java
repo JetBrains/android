@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,16 +31,13 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Generate icons in a background thread using {@link AndroidIconGenerator} instances.
+ * Generates icons in a background thread using {@link IconGenerator} instances.
  */
-public class BackgroundIconGenerator {
-  private static final Logger LOGGER = Logger.getInstance(BackgroundIconGenerator.class);
-
+public class IconGenerationProcessor {
   @NotNull private final List<Request> myImageRequests = new ArrayList<>();
   @Nullable private Request myRunningRequest;
 
-  public void enqueue(@NotNull AndroidIconType iconType,
-                      @NotNull AndroidIconGenerator iconGenerator,
+  public void enqueue(@NotNull AndroidIconType iconType, @NotNull IconGenerator iconGenerator,
                       @NotNull Consumer<IconGeneratorResult> onDone) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
@@ -51,7 +47,7 @@ public class BackgroundIconGenerator {
     }
 
     if (iconGenerator.sourceAsset().get().isPresent()) {
-      GraphicGenerator.Options options = iconGenerator.createOptions(true);
+      IconGenerator.Options options = iconGenerator.createOptions(true);
       Request request = new Request(iconType, iconGenerator, options, onDone);
       myImageRequests.add(request);
     }
@@ -79,16 +75,21 @@ public class BackgroundIconGenerator {
     worker.execute();
   }
 
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(IconGenerationProcessor.class);
+  }
+
   private static class Request {
     @NotNull private final AndroidIconType myType;
-    @NotNull private final AndroidIconGenerator myIconGenerator;
+    @NotNull private final IconGenerator myIconGenerator;
     @NotNull private final Consumer<IconGeneratorResult> myOnDone;
-    @NotNull private final GraphicGenerator.Options myOptions;
+    @NotNull private final IconGenerator.Options myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
 
     public Request(@NotNull AndroidIconType iconType,
-                   @NotNull AndroidIconGenerator iconGenerator,
-                   @NotNull GraphicGenerator.Options options,
+                   @NotNull IconGenerator iconGenerator,
+                   @NotNull IconGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
       myType = iconType;
       myIconGenerator = iconGenerator;
@@ -126,7 +127,7 @@ public class BackgroundIconGenerator {
       long nanoStart = System.nanoTime();
       myRequest.run();
       long nanoEnd = System.nanoTime();
-      LOGGER.info(String.format("Icons generated in %,d ms", (nanoEnd - nanoStart) / 1_000_000));
+      getLog().info(String.format("Icons generated in %,d ms", (nanoEnd - nanoStart) / 1_000_000));
       return null;
     }
 
@@ -137,7 +138,7 @@ public class BackgroundIconGenerator {
         myRequest.done();
       }
       finally {
-        // Don't run immediately to allow things to settle down if necessary
+        // Don't run immediately to allow things to settle down if necessary.
         ApplicationManager.getApplication().invokeLater(myOnDone, ModalityState.any());
       }
     }

@@ -20,7 +20,6 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -69,10 +68,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -124,7 +121,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private JBLoadingPanel myLoadingPanel;
 
   @NotNull private AndroidModuleTemplate myPaths;
-  @NotNull private final BackgroundIconGenerator myBackgroundIconGenerator = new BackgroundIconGenerator();
+  @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -358,10 +355,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   }
 
   /**
-   * Return an icon generator which will create Android icons using the panel's current settings.
+   * Returns an icon generator which will create Android icons using the panel's current settings.
    */
   @NotNull
-  public AndroidIconGenerator getIconGenerator() {
+  public IconGenerator getIconGenerator() {
     return getActiveIconView().getIconGenerator();
   }
 
@@ -403,9 +400,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     AndroidIconType iconType = myOutputIconType.get();
-    AndroidIconGenerator iconGenerator = getActiveIconView().getIconGenerator();
+    IconGenerator iconGenerator = getActiveIconView().getIconGenerator();
 
-    myBackgroundIconGenerator.enqueue(iconType, iconGenerator, iconGeneratorResult -> {
+    myIconGenerationProcessor.enqueue(iconType, iconGenerator, iconGeneratorResult -> {
       // There is no map if there was no source asset
       if (iconGeneratorResult == null) {
         return;
@@ -441,8 +438,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult result) {
       // Default
-      GeneratedIcons generatedIcons = result.getIcons();
-      List<Pair<String, BufferedImage>> list = generatedIcons.getList().stream()
+      Collection<GeneratedIcon> generatedIcons = result.getIcons();
+      List<Pair<String, BufferedImage>> list = generatedIcons.stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
         .filter(icon -> filterPreviewIcon(icon, ((LauncherIconGenerator.LauncherIconOptions)result.getOptions()).previewDensity))
@@ -509,8 +506,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
      */
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
-      GeneratedIcons generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.getList().stream()
+      Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
+      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
         .filter(icon -> icon.getDensity() != Density.NODPI) // Skip Web image
@@ -539,8 +536,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
       // Default
-      GeneratedIcons generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.getList().stream()
+      Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
+      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
           .filter(x -> x instanceof GeneratedImageIcon)
           .map(x -> (GeneratedImageIcon)x)
           .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)

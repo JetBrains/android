@@ -15,29 +15,24 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import static com.android.SdkConstants.DOT_XML;
-
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import static com.android.SdkConstants.DOT_XML;
 
 public final class MaterialDesignIcons {
 
@@ -49,7 +44,7 @@ public final class MaterialDesignIcons {
 
     @Nullable
     public static String getPathForBasename(@NonNull String basename) {
-        return getBasenameToPathMap(path -> GraphicGenerator.getResourcesNames(path, DOT_XML))
+        return getBasenameToPathMap(path -> IconGenerator.getResourcesNames(path, DOT_XML))
                 .get(basename);
     }
 
@@ -74,7 +69,7 @@ public final class MaterialDesignIcons {
 
     @NonNull
     public static Collection<String> getCategories() {
-        return getCategories(GraphicGenerator.class.getClassLoader().getResource(PATH));
+        return getCategories(IconGenerator.class.getClassLoader().getResource(PATH));
     }
 
     @VisibleForTesting

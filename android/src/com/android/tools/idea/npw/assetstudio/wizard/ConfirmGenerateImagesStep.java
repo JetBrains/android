@@ -21,8 +21,6 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -67,7 +65,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -196,7 +197,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
-        float scaleFactor = GraphicGenerator.getMdpiScaleFactor(density);
+        float scaleFactor = getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
             String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
@@ -298,7 +299,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private static Dimension getDpSize(@NotNull GeneratedXmlResource xml) {
     IconCategory xmlCategory = xml.getCategory();
     if (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER) {
-      return LauncherIconGenerator.SIZE_FULL_BLEED_DP;
+      return SIZE_FULL_BLEED_DP;
     }
     return null;
   }
@@ -306,14 +307,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Nullable
   private BufferedImage getPreviewImage(@NotNull GeneratedXmlResource xml) {
     String xmlText = xml.getXmlText();
-    AndroidIconGenerator generator = getModel().getIconGenerator();
+    IconGenerator generator = getModel().getIconGenerator();
     IconCategory xmlCategory = xml.getCategory();
     if (generator != null
         && (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER)) {
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
       // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
       Rectangle rectangle =
-          AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, GraphicGenerator.getMdpiScaleFactor(Density.XHIGH) * 0.8f);
+          AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
       ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
       try {
         return imageFuture.get();
@@ -351,7 +352,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   protected void onEntering() {
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
     myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
-      AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
+      IconGenerator iconGenerator = getModel().getIconGenerator();
       File resDir = template.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
@@ -428,8 +429,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       if (isDirectory1 == isDirectory2) {
         String path1 = file1.getAbsolutePath();
         String path2 = file2.getAbsolutePath();
-        Density density1 = CategoryIconMap.pathToDensity(path1 + File.separator);
-        Density density2 = CategoryIconMap.pathToDensity(path2 + File.separator);
+        Density density1 = pathToDensity(path1 + File.separator);
+        Density density2 = pathToDensity(path2 + File.separator);
 
         if (density1 != null && density2 != null && density1 != density2) {
           // Sort least dense to most dense

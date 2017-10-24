@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * Base class for all asset types which can be converted into Android icons. See also
- * {@link com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator}, which handles the conversion.
+ * {@link com.android.tools.idea.npw.assetstudio.IconGenerator}, which handles the conversion.
  *
  * Asset fields are all {@link AbstractProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
