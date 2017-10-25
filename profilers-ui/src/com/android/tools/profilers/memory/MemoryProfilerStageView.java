@@ -93,7 +93,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
-
     myHeapDumpButton = new FlatButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Dump Java heap");
