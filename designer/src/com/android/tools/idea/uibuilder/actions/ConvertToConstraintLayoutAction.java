@@ -157,7 +157,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     // Step #2: Ensure ConstraintLayout is available in the project
     List<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
-      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), true);
+      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), false);
     if (!notAdded.isEmpty()) {
       return;
     }
