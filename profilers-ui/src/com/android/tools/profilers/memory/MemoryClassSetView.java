@@ -96,6 +96,7 @@ final class MemoryClassSetView extends AspectObserver {
         ValueColumnRenderer::new,
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparing(o -> {
           if (!(o.getAdapter() instanceof ValueObject)) {
             return "";
@@ -124,6 +125,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getDepth())));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
@@ -143,6 +145,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
@@ -162,6 +165,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
@@ -173,6 +177,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getNativeSize())));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
@@ -184,6 +189,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getShallowSize())));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
@@ -195,6 +201,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getRetainedSize())));
 
     JPanel headingPanel = new JPanel(new BorderLayout());
@@ -532,6 +539,8 @@ final class MemoryClassSetView extends AspectObserver {
     if (myInstanceObject == null) {
       return;
     }
+
+    assert myTreeRoot != null;
 
     // TODO: select node which is not visible yet
     for (MemoryObjectTreeNode<MemoryObject> node : myTreeRoot.getChildren()) {
