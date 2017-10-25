@@ -15,26 +15,35 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.SdkConstants;
 import com.android.ide.common.internal.WaitableExecutor;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.lint.checks.ApiLookup;
+import com.android.utils.CharSequences;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.util.AtomicNullableLazyValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
@@ -72,6 +81,8 @@ public class LauncherIconGenerator extends IconGenerator {
   private final StringProperty myForegroundLayerName = new StringValueProperty();
   private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
+  private final AtomicNullableLazyValue<ApiLookup> myApiLookup;
+
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
    *
@@ -80,6 +91,13 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   public LauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
     super(minSdkVersion, new GraphicGeneratorContext(40, new DrawableRenderer(facet)));
+    myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
+      @Override
+      @Nullable
+      protected ApiLookup compute() {
+        return LintIdeClient.getApiLookup(facet.getModule().getProject());
+      }
+    };
   }
 
   /**
@@ -394,6 +412,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
         String xmlDrawableText = options.foregroundImage.getScaledDrawable();
         assert xmlDrawableText != null;
+        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         Paths.get(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
                                         IconCategory.ADAPTIVE_FOREGROUND_LAYER,
@@ -411,6 +430,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
         String xmlDrawableText = options.backgroundImage.getScaledDrawable();
         assert xmlDrawableText != null;
+        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.ADAPTIVE_BACKGROUND_LAYER,
@@ -449,6 +469,51 @@ public class LauncherIconGenerator extends IconGenerator {
         + "    <foreground android:drawable=\"@%s/%s\"/>\n"
         + "</adaptive-icon>";
     return String.format(format, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
+  }
+
+  /**
+   * Determines the minimal API level required to display the given XML drawable.
+   * See <a href="https://issuetracker.google.com/68259550">bug 68259550</a>.
+   *
+   * @param xmlDrawableText the text of the XML drawable
+   * @param minSdk the minimal API level supported by the app
+   * @return the required minimal API level if greater than {@code minSdk}, otherwise zero
+   */
+  private int calculateMinRequiredApiLevel(@NotNull String xmlDrawableText, int minSdk) {
+    ApiLookup apiLookup = myApiLookup.getValue();
+    if (apiLookup == null) {
+      return 0;
+    }
+    KXmlParser parser = new KXmlParser();
+    int requiredApiLevel = 0;
+    try {
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(CharSequences.getReader(xmlDrawableText, true));
+      int type;
+      // Iterate over the XML document and check all attributes to determine the required minimal API level.
+      while ((type = parser.next()) != XmlPullParser.END_DOCUMENT) {
+        if (type == XmlPullParser.START_TAG) {
+          // See similar logic in com.android.tools.lint.checks.ApiDetector.visitAttribute().
+          for (int i = 0; i < parser.getAttributeCount(); i++) {
+            if (SdkConstants.ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
+              String attributeName = parser.getAttributeName(i);
+              if (!attributeName.equals("fillType")) { // Exclude android:fillType since it is supported by AppCompat.
+                int attributeApiLevel = apiLookup.getFieldVersion("android/R$attr", attributeName);
+                if (requiredApiLevel < attributeApiLevel) {
+                  requiredApiLevel = attributeApiLevel;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    catch (XmlPullParserException | IOException e) {
+      // Ignore.
+    }
+
+    // Do not report anything below API 21 or minSdk, whichever is higher.
+    return requiredApiLevel > minSdk && requiredApiLevel > 21 ? requiredApiLevel : 0;
   }
 
   private static void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
