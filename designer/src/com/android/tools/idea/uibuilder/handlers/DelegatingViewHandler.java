@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.common.model.NlComponent;
@@ -80,6 +77,12 @@ public class DelegatingViewHandler extends ViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return myHandler.getInspectorProperties();
+  }
+
+  @Override
+  @Nullable
+  public CustomPanel getCustomPanel() {
+    return myHandler.getCustomPanel();
   }
 
   @Override

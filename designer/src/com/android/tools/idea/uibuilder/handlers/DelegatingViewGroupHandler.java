@@ -47,6 +47,12 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   // ViewGroupHandler
 
   @Override
+  @Nullable
+  public CustomPanel getLayoutCustomPanel() {
+    return myHandler.getLayoutCustomPanel();
+  }
+
+  @Override
   public boolean acceptsChild(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
     return myHandler.acceptsChild(layout, newChild);
   }
