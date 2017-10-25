@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.perflib.analyzer.Capture;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
@@ -384,7 +383,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -527,7 +526,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -624,7 +623,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -676,7 +675,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -765,6 +764,8 @@ public class MemoryClassifierViewTest {
     expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
     expected_0_to_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
 
     // Expand right to 6
     selectionRange.set(captureStartTime, captureStartTime + 6);
@@ -781,6 +782,8 @@ public class MemoryClassifierViewTest {
     expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
     expected_0_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_6, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
 
     // Shrink left to 3
     selectionRange.set(captureStartTime + 3, captureStartTime + 6);
@@ -797,12 +800,16 @@ public class MemoryClassifierViewTest {
     expected_3_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
     expected_3_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_6, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
 
     // Shrink right to 3
     selectionRange.set(captureStartTime + 3, captureStartTime + 3);
     Queue<String> expected_3_to_3 = new LinkedList<>();
     expected_3_to_3.add(String.format(nodeFormat, "default heap", 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_3, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isInstanceOf(InfoMessagePanel.class);
 
     // Shifts to {4,10}
     selectionRange.set(captureStartTime + 4, captureStartTime + 9);
@@ -819,6 +826,8 @@ public class MemoryClassifierViewTest {
     expected_4_to_9.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
     expected_4_to_9.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_9, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InfoMessagePanel.class);
   }
 
   @Test
@@ -982,7 +991,7 @@ public class MemoryClassifierViewTest {
       }
       else if (depth > currentDepth) {
         // We need to go deeper...
-        List<MemoryObjectTreeNode> children = node.getChildren();
+        ImmutableList<MemoryObjectTreeNode> children = node.getChildren();
         assertThat(children.size()).isGreaterThan(0);
         assertThat(childrenVisited).isFalse();
         for (MemoryObjectTreeNode childNode : children) {
