@@ -17,8 +17,7 @@ package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -29,12 +28,14 @@ import javax.swing.JComponent;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 /**
  * Dependencies are checked by finding the dependencies for all the components
  * on the palette that are currently missing from the project. That allows us
  * to quickly check if a certain palette item has a missing dependency with
  * {@link #needsLibraryLoad}.
- * After each Gradle sync we need to recompute the missing dependencies.
+ * After each project sync we need to recompute the missing dependencies.
  */
 public class DependencyManager {
   private final Project myProject;
@@ -74,14 +75,11 @@ public class DependencyManager {
   }
 
   public void registerDependencyUpdates(@NotNull JComponent paletteUI, @NotNull Disposable parentDisposable) {
-    GradleSyncState.subscribe(myProject, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        if (checkForNewMissingDependencies()) {
-          paletteUI.repaint();
-        }
+    myProject.getMessageBus().connect(parentDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForNewMissingDependencies()) {
+        paletteUI.repaint();
       }
-    }, parentDisposable);
+    });
   }
 
   public void ensureLibraryIsIncluded(@NotNull Palette.Item item) {

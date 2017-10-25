@@ -18,8 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -36,6 +35,8 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 public class DependencyManager {
   private final Project myProject;
@@ -120,14 +121,11 @@ public class DependencyManager {
   }
 
   private void registerDependencyUpdates(@NotNull JComponent paletteUI, @NotNull Disposable parentDisposable) {
-    GradleSyncState.subscribe(myProject, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        if (checkForNewMissingDependencies()) {
+    myProject.getMessageBus().connect(parentDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      if (result == SyncResult.SUCCESS && checkForNewMissingDependencies()) {
           paletteUI.repaint();
-        }
       }
-    }, parentDisposable);
+    });
   }
 
   @NotNull
