@@ -131,7 +131,7 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
       object : WriteCommandAction<Unit>(surface.project, "Create Fragment", surface.model!!.file) {
         @Throws(Throwable::class)
         override fun run(result: Result<Unit>) {
-          var tagName = surface.schema.getTag(NavigationSchema.DestinationType.FRAGMENT)
+          var tagName = surface.schema.getAnyRootTag(NavigationSchema.DestinationType.FRAGMENT)
           if (destination != null) {
             tagName = destination.tag
           }

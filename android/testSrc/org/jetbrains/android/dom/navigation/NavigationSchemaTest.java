@@ -15,19 +15,28 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.util.io.ZipUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
  * Tests for {@link NavigationSchema}.
  */
-public class NavigationSchemaTest extends AndroidGradleTestCase {
+public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
     "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
   };
@@ -36,15 +45,23 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
   private static final String[] ALL =
     Stream.concat(Stream.concat(Arrays.stream(LEAF_DESTINATIONS), Arrays.stream(GROUPS)), Arrays.stream(EMPTIES)).toArray(String[]::new);
 
+  private static final String PREBUILT_AAR_PATH =
+    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject(TestProjectPaths.NAVIGATION_EDITOR_SCHEMA_TEST);
-    requestSyncAndWait();
+    myFixture.copyDirectoryToProject("navschematest", "src");
+
+    File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
+    File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
+    ZipUtil.extract(aar, tempDir, null);
+
+    PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
   }
 
   public void testSubtags() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myAndroidFacet);
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
     Multimap<Class<? extends AndroidDomElement>, String> subtags;
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
@@ -66,20 +83,39 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
   }
 
   public void testDestinationClassByTag() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myAndroidFacet);
-    assertEquals("ActivityNavigator", schema.getDestinationClassByTag("activity").getName());
-    assertEquals("ActivityNavigatorSub", schema.getDestinationClassByTag("activity_sub").getName());
-    assertEquals("FragmentNavigator", schema.getDestinationClassByTag("fragment").getName());
-    assertEquals("FragmentNavigatorSub", schema.getDestinationClassByTag("fragment_sub").getName());
-    assertEquals("FragmentNavigatorSubSub", schema.getDestinationClassByTag("fragment_sub_sub").getName());
-    assertEquals("NavGraphNavigator", schema.getDestinationClassByTag("navigation").getName());
-    assertEquals("NavGraphNavigatorSub", schema.getDestinationClassByTag("navigation_sub").getName());
-    assertEquals("OtherNavigator1", schema.getDestinationClassByTag("other_1").getName());
-    assertEquals("OtherNavigator2", schema.getDestinationClassByTag("other_2").getName());
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    PsiClass activityNavigator = findClass("android.arch.navigation.ActivityNavigator");
+    PsiClass fragmentNavigator = findClass("android.arch.navigation.FragmentNavigator");
+    PsiClass navGraphNavigator = findClass("android.arch.navigation.NavGraphNavigator");
+    PsiClass activityNavigatorSub = findClass("ActivityNavigatorSub");
+    PsiClass activityNavigatorSub2 = findClass("ActivityNavigatorSub2");
+    PsiClass fragmentNavigatorSub = findClass("FragmentNavigatorSub");
+    PsiClass fragmentNavigatorSubSub = findClass("FragmentNavigatorSubSub");
+    PsiClass navGraphNavigatorSub = findClass("NavGraphNavigatorSub");
+    PsiClass otherNavigator1 = findClass("OtherNavigator1");
+    PsiClass otherNavigator2 = findClass("OtherNavigator2");
+
+
+    assertSameElements(schema.getDestinationClassesByTagSlowly("activity"), ImmutableList.of(activityNavigator));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("activity_sub"),
+                       ImmutableList.of(activityNavigatorSub, activityNavigatorSub2));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment"), ImmutableList.of(fragmentNavigator));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment_sub"), ImmutableList.of(fragmentNavigatorSub));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("fragment_sub_sub"), ImmutableList.of(fragmentNavigatorSubSub));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("navigation"), ImmutableList.of(navGraphNavigator));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("navigation_sub"), ImmutableList.of(navGraphNavigatorSub));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("other_1"), ImmutableList.of(otherNavigator1));
+    assertSameElements(schema.getDestinationClassesByTagSlowly("other_2"), ImmutableList.of(otherNavigator2));
+  }
+
+  @NotNull
+  private PsiClass findClass(@NotNull String className) {
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(getProject());
+    return javaPsiFacade.findClass(className, GlobalSearchScope.allScope(getProject()));
   }
 
   public void testDestinationType() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myAndroidFacet);
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
     assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity"));
     assertEquals(NavigationSchema.DestinationType.ACTIVITY, schema.getDestinationType("activity_sub"));
     assertEquals(NavigationSchema.DestinationType.FRAGMENT, schema.getDestinationType("fragment"));
@@ -92,9 +128,9 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
   }
 
   public void testTagByType() {
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myAndroidFacet);
-    assertEquals("activity", schema.getTag(NavigationSchema.DestinationType.ACTIVITY));
-    assertEquals("navigation", schema.getTag(NavigationSchema.DestinationType.NAVIGATION));
-    assertEquals("fragment", schema.getTag(NavigationSchema.DestinationType.FRAGMENT));
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    assertEquals("activity", schema.getAnyRootTag(NavigationSchema.DestinationType.ACTIVITY));
+    assertEquals("navigation", schema.getAnyRootTag(NavigationSchema.DestinationType.NAVIGATION));
+    assertEquals("fragment", schema.getAnyRootTag(NavigationSchema.DestinationType.FRAGMENT));
   }
 }

@@ -17,7 +17,6 @@ package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
@@ -394,9 +393,7 @@ public class AttributeProcessingUtil {
                                           @NotNull Set<XmlName> skipAttrNames,
                                           @NotNull AttributeProcessor callback) {
     NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
-    final PsiClass psiClass = schema.getDestinationClassByTag(tag.getName());
-
-    if (psiClass != null) {
+    for (PsiClass psiClass : schema.getDestinationClassesByTagSlowly(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
     }
   }
