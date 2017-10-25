@@ -116,7 +116,7 @@ final class MemoryClassifierView extends AspectObserver {
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
       new AttributeColumn<>(
-        "Class Name", this::getNameColumnRenderer, SwingConstants.LEFT, LABEL_COLUMN_WIDTH,
+        "Class Name", this::getNameColumnRenderer, SwingConstants.LEFT, LABEL_COLUMN_WIDTH, SortOrder.ASCENDING,
         createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), Comparator.comparing(ClassSet::getName))));
     myAttributeColumns.put(
       ClassifierAttribute.ALLOC_COUNT,
@@ -128,6 +128,7 @@ final class MemoryClassifierView extends AspectObserver {
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getAllocatedCount),
                                  Comparator.comparingInt(ClassSet::getAllocatedCount))));
     myAttributeColumns.put(
@@ -140,6 +141,7 @@ final class MemoryClassifierView extends AspectObserver {
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeallocatedCount),
                                  Comparator.comparingInt(ClassSet::getDeallocatedCount))));
     myAttributeColumns.put(
@@ -151,6 +153,7 @@ final class MemoryClassifierView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalNativeSize))));
     myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
@@ -161,6 +164,7 @@ final class MemoryClassifierView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalShallowSize))));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
@@ -171,6 +175,7 @@ final class MemoryClassifierView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         createTreeNodeComparator(Comparator.comparingLong(ClassifierSet::getTotalRetainedSize),
                                  Comparator.comparingLong(ClassSet::getTotalRetainedSize))));
   }

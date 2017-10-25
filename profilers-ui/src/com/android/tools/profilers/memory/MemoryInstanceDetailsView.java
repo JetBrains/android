@@ -112,6 +112,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparing(o -> (o.getAdapter()).getName())));
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
@@ -126,6 +127,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingInt(o -> o.getAdapter().getDepth())));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
@@ -145,6 +147,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
@@ -164,6 +167,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
@@ -174,6 +178,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> o.getAdapter().getNativeSize())));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
@@ -184,6 +189,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingInt(o -> o.getAdapter().getShallowSize())));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
@@ -194,6 +200,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> o.getAdapter().getRetainedSize())));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
