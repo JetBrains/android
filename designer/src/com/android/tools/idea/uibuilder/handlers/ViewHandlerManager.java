@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
+import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
@@ -214,7 +215,7 @@ public class ViewHandlerManager implements ProjectComponent {
     return null;
   }
 
-  private ViewHandler createHandler(@NotNull String viewTag) {
+  public ViewHandler createBuiltInHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
       case ABSOLUTE_LAYOUT:
@@ -266,6 +267,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
         return new ConstraintLayoutHandler();
+      case TRANSITION_LAYOUT:
+        return new TransitionLayoutHandler();
       case COORDINATOR_LAYOUT:
         return new CoordinatorLayoutHandler();
       case DETAILS_FRAGMENT:
@@ -409,6 +412,15 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ViewTagHandler();
       case ZOOM_BUTTON:
         return new ZoomButtonHandler();
+    }
+    return null;
+  }
+
+  private ViewHandler createHandler(@NotNull String viewTag) {
+
+    ViewHandler builtInHandler = createBuiltInHandler(viewTag);
+    if (builtInHandler != null) {
+      return builtInHandler;
     }
 
     // Look for other handlers via reflection; first built into the IDE:

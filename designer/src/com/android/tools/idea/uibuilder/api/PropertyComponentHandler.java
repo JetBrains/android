@@ -45,6 +45,22 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   }
 
   /**
+   * @return a custom panel to use in the inspector for a view. Can be null.
+   */
+  @Nullable
+  public CustomPanel getCustomPanel() {
+    return null;
+  }
+
+  /**
+   * @return a custom panel to use in the inspector for the children of a viewgroup. Can be null.
+   */
+  @Nullable
+  public CustomPanel getLayoutCustomPanel() {
+    return null;
+  }
+
+  /**
    * @return the properties that should be shown in the inspector for a child of this component.
    */
   @NotNull
