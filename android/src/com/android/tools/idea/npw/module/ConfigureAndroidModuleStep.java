@@ -95,7 +95,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     TextProperty packageNameText = new TextProperty(myPackageName);
     TextProperty moduleNameText = new TextProperty(myModuleName);
 
-    Expression<String> computedPackageName = new DomainToPackageExpression(companyDomain, model.applicationName());
+    Expression<String> computedPackageName = new DomainToPackageExpression(companyDomain, model.moduleName());
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
