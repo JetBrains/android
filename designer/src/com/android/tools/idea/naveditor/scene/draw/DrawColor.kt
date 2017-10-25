@@ -23,11 +23,11 @@ import java.awt.Color
  */
 enum class DrawColor {
   FRAMES {
-    override fun color(context: SceneContext) = context.colorSet.frames
+    override fun color(context: SceneContext): Color = context.colorSet.frames
   },
 
   SELECTED_FRAMES {
-    override fun color(context: SceneContext) = context.colorSet.selectedFrames
+    override fun color(context: SceneContext): Color = context.colorSet.selectedFrames
   };
 
   abstract fun color(context: SceneContext): Color

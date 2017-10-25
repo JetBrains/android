@@ -41,11 +41,11 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
   }
 
   public DrawScreenLabel(String s) {
-    this(parse(s, 5));
+    this(parse(s, 3));
   }
 
   private DrawScreenLabel(String[] sp) {
-    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), sp[4]);
+    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), sp[2]);
   }
 
   @Override
@@ -61,13 +61,9 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
 
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Graphics2D g2 = (Graphics2D)g.create();
-
-    g2.setColor(sceneContext.getColorSet().getSubduedText());
-    g2.setFont(FontCache.INSTANCE.getFont(FONT_SIZE, (float)sceneContext.getScale()));
-    g2.drawString(myText, myX, myY);
-
-    g2.dispose();
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+      g.setColor(sceneContext.getColorSet().getSubduedText());
+      g.setFont(FontCache.INSTANCE.getFont(FONT_SIZE, (float)sceneContext.getScale()));
+      g.drawString(myText, myX, myY);
   }
 }
