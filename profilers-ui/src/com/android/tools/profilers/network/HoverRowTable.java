@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
@@ -52,6 +53,7 @@ final class HoverRowTable extends JBTable {
     addMouseMotionListener(mouseAdapter);
     addMouseListener(mouseAdapter);
     getEmptyText().clear();
+    setIntercellSpacing(new Dimension());
   }
 
   private void hoveredRowChanged(int row) {
@@ -100,19 +102,19 @@ final class HoverRowTable extends JBTable {
     }
     super.paint(g);
     // Draw column line down to bottom of table, matches the look and feel of BasicTableUI#paintGrid which is private and cannot override.
-    g.setColor(getGridColor());
+    // Grid line color need to look like covered by hover or select highlight. Paint transparent grid lines on top of the table's original
+    // solid grid lines for rows, and paint non-transparent color grid lines below the last row.
     TableColumnModel columnModel = getColumnModel();
+    Color transparentGridColor = ColorUtil.toAlpha(getGridColor(), 60);
     int x = 0;
-    if (getComponentOrientation().isLeftToRight()) {
-      for (int column = 0; column < columnModel.getColumnCount() - 1; column++) {
-        x += columnModel.getColumn(column).getWidth();
-        g.drawLine(x - 1, 0, x - 1, getHeight());
-      }
-    } else {
-      for (int column = columnModel.getColumnCount() - 1; column > 0; column--) {
-        x += columnModel.getColumn(column).getWidth();
-        g.drawLine(x - 1, 0, x - 1, getHeight());
-      }
+    int lastRowBottom = getRowHeight() * getRowCount();
+    for (int index = 0; index < columnModel.getColumnCount() - 1; index++) {
+      int column = getComponentOrientation().isLeftToRight() ? index : columnModel.getColumnCount() - 1 - index;
+      x += columnModel.getColumn(column).getWidth();
+      g.setColor(transparentGridColor);
+      g.drawLine(x - 1, 0, x - 1, lastRowBottom);
+      g.setColor(getGridColor());
+      g.drawLine(x - 1, lastRowBottom, x - 1, getHeight());
     }
   }
 }
