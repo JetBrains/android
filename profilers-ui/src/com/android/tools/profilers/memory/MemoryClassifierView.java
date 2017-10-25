@@ -545,6 +545,7 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myClassSet == null) {
       mySelectedClassifierSet = null;
+      myTree.clearSelection();
     }
   }
 

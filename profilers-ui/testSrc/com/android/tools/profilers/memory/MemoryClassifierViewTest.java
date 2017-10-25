@@ -289,6 +289,10 @@ public class MemoryClassifierViewTest {
     //noinspection unchecked
     assertThat(selectedClassNode.getAdapter().isSupersetOf(((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter())).isTrue();
 
+    // Clear the selection from the model. The Tree's selection should get cleared as well.
+    myStage.selectClassSet(null);
+    assertThat(classifierTree.getSelectionPath()).isNull();
+
     // Try selecting a package -- this should not result in any changes to the state.
     MemoryObjectTreeNode<? extends ClassifierSet> comPackage = findChildWithName(rootNode, "com");
     ClassSet selectedClass = myStage.getSelectedClassSet();
