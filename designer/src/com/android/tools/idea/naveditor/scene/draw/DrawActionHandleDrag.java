@@ -42,11 +42,11 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   }
 
   public DrawActionHandleDrag(String s) {
-    this(parse(s, 5));
+    this(parse(s, 3));
   }
 
   private DrawActionHandleDrag(String[] sp) {
-    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), Integer.parseInt(sp[4]));
+    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), Integer.parseInt(sp[2]));
   }
 
   @Override
@@ -61,15 +61,11 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Graphics2D g2 = (Graphics2D)g.create();
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    g.setColor(sceneContext.getColorSet().getSelectedFrames());
+    g.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
 
-    g2.setColor(sceneContext.getColorSet().getSelectedFrames());
-    g2.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
-
-    g2.setStroke(STROKE);
-    g2.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
-
-    g2.dispose();
+    g.setStroke(STROKE);
+    g.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
   }
 }

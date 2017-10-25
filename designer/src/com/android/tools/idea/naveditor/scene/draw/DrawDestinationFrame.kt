@@ -31,9 +31,9 @@ abstract class DrawDestinationFrame(@SwingCoordinate private val myRectangle: Re
                                     private val myIsSelected: Boolean,
                                     private val myIsHover: Boolean) : NavBaseDrawCommand() {
 
-  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[2]), sp[3].toBoolean(), sp[4].toBoolean())
+  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]), sp[1].toBoolean(), sp[2].toBoolean())
 
-  constructor(s: String) : this(parse(s, 5))
+  constructor(s: String) : this(parse(s, 3))
 
   override fun getLevel(): Int {
     return DrawCommand.COMPONENT_LEVEL
@@ -43,18 +43,14 @@ abstract class DrawDestinationFrame(@SwingCoordinate private val myRectangle: Re
     return arrayOf(NavBaseDrawCommand.rectToString(myRectangle), myIsSelected, myIsHover)
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val g2 = g.create() as Graphics2D
-
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val colorSet = sceneContext.colorSet
-    g2.color = if (myIsSelected) colorSet.selectedFrames else colorSet.frames
+    g.color = if (myIsSelected) colorSet.selectedFrames else colorSet.frames
 
     val strokeWidth = if (myIsSelected || myIsHover) THICK_STROKE_WIDTH else THIN_STROKE_WIDTH
-    g2.stroke = BasicStroke(sceneContext.getSwingDimension(strokeWidth).toFloat())
+    g.stroke = BasicStroke(sceneContext.getSwingDimension(strokeWidth).toFloat())
 
-    drawFrame(g2, sceneContext, myRectangle)
-
-    g2.dispose()
+    drawFrame(g, sceneContext, myRectangle)
   }
 
   protected abstract fun drawFrame(g: Graphics2D, sceneContext: SceneContext, rectangle: Rectangle)

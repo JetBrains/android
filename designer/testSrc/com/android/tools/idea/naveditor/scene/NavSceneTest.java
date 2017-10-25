@@ -83,24 +83,24 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1470,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,450x450x180x300,710x450x100x25,NORMAL\n" +
-                 "DrawAction,21,NORMAL,450x450x180x300,840x450x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,450x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,466,446,fragment1\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawAction,NORMAL,450x450x180x300,710x450x100x25,NORMAL\n" +
+                 "DrawAction,NORMAL,450x450x180x300,840x450x180x300,NORMAL\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,450x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,466,446,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,20,710x450x100x25\n" +
+                 "DrawNavigationBackground,710x450x100x25\n" +
                  "DrawTextRegion,710,450,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,20,710x450x100x25,false,false\n" +
-                 "DrawAction,21,NORMAL,710x450x100x25,840x450x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,810,462,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,710,446,subnav\n" +
+                 "DrawNavigationFrame,710x450x100x25,false,false\n" +
+                 "DrawAction,NORMAL,710x450x100x25,840x450x180x300,NORMAL\n" +
+                 "DrawActionHandle,810,462,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,710,446,subnav\n" +
                  "\n" +
                  "DrawComponentBackground,840,450,180,300,1\n" +
-                 "DrawScreenFrame,20,840x450x180x300,false,false\n" +
-                 "DrawScreenLabel,22,840,446,activity\n" +
+                 "DrawScreenFrame,840x450x180x300,false,false\n" +
+                 "DrawScreenLabel,840,446,activity\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -122,15 +122,15 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1260,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,450x450x180x300,710x450x100x25,NORMAL\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawAction,NORMAL,450x450x180x300,710x450x100x25,NORMAL\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,20,710x450x100x25\n" +
+                 "DrawNavigationBackground,710x450x100x25\n" +
                  "DrawTextRegion,710,450,100,25,0,17,true,false,4,4,30,0.5,\"myCoolLabel\"\n" +
-                 "DrawNavigationFrame,20,710x450x100x25,false,false\n" +
-                 "DrawScreenLabel,22,710,446,\n" +
+                 "DrawNavigationFrame,710x450x100x25,false,false\n" +
+                 "DrawScreenLabel,710,446,\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -166,23 +166,23 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1580,1600\n" +
                  "DrawComponentBackground,650,450,180,300,1\n" +
-                 "DrawNavScreen,24,651,451,179,299\n" +
-                 "DrawScreenFrame,20,650x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,830,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,650x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,666,446,fragment1\n" +
+                 "DrawNavScreen,651,451,179,299\n" +
+                 "DrawScreenFrame,650x450x180x300,false,false\n" +
+                 "DrawActionHandle,830,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,650x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,666,446,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,450,650,180,300,1\n" +
-                 "DrawNavScreen,24,451,651,179,299\n" +
-                 "DrawScreenFrame,20,450x650x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,800,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,646,fragment2\n" +
+                 "DrawNavScreen,451,651,179,299\n" +
+                 "DrawScreenFrame,450x650x180x300,false,false\n" +
+                 "DrawActionHandle,630,800,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,646,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,950,850,180,300,1\n" +
-                 "DrawNavScreen,24,951,851,179,299\n" +
-                 "DrawScreenFrame,20,950x850x180x300,false,false\n" +
-                 "DrawActionHandle,25,1130,1000,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,950,846,fragment3\n" +
+                 "DrawNavScreen,951,851,179,299\n" +
+                 "DrawScreenFrame,950x850x180x300,false,false\n" +
+                 "DrawActionHandle,1130,1000,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,950,846,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -218,23 +218,23 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1580,1600\n" +
                  "DrawComponentBackground,650,450,180,300,1\n" +
-                 "DrawNavScreen,24,651,451,179,299\n" +
-                 "DrawScreenFrame,20,650x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,830,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,650x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,666,446,fragment1\n" +
+                 "DrawNavScreen,651,451,179,299\n" +
+                 "DrawScreenFrame,650x450x180x300,false,false\n" +
+                 "DrawActionHandle,830,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,650x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,666,446,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,450,650,180,300,1\n" +
-                 "DrawNavScreen,24,451,651,179,299\n" +
-                 "DrawScreenFrame,20,450x650x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,800,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,646,fragment2\n" +
+                 "DrawNavScreen,451,651,179,299\n" +
+                 "DrawScreenFrame,450x650x180x300,false,false\n" +
+                 "DrawActionHandle,630,800,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,646,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,950,850,180,300,1\n" +
-                 "DrawNavScreen,24,951,851,179,299\n" +
-                 "DrawScreenFrame,20,950x850x180x300,false,false\n" +
-                 "DrawActionHandle,25,1130,1000,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,950,846,fragment3\n" +
+                 "DrawNavScreen,951,851,179,299\n" +
+                 "DrawScreenFrame,950x850x180x300,false,false\n" +
+                 "DrawActionHandle,1130,1000,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,950,846,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -266,23 +266,23 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1600,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,450x450x180x300,710x450x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawAction,NORMAL,450x450x180x300,710x450x180x300,NORMAL\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,710,450,180,300,1\n" +
-                 "DrawNavScreen,24,711,451,179,299\n" +
-                 "DrawScreenFrame,20,710x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,890,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,710x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,726,446,fragment2\n" +
+                 "DrawNavScreen,711,451,179,299\n" +
+                 "DrawScreenFrame,710x450x180x300,false,false\n" +
+                 "DrawActionHandle,890,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,710x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,726,446,fragment2\n" +
                  "\n" +
                  "DrawComponentBackground,970,450,180,300,1\n" +
-                 "DrawScreenFrame,20,970x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,1150,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,970,446,fragment3\n" +
+                 "DrawScreenFrame,970x450x180x300,false,false\n" +
+                 "DrawActionHandle,1150,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,970,446,fragment3\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -311,10 +311,10 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1080,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -327,18 +327,18 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1340,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,450x450x180x300,710x450x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawAction,NORMAL,450x450x180x300,710x450x180x300,NORMAL\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,710,450,180,300,1\n" +
-                 "DrawNavScreen,24,711,451,179,299\n" +
-                 "DrawScreenFrame,20,710x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,890,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,710x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,726,446,fragment2\n" +
+                 "DrawNavScreen,711,451,179,299\n" +
+                 "DrawScreenFrame,710x450x180x300,false,false\n" +
+                 "DrawActionHandle,890,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,710x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,726,446,fragment2\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -401,24 +401,24 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, view);
     assertEquals("Clip,0,0,470,200\n" +
                  "DrawComponentBackground,80,-50,180,300,1\n" +
-                 "DrawScreenFrame,20,80x-50x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,80x-50x180x300,340x-50x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,260,100,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,80,-54,fragment1\n" +
+                 "DrawScreenFrame,80x-50x180x300,false,false\n" +
+                 "DrawAction,NORMAL,80x-50x180x300,340x-50x180x300,NORMAL\n" +
+                 "DrawActionHandle,260,100,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,80,-54,fragment1\n" +
                  "\n" +
                  "DrawComponentBackground,340,-50,180,300,1\n" +
-                 "DrawNavScreen,24,341,-49,179,299\n" +
-                 "DrawScreenFrame,20,340x-50x180x300,false,false\n" +
-                 "DrawActionHandle,25,520,100,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,340x-62x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,356,-54,fragment2\n" +
+                 "DrawNavScreen,341,-49,179,299\n" +
+                 "DrawScreenFrame,340x-50x180x300,false,false\n" +
+                 "DrawActionHandle,520,100,0,0,FRAMES,0\n" +
+                 "DrawIcon,340x-62x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,356,-54,fragment2\n" +
                  "\n" +
-                 "DrawNavigationBackground,20,-50x-50x100x25\n" +
+                 "DrawNavigationBackground,-50x-50x100x25\n" +
                  "DrawTextRegion,-50,-50,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,20,-50x-50x100x25,false,false\n" +
-                 "DrawAction,21,NORMAL,-50x-50x100x25,80x-50x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,50,-38,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,-50,-54,subnav\n" +
+                 "DrawNavigationFrame,-50x-50x100x25,false,false\n" +
+                 "DrawAction,NORMAL,-50x-50x100x25,80x-50x180x300,NORMAL\n" +
+                 "DrawActionHandle,50,-38,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,-50,-54,subnav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
     list.clear();
@@ -427,15 +427,15 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, view);
     assertEquals("Clip,0,0,340,200\n" +
                  "DrawComponentBackground,-50,-50,180,300,1\n" +
-                 "DrawScreenFrame,20,-50x-50x180x300,false,false\n" +
-                 "DrawAction,21,NORMAL,-50x-50x180x300,210x-50x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,130,100,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,-50,-54,fragment3\n" +
+                 "DrawScreenFrame,-50x-50x180x300,false,false\n" +
+                 "DrawAction,NORMAL,-50x-50x180x300,210x-50x180x300,NORMAL\n" +
+                 "DrawActionHandle,130,100,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,-50,-54,fragment3\n" +
                  "\n" +
                  "DrawComponentBackground,210,-50,180,300,1\n" +
-                 "DrawScreenFrame,20,210x-50x180x300,false,false\n" +
-                 "DrawActionHandle,25,390,100,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,210,-54,fragment4\n" +
+                 "DrawScreenFrame,210x-50x180x300,false,false\n" +
+                 "DrawActionHandle,390,100,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,210,-54,fragment4\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -457,9 +457,9 @@ public class NavSceneTest extends NavigationTestCase {
 
     assertEquals("Clip,0,0,1080,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -514,12 +514,12 @@ public class NavSceneTest extends NavigationTestCase {
 
     assertEquals("Clip,0,0,1080,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawAction,21,SELF,450x450x180x300,450x450x180x300,NORMAL\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,450x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,466,446,fragment1\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawAction,SELF,450x450x180x300,450x450x180x300,NORMAL\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,450x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,466,446,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -543,12 +543,12 @@ public class NavSceneTest extends NavigationTestCase {
 
     assertEquals("Clip,0,0,1080,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawNavScreen,24,451,451,179,299\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawIcon,23,450x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,466,446,fragment1\n" +
-                 "DrawIcon,23,618x438x12x12,DEEPLINK\n" +
+                 "DrawNavScreen,451,451,179,299\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawIcon,450x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,466,446,fragment1\n" +
+                 "DrawIcon,618x438x12x12,DEEPLINK\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -575,16 +575,16 @@ public class NavSceneTest extends NavigationTestCase {
 
     assertEquals("Clip,0,0,1260,1200\n" +
                  "DrawComponentBackground,450,450,180,300,3\n" +
-                 "DrawScreenFrame,20,450x450x180x300,true,false\n" +
-                 "DrawActionHandle,25,630,600,0,6,SELECTED_FRAMES,200\n" +
-                 "DrawIcon,23,450x438x12x12,START_DESTINATION\n" +
-                 "DrawScreenLabel,22,466,446,fragment1\n" +
+                 "DrawScreenFrame,450x450x180x300,true,false\n" +
+                 "DrawActionHandle,630,600,0,6,SELECTED_FRAMES,200\n" +
+                 "DrawIcon,450x438x12x12,START_DESTINATION\n" +
+                 "DrawScreenLabel,466,446,fragment1\n" +
                  "\n" +
-                 "DrawNavigationBackground,20,710x450x100x25\n" +
+                 "DrawNavigationBackground,710x450x100x25\n" +
                  "DrawTextRegion,710,450,100,25,0,17,true,false,4,4,30,0.5,\"subnav\"\n" +
-                 "DrawNavigationFrame,20,710x450x100x25,true,false\n" +
-                 "DrawActionHandle,25,810,462,0,6,SELECTED_FRAMES,200\n" +
-                 "DrawScreenLabel,22,710,446,subnav\n" +
+                 "DrawNavigationFrame,710x450x100x25,true,false\n" +
+                 "DrawActionHandle,810,462,0,6,SELECTED_FRAMES,200\n" +
+                 "DrawScreenLabel,710,446,subnav\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }
@@ -600,9 +600,9 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,1080,1200\n" +
                  "DrawComponentBackground,450,450,180,300,1\n" +
-                 "DrawScreenFrame,20,450x450x180x300,false,false\n" +
-                 "DrawActionHandle,25,630,600,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawScreenFrame,450x450x180x300,false,false\n" +
+                 "DrawActionHandle,630,600,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -614,9 +614,9 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
     assertEquals("Clip,0,0,963,963\n" +
                  "DrawComponentBackground,424,424,112,112,1\n" +
-                 "DrawScreenFrame,20,424x424x112x112,false,false\n" +
-                 "DrawActionHandle,25,537,481,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,424,421,fragment1\n" +
+                 "DrawScreenFrame,424x424x112x112,false,false\n" +
+                 "DrawActionHandle,537,481,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,424,421,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
 
@@ -627,9 +627,9 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)surface, model));
     assertEquals("Clip,0,0,1200,1068\n" +
                  "DrawComponentBackground,450,450,300,168,1\n" +
-                 "DrawScreenFrame,20,450x450x300x168,false,false\n" +
-                 "DrawActionHandle,25,750,534,0,0,FRAMES,0\n" +
-                 "DrawScreenLabel,22,450,446,fragment1\n" +
+                 "DrawScreenFrame,450x450x300x168,false,false\n" +
+                 "DrawActionHandle,750,534,0,0,FRAMES,0\n" +
+                 "DrawScreenLabel,450,446,fragment1\n" +
                  "\n" +
                  "UNClip\n", list.serialize());
   }

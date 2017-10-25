@@ -26,9 +26,9 @@ import java.awt.Rectangle
  */
 class DrawNavigationBackground(@SwingCoordinate private val myRectangle: Rectangle) : NavBaseDrawCommand() {
 
-  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[2]))
+  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]))
 
-  constructor(s: String) : this(parse(s, 3))
+  constructor(s: String) : this(parse(s, 1))
 
   override fun getLevel(): Int {
     return DrawCommand.COMPONENT_LEVEL
@@ -38,14 +38,10 @@ class DrawNavigationBackground(@SwingCoordinate private val myRectangle: Rectang
     return arrayOf(NavBaseDrawCommand.rectToString(myRectangle))
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val previousColor = g.color
-
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.color = sceneContext.colorSet.componentBackground
 
     val arc = sceneContext.getSwingDimension(DrawNavigationFrame.CORNER_RADIUS)
     g.fillRoundRect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height, arc, arc)
-
-    g.color = previousColor
   }
 }
