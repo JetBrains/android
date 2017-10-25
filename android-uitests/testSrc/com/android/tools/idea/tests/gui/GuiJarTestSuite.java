@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui;
 
-import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.ClassSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
@@ -24,10 +24,7 @@ import org.junit.runner.RunWith;
 
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 
-@RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  GuiJarTestSuite.class,  // a suite mustn't contain itself
-})
+@RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
@@ -41,7 +38,6 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
       "tools/adt/idea/android/annotations",
       "tools/adt/idea/android-uitests/testData",
       "tools/adt/idea/artwork/resources/device-art-resources",
-      "tools/adt/idea/android/testData",
       "tools/adt/idea/android/lib",
       "tools/base/templates",
       "tools/idea/java",

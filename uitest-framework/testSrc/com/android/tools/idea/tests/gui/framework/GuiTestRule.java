@@ -59,6 +59,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
 
@@ -226,6 +229,14 @@ public class GuiTestRule implements TestRule {
     field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
+  public IdeFrameFixture importSimpleLocalApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
+  }
+
+  /**
+   * @deprecated use importSimpleLocalApplication that doesn't use remote repositories.
+   */
+  @Deprecated()
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
@@ -284,7 +295,11 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    return GradleWrapper.create(projectDirPath, gradleVersion) != null;
+    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
+    File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
+    return wrapper != null;
   }
 
   protected void updateLocalProperties(File projectPath) throws IOException {
