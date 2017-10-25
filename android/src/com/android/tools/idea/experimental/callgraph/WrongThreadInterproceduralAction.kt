@@ -20,6 +20,7 @@ import com.android.tools.idea.lint.LintIdeRequest
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisAction
 import com.intellij.openapi.diagnostic.Logger
@@ -57,7 +58,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
             scope.accept { files.add(it) }
             val modules = ModuleManager.getInstance(project).modules.toList()
             val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
-            request.setScope(WrongThreadInterproceduralDetector.SCOPE)
+            request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
             val issue = object : IssueRegistry() {
               override fun getIssues() = listOf(WrongThreadInterproceduralDetector.ISSUE)
             }
