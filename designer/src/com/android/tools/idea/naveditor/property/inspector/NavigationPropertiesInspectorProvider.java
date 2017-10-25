@@ -52,7 +52,7 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
     }
     XmlTag tag = components.get(0).getTag();
     NavigationSchema schema = NavigationSchema.getOrCreateSchema(propertiesManager.getFacet());
-    if (schema.getDestinationClassByTag(tag.getName()) == null) {
+    if (schema.getDestinationType(tag.getName()) == null) {
       return false;
     }
     String tagName = tag.getName();
