@@ -22,21 +22,12 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
@@ -45,6 +36,14 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -311,7 +310,8 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
       myAndroidVersionsInfo.loadTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
         controls.init(items);
-        controls.getInclusionCheckBox().setSelected(FormFactor.MOBILE.equals(formFactor));
+        Object selectedMinSdkItem = controls.getMinSdkCombobox().getSelectedItem();
+        controls.getInclusionCheckBox().setSelected(selectedMinSdkItem != null && FormFactor.MOBILE.equals(formFactor));
         if (loadingCounter.decrementAndGet() == 0) {
           myLoadingPanel.setVisible(false);
         }
