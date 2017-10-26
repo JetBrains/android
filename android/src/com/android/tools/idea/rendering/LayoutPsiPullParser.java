@@ -71,11 +71,23 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                                                                  ),
                                                                                  ImmutableList.of());
 
-  private static final Consumer<TagSnapshot> TAG_SNAPSHOT_DECORATOR = (tag) -> {
-    if ("com.google.android.gms.ads.AdView".equals(tag.tagName) || "com.google.android.gms.maps.MapView".equals(tag.tagName)) {
-      tag.setAttribute(ATTR_MIN_WIDTH, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
-      tag.setAttribute(ATTR_MIN_HEIGHT, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
-      tag.setAttribute(ATTR_BACKGROUND, TOOLS_URI, TOOLS_PREFIX, "#AAA", false);
+  private static final Consumer<TagSnapshot> TAG_SNAPSHOT_DECORATOR = (tagSnapshot) -> {
+    if ("com.google.android.gms.ads.AdView".equals(tagSnapshot.tagName) || "com.google.android.gms.maps.MapView".equals(tagSnapshot.tagName)) {
+      tagSnapshot.setAttribute(ATTR_MIN_WIDTH, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tagSnapshot.setAttribute(ATTR_MIN_HEIGHT, TOOLS_URI, TOOLS_PREFIX, "50dp", false);
+      tagSnapshot.setAttribute(ATTR_BACKGROUND, TOOLS_URI, TOOLS_PREFIX, "#AAA", false);
+    } else if (tagSnapshot.tagName.equals(LIST_VIEW) ||
+        tagSnapshot.tagName.equals(EXPANDABLE_LIST_VIEW) ||
+        tagSnapshot.tagName.equals(GRID_VIEW) ||
+        tagSnapshot.tagName.equals(SPINNER)) {
+      // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
+      // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
+      if (tagSnapshot.getAttribute(ATTR_ID, ANDROID_URI) == null) {
+        String prefix = tagSnapshot.tag != null ? tagSnapshot.tag.getPrefixByNamespace(ANDROID_URI) : null;
+        if (prefix != null) {
+          tagSnapshot.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
+        }
+      }
     }
   };
 
@@ -737,21 +749,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         return createSnapshotForMerge(tag, honorMergeParentTag, tagDecorator);
 
       default:
-        TagSnapshot root = TagSnapshot.createTagSnapshot(tag, tagDecorator);
-
-        // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
-        // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
-        if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
-          XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
-          if (id == null) {
-            String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-            if (prefix != null) {
-              root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
-            }
-          }
-        }
-
-        return root;
+        return TagSnapshot.createTagSnapshot(tag, tagDecorator);
     }
   }
 
