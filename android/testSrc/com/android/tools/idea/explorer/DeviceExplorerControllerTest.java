@@ -17,8 +17,10 @@ package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.mocks.*;
 import com.android.tools.idea.util.FutureUtils;
@@ -126,7 +128,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       }
     };
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
-    myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRenderer(), myModel);
+    myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRendererFactory(), myModel);
     myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myMockFileManager.setDefaultDownloadPath(downloadPath.toPath());
@@ -1700,6 +1702,13 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     }
     for (MouseListener listener : component.getMouseListeners()) {
       listener.mousePressed(event);
+    }
+  }
+
+  public static class MockDeviceFileSystemRendererFactory implements DeviceFileSystemRendererFactory {
+    @Override
+    public DeviceFileSystemRenderer create(DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+      return new MockDeviceFileSystemRenderer();
     }
   }
 }

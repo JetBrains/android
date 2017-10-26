@@ -16,9 +16,8 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRenderer;
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
-import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -41,11 +40,11 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(project),
                                                                         edtExecutor,
                                                                         taskExecutor);
-    DeviceFileSystemRenderer renderer = new AdbDeviceFileSystemRenderer(service);
+    DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(service);
     DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
 
     DeviceExplorerModel model = new DeviceExplorerModel();
-    DeviceExplorerView view = new DeviceExplorerViewImpl(project, toolWindow, renderer, model);
+    DeviceExplorerView view = new DeviceExplorerViewImpl(project, toolWindow, deviceFileSystemRendererFactory, model);
     DeviceExplorerController controller =
       new DeviceExplorerController(project, model, view, service, fileManager, edtExecutor, taskExecutor);
 

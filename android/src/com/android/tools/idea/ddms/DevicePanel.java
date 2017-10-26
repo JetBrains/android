@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -102,7 +103,20 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         .shouldShowSerialNumbers(Arrays.asList(myBridge.getDevices()));
     }
 
-    myDeviceRenderer = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", showSerial);
+    myDeviceRenderer = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices",
+                                                                 showSerial,
+                                                                 new DeviceNamePropertiesFetcher(
+                                                                   new FutureCallback<DeviceNameProperties>() {
+                                                                     @Override
+                                                                     public void onSuccess(@Nullable DeviceNameProperties result) {
+                                                                       updateDeviceCombo();
+                                                                     }
+
+                                                                     @Override
+                                                                     public void onFailure(@NotNull Throwable t) {
+                                                                       LOG.warn("Error retrieving device name properties", t);
+                                                                     }
+                                                                   }, this));
     myDeviceCombo.setRenderer(myDeviceRenderer);
     Dimension size = myDeviceCombo.getMinimumSize();
     myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
@@ -169,9 +183,9 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
-        myBridge = bridge;
-        updateDeviceCombo();
-      }));
+      myBridge = bridge;
+      updateDeviceCombo();
+    }));
   }
 
   @Override

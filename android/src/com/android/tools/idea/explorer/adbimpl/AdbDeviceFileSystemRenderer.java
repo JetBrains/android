@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
@@ -27,12 +28,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
-  @NotNull private AdbDeviceFileSystemService myService;
   @NotNull private final DeviceNameRenderer myDeviceNameRenderer;
+  @NotNull private final AdbDeviceFileSystemService myService;
+  @NotNull private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-  public AdbDeviceFileSystemRenderer(@NotNull AdbDeviceFileSystemService service) {
+  public AdbDeviceFileSystemRenderer(@NotNull AdbDeviceFileSystemService service,
+                                     @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
     myService = service;
-    myDeviceNameRenderer =  new DeviceNameRenderer();
+    myDeviceNameRenderer = new DeviceNameRenderer();
+    myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
   }
 
   @NotNull
@@ -45,7 +49,8 @@ public class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
     private final DeviceRenderer.DeviceComboBoxRenderer myRendererImpl;
 
     public DeviceNameRenderer() {
-      myRendererImpl = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", false);
+      myRendererImpl = new DeviceRenderer.DeviceComboBoxRenderer(
+        "No Connected Devices", false, myDeviceNamePropertiesProvider);
     }
 
     @Override
