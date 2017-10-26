@@ -326,6 +326,7 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
+    builder.setTableIntercellSpacing(new Dimension());
     myColumnTree = builder.build();
 
     if (myStage.getSelectedCapture().isExportable()) {

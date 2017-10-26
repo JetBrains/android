@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.intellij.ui.ColorUtil;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
@@ -27,6 +27,8 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A JTable which can highlight the hovered row.
@@ -102,19 +104,22 @@ final class HoverRowTable extends JBTable {
     }
     super.paint(g);
     // Draw column line down to bottom of table, matches the look and feel of BasicTableUI#paintGrid which is private and cannot override.
-    // Grid line color need to look like covered by hover or select highlight. Paint transparent grid lines on top of the table's original
-    // solid grid lines for rows, and paint non-transparent color grid lines below the last row.
+    // To avoid non-transparent grid lines on top of selection color, draw them below the last row.
     TableColumnModel columnModel = getColumnModel();
-    Color transparentGridColor = ColorUtil.toAlpha(getGridColor(), 60);
-    int x = 0;
-    int lastRowBottom = getRowHeight() * getRowCount();
-    for (int index = 0; index < columnModel.getColumnCount() - 1; index++) {
+    List<Integer> columnX = new ArrayList<>();
+    for (int index = 0, x = 0; index < columnModel.getColumnCount() - 1; index++) {
       int column = getComponentOrientation().isLeftToRight() ? index : columnModel.getColumnCount() - 1 - index;
       x += columnModel.getColumn(column).getWidth();
-      g.setColor(transparentGridColor);
-      g.drawLine(x - 1, 0, x - 1, lastRowBottom);
-      g.setColor(getGridColor());
-      g.drawLine(x - 1, lastRowBottom, x - 1, getHeight());
+      columnX.add(x - 1);
+    }
+    g.setColor(getGridColor());
+    final int lastRowBottom = getRowCount() * getRowHeight();
+    columnX.forEach((Integer x) -> g.drawLine(x, lastRowBottom, x, getHeight()));
+    // Use a blending color of selection color and grid color to replace transparent grid lines look.
+    if (getSelectedRow() != -1) {
+      g.setColor(AdtUiUtils.overlayColor(getSelectionBackground().getRGB(), getGridColor().getRGB(), 0.25f));
+      Rectangle selectedRowRect = getCellRect(getSelectedRow(), 0, true);
+      columnX.forEach((Integer x) -> g.drawLine(x, selectedRowRect.y, x, selectedRowRect.y + selectedRowRect.height - 1));
     }
   }
 

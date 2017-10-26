@@ -20,6 +20,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,6 +140,11 @@ public class ColumnTreeBuilder {
   }
 
   @NotNull
+  public ColumnTreeBuilder setTableIntercellSpacing(Dimension spacing) {
+    myTable.setIntercellSpacing(spacing);
+    return this;
+  }
+
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
@@ -386,17 +392,11 @@ public class ColumnTreeBuilder {
         treeState.invalidateSizes();
         myWidth = c.getWidth();
       }
-      super.paint(g, c);
       if (myTable != null && myTable.getShowVerticalLines()) {
         g.setColor(myTable.getGridColor());
-        int x = 0;
-        for (int i = 0; i < myTable.getColumnModel().getColumnCount() - 1; i++) {
-          TableColumn column = myTable.getColumnModel().getColumn(i);
-          x += column.getWidth();
-          // -1 so that the vertical line lines up with the header column lines
-          g.drawLine(x - 1, 0, x - 1, c.getHeight());
-        }
+        getColumnX().forEach((Integer x) -> g.drawLine(x, 0, x, c.getHeight()));
       }
+      super.paint(g, c);
     }
 
     @Override
@@ -429,6 +429,45 @@ public class ColumnTreeBuilder {
       }
 
       super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+
+      // Grid line color need to look like covered by hover or select highlight. Instead of painting transparent grid lines on top of
+      // table hover or select background, paint a blending color of background and grid color.
+      if (myTable != null && myTable.getShowVerticalLines() && tree.isPathSelected(path)) {
+        Color gridBackground = getSelectionBackground(tree, false);
+        Color gridColor = gridBackground == null ? myTable.getGridColor() :
+                    AdtUiUtils.overlayColor(gridBackground.getRGB(), myTable.getGridColor().getRGB(), 0.25f);
+        g.setColor(gridColor);
+        getColumnX().forEach((Integer x) -> g.drawLine(x, bounds.y, x, bounds.y + bounds.height - 1));
+      }
+    }
+
+    private List<Integer> getColumnX() {
+      if (myTable == null) {
+        return new ArrayList<>();
+      }
+      List<Integer> columnX = new ArrayList<>();
+      for (int i = 0, x = 0; i < myTable.getColumnModel().getColumnCount() - 1; i++) {
+        x += myTable.getColumnModel().getColumn(i).getWidth();
+        // -1 so that the vertical line lines up with the header column lines
+        columnX.add(x - 1);
+      }
+      return columnX;
+    }
+
+    /**
+     * Copied from {@link WideSelectionTreeUI} to get the tree selection background color, this would not change intellij code.
+     */
+    @Nullable
+    private static Color getSelectionBackground(@NotNull JTree tree, boolean checkProperty) {
+      Object property = tree.getClientProperty(TREE_TABLE_TREE_KEY);
+      if (property instanceof JTable) {
+        return ((JTable)property).getSelectionBackground();
+      }
+      boolean selection = tree.hasFocus();
+      if (!selection && checkProperty) {
+        selection = Boolean.TRUE.equals(property);
+      }
+      return UIUtil.getTreeSelectionBackground(selection);
     }
   }
 

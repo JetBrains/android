@@ -42,6 +42,7 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.*;
@@ -322,6 +323,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
+    builder.setTableIntercellSpacing(new Dimension());
     return builder.build();
   }
 
