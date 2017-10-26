@@ -35,6 +35,10 @@ import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class AndroidGradleTests {
+  private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
+  private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
+  private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
+
   public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion) throws IOException {
     doUpdateGradleVersions(folderRootPath, getLocalRepositories(), gradlePluginVersion);
   }
@@ -92,7 +96,10 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
-    return contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
+    String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
+    newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    return newContents;
   }
 
   @NotNull
