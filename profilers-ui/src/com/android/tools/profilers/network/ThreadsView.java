@@ -104,7 +104,10 @@ final class ThreadsView {
 
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, timelineRenderer::updateRows);
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
+        timelineRenderer.updateRows();
+        myThreadsTable.repaint();
+      });
   }
 
   @NotNull
