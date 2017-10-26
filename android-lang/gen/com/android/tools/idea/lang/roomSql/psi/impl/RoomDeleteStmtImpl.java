@@ -25,10 +25,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomDeleteStmtImpl extends ASTWrapperPsiElement implements RoomDeleteStmt {
+public class RoomDeleteStmtImpl extends RoomStmtImpl implements RoomDeleteStmt {
 
   public RoomDeleteStmtImpl(ASTNode node) {
     super(node);
@@ -44,15 +43,15 @@ public class RoomDeleteStmtImpl extends ASTWrapperPsiElement implements RoomDele
   }
 
   @Override
-  @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
+  @NotNull
+  public RoomTableNameQualified getTableNameQualified() {
+    return findNotNullChildByClass(RoomTableNameQualified.class);
   }
 
   @Override
-  @NotNull
-  public RoomQualifiedTableName getQualifiedTableName() {
-    return findNotNullChildByClass(RoomQualifiedTableName.class);
+  @Nullable
+  public RoomWhereClause getWhereClause() {
+    return findChildByClass(RoomWhereClause.class);
   }
 
   @Override

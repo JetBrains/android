@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateTriggerStmt extends PsiElement {
+public interface RoomCreateTriggerStmt extends RoomStmt {
 
   @NotNull
   List<RoomColumnName> getColumnNameList();
@@ -31,24 +31,15 @@ public interface RoomCreateTriggerStmt extends PsiElement {
   RoomDatabaseName getDatabaseName();
 
   @Nullable
-  RoomDeleteStmt getDeleteStmt();
-
-  @Nullable
   RoomExpr getExpr();
 
-  @Nullable
-  RoomInsertStmt getInsertStmt();
-
-  @Nullable
-  RoomSelectStmt getSelectStmt();
+  @NotNull
+  RoomStmt getStmt();
 
   @NotNull
   RoomTableName getTableName();
 
   @NotNull
   RoomTriggerName getTriggerName();
-
-  @Nullable
-  RoomUpdateStmt getUpdateStmt();
 
 }

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomUpdateStmt extends PsiElement {
+public interface RoomUpdateStmt extends RoomStmt {
 
   @NotNull
   List<RoomColumnName> getColumnNameList();
@@ -31,7 +31,10 @@ public interface RoomUpdateStmt extends PsiElement {
   List<RoomExpr> getExprList();
 
   @NotNull
-  RoomQualifiedTableName getQualifiedTableName();
+  RoomTableNameQualified getTableNameQualified();
+
+  @Nullable
+  RoomWhereClause getWhereClause();
 
   @Nullable
   RoomWithClause getWithClause();

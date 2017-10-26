@@ -25,10 +25,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomInsertStmtImpl extends ASTWrapperPsiElement implements RoomInsertStmt {
+public class RoomInsertStmtImpl extends RoomStmtImpl implements RoomInsertStmt {
 
   public RoomInsertStmtImpl(ASTNode node) {
     super(node);
@@ -56,9 +55,9 @@ public class RoomInsertStmtImpl extends ASTWrapperPsiElement implements RoomInse
   }
 
   @Override
-  @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
+  @Nullable
+  public RoomSelectCoreValues getSelectCoreValues() {
+    return findChildByClass(RoomSelectCoreValues.class);
   }
 
   @Override

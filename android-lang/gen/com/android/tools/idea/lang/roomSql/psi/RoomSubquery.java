@@ -21,16 +21,18 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.SqlTableElement;
+import com.android.tools.idea.lang.roomSql.SqlTable;
 
-public interface RoomQualifiedTableName extends PsiElement {
-
-  @Nullable
-  RoomDatabaseName getDatabaseName();
-
-  @Nullable
-  RoomIndexName getIndexName();
+public interface RoomSubquery extends SqlTableElement {
 
   @NotNull
-  RoomTableName getTableName();
+  RoomSelectStmt getSelectStmt();
+
+  @Nullable
+  RoomTableAliasName getTableAliasName();
+
+  @Nullable
+  SqlTable getSqlTable();
 
 }

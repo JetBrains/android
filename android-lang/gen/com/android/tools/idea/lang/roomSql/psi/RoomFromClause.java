@@ -22,15 +22,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCommonTableExpression extends PsiElement {
+public interface RoomFromClause extends PsiElement {
 
-  @NotNull
-  List<RoomColumnName> getColumnNameList();
+  @Nullable
+  RoomJoinClause getJoinClause();
 
-  @NotNull
-  RoomSelectStmt getSelectStmt();
-
-  @NotNull
-  RoomTableName getTableName();
+  @Nullable
+  RoomTableOrSubquery getTableOrSubquery();
 
 }

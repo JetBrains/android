@@ -25,10 +25,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomCreateTriggerStmtImpl extends ASTWrapperPsiElement implements RoomCreateTriggerStmt {
+public class RoomCreateTriggerStmtImpl extends RoomStmtImpl implements RoomCreateTriggerStmt {
 
   public RoomCreateTriggerStmtImpl(ASTNode node) {
     super(node);
@@ -57,26 +56,14 @@ public class RoomCreateTriggerStmtImpl extends ASTWrapperPsiElement implements R
 
   @Override
   @Nullable
-  public RoomDeleteStmt getDeleteStmt() {
-    return findChildByClass(RoomDeleteStmt.class);
-  }
-
-  @Override
-  @Nullable
   public RoomExpr getExpr() {
     return findChildByClass(RoomExpr.class);
   }
 
   @Override
-  @Nullable
-  public RoomInsertStmt getInsertStmt() {
-    return findChildByClass(RoomInsertStmt.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomSelectStmt getSelectStmt() {
-    return findChildByClass(RoomSelectStmt.class);
+  @NotNull
+  public RoomStmt getStmt() {
+    return findNotNullChildByClass(RoomStmt.class);
   }
 
   @Override
@@ -89,12 +76,6 @@ public class RoomCreateTriggerStmtImpl extends ASTWrapperPsiElement implements R
   @NotNull
   public RoomTriggerName getTriggerName() {
     return findNotNullChildByClass(RoomTriggerName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomUpdateStmt getUpdateStmt() {
-    return findChildByClass(RoomUpdateStmt.class);
   }
 
 }

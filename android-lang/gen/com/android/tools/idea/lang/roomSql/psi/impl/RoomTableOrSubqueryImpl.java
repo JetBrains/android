@@ -45,44 +45,14 @@ public class RoomTableOrSubqueryImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
-  public RoomDatabaseName getDatabaseName() {
-    return findChildByClass(RoomDatabaseName.class);
+  public RoomFromTable getFromTable() {
+    return findChildByClass(RoomFromTable.class);
   }
 
   @Override
   @Nullable
-  public RoomIndexName getIndexName() {
-    return findChildByClass(RoomIndexName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomJoinClause getJoinClause() {
-    return findChildByClass(RoomJoinClause.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomSelectStmt getSelectStmt() {
-    return findChildByClass(RoomSelectStmt.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTableAlias getTableAlias() {
-    return findChildByClass(RoomTableAlias.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomTableOrSubquery> getTableOrSubqueryList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableOrSubquery.class);
+  public RoomSubquery getSubquery() {
+    return findChildByClass(RoomSubquery.class);
   }
 
 }

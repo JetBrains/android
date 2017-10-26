@@ -38,13 +38,12 @@ public interface RoomPsiTypes {
   IElementType CAST_EXPR = new RoomAstNodeType("CAST_EXPR");
   IElementType COLLATE_EXPR = new RoomAstNodeType("COLLATE_EXPR");
   IElementType COLLATION_NAME = new RoomAstNodeType("COLLATION_NAME");
-  IElementType COLUMN_ALIAS = new RoomAstNodeType("COLUMN_ALIAS");
+  IElementType COLUMN_ALIAS_NAME = new RoomAstNodeType("COLUMN_ALIAS_NAME");
   IElementType COLUMN_CONSTRAINT = new RoomAstNodeType("COLUMN_CONSTRAINT");
   IElementType COLUMN_DEF = new RoomAstNodeType("COLUMN_DEF");
   IElementType COLUMN_NAME = new RoomAstNodeType("COLUMN_NAME");
   IElementType COLUMN_REF_EXPR = new RoomAstNodeType("COLUMN_REF_EXPR");
   IElementType COMMIT_STMT = new RoomAstNodeType("COMMIT_STMT");
-  IElementType COMMON_TABLE_EXPRESSION = new RoomAstNodeType("COMMON_TABLE_EXPRESSION");
   IElementType COMPARISON_EXPR = new RoomAstNodeType("COMPARISON_EXPR");
   IElementType COMPOUND_OPERATOR = new RoomAstNodeType("COMPOUND_OPERATOR");
   IElementType CONCAT_EXPR = new RoomAstNodeType("CONCAT_EXPR");
@@ -54,7 +53,6 @@ public interface RoomPsiTypes {
   IElementType CREATE_TRIGGER_STMT = new RoomAstNodeType("CREATE_TRIGGER_STMT");
   IElementType CREATE_VIEW_STMT = new RoomAstNodeType("CREATE_VIEW_STMT");
   IElementType CREATE_VIRTUAL_TABLE_STMT = new RoomAstNodeType("CREATE_VIRTUAL_TABLE_STMT");
-  IElementType CTE_TABLE_NAME = new RoomAstNodeType("CTE_TABLE_NAME");
   IElementType DATABASE_NAME = new RoomAstNodeType("DATABASE_NAME");
   IElementType DELETE_STMT = new RoomAstNodeType("DELETE_STMT");
   IElementType DELETE_STMT_LIMITED = new RoomAstNodeType("DELETE_STMT_LIMITED");
@@ -69,10 +67,12 @@ public interface RoomPsiTypes {
   IElementType EXPR = new RoomAstNodeType("EXPR");
   IElementType FOREIGN_KEY_CLAUSE = new RoomAstNodeType("FOREIGN_KEY_CLAUSE");
   IElementType FOREIGN_TABLE = new RoomAstNodeType("FOREIGN_TABLE");
+  IElementType FROM_CLAUSE = new RoomAstNodeType("FROM_CLAUSE");
+  IElementType FROM_TABLE = new RoomAstNodeType("FROM_TABLE");
   IElementType FUNCTION_CALL_EXPR = new RoomAstNodeType("FUNCTION_CALL_EXPR");
   IElementType FUNCTION_NAME = new RoomAstNodeType("FUNCTION_NAME");
+  IElementType GROUP_BY_CLAUSE = new RoomAstNodeType("GROUP_BY_CLAUSE");
   IElementType INDEXED_COLUMN = new RoomAstNodeType("INDEXED_COLUMN");
-  IElementType INDEX_NAME = new RoomAstNodeType("INDEX_NAME");
   IElementType INSERT_STMT = new RoomAstNodeType("INSERT_STMT");
   IElementType IN_EXPR = new RoomAstNodeType("IN_EXPR");
   IElementType ISNULL_EXPR = new RoomAstNodeType("ISNULL_EXPR");
@@ -80,41 +80,51 @@ public interface RoomPsiTypes {
   IElementType JOIN_CONSTRAINT = new RoomAstNodeType("JOIN_CONSTRAINT");
   IElementType JOIN_OPERATOR = new RoomAstNodeType("JOIN_OPERATOR");
   IElementType LIKE_EXPR = new RoomAstNodeType("LIKE_EXPR");
+  IElementType LIMITED_UPDATE_STMT = new RoomAstNodeType("LIMITED_UPDATE_STMT");
+  IElementType LIMIT_CLAUSE = new RoomAstNodeType("LIMIT_CLAUSE");
   IElementType LITERAL_EXPR = new RoomAstNodeType("LITERAL_EXPR");
   IElementType LITERAL_VALUE = new RoomAstNodeType("LITERAL_VALUE");
   IElementType MODULE_ARGUMENT = new RoomAstNodeType("MODULE_ARGUMENT");
   IElementType MODULE_NAME = new RoomAstNodeType("MODULE_NAME");
   IElementType MUL_EXPR = new RoomAstNodeType("MUL_EXPR");
   IElementType ORDERING_TERM = new RoomAstNodeType("ORDERING_TERM");
+  IElementType ORDER_CLAUSE = new RoomAstNodeType("ORDER_CLAUSE");
   IElementType OR_EXPR = new RoomAstNodeType("OR_EXPR");
   IElementType PAREN_EXPR = new RoomAstNodeType("PAREN_EXPR");
   IElementType PRAGMA_NAME = new RoomAstNodeType("PRAGMA_NAME");
   IElementType PRAGMA_STMT = new RoomAstNodeType("PRAGMA_STMT");
   IElementType PRAGMA_VALUE = new RoomAstNodeType("PRAGMA_VALUE");
-  IElementType QUALIFIED_TABLE_NAME = new RoomAstNodeType("QUALIFIED_TABLE_NAME");
   IElementType RAISE_FUNCTION_EXPR = new RoomAstNodeType("RAISE_FUNCTION_EXPR");
   IElementType REINDEX_STMT = new RoomAstNodeType("REINDEX_STMT");
   IElementType RELEASE_STMT = new RoomAstNodeType("RELEASE_STMT");
   IElementType RESULT_COLUMN = new RoomAstNodeType("RESULT_COLUMN");
+  IElementType RESULT_COLUMNS = new RoomAstNodeType("RESULT_COLUMNS");
   IElementType ROLLBACK_STMT = new RoomAstNodeType("ROLLBACK_STMT");
   IElementType SAVEPOINT_NAME = new RoomAstNodeType("SAVEPOINT_NAME");
   IElementType SAVEPOINT_STMT = new RoomAstNodeType("SAVEPOINT_STMT");
+  IElementType SELECT_CORE = new RoomAstNodeType("SELECT_CORE");
+  IElementType SELECT_CORE_SELECT = new RoomAstNodeType("SELECT_CORE_SELECT");
+  IElementType SELECT_CORE_VALUES = new RoomAstNodeType("SELECT_CORE_VALUES");
   IElementType SELECT_STMT = new RoomAstNodeType("SELECT_STMT");
   IElementType SIGNED_NUMBER = new RoomAstNodeType("SIGNED_NUMBER");
-  IElementType SQL_STMT = new RoomAstNodeType("SQL_STMT");
-  IElementType TABLE_ALIAS = new RoomAstNodeType("TABLE_ALIAS");
+  IElementType STMT = new RoomAstNodeType("STMT");
+  IElementType SUBQUERY = new RoomAstNodeType("SUBQUERY");
+  IElementType TABLE_ALIAS_NAME = new RoomAstNodeType("TABLE_ALIAS_NAME");
   IElementType TABLE_CONSTRAINT = new RoomAstNodeType("TABLE_CONSTRAINT");
   IElementType TABLE_NAME = new RoomAstNodeType("TABLE_NAME");
+  IElementType TABLE_NAME_QUALIFIED = new RoomAstNodeType("TABLE_NAME_QUALIFIED");
   IElementType TABLE_OR_INDEX_NAME = new RoomAstNodeType("TABLE_OR_INDEX_NAME");
   IElementType TABLE_OR_SUBQUERY = new RoomAstNodeType("TABLE_OR_SUBQUERY");
   IElementType TRIGGER_NAME = new RoomAstNodeType("TRIGGER_NAME");
   IElementType TYPE_NAME = new RoomAstNodeType("TYPE_NAME");
   IElementType UNARY_EXPR = new RoomAstNodeType("UNARY_EXPR");
   IElementType UPDATE_STMT = new RoomAstNodeType("UPDATE_STMT");
-  IElementType UPDATE_STMT_LIMITED = new RoomAstNodeType("UPDATE_STMT_LIMITED");
   IElementType VACUUM_STMT = new RoomAstNodeType("VACUUM_STMT");
   IElementType VIEW_NAME = new RoomAstNodeType("VIEW_NAME");
+  IElementType WHERE_CLAUSE = new RoomAstNodeType("WHERE_CLAUSE");
   IElementType WITH_CLAUSE = new RoomAstNodeType("WITH_CLAUSE");
+  IElementType WITH_CLAUSE_TABLE = new RoomAstNodeType("WITH_CLAUSE_TABLE");
+  IElementType WITH_CLAUSE_TABLE_DEF = new RoomAstNodeType("WITH_CLAUSE_TABLE_DEF");
 
   IElementType ABORT = new RoomTokenType("ABORT");
   IElementType ACTION = new RoomTokenType("ACTION");
@@ -315,8 +325,8 @@ public interface RoomPsiTypes {
       else if (type == COLLATION_NAME) {
         return new RoomCollationNameImpl(node);
       }
-      else if (type == COLUMN_ALIAS) {
-        return new RoomColumnAliasImpl(node);
+      else if (type == COLUMN_ALIAS_NAME) {
+        return new RoomColumnAliasNameImpl(node);
       }
       else if (type == COLUMN_CONSTRAINT) {
         return new RoomColumnConstraintImpl(node);
@@ -332,9 +342,6 @@ public interface RoomPsiTypes {
       }
       else if (type == COMMIT_STMT) {
         return new RoomCommitStmtImpl(node);
-      }
-      else if (type == COMMON_TABLE_EXPRESSION) {
-        return new RoomCommonTableExpressionImpl(node);
       }
       else if (type == COMPARISON_EXPR) {
         return new RoomComparisonExprImpl(node);
@@ -362,9 +369,6 @@ public interface RoomPsiTypes {
       }
       else if (type == CREATE_VIRTUAL_TABLE_STMT) {
         return new RoomCreateVirtualTableStmtImpl(node);
-      }
-      else if (type == CTE_TABLE_NAME) {
-        return new RoomCteTableNameImpl(node);
       }
       else if (type == DATABASE_NAME) {
         return new RoomDatabaseNameImpl(node);
@@ -405,17 +409,23 @@ public interface RoomPsiTypes {
       else if (type == FOREIGN_TABLE) {
         return new RoomForeignTableImpl(node);
       }
+      else if (type == FROM_CLAUSE) {
+        return new RoomFromClauseImpl(node);
+      }
+      else if (type == FROM_TABLE) {
+        return new RoomFromTableImpl(node);
+      }
       else if (type == FUNCTION_CALL_EXPR) {
         return new RoomFunctionCallExprImpl(node);
       }
       else if (type == FUNCTION_NAME) {
         return new RoomFunctionNameImpl(node);
       }
+      else if (type == GROUP_BY_CLAUSE) {
+        return new RoomGroupByClauseImpl(node);
+      }
       else if (type == INDEXED_COLUMN) {
         return new RoomIndexedColumnImpl(node);
-      }
-      else if (type == INDEX_NAME) {
-        return new RoomIndexNameImpl(node);
       }
       else if (type == INSERT_STMT) {
         return new RoomInsertStmtImpl(node);
@@ -438,6 +448,12 @@ public interface RoomPsiTypes {
       else if (type == LIKE_EXPR) {
         return new RoomLikeExprImpl(node);
       }
+      else if (type == LIMITED_UPDATE_STMT) {
+        return new RoomLimitedUpdateStmtImpl(node);
+      }
+      else if (type == LIMIT_CLAUSE) {
+        return new RoomLimitClauseImpl(node);
+      }
       else if (type == LITERAL_EXPR) {
         return new RoomLiteralExprImpl(node);
       }
@@ -456,6 +472,9 @@ public interface RoomPsiTypes {
       else if (type == ORDERING_TERM) {
         return new RoomOrderingTermImpl(node);
       }
+      else if (type == ORDER_CLAUSE) {
+        return new RoomOrderClauseImpl(node);
+      }
       else if (type == OR_EXPR) {
         return new RoomOrExprImpl(node);
       }
@@ -471,9 +490,6 @@ public interface RoomPsiTypes {
       else if (type == PRAGMA_VALUE) {
         return new RoomPragmaValueImpl(node);
       }
-      else if (type == QUALIFIED_TABLE_NAME) {
-        return new RoomQualifiedTableNameImpl(node);
-      }
       else if (type == RAISE_FUNCTION_EXPR) {
         return new RoomRaiseFunctionExprImpl(node);
       }
@@ -486,6 +502,9 @@ public interface RoomPsiTypes {
       else if (type == RESULT_COLUMN) {
         return new RoomResultColumnImpl(node);
       }
+      else if (type == RESULT_COLUMNS) {
+        return new RoomResultColumnsImpl(node);
+      }
       else if (type == ROLLBACK_STMT) {
         return new RoomRollbackStmtImpl(node);
       }
@@ -495,23 +514,38 @@ public interface RoomPsiTypes {
       else if (type == SAVEPOINT_STMT) {
         return new RoomSavepointStmtImpl(node);
       }
+      else if (type == SELECT_CORE) {
+        return new RoomSelectCoreImpl(node);
+      }
+      else if (type == SELECT_CORE_SELECT) {
+        return new RoomSelectCoreSelectImpl(node);
+      }
+      else if (type == SELECT_CORE_VALUES) {
+        return new RoomSelectCoreValuesImpl(node);
+      }
       else if (type == SELECT_STMT) {
         return new RoomSelectStmtImpl(node);
       }
       else if (type == SIGNED_NUMBER) {
         return new RoomSignedNumberImpl(node);
       }
-      else if (type == SQL_STMT) {
-        return new RoomSqlStmtImpl(node);
+      else if (type == STMT) {
+        return new RoomStmtImpl(node);
       }
-      else if (type == TABLE_ALIAS) {
-        return new RoomTableAliasImpl(node);
+      else if (type == SUBQUERY) {
+        return new RoomSubqueryImpl(node);
+      }
+      else if (type == TABLE_ALIAS_NAME) {
+        return new RoomTableAliasNameImpl(node);
       }
       else if (type == TABLE_CONSTRAINT) {
         return new RoomTableConstraintImpl(node);
       }
       else if (type == TABLE_NAME) {
         return new RoomTableNameImpl(node);
+      }
+      else if (type == TABLE_NAME_QUALIFIED) {
+        return new RoomTableNameQualifiedImpl(node);
       }
       else if (type == TABLE_OR_INDEX_NAME) {
         return new RoomTableOrIndexNameImpl(node);
@@ -531,17 +565,23 @@ public interface RoomPsiTypes {
       else if (type == UPDATE_STMT) {
         return new RoomUpdateStmtImpl(node);
       }
-      else if (type == UPDATE_STMT_LIMITED) {
-        return new RoomUpdateStmtLimitedImpl(node);
-      }
       else if (type == VACUUM_STMT) {
         return new RoomVacuumStmtImpl(node);
       }
       else if (type == VIEW_NAME) {
         return new RoomViewNameImpl(node);
       }
+      else if (type == WHERE_CLAUSE) {
+        return new RoomWhereClauseImpl(node);
+      }
       else if (type == WITH_CLAUSE) {
         return new RoomWithClauseImpl(node);
+      }
+      else if (type == WITH_CLAUSE_TABLE) {
+        return new RoomWithClauseTableImpl(node);
+      }
+      else if (type == WITH_CLAUSE_TABLE_DEF) {
+        return new RoomWithClauseTableDefImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

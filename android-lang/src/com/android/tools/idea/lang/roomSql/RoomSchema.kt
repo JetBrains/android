@@ -19,6 +19,8 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.util.Processor
+import com.intellij.util.containers.ContainerUtil
 
 typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
 typealias PsiFieldPointer = SmartPsiElementPointer<out PsiField>
@@ -43,12 +45,14 @@ data class Entity(
      *
      * This can be either the class itself or the annotation element.
      */
-    override val nameElement: PsiElementPointer = psiClass,
+    val nameElement: PsiElementPointer = psiClass,
 
     /** Columns present in the table representing this entity. */
-    override val columns: Set<EntityColumn> = emptySet()
+    val columns: Set<EntityColumn> = emptySet()
 ) : SqlTable {
-  override val element get() = psiClass
+    override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
+    override val definingElement: PsiElement get() = psiClass.element!!
+    override val resolveTo: PsiElement get() = nameElement.element!!
 }
 
 data class EntityColumn(
@@ -59,34 +63,22 @@ data class EntityColumn(
     override val name: String,
 
     /** The [PsiElement] that defines the column name. */
-    override val nameElement: PsiElementPointer = psiField
+    val nameElement: PsiElementPointer = psiField
 ) : SqlColumn {
-  override val element get() = psiField
+    override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
+    override val definingElement: PsiElement get() = psiField.element!!
+    override val resolveTo: PsiElement get() = nameElement.element!!
 }
 
 data class Dao(val psiClass: PsiClassPointer)
 
 /**
- * [SqlContext] defined using Room annotations in Java/Kotlin code.
- *
- * This is an edge case and a fallback: if we don't understand the query in enough detail, we offer/accept all defined table and column
- * names.
- *
- * @see chooseContext
+ * Schema defined using Room annotations in Java/Kotlin code.
  */
 data class RoomSchema(
     val databases: Set<RoomDatabase>,
     val entities: Set<Entity>,
     val daos: Set<Dao>
-) : SqlContext {
-  override val availableTables: Collection<SqlTable> get() = entities
-  override val columns: Collection<SqlColumn> get() = entities.flatMap { it.columns }
-
-  override val isSound: Boolean get() {
-    // RoomSchema is the fallback context, it contains all tables and columns whether or not they were selected from or not. It also has no
-    // understanding of temporary table and columns from e.g. subqueries.
-    return false
-  }
-
+) {
   fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass.element == psiClass }
 }

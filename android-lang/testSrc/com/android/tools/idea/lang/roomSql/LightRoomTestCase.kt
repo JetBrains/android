@@ -88,6 +88,8 @@ abstract class LightRoomTestCase : LightCodeInsightFixtureTestCase() {
   protected fun JavaCodeInsightTestFixture.addRoomEntity(qualifiedClassName: String, vararg fields: FieldDefinition) =
       addRoomEntity(qualifiedClassName, tableNameOverride = null, fields = *fields)
 
+  protected val JavaCodeInsightTestFixture.referenceAtCaret get() = file.findReferenceAt(caretOffset)!!
+
   protected fun JavaCodeInsightTestFixture.addRoomEntity(
       qualifiedClassName: String,
       tableNameOverride: String?,

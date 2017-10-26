@@ -22,21 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomTableAlias extends PsiElement {
+public interface RoomOrderClause extends PsiElement {
 
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+  @NotNull
+  List<RoomOrderingTerm> getOrderingTermList();
 
 }

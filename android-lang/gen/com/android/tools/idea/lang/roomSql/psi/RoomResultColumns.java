@@ -22,21 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomUpdateStmtLimited extends PsiElement {
+public interface RoomResultColumns extends PsiElement {
 
   @NotNull
-  List<RoomColumnName> getColumnNameList();
-
-  @NotNull
-  List<RoomExpr> getExprList();
-
-  @NotNull
-  List<RoomOrderingTerm> getOrderingTermList();
-
-  @NotNull
-  RoomQualifiedTableName getQualifiedTableName();
-
-  @Nullable
-  RoomWithClause getWithClause();
+  List<RoomResultColumn> getResultColumnList();
 
 }

@@ -20,36 +20,39 @@ package com.android.tools.idea.lang.roomSql.psi
 
 import com.android.tools.idea.lang.roomSql.*
 import com.intellij.psi.PsiReference
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 
 
-fun getReference(table: RoomTableName): PsiReference? = RoomTablePsiReference(table)
+fun getReference(table: RoomTableName): RoomTablePsiReference = RoomTablePsiReference(table)
 
-fun getReference(column: RoomColumnName): PsiReference? = RoomColumnPsiReference(column)
+fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
+  val parent = columnName.parent
+  if (parent is RoomColumnRefExpr) {
+    val tableName = parent.tableName
+    if (tableName != null) {
+      return QualifiedColumnPsiReference(columnName, tableName)
+    }
+  }
+
+  return UnqualifiedColumnPsiReference(columnName)
+}
 
 fun getReference(bindParameter: RoomBindParameter): PsiReference? = RoomParameterReference(bindParameter)
 
 fun getParameterNameAsString(bindParameter: RoomBindParameter) = bindParameter.text.substring(startIndex = 1)
 
-/**
- * Computes the [SqlContext] to use when resolving references inside a given select statement subtree.
- *
- * The context is cached in the select statement PSI node and invalidated when the Java structure is changed (potentially changing the
- * schema) or the SQL gets modified.
- */
-fun getSqlContext(selectQuery: RoomSelectStmt): SqlContext? = CachedValuesManager.getCachedValue(selectQuery) {
-  val context = when {
-    selectQuery.tableOrSubqueryList.size == 1 -> {
-      // Simplest case: `select foo from bar`.
-      selectQuery.tableOrSubqueryList.singleOrNull()?.tableName?.let(::SingleTableContext)
-    }
-    else -> {
-      // The query is too complicated for us to understand for now.
-      null
-    }
-  }
+fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
+  val realTable = fromTable.tableName.reference.resolveSqlTable() ?: return null
+  val alias = fromTable.tableAliasName
+  return if (alias == null) realTable else AliasedTable(realTable, name = alias.nameAsString, resolveTo = alias)
+}
 
-  CachedValueProvider.Result(context, selectQuery, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT)
+fun getSqlTable(subquery: RoomSubquery): SqlTable? {
+  val subqueryTable = SubqueryTable(subquery.selectStmt)
+  val alias = subquery.tableAliasName
+  return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
+}
+
+fun getSqlTable(withClauseTable: RoomWithClauseTable): SqlTable? {
+  val tableName = withClauseTable.withClauseTableDef.tableName
+  return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStmt))
 }

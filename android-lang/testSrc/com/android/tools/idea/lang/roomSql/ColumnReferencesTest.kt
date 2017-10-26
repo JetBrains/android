@@ -19,7 +19,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
-import com.intellij.psi.ResolveResult
 
 class ColumnReferencesTest : LightRoomTestCase() {
 
@@ -100,7 +99,7 @@ class ColumnReferencesTest : LightRoomTestCase() {
     assertThat(referenceTarget.text).isEqualTo("\"full_name\"")
   }
 
-  fun testMultiResolve_noTable() {
+  fun testResolve_noTable() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
@@ -116,15 +115,10 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
-    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement))
-        .containsExactly(
-            myFixture.findField("com.example.User", "id"),
-            myFixture.findField("com.example.Book", "id")
-        )
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
 
-  fun testMultiResolve_validTable() {
+  fun testResolve_validTable() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
@@ -140,13 +134,10 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
-    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement))
-        .containsExactly(
-            myFixture.findField("com.example.User", "id"))
+    assertThat(myFixture.referenceAtCaret.resolve()).isEqualTo(myFixture.findField("com.example.User", "id"))
   }
 
-  fun testMultiResolve_invalidTable() {
+  fun testResolve_invalidTable() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
@@ -162,11 +153,10 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
-    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement)).isEmpty()
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
 
-  fun testMultiResolve_join() {
+  fun testConflictingResolve_join() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "id" ofType "int")
 
@@ -182,12 +172,8 @@ class ColumnReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    val psiReference = myFixture.file.findReferenceAt(myFixture.caretOffset) as RoomColumnPsiReference
-    assertThat(psiReference.multiResolve(false).map(ResolveResult::getElement))
-        .containsExactly(
-            myFixture.findField("com.example.User", "id"),
-            myFixture.findField("com.example.Book", "id")
-        )
+    // User is first in the FROM clause, so it will be picked for resolving "id". At compile time this should fail.
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "id"))
   }
 
   fun testRename_fromSql() {
@@ -582,5 +568,253 @@ class ColumnReferencesTest : LightRoomTestCase() {
         myFixture.findUsages(myFixture.findField("com.example.Item", "desc"))
             .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
+  }
+
+  fun testQualifiedColumns() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT user.n<caret>ame FROM user") List<String> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
+  }
+
+  fun testQualifiedColumns_completion() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int", "name" ofType "String")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT user.<caret> FROM user, book") List<String> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("id", myFixture.findField("com.example.User", "id")),
+            Pair("name", myFixture.findField("com.example.User", "name")))
+  }
+
+  fun testAliases() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT alias.na<caret>me FROM user AS alias") List<String> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
+  }
+
+  fun testAliases_hiding() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT user.na<caret>me FROM user AS alias") List<String> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
+  fun testAliases_join() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user u JOIN book b ON u.uid = b.b<caret>id") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("com.example.Book", "bid"))
+  }
+
+  fun testAliases_join_completion() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user u JOIN book b ON u.uid = b.<caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("bid", myFixture.findField("com.example.Book", "bid")),
+            Pair("title", myFixture.findField("com.example.Book", "title")))
+  }
+
+  fun testJoin_completion() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user u JOIN book b ON <caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")),
+            Pair("bid", myFixture.findField("com.example.Book", "bid")),
+            Pair("title", myFixture.findField("com.example.Book", "title")))
+  }
+
+  fun testWithClause_newTable_completion() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT uid FROM user) SELECT <caret> FROM ids") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")))
+  }
+
+  fun testWithClause_subquery() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT <caret> FROM user) SELECT uid FROM ids") List<Integer> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")))
+  }
+
+  fun testSubquery_allColumns() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM (SELECT * FROM user, book) WHERE <caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")),
+            Pair("name", myFixture.findField("com.example.User", "name")),
+            Pair("bid", myFixture.findField("com.example.Book", "bid")),
+            Pair("title", myFixture.findField("com.example.Book", "title")))
+  }
+
+  fun testSubquery_allTableColumns() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM (SELECT u.* FROM user u, book) WHERE <caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")),
+            Pair("name", myFixture.findField("com.example.User", "name")))
+  }
+
+  fun testSubquery_specificColumns() {
+    myFixture.addRoomEntity("com.example.User", "uid" ofType "int", "name" ofType "String")
+    myFixture.addRoomEntity("com.example.Book", "bid" ofType "int", "title" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM (SELECT u.uid, book.title FROM user u, book) WHERE <caret>") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
+        .containsExactly(
+            Pair("uid", myFixture.findField("com.example.User", "uid")),
+            Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 }

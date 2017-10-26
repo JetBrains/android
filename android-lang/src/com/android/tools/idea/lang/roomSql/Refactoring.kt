@@ -98,7 +98,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<PsiReference>) {
-    val (word, nameElement) = ReadAction.compute<Pair<String, PsiElement>?, Throwable> {
+    val (word, referenceTarget) = ReadAction.compute<Pair<String, PsiElement>?, Throwable> {
       getNameDefinition(queryParameters.elementToSearch)?.let(this::chooseWordAndElement)
     } ?: return
 
@@ -110,11 +110,11 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     //     defined, which is not how Room works.
     //   - We look for references to the right element: if a table/column name is overriden using annotations, the PSI references may not
     //     point to the class/field itself, but we still want to show these references in "find usages".
-    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, nameElement)
+    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
   }
 
-  private fun chooseWordAndElement(nameDefinition: SqlNameDefinition): Pair<String, PsiElement>? {
-    val name = nameDefinition.name
+  private fun chooseWordAndElement(definition: SqlDefinition): Pair<String, PsiElement>? {
+    val name = definition.name ?: return null
 
     val word = when {
       RoomSqlLexer.needsQuoting(name) -> {
@@ -127,10 +127,10 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
       else -> name
     }
 
-    return nameDefinition.nameElement.element?.let { Pair(word, it) }
+    return Pair(word, definition.resolveTo)
   }
 
-  private fun getNameDefinition(element: PsiElement): SqlNameDefinition? {
+  private fun getNameDefinition(element: PsiElement): SqlDefinition? {
     return when (element) {
       is PsiClass -> getSchema(element)?.findEntity(element) ?: return null
       is PsiField -> getSchema(element)

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomReindexStmt extends PsiElement {
+public interface RoomReindexStmt extends RoomStmt {
 
   @Nullable
   RoomCollationName getCollationName();
@@ -31,9 +31,21 @@ public interface RoomReindexStmt extends PsiElement {
   RoomDatabaseName getDatabaseName();
 
   @Nullable
-  RoomIndexName getIndexName();
+  RoomTableName getTableName();
 
   @Nullable
-  RoomTableName getTableName();
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

@@ -90,11 +90,16 @@
   ]
 
   extends(".*_expr")=expr
+  extends(".*_stmt")=stmt
+
+  implements(".*_name")="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
+  mixin(".*_name")="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
+  generateTokenAccessors(".*_name")=false
 }
 
-sql_stmt_list ::= ( sql_stmt )? ( ';' ( sql_stmt )? )*
+sql_stmt_list ::= ( stmt )? ( ';' ( stmt )? )*
 
-sql_stmt ::=
+stmt ::=
   ( EXPLAIN ( QUERY PLAN )? )?
   ( alter_table_stmt
   | analyze_stmt
@@ -121,16 +126,13 @@ sql_stmt ::=
   | savepoint_stmt
   | select_stmt
   | update_stmt
-  | update_stmt_limited
+  | limited_update_stmt
   | vacuum_stmt
   )
 
 alter_table_stmt ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO table_name | ADD ( COLUMN )? column_def )
 
 table_name ::= name {
-  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
-  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
-  generateTokenAccessors=false
   methods=[getReference]
 }
 
@@ -157,16 +159,13 @@ release_stmt ::= RELEASE ( SAVEPOINT )? savepoint_name
 create_index_stmt ::=
   CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )?
   ( database_name '.' )? index_name ON table_name '(' indexed_column ( ',' indexed_column )* ')'
-  ( WHERE expr )?
+  where_clause?
 
-index_name ::= name
+private index_name ::= name
 
 indexed_column ::= column_name ( COLLATE collation_name )? ( ASC | DESC )?
 
 column_name ::= name {
-  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
-  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
-  generateTokenAccessors=false
   methods=[getReference]
 }
 
@@ -230,19 +229,22 @@ create_virtual_table_stmt ::=
 module_name ::= name
 module_argument ::= name
 
-with_clause ::= WITH ( RECURSIVE )? cte_table_name AS '(' select_stmt ')' ( ',' cte_table_name AS '(' select_stmt ')' )*
+with_clause ::= WITH ( RECURSIVE )? with_clause_table ( ',' with_clause_table )*
 
-cte_table_name ::= table_name ( '(' column_name ( ',' column_name )* ')' )?
+with_clause_table ::= with_clause_table_def AS '(' select_stmt ')'  {
+  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+  methods=[getSqlTable]
+}
 
-common_table_expression ::= table_name ( '(' column_name ( ',' column_name )* ')' )? AS '(' select_stmt ')'
+with_clause_table_def ::= table_name ( '(' column_name ( ',' column_name )* ')' )?
 
-delete_stmt ::= ( with_clause )? DELETE FROM qualified_table_name
-( WHERE expr )?
+delete_stmt ::= ( with_clause )? DELETE FROM table_name_qualified
+where_clause?
 
 delete_stmt_limited ::=
-  ( with_clause )? DELETE FROM qualified_table_name
-  ( WHERE expr )?
-  ( ( ORDER BY ordering_term ( ',' ordering_term )* )?
+  ( with_clause )? DELETE FROM table_name_qualified
+  where_clause?
+  ( order_clause?
   LIMIT expr ( ( OFFSET | ',' ) expr )? )?
 
 detach_stmt ::= DETACH ( DATABASE )? database_name
@@ -357,7 +359,7 @@ literal_value ::=
 insert_stmt ::=
   ( with_clause )? ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
   ( database_name '.' )? table_name ( '(' column_name ( ',' column_name )* ')' )?
-  ( VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* | select_stmt | DEFAULT VALUES )
+  ( select_core_values | select_stmt | DEFAULT VALUES )
 
 pragma_stmt ::= PRAGMA ( database_name '.' )? pragma_name ( '=' pragma_value | '(' pragma_value ')' )?
 
@@ -367,39 +369,50 @@ pragma_value ::= signed_number | name | string_literal // TODO: check
 
 reindex_stmt ::= REINDEX ( collation_name | ( database_name '.' )? ( table_name | index_name ) )?
 
-select_stmt ::=
-  ( WITH ( RECURSIVE )? common_table_expression ( ',' common_table_expression )* )?
-  ( SELECT ( DISTINCT | ALL )? result_column ( ',' result_column )*
-      ( FROM ( join_clause | table_or_subquery ( ',' table_or_subquery )* ) )?
-      ( WHERE expr )?
-      ( GROUP BY expr ( ',' expr )* ( HAVING expr )? )?
-    | VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* )
-  ( compound_operator ( SELECT ( DISTINCT | ALL )? result_column ( ',' result_column )*
-    ( FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
-    ( WHERE expr )?
-    ( GROUP BY expr ( ',' expr )* ( HAVING expr )? )? | VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* ) )*
-  ( ORDER BY ordering_term ( ',' ordering_term )* )?
-  ( LIMIT expr ( ( OFFSET | ',' ) expr )? )? {
+select_stmt ::= with_clause? select_core (compound_operator select_core)* order_clause? limit_clause?
 
-    implements="com.android.tools.idea.lang.roomSql.psi.QueryWithSqlContext"
-    methods=[getSqlContext]
-  }
+limit_clause ::= LIMIT expr ( ( OFFSET | ',' ) expr )?
+
+order_clause ::= ORDER BY ordering_term ( ',' ordering_term )*
+
+select_core ::= select_core_select | select_core_values
+
+select_core_select ::= SELECT ( DISTINCT | ALL )? result_columns from_clause? where_clause? group_by_clause?
+
+group_by_clause ::= GROUP BY expr ( ',' expr )* ( HAVING expr )?
+
+where_clause ::= WHERE expr
+
+from_clause ::= FROM (from_clause_aux | '(' from_clause_aux ')')
+
+private from_clause_aux ::= join_clause | table_or_subquery
+
+result_columns ::= result_column ( ',' result_column )*
+
+select_core_values ::= VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
 
 join_clause ::= table_or_subquery ( join_operator table_or_subquery join_constraint? )+
 
-table_or_subquery ::=
-  ( database_name '.' )? table_name ( ( AS )? table_alias )? ( INDEXED BY index_name | NOT INDEXED )?
-  | '(' ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) ')'
-  | '(' select_stmt ')' ( ( AS )? table_alias )?
+table_or_subquery ::= from_table | subquery
 
-table_alias ::= name
+from_table ::= ( database_name '.' )? table_name ( ( AS )? table_alias_name )? ( INDEXED BY index_name | NOT INDEXED )? {
+  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+  methods=[getSqlTable]
+}
+
+subquery ::= '(' select_stmt ')' ( ( AS )? table_alias_name )? {
+  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+  methods=[getSqlTable]
+}
+
+table_alias_name ::= name
 
 result_column ::=
   '*'
   | table_name '.' '*'
-  | expr ( ( AS )? column_alias )?
+  | expr ( ( AS )? column_alias_name )?
 
-column_alias ::= name
+column_alias_name ::= name
 
 join_operator ::= ',' | ( NATURAL )? ( LEFT ( OUTER )? | INNER | CROSS )? JOIN
 
@@ -409,15 +422,15 @@ ordering_term ::= expr ( COLLATE collation_name )? ( ASC | DESC )?
 
 compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
 
-update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? qualified_table_name
-SET column_name '=' expr ( ',' column_name '=' expr )* ( WHERE expr )?
+update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
+SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
 
-update_stmt_limited ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? qualified_table_name
-SET column_name '=' expr ( ',' column_name '=' expr )* ( WHERE expr )?
-( ( ORDER BY ordering_term ( ',' ordering_term )* )?
+limited_update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
+SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
+( order_clause?
 LIMIT expr ( ( OFFSET | ',' ) expr )? )?
 
-qualified_table_name ::= ( database_name '.' )? table_name ( INDEXED BY index_name | NOT INDEXED )?
+table_name_qualified ::= ( database_name '.' )? table_name ( INDEXED BY index_name | NOT INDEXED )?
 
 vacuum_stmt ::= VACUUM
 
