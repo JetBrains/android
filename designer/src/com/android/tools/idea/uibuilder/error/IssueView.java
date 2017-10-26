@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.error;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
-import com.android.utils.Pair;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.RoundedLineBorder;
@@ -36,10 +35,12 @@ import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 
 /**
  * Representation of a {@link NlIssue} in the {@link IssuePanel}
  */
+@SuppressWarnings("unused") // Fields are used in the design form
 public class IssueView extends JPanel {
 
   private static final Dimension COLLAPSED_ROW_SIZE = JBUI.size(Integer.MAX_VALUE, 30);
@@ -52,7 +53,7 @@ public class IssueView extends JPanel {
   }
 
   private final IssuePanel myContainerIssuePanel;
-  @SuppressWarnings("unused") private JPanel myContent;
+  private JPanel myContent;
   private JBLabel myExpandIcon;
   private JLabel myErrorIcon;
   private JBLabel myCategoryLabel;
@@ -140,8 +141,8 @@ public class IssueView extends JPanel {
     return myDisplayPriority;
   }
 
-  private void createFixEntry(Pair<String, Runnable> pair) {
-    myFixPanel.add(new FixEntry(pair.getFirst(), pair.getSecond()).getComponent());
+  private void createFixEntry(@NotNull NlIssue.Fix fix) {
+    myFixPanel.add(new FixEntry(fix.getDescription(), fix.getRunnable()));
   }
 
   @NotNull
@@ -273,7 +274,14 @@ public class IssueView extends JPanel {
     setBorder(focused ? SELECTED_BORDER : UNSELECTED_BORDER);
   }
 
-  public static class FixEntry {
+  @VisibleForTesting
+  @NotNull
+  FixEntry[] getFixEntries() {
+    return Arrays.copyOf(myFixPanel.getComponents(), myFixPanel.getComponentCount(), FixEntry[].class);
+  }
+
+  @SuppressWarnings("unused") // Used in the design form
+  public static class FixEntry extends JComponent {
     private JButton myFixButton;
     private JBLabel myFixText;
     private JComponent myComponent;
@@ -283,9 +291,8 @@ public class IssueView extends JPanel {
       myFixButton.addActionListener(e -> fixRunnable.run());
     }
 
-    @NotNull
-    public JComponent getComponent() {
-      return myComponent;
+    private void createUIComponents() {
+      myComponent = this;
     }
   }
 }

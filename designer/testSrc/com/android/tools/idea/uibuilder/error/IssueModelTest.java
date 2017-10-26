@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -32,7 +32,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class IssueModelTest {
-  RenderErrorModel myRenderErrorModel;
   private IssueModel myIssueModel;
   private Disposable myDisposable;
 
@@ -46,12 +45,12 @@ public class IssueModelTest {
   @Test
   public void setRenderErrorModel() {
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
-    myRenderErrorModel = createRenderErrorModel(issue);
+    RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
 
     assertFalse(myIssueModel.hasIssues());
     assertFalse(myIssueModel.hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
-    myIssueModel.setRenderErrorModel(myRenderErrorModel);
+    myIssueModel.setRenderErrorModel(renderErrorModel);
     assertTrue(myIssueModel.hasIssues());
     assertTrue(myIssueModel.hasRenderError());
     assertEquals(1, myIssueModel.getIssueCount());
