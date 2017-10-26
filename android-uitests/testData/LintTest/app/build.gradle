@@ -9,7 +9,7 @@ android {
             storePassword 'test123'
         }
     }
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion "26.0.0"
     defaultConfig {
         applicationId "com.example.nishanthkumarg.myapplication"
