@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
 import org.intellij.lang.annotations.Language;
@@ -333,7 +333,7 @@ public class Palette {
       return myHandler.getLargeIcon(myTagName);
     }
 
-    @Nullable
+    @NonNull
     public String getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
         return myGradleCoordinateId;
@@ -437,7 +437,7 @@ public class Palette {
     private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
       String coordinateId = getGradleCoordinateId();
 
-      if (!Strings.isNullOrEmpty(coordinateId)) {
+      if (!coordinateId.isEmpty()) {
         coordinateIds.add(coordinateId);
       }
     }
