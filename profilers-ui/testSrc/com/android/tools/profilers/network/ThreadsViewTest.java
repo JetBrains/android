@@ -160,8 +160,6 @@ public class ThreadsViewTest {
 
   @NotNull
   private static HttpData newData(long id, long start, long download, long end, long threadId, String threadName) {
-    return FakeNetworkService.newHttpDataBuilder(id, start, download, end)
-      .addJavaThread(new HttpData.JavaThread(threadId, threadName))
-      .build();
+    return FakeNetworkService.newHttpDataBuilder(id, start, download, end, threadId, threadName).build();
   }
 }

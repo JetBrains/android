@@ -397,7 +397,7 @@ public class HttpData {
 
     @NotNull
     public Builder addJavaThread(@NotNull JavaThread thread) {
-      if (!myThreads.stream().anyMatch(t -> t.getId() == thread.getId())) {
+      if (myThreads.stream().noneMatch(t -> t.getId() == thread.getId())) {
         myThreads.add(thread);
       }
       return this;
