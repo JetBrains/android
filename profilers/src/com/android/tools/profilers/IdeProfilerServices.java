@@ -104,4 +104,10 @@ public interface IdeProfilerServices {
    * Returns the profiling configurations saved for a project.
    */
   List<ProfilingConfiguration> getCpuProfilingConfigurations();
+
+  /**
+   * Whether a native CPU profiling configuration is preferred over a Java one.
+   * Native configurations can be preferred for native projects, for instance.
+   */
+  boolean isNativeProfilingConfigurationPreferred();
 }

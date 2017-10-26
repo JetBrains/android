@@ -26,11 +26,13 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -41,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -213,5 +216,18 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
     return CpuProfilingConfigService.getInstance(myProject).getConfigurations();
+  }
+
+  @Override
+  public boolean isNativeProfilingConfigurationPreferred() {
+    // File extensions that we consider native. We can add more later if we feel that's necessary.
+    ImmutableList<String> nativeExtensions = ImmutableList.of("c", "cc", "cpp", "cxx", "c++", "h", "hh", "hpp", "hxx", "h++");
+    // If the user is viewing at least one (IntelliJ allows the user to view multiple files at the same time) native file,
+    // we want to give preference to a native CPU profiling configuration.
+    return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedFiles())
+      .anyMatch(file -> {
+        String extension = file.getExtension();
+        return extension != null && nativeExtensions.contains(extension.toLowerCase());
+      });
   }
 }
