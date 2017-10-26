@@ -272,11 +272,6 @@ final class ThreadsView {
         double endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getStartTimeUs()) : getWidth();
 
         drawState(g2d, data, endLimit);
-
-        if (data.getJavaThreads().size() > 1) {
-          drawWarning(g2d, data, endLimit);
-        }
-
         drawConnectionName(g2d, data, endLimit);
       }
 
@@ -301,26 +296,6 @@ final class ThreadsView {
 
       double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
       g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT));
-    }
-
-    private void drawWarning(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
-      double start = rangeToPosition(data.getStartTimeUs());
-      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
-
-      double stateY = (getHeight() - STATE_HEIGHT) / 2.0;
-
-      Path2D triangle = new Path2D.Double();
-      triangle.moveTo(end - Math.min(end - start, WARNING_SIZE), stateY);
-      triangle.lineTo(end, stateY);
-      triangle.lineTo(end, stateY + WARNING_SIZE);
-      triangle.closePath();
-
-      g2d.setColor(getBackground());
-      g2d.setStroke(new BasicStroke(2));
-      g2d.draw(triangle);
-
-      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_WARNING);
-      g2d.fill(triangle);
     }
 
     private void drawConnectionName(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
