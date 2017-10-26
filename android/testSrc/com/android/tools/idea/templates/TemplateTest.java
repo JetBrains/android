@@ -52,7 +52,8 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.analysis.AnalysisScope;
@@ -1001,8 +1002,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject, @NotNull ProjectStateCustomizer customizer) throws Exception {
-    Map<String, Object> templateOverrides = Maps.newHashMap();
-    Map<String, Object> projectOverrides = Maps.newHashMap();
+    Map<String, Object> templateOverrides = new HashMap<>();
+    Map<String, Object> projectOverrides = new HashMap<>();
     customizer.customize(templateOverrides, projectOverrides);
     checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides);
   }
@@ -1402,8 +1403,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       ProjectConnection connection = connector.connect();
       BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
 
-      // Avoid going online to satisfy dependencies (as this will violate the Bazel sandbox) by using the "--offline" argument.
-      List<String> commandLineArguments = Lists.newArrayList("--offline");
+      List<String> commandLineArguments = new ArrayList<>();
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
       initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
       buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
@@ -1440,7 +1440,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
       if (CHECK_LINT) {
-        assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
+        assertLintsCleanly(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
         // TODO: Check for other warnings / inspections, such as unused imports?
       }
     }
@@ -1500,7 +1500,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void createProject(@NotNull TestNewProjectWizardState projectState, @NotNull Project project,
                              @Nullable IconGenerator iconGenerator) {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
-    List<String> errors = Lists.newArrayList();
+    List<String> errors = new ArrayList<>();
     try {
       moduleState.populateDirectoryParameters();
       String moduleName = moduleState.getString(ATTR_MODULE_NAME);
@@ -1597,7 +1597,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     throws Exception {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
-    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), Sets.newHashSet(registry.getIssues()));
+    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), new HashSet<>(registry.getIssues()));
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     LintRequest request = new LintIdeRequest(client, project, null, modules, false);
     EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
@@ -1697,6 +1697,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   // Create a dummy version of this class that just collects all the templates it will test when it is run.
   // It is important that this class is not run by JUnit!
+  @SuppressWarnings("JUnitTestClassNamingConvention")
   public static class CoverageChecker extends TemplateTest {
     @Override
     protected boolean shouldRunTest() {
