@@ -48,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+
 /**
  * Displays network connection information of all threads.
  */
@@ -58,13 +60,13 @@ final class ThreadsView {
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   @NotNull
-  private final JTable myThreadsTable;
-
-  @NotNull
-  private final JLayeredPane myPanel;
+  private final HoverRowTable myThreadsTable;
 
   @NotNull
   private final AspectObserver myObserver;
+
+  @NotNull
+  private final TableTooltipView myTooltipView;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     myThreadsTable =
@@ -74,7 +76,6 @@ final class ThreadsView {
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
-    myThreadsTable.setTableHeader(null);
     myThreadsTable.setCellSelectionEnabled(false);
     myThreadsTable.setFocusable(false);
     myThreadsTable.setRowMargin(0);
@@ -88,20 +89,9 @@ final class ThreadsView {
         myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
       }
     });
+    myThreadsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
-    myPanel = new JLayeredPane();
-    JComponent tooltip = new TableTooltipView(myThreadsTable, stageView.getStage()).getComponent();
-
-    myPanel.add(myThreadsTable, Integer.valueOf(0));
-    myPanel.add(tooltip, Integer.valueOf(1));
-    myPanel.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        myThreadsTable.setSize(myPanel.getSize());
-        tooltip.setSize(myPanel.getSize());
-      }
-    });
-
+    myTooltipView = new TableTooltipView(myThreadsTable, stageView.getStage());
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
       .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
@@ -112,7 +102,7 @@ final class ThreadsView {
 
   @NotNull
   JComponent getComponent() {
-    return myPanel;
+    return myThreadsTable;
   }
 
   private static final class ThreadsTableModel extends AbstractTableModel {
@@ -161,6 +151,11 @@ final class ThreadsView {
     @Override
     public int getColumnCount() {
       return 2;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+      return column == 0 ? "Initiating thread" : "Timeline";
     }
 
     @Override
@@ -333,7 +328,6 @@ final class ThreadsView {
     @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final JTable myTable;
 
-    @NotNull private final JPanel myComponent;
     @NotNull private final TooltipComponent myTooltipComponent;
     @NotNull private final JLabel myLabel;
 
@@ -349,14 +343,11 @@ final class ThreadsView {
       myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
       myLabel.setOpaque(true);
 
-      myComponent = new JPanel(new TabularLayout("*", "*"));
-      myTooltipComponent = new TooltipComponent(myLabel, myComponent, ProfilerLayeredPane.class);
-      myTooltipComponent.registerListenersOn(myComponent);
+      myTooltipComponent = new TooltipComponent(myLabel, table, ProfilerLayeredPane.class);
+      myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
-
-      myComponent.setOpaque(false);
-      myComponent.addMouseMotionListener(this);
-      myComponent.addMouseListener(this);
+      myTable.addMouseMotionListener(this);
+      myTable.addMouseListener(this);
     }
 
     @Override
@@ -403,10 +394,6 @@ final class ThreadsView {
       }
 
       return null;
-    }
-
-    JComponent getComponent() {
-      return myComponent;
     }
 
     private void showTooltip(@NotNull HttpData data) {

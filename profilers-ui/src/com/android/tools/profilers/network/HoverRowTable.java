@@ -21,9 +21,9 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -115,6 +115,37 @@ final class HoverRowTable extends JBTable {
       g.drawLine(x - 1, 0, x - 1, lastRowBottom);
       g.setColor(getGridColor());
       g.drawLine(x - 1, lastRowBottom, x - 1, getHeight());
+    }
+  }
+
+  /**
+   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
+   *
+   * This should only be called after a table's columns are initialized.
+   */
+  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
+  void setTableHeaderBorder(@NotNull Border border) {
+    TableCellRenderer headerRenderer = this.getTableHeader().getDefaultRenderer();
+    for (int i = 0; i < getColumnModel().getColumnCount(); i++) {
+      TableColumn column = getColumnModel().getColumn(i);
+      column.setHeaderRenderer(new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                                                       Object value,
+                                                       boolean isSelected,
+                                                       boolean hasFocus,
+                                                       int row,
+                                                       int column) {
+          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          if (c instanceof JLabel) {
+            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
+          }
+          if (c instanceof JComponent) {
+            ((JComponent)c).setBorder(border);
+          }
+          return c;
+        }
+      });
     }
   }
 }

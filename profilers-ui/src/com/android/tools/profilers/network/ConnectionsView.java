@@ -130,7 +130,7 @@ final class ConnectionsView {
   private final ConnectionsTableModel myTableModel;
 
   @NotNull
-  private final JTable myConnectionsTable;
+  private final HoverRowTable myConnectionsTable;
 
   @NotNull
   private final AspectObserver myAspectObserver;
@@ -152,37 +152,6 @@ final class ConnectionsView {
     return myConnectionsTable;
   }
 
-  /**
-   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
-   *
-   * This should only be called after a table's columns are initialized.
-   */
-  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
-  private static void setTableHeaderBorder(@NotNull JTable table, @NotNull Border border) {
-    TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-    for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
-      TableColumn column = table.getColumnModel().getColumn(i);
-      column.setHeaderRenderer(new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                                                       Object value,
-                                                       boolean isSelected,
-                                                       boolean hasFocus,
-                                                       int row,
-                                                       int column) {
-          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-          if (c instanceof JLabel) {
-            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
-          }
-          if (c instanceof JComponent) {
-            ((JComponent)c).setBorder(border);
-          }
-          return c;
-        }
-      });
-    }
-  }
-
   private void customizeConnectionsTable() {
     myConnectionsTable.setAutoCreateRowSorter(true);
     myConnectionsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
@@ -192,8 +161,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-
-    setTableHeaderBorder(myConnectionsTable, TABLE_COLUMN_HEADER_BORDER);
+    myConnectionsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
