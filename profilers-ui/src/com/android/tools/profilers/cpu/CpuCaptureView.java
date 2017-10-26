@@ -226,7 +226,6 @@ class CpuCaptureView {
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
@@ -245,7 +244,6 @@ class CpuCaptureView {
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
@@ -264,7 +262,6 @@ class CpuCaptureView {
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
@@ -282,6 +279,7 @@ class CpuCaptureView {
       .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
       .setShowVerticalLines(true)
+      .setTableIntercellSpacing(new Dimension())
       .build();
   }
 
