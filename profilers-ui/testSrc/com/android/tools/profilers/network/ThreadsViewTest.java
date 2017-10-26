@@ -20,6 +20,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.EmptyRunnable;
@@ -65,7 +66,7 @@ public class ThreadsViewTest {
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);
     myThreadsView.getComponent().setSize(new Dimension(300, 50));
-
+    getTable().setUI(new HeadlessTableUI());
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
     // passes, as well as firing a event that happens on another thread, so the timing is not
