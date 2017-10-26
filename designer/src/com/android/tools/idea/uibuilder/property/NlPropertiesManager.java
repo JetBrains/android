@@ -46,6 +46,7 @@ import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.
 
 public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> implements RenderListener {
   private ComponentAssistant myComponentAssistant;
+  private NlInspectorProviders myInspectorProviders;
 
   public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
     super(facet, designSurface);
@@ -228,6 +229,9 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   @NotNull
   @Override
   public NlInspectorProviders getInspectorProviders(@NotNull Disposable parentDisposable) {
-    return new NlInspectorProviders(this, parentDisposable);
+    if (myInspectorProviders == null) {
+      myInspectorProviders = new NlInspectorProviders(this, parentDisposable);
+    }
+    return myInspectorProviders;
   }
 }
