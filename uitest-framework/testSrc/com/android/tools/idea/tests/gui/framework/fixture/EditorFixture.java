@@ -264,6 +264,17 @@ public class EditorFixture {
     Point endPoint;
   }
 
+  @NotNull
+  public EditorFixture selectCurrentLine() {
+    GuiTask.execute(() ->
+      FileEditorManager.getInstance(myFrame.getProject())
+        .getSelectedTextEditor()
+        .getSelectionModel()
+        .selectLineAtCaret()
+    );
+    return this;
+  }
+
   /**
    * Closes the current editor
    */

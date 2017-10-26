@@ -53,7 +53,7 @@ public class GradleUpdateTest {
 
     // The UI test framework will update gradle properties after import.
     // To fullfill this test, we have to restore those old gradle propreties first.
-    ideFrameFixture.getEditor()
+    EditorFixture editor = ideFrameFixture.getEditor()
       .open("build.gradle")
       .select("gradle:(.+)['\"]")
       .enterText("2.2.0")
@@ -62,8 +62,14 @@ public class GradleUpdateTest {
       .select("(google\\(\\))")
       .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
       .open("gradle/wrapper/gradle-wrapper.properties")
-      .select("gradle-(.+)\\.zip")
-      .enterText("2.14.1-all");
+      .moveBetween("", "distributionUrl");
+
+    // The file URL may be so long that it does not fit on screen. This slightly less
+    // obvious method for selecting the line to replace it should be able to handle such long lines.
+    String distLine = editor.getCurrentLine();
+    distLine = distLine.replaceAll("(?<=gradle-).+(?=\\.zip)", "2.14.1-bin");
+    editor.selectCurrentLine()
+      .enterText(distLine);
 
     ideFrameFixture.requestProjectSync();
 
