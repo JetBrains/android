@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCteTableName extends PsiElement {
+public interface RoomWithClauseTableDef extends PsiElement {
 
   @NotNull
   List<RoomColumnName> getColumnNameList();

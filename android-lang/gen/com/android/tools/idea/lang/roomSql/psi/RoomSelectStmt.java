@@ -21,32 +21,22 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lang.roomSql.SqlContext;
 
-public interface RoomSelectStmt extends QueryWithSqlContext {
-
-  @NotNull
-  List<RoomCommonTableExpression> getCommonTableExpressionList();
+public interface RoomSelectStmt extends RoomStmt {
 
   @NotNull
   List<RoomCompoundOperator> getCompoundOperatorList();
 
-  @NotNull
-  List<RoomExpr> getExprList();
-
-  @NotNull
-  List<RoomJoinClause> getJoinClauseList();
-
-  @NotNull
-  List<RoomOrderingTerm> getOrderingTermList();
-
-  @NotNull
-  List<RoomResultColumn> getResultColumnList();
-
-  @NotNull
-  List<RoomTableOrSubquery> getTableOrSubqueryList();
+  @Nullable
+  RoomLimitClause getLimitClause();
 
   @Nullable
-  SqlContext getSqlContext();
+  RoomOrderClause getOrderClause();
+
+  @NotNull
+  List<RoomSelectCore> getSelectCoreList();
+
+  @Nullable
+  RoomWithClause getWithClause();
 
 }

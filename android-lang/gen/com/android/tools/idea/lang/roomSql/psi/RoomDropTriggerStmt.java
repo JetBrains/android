@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDropTriggerStmt extends PsiElement {
+public interface RoomDropTriggerStmt extends RoomStmt {
 
   @Nullable
   RoomDatabaseName getDatabaseName();

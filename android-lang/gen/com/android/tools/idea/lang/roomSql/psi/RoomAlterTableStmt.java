@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomAlterTableStmt extends PsiElement {
+public interface RoomAlterTableStmt extends RoomStmt {
 
   @Nullable
   RoomColumnDef getColumnDef();

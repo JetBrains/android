@@ -25,9 +25,10 @@ interface RoomNameElement : PsiElement {
 }
 
 abstract class AbstractRoomNameElement(node: ASTNode) : ASTWrapperPsiElement(node), RoomNameElement {
+
   override val nameAsString: String
     get() {
-      val leaf = firstChild.node!!
+      val leaf = firstChild.node
       return when (leaf.elementType) {
         RoomPsiTypes.BRACKET_LITERAL -> leaf.text.substring(1, leaf.textLength - 1)
         RoomPsiTypes.BACKTICK_LITERAL -> leaf.text.substring(1, leaf.textLength - 1).replace("``", "`")
@@ -37,6 +38,5 @@ abstract class AbstractRoomNameElement(node: ASTNode) : ASTWrapperPsiElement(nod
       }
     }
 
-  override val nameIsQuoted: Boolean
-    get() = firstChild.node.elementType != RoomPsiTypes.IDENTIFIER
+  override val nameIsQuoted get() = firstChild.node.elementType != RoomPsiTypes.IDENTIFIER
 }

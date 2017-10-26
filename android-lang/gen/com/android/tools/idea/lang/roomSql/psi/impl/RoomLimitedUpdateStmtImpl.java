@@ -25,17 +25,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomIndexNameImpl extends ASTWrapperPsiElement implements RoomIndexName {
+public class RoomLimitedUpdateStmtImpl extends RoomStmtImpl implements RoomLimitedUpdateStmt {
 
-  public RoomIndexNameImpl(ASTNode node) {
+  public RoomLimitedUpdateStmtImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitIndexName(this);
+    visitor.visitLimitedUpdateStmt(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,33 +43,39 @@ public class RoomIndexNameImpl extends ASTWrapperPsiElement implements RoomIndex
   }
 
   @Override
-  @Nullable
-  public PsiElement getBacktickLiteral() {
-    return findChildByType(BACKTICK_LITERAL);
+  @NotNull
+  public List<RoomColumnName> getColumnNameList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnName.class);
+  }
+
+  @Override
+  @NotNull
+  public List<RoomExpr> getExprList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getBracketLiteral() {
-    return findChildByType(BRACKET_LITERAL);
+  public RoomOrderClause getOrderClause() {
+    return findChildByClass(RoomOrderClause.class);
+  }
+
+  @Override
+  @NotNull
+  public RoomTableNameQualified getTableNameQualified() {
+    return findNotNullChildByClass(RoomTableNameQualified.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getDoubleQuoteStringLiteral() {
-    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  public RoomWhereClause getWhereClause() {
+    return findChildByClass(RoomWhereClause.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getIdentifier() {
-    return findChildByType(IDENTIFIER);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getSingleQuoteStringLiteral() {
-    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
+  public RoomWithClause getWithClause() {
+    return findChildByClass(RoomWithClause.class);
   }
 
 }

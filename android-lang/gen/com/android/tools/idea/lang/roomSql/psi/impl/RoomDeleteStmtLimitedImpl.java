@@ -50,15 +50,21 @@ public class RoomDeleteStmtLimitedImpl extends ASTWrapperPsiElement implements R
   }
 
   @Override
-  @NotNull
-  public List<RoomOrderingTerm> getOrderingTermList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomOrderingTerm.class);
+  @Nullable
+  public RoomOrderClause getOrderClause() {
+    return findChildByClass(RoomOrderClause.class);
   }
 
   @Override
   @NotNull
-  public RoomQualifiedTableName getQualifiedTableName() {
-    return findNotNullChildByClass(RoomQualifiedTableName.class);
+  public RoomTableNameQualified getTableNameQualified() {
+    return findNotNullChildByClass(RoomTableNameQualified.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomWhereClause getWhereClause() {
+    return findChildByClass(RoomWhereClause.class);
   }
 
   @Override

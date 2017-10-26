@@ -27,11 +27,14 @@ public interface RoomDeleteStmtLimited extends PsiElement {
   @NotNull
   List<RoomExpr> getExprList();
 
-  @NotNull
-  List<RoomOrderingTerm> getOrderingTermList();
+  @Nullable
+  RoomOrderClause getOrderClause();
 
   @NotNull
-  RoomQualifiedTableName getQualifiedTableName();
+  RoomTableNameQualified getTableNameQualified();
+
+  @Nullable
+  RoomWhereClause getWhereClause();
 
   @Nullable
   RoomWithClause getWithClause();

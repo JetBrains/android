@@ -160,7 +160,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
   }
 
   fun testErrorMessages() {
-    assertEquals("<sql stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
+    assertEquals("<stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
     assertEquals("<expr> expected, got '?'", getErrorMessage("select * from User where id = ?"))
   }
 }

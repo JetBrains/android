@@ -93,7 +93,7 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT name")
+          @Query("SELECT <error descr="Cannot resolve symbol 'name'">name</error>")
           List<User> getUsersWithName();
         }
     """.trimIndent())
@@ -113,7 +113,7 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT madeup")
+          @Query("SELECT <error descr="Cannot resolve symbol 'madeup'">madeup</error> name")
           List<User> getUsersWithName();
         }
     """.trimIndent())
@@ -153,7 +153,27 @@ class UnresolvedRoomSqlReferenceInspectionTest : LightRoomTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT madeup * 2 FROM (SELECT age AS n from user)")
+          @Query("SELECT <error descr="Cannot resolve symbol 'madeup'">madeup</error> * 2 FROM (SELECT age AS n from user)")
+          List<Integer> getNumbers();
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testSubquery_validOuterQuery() {
+    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT n * 2 FROM (SELECT age AS n from user)")
           List<Integer> getNumbers();
         }
     """.trimIndent())

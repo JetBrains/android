@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateTableStmt extends PsiElement {
+public interface RoomCreateTableStmt extends RoomStmt {
 
   @NotNull
   List<RoomColumnDef> getColumnDefList();

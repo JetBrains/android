@@ -25,10 +25,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomReindexStmtImpl extends ASTWrapperPsiElement implements RoomReindexStmt {
+public class RoomReindexStmtImpl extends RoomStmtImpl implements RoomReindexStmt {
 
   public RoomReindexStmtImpl(ASTNode node) {
     super(node);
@@ -57,14 +56,38 @@ public class RoomReindexStmtImpl extends ASTWrapperPsiElement implements RoomRei
 
   @Override
   @Nullable
-  public RoomIndexName getIndexName() {
-    return findChildByClass(RoomIndexName.class);
+  public RoomTableName getTableName() {
+    return findChildByClass(RoomTableName.class);
   }
 
   @Override
   @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

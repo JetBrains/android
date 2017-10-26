@@ -25,9 +25,6 @@ import com.intellij.psi.PsiElement;
 public interface RoomWithClause extends PsiElement {
 
   @NotNull
-  List<RoomCteTableName> getCteTableNameList();
-
-  @NotNull
-  List<RoomSelectStmt> getSelectStmtList();
+  List<RoomWithClauseTable> getWithClauseTableList();
 
 }

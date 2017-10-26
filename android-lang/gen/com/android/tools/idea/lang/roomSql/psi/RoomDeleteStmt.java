@@ -22,13 +22,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDeleteStmt extends PsiElement {
-
-  @Nullable
-  RoomExpr getExpr();
+public interface RoomDeleteStmt extends RoomStmt {
 
   @NotNull
-  RoomQualifiedTableName getQualifiedTableName();
+  RoomTableNameQualified getTableNameQualified();
+
+  @Nullable
+  RoomWhereClause getWhereClause();
 
   @Nullable
   RoomWithClause getWithClause();

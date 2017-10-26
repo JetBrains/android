@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomCteTableNameImpl extends ASTWrapperPsiElement implements RoomCteTableName {
+public class RoomResultColumnsImpl extends ASTWrapperPsiElement implements RoomResultColumns {
 
-  public RoomCteTableNameImpl(ASTNode node) {
+  public RoomResultColumnsImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitCteTableName(this);
+    visitor.visitResultColumns(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,14 +45,8 @@ public class RoomCteTableNameImpl extends ASTWrapperPsiElement implements RoomCt
 
   @Override
   @NotNull
-  public List<RoomColumnName> getColumnNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnName.class);
-  }
-
-  @Override
-  @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public List<RoomResultColumn> getResultColumnList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomResultColumn.class);
   }
 
 }

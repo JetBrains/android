@@ -25,7 +25,7 @@ import com.intellij.psi.PsiElement;
 public interface RoomResultColumn extends PsiElement {
 
   @Nullable
-  RoomColumnAlias getColumnAlias();
+  RoomColumnAliasName getColumnAliasName();
 
   @Nullable
   RoomExpr getExpr();

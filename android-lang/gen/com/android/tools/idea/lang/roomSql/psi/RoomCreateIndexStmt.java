@@ -22,21 +22,33 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomCreateIndexStmt extends PsiElement {
+public interface RoomCreateIndexStmt extends RoomStmt {
 
   @Nullable
   RoomDatabaseName getDatabaseName();
-
-  @Nullable
-  RoomExpr getExpr();
-
-  @NotNull
-  RoomIndexName getIndexName();
 
   @NotNull
   List<RoomIndexedColumn> getIndexedColumnList();
 
   @NotNull
   RoomTableName getTableName();
+
+  @Nullable
+  RoomWhereClause getWhereClause();
+
+  @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

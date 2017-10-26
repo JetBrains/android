@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomUpdateStmtLimitedImpl extends ASTWrapperPsiElement implements RoomUpdateStmtLimited {
+public class RoomTableNameQualifiedImpl extends ASTWrapperPsiElement implements RoomTableNameQualified {
 
-  public RoomUpdateStmtLimitedImpl(ASTNode node) {
+  public RoomTableNameQualifiedImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitUpdateStmtLimited(this);
+    visitor.visitTableNameQualified(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,33 +44,45 @@ public class RoomUpdateStmtLimitedImpl extends ASTWrapperPsiElement implements R
   }
 
   @Override
-  @NotNull
-  public List<RoomColumnName> getColumnNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnName.class);
+  @Nullable
+  public RoomDatabaseName getDatabaseName() {
+    return findChildByClass(RoomDatabaseName.class);
   }
 
   @Override
   @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomOrderingTerm> getOrderingTermList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomOrderingTerm.class);
-  }
-
-  @Override
-  @NotNull
-  public RoomQualifiedTableName getQualifiedTableName() {
-    return findNotNullChildByClass(RoomQualifiedTableName.class);
+  public RoomTableName getTableName() {
+    return findNotNullChildByClass(RoomTableName.class);
   }
 
   @Override
   @Nullable
-  public RoomWithClause getWithClause() {
-    return findChildByClass(RoomWithClause.class);
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

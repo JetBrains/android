@@ -25,11 +25,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
-import com.android.tools.idea.lang.roomSql.SqlContext;
 
-public class RoomSelectStmtImpl extends ASTWrapperPsiElement implements RoomSelectStmt {
+public class RoomSelectStmtImpl extends RoomStmtImpl implements RoomSelectStmt {
 
   public RoomSelectStmtImpl(ASTNode node) {
     super(node);
@@ -46,49 +44,32 @@ public class RoomSelectStmtImpl extends ASTWrapperPsiElement implements RoomSele
 
   @Override
   @NotNull
-  public List<RoomCommonTableExpression> getCommonTableExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomCommonTableExpression.class);
-  }
-
-  @Override
-  @NotNull
   public List<RoomCompoundOperator> getCompoundOperatorList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomCompoundOperator.class);
   }
 
   @Override
-  @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomJoinClause> getJoinClauseList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomJoinClause.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomOrderingTerm> getOrderingTermList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomOrderingTerm.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomResultColumn> getResultColumnList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomResultColumn.class);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomTableOrSubquery> getTableOrSubqueryList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableOrSubquery.class);
-  }
-
   @Nullable
-  public SqlContext getSqlContext() {
-    return PsiImplUtil.getSqlContext(this);
+  public RoomLimitClause getLimitClause() {
+    return findChildByClass(RoomLimitClause.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomOrderClause getOrderClause() {
+    return findChildByClass(RoomOrderClause.class);
+  }
+
+  @Override
+  @NotNull
+  public List<RoomSelectCore> getSelectCoreList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomSelectCore.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomWithClause getWithClause() {
+    return findChildByClass(RoomWithClause.class);
   }
 
 }
