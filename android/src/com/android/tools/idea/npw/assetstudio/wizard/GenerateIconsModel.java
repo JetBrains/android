@@ -39,11 +39,7 @@ public abstract class GenerateIconsModel extends WizardModel {
   @NotNull private AndroidModuleTemplate myPaths;
 
   public GenerateIconsModel(@NotNull AndroidFacet facet) {
-    this(AndroidPackageUtils.getModuleTemplates(facet, null).get(0).getPaths());
-  }
-
-  public GenerateIconsModel(@NotNull AndroidModuleTemplate paths) {
-    myPaths = paths;
+    myPaths = AndroidPackageUtils.getModuleTemplates(facet, null).get(0).getPaths();
   }
 
   @NotNull

@@ -27,7 +27,6 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.FileUtils;
-import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
@@ -36,7 +35,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.EmptyIterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,20 +42,12 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.jar.JarFile;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Common base class for icon generators.
@@ -82,7 +72,7 @@ public abstract class IconGenerator implements Disposable {
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myName = new StringValueProperty();
 
-  private final int myMinSdkVersion;
+  protected final int myMinSdkVersion;
 
   @NotNull private final GraphicGeneratorContext myContext;
 
@@ -130,10 +120,6 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   public final StringProperty name() {
     return myName;
-  }
-
-  public int getMinSdkVersion() {
-    return myMinSdkVersion;
   }
 
   @NotNull
@@ -370,10 +356,8 @@ public abstract class IconGenerator implements Disposable {
    *
    * @param options the options object used by the generator for the current image
    * @param iconName the base name to use when creating the path
-   * @return a path relative to the project folder where the image should be stored (will always use
-   *     forward slash as a path separator, not back slash on Windows)
+   * @return a platform-independent path relative to the project folder where the image should be stored
    */
-  // TODO Change the return value of this and related methods to Path.
   @NotNull
   protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
     return getIconFolder(options) + '/' + getIconFileName(options, iconName);
@@ -499,113 +483,6 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Returns one of the built in stencil images, or null if the image was not found.
-   *
-   * @param relativePath stencil path such as "launcher-stencil/square/web/back.png"
-   * @return the image, or null
-   * @throws IOException if an unexpected I/O error occurs
-   */
-  @Nullable
-  public static BufferedImage getStencilImage(@NotNull String relativePath) throws IOException {
-    try (InputStream is = IconGenerator.class.getResourceAsStream(relativePath)) {
-      return is == null ? null : ImageIO.read(is);
-    }
-  }
-
-  /**
-   * Returns the icon (32x32) for a given clip art image.
-   *
-   * @param name the name of the image to be loaded (which can be looked up via {@link
-   *   #getResourcesNames(String, String)} ()})
-   * @return the icon image
-   * @throws IOException if the image cannot be loaded
-   */
-  @Nullable
-  private static BufferedImage getClipartIcon(@NotNull String name) throws IOException {
-    try (InputStream is = IconGenerator.class.getResourceAsStream("/images/clipart/small/" + name)) {
-      return ImageIO.read(is);
-    }
-  }
-
-  /**
-   * Returns the full size clip art image for a given image name.
-   *
-   * @param name the name of the image to be loaded (which can be looked up via {@link
-   *   #getResourcesNames(String, String)})
-   * @return the clip art image
-   * @throws IOException if the image cannot be loaded
-   */
-  @Nullable
-  public static BufferedImage getClipartImage(@NotNull String name) throws IOException {
-    try (InputStream is = IconGenerator.class.getResourceAsStream("/images/clipart/big/" + name)) {
-      return ImageIO.read(is);
-    }
-  }
-
-  /**
-   * Returns the names of available clip art images which can be obtained by passing the
-   * name to {@link #getClipartIcon(String)} or {@link #getClipartImage(String)}.
-   *
-   * @return an iterator for the available image names
-   */
-  // TODO Change the return type to List<String>.
-  @NotNull
-  public static Iterator<String> getResourcesNames(@NotNull String pathPrefix, @NotNull String filenameExtension) {
-    List<String> names = new ArrayList<>(80);
-    ZipFile zipFile = null;
-    try {
-      ProtectionDomain protectionDomain = IconGenerator.class.getProtectionDomain();
-      URL url = protectionDomain.getCodeSource().getLocation();
-      if (url != null && url.getProtocol().equals("jar")) {
-        File file = SdkUtils.urlToFile(url);
-        zipFile = new JarFile(file);
-      } else {
-        Enumeration<URL> en = IconGenerator.class.getClassLoader().getResources(pathPrefix);
-        if (en.hasMoreElements()) {
-          url = en.nextElement();
-          URLConnection urlConnection = url.openConnection();
-          if (urlConnection instanceof JarURLConnection) {
-            JarURLConnection urlConn = (JarURLConnection)urlConnection;
-            zipFile = urlConn.getJarFile();
-          } else if ("file".equals(url.getProtocol())) { //$NON-NLS-1$
-            File directory = new File(url.getPath());
-            String[] list = directory.list();
-            if (list == null) {
-              return EmptyIterator.getInstance();
-            }
-            return Arrays.asList(list).iterator();
-          }
-        }
-      }
-      Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
-      while (enumeration.hasMoreElements()) {
-        ZipEntry zipEntry = enumeration.nextElement();
-        String name = zipEntry.getName();
-        if (name.startsWith(pathPrefix) && name.endsWith(filenameExtension)) {
-          int lastSlash = name.lastIndexOf('/');
-          if (lastSlash >= 0) {
-            name = name.substring(lastSlash + 1);
-          }
-          names.add(name);
-        }
-      }
-    } catch (Exception e) {
-      getLog().error(e);
-    } finally {
-      if (zipFile != null) {
-        try {
-          zipFile.close();
-        }
-        catch (IOException e) {
-          getLog().error(e);
-        }
-      }
-    }
-
-    return names.iterator();
-  }
-
-  /**
    * Converts the path to a density, if possible. Output paths don't always map cleanly to density
    * values, such as the path for the "web" icon, so in those cases, {@code null} is returned.
    */
@@ -658,9 +535,6 @@ public abstract class IconGenerator implements Disposable {
   public static class Options {
     /** Indicates that the graphic generator may use placeholders instead of real images. */
     public boolean usePlaceholders;
-
-    /** Minimum version (API level) of the SDK to generate icons for. */
-    public int minSdk = 1;
 
     /** Source image to use as a basis for the icon. */
     @Nullable public ListenableFuture<BufferedImage> sourceImageFuture;

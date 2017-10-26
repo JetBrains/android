@@ -15,21 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import com.android.annotations.NonNull;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.function.Function;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.stream.Stream;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +23,22 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 @RunWith(JUnit4.class)
 public final class MaterialDesignIconsTest {
-
     @Test
     public void getPathForBasename() {
         Object expected = "images/material_design_icons/places/ic_rv_hookup_black_24dp.xml";
@@ -57,10 +56,10 @@ public final class MaterialDesignIconsTest {
 
     @Test
     public void getBasenameToPathMapThrowsIllegalArgumentException() {
-        Function<String, Iterator<String>> generator = mockGenerator();
+        Function<String, List<String>> generator = mockGenerator();
 
         Mockito.when(generator.apply("images/material_design_icons/device/"))
-                .thenReturn(Collections.singletonList("ic_search_black_24dp.xml").iterator());
+                .thenReturn(Collections.singletonList("ic_search_black_24dp.xml"));
 
         try {
             MaterialDesignIcons.getBasenameToPathMap(generator);
@@ -70,16 +69,15 @@ public final class MaterialDesignIconsTest {
     }
 
     @NonNull
-    private static Function<String, Iterator<String>> mockGenerator() {
+    private static Function<String, List<String>> mockGenerator() {
         @SuppressWarnings("unchecked")
-        Function<String, Iterator<String>> generator
-                = (Function<String, Iterator<String>>) Mockito.mock(Function.class);
+        Function<String, List<String>> generator = (Function<String, List<String>>) Mockito.mock(Function.class);
 
         Mockito.when(generator.apply(ArgumentMatchers.any()))
-                .thenReturn(Collections.emptyIterator());
+                .thenReturn(Collections.emptyList());
 
         Mockito.when(generator.apply("images/material_design_icons/action/"))
-                .thenReturn(Collections.singletonList("ic_search_black_24dp.xml").iterator());
+                .thenReturn(Collections.singletonList("ic_search_black_24dp.xml"));
 
         return generator;
     }

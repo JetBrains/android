@@ -123,7 +123,7 @@ public class GraphicGeneratorContext implements Disposable {
 
   @NotNull
   private static ListenableFuture<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
-    BufferedImage image = IconGenerator.getStencilImage(path);
+    BufferedImage image = BuiltInImages.getStencilImage(path);
     if (image == null) {
       image = AssetStudioUtils.createDummyImage();
     }
@@ -134,12 +134,5 @@ public class GraphicGeneratorContext implements Disposable {
   @NotNull
   private Logger getLog() {
     return Logger.getInstance(getClass());
-  }
-
-  /**
-   * Interface to be implemented by renderers of XML drawables.
-   */
-  public interface DrawableRenderer extends Disposable {
-    public ListenableFuture<BufferedImage> renderDrawable(@NonNull String xmlDrawableText, @NonNull Dimension size);
   }
 }
