@@ -17,10 +17,7 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -82,7 +79,12 @@ public class NavigationSchema implements Disposable {
 
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
 
-  private Map<DestinationType, String> myTypeToRootTag;
+  // TODO: it would be nice to have this generated dynamically, but there's no way to know what the default navigator for a type should be.
+  private Map<DestinationType, String> myTypeToRootTag = ImmutableMap.of(
+    DestinationType.FRAGMENT, "fragment",
+    DestinationType.ACTIVITY, "activity",
+    DestinationType.NAVIGATION, "navigation"
+  );
 
   private Map<String, DestinationType> myTagToDestinationType;
   private Map<PsiClass, String> myNavigatorClassToTag;
@@ -180,21 +182,6 @@ public class NavigationSchema implements Disposable {
 
     myNavigatorClassToTag = classToTag;
     myTagToDestinationType = tagToType;
-
-    // Find the best (highest level) tag for each type
-    Map<DestinationType, String> typeToTag = new HashMap<>();
-    Map<DestinationType, PsiClass> typeToBestClass = new HashMap<>();
-
-    // TODO: this logic breaks down if we have multiple custom (or OOTB) navigators for the same time extending directly from Navigator
-    for (PsiClass psiClass : myNavigatorClassToTag.keySet()) {
-      String tag = myNavigatorClassToTag.get(psiClass);
-      DestinationType type = myTagToDestinationType.get(tag);
-      if (psiClass != null && (!typeToBestClass.containsKey(type) || typeToBestClass.get(type).isInheritor(psiClass, true))) {
-        typeToBestClass.put(type, psiClass);
-        typeToTag.put(type, tag);
-      }
-    }
-    myTypeToRootTag = typeToTag;
   }
 
 
