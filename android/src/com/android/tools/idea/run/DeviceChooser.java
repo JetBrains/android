@@ -21,15 +21,20 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -139,7 +144,19 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     }.installOn(myDeviceTable);
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
-    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(ModuleAvds.getInstance(facet).getAvdManagerSilently()));
+    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(
+      ModuleAvds.getInstance(facet).getAvdManagerSilently(),
+      new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
+        @Override
+        public void onSuccess(@Nullable DeviceNameProperties result) {
+          updateTable();
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          Logger.getInstance(DeviceChooser.class).warn("Error retrieving device name properties", t);
+        }
+      }, this)));
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {

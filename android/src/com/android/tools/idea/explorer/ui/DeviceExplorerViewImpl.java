@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.explorer.*;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -27,7 +30,9 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -72,11 +77,21 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   public DeviceExplorerViewImpl(@NotNull Project project,
                                 @NotNull ToolWindow toolWindow,
-                                @NotNull DeviceFileSystemRenderer deviceRenderer,
+                                @NotNull DeviceFileSystemRendererFactory rendererFactory,
                                 @NotNull DeviceExplorerModel model) {
     myToolWindow = toolWindow;
     model.addListener(new ModelListener());
-    myDeviceRenderer = deviceRenderer;
+    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
+      @Override
+      public void onSuccess(@Nullable DeviceNameProperties result) {
+        myPanel.getDeviceCombo().updateUI();
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        Logger.getInstance(DeviceExplorerViewImpl.class).warn("Error retrieving device name properties", t);
+      }
+    }, project));
     myPanel = new DeviceExplorerPanel();
     myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
@@ -449,7 +464,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public void deviceAdded(@NotNull DeviceFileSystem device) {
-       myPanel.getDeviceCombo().addItem(device);
+      myPanel.getDeviceCombo().addItem(device);
     }
 
     @Override

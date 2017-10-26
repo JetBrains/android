@@ -72,9 +72,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
   public MockDeviceExplorerView(@NotNull Project project,
                                 @NotNull ToolWindow toolWindow,
-                                @NotNull DeviceFileSystemRenderer deviceRenderer,
+                                @NotNull DeviceFileSystemRendererFactory deviceRendererFactory,
                                 @NotNull DeviceExplorerModel model) {
-    myViewImpl = new DeviceExplorerViewImpl(project, toolWindow, deviceRenderer, model);
+    myViewImpl = new DeviceExplorerViewImpl(project, toolWindow, deviceRendererFactory, model);
     myViewImpl.addListener(new MyDeviceExplorerViewListener());
     myViewImpl.addProgressListener(new MyDeviceExplorerViewProgressListener());
     model.addListener(new MyDeviceExplorerModelListener());

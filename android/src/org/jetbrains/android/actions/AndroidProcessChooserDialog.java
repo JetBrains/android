@@ -19,21 +19,25 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.actions.MeetAndroidStudioHelpAction;
-import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
+import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
@@ -165,7 +169,19 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, DeviceRenderer.shouldShowSerialNumbers(getDeviceList()));
+    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, DeviceRenderer.shouldShowSerialNumbers(getDeviceList()),
+                                                   new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
+                                                     @Override
+                                                     public void onSuccess(@Nullable DeviceNameProperties result) {
+                                                       updateTree();
+                                                     }
+
+                                                     @Override
+                                                     public void onFailure(@NotNull Throwable t) {
+                                                       Logger.getInstance(AndroidProcessChooserDialog.class)
+                                                         .warn("Error retrieving device name properties", t);
+                                                     }
+                                                   }, getDisposable()));
     myProcessTree.setCellRenderer(myCellRenderer);
 
     new DoubleClickListener() {
@@ -504,10 +520,14 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private static class MyProcessTreeCellRenderer extends ColoredTreeCellRenderer {
     private final TreeSpeedSearch mySpeedSearch;
     private boolean myShowSerial;
+    private DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch, boolean showSerial) {
+    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch,
+                                     boolean showSerial,
+                                     @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       mySpeedSearch = treeSpeedSearch;
       myShowSerial = showSerial;
+      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
     }
 
     public void setShowSerial(boolean showSerial) {
@@ -528,7 +548,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
       final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
       if (userObject instanceof IDevice) {
-        DeviceRenderer.renderDeviceName((IDevice)userObject, this, myShowSerial);
+        IDevice device = (IDevice)userObject;
+        DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, myShowSerial);
       }
       else if (userObject instanceof Client) {
         final ClientData clientData = ((Client)userObject).getClientData();
