@@ -51,7 +51,7 @@ public final class BitmapGeneratorTests {
 
   private static void checkGraphic(int expectedFileCount, String folderName, String baseName, IconGenerator generator,
                                    IconGenerator.Options options, float sourceAssetScale) throws IOException {
-    BufferedImage sourceImage = IconGenerator.getClipartImage("android.png");
+    BufferedImage sourceImage = BuiltInImages.getClipartImage("android.png");
     if (sourceAssetScale != 1.0f) {
       int width = sourceImage.getWidth();
       int height = sourceImage.getHeight();

@@ -38,7 +38,6 @@ public class VectorIconGenerator extends IconGenerator {
   @NotNull
   public VectorIconOptions createOptions(boolean forPreview) {
     VectorIconOptions options = new VectorIconOptions();
-    options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       options.sourceImageFuture = asset.toImage();

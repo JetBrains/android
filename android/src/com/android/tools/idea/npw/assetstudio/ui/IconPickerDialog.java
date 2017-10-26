@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.adtui.SearchField;
+import com.android.tools.idea.npw.assetstudio.BuiltInImages;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.base.Joiner;
@@ -50,8 +51,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -310,8 +313,7 @@ public final class IconPickerDialog extends DialogWrapper {
       String categoryName = ICON_CATEGORIES[i];
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
       String fullDirName = MaterialDesignIcons.PATH + categoryNameLowerCase + '/';
-      for (Iterator<String> iterator = IconGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
-        final String iconName = iterator.next();
+      for (String iconName : BuiltInImages.getResourcesNames(fullDirName, SdkConstants.DOT_XML)) {
         URL url = IconGenerator.class.getClassLoader().getResource(fullDirName + iconName);
         assert url != null;
 
