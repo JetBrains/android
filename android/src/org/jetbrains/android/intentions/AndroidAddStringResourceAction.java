@@ -68,6 +68,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
@@ -288,7 +289,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             found = false;
             break;
           } else {
-            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, false, false)) {
+            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, CHECK_EXTERNAL)) {
               found = false;
               break;
             }
