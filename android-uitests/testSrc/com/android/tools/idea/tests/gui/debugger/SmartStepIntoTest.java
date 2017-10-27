@@ -169,7 +169,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
     assertThat(currentLine.equals(expectedLine)).isTrue();
 
     ideFrame.resumeProgram();
-    Wait.seconds(5).expecting("Java file should be opened.")
+    Wait.seconds(60).expecting("Java file should be opened.")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
     currentLine = ideFrame.getEditor().getCurrentLine().trim();
     expectedLine = "String myString = s;";
