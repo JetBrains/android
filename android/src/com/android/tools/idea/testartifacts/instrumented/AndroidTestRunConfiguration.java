@@ -65,6 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
+
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
 
@@ -239,7 +241,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       errors.add(ValidationError.warning(ExecutionBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
     }
 
-    if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, true) && !testAnnotated) {
+    if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
         final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(configurationModule.getModule());
         if (!testClass.isInheritor(testCaseClass, true)) {
