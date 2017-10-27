@@ -607,6 +607,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewContentProviderWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ContentProvider", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewCustomView() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "CustomView");
