@@ -23,4 +23,17 @@ public class PsAllModulesFakeModule extends PsModule {
   public PsAllModulesFakeModule(@NotNull PsProject parent) {
     super(parent, "<All Modules>");
   }
+
+  @Override
+  public boolean isModified() {
+    return getParent().isModified();
+  }
+
+  public void appplyChanges() {
+    getProject().applyChanges();
+  }
+
+  private PsProject getProject() {
+    return getParent();
+  }
 }

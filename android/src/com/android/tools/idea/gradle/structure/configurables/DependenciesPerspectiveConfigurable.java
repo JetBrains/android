@@ -51,7 +51,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
     if (module instanceof PsAllModulesFakeModule) {
       configurable = myExtraTopConfigurables.get(module);
       if (configurable == null) {
-        configurable = new ProjectDependenciesConfigurable(module, getContext(), getExtraTopModules());
+        configurable = new ProjectDependenciesConfigurable((PsAllModulesFakeModule)module, getContext(), getExtraTopModules());
         configurable.setHistory(myHistory);
         myExtraTopConfigurables.put(module, configurable);
       }
