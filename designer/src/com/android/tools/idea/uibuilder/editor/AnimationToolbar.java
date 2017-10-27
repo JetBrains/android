@@ -56,6 +56,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private final JSlider myFrameControl;
   @Nullable private final DefaultBoundedRangeModel myTimeSliderModel;
   private final ChangeListener myTimeSliderChangeModel;
+  private boolean myLoopEnabled = true;
   /**
    * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)
    */
@@ -106,6 +107,12 @@ public class AnimationToolbar extends JPanel implements Disposable {
       myTimeSliderChangeModel = null;
     }
     else {
+      JCheckBox loopControl = new JCheckBox("Loop", myLoopEnabled);
+      loopControl.addChangeListener(e -> {
+        myLoopEnabled = loopControl.isSelected();
+      });
+      buttonsPanel.add(loopControl);
+
       myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
       myTimeSliderChangeModel = e -> {
         long newPositionMs = (long)(myMaxTimeMs * (myTimeSliderModel.getValue() / 100f));
@@ -264,10 +271,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private void onTick(long elapsed) {
     myFramePositionMs += elapsed;
     if (myFramePositionMs < myMinTimeMs) {
-      myFramePositionMs = myMinTimeMs;
+      myFramePositionMs = myLoopEnabled ? myMaxTimeMs : myMinTimeMs;
     }
     else if (!isUnlimitedAnimationToolbar() && myFramePositionMs > myMaxTimeMs) {
-      myFramePositionMs = myMaxTimeMs;
+      myFramePositionMs = myLoopEnabled ? myMinTimeMs : myMaxTimeMs;
     }
     onNewFramePosition();
     doFrame();
@@ -279,8 +286,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
     }
 
     if (myFramePositionMs >= myMaxTimeMs) {
-      // We've reached the end. Stop.
-      onPause();
+      if (!myLoopEnabled) {
+        // We've reached the end. Stop.
+        onPause();
+      }
     }
 
     myStopButton.setEnabled(myFramePositionMs - myTickStepMs >= myMinTimeMs);
