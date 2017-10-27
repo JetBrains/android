@@ -80,6 +80,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+    AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();
   }
 
