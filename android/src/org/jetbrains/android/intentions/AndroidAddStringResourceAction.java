@@ -70,6 +70,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
@@ -290,8 +291,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             break;
           }
           else {
-            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.oldName(), false, false) &&
-                AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), false, false)) {
+            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.oldName(), CHECK_EXTERNAL) &&
+                AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), CHECK_EXTERNAL)) {
               found = false;
               break;
             }
