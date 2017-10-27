@@ -27,6 +27,7 @@ import org.junit.runners.model.RunnerBuilder;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
@@ -89,6 +90,7 @@ public class GuiTestSuiteRunner extends Suite {
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {
     File[] children = notNullize(directory.listFiles());
+    Arrays.sort(children);  // avoid file-system-dependent order
     for (File child : children) {
       if (child.isDirectory()) {
         findPotentialGuiTestClassFiles(child, guiTestClassFiles);
