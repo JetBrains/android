@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -23,6 +24,8 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.intellij.ide.util.PropertiesComponent;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +42,20 @@ public class NewKotlinModuleTest {
 
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
+
+  @After
+  public void tearDown() {
+    setSavedKotlinSupport(false);
+    setSavedRenderSourceLanguage(Language.JAVA);
+  }
+
+  private static void setSavedKotlinSupport(boolean isSupported) {
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", isSupported);
+  }
+
+  private static void setSavedRenderSourceLanguage(Language language) {
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", language.getName());
+  }
 
   @RunIn(TestGroup.UNRELIABLE)
   @Test
