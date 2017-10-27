@@ -16,11 +16,14 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.resourceExplorer.ResourceExplorerFile;
 import com.google.common.collect.HashMultimap;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -87,5 +90,22 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     AndroidFacet facet = getValue();
     assert facet != null;
     return facet;
+  }
+
+  @Override
+  public boolean expandOnDoubleClick() {
+    return StudioFlags.RESOURCE_MANAGER_ENABLED.get() ? false : super.expandOnDoubleClick();
+  }
+
+  @Override
+  public boolean canNavigate() {
+    return StudioFlags.RESOURCE_MANAGER_ENABLED.get();
+  }
+
+  @Override
+  public void navigate(boolean requestFocus) {
+    if (myProject != null) {
+      new OpenFileDescriptor(myProject, ResourceExplorerFile.getResourceEditorFile(myProject)).navigate(requestFocus);
+    }
   }
 }
