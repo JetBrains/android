@@ -63,7 +63,6 @@ public class ProxySettingsDialog extends DialogWrapper {
     setDoNotAskOption(new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME));
     init();
 
-    enableHttpsProxy(false);
     enableHttpProxyAuth(false);
     enableHttpsProxyAuth(false);
 
@@ -91,16 +90,17 @@ public class ProxySettingsDialog extends DialogWrapper {
       enableHttpProxyAuth(true);
     }
 
+    myEnableHttpsProxyCheckBox.setSelected(true);
     myHttpsProxyHostTextField.setText(httpProxySettings.getHost());
     myHttpsProxyPortTextField.setNumber(httpProxySettings.getPort());
     myHttpsProxyAuthCheckBox.setSelected(httpProxySettings.getUser() != null);
 
     if (httpProxySettings.getExceptions() != null) {
       myHttpsProxyExceptions.setText(httpProxySettings.getExceptions());
-      enableHttpsProxyAuth(true);
     }
     if (httpProxySettings.getUser() != null) {
       myHttpsProxyLoginTextField.setText(httpProxySettings.getUser());
+      enableHttpsProxyAuth(true);
     }
 
     myEnableHttpsProxyCheckBox.addActionListener(e -> {

@@ -206,4 +206,17 @@ public class ProxySettingsDialogTest extends IdeaTestCase {
   private static String getHttpsProxyPassword(@NotNull Properties properties) {
     return properties.getProperty("systemProp.https.proxyPassword");
   }
+
+  public void testHttpsProxySettingsAreEnabledByDefault() {
+    String host = "myhost.com";
+    myDialog.setHttpsProxyHost(host);
+    int port = 80;
+    myDialog.setHttpsPortNumber(port);
+
+    Properties properties = new Properties();
+    myDialog.applyProxySettings(properties);
+
+    assertEquals(host, getHttpsProxyHost(properties));
+    assertEquals(port, getHttpsProxyPort(properties));
+  }
 }
