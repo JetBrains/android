@@ -333,44 +333,48 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myContentPanel.remove(myAnimationToolbar);
     }
 
-    if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get() && myModel != null) {
+    boolean animationsBarEnabled = StudioFlags.NELE_ANIMATIONS_PREVIEW.get() ||
+                                   StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get();
+
+    if (!animationsBarEnabled || myModel == null) {
+      myAnimationToolbar = null;
+      return;
+    }
+
+    NlComponent transitionLayout = null;
+    if (StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get()) {
       // Find if there is a transtion layout
-      NlComponent transitionLayout = myModel.flattenComponents()
+      transitionLayout = myModel.flattenComponents()
         .filter(component -> NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.TRANSITION_LAYOUT))
         .findAny()
         .orElse(null);
+    }
 
-      // All animations are offset to start at 500ms. The reason is that some animated drawables like the progress bars are not
-      // really visible at 0 since their animation starts in an empty state. 500ms works well for progress bars.
-      if (transitionLayout != null) {
-        TransitionLayoutHandler.TransitionLayoutComponentHelper helper =
-          new TransitionLayoutHandler.TransitionLayoutComponentHelper(transitionLayout);
-        long maxTimeMs = helper.getMaxTimeMs();
+    // All animations are offset to start at 500ms. The reason is that some animated drawables like the progress bars are not
+    // really visible at 0 since their animation starts in an empty state. 500ms works well for progress bars.
+    if (transitionLayout != null) {
+      TransitionLayoutHandler.TransitionLayoutComponentHelper helper =
+        new TransitionLayoutHandler.TransitionLayoutComponentHelper(transitionLayout);
+      long maxTimeMs = helper.getMaxTimeMs();
+      myAnimationToolbar = AnimationToolbar.createAnimationToolbar(this, (timeMs) -> {
         LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
-        myAnimationToolbar = AnimationToolbar.createAnimationToolbar(this, (timeMs) -> {
+        if (myModel != null && sceneManager != null) {
           sceneManager.setElapsedFrameTimeMs(timeMs);
           helper.setValue((timeMs - 500L) / (float)maxTimeMs);
-        }, 16, 500L, maxTimeMs + 500L);
-      }
-      else {
-        myAnimationToolbar = AnimationToolbar.createUnlimitedAnimationToolbar(this, (timeMs) -> {
-          SceneView screenView = mySurface.getCurrentSceneView();
-          NlModel model = screenView != null ? screenView.getModel() : null;
-          LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
-          if (model != null && sceneManager != null) {
-            sceneManager.setElapsedFrameTimeMs(timeMs);
-            sceneManager.requestRender();
-          }
-        }, 16, 500L);
-      }
+        }
+      }, 16, 500L, maxTimeMs + 500L);
     }
     else {
-      myAnimationToolbar = null;
+      myAnimationToolbar = AnimationToolbar.createUnlimitedAnimationToolbar(this, (timeMs) -> {
+        LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
+        if (myModel != null && sceneManager != null) {
+          sceneManager.setElapsedFrameTimeMs(timeMs);
+          sceneManager.requestRender();
+        }
+      }, 16, 500L);
     }
 
-    if (myAnimationToolbar != null) {
-      myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
-    }
+    myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
   }
 
   private void initNeleModel() {
