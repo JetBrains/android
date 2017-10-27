@@ -56,7 +56,6 @@ import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity
  * are about to be created.
  */
 public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
-  private static final DefaultTreeModel EMPTY_MODEL = new DefaultTreeModel(null);
 
   /**
    * In our tree of icon previews, we keep row height to a reasonable maximum to prevent super
@@ -90,7 +89,8 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     });
     myPathsComboBox.setModel(moduleTemplatesModel);
 
-    myOutputPreviewTree.setModel(EMPTY_MODEL);
+    DefaultTreeModel emptyModel = new DefaultTreeModel(null);
+    myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
     myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
