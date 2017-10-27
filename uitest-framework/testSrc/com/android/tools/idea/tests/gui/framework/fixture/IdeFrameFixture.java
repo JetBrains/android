@@ -379,8 +379,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
     //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
-    Project project = getProject();
-    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    VirtualFile projectBaseDir = getProject().getBaseDir();
+    projectBaseDir.refresh(false, true);
+    VirtualFile file = projectBaseDir.findFileByRelativePath(relativePath);
     if (requireExists) {
       //noinspection Contract
       assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
