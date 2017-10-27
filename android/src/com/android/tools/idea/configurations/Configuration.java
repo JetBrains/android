@@ -33,6 +33,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1222,7 +1223,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @SuppressWarnings("SpellCheckingInspection")
   @Override
   public String toString() {
-    return Objects.toStringHelper(this.getClass())
+    return MoreObjects.toStringHelper(this.getClass())
       .add("display", getDisplayName())
       .add("theme", getTheme())
       .add("activity", getActivity())

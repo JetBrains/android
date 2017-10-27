@@ -20,7 +20,7 @@ import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep;
 import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -148,7 +148,7 @@ public class InstallerData {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
+    return MoreObjects.toStringHelper(this).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
       .add(PROPERTY_AVD, myCreateAvd).add(PROPERTY_TIMESTAMP, myTimestamp).toString();
   }
 

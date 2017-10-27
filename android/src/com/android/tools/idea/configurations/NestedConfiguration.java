@@ -21,7 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -555,7 +555,7 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this.getClass()).add("parent", myParent.getDisplayName())
+    return MoreObjects.toStringHelper(this.getClass()).add("parent", myParent.getDisplayName())
       .add("display", getDisplayName())
       .add("overrideLocale", isOverridingLocale())
       .add("overrideTarget", isOverridingTarget())
