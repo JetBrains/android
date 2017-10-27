@@ -66,6 +66,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
@@ -239,7 +240,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       errors.add(ValidationError.warning(ExecutionBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
     }
 
-    if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, true) && !testAnnotated) {
+    if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
         final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(configurationModule.getModule());
         if (!testClass.isInheritor(testCaseClass, true)) {
