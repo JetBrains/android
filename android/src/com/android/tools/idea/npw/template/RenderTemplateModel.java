@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
@@ -75,7 +75,7 @@ public final class RenderTemplateModel extends WizardModel {
    */
   @Nullable private TemplateHandle myTemplateHandle;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  @Nullable private AndroidIconGenerator myIconGenerator;
+  @Nullable private IconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull Project project,
                              @Nullable TemplateHandle templateHandle,
@@ -172,7 +172,7 @@ public final class RenderTemplateModel extends WizardModel {
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
-  public void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
+  public void setIconGenerator(@NotNull IconGenerator iconGenerator) {
     myIconGenerator = iconGenerator;
   }
 

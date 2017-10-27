@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -115,7 +116,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class GradleTasksExecutorImpl extends GradleTasksExecutor {
@@ -398,11 +398,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           FlightRecorder.get(myProject).saveBuildOutput(gradleOutput, instantRunProgressListener);
         }
         Application application = ApplicationManager.getApplication();
-        if (isGuiTestingMode()) {
-          String testOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
+        if (GuiTestingService.getInstance().isGuiTestingMode()) {
+          String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
           if (isNotEmpty(testOutput)) {
             gradleOutput = testOutput;
-            application.putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
+            application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
           }
         }
         showGradleOutput(gradleOutput, output, stopwatch, buildError, model.get());
@@ -410,12 +410,12 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       return null;
     };
 
-    if (isGuiTestingMode()) {
+    if (GuiTestingService.getInstance().isGuiTestingMode()) {
       // We use this task in GUI tests to simulate errors coming from Gradle project sync.
       Application application = ApplicationManager.getApplication();
-      Runnable task = application.getUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY);
+      Runnable task = application.getUserData(GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY);
       if (task != null) {
-        application.putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, null);
+        application.putUserData(GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, null);
         task.run();
       }
     }

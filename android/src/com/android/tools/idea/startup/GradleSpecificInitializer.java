@@ -28,6 +28,7 @@ import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -52,7 +53,6 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.messages.MessageBusConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -310,7 +310,7 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    if (AndroidPlugin.isGuiTestingMode()) {
+    if (GuiTestingService.getInstance().isGuiTestingMode()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }

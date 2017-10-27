@@ -13,44 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator.NotificationOptions;
-import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.IOException;
+
 @RunWith(JUnit4.class)
 public class NotificationIconGeneratorTest {
 
-    private static void checkGraphic(String baseName, int minSdk, String folderName,
-            int expectedCount) throws IOException {
-        NotificationOptions options = new NotificationOptions();
-        options.minSdk = minSdk;
+  private static void checkGraphic(String baseName, int minSdk, String folderName, int expectedCount) throws IOException {
+    NotificationOptions options = new NotificationOptions();
+    options.minSdk = minSdk;
 
-        NotificationIconGenerator generator = new NotificationIconGenerator();
-        BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
-    }
+    NotificationIconGenerator generator = new NotificationIconGenerator(7);
+    BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
+    generator.dispose();
+  }
 
-    @SuppressWarnings("SameParameterValue")
-    private static void checkGraphic(String baseName) throws IOException {
-        checkGraphic(baseName, 1, "notification", 12);
-    }
+  @SuppressWarnings("SameParameterValue")
+  private static void checkGraphic(String baseName) throws IOException {
+    checkGraphic(baseName, 1, "notification", 12);
+  }
 
-    @Test
-    public void testNotification1() throws Exception {
-        checkGraphic("ic_stat_1");
-    }
+  @Test
+  public void testNotification1() throws Exception {
+    checkGraphic("ic_stat_1");
+  }
 
-    @Test
-    public void testNotification2() throws Exception {
-        checkGraphic("ic_stat_1", 9 /* minSdk */, "notification-v9+", 8 /* fileCount */);
-    }
+  @Test
+  public void testNotification2() throws Exception {
+    checkGraphic("ic_stat_1", 9 /* minSdk */, "notification-v9+", 8 /* fileCount */);
+  }
 
-    @Test
-    public void testNotification3() throws Exception {
-        checkGraphic("ic_stat_1", 11, "notification-v11+", 4);
-    }
+  @Test
+  public void testNotification3() throws Exception {
+    checkGraphic("ic_stat_1", 11, "notification-v11+", 4);
+  }
 }

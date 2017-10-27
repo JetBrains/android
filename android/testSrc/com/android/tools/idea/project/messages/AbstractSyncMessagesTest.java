@@ -84,6 +84,12 @@ public class AbstractSyncMessagesTest extends IdeaTestCase {
     verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, IDE);
   }
 
+  public void testRemoveAllMessages() {
+    mySyncMessages.removeAllMessages();
+
+    verify(myNotificationManager).clearNotifications(PROJECT_SYNC, IDE);
+  }
+
   private static class SyncMessages extends AbstractSyncMessages {
     SyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
       super(project, manager);

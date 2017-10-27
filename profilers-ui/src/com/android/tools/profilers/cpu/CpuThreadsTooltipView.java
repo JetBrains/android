@@ -23,23 +23,17 @@ import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuProfilerStage.ThreadsTooltip myTooltip;
   @NotNull private final JLabel myContent;
   @NotNull private final ProfilerTimeline myTimeline;
-  private int myMaximumLabelWidth = 0;
 
   protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.ThreadsTooltip tooltip) {
     super(view.getTimeline(), "CPU");
-    myLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
-
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
@@ -55,14 +49,13 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
       String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
-      myLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
-                                    title,
-                                    ColorUtil.toHex(ProfilerColors.CPU_THREADS_TOOLTIP_TIME_COLOR),
-                                    time));
-      myMaximumLabelWidth = Math.max(myMaximumLabelWidth, myLabel.getWidth());
-      myLabel.setMinimumSize(new Dimension(myMaximumLabelWidth, 0));
+      myHeadingLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
+                                           title,
+                                           ColorUtil.toHex(ProfilerColors.CPU_THREADS_TOOLTIP_TIME_COLOR),
+                                           time));
+      updateMaximumLabelDimensions();
     } else {
-      myLabel.setText("");
+      myHeadingLabel.setText("");
     }
   }
 
@@ -71,8 +64,9 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myContent.setText(state);
   }
 
+  @NotNull
   @Override
-  protected Component createTooltip() {
+  protected JComponent createTooltip() {
     return myContent;
   }
 

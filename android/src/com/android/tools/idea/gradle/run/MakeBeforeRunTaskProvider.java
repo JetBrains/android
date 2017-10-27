@@ -368,6 +368,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
+      profilerProperties.setProperty(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.getId(),
+                                     String.valueOf(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get()));
       try {
         File propertiesFile = createTempFile("profiler", ".properties");
         propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.

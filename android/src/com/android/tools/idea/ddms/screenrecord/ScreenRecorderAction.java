@@ -29,6 +29,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -192,7 +193,9 @@ public class ScreenRecorderAction {
 
     private static String getDefaultFileName() {
       Calendar now = Calendar.getInstance();
-      return String.format("device-%tF-%tH%tM%tS", now, now, now, now);
+      String fileName = "device-%tF-%tH%tM%tS";
+      // add extension to filename on Mac only see: b/38447816
+      return String.format(SystemInfo.isMac ? fileName + ".mp4" : fileName, now, now, now, now);
     }
   }
 

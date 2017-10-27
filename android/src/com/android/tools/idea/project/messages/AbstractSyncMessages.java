@@ -70,6 +70,10 @@ public abstract class AbstractSyncMessages {
     return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, category, getProjectSystemId());
   }
 
+  public void removeAllMessages() {
+    myNotificationManager.clearNotifications(NOTIFICATION_SOURCE, getProjectSystemId());
+  }
+
   public void removeMessages(@NotNull String... groupNames) {
     for (String groupName : groupNames) {
       myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, getProjectSystemId());

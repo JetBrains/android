@@ -230,9 +230,8 @@ public class NlPaletteModel implements Disposable {
     }
 
     ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.getHandlerOrDefault(tagName);
+    ViewHandler handler = manager.createBuiltInHandler(tagName);
 
-    // For now only support layouts
     if (type != NlLayoutType.LAYOUT ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
@@ -241,13 +240,28 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    if (handler instanceof ViewGroupHandler) {
-      handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate,
-                                           preferredProperty, properties, layoutProperties);
+    if (handler == null) { // no built in handler, let's create a delegate
+      handler = manager.getHandlerOrDefault(tagName);
+
+      // For now only support layouts
+      if (type != NlLayoutType.LAYOUT ||
+          handler instanceof PreferenceHandler ||
+          handler instanceof PreferenceCategoryHandler ||
+          handler instanceof MenuHandler ||
+          handler instanceof ActionMenuViewHandler) {
+        return false;
+      }
+
+      if (handler instanceof ViewGroupHandler) {
+        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate,
+                                             preferredProperty, properties, layoutProperties);
+      }
+      else {
+        handler =
+          new CustomViewHandler(handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate, preferredProperty, properties);
+      }
     }
-    else {
-      handler = new CustomViewHandler(handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate, preferredProperty, properties);
-    }
+
     manager.registerHandler(tagName, handler);
 
     List<Palette.BaseItem> groups = palette.getItems();

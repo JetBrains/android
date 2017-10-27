@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
@@ -128,6 +129,9 @@ public class CpuCaptureParser {
       }
       else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
         parser = new SimpleperfTraceParser();
+      }
+      else if (profilerType == CpuProfiler.CpuProfilerType.ATRACE) {
+        parser = new AtraceParser();
       }
       else {
         throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART or simpleperf) needs to be set.");

@@ -24,9 +24,9 @@ import com.android.sdklib.AndroidVersion.AndroidVersionException;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -485,33 +485,30 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   }
 
   /**
-   * Given a list of sorted Modules for a given project, return the minimum
-   * number of modules that would need the appCompat dependency.
-   *
-   * @return Set with modules that need the appCompat dependency.
+   * @return The minimum set of modules that need the appCompat dependency in this project.
    */
   @VisibleForTesting
   @NonNull
   Set<Module> computeModulesNeedingAppCompat() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     Module[] sortedModules = moduleManager.getSortedModules();
-    Set<Module> modulesWithAppCompat = new SmartHashSet<>();
+    Set<Module> modulesWithTransitiveAppCompat = new SmartHashSet<>();
     Set<Module> modulesNeedingAppCompat = new SmartHashSet<>();
     for (Module module : sortedModules) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model == null) {
         continue;
       }
-      // dependsOn transitively checks for dependencies so we do not have to
-      // worry about the case where a module has the appCompat dep.
-      boolean hasAppCompat = GradleUtil.dependsOn(model, APPCOMPAT_LIB_ARTIFACT);
-      if (!hasAppCompat && !modulesWithAppCompat.contains(module)) {
+      // dependsOn transitively checks for dependencies so we mark the modules that will
+      // transitively receive appcompat from another module.
+      if (!modulesWithTransitiveAppCompat.contains(module) &&
+          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
         modulesNeedingAppCompat.add(module);
-        modulesWithAppCompat.add(module);
+        modulesWithTransitiveAppCompat.add(module);
       }
       // Ensure that the dependent modules get marked as not needing appcompat
       // since we'll add appCompat to the current module.
-      modulesWithAppCompat.addAll(moduleManager.getModuleDependentModules(module));
+      modulesWithTransitiveAppCompat.addAll(moduleManager.getModuleDependentModules(module));
     }
     return modulesNeedingAppCompat;
   }

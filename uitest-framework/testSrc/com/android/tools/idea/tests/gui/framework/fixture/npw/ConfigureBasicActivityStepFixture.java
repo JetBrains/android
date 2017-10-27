@@ -58,7 +58,7 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   private final IdeFrameFixture myIdeFrameFixture;
 
-  ConfigureBasicActivityStepFixture(
+  public ConfigureBasicActivityStepFixture(
     @NotNull IdeFrameFixture ideFrameFixture, @NotNull JRootPane target, @NotNull AbstractWizardFixture parent) {
     super(ConfigureBasicActivityStepFixture.class, ideFrameFixture.robot(), target);
     this.myIdeFrameFixture = ideFrameFixture;

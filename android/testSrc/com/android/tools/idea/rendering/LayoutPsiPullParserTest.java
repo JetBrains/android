@@ -418,6 +418,31 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
   }
 
+  /**
+   * When a ListView does not contain an id, we must dynamically generate one so we can bind the sample data to it.
+   * http://b/68304427
+   */
+  public void testListViewDynamicId() throws Exception {
+    @Language("XML")
+    String contents = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:layout_width=\"match_parent\"\n" +
+                      "    android:layout_height=\"match_parent\">\n" +
+                      "   <ListView\n" +
+                      "       android:layout_width=\"match_parent\"\n" +
+                      "       android:layout_height=\"match_parent\" />\n" +
+                      "</LinearLayout>";
+    PsiFile layoutPsiFile = myFixture.addFileToProject("res/layout/no_data_binding.xml", contents);
+    XmlFile xmlFile = (XmlFile)layoutPsiFile;
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("ListView", parser.getName());
+    assertEquals("@+id/_dynamic", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {

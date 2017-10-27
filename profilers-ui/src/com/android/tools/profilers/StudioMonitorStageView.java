@@ -86,10 +86,11 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
     myTooltip = new JPanel(new BorderLayout());
-    myTooltip.setMinimumSize(new Dimension(200, 10));
+    myTooltip.setMinimumSize(new Dimension(100, 10));
 
     RangeTooltipComponent
-      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip);
+      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip,
+                                          ProfilerLayeredPane.class);
 
     myTooltipBinder = new ViewBinder<>();
     myTooltipBinder.bind(NetworkMonitor.class, NetworkMonitorTooltipView::new);

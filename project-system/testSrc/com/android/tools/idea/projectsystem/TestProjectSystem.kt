@@ -30,6 +30,10 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
 
   data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion
 
+  companion object {
+    val TEST_VERSION_LATEST = TestDependencyVersion(null)
+  }
+
   private val dependenciesByModule: HashMultimap<Module, Artifact> = HashMultimap.create()
 
   override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
@@ -44,7 +48,9 @@ class TestProjectSystem : AndroidProjectSystem, AndroidProjectSystemProvider {
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun addDependency(dependency: String) {
+      override fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {
+        val versionToAdd = version ?: TEST_VERSION_LATEST
+        dependenciesByModule.put(module, Artifact(artifactId, versionToAdd))
       }
 
       override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {

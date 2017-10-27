@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.layoutinspector.model.DisplayInfo;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.editors.theme.MaterialColors;
@@ -38,6 +39,8 @@ import java.util.List;
  */
 public class ViewNodeActiveDisplay extends JComponent {
   private static final double SHOW_GRID_LEVEL = 3;
+  @VisibleForTesting
+  static final float DEFAULT_OVERLAY_ALPHA = 0.5f;
 
   private static final Color DEFAULT_COLOR = Color.GRAY;
   private static final Color HOVER_COLOR = MaterialColors.DEEP_ORANGE_900;
@@ -68,6 +71,11 @@ public class ViewNodeActiveDisplay extends JComponent {
   @Nullable
   private ViewNode mSelectedNode;
   private boolean mGridVisible = false;
+  @Nullable
+  private Image mOverlay;
+  private float mOverlayAlpha = DEFAULT_OVERLAY_ALPHA;
+  @Nullable
+  private String myOverlayFileName;
 
   public ViewNodeActiveDisplay(@NotNull ViewNode root, @Nullable Image preview) {
     mRoot = root;
@@ -189,17 +197,21 @@ public class ViewNodeActiveDisplay extends JComponent {
       if (Float.compare(mZoomFactor, 1.0f) < 0) {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      } else {
+      }
+      else {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
       }
       g.drawImage(mPreview, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
                   0, 0, mPreview.getWidth(null), mPreview.getHeight(null), null);
-      g.setRenderingHints(oldHints);
 
       if (isGridVisible() && mZoomFactor >= SHOW_GRID_LEVEL) {
         paintGrid(g, mPreview);
       }
+
+      drawOverlay(g);
+
+      g.setRenderingHints(oldHints);
     }
 
     g.clipRect(0, 0, mRoot.previewBox.width, mRoot.previewBox.height);
@@ -217,6 +229,23 @@ public class ViewNodeActiveDisplay extends JComponent {
       g.setColor(SELECTED_COLOR);
       paintBox(mSelectedNode.previewBox, g);
     }
+  }
+
+  /**
+   * If there is an overlay set, draw overlay on top of the preview for Pixel Perfect feature.
+   * Otherwise does nothing.
+   * The overlay is drawn with an alpha for transparancy. After drawing returns
+   * the composite to it's previous state.
+   */
+  private void drawOverlay(Graphics2D g) {
+    if (mOverlay == null) {
+      return;
+    }
+    Composite oldComposite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mOverlayAlpha));
+    g.drawImage(mOverlay, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
+                0, 0, mOverlay.getWidth(null), mOverlay.getHeight(null), null);
+    g.setComposite(oldComposite);
   }
 
   private void paintNode(ViewNode node, Graphics2D g) {
@@ -329,6 +358,31 @@ public class ViewNodeActiveDisplay extends JComponent {
     for (int dy = lineSpan; dy < imageHeight; dy += lineSpan) {
       UIUtil.drawLine(g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
     }
+  }
+
+  public void setOverLay(@Nullable Image overlay, @Nullable String fileName) {
+    mOverlay = overlay;
+    myOverlayFileName = fileName;
+    mOverlayAlpha = DEFAULT_OVERLAY_ALPHA; // reset on selecting new image
+    repaint();
+  }
+
+  public boolean hasOverlay() {
+    return mOverlay != null;
+  }
+
+  @Nullable
+  public String getOverlayFileName() {
+    return myOverlayFileName;
+  }
+
+  public float getOverlayAlpha() {
+    return mOverlayAlpha;
+  }
+
+  public void setOverlayAlpha(float mOverlayAlpha) {
+    this.mOverlayAlpha = mOverlayAlpha;
+    repaint();
   }
 
   private class MyMouseAdapter extends MouseAdapter {

@@ -93,7 +93,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
-
     myHeapDumpButton = new FlatButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Dump Java heap");
@@ -365,7 +364,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                myMemoryStageTooltipView.createComponent());
+                                myMemoryStageTooltipView.createComponent(), ProfilerLayeredPane.class);
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);

@@ -15,14 +15,15 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.*;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
@@ -30,23 +31,30 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   private final ProfilerTimeline myTimeline;
 
   @NotNull
-  protected final String myTitle;
+  private final String myTitle;
 
   @NotNull
-  protected final JLabel myLabel;
+  protected final JLabel myHeadingLabel;
 
-  private int myMaximumLabelWidth;
+  @Nullable
+  private JComponent myTooltipComponent;
+
+  protected final Font myFont;
+
+  private final int myMaximumLabelHeight;
+
+  private int myMaximumWidth = 0;
 
   protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline, @NotNull String title) {
     myTimeline = timeline;
     myTitle = title;
 
-    myLabel = new JLabel();
-    myLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myLabel.setBorder(new JBEmptyBorder(0, 4, 8, 0));
+    myHeadingLabel = new JLabel();
+    myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    myFont = myHeadingLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE);
+    myMaximumLabelHeight = myHeadingLabel.getFontMetrics(myFont).getHeight();
+    myHeadingLabel.setFont(myFont);
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
-    myMaximumLabelWidth = 0;
   }
 
   protected void timeChanged() {
@@ -54,27 +62,40 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     if (!range.isEmpty()) {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
-      myLabel.setText(String.format("%s at %s", myTitle, time));
-      myMaximumLabelWidth = Math.max(myMaximumLabelWidth, myLabel.getWidth());
-      myLabel.setMinimumSize(new Dimension(myMaximumLabelWidth, 0));
-    } else {
-      myLabel.setText("");
+      myHeadingLabel.setText(String.format("%s at %s", myTitle, time));
+      updateMaximumLabelDimensions();
+    }
+    else {
+      myHeadingLabel.setText("");
     }
   }
 
-  protected abstract Component createTooltip();
+  protected final void updateMaximumLabelDimensions() {
+    myMaximumWidth = Math.max(myMaximumWidth, myHeadingLabel.getPreferredSize().width);
+    myMaximumWidth = Math.max(myMaximumWidth, myTooltipComponent == null ? 0 : myTooltipComponent.getPreferredSize().width);
+    // Set the minimum size so that the tooltip width doesn't flap.
+    myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
+  }
 
-  final public Component createComponent() {
+  @NotNull
+  protected abstract JComponent createTooltip();
 
-    Component tooltip = createTooltip();
+  public final JComponent createComponent() {
+    myTooltipComponent = createTooltip();
 
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(myLabel, BorderLayout.NORTH);
-    panel.add(tooltip, BorderLayout.CENTER);
+    // Reset label widths when the component changes.
+    myMaximumWidth = 0;
+    myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
+    updateMaximumLabelDimensions();
+
+    JPanel panel = new JPanel(new TabularLayout("*", "Fit,10px,*"));
+    panel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
+    panel.add(myTooltipComponent, new TabularLayout.Constraint(2, 0));
     panel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    panel.setBorder(new JBEmptyBorder(10, 12, 10, 12));
+    panel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
     timeChanged();
+
     return panel;
   }
 

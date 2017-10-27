@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -314,7 +315,18 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      layout(animate);
+      DesignSurface surface = getDesignSurface();
+
+      /*
+      We only need to render if we are not in Blueprint mode. If we are in blueprint mode only, we only need a layout.
+       */
+      boolean needsRender = (surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getSceneMode() != SceneMode.BLUEPRINT_ONLY);
+      if (needsRender) {
+        requestLayoutAndRender(animate);
+      }
+      else {
+        layout(animate);
+      }
     }
   }
 

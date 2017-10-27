@@ -562,8 +562,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void profilingModesAvailableDependOnDeviceApi() {
     myServices.enableSimplePerf(true);
-
-    // Set a device that doesn't support simpleperf
+    myServices.enableAtrace(true);
+    // Set a device that doesn't support simpleperf, or atrace
     addAndSetDevice(14, "FakeDevice1");
 
     List<ProfilingConfiguration> configs = myStage.getProfilingConfigurations();
@@ -575,13 +575,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     // First actual configuration should be ART Sampled
     assertThat(realConfigs.get(0).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     assertThat(realConfigs.get(0).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     assertThat(realConfigs.get(1).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
 
-    // Simpleperf is supported on API 26 and greater.
+    // Simpleperf, and atrae are supported on API 26 and greater.
     addAndSetDevice(26, "FakeDevice2");
 
     configs = myStage.getProfilingConfigurations();
@@ -589,15 +589,17 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
 
     realConfigs = filterFakeConfigs(configs);
-    assertThat(realConfigs).hasSize(3);
+    assertThat(realConfigs).hasSize(4);
 
     // First and second actual configurations should be the same
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
     // Third configuration should be simpleperf
     assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(realConfigs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
+    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+    // Fourth should be atrace
+    assertThat(realConfigs.get(3).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE);
   }
 
   @Test
@@ -610,9 +612,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
 
     assertThat(realConfigs).hasSize(3);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
-    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
 
     // Now disable simpleperf
     myServices.enableSimplePerf(false);
@@ -622,8 +624,62 @@ public class CpuProfilerStageTest extends AspectObserver {
     realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
     // Simpleperf should not be listed as a profiling option
     assertThat(realConfigs).hasSize(2);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+  }
+
+  @Test
+  public void atraceIsOnlyAvailableWhenFlagIsTrue() {
+    myServices.enableAtrace(true);
+
+    // Set a device that supports atrace
+    addAndSetDevice(26, "Fake Device 1");
+
+    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
+
+    assertThat(realConfigs).hasSize(3);
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.ATRACE);
+
+    // Now disable atrace
+    myServices.enableAtrace(false);
+
+    addAndSetDevice(26, "Fake Device 2");
+    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
+    // Atrace should not be listed as a profiling option
+    assertThat(realConfigs).hasSize(2);
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+  }
+
+  @Test
+  public void allAreAvailableWhenFlagIsTrue() {
+    myServices.enableSimplePerf(true);
+    myServices.enableAtrace(true);
+
+    // Set a device that supports simpleperf, and atrace
+    addAndSetDevice(26, "Fake Device 1");
+
+    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
+
+    assertThat(realConfigs).hasSize(4);
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
+    assertThat(realConfigs.get(2).getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+    assertThat(realConfigs.get(3).getName()).isEqualTo(ProfilingConfiguration.ATRACE);
+
+    // Now disable simpleperf, and atrace
+    myServices.enableSimplePerf(false);
+    myServices.enableAtrace(false);
+
+    // Set a device that supports simpleperf, and atrace
+    addAndSetDevice(26, "Fake Device 2");
+    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
+    // Simpleperf, and atrace should not be listed as profiling options
+    assertThat(realConfigs).hasSize(2);
+    assertThat(realConfigs.get(0).getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
   }
 
   @Test
@@ -631,22 +687,22 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getProfilingConfiguration()).isNotNull();
     // ART Sampled should be the default configuration when starting the stage,
     // as it's the first configuration on the list.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Sampled");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
-    ProfilingConfiguration instrumented = new ProfilingConfiguration("Instrumented",
+    ProfilingConfiguration instrumented = new ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
                                                                      CpuProfiler.CpuProfilerType.ART,
                                                                      CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
     myStage.setProfilingConfiguration(instrumented);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Instrumented");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
 
     // Set CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY as profiling configuration
     // and check it doesn't actually replace the current configuration
     myStage.setProfilingConfiguration(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Instrumented");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
 
     // Just sanity check "Instrumented" is not the name of CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY
-    assertThat(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY.getName()).isNotEqualTo("Instrumented");
+    assertThat(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY.getName()).isNotEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
   }
 
   @Test

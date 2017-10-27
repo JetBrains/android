@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,340 +13,1558 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.ide.common.internal.WaitableExecutor;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
-import com.android.utils.Pair;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.rendering.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.SingleRootFileViewProvider;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.LightVirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A {@link GraphicGenerator} that generates Android "launcher" icons.
+ * Generator of Android launcher icons.
+ *
+ * Defaults from https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html
  */
-public class LauncherIconGenerator extends GraphicGenerator {
-    private static final Rectangle IMAGE_SIZE_WEB = new Rectangle(0, 0, 512, 512);
-    private static final Rectangle IMAGE_SIZE_MDPI = new Rectangle(0, 0, 48, 48);
+@SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
+public class LauncherIconGenerator extends IconGenerator {
+  public static final Rectangle IMAGE_SIZE_FULL_BLEED_DP = new Rectangle(0, 0, 108, 108);
+  public static final Dimension SIZE_FULL_BLEED_DP = IMAGE_SIZE_FULL_BLEED_DP.getSize();
+  private static final Rectangle IMAGE_SIZE_SAFE_ZONE_DP = new Rectangle(0, 0, 66, 66);
+  private static final Rectangle IMAGE_SIZE_VIEWPORT_DP = new Rectangle(0, 0, 72, 72);
+  private static final Rectangle IMAGE_SIZE_LEGACY_DP = new Rectangle(0, 0, 48, 48);
+  private static final Rectangle IMAGE_SIZE_VIEW_PORT_WEB_PX = new Rectangle(0, 0, 512, 512);
+  private static final Rectangle IMAGE_SIZE_FULL_BLEED_WEB_PX = new Rectangle(0, 0, 768, 768);
+  private static final Density[] DENSITIES = { Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, Density.XXXHIGH };
 
-    private static final Map<Pair<Shape, Density>, Rectangle> TARGET_RECTS = new HashMap<>();
+  private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
+  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
+  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(new Color(0x26A69A));
+  private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
+  private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
+  private final BoolProperty myGenerateWebIcon = new BoolValueProperty(true);
+  private final ObjectProperty<Shape> myLegacyIconShape = new ObjectValueProperty<>(Shape.SQUARE);
+  private final ObjectProperty<Shape> myWebIconShape = new ObjectValueProperty<>(Shape.SQUARE);
+  private final BoolProperty myShowGrid = new BoolValueProperty();
+  private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
+  private final ObjectValueProperty<Density> myPreviewDensity = new ObjectValueProperty<>(Density.XHIGH);
+  private final OptionalProperty<ImageAsset> myBackgroundImageAsset = new OptionalValueProperty<>();
+  private final StringProperty myForegroundLayerName = new StringValueProperty();
+  private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
-    static {
-        // None, Web
-        TARGET_RECTS.put(Pair.of(Shape.NONE, null), new Rectangle(32, 32, 448, 448));
-        // None, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.NONE, Density.HIGH), new Rectangle(4, 4, 64, 64));
-        // None, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.NONE, Density.MEDIUM), new Rectangle(3, 3, 42, 42));
+  /**
+   * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
+   *
+   * @param facet the Android facet
+   * @param minSdkVersion the minimal supported Android SDK version
+   */
+  public LauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
+    super(minSdkVersion, new GraphicGeneratorContext(40, new MyDrawableRenderer(facet)));
+  }
 
-        // Circle, Web
-        TARGET_RECTS.put(Pair.of(Shape.CIRCLE, null), new Rectangle(21, 21, 470, 470));
-        // Circle, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.CIRCLE, Density.HIGH), new Rectangle(3, 3, 66, 66));
-        // Circle, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.CIRCLE, Density.MEDIUM), new Rectangle(2, 2, 44, 44));
+  /**
+   * Whether to use the foreground color. When using images as the source asset for our icons,
+   * you shouldn't apply the foreground color, which would paint over it and obscure the image.
+   */
+  @NotNull
+  public BoolProperty useForegroundColor() {
+    return myUseForegroundColor;
+  }
 
-        // Square, Web
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE, null), new Rectangle(53, 53, 406, 406));
-        // Square, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE, Density.HIGH), new Rectangle(7, 7, 57, 57));
-        // Square, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE, Density.MEDIUM), new Rectangle(5, 5, 38, 38));
+  /**
+   * A color for rendering the foreground icon.
+   */
+  @NotNull
+  public ObjectProperty<Color> foregroundColor() {
+    return myForegroundColor;
+  }
 
-        // Vertical Rectangle, Web
-        TARGET_RECTS.put(Pair.of(Shape.VRECT, null), new Rectangle(85, 21, 342, 470));
-        // Vertical Rectangle, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.VRECT, Density.HIGH), new Rectangle(12, 3, 48, 66));
-        // Vertical Rectangle, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.VRECT, Density.MEDIUM), new Rectangle(8, 2, 32, 44));
+  /**
+   * A color for rendering the background shape.
+   */
+  @NotNull
+  public ObjectProperty<Color> backgroundColor() {
+    return myBackgroundColor;
+  }
 
-        // Horizontal Rectangle, Web
-        TARGET_RECTS.put(Pair.of(Shape.HRECT, null), new Rectangle(21, 85, 470, 342));
-        // Horizontal Rectangle, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.HRECT, Density.HIGH), new Rectangle(3, 12, 66, 48));
-        // Horizontal Rectangle, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.HRECT, Density.MEDIUM), new Rectangle(2, 8, 44, 32));
+  /**
+   * If {@code true}, generate the "Legacy" icon (API 24 and earlier)
+   */
+  @NotNull
+  public BoolProperty generateLegacyIcon() {
+    return myGenerateLegacyIcon;
+  }
 
-        // Square Dog-ear, Web
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE_DOG, null), new Rectangle(53, 149, 406, 312));
-        // Square Dog-ear, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE_DOG, Density.HIGH), new Rectangle(7, 21, 57, 43));
-        // Square Dog-ear, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.SQUARE_DOG, Density.MEDIUM), new Rectangle(5, 14, 38, 29));
+  /**
+   * If {@code true}, generate the "Round" icon (API 25)
+   */
+  @NotNull
+  public BoolProperty generateRoundIcon() {
+    return myGenerateRoundIcon;
+  }
 
-        // Vertical Rectangle Dog-ear, Web
-        TARGET_RECTS.put(Pair.of(Shape.VRECT_DOG, null), new Rectangle(85, 117, 342, 374));
-        // Vertical Rectangle Dog-ear, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.VRECT_DOG, Density.HIGH), new Rectangle(12, 17, 48, 52));
-        // Vertical Rectangle Dog-ear, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.VRECT_DOG, Density.MEDIUM), new Rectangle(8, 11, 32, 35));
+  /**
+   * If {@code true}, generate the "Web" icon for PlayStore
+   */
+  @NotNull
+  public BoolProperty generateWebIcon() {
+    return myGenerateWebIcon;
+  }
 
-        // Horizontal Rectangle Dog-ear, Web
-        TARGET_RECTS.put(Pair.of(Shape.HRECT_DOG, null), new Rectangle(21, 85, 374, 342));
-        // Horizontal Rectangle Dog-ear, HDPI
-        TARGET_RECTS.put(Pair.of(Shape.HRECT_DOG, Density.HIGH), new Rectangle(3, 12, 52, 48));
-        // Horizontal Rectangle Dog-ear, MDPI
-        TARGET_RECTS.put(Pair.of(Shape.HRECT_DOG, Density.MEDIUM), new Rectangle(2, 8, 35, 32));
+  /**
+   * A shape which will be used as the "Legacy" icon's backdrop.
+   */
+  @NotNull
+  public ObjectProperty<Shape> legacyIconShape() {
+    return myLegacyIconShape;
+  }
+
+  /**
+   * A shape which will be used as the "Web" icon's backdrop.
+   */
+  @NotNull
+  public ObjectProperty<Shape> webIconShape() {
+    return myWebIconShape;
+  }
+
+  @NotNull
+  public OptionalProperty<ImageAsset> backgroundImageAsset() {
+    return myBackgroundImageAsset;
+  }
+
+  @NotNull
+  public BoolProperty showGrid() {
+    return myShowGrid;
+  }
+
+  @NotNull
+  public BoolProperty showSafeZone() {
+    return myShowSafeZone;
+  }
+
+  @NotNull
+  public ObjectValueProperty<Density> previewDensity() {
+    return myPreviewDensity;
+  }
+
+  @NotNull
+  public StringProperty foregroundLayerName() {
+    return myForegroundLayerName;
+  }
+
+  @NotNull
+  public StringProperty backgroundLayerName() {
+    return myBackgroundLayerName;
+  }
+
+  @Override
+  @NotNull
+  public LauncherIconOptions createOptions(boolean forPreview) {
+    LauncherIconOptions options = new LauncherIconOptions();
+    options.generateOutputIcons = !forPreview;
+    options.generatePreviewIcons = forPreview;
+
+    options.minSdk = getMinSdkVersion();
+    options.useForegroundColor = myUseForegroundColor.get();
+    options.foregroundColor = myForegroundColor.get().getRGB();
+    // Set foreground image.
+    BaseAsset foregroundAsset = sourceAsset().getValueOrNull();
+    if (foregroundAsset != null) {
+      double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
+      if (foregroundAsset instanceof VectorAsset) {
+        scaleFactor *= 0.58;  // Scale correction for clip art to more or less fit into the safe zone.
+      }
+      else if (foregroundAsset instanceof TextAsset) {
+        scaleFactor *= 0.46;  // Scale correction for text to more or less fit into the safe zone.
+      }
+      else if (foregroundAsset.trimmed().get()) {
+        // Scale correction for images to fit into the safe zone.
+        // Finding the smallest circle containing the image is not trivial (see https://en.wikipedia.org/wiki/Smallest-circle_problem).
+        // For simplicity we treat the safe zone as a square.
+        scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
+      }
+      options.foregroundImage = new ImageAssetSnapshot(foregroundAsset, scaleFactor, getGraphicGeneratorContext());
+    }
+    // Set background image.
+    ImageAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
+    if (backgroundAsset != null) {
+      double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
+      options.backgroundImage = new ImageAssetSnapshot(backgroundAsset, scaleFactor, getGraphicGeneratorContext());
     }
 
-    /**
-     * Modifies the value of the option to take into account the dog-ear effect. This effect only
-     * applies to Square, Hrect and Vrect shapes.
-     *
-     * @param shape Shape of the icon before applying dog-ear effect
-     * @return Shape with dog-ear effect on
-     */
-    private static Shape applyDog(Shape shape) {
-        if (shape == Shape.SQUARE) {
-            return Shape.SQUARE_DOG;
-        } else if (shape == Shape.HRECT) {
-            return Shape.HRECT_DOG;
-        } else if (shape == Shape.VRECT) {
-            return Shape.VRECT_DOG;
-        } else {
-            return shape;
+    options.backgroundColor = myBackgroundColor.get().getRGB();
+    options.showGrid = myShowGrid.get();
+    options.showSafeZone = myShowSafeZone.get();
+    options.previewDensity = myPreviewDensity.get();
+    options.foregroundLayerName = myForegroundLayerName.get();
+    options.backgroundLayerName = myBackgroundLayerName.get();
+    options.generateLegacyIcon = myGenerateLegacyIcon.get();
+    options.legacyIconShape = myLegacyIconShape.get();
+    options.webIconShape = myWebIconShape.get();
+    options.generateRoundIcon = myGenerateRoundIcon.get();
+    options.generateWebIcon = myGenerateWebIcon.get();
+    return options;
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(LauncherIconGenerator.class);
+  }
+
+  /**
+   * Creates a PsiFile with the given name and contents corresponding to the given language without storing it on disk.
+   *
+   * @param project the project to associate the file with
+   * @param filename path relative to a source root
+   * @param fileType the type of the file
+   * @param contents the content of the file
+   * @return the created ephemeral file
+   */
+  @NotNull
+  private static PsiFile createEphemeralPsiFile(@NotNull Project project, @NotNull String filename, @NotNull LanguageFileType fileType,
+                                                @NotNull String contents) {
+    PsiManager psiManager = PsiManager.getInstance(project);
+    VirtualFile virtualFile = new LightVirtualFile(filename, fileType, contents);
+    SingleRootFileViewProvider viewProvider = new SingleRootFileViewProvider(psiManager, virtualFile);
+    PsiFile psiFile = viewProvider.getPsi(fileType.getLanguage());
+    if (psiFile == null) {
+      throw new IllegalArgumentException("Unsupported language: " + fileType.getLanguage().getDisplayName());
+    }
+    return psiFile;
+  }
+
+  @Override
+  @NotNull
+  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+    LauncherIconOptions launcherIconOptions = (LauncherIconOptions)options;
+
+    List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
+
+    // Generate tasks for icons (background, foreground, legacy) in all densities.
+    createOutputIconsTasks(context, name, launcherIconOptions, tasks);
+
+    // Generate tasks for drawable xml resource
+    createXmlDrawableResourcesTasks(name, launcherIconOptions, tasks);
+
+    // Generate tasks for preview images
+    createPreviewImagesTasks(context, launcherIconOptions, tasks);
+
+    // Execute tasks in parallel and wait for results
+    WaitableExecutor executor = WaitableExecutor.useGlobalSharedThreadPool();
+    tasks.forEach(executor::execute);
+
+    try {
+      return executor.waitForTasksWithQuickFail(true);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void createOutputIconsTasks(@NotNull GraphicGeneratorContext context, @NotNull String name, @NotNull LauncherIconOptions options,
+                                      @NotNull List<Callable<GeneratedIcon>> tasks) {
+    if (!options.generateOutputIcons) {
+      return;
+    }
+
+    for (Density density : DENSITIES) {
+      LauncherIconOptions localOptions = options.clone();
+      localOptions.density = density;
+      localOptions.showGrid = false;
+      localOptions.showSafeZone = false;
+
+      createOutputIconsForSingleDensityTasks(context, name, localOptions, density, tasks);
+    }
+
+    if (options.generateWebIcon) {
+      tasks.add(() -> {
+        LauncherIconOptions localOptions = options.clone();
+        localOptions.showGrid = false;
+        localOptions.showSafeZone = false;
+        localOptions.generateWebIcon = true;
+        localOptions.generateOutputIcons = true;
+        localOptions.generatePreviewIcons = false;
+        localOptions.legacyIconShape = localOptions.webIconShape;
+        BufferedImage image = generateLegacyImage(context, localOptions);
+        return new GeneratedImageIcon(name,
+                                      Paths.get(getIconPath(localOptions, name)),
+                                      IconCategory.WEB,
+                                      Density.NODPI,
+                                      image);
+      });
+    }
+  }
+
+  private void createOutputIconsForSingleDensityTasks(@NotNull GraphicGeneratorContext context, @NotNull String name,
+                                                      @NotNull LauncherIconOptions options, @NotNull Density density,
+                                                      @NotNull List<Callable<GeneratedIcon>> tasks) {
+    // Generate foreground mipmap only if the foreground is a raster image.
+    if (options.foregroundImage != null && options.foregroundImage.isRasterImage()) {
+      tasks.add(() -> {
+        LauncherIconOptions foregroundOptions = options.clone();
+        foregroundOptions.generateWebIcon = false;
+        foregroundOptions.generatePreviewIcons = false;
+        foregroundOptions.generateOutputIcons = true;
+        BufferedImage foregroundImage = generateIconForegroundLayer(context, foregroundOptions);
+        return new GeneratedImageIcon(foregroundOptions.foregroundLayerName,
+                                      Paths.get(getIconPath(foregroundOptions, options.foregroundLayerName)),
+                                      IconCategory.ADAPTIVE_FOREGROUND_LAYER,
+                                      density,
+                                      foregroundImage);
+      });
+    }
+
+    // Generate background mipmap only if the background is a raster image.
+    if (options.backgroundImage != null && options.backgroundImage.isRasterImage()) {
+      tasks.add(() -> {
+        LauncherIconOptions backgroundOptions = options.clone();
+        backgroundOptions.generateWebIcon = false;
+        backgroundOptions.generatePreviewIcons = false;
+        backgroundOptions.generateOutputIcons = true;
+        BufferedImage backgroundImage = generateIconBackgroundLayer(context, backgroundOptions);
+        return new GeneratedImageIcon(backgroundOptions.backgroundLayerName,
+                                      Paths.get(getIconPath(backgroundOptions, options.backgroundLayerName)),
+                                      IconCategory.ADAPTIVE_BACKGROUND_LAYER,
+                                      density,
+                                      backgroundImage);
+      });
+    }
+
+    if (options.generateLegacyIcon) {
+      tasks.add(() -> {
+        LauncherIconOptions legacyOptions = options.clone();
+        legacyOptions.previewShape = PreviewShape.LEGACY;
+        legacyOptions.generateWebIcon = false;
+        legacyOptions.generatePreviewIcons = false;
+        legacyOptions.generateOutputIcons = true;
+        BufferedImage legacy = generateLegacyImage(context, legacyOptions);
+        return new GeneratedImageIcon(name,
+                                      Paths.get(getIconPath(legacyOptions, name)),
+                                      IconCategory.LEGACY,
+                                      density,
+                                      legacy);
+      });
+    }
+
+    if (options.generateRoundIcon) {
+      tasks.add(() -> {
+        LauncherIconOptions legacyOptions = options.clone();
+        legacyOptions.previewShape = PreviewShape.LEGACY_ROUND;
+        legacyOptions.generateWebIcon = false;
+        legacyOptions.generatePreviewIcons = false;
+        legacyOptions.generateOutputIcons = true;
+        legacyOptions.legacyIconShape = Shape.CIRCLE;
+        BufferedImage legacyRound = generateLegacyImage(context, legacyOptions);
+        return new GeneratedImageIcon(name + "_round",
+                                      Paths.get(getIconPath(legacyOptions, name + "_round")),
+                                      IconCategory.ROUND_API_25,
+                                      density,
+                                      legacyRound);
+      });
+    }
+  }
+
+  private void createXmlDrawableResourcesTasks(@NotNull String name, @NotNull LauncherIconOptions options,
+                                               @NotNull List<Callable<GeneratedIcon>> tasks) {
+    if (!options.generateOutputIcons) {
+      return;
+    }
+    {
+      LauncherIconOptions iconOptions = options.clone();
+      iconOptions.density = Density.ANYDPI;
+      iconOptions.generateWebIcon = false;
+      iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
+      iconOptions.apiVersion = 26; // Temporary until http://b/62316340 is fixed.
+
+      tasks.add(() -> {
+        String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
+        return new GeneratedXmlResource(name,
+                                        Paths.get(getIconPath(iconOptions, name)),
+                                        IconCategory.XML_RESOURCE,
+                                        xmlAdaptiveIcon);
+      });
+
+      tasks.add(() -> {
+        String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
+        return new GeneratedXmlResource(name + "_round",
+                                        Paths.get(getIconPath(iconOptions, name + "_round")),
+                                        IconCategory.XML_RESOURCE,
+                                        xmlAdaptiveIcon);
+      });
+    }
+
+    if (options.foregroundImage != null && options.foregroundImage.isDrawable()) {
+      // Generate foreground drawable.
+      tasks.add(() -> {
+        LauncherIconOptions iconOptions = options.clone();
+        iconOptions.generateWebIcon = false;
+        iconOptions.density = Density.ANYDPI;
+        iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
+
+        String xmlDrawableText = options.foregroundImage.getScaledDrawable();
+        assert xmlDrawableText != null;
+        return new GeneratedXmlResource(name,
+                                        Paths.get(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
+                                        IconCategory.ADAPTIVE_FOREGROUND_LAYER,
+                                        xmlDrawableText);
+      });
+    }
+
+    if (options.backgroundImage != null && options.backgroundImage.isDrawable()) {
+      // Generate background drawable.
+      tasks.add(() -> {
+        LauncherIconOptions iconOptions = options.clone();
+        iconOptions.generateWebIcon = false;
+        iconOptions.density = Density.ANYDPI;
+        iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
+
+        String xmlDrawableText = options.backgroundImage.getScaledDrawable();
+        assert xmlDrawableText != null;
+        return new GeneratedXmlResource(name,
+                                        Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
+                                        IconCategory.ADAPTIVE_BACKGROUND_LAYER,
+                                        xmlDrawableText);
+      });
+    } else if (options.backgroundImage == null) {
+      // Generate background color value.
+      tasks.add(() -> {
+        LauncherIconOptions iconOptions = options.clone();
+        iconOptions.generateWebIcon = false;
+        iconOptions.density = Density.ANYDPI;
+        iconOptions.iconFolderKind = IconFolderKind.VALUES;
+
+        String format = ""
+            + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+            + "<resources>\n"
+            + "    <color name=\"%s\">#%06X</color>\n"
+            + "</resources>";
+        String xmlColor = String.format(format, iconOptions.backgroundLayerName, iconOptions.backgroundColor & 0xFF_FF_FF);
+        return new GeneratedXmlResource(name,
+                                        Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
+                                        IconCategory.XML_RESOURCE,
+                                        xmlColor);
+      });
+    }
+  }
+
+  @NotNull
+  private static String getAdaptiveIconXml(@NotNull LauncherIconOptions options) {
+    String backgroundType = options.backgroundImage == null ? "color" : options.backgroundImage.isDrawable() ? "drawable" : "mipmap";
+    String foregroundType = options.foregroundImage != null && options.foregroundImage.isDrawable() ? "drawable" : "mipmap";
+    String format = ""
+        + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        + "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n"
+        + "    <background android:drawable=\"@%s/%s\"/>\n"
+        + "    <foreground android:drawable=\"@%s/%s\"/>\n"
+        + "</adaptive-icon>";
+    return String.format(format, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
+  }
+
+  private static void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
+                                               @NotNull List<Callable<GeneratedIcon>> tasks) {
+    if (!options.generatePreviewIcons) {
+      return;
+    }
+
+    List<PreviewShape> previewShapes = new ArrayList<>();
+    previewShapes.add(PreviewShape.FULL_BLEED);
+    previewShapes.add(PreviewShape.SQUIRCLE);
+    previewShapes.add(PreviewShape.CIRCLE);
+    previewShapes.add(PreviewShape.SQUARE);
+    previewShapes.add(PreviewShape.ROUNDED_SQUARE);
+    if (options.generateLegacyIcon) {
+      previewShapes.add(PreviewShape.LEGACY);
+    }
+    if (options.generateRoundIcon) {
+      previewShapes.add(PreviewShape.LEGACY_ROUND);
+    }
+    if (options.generateWebIcon) {
+      previewShapes.add(PreviewShape.WEB);
+    }
+
+    for (PreviewShape previewShape : previewShapes) {
+      tasks.add(() -> {
+        LauncherIconOptions localOptions = options.clone();
+        localOptions.density = options.previewDensity;
+        localOptions.previewShape = previewShape;
+        localOptions.generateLegacyIcon = (previewShape == PreviewShape.LEGACY);
+        localOptions.generateRoundIcon = (previewShape == PreviewShape.LEGACY_ROUND);
+        localOptions.generateWebIcon = (previewShape == PreviewShape.WEB);
+
+        BufferedImage image = generatePreviewImage(context, localOptions);
+        return new GeneratedImageIcon(previewShape.id,
+                                      null, // no path for preview icons
+                                      IconCategory.PREVIEW,
+                                      localOptions.density,
+                                      image);
+      });
+    }
+  }
+
+  @Override
+  public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
+                       @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+    LauncherIconOptions launcherIconOptions = (LauncherIconOptions) options;
+    LauncherIconOptions localOptions = launcherIconOptions.clone();
+    localOptions.generateWebIcon = false;
+
+    Collection<GeneratedIcon> icons = generateIcons(context, options, name);
+    icons.stream()
+        .filter(x -> x instanceof GeneratedImageIcon)
+        .map(x -> (GeneratedImageIcon) x)
+        .filter(x -> x.getOutputPath() != null)
+        .forEach(
+            x -> {
+              assert x.getOutputPath() != null;
+
+              Map<String, BufferedImage> imageMap = categoryMap.computeIfAbsent(x.getCategory().toString(), k -> new LinkedHashMap<>());
+
+              // Store image in a map, where the key is the relative path to the image.
+              LauncherIconOptions iconOptions = localOptions.clone();
+              iconOptions.density = x.getDensity();
+              iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
+              iconOptions.generateWebIcon = (x.getCategory() == IconCategory.WEB);
+              imageMap.put(x.getOutputPath().toString(), x.getImage());
+            });
+  }
+
+  @Override
+  @NotNull
+  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
+    }
+
+    return generatePreviewImage(context, (LauncherIconOptions)options);
+  }
+
+  @NotNull
+  private static BufferedImage generatePreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    switch (options.previewShape) {
+      case CIRCLE:
+      case SQUIRCLE:
+      case ROUNDED_SQUARE:
+      case SQUARE:
+        return generateViewportPreviewImage(context, options);
+
+      case LEGACY:
+        options.generatePreviewIcons = true;
+        options.generateWebIcon = false;
+        return generateLegacyImage(context, options);
+
+      case LEGACY_ROUND:
+        options.generatePreviewIcons = true;
+        options.generateWebIcon = false;
+        options.legacyIconShape = Shape.CIRCLE;
+        return generateLegacyImage(context, options);
+
+      case FULL_BLEED: {
+        BufferedImage image = generateFullBleedPreviewImage(context, options);
+        // For preview, scale image down so that it does not display relatively
+        // too big compared to the other preview icons.
+        return scaledPreviewImage(image, 0.8f);
+      }
+
+      case WEB: {
+        options.generatePreviewIcons = true;
+        options.generateWebIcon = true;
+        options.legacyIconShape = options.webIconShape;
+        BufferedImage image = generateLegacyImage(context, options);
+        image = AssetUtil.trimmedImage(image);
+        // For preview, scale image down so that it does not display relatively
+        // too big compared to the other preview icons.
+        float scale = getMdpiScaleFactor(options.previewDensity);
+        return scaledPreviewImage(image, 0.25f * scale);
+      }
+
+      case NONE:
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+  @SuppressWarnings("UseJBColor")
+  @NotNull
+  private static BufferedImage generateFullBleedPreviewImage(@NotNull GraphicGeneratorContext context,
+                                                             @NotNull LauncherIconOptions options) {
+    Layers layers = generateIconLayers(context, options);
+    BufferedImage result = mergeLayers(layers, Color.BLACK);
+    drawGrid(options, result);
+    return result;
+  }
+
+  /**
+   * Generates a {@link BufferedImage} for either a "Legacy", "Round" or "Web" icon. The created
+   * image consists of both background and foregroud layer images merge together, then a shape
+   * (e.g. circle, square) mask is applied, and finally the image is scaled to the appropriate
+   * size (48x48 legacy or 512x512px web).
+   */
+  @NotNull
+  private static BufferedImage generateLegacyImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    // The "Web" density does not exist in the "Density" enum. Various "Legacy" icon APIs use
+    // "null" as a placeholder for "Web".
+    Density legacyOrWebDensity = (options.generateWebIcon ? null : options.density);
+
+    // The viewport rectangle (72x72dp) scaled according to density.
+    Rectangle viewportRect = getViewportRectangle(options);
+
+    // The "Legacy" icon rectangle (48x48dp) scaled according to density.
+    Rectangle legacyRect = getLegacyRectangle(options);
+
+    // The sub-rectangle of the 48x48dp "Legacy" icon that corresponds to the "Legacy" icon
+    // shape, scaled according to the density.
+    Rectangle legacyShapeRect = LauncherLegacyIconGenerator.getTargetRect(options.legacyIconShape, legacyOrWebDensity);
+
+    // Generate full bleed and viewport images.
+    Layers layers = generateIconLayers(context, options);
+    BufferedImage fullBleed = mergeLayers(layers);
+
+    // Scale the "Full Bleed" icon so that it is contained in the "Legacy" shape rectangle.
+    //
+    // Note that even though we scale the "Full Bleed" image, we use the ratio of the
+    // Viewport rectangle (72x72dp) to Legacy shape (sub-rectangle of 48x48dp) as the
+    // scaling factor, because the Viewport rectangle is the visible part of Adaptive icons,
+    // whereas the "Full Bleed" icon is never entirely visible.
+    float viewportScale = getRectangleInsideScale(viewportRect, legacyShapeRect);
+    BufferedImage scaledFullBleed =
+        options.generatePreviewIcons ? scaledPreviewImage(fullBleed, viewportScale) : scaledImage(fullBleed, viewportScale);
+
+    // Load shadow and mask corresponding to legacy shape.
+    BufferedImage shapeImageBack = null;
+    BufferedImage shapeImageFore = null;
+    BufferedImage shapeImageMask = null;
+    if (options.legacyIconShape != Shape.NONE) {
+      shapeImageBack = LauncherLegacyIconGenerator.loadBackImage(context, options.legacyIconShape, legacyOrWebDensity);
+      shapeImageFore = LauncherLegacyIconGenerator.loadStyleImage(context, options.legacyIconShape, legacyOrWebDensity, Style.SIMPLE);
+      shapeImageMask = LauncherLegacyIconGenerator.loadMaskImage(context, options.legacyIconShape, legacyOrWebDensity);
+    }
+
+    // Generate legacy image by merging shadow, mask and (scaled) adaptive icon
+    BufferedImage legacyImage = AssetUtil.newArgbBufferedImage(legacyRect.width, legacyRect.height);
+    Graphics2D gLegacy = (Graphics2D) legacyImage.getGraphics();
+
+    // Start with backdrop image (semi-transparent shadow).
+    if (shapeImageBack != null) {
+      AssetUtil.drawCentered(gLegacy, shapeImageBack, legacyRect);
+    }
+
+    // Apply the mask to the scaled adaptive icon.
+    if (shapeImageMask != null) {
+      scaledFullBleed = applyMask(scaledFullBleed, shapeImageMask);
+    }
+
+    // Draw the scaled adaptive icon on top of shadow effect.
+    AssetUtil.drawCentered(gLegacy, scaledFullBleed, legacyRect);
+
+    // Finish with the foreground effect (shadow outline).
+    if (shapeImageFore != null) {
+      gLegacy.drawImage(shapeImageFore, 0, 0, null);
+    }
+    gLegacy.dispose();
+    return legacyImage;
+  }
+
+  /** See {@link AssetUtil#getRectangleInsideScale(Rectangle, Rectangle)}. */
+  private static float getRectangleInsideScale(@NotNull Rectangle source, @NotNull Rectangle destination) {
+    return AssetUtil.getRectangleInsideScale(source, destination);
+  }
+
+  /** Scale an image given a scale factor. */
+  @NotNull
+  private static BufferedImage scaledImage(@NotNull BufferedImage image, float scale) {
+    int width = Math.round(image.getWidth() * scale);
+    int height = Math.round(image.getHeight() * scale);
+    return scaledImage(image, width, height);
+  }
+
+  /** Scale an image given the desired scaled image size. */
+  @NotNull
+  private static BufferedImage scaledImage(@NotNull BufferedImage image, int width, int height) {
+    return AssetUtil.scaledImage(image, width, height);
+  }
+
+  /**
+   * For performance reason, we use a lower qualitty (but faster) image scaling algorithm when
+   * generating preview images.
+   */
+  @NotNull
+  private static BufferedImage scaledPreviewImage(@NotNull BufferedImage image, float scale) {
+    int width = Math.round(image.getWidth() * scale);
+    int height = Math.round(image.getHeight() * scale);
+    return scaledPreviewImage(image, width, height);
+  }
+
+  /**
+   * For performance reason, we use a lower qualitty (but faster) image scaling algorithm when
+   * generating preview images.
+   */
+  @NotNull
+  private static BufferedImage scaledPreviewImage(@NotNull BufferedImage source, int width, int height) {
+    // Common case optimization: scaling to the same (width, height) is a no-op.
+    if (source.getWidth() == width && source.getHeight() == height) {
+      return source;
+    }
+
+    BufferedImage scaledBufImage = AssetUtil.newArgbBufferedImage(width, height);
+    Graphics2D g = scaledBufImage.createGraphics();
+    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    g.drawImage(source, 0, 0, width, height, null);
+    g.dispose();
+    return scaledBufImage;
+  }
+
+  /** Generate a preview image with a Shape mask applied (e.g. Square, Squircle). */
+  @NotNull
+  private static BufferedImage generateViewportPreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    Layers layers = generateIconLayers(context, options);
+    BufferedImage result = mergeLayers(layers);
+    BufferedImage mask = generateMaskLayer(context, options, options.previewShape);
+    result = cropImageToViewport(options, result);
+    result = applyMask(result, mask);
+    drawGrid(options, result);
+
+    return result;
+  }
+
+  private static BufferedImage cropImageToViewport(@NotNull LauncherIconOptions options, @NotNull BufferedImage image) {
+    return cropImage(image, getViewportRectangle(options));
+  }
+
+  private static BufferedImage cropImage(@NotNull BufferedImage image, @NotNull Rectangle targetRect) {
+    Rectangle imageRect = new Rectangle(0, 0, image.getWidth(), image.getHeight());
+
+    BufferedImage subImage = image.getSubimage((imageRect.width - targetRect.width) / 2, (imageRect.height - targetRect.height) / 2,
+                                               targetRect.width, targetRect.height);
+
+    BufferedImage viewportImage = AssetUtil.newArgbBufferedImage(targetRect.width, targetRect.height);
+
+    Graphics2D gViewport = (Graphics2D) viewportImage.getGraphics();
+    gViewport.drawImage(subImage, 0, 0, null);
+    gViewport.dispose();
+
+    return viewportImage;
+  }
+
+  @NotNull
+  private static BufferedImage mergeLayers(@NotNull Layers layers) {
+    return mergeLayers(layers, null);
+  }
+
+  @NotNull
+  private static BufferedImage mergeLayers(@NotNull Layers layers, @Nullable Color fillColor) {
+    int width = Math.max(layers.background.getWidth(), layers.foreground.getWidth());
+    int height = Math.max(layers.background.getHeight(), layers.foreground.getHeight());
+
+    BufferedImage outImage = AssetUtil.newArgbBufferedImage(width, height);
+    Graphics2D gOut = (Graphics2D) outImage.getGraphics();
+    if (fillColor != null) {
+      gOut.setPaint(fillColor);
+      gOut.fillRect(0, 0, width, height);
+    }
+    gOut.drawImage(layers.background, 0, 0, null);
+    gOut.drawImage(layers.foreground, 0, 0, null);
+    gOut.dispose();
+
+    return outImage;
+  }
+
+  @NotNull
+  private static Layers generateIconLayers(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    BufferedImage backgroundImage = generateIconBackgroundLayer(context, options);
+    BufferedImage foregroundImage = generateIconForegroundLayer(context, options);
+
+    return new Layers(backgroundImage, foregroundImage);
+  }
+
+  @Nullable
+  private static BufferedImage generateMaskLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
+                                                 @NotNull PreviewShape shape) {
+    String maskName;
+    switch (shape) {
+      case CIRCLE:
+        maskName = "circle";
+        break;
+      case SQUARE:
+        maskName = "square";
+        break;
+      case ROUNDED_SQUARE:
+        maskName = "rounded_corner";
+        break;
+      case SQUIRCLE:
+        //noinspection SpellCheckingInspection
+        maskName = "squircle";
+        break;
+      default:
+        maskName = null;
+    }
+    if (maskName == null) {
+      return null;
+    }
+
+    if (options.generateWebIcon) {
+      String resourceName = String.format("/images/adaptive_icons_masks/adaptive_%s-%s.png", maskName, Density.XXXHIGH.getResourceValue());
+
+      BufferedImage mask = context.loadImageResource(resourceName);
+      if (mask == null) {
+        return null;
+      }
+      Rectangle maskRect = new Rectangle(0, 0, mask.getWidth(), mask.getHeight());
+      float scale = getRectangleInsideScale(maskRect, getViewportRectangle(options));
+      return options.generatePreviewIcons ? scaledPreviewImage(mask, scale) : scaledImage(mask, scale);
+    } else {
+      String resourceName = String.format("/images/adaptive_icons_masks/adaptive_%s-%s.png", maskName, options.density.getResourceValue());
+
+      return context.loadImageResource(resourceName);
+    }
+  }
+
+  @NotNull
+  private static Rectangle getFullBleedRectangle(@NotNull LauncherIconOptions options) {
+    if (options.generateWebIcon) {
+      return IMAGE_SIZE_FULL_BLEED_WEB_PX;
+    }
+    return AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(options.density));
+  }
+
+  @NotNull
+  private static Rectangle getViewportRectangle(@NotNull LauncherIconOptions options) {
+    if (options.generateWebIcon) {
+      return IMAGE_SIZE_VIEW_PORT_WEB_PX;
+    }
+    return AssetUtil.scaleRectangle(IMAGE_SIZE_VIEWPORT_DP, getMdpiScaleFactor(options.density));
+  }
+
+  @NotNull
+  private static Rectangle getLegacyRectangle(@NotNull LauncherIconOptions options) {
+    if (options.generateWebIcon) {
+      return IMAGE_SIZE_VIEW_PORT_WEB_PX;
+    }
+    return AssetUtil.scaleRectangle(IMAGE_SIZE_LEGACY_DP, getMdpiScaleFactor(options.density));
+  }
+
+  @NotNull
+  private static BufferedImage generateIconBackgroundLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
+    }
+
+    Rectangle imageRect = getFullBleedRectangle(options);
+    if (options.backgroundImage != null) {
+      return generateIconLayer(context, options.backgroundImage, imageRect, false, 0, !options.generateOutputIcons);
+    }
+
+    //noinspection UseJBColor
+    return generateFlatColorRectangle(new Color(options.backgroundColor), imageRect);
+  }
+
+  @NotNull
+  private static BufferedImage generateIconForegroundLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
+    }
+
+    Rectangle imageRect = getFullBleedRectangle(options);
+    if (options.foregroundImage != null) {
+      return generateIconLayer(context, options.foregroundImage, imageRect, options.useForegroundColor, options.foregroundColor,
+                                       !options.generateOutputIcons);
+    }
+
+    return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+  }
+
+  @NotNull
+  private static BufferedImage generateFlatColorRectangle(@NotNull Color color, @NotNull Rectangle imageRect) {
+    BufferedImage result = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    Graphics2D gTemp = (Graphics2D) result.getGraphics();
+    gTemp.setPaint(color);
+    gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
+    gTemp.dispose();
+    return result;
+  }
+
+  @NotNull
+  private static BufferedImage applyMask(@NotNull BufferedImage image, @Nullable BufferedImage mask) {
+    if (mask == null) {
+      return image;
+    }
+
+    Rectangle imageRect = new Rectangle(0, 0, image.getWidth(), image.getHeight());
+    BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+
+    Graphics2D gTemp = (Graphics2D)tempImage.getGraphics();
+    AssetUtil.drawCentered(gTemp, mask, imageRect);
+    gTemp.setComposite(AlphaComposite.SrcIn);
+    AssetUtil.drawCentered(gTemp, image, imageRect);
+    gTemp.dispose();
+
+    return tempImage;
+  }
+
+  @NotNull
+  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull ImageAssetSnapshot sourceImage,
+                                                 @NotNull Rectangle imageRect, boolean useFillColor, int fillColor, boolean forPreview) {
+    String scaledDrawable = sourceImage.getScaledDrawable();
+    if (scaledDrawable != null) {
+      return generateIconLayer(context, scaledDrawable, imageRect);
+    }
+
+    BufferedImage trimmedImage = sourceImage.getTrimmedImage();
+    if (trimmedImage != null) {
+      return generateIconLayer(context, trimmedImage, imageRect, sourceImage.getScaleFactor(), useFillColor, fillColor, forPreview);
+    }
+
+    return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+  }
+
+  @NotNull
+  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull String xmlDrawable,
+                                                 @NotNull Rectangle imageRect) {
+    ListenableFuture<BufferedImage> imageFuture = context.renderDrawable(xmlDrawable, imageRect.getSize());
+    try {
+      BufferedImage image = imageFuture.get();
+      if (image != null) {
+        return image;
+      }
+    }
+    catch (InterruptedException | ExecutionException e) {
+      // Ignore to return the default image.
+    }
+
+    return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+  }
+
+  @NotNull
+  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull BufferedImage sourceImage,
+                                                 @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor,
+                                                 boolean forPreview) {
+    if (forPreview && Math.max(sourceImage.getWidth(), sourceImage.getHeight()) > IMAGE_SIZE_FULL_BLEED_WEB_PX.getWidth() * 1.2) {
+      // The source image is pretty large. Scale it down in preview mode to make generation of subsequent images faster.
+      sourceImage = generateIconLayer(context, sourceImage, IMAGE_SIZE_FULL_BLEED_WEB_PX, 1, false, 0);
+    }
+
+    return generateIconLayer(context, sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
+  }
+
+  @NotNull
+  private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull BufferedImage sourceImage,
+                                                 @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor) {
+    Callable<ListenableFuture<BufferedImage>> generator = () -> FutureUtils.executeOnPooledThread(() -> {
+      // Scale the image.
+      BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+      Graphics2D gIcon = (Graphics2D)iconImage.getGraphics();
+      Rectangle rect = scaleRectangleAroundCenter(imageRect, (float)scaleFactor);
+      AssetUtil.drawCenterInside(gIcon, sourceImage, rect);
+      gIcon.dispose();
+
+      if (!useFillColor) {
+        return iconImage;
+      }
+      // Fill with fillColor.
+      BufferedImage effectImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+      Graphics2D gEffect = (Graphics2D)effectImage.getGraphics();
+      //noinspection UseJBColor
+      AssetUtil.Effect[] effects = new AssetUtil.Effect[] { new AssetUtil.FillEffect(new Color(fillColor), 1) };
+      AssetUtil.drawEffects(gEffect, iconImage, 0, 0, effects);
+      gEffect.dispose();
+      return effectImage;
+    });
+
+    class CacheKey {
+      @NotNull private final Object mySource;
+      @NotNull private final Rectangle myImageRect;
+      private final int myScaleFactorTimes1000;
+      private final boolean myUseFillColor;
+      private final int myFillColor;
+
+      CacheKey(@NotNull Object source, @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor) {
+        mySource = source;
+        myImageRect = imageRect;
+        myScaleFactorTimes1000 = roundToInt(scaleFactor * 1000);
+        myUseFillColor = useFillColor;
+        myFillColor = fillColor;
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(mySource, myImageRect, myScaleFactorTimes1000, myUseFillColor, myFillColor);
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (!(obj instanceof CacheKey)) {
+          return false;
         }
+        CacheKey other = (CacheKey) obj;
+        return Objects.equals(mySource, other.mySource)
+               && Objects.equals(myImageRect, other.myImageRect)
+               && myScaleFactorTimes1000 == other.myScaleFactorTimes1000
+               && myUseFillColor == other.myUseFillColor
+               && myFillColor == other.myFillColor;
+      }
+    }
+
+    CacheKey cacheKey = new CacheKey(sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
+    ListenableFuture<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
+    return Futures.getUnchecked(imageFuture);
+  }
+
+  /**
+   * Scales the given rectangle by the given scale factor preserving the location of its center.
+   *
+   * @param rect        The rectangle to scale
+   * @param scaleFactor The factor to scale by
+   * @return The scaled rectangle
+   */
+  private static Rectangle scaleRectangleAroundCenter(Rectangle rect, double scaleFactor) {
+    int width = roundToInt(rect.width * scaleFactor);
+    int height = roundToInt(rect.height * scaleFactor);
+    return new Rectangle(
+        roundToInt(rect.x * scaleFactor - (width - rect.width) / 2.),
+        roundToInt(rect.y * scaleFactor - (width - rect.width) / 2.),
+        width,
+        height);
+  }
+
+  private static int roundToInt(double f) {
+    return Math.round((float)f);
+  }
+
+  private static void drawGrid(@NotNull LauncherIconOptions launcherIconOptions, @NotNull BufferedImage image) {
+    Graphics2D gOut = (Graphics2D) image.getGraphics();
+    drawGrid(launcherIconOptions, gOut);
+    gOut.dispose();
+  }
+
+  private static void drawGrid(@NotNull LauncherIconOptions launcherIconOptions, @NotNull Graphics2D gOut) {
+    if (launcherIconOptions.generateWebIcon) {
+      return;
+    }
+
+    if (launcherIconOptions.previewShape == PreviewShape.FULL_BLEED) {
+      if (launcherIconOptions.showGrid || launcherIconOptions.showSafeZone) {
+        drawFullBleedIconGrid(launcherIconOptions, gOut);
+      }
+      return;
+    }
+
+    if (launcherIconOptions.previewShape == PreviewShape.LEGACY || launcherIconOptions.previewShape == PreviewShape.LEGACY_ROUND) {
+      if (launcherIconOptions.showGrid) {
+        drawLegacyIconGrid(launcherIconOptions, gOut);
+      }
+      return;
+    }
+
+    if (launcherIconOptions.showGrid || launcherIconOptions.showSafeZone) {
+      drawAdaptiveIconGrid(launcherIconOptions, gOut);
+    }
+  }
+
+  private static void drawAdaptiveIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
+    float scaleFactor = getMdpiScaleFactor(options.density);
+
+    // 72x72
+    int size = IMAGE_SIZE_VIEWPORT_DP.width;
+    int center = size / 2;
+
+    //noinspection UseJBColor
+    Color c = new Color(0f, 0f, 0f, 0.20f);
+    out.setColor(c);
+    out.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    PrimitiveShapesHelper g = new PrimitiveShapesHelper(out, scaleFactor);
+    if (options.showGrid) {
+      g.drawRect(0, 0, size, size);
+
+      // "+" and "x" cross
+      g.drawLine(0, 0, size, size);
+      g.drawLine(size, 0, 0, size);
+      g.drawLine(0, center, size, center);
+      g.drawLine(center, 0, center, size);
+
+      // 3 keyline rectangles (36x52, 44x44, 52x36)
+      int arcSize = 4;
+      int rect1 = 36;
+      int rect2 = 44;
+      int rect3 = 52;
+      g.drawRoundRect((size - rect1) / 2, (size - rect3) / 2, rect1, rect3, arcSize, arcSize);
+      g.drawRoundRect((size - rect2) / 2, (size - rect2) / 2, rect2, rect2, arcSize, arcSize);
+      g.drawRoundRect((size - rect3) / 2, (size - rect1) / 2, rect3, rect1, arcSize, arcSize);
+
+      // 2 keyline circles: 36dp and 52dp
+      g.drawCenteredCircle(center, center, 18);
+      g.drawCenteredCircle(center, center, 26);
+    }
+
+    if (options.showSafeZone) {
+      // Safe zone: 66dp
+      g.drawCenteredCircle(center, center, 33);
+    }
+  }
+
+  private static void drawFullBleedIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
+    float scaleFactor = getMdpiScaleFactor(options.density);
+
+    // 108x108
+    int size = IMAGE_SIZE_FULL_BLEED_DP.width;
+    int center = size / 2;
+
+    //noinspection UseJBColor
+    Color c = new Color(0f, 0f, 0f, 0.20f);
+    out.setColor(c);
+    out.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    PrimitiveShapesHelper g = new PrimitiveShapesHelper(out, scaleFactor);
+    if (options.showGrid) {
+      g.drawRect(0, 0, size, size);
+
+      // Viewport
+      g.drawRect(18, 18, IMAGE_SIZE_VIEWPORT_DP.width, IMAGE_SIZE_VIEWPORT_DP.height);
+
+      // "+" and "x" cross
+      g.drawLine(0, 0, size, size);
+      g.drawLine(size, 0, 0, size);
+      g.drawLine(0, center, size, center);
+      g.drawLine(center, 0, center, size);
+    }
+
+    if (options.showSafeZone) {
+      // Safe zone: 66dp
+      g.drawCenteredCircle(center, center, IMAGE_SIZE_SAFE_ZONE_DP.width / 2);
+    }
+  }
+
+  private static void drawLegacyIconGrid(@NotNull LauncherIconOptions options, @NotNull Graphics2D out) {
+    float scaleFactor = getMdpiScaleFactor(options.density);
+
+    // 48x48
+    int size = IMAGE_SIZE_LEGACY_DP.width;
+    int center = size / 2;
+
+    //noinspection UseJBColor
+    Color c = new Color(0f, 0f, 0f, 0.20f);
+    out.setColor(c);
+    out.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    PrimitiveShapesHelper g = new PrimitiveShapesHelper(out, scaleFactor);
+    g.drawRect(0, 0, size, size);
+
+    // "+" and "x" cross
+    g.drawLine(0, 0, size, size);
+    g.drawLine(size, 0, 0, size);
+    g.drawLine(0, center, size, center);
+    g.drawLine(center, 0, center, size);
+
+    // 2 keyline rectangles (32x44, 38x38, 44x32)
+    int arcSize = 3;
+    int rect1 = 32;
+    //int rect2 = 38;
+    int rect3 = 44;
+    g.drawRoundRect((size - rect1) / 2, (size - rect3) / 2, rect1, rect3, arcSize, arcSize);
+    //g.drawRoundRect((size - rect2) / 2, (size - rect2) / 2, rect2, rect2, arcSize, arcSize);
+    g.drawRoundRect((size - rect3) / 2, (size - rect1) / 2, rect3, rect1, arcSize, arcSize);
+
+    // 2 keyline circles: 20dp and 44dp
+    g.drawCenteredCircle(center, center, 10);
+    g.drawCenteredCircle(center, center, 22);
+  }
+
+  @Override
+  protected boolean includeDensity(@NotNull Density density) {
+    // Launcher icons should include xxxhdpi as well.
+    return super.includeDensity(density) || density == Density.XXXHIGH;
+  }
+
+  @Override
+  @NotNull
+  protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
+    if (((LauncherIconOptions) options).generateWebIcon) {
+      return iconName + "-web.png"; // Store at the root of the project.
+    }
+
+    return super.getIconPath(options, iconName);
+  }
+
+  /** Options specific to generating launcher icons. */
+  public static class LauncherIconOptions extends Options implements Cloneable {
+    /** The foreground layer name, used to generate resource paths. */
+    public String foregroundLayerName;
+
+    /** The background layer name, used to generate resource paths. */
+    public String backgroundLayerName;
+
+    /**
+     * Whether to use the foreground color. If we are using images as the source asset for our
+     * icons, you shouldn't apply the foreground color, which would paint over it and obscure
+     * the image.
+     */
+    public boolean useForegroundColor = true;
+
+    /** Foreground color, as an RRGGBB packed integer */
+    public int foregroundColor = 0;
+
+    /** If foreground is a drawable, the contents of the drawable file and scaling parameters. */
+    @Nullable public ImageAssetSnapshot foregroundImage;
+
+    /**
+     * Background color, as an RRGGBB packed integer. The background color is used only if
+     * {@link #backgroundImage} is null.
+     */
+    public int backgroundColor = 0;
+
+    /** If background is a drawable, the contents of the drawable file and scaling parameters. */
+    @Nullable public ImageAssetSnapshot backgroundImage;
+
+    /** Whether to actual icons to be written to disk */
+    public boolean generateOutputIcons = true;
+
+    /** Whether to actual preview icons */
+    public boolean generatePreviewIcons = true;
+
+    /** Whether to generate the "Legacy" icon (API <= 24) */
+    public boolean generateLegacyIcon = true;
+
+    /** Whether to generate the "Round" icon (API 25) */
+    public boolean generateRoundIcon = true;
+
+    /**
+     * Whether a web graphic should be generated (will ignore normal density setting). The
+     * {@link #generate(GraphicGeneratorContext, Options)} method will use this to decide
+     * whether to generate a normal density icon or a high res web image. The {@link
+     * IconGenerator#generate(String, Map, GraphicGeneratorContext, Options, String)} method
+     * will use this flag to determine whether it should include a web graphic in its iteration.
+     */
+    public boolean generateWebIcon;
+
+    /** If set, generate a preview image */
+    public PreviewShape previewShape = PreviewShape.NONE;
+
+    /** The density of the preview images */
+    public Density previewDensity;
+
+    /** The shape to use for the "Legacy" icon */
+    public Shape legacyIconShape = Shape.SQUARE;
+
+    /** The shape to use for the "Web" icon */
+    public Shape webIconShape = Shape.SQUARE;
+
+    /** Whether to draw the keyline shapes */
+    public boolean showGrid;
+
+    /** Whether to draw the safe zone circle */
+    public boolean showSafeZone;
+
+    public LauncherIconOptions() {
+      iconFolderKind = IconFolderKind.MIPMAP;
+    }
+
+    @Override
+    public LauncherIconOptions clone() {
+      try {
+        return (LauncherIconOptions)super.clone();
+      }
+      catch (CloneNotSupportedException e) {
+        throw new Error(e); // Not possible.
+      }
+    }
+  }
+
+  public enum PreviewShape {
+    NONE("none", "none"),
+    CIRCLE("circle", "Circle"),
+    SQUIRCLE("squircle", "Squircle"),
+    ROUNDED_SQUARE("rounded-square", "Rounded Square"),
+    SQUARE("square", "Square"),
+    FULL_BLEED("full-bleed-layers", "Full Bleed Layers"),
+    LEGACY("legacy", "Legacy Icon"),
+    LEGACY_ROUND("legacy-round", "Round Icon"),
+    WEB("web", "Google Play Store");
+
+    /** Id, used when shape is converted to a string */
+    public final String id;
+    /** Display name, when shape is displayed to the end-user */
+    public final String displayName;
+
+    PreviewShape(String id, String displayName) {
+      this.id = id;
+      this.displayName = displayName;
+    }
+  }
+
+  private static class Layers {
+    @NotNull public BufferedImage background;
+    @NotNull public BufferedImage foreground;
+
+    public Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
+      this.background = background;
+      this.foreground = foreground;
+    }
+  }
+
+  /**
+   * A raster image or an XML drawable with scaling parameters. Thread safe.
+   */
+  public static final class ImageAssetSnapshot {
+    @Nullable private final ListenableFuture<BufferedImage> myImageFuture;
+    @Nullable private final ListenableFuture<String> myDrawableFuture;
+    private final double myScaleFactor;
+    private final boolean myIsTrimmed;
+    @NotNull private final GraphicGeneratorContext myContext;
+    @Nullable private Rectangle2D myTrimRectangle;
+    @GuardedBy("myLock")
+    @Nullable private String myScaledDrawable;
+    @GuardedBy("myLock")
+    @Nullable private BufferedImage myTrimmedImage;
+    private final Object myLock = new Object();
+
+    /**
+     * Initializes a new image asset snapshot.
+     *
+     * @param asset the source image asset
+     * @param scaleFactor the scale factor to be applied to the image
+     * @param context the trim rectangle calculator
+     */
+    public ImageAssetSnapshot(@NotNull BaseAsset asset, double scaleFactor, @NotNull GraphicGeneratorContext context) {
+      myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() : null;
+      myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
+      myIsTrimmed = asset.trimmed().get();
+      myScaleFactor = scaleFactor;
+      myContext = context;
+    }
+
+    public boolean isDrawable() {
+      return myDrawableFuture != null;
+    }
+
+    public boolean isRasterImage() {
+      return myImageFuture != null;
     }
 
     /**
-     * Loads a pref-defined image file given a {@link Shape}, {@link Density} and fileName.
-     *
-     * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-     * "Web" image size.
+     * Returns the text of an XML drawable suitable for use in an adaptive icon, or null if this object doesn't represent a drawable.
      */
     @Nullable
-    private static BufferedImage loadImage(
-            @NonNull GraphicGeneratorContext context,
-            @NonNull Shape shape,
-            @Nullable Density density,
-            @NonNull String fileName) {
-        String densityValue = (density == null ? "web" : density.getResourceValue());
-        String name = String.format("/images/launcher_stencil/%s/%s/%s.png", shape.id, densityValue, fileName);
-        return context.loadImageResource(name);
+    public String getScaledDrawable() {
+      if (myDrawableFuture == null) {
+        return null;
+      }
+      try {
+        synchronized (myLock) {
+          String xmlDrawable = myDrawableFuture.get();
+          if (xmlDrawable == null) {
+            return null;
+          }
+          if (myScaledDrawable == null) {
+            Rectangle2D clipRectangle = myIsTrimmed ? getTrimRectangle(xmlDrawable) : null;
+            myScaledDrawable = VectorDrawableTransformer.resizeAndCenter(xmlDrawable, SIZE_FULL_BLEED_DP, myScaleFactor, clipRectangle);
+          }
+          return myScaledDrawable;
+        }
+      }
+      catch (InterruptedException | ExecutionException e) {
+        return null;
+      }
     }
 
     /**
-     * Loads a pref-defined mask image file given a {@link Shape}, {@link Density} and fileName.
-     *
-     * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-     * "Web" image size.
+     * Returns the scale factor..
+     */
+    public double getScaleFactor() {
+      return myScaleFactor;
+    }
+
+    /**
+     * Returns the scaled image, or null if this object doesn't represent a raster image.
      */
     @Nullable
-    public static BufferedImage loadMaskImage(@NonNull GraphicGeneratorContext context, @NonNull Shape shape, @Nullable Density density) {
-        return loadImage(context, shape, density, "mask");
+    public BufferedImage getTrimmedImage() {
+      if (myImageFuture == null) {
+        return null;
+      }
+      synchronized (myLock) {
+        if (myTrimmedImage == null) {
+          try {
+            BufferedImage image = myImageFuture.get();
+            myTrimmedImage = myIsTrimmed ? AssetStudioUtils.trim(image) : image;
+          }
+          catch (InterruptedException | ExecutionException e) {
+            return null;
+          }
+        }
+        return myTrimmedImage;
+      }
     }
 
-    /**
-     * Loads a pref-defined background image file given a {@link Shape}, {@link Density} and
-     * fileName.
-     *
-     * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-     * "Web" image size.
-     */
+    @NotNull
+    private Rectangle2D getTrimRectangle(@NotNull String xmlDrawable) {
+      if (myTrimRectangle == null) {
+        myTrimRectangle = calculateTrimRectangle(xmlDrawable);
+      }
+      return myTrimRectangle;
+    }
+
+    @NotNull
+    private Rectangle2D calculateTrimRectangle(@NotNull String xmlDrawable) {
+      ListenableFuture<BufferedImage> futureImage = myContext.renderDrawable(xmlDrawable, SIZE_FULL_BLEED_DP);
+      ListenableFuture<Rectangle2D> rectangleFuture = Futures.transform(futureImage, (BufferedImage image) -> {
+        Rectangle bounds = ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null);
+        if (bounds == null) {
+          return IMAGE_SIZE_FULL_BLEED_DP;  // Do not trim a completely transparent image.
+        }
+        double width = SIZE_FULL_BLEED_DP.getWidth();
+        double height = SIZE_FULL_BLEED_DP.getHeight();
+        return new Rectangle2D.Double(bounds.getX() / width, bounds.getY() / height,
+                                      bounds.getWidth() / width, bounds.getHeight() / height);
+      });
+
+      try {
+        return rectangleFuture.get();
+      }
+      catch (InterruptedException | ExecutionException e) {
+        return IMAGE_SIZE_FULL_BLEED_DP;
+      }
+    }
+  }
+
+  private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
+    @NotNull private final ConcurrentMap<File, String> myFileContent = new ConcurrentHashMap<>();
+    @NotNull private final Project myProject;
+    @NotNull private final RenderLogger myLogger;
+
+    public MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
+      myProject = project;
+      myLogger = logger;
+    }
+
+    @Override
     @Nullable
-    public static BufferedImage loadBackImage(@NonNull GraphicGeneratorContext context, @NonNull Shape shape, @Nullable Density density) {
-        return loadImage(context, shape, density, "back");
+    public ILayoutPullParser create(@NotNull File file, @NotNull LayoutlibCallback layoutlibCallback) {
+      String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
+      if (content == null) {
+        return null;
+      }
+
+      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getName(), StdFileTypes.XML, content);
+      return LayoutPsiPullParser.create(xmlFile, myLogger);
     }
 
-    /**
-     * Loads a pref-defined style image file given a {@link Shape}, {@link Density} and fileName.
-     *
-     * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-     * "Web" image size.
-     */
+    void addFileContent(@NotNull File file, @NotNull String content) {
+      myFileContent.put(file, content);
+    }
+  }
+
+  private static class MyDrawableRenderer implements GraphicGeneratorContext.DrawableRenderer {
+    @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
+    @NotNull private final Object myRenderLock = new Object();
+    @NotNull private final MyLayoutPullParserFactory myParserFactory;
+    @NotNull private final AtomicInteger myCounter = new AtomicInteger();
+
+    public MyDrawableRenderer(@NotNull AndroidFacet facet) {
+      Module module = facet.getModule();
+      RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
+      myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
+      // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
+      // Executing them off the UI thread.
+      myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
+        try {
+          Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
+          RenderService service = RenderService.getInstance(facet);
+          RenderTask renderTask = service.createTask(null, configuration, logger, null, myParserFactory);
+          assert renderTask != null;
+          renderTask.getLayoutlibCallback().setLogger(logger);
+          if (logger.hasProblems()) {
+            getLog().error(RenderProblem.format(logger.getMessages()));
+          }
+          return renderTask;
+        } catch (RuntimeException | Error e) {
+          getLog().error(e);
+          return null;
+        }
+      });
+    }
+
+    @Override
+    public void dispose() {
+      synchronized (myRenderLock) {
+        RenderTask renderTask = getRenderTask();
+        if (renderTask != null) {
+          renderTask.dispose();
+        }
+      }
+    }
+
+    @Override
+    @NotNull
+    public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
+      String xmlText = VectorDrawableTransformer.resizeAndCenter(xmlDrawableText, size, 1, null);
+      ResourceUrl url = ResourceUrl.create(null, ResourceType.DRAWABLE, "ic_image_preview");
+      String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
+      ResourceValue value = new ResourceValue(url, resourceName);
+
+      RenderTask renderTask = getRenderTask();
+      if (renderTask == null) {
+        return Futures.immediateFuture(AssetStudioUtils.createDummyImage());
+      }
+
+      synchronized (myRenderLock) {
+        myParserFactory.addFileContent(new File(resourceName), xmlText);
+        renderTask.setOverrideRenderSize(size.width, size.height);
+        renderTask.setMaxRenderSize(size.width, size.height);
+
+        return renderTask.renderDrawable(value);
+      }
+    }
+
     @Nullable
-    public static BufferedImage loadStyleImage(
-            @NonNull GraphicGeneratorContext context,
-            @NonNull Shape shape,
-            @Nullable Density density,
-            @NonNull Style style) {
-        return loadImage(context, shape, density, style.id);
+    private RenderTask getRenderTask() {
+      try {
+        return myRenderTaskFuture.get();
+      }
+      catch (InterruptedException | ExecutionException e) {
+        // The error was logged earlier.
+        return null;
+      }
     }
-
-    /**
-     * Returns the {@link Rectangle} (in pixels) where the foreground image of a legacy icon should
-     * be rendered. The {@link Rectangle} value depends on the {@link Shape} of the background, as
-     * different shapes have different sizes.
-     *
-     * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-     * "Web" image size.
-     */
-    @NonNull
-    public static Rectangle getTargetRect(@Nullable Shape shape, @Nullable Density density) {
-        Rectangle targetRect = TARGET_RECTS.get(Pair.of(shape, density));
-        if (targetRect == null) {
-            // Scale up from MDPI if no density-specific target rectangle is defined.
-            targetRect = AssetUtil.scaleRectangle(TARGET_RECTS.get(Pair.of(shape, Density.MEDIUM)),
-                                                  GraphicGenerator.getMdpiScaleFactor(density));
-        }
-        return targetRect;
-    }
-
-    @SuppressWarnings("UseJBColor")
-    @Override
-    @NonNull
-    public BufferedImage generate(@NonNull GraphicGeneratorContext context, @NonNull Options options) {
-        if (options.usePlaceholders) {
-            return PLACEHOLDER_IMAGE;
-        }
-
-        BufferedImage sourceImage = getTrimmedAndPaddedImage(options);
-        if (sourceImage == null) {
-            sourceImage = AssetStudioUtils.createDummyImage();
-        }
-        LauncherOptions launcherOptions = (LauncherOptions) options;
-
-        if (launcherOptions.isDogEar) {
-            launcherOptions.shape = applyDog(launcherOptions.shape);
-        }
-
-        BufferedImage shapeImageBack = null, shapeImageFore = null, shapeImageMask = null;
-        if (launcherOptions.shape != Shape.NONE && launcherOptions.shape != null && launcherOptions.renderShape) {
-            Density loadImageDensity = (launcherOptions.isWebGraphic ? null : launcherOptions.density);
-            shapeImageBack = loadBackImage(context, launcherOptions.shape, loadImageDensity);
-            shapeImageFore = loadStyleImage(context, launcherOptions.shape, loadImageDensity, launcherOptions.style);
-            shapeImageMask = loadMaskImage(context, launcherOptions.shape, loadImageDensity);
-        }
-
-        Rectangle imageRect = IMAGE_SIZE_WEB;
-        if (!launcherOptions.isWebGraphic) {
-            imageRect = AssetUtil.scaleRectangle(IMAGE_SIZE_MDPI, GraphicGenerator.getMdpiScaleFactor(launcherOptions.density));
-        }
-
-        Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);
-
-        // outImage will be our final image. Many intermediate textures will be rendered, in
-        // layers, onto this image
-        BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-        Graphics2D gOut = (Graphics2D) outImage.getGraphics();
-        if (shapeImageBack != null) {
-            gOut.drawImage(shapeImageBack, 0, 0, null);
-        }
-
-        // Render the background shape into an intermediate buffer. This lets us set a fill color.
-        BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-        Graphics2D gTemp = (Graphics2D) tempImage.getGraphics();
-        if (shapeImageMask != null) {
-            gTemp.drawImage(shapeImageMask, 0, 0, null);
-            gTemp.setComposite(AlphaComposite.SrcAtop);
-            gTemp.setPaint(new Color(launcherOptions.backgroundColor));
-            gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
-        }
-
-        // Render the foreground icon onto an intermediate buffer and then render over the
-        // background shape. This lets us override the color of the icon.
-        BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
-        Graphics2D gIcon = (Graphics2D) iconImage.getGraphics();
-        if (launcherOptions.crop) {
-            AssetUtil.drawCenterCrop(gIcon, sourceImage, targetRect);
-        } else {
-            AssetUtil.drawCenterInside(gIcon, sourceImage, targetRect);
-        }
-        AssetUtil.Effect[] effects;
-        if (launcherOptions.useForegroundColor) {
-            effects = new AssetUtil.Effect[] { new AssetUtil.FillEffect(new Color(launcherOptions.foregroundColor), 1.0) };
-        } else {
-            effects = new AssetUtil.Effect[0];
-        }
-        AssetUtil.drawEffects(gTemp, iconImage, 0, 0, effects);
-
-        // Finally, render all layers to the output image
-        gOut.drawImage(tempImage, 0, 0, null);
-        if (shapeImageFore != null) {
-            // Useful for some shape effects, like dogear (e.g. folded top right corner)
-            gOut.drawImage(shapeImageFore, 0, 0, null);
-        }
-
-        gOut.dispose();
-        gTemp.dispose();
-        gIcon.dispose();
-
-        return outImage;
-    }
-
-    @Override
-    protected boolean includeDensity(@NonNull Density density) {
-        // Launcher icons should include xxxhdpi as well.
-        return super.includeDensity(density) || density == Density.XXXHIGH;
-    }
-
-    @Override
-    public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
-                         @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
-        LauncherOptions launcherOptions = (LauncherOptions) options;
-        boolean generateWebImage = launcherOptions.isWebGraphic;
-        launcherOptions.isWebGraphic = false;
-        super.generate(category, categoryMap, context, options, name);
-
-        if (generateWebImage) {
-            launcherOptions.isWebGraphic = true;
-            launcherOptions.density = null;
-            BufferedImage image = generate(context, options);
-            Map<String, BufferedImage> imageMap = new HashMap<>();
-            categoryMap.put("Web", imageMap);
-            imageMap.put(getIconPath(options, name), image);
-        }
-    }
-
-    @Override
-    @NonNull
-    protected String getIconPath(@NonNull Options options, @NonNull String name) {
-        if (((LauncherOptions) options).isWebGraphic) {
-            return name + "-web.png"; // Store at the root of the project
-        }
-
-        return super.getIconPath(options, name);
-    }
-
-    /** Options specific to generating launcher icons */
-    public static class LauncherOptions extends GraphicGenerator.Options {
-        public LauncherOptions() {
-            iconFolderKind = IconFolderKind.MIPMAP;
-        }
-
-        /**
-         * Whether to use the foreground color. If we are using images as the source asset for our icons,
-         * you shouldn't apply the foreground color, which would paint over it and obscure the image.
-         */
-        public boolean useForegroundColor = true;
-
-        /** Foreground color, as an RRGGBB packed integer */
-        public int foregroundColor = 0;
-
-        /** Background color, as an RRGGBB packed integer */
-        public int backgroundColor = 0;
-
-        /** Whether the image should be cropped or not */
-        public boolean crop = true;
-
-        /** The shape to use for the background */
-        public Shape shape = Shape.SQUARE;
-
-        /** The effects to apply to the foreground */
-        public Style style = Style.SIMPLE;
-
-        /** Whether or not to use the Dog-ear effect */
-        public boolean isDogEar = false;
-
-        /**
-         * Whether to render the background shape. If <code>false</code>, the shape is still used to
-         * scale the image to the target rectangle associated to the shape.
-         */
-        public boolean renderShape = true;
-
-        /**
-         * Whether a web graphic should be generated (will ignore normal density setting). The
-         * {@link #generate(GraphicGeneratorContext, Options)} method will use this to decide
-         * whether to generate a normal density icon or a high res web image. The {@link
-         * GraphicGenerator#generate(String, Map, GraphicGeneratorContext, Options, String)} method
-         * will use this flag to determine whether it should include a web graphic in its iteration.
-         */
-        public boolean isWebGraphic;
-    }
+  }
 }

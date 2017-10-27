@@ -19,8 +19,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -71,7 +71,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private static final String ICON_PREFIX = "ic_";
   private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
 
-  private final AndroidVectorIconGenerator myIconGenerator;
+  private final VectorIconGenerator myIconGenerator;
   private final ObjectProperty<VectorAsset> myActiveAsset;
   private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
 
@@ -120,7 +120,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myFacet = facet;
 
     int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
-    myIconGenerator = new AndroidVectorIconGenerator(minSdkVersion);
+    myIconGenerator = new VectorIconGenerator(minSdkVersion);
 
     // Start with the icon radio button selected, because icons are easy to browse and play around
     // with right away.

@@ -43,6 +43,8 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -55,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.meta.When;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.*;
@@ -902,10 +905,23 @@ public class Scene implements SelectionListener, Disposable {
   public void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
       SceneManager manager = myDesignSurface.getSceneManager();
-      if (StudioFlags.NELE_LIVE_RENDER.get() && manager instanceof LayoutlibSceneManager) {
+      if (manager == null) {
+        return;
+      }
+
+      /*
+       * When asking for the layout status, we need to render under the following conditions:
+       *  - live render is enabled, and
+       *  - we are displaying the design surface
+       */
+      boolean renderOnLayout = StudioFlags.NELE_LIVE_RENDER.get();
+      renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
+                        ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
+
+      if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
         ((LayoutlibSceneManager)manager).requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
-      else if (manager != null) {
+      else {
         manager.layout(mNeedsLayout == ANIMATED_LAYOUT);
       }
     }

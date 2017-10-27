@@ -37,6 +37,7 @@ iml_module(
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/project-system[module]",
+        "//tools/adt/idea/project-system-gradle[module]",
     ],
 )
 
@@ -104,5 +105,6 @@ iml_module(
         "//tools/adt/idea/project-system[module, test]",
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle[module, test]",
     ],
 )

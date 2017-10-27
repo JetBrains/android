@@ -73,8 +73,7 @@ public final class StudioFlags {
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
     "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
     "Simpleperf is a native profiler tool built for Android.",
-    false
-  );
+    true);
 
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
@@ -95,6 +94,16 @@ public final class StudioFlags {
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
     true);
+
+  public static final Flag<Boolean> PROFILER_NETWORK_REQUEST_PAYLOAD = Flag.create(
+    PROFILER, "network.request.payload", "Enable tracking and displaying connection request payload",
+    "Add a new tab in the network profiler that shows the connection request payload",
+    false);
+
+  public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
+    PROFILER, "atrace", "Show the atrace option in CPU profiler",
+    "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
+    false);
 
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
@@ -166,6 +175,11 @@ public final class StudioFlags {
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
     "If enabled, the new resource magement tool are enabled. Subflags will also need to be enabled to enable all available new tools",
     false);
+
+  private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
+  public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
+    "If enabled, Show actions to let user choose overlay image on preview.", true);
 
   private StudioFlags() {
   }

@@ -18,6 +18,8 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -48,14 +50,16 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
-    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project, {
-        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.FAILURE)
+        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
       })
-      return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.FAILURE)
+      return Futures.immediateFuture(SyncResult.SUCCESS)
     }
 
     override fun isSyncInProgress() = false
+    override fun isSyncNeeded() = false
+    override fun getLastSyncResult() = SyncResult.SUCCESS
   }
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
@@ -70,8 +74,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun addDependency(dependency: String) {
-      }
+      override fun addDependency(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?) {}
 
       override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
 

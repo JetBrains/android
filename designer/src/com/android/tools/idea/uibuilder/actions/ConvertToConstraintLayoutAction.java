@@ -16,14 +16,13 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -31,6 +30,7 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -40,7 +40,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
@@ -157,15 +156,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
 
     // Step #2: Ensure ConstraintLayout is available in the project
-    Module module = screenView.getModel().getModule();
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    List<GradleCoordinate> toAdd = Collections.singletonList(GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+"));
-    List<GradleCoordinate> missing = manager.findMissingDependencies(module, toAdd);
-    if (!missing.isEmpty()) {
-      if (!GradleDependencyManager.userWantToAddDependencies(module, missing) ||
-          !manager.addDependencies(module, missing, null)) {
-        return;
-      }
+    List<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
+      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), false);
+    if (!notAdded.isEmpty()) {
+      return;
     }
 
     // Step #3: Migrate

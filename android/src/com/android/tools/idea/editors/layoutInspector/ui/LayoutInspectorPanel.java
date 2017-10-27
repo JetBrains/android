@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
+import com.android.tools.idea.editors.layoutInspector.actions.CancelOverlayAction;
+import com.android.tools.idea.editors.layoutInspector.actions.LoadOverlayAction;
+import com.android.tools.idea.editors.layoutInspector.actions.SetOverlayAlphaAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SideBorder;
 import org.intellij.images.editor.ImageZoomModel;
 import org.intellij.images.editor.actionSystem.ImageEditorActions;
 import org.intellij.images.editor.actions.ActualSizeAction;
@@ -55,10 +62,11 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     super(new BorderLayout());
     setOpaque(true);
 
-    add(getActionPanel(), BorderLayout.NORTH);
-
     myPreview = new ViewNodeActiveDisplay(context.getRoot(), context.getBufferedImage());
     myPreview.addViewNodeActiveDisplayListener(context);
+
+    add(getActionPanel(), BorderLayout.NORTH);
+
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(myPreview, BorderLayout.CENTER);
     myScrollPane = ScrollPaneFactory.createScrollPane(panel);
@@ -76,28 +84,48 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
   @NotNull
   private JPanel getActionPanel() {
     ActionManager actionManager = ActionManager.getInstance();
-    ActionGroup actionGroup = getZoomActionGroup(actionManager);
 
+    DefaultActionGroup liActionGroup = getInspectorActionGroup();
+    ActionToolbar liActionToolbar = actionManager.createActionToolbar(
+      "LiActionsToolbar", liActionGroup, true
+    );
+    liActionToolbar.updateActionsImmediately();
+    liActionToolbar.setTargetComponent(this);
+    JComponent actionToolbarPanel = liActionToolbar.getComponent();
+    actionToolbarPanel.setName("LiActionsToolbar");
+
+    ActionGroup actionGroup = getZoomActionGroup(actionManager);
     ActionToolbar actionToolbar = actionManager.createActionToolbar(
       ImageEditorActions.ACTION_PLACE, actionGroup, true
     );
-
     // Make sure toolbar is 'ready' before it's added to component hierarchy
     // to prevent ActionToolbarImpl.updateActionsImpl(boolean, boolean) from increasing popup size unnecessarily
     actionToolbar.updateActionsImmediately();
     actionToolbar.setTargetComponent(this);
     JComponent toolbarPanel = actionToolbar.getComponent();
+
     JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.add(toolbarPanel, BorderLayout.WEST);
+    topPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    if (StudioFlags.LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED.get()) {
+      topPanel.add(actionToolbarPanel, BorderLayout.WEST);
+    }
+    topPanel.add(toolbarPanel, BorderLayout.EAST);
     return topPanel;
+  }
+
+  private DefaultActionGroup getInspectorActionGroup() {
+    DefaultActionGroup actionGroup = new DefaultActionGroup();
+    actionGroup.add(new LoadOverlayAction(myPreview), Constraints.FIRST);
+    actionGroup.add(new CancelOverlayAction(myPreview), new Constraints(Anchor.AFTER, LoadOverlayAction.ACTION_ID));
+    actionGroup.add(new SetOverlayAlphaAction(myPreview), new Constraints(Anchor.AFTER, CancelOverlayAction.ACTION_ID));
+    return actionGroup;
   }
 
   private ActionGroup getZoomActionGroup(ActionManager actionManager) {
     DefaultActionGroup intellijActionGroup = (DefaultActionGroup)actionManager.getAction(ImageEditorActions.GROUP_TOOLBAR);
     DefaultActionGroup zoomActionGroup = new DefaultActionGroup();
 
-    AnAction[] children = intellijActionGroup.getChildActionsOrStubs();
-    for (AnAction child : children) {
+    for (AnAction child : intellijActionGroup.getChildActionsOrStubs()) {
       // Actions are instances of ActionStub before render
       if (child instanceof ActionStub) {
         for (Class cls : SUPPORTED_IMAGE_ACTIONS) {
@@ -167,6 +195,12 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
       return this;
     }
     return null;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  ViewNodeActiveDisplay getPreview() {
+    return myPreview;
   }
 
   // A simplified implementation of ZoomModel based on ImageEditorUI's private ImageZoomModelImpl

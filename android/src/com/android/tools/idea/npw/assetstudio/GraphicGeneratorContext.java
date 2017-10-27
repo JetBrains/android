@@ -123,7 +123,7 @@ public class GraphicGeneratorContext implements Disposable {
 
   @NotNull
   private static ListenableFuture<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
-    BufferedImage image = GraphicGenerator.getStencilImage(path);
+    BufferedImage image = IconGenerator.getStencilImage(path);
     if (image == null) {
       image = AssetStudioUtils.createDummyImage();
     }

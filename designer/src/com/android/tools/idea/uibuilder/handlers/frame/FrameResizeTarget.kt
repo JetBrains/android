@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 import com.android.SdkConstants.*
 
-class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
+open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
 
   override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     when (myType) {

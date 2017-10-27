@@ -22,6 +22,7 @@ import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -899,58 +900,56 @@ public class RenderErrorContributor {
     String match = compareWithPackage ? actual : actualBase;
     int maxDistance = actualBase.length() >= 4 ? 2 : 1;
 
-    if (!views.isEmpty()) {
-      for (String suggested : views) {
-        String suggestedBase = suggested.substring(suggested.lastIndexOf('.') + 1);
-        String matchWith = compareWithPackage ? suggested : suggestedBase;
-        if (Math.abs(actualBase.length() - suggestedBase.length()) > maxDistance) {
-          // The string lengths differ more than the allowed edit distance;
-          // no point in even attempting to compute the edit distance (requires
-          // O(n*m) storage and O(n*m) speed, where n and m are the string lengths)
+    for (String suggested : views) {
+      String suggestedBase = suggested.substring(suggested.lastIndexOf('.') + 1);
+      String matchWith = compareWithPackage ? suggested : suggestedBase;
+      if (Math.abs(actualBase.length() - suggestedBase.length()) > maxDistance) {
+        // The string lengths differ more than the allowed edit distance;
+        // no point in even attempting to compute the edit distance (requires
+        // O(n*m) storage and O(n*m) speed, where n and m are the string lengths)
+        continue;
+      }
+
+      boolean sameBase = actualBase.equals(suggestedBase);
+      if (!compareWithPackage && sameBase) {
+        // This view is an exact match for one of the known views.
+        // That probably means it's a valid class, but the project needs to be built.
+        continue;
+      }
+
+      if (compareWithPackage) {
+        if (!sameBase) {
+          // If they differ in the base name, handled by separate call with !compareWithPackage
           continue;
         }
-
-        boolean sameBase = actualBase.equals(suggestedBase);
-        if (!compareWithPackage && sameBase) {
-          // This view is an exact match for one of the known views.
-          // That probably means it's a valid class, but the project needs to be built.
-          continue;
-        }
-
-        if (compareWithPackage) {
-          if (!sameBase) {
-            // If they differ in the base name, handled by separate call with !compareWithPackage
-            continue;
-          }
-          else if (actualBase.equals(actual) && !actualBase.equals(suggested) && isViewPackageNeeded(suggested, -1)) {
-            // Custom view needs to be specified with a fully qualified path
-            builder.addLink(String.format("Change to %1$s", suggested),
-                            myLinkManager.createReplaceTagsUrl(actual, suggested));
-            builder.add(", ");
-            continue;
-          }
-        }
-
-        if (compareWithPackage && Math.abs(match.length() - matchWith.length()) > maxDistance) {
-          continue;
-        }
-
-        if (match.equals(matchWith)) {
-          // Exact match: Likely that we're looking for a valid package, but project has
-          // not yet been built
-          return true;
-        }
-
-        if (editDistance(match, matchWith) <= maxDistance) {
-          // Suggest this class as a typo for the given class
-          String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
-          builder.addLink(String.format("Change to %1$s", labelClass),
-                          myLinkManager.createReplaceTagsUrl(actual,
-                                                             // Only show full package name if class name
-                                                             // is the same
-                                                             (isViewPackageNeeded(suggested, -1) ? suggested : suggestedBase)));
+        else if (actualBase.equals(actual) && !actualBase.equals(suggested) && isViewPackageNeeded(suggested, -1)) {
+          // Custom view needs to be specified with a fully qualified path
+          builder.addLink(String.format("Change to %1$s", suggested),
+                          myLinkManager.createReplaceTagsUrl(actual, suggested));
           builder.add(", ");
+          continue;
         }
+      }
+
+      if (compareWithPackage && Math.abs(match.length() - matchWith.length()) > maxDistance) {
+        continue;
+      }
+
+      if (match.equals(matchWith)) {
+        // Exact match: Likely that we're looking for a valid package, but project has
+        // not yet been built
+        return true;
+      }
+
+      if (editDistance(match, matchWith) <= maxDistance) {
+        // Suggest this class as a typo for the given class
+        String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
+        builder.addLink(String.format("Change to %1$s", labelClass),
+                        myLinkManager.createReplaceTagsUrl(actual,
+                                                           // Only show full package name if class name
+                                                           // is the same
+                                                           (isViewPackageNeeded(suggested, -1) ? suggested : suggestedBase)));
+        builder.add(", ");
       }
     }
 
@@ -1076,13 +1075,13 @@ public class RenderErrorContributor {
       if (CLASS_CONSTRAINT_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.CONSTRAINT_LAYOUT));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(FLEXBOX_LAYOUT_LIB_ARTIFACT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
         builder.add(", ");
       }
 

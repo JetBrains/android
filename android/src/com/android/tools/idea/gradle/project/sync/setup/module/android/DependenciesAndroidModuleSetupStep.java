@@ -54,6 +54,7 @@ import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -68,7 +69,8 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @VisibleForTesting
-  DependenciesAndroidModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
+  DependenciesAndroidModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor,
+                                     @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
     myDependenciesExtractor = dependenciesExtractor;
     myDependenciesSetup = dependenciesSetup;
   }
@@ -84,7 +86,11 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidModel);
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
+      // Skip if dependency is in test scope and it is the current module.
+      // See https://issuetracker.google.com/issues/68016998.
+      if (!isSelfDependencyByTest(module, ideModelsProvider, dependency)) {
+        updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
+      }
     }
 
     addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidModel);
@@ -98,6 +104,16 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
       Collection<String> unresolvedDependencies = androidModel.getAndroidProject().getUnresolvedDependencies();
       UnresolvedDependenciesReporter.getInstance().report(unresolvedDependencies, module);
     }
+  }
+
+  /**
+   * @return true if the module dependency is in test scope, and it is the current module.
+   */
+  @VisibleForTesting
+  static boolean isSelfDependencyByTest(@NotNull Module module,
+                                        @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                                        @NotNull ModuleDependency dependency) {
+    return dependency.getScope().equals(TEST) && module.equals(dependency.getModule(ideModelsProvider));
   }
 
   private static boolean getExported(@NotNull AndroidModuleModel androidModuleModel) {

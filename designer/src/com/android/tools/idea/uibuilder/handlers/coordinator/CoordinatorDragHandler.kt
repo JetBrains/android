@@ -19,14 +19,10 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
-import com.android.tools.idea.uibuilder.graphics.NlGraphics
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget
 import com.android.tools.idea.uibuilder.model.*
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.TemporarySceneComponent
-import com.android.tools.idea.common.scene.target.Target
-import com.google.common.collect.ImmutableList
+import com.intellij.openapi.diagnostic.Logger
 
 /**
  * CoordinatorLayout drag handler
@@ -35,38 +31,78 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
                              layout: SceneComponent,
                              components: List<NlComponent>,
                              type: DragType) : DragHandler(editor, handler, layout, components, type) {
-  private var myComponent: SceneComponent
-  private val myDragged: NlComponent?
+  private var sceneComponent: SceneComponent
+  private val dragTarget = CoordinatorDragTarget()
+  private val snapTargets = mutableListOf<CoordinatorSnapTarget>()
 
   init {
     assert(components.size == 1)
-    myDragged = components[0]
-    myComponent = TemporarySceneComponent(layout.scene, myDragged)
-    myComponent.setSize(editor.pxToDp(myDragged.w), editor.pxToDp(myDragged.h), false)
-    myComponent.setTargetProvider({ _ -> ImmutableList.of<Target>(ConstraintDragDndTarget()) })
-    myComponent.drawState = SceneComponent.DrawState.DRAG
-    layout.addChild(myComponent)
+    val dragged = components[0]
+    sceneComponent = layout.scene.getSceneComponent(dragged) ?:
+        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
+
+    sceneComponent.setTargetProvider({ listOf(dragTarget) })
+    dragTarget.component = sceneComponent
+    sceneComponent.isSelected = true
+
+    sceneComponent.drawState = SceneComponent.DrawState.DRAG
+    layout.addChild(sceneComponent)
   }
 
-  override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
+  override fun start(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int) {
     super.start(x, y, modifiers)
+    dragTarget.mouseDown(x, y)
+
+    snapTargets.clear()
+    snapTargets.addAll(sceneComponent.parent?.children?.
+        map({ it.targets })?.flatten()?.filterIsInstance<CoordinatorSnapTarget>()?.toList() ?: emptyList())
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
-    val result = super.update(x, y, modifiers)
-    return result
-  }
+  override fun update(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int): String? {
+    val ret = super.update(x, y, modifiers)
 
-  override fun cancel() {
-    val scene = editor.scene
-    scene.removeComponent(myComponent)
+    @AndroidDpCoordinate val dx = x + startX - sceneComponent.drawWidth / 2
+    @AndroidDpCoordinate val dy = y + startY - sceneComponent.drawHeight / 2
+
+    dragTarget.mouseDrag(dx, dy, snapTargets.filter({ it.isSnapped(x, y) }))
+    return ret
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    val scene = editor.scene
-    scene.removeComponent(myComponent)
+    editor.insertChildren(layout.nlComponent, components, -1, insertType)
+
+    when (insertType) {
+      InsertType.CREATE -> dragWidgetFromPalette(x, y)
+      InsertType.MOVE_INTO -> dragWidgetFromComponentTree(x, y)
+      else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
+    }
+
+    layout.scene.removeComponent(sceneComponent)
+    layout.scene.checkRequestLayoutStatus()
   }
 
-  override fun paint(gc: NlGraphics) {
+  private fun dragWidgetFromPalette(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    layout.scene.needsRebuildList()
+    @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
+    @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
+    for (child in components) {
+      dragTarget.mouseRelease(dx, dy, child)
+    }
+  }
+
+  private fun dragWidgetFromComponentTree(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+    for (child in components) {
+      val sceneComponent = layout.getSceneComponent(child) ?: continue
+      sceneComponent.isDragging = true
+      dragTarget.component = sceneComponent
+      @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
+      @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
+      dragTarget.mouseRelease(dx, dy, null)
+    }
+  }
+
+  override fun cancel() {
+    editor.scene.removeComponent(sceneComponent)
+    dragTarget.cancel()
   }
 }

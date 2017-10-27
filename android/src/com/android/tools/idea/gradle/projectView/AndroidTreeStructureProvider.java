@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.projectView;
 
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
@@ -32,7 +33,6 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -104,7 +104,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
 
   @VisibleForTesting
   public void addChangeListener(@NotNull ChangeListener changeListener) {
-    if (AndroidPlugin.isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
       myEventDispatcher.addListener(changeListener);
       return;
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.FontCache;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -25,19 +26,26 @@ import java.awt.*;
  * {@linkplain DrawScreenLabel} draws the name of the screen above the frame.
  */
 public class DrawScreenLabel extends NavBaseDrawCommand {
+  private static final int FONT_SIZE = 24;
+
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
-  private final Font myFont;
   private final String myText;
 
   public DrawScreenLabel(@SwingCoordinate int x,
                          @SwingCoordinate int y,
-                         @NotNull Font font,
                          @NotNull String text) {
     myX = x;
     myY = y;
-    myFont = font;
     myText = text;
+  }
+
+  public DrawScreenLabel(String s) {
+    this(parse(s, 5));
+  }
+
+  private DrawScreenLabel(String[] sp) {
+    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), sp[4]);
   }
 
   @Override
@@ -48,7 +56,7 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
   @Override
   @NotNull
   protected Object[] getProperties() {
-    return new Object[]{myX, myY, myFont, myText};
+    return new Object[]{myX, myY, myText};
   }
 
 
@@ -57,7 +65,7 @@ public class DrawScreenLabel extends NavBaseDrawCommand {
     Graphics2D g2 = (Graphics2D)g.create();
 
     g2.setColor(sceneContext.getColorSet().getSubduedText());
-    g2.setFont(myFont);
+    g2.setFont(FontCache.INSTANCE.getFont(FONT_SIZE, (float)sceneContext.getScale()));
     g2.drawString(myText, myX, myY);
 
     g2.dispose();

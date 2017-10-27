@@ -46,14 +46,39 @@ interface ProjectSystemSyncManager {
    */
   fun isSyncInProgress(): Boolean
 
+  /**
+   * Indicates whether or not a project sync is needed. Generally, a sync is needed when build system files have been modified
+   * since the last sync began.
+   *
+   * The return value of this method can change at any time as syncs are performed and build files are updated. Currently, we do not
+   * provide a way for callers to be notified when the return value becomes stale.
+   *
+   * @return true if the project needs to be synced
+   */
+  fun isSyncNeeded(): Boolean
+
+  /**
+   * Returns the result of the last completed project sync. If for some reason the [ProjectSystemSyncManager] does not know about the result
+   * of the most recently completed sync (e.g. the project has never been synced), this method will return [SyncResult.UNKNOWN].
+   *
+   * The return value of this method can change at any time as project syncs are completed. Callers who wish to be notified when the
+   * return value of this method has become stale should listen for sync results by subscribing to [PROJECT_SYSTEM_SYNC_TOPIC] instead
+   * of calling this method.
+   *
+   * @return the result of the last completed sync, or [SyncResult.UNKNOWN] if this information is unavailable
+   */
+  fun getLastSyncResult(): SyncResult
+
   /** The result of a sync request */
   enum class SyncResult(val isSuccessful: Boolean) {
+    /** The result of the latest sync could not be determined */
+    UNKNOWN(false),
     /** The user cancelled the sync */
     CANCELLED(false),
     /** Sync failed */
     FAILURE(false),
     /** The user has compilation errors or errors in build system files */
-    PARTIAL_SUCCESS(true),
+    PARTIAL_SUCCESS(false),
     /** The project state was loaded from a cache instead of performing an actual sync */
     SKIPPED(true),
     /** Sync succeeded */
@@ -70,7 +95,7 @@ interface ProjectSystemSyncManager {
     USER_REQUEST;
   }
 
-  /** Listener which provides callbacks for the beginning and the end of syncs for an associated project */
+  /** Listener which provides a callback for when syncs complete */
   interface SyncResultListener {
     fun syncEnded(result: SyncResult)
   }

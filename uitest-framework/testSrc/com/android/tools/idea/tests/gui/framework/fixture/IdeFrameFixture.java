@@ -92,7 +92,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
+import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

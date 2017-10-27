@@ -36,10 +36,6 @@
       <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.gradle.project.sync.compatibility.CompatibilityChecksMetadataUpdater</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
     </component>
   </application-components>
@@ -341,6 +337,7 @@
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
     <applicationService serviceImplementation="com.android.tools.idea.IdeInfo" />
+    <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
     <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatService" />
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
@@ -1214,6 +1211,8 @@
                     interface="org.jetbrains.android.inspections.lint.AndroidLintQuickFixProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.npw.template.convertJavaToKotlinProvider"
                     interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
+                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -1320,6 +1319,7 @@
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
   </extensions>
 
   <module-components>

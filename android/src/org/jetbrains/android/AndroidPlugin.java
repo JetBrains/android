@@ -24,18 +24,9 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
-/**
- * @author coyote
- */
 public class AndroidPlugin implements ApplicationComponent {
-  public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
-  public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
-
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
   private static final String GROUP_TOOLS = "ToolsMenu";
-
-  private static boolean ourGuiTestingMode;
-  private static GuiTestSuiteState ourGuiTestSuiteState;
 
   @Override
   @NotNull
@@ -74,36 +65,5 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void disposeComponent() {
-  }
-
-  public static boolean isGuiTestingMode() {
-    return ourGuiTestingMode;
-  }
-
-  public static void setGuiTestingMode(boolean guiTestingMode) {
-    ourGuiTestingMode = guiTestingMode;
-    ourGuiTestSuiteState = ourGuiTestingMode ? new GuiTestSuiteState() : null;
-  }
-
-  // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
-  // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
-  @NotNull
-  public static GuiTestSuiteState getGuiTestSuiteState() {
-    if (!ourGuiTestingMode) {
-      throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
-    }
-    return ourGuiTestSuiteState;
-  }
-
-  public static class GuiTestSuiteState {
-    private boolean mySkipSdkMerge;
-
-    public boolean isSkipSdkMerge() {
-      return mySkipSdkMerge;
-    }
-
-    public void setSkipSdkMerge(boolean skipSdkMerge) {
-      mySkipSdkMerge = skipSdkMerge;
-    }
   }
 }

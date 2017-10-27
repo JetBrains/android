@@ -35,6 +35,8 @@ public class NlInspectorProviders extends InspectorProviders<NlPropertiesManager
     myNullProvider = new IdInspectorProvider();
     Project project = myPropertiesManager.getProject();
     myProviders = ImmutableList.of(myNullProvider,
+                                   new CustomPanelInspectorProvider(),
+                                   new LayoutCustomPanelInspectorProvider(),
                                    new ViewInspectorProvider(),
                                    new ConstraintSetInspectorProvider(),
                                    new ProgressBarInspectorProvider(),

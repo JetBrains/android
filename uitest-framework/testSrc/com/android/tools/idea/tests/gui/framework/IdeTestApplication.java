@@ -134,10 +134,6 @@ public class IdeTestApplication implements Disposable {
 
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
 
-    // We turn on "GUI Testing Mode" right away, even before loading the IDE.
-    Class<?> androidPluginClass = Class.forName("org.jetbrains.android.AndroidPlugin", true, myIdeClassLoader);
-    method("setGuiTestingMode").withParameterTypes(boolean.class).in(androidPluginClass).invoke(true);
-
     Class<?> classUtilCoreClass = Class.forName("com.intellij.ide.ClassUtilCore", true, myIdeClassLoader);
     method("clearJarURLCache").in(classUtilCoreClass).invoke();
 

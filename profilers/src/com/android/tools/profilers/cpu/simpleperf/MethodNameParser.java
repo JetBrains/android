@@ -51,21 +51,16 @@ public class MethodNameParser {
    */
   @NotNull
   private static MethodModel parseCppMethodName(String methodFullName) {
-    // First, extract the signature, which should be between parentheses
+    // First, remove template information.
+    methodFullName = removeTemplateInformation(methodFullName);
+
+    // Then, extract the method's signature, which should be between parentheses
     int signatureStartIndex = methodFullName.lastIndexOf('(');
-    int signatureEndIndex = methodFullName.length() - 1;
+    int signatureEndIndex = findMatchingClosingCharacterIndex(methodFullName, '(', ')', signatureStartIndex);
     // Make sure not to include the indexes of "(" and ")" when creating the signature substring.
     String signature = methodFullName.substring(signatureStartIndex + 1, signatureEndIndex);
-
-    // Remove the method's suffix (either <type>(Signature) or (Signature))
-    // TODO (b/67640605): template logic is trickier than that. Improve this method to handle all the scenarios.
-    int templateStartIndex = methodFullName.indexOf('<');
-    if (templateStartIndex >= 0) {
-      methodFullName = methodFullName.substring(0, templateStartIndex);
-    }
-    else {
-      methodFullName = methodFullName.substring(0, signatureStartIndex);
-    }
+    // Remove the signature and everything that comes after it, such as const/volatile modifiers.
+    methodFullName = methodFullName.substring(0, signatureStartIndex);
 
     // If the string still contains a whitespace, it's the separator between the return type and the method name.
     int returnTypeSeparatorIndex = methodFullName.indexOf(' ');
@@ -73,6 +68,61 @@ public class MethodNameParser {
       methodFullName = methodFullName.substring(returnTypeSeparatorIndex + 1);
     }
     return createMethodModel(methodFullName, "::", NATIVE_SEPARATOR_PATTERN, signature);
+  }
+
+  /**
+   * Simplifies a C++ method name by removing the templates. Essentially, removes angle brackets and everything between them. For example:
+   *    "Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
+   */
+  private static String removeTemplateInformation(String methodFullName) {
+    int currentIndex = methodFullName.indexOf('<');
+    if (currentIndex < 0) {
+      // The method name doesn't contain any template
+      return methodFullName;
+    }
+    StringBuilder filteredName = new StringBuilder(methodFullName.substring(0, currentIndex));
+
+    while (currentIndex < methodFullName.length()) {
+      char currentChar = methodFullName.charAt(currentIndex);
+      if (currentChar == '<') {
+        // Skip template.
+        currentIndex = findMatchingClosingCharacterIndex(methodFullName, '<', '>', currentIndex);
+      }
+      else {
+        // If not reading a template, just include the char in the method name.
+        filteredName.append(currentChar);
+      }
+      currentIndex++;
+    }
+    return filteredName.toString();
+  }
+
+  /**
+   * Given the opening and closing characters (e.g. '<' and '>', or '(' and ')'), returns the index of the closing character
+   * that matches the opening character of a string representing a method name.
+   */
+  private static int findMatchingClosingCharacterIndex(String methodName, char opening, char closing, int startIndex) {
+    // Counter to keep track of the characters we read. If we read an opening character, increment the counter. If we read a closing one,
+    // decrement it. Start the counter as 1 to take the first opening character into account. If the counter gets to 0, it means we have
+    // found the target index.
+    int count = 1;
+
+    int index = startIndex;
+    assert methodName.charAt(index) == opening;
+
+    // Iterate backwards until we reach the matching opening parenthesis.
+    while (index++ < methodName.length() - 1) {
+      if (methodName.charAt(index) == opening) {
+        count++;
+      }
+      else if (methodName.charAt(index) == closing) {
+        count--;
+      }
+      if (count == 0) {
+        return index;
+      }
+    }
+    throw new IllegalStateException("Native method signature must have matching parentheses and brackets.");
   }
 
   /**

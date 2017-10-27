@@ -15,6 +15,6 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.android.project">
-    <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystem"/>
+    <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
 </idea-plugin>

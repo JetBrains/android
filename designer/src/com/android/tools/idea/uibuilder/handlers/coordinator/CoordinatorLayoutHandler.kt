@@ -20,19 +20,18 @@ import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.DragType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
+import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
-import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
-import java.util.*
 
 /**
- * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
+ * Handler for android.support.design.widget.CoordinatorLayout
  */
 class CoordinatorLayoutHandler : ScrollViewHandler() {
 
@@ -40,11 +39,9 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   var interactionState = InteractionState.NORMAL
 
-  override fun getInspectorProperties(): List<String> {
-    return ImmutableList.of<String>(
-        ATTR_CONTEXT,
-        ATTR_FITS_SYSTEM_WINDOWS)
-  }
+  override fun handlesPainting() = true
+
+  override fun getInspectorProperties(): List<String> = listOf(ATTR_CONTEXT, ATTR_FITS_SYSTEM_WINDOWS)
 
   override fun getLayoutInspectorProperties(): List<String> {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
@@ -59,11 +56,11 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     // If we are moving several components we probably don't want them to be
     // anchored to the same place, so instead we use the FrameLayoutHandler in
     // this case.
-    if (components.size == 1 && components[0] != null) {
-      return CoordinatorDragHandler(editor, this, layout, components, type)
+    return if (components.size == 1) {
+      CoordinatorDragHandler(editor, this, layout, components, type)
     }
     else {
-      return super.createDragHandler(editor, layout, components, type)
+      super.createDragHandler(editor, layout, components, type)
     }
   }
 
@@ -74,23 +71,24 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
    * @param component  the component we belong to
    * @return a new instance of ConstraintInteraction
    */
-  override fun createInteraction(screenView: ScreenView, component: NlComponent): Interaction? {
-    return SceneInteraction(screenView)
-  }
+  override fun createInteraction(screenView: ScreenView, component: NlComponent) = SceneInteraction(screenView)
 
   override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): MutableList<Target> {
     val listBuilder = ImmutableList.builder<Target>()
-    listBuilder.add(
-        CoordinatorDragTarget(),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
-        ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
-    )
+
+    if (childComponent !is TemporarySceneComponent) {
+      listBuilder.add(
+          CoordinatorDragTarget(),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.TOP),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT),
+          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+      )
+    }
 
     if (!childComponent.isSelected && interactionState == InteractionState.DRAGGING) {
       listBuilder.add(
@@ -108,3 +106,6 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listBuilder.build()
   }
 }
+
+// The resize behaviour is similar to the FrameResizeTarget so far.
+private class CoordinatorResizeTarget(type: ResizeBaseTarget.Type): FrameResizeTarget(type)

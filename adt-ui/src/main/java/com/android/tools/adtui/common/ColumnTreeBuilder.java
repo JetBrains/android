@@ -38,28 +38,29 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A ColumnTree is an alternative to TreeTables with slightly less functionality but
  * with a much more simple model. A column tree is composed by two things: A tree and
  * a set of headers. Each node in the tree renders all the "columns". This is
  * achieved by doing the following:
- *  - The tree is given a renderer that is a JPanel with a custom layout manager.
- *  - Each component of this panel is the renderer for each "Column"
- *  - The layout manager given to the panel uses the columns to decide how to align
- *    the components for each column
- *  - The TreeUI is changed on the tree to create components that extend the whole
- *    width of the tree.
+ * - The tree is given a renderer that is a JPanel with a custom layout manager.
+ * - Each component of this panel is the renderer for each "Column"
+ * - The layout manager given to the panel uses the columns to decide how to align
+ * the components for each column
+ * - The TreeUI is changed on the tree to create components that extend the whole
+ * width of the tree.
  *
  * To set up your component do this:
- *    JComponent node = new ColumnTreeBuilder(myTree)
- *        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
- *            .setName("Column 1")
- *            .setRenderer(new MyColumnOneRenderer()))
- *        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
- *            .setName("Column 2")
- *            .setRenderer(new MyColumnTwoRenderer()))
- *        .build()
+ * JComponent node = new ColumnTreeBuilder(myTree)
+ * .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+ * .setName("Column 1")
+ * .setRenderer(new MyColumnOneRenderer()))
+ * .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+ * .setName("Column 2")
+ * .setRenderer(new MyColumnTwoRenderer()))
+ * .build()
  */
 public class ColumnTreeBuilder {
   @NotNull
@@ -70,9 +71,6 @@ public class ColumnTreeBuilder {
 
   @NotNull
   private final JTable myTable;
-
-  @NotNull
-  private final TableRowSorter<TableModel> myRowSorter;
 
   @NotNull
   private final DefaultTableModel myTableModel;
@@ -104,7 +102,6 @@ public class ColumnTreeBuilder {
     myTable.setShowVerticalLines(false);
     myTable.setFocusable(false);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
-    myRowSorter = new TableRowSorter<>(myTable.getModel());
     myColumnBuilders = new LinkedList<>();
   }
 
@@ -141,12 +138,13 @@ public class ColumnTreeBuilder {
     return this;
   }
 
+  @NotNull
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
     myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable));
 
-    myTree.addPropertyChangeListener(evt-> {
+    myTree.addPropertyChangeListener(evt -> {
       if (evt.getPropertyName().equals("UI")) {
         // We need to preserve ColumnTreeUI always,
         // Otherwise width of rows will be wrong and the table will lose its formatting.
@@ -183,11 +181,14 @@ public class ColumnTreeBuilder {
       }
     });
 
-    myTable.setRowSorter(myRowSorter);
-    myRowSorter.addRowSorterListener(event -> {
-      if (myTreeSorter != null && !myRowSorter.getSortKeys().isEmpty()) {
-        RowSorter.SortKey key = myRowSorter.getSortKeys().get(0);
-        Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
+    ColumnTreeTableRowSorter rowSorter = new ColumnTreeTableRowSorter(
+      myTable.getModel(), myColumnBuilders.stream().map(cb -> cb.mySortOrderPreference).collect(Collectors.toList()));
+
+    myTable.setRowSorter(rowSorter);
+    rowSorter.addRowSorterListener(event -> {
+      if (myTreeSorter != null && !rowSorter.getSortKeys().isEmpty()) {
+        RowSorter.SortKey key = rowSorter.getSortKeys().get(0);
+        Comparator<?> comparator = rowSorter.getComparator(key.getColumn());
         Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
         comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
         myTreeSorter.sort(comparator, key.getSortOrder());
@@ -205,7 +206,7 @@ public class ColumnTreeBuilder {
 
     for (int i = 0; i < myColumnBuilders.size(); i++) {
       ColumnBuilder column = myColumnBuilders.get(i);
-      column.configure(i, myTable, myRowSorter, myCellRenderer);
+      column.configure(i, myTable, rowSorter, myCellRenderer);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
@@ -228,7 +229,8 @@ public class ColumnTreeBuilder {
     return scrollPane;
   }
 
-  public ColumnTreeBuilder addColumn(ColumnBuilder column) {
+  @NotNull
+  public ColumnTreeBuilder addColumn(@NotNull ColumnBuilder column) {
     myColumnBuilders.add(column);
     return this;
   }
@@ -326,7 +328,8 @@ public class ColumnTreeBuilder {
       for (int i = 0; i < getComponentCount(); i++) {
         Component component = getComponent(i);
         if (component instanceof ColoredTreeCellRenderer) {
-          Component c = ((ColoredTreeCellRenderer)component).getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+          Component c =
+            ((ColoredTreeCellRenderer)component).getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
           if (c instanceof JComponent) {
             if (toolTip == null) {
               toolTip = ((JComponent)c).getToolTipText();
@@ -372,7 +375,7 @@ public class ColumnTreeBuilder {
      *              is {@code true}.
      */
     ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig, @Nullable JTable table) {
-      myHoverColor = hoverColor != null ? hoverColor : new JBColor(new Color(0, 0, 0, 0), new Color(0, 0,0, 0));
+      myHoverColor = hoverColor != null ? hoverColor : new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
       myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
       myTable = table;
     }
@@ -433,28 +436,50 @@ public class ColumnTreeBuilder {
     private String myName;
     private int myWidth;
     private int myHeaderAlignment;
+    private int myMinimumWidth;
     private Border myHeaderBorder;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
     private SortOrder myInitialOrder = SortOrder.UNSORTED;
+    private SortOrder mySortOrderPreference = SortOrder.ASCENDING;
 
-    public ColumnBuilder setName(String name) {
+    @NotNull
+    public ColumnBuilder setName(@NotNull String name) {
       myName = name;
       return this;
     }
 
+    @NotNull
     public ColumnBuilder setPreferredWidth(int width) {
       myWidth = width;
       return this;
     }
 
+    @NotNull
+    public ColumnBuilder setMinWidth(int width) {
+      myMinimumWidth = width;
+      return this;
+    }
+
+    @NotNull
     public ColumnBuilder setHeaderAlignment(int alignment) {
       myHeaderAlignment = alignment;
       return this;
     }
 
+    @NotNull
     public ColumnBuilder setHeaderBorder(Border border) {
       myHeaderBorder = border;
+      return this;
+    }
+
+    /**
+     * Sets the prefered {@link SortOrder} for the initial click on the column header.
+     */
+    @NotNull
+    public ColumnBuilder setSortOrderPreference(@NotNull SortOrder sortOrderPreference) {
+      assert sortOrderPreference == SortOrder.ASCENDING || sortOrderPreference == SortOrder.DESCENDING;
+      mySortOrderPreference = sortOrderPreference;
       return this;
     }
 
@@ -462,9 +487,10 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    private void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
+    private void configure(int index, JTable table, ColumnTreeTableRowSorter sorter, ColumnTreeCellRenderer renderer) {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
+      column.setMinWidth(myMinimumWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
       column.setHeaderRenderer(new DefaultTableCellRenderer() {
@@ -557,6 +583,77 @@ public class ColumnTreeBuilder {
         return parent.getHeight() > myTree.getPreferredSize().height;
       }
       return false;
+    }
+  }
+
+  private static class ColumnTreeTableRowSorter extends TableRowSorter<TableModel> {
+    @NotNull private final List<SortOrder> mySortOrderPreferences;
+
+    /**
+     * @param sortOrderPreferences a {@link List} that corresponds 1:1, in order, to the {@link SortOrder} preference of each column.
+     */
+    private ColumnTreeTableRowSorter(@NotNull TableModel model, @NotNull List<SortOrder> sortOrderPreferences) {
+      super(model);
+      mySortOrderPreferences = sortOrderPreferences;
+    }
+
+    /**
+     * Pretty much copied from DefaultRowSorter, except with the initial {@link SortOrder} configurable.
+     *
+     * @param column
+     */
+    @Override
+    public void toggleSortOrder(int column) {
+      checkColumn(column);
+      if (isSortable(column)) {
+        List<SortKey> keys = new ArrayList<>(getSortKeys());
+        int sortIndex;
+        for (sortIndex = keys.size() - 1; sortIndex >= 0; sortIndex--) {
+          if (keys.get(sortIndex).getColumn() == column) {
+            break;
+          }
+        }
+
+        SortKey sortKey;
+        if (sortIndex == -1) {
+          // Key doesn't exist
+          sortKey = new SortKey(column, mySortOrderPreferences.get(column));
+          keys.add(0, sortKey);
+        }
+        else if (sortIndex == 0) {
+          // It's the primary sorting key, toggle it
+          keys.set(0, toggle(keys.get(0)));
+        }
+        else {
+          // It's not the first, but was sorted on, remove old entry, insert as first with the preferred sort order preference.
+          keys.remove(sortIndex);
+          keys.add(0, new SortKey(column, mySortOrderPreferences.get(column)));
+        }
+        if (keys.size() > getMaxSortKeys()) {
+          keys = keys.subList(0, getMaxSortKeys());
+        }
+        setSortKeys(keys);
+      }
+    }
+
+    /**
+     * Copied from {@link DefaultRowSorter} because it is private.
+     */
+    private void checkColumn(int column) {
+      if (column < 0 || column >= getModelWrapper().getColumnCount()) {
+        throw new IndexOutOfBoundsException(
+          "column beyond range of TableModel");
+      }
+    }
+
+    /**
+     * Copied from {@link DefaultRowSorter} because it is private.
+     */
+    private static SortKey toggle(SortKey key) {
+      if (key.getSortOrder() == SortOrder.ASCENDING) {
+        return new SortKey(key.getColumn(), SortOrder.DESCENDING);
+      }
+      return new SortKey(key.getColumn(), SortOrder.ASCENDING);
     }
   }
 

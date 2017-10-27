@@ -247,6 +247,10 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     });
   }
 
+  public boolean isLoading() {
+    return myLoading;
+  }
+
   @NotNull
   public PropertiesMap getDefaultProperties(@NotNull List<NlComponent> components) {
     if (components.isEmpty()) {

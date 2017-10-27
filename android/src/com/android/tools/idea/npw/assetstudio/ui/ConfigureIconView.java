@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.observable.core.StringProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,28 +24,26 @@ import java.awt.event.ActionListener;
 
 public interface ConfigureIconView {
   /**
-   * Returns the root panel for this view
+   * Returns the root panel for this view.
    */
   @NotNull
   JComponent getRootComponent();
 
   /**
-   * Add a listener which will be triggered whenever the asset represented by this view is
+   * Adds a listener which will be triggered whenever the asset represented by this view is
    * modified in any way.
    */
   void addAssetListener(@NotNull ActionListener listener);
 
   /**
-   * The asset output name
-   * @return
+   * The asset output name.
    */
   @NotNull
   StringProperty outputName();
 
   /**
-   * The {@link AndroidIconGenerator} for this view
-   * @return
+   * Returns the {@link IconGenerator} for this view.
    */
   @NotNull
-  AndroidIconGenerator getIconGenerator();
+  IconGenerator getIconGenerator();
 }

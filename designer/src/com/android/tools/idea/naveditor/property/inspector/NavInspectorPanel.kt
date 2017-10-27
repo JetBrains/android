@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.intellij.openapi.Disposable
+import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -31,20 +31,19 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
   override fun collectExtraProperties(components: List<NlComponent>,
                                       propertiesManager: NavPropertiesManager,
                                       propertiesByName: MutableMap<String, NlProperty>) {
-    for (component in components) {
-      for (child in component.getChildren()) {
-        when (child.tagName) {
-          NavigationSchema.TAG_ACTION -> child.resolveAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION)?.let {
-            propertiesByName.put(it, NavActionPropertyItem(it, child))
-          }
-          NavigationSchema.TAG_DEEPLINK -> {
-            // TODO
-          }
-          NavigationSchema.TAG_ARGUMENT -> {
-            // TODO
-          }
-        }
-      }
+    if (components.isEmpty()) {
+      return
     }
+
+    val schema = NavigationSchema.getOrCreateSchema(components[0].model.facet)
+
+    val actionContainingComponents =
+        components.filter { schema.getDestinationSubtags(it.tagName).containsKey(NavActionElement::class.java) }
+    if (!actionContainingComponents.isEmpty()) {
+      val actionsProperty = NavActionsProperty(actionContainingComponents)
+      propertiesByName.put(actionsProperty.name, actionsProperty)
+    }
+
+    // TODO: deeplinks and arguments
   }
 }

@@ -20,8 +20,9 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioMonitorStageView;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 public class MemoryMonitorTooltipView extends ProfilerTooltipView {
   private final MemoryMonitor myMonitor;
@@ -31,8 +32,9 @@ public class MemoryMonitorTooltipView extends ProfilerTooltipView {
     myMonitor = monitor;
   }
 
+  @NotNull
   @Override
-  public Component createTooltip() {
+  public JComponent createTooltip() {
     MemoryMonitor.MemoryLegend legends = myMonitor.getTooltipLegend();
 
     LegendComponent legend =

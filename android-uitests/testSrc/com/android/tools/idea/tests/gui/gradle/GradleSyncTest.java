@@ -37,6 +37,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -83,7 +84,6 @@ import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -95,12 +95,10 @@ import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -420,7 +418,7 @@ public class GradleSyncTest {
   public void sdkSwitch() throws IOException {
     File secondSdkPath = getFilePathPropertyOrSkipTest("second.android.sdk.path", "the path of a secondary Android SDK", true);
 
-    getGuiTestSuiteState().setSkipSdkMerge(true);
+    GuiTestingService.getInstance().getGuiTestSuiteState().setSkipSdkMerge(true);
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();
