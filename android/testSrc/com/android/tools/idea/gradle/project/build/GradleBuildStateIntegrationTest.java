@@ -38,7 +38,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
     Ref<BuildStatus> statusRef = new Ref<>();
 
     Project project = getProject();
-    GradleBuildState.subscribe(project, new GradleBuildListener() {
+    GradleBuildState.subscribe(project, new GradleBuildListener.Adapter() {
       @Override
       public void buildStarted(@NotNull BuildContext context) {
         contexts[0] = context;

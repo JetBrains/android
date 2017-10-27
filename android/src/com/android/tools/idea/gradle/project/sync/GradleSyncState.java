@@ -135,6 +135,9 @@ public class GradleSyncState {
     myChangeNotification = changeNotification;
     mySummary = summary;
     myGradleFiles = gradleFiles;
+
+    // Call in to make sure IndexingSuspender instance is constructed.
+    IndexingSuspender.ensureInitialised(myProject);
   }
 
   public boolean areSyncNotificationsEnabled() {
@@ -174,9 +177,6 @@ public class GradleSyncState {
       }
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
-      if (myProject.isInitialized()) {
-        IndexingSuspender.getInstance(myProject).activate("Gradle Sync", this::isSyncInProgress);
-      }
     }
 
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
@@ -341,7 +341,6 @@ public class GradleSyncState {
     synchronized (myLock) {
       mySyncInProgress = false;
       mySyncSkipped = false;
-      IndexingSuspender.getInstance(myProject).deactivateIfPossible();
     }
   }
 

@@ -16,18 +16,28 @@
 package com.android.tools.idea.project;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
+import com.android.tools.idea.gradle.project.build.GradleBuildListener;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.impl.stores.BatchUpdateListener;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
+
 
 /**
  * The project-level service to prevent IDE indexing from being started until a certain set of conditions is met.
@@ -39,23 +49,138 @@ public class IndexingSuspender {
 
   @NotNull private final Project myProject;
   @NotNull private final Object myIndexingLock = new Object();
+  private boolean myShouldWait;
 
-  @NotNull
-  public static IndexingSuspender getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, IndexingSuspender.class);
+  @Nullable private ActivationEvent myActivationEvent;
+  @Nullable private DeactivationEvent myDeactivationEvent;
+  private volatile boolean myActivated;
+
+  public static void ensureInitialised(@NotNull Project project) {
+    ServiceManager.getService(project, IndexingSuspender.class);
   }
 
-  public IndexingSuspender(@NotNull Project project) {
+  private IndexingSuspender(@NotNull Project project) {
     myProject = project;
-  }
 
-  public void activate(@NotNull String contextDescription, @NotNull Supplier<Boolean> shouldWait) {
     if (!StudioFlags.GRADLE_INVOCATIONS_INDEXING_AWARE.get()) {
+      // Do not perform any subscriptions.
+      // Since the service is designed to be event-driven only, it will just do nothing without
+      // receiving project messages.
       return;
     }
 
-    if (ApplicationManager.getApplication().isUnitTestMode()
-        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
+    subscribeToSyncAndBuildEvents();
+  }
+
+  private void consumeActivationEvent(@NotNull ActivationEvent event) {
+    LOG.info("Consuming IndexingSuspender activation event: " + event.toString());
+    switch (event) {
+      case SYNC_STARTED:
+        if (myProject.isInitialized()) {
+          activate("Gradle Sync", DeactivationEvent.SYNC_FINISHED);
+        }
+        else {
+          myActivationEvent = ActivationEvent.SETUP_STARTED;
+        }
+        break;
+      case SETUP_STARTED:
+        if (myActivationEvent == ActivationEvent.SETUP_STARTED) {
+          if (!myProject.isInitialized()) {
+            clearStateConditions();
+            reportStateError("Project is expected to be initialised before project setup starts.");
+            break;
+          }
+          activate("Project Setup", DeactivationEvent.SYNC_FINISHED);
+        }
+        break;
+      case BUILD_EXECUTOR_CREATED:
+        if (myDeactivationEvent == DeactivationEvent.SYNC_FINISHED) {
+          myDeactivationEvent = DeactivationEvent.BUILD_FINISHED;
+        }
+        break;
+      case BUILD_STARTED:
+        if (!myActivated) {
+          activate("Gradle Build", DeactivationEvent.BUILD_FINISHED);
+        }
+        break;
+    }
+  }
+
+  private void consumeDeactivationEvent(@NotNull DeactivationEvent event) {
+    LOG.info("Consuming IndexingSuspender deactivation event: " + event.toString());
+    if (event == myDeactivationEvent) {
+      deactivate();
+    }
+    else {
+      LOG.info("IndexingSuspender deactivation event received and ignored: " + event.toString());
+    }
+  }
+
+  private static void reportStateError(@NotNull String message) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+      throw new IllegalStateException(message);
+    }
+    else {
+      LOG.warn(message);
+    }
+  }
+
+  private void subscribeToSyncAndBuildEvents() {
+    LOG.info("Subscribing project to IndexingSuspender events: " + myProject.toString());
+    GradleSyncState.subscribe(myProject, new GradleSyncListener() {
+      @Override
+      public void syncStarted(@NotNull Project project) {
+        consumeActivationEvent(ActivationEvent.SYNC_STARTED);
+      }
+
+      @Override
+      public void setupStarted(@NotNull Project project) {
+        consumeActivationEvent(ActivationEvent.SETUP_STARTED);
+      }
+
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        consumeDeactivationEvent(DeactivationEvent.SYNC_FINISHED);
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        consumeDeactivationEvent(DeactivationEvent.SYNC_FINISHED);
+      }
+
+      @Override
+      public void syncSkipped(@NotNull Project project) {
+        consumeDeactivationEvent(DeactivationEvent.SYNC_FINISHED);
+      }
+    });
+
+    GradleBuildState.subscribe(myProject, new GradleBuildListener() {
+      @Override
+      public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
+        consumeActivationEvent(ActivationEvent.BUILD_EXECUTOR_CREATED);
+      }
+
+      @Override
+      public void buildStarted(@NotNull BuildContext context) {
+        consumeActivationEvent(ActivationEvent.BUILD_STARTED);
+      }
+
+      @Override
+      public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+        consumeDeactivationEvent(DeactivationEvent.BUILD_FINISHED);
+      }
+    });
+  }
+
+  private void activate(@NotNull String contextDescription, @NotNull DeactivationEvent deactivationEvent) {
+    if (myActivated) {
+      reportStateError("Must not attempt to activate IndexingSuspender when it is already activated. Ignored.");
+      return;
+    }
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
       // IDEA DumbService executes dumb mode tasks on the same thread when in unittest/headless
       // mode. This will lead to a deadlock during tests execution, so indexing suspender should
       // be a no-op in this case. Also indexing implementation in unit test mode uses quite a few
@@ -68,42 +193,63 @@ public class IndexingSuspender {
     }
 
     if (!myProject.isInitialized()) {
-      LOG.error("Attempt to suspend indexing when project is not yet initialised. Ignoring.");
+      reportStateError("Attempt to suspend indexing when project is not yet initialised. Ignoring.");
       return;
     }
 
-    DumbService.getInstance(myProject).queueTask(new IndexingSuspenderTask(contextDescription, shouldWait));
+    myActivated = true;
+    myDeactivationEvent = deactivationEvent;
+    startBatchUpdate();
     synchronized (myIndexingLock) {
-      myIndexingLock.notifyAll();
+      myShouldWait = true;
     }
+    DumbService.getInstance(myProject).queueTask(new IndexingSuspenderTask(contextDescription));
   }
 
-  /**
-   * Call this method to signify that indexing can possibly be unlocked now. Typically this is to be called
-   * from a context which has just changed the condition for the predicate passed previously to the activate()
-   * method. Note, that this will not guarantee immediate indexing resuming since there may be other contexts which
-   * have called activate() by this point. Indexing will only be resumed if there are no predicates indicating
-   * that waiting should be performed.
-   *
-   * Note also that calling this method is not mandatory because in the current implementation wait() is limited
-   * by a timeout and therefore it's sufficient for the predicates to change their states.
-   * However, this design is mainly in place to minimize the risk of dead-lock bugs. For the sake of performance,
-   * it is advisable to call this method on each indexing-free latch completion so that the service didn't have
-   * to wait for timeout to pass in order to figure that out.
-   *
-   * If IndexingSuspender is not currently activated, this call will be a no-op.
-   */
-  public void deactivateIfPossible() {
-    if (ApplicationManager.getApplication().isUnitTestMode()
-        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
+  private void deactivate() {
+    if (!myActivated) {
+      reportStateError("Must not attempt to deactivate IndexingSuspender when it is not activated. Ignored.");
       return;
     }
 
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+      return;
+    }
+
+    finishBatchUpdate();
     synchronized (myIndexingLock) {
+      myShouldWait = false;
       myIndexingLock.notifyAll();
     }
+    myActivated = false;
+    clearStateConditions();
   }
 
+  private void clearStateConditions() {
+    myActivationEvent = null;
+    myDeactivationEvent = null;
+  }
+
+  private void startBatchUpdate() {
+    LOG.info("Starting batch update for project: " + myProject.toString());
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+      @Override
+      public void execute() {
+        myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateStarted();
+      }
+    });
+  }
+
+  private void finishBatchUpdate() {
+    LOG.info("Finishing batch update for project: " + myProject.toString());
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+      @Override
+      public void execute() {
+        myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateFinished();
+      }
+    });
+  }
 
   /**
    * Dumb mode task which can suspend the dumb queue execution until notified and the given predicate returns true.
@@ -121,11 +267,9 @@ public class IndexingSuspender {
    */
   private class IndexingSuspenderTask extends DumbModeTask {
     @NotNull private final String myContextDescription;
-    @NotNull private final Supplier<Boolean> myShouldWait;
 
-    IndexingSuspenderTask(@NotNull String contextDescription, @NotNull Supplier<Boolean> shouldWait) {
+    IndexingSuspenderTask(@NotNull String contextDescription) {
       myContextDescription = contextDescription;
-      myShouldWait = shouldWait;
     }
 
     @Override
@@ -134,7 +278,7 @@ public class IndexingSuspender {
       LOG.info(message);
       indicator.setText(message);
       synchronized (myIndexingLock) {
-        while (myShouldWait.get()) {
+        while (myShouldWait) {
           try {
             myIndexingLock.wait(INDEXING_WAIT_TIMEOUT_MILLIS);
           }
@@ -144,5 +288,17 @@ public class IndexingSuspender {
       }
       LOG.info(String.format("Indexing released (context: %1$s)", myContextDescription));
     }
+  }
+
+  private enum ActivationEvent {
+    SYNC_STARTED,
+    SETUP_STARTED,
+    BUILD_EXECUTOR_CREATED,
+    BUILD_STARTED,
+  }
+
+  private enum DeactivationEvent {
+    SYNC_FINISHED,
+    BUILD_FINISHED,
   }
 }

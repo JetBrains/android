@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -71,12 +72,18 @@ public class GradleBuildState {
   public GradleBuildState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
     myMessageBus = messageBus;
+
+    // Call in to make sure IndexingSuspender instance is constructed.
+    IndexingSuspender.ensureInitialised(myProject);
+  }
+
+  public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
+    syncPublisher(listener -> listener.buildExecutorCreated(request));
   }
 
   public void buildStarted(@NotNull BuildContext context) {
     synchronized (myLock) {
       myCurrentContext = context;
-      IndexingSuspender.getInstance(myProject).activate("Gradle Build", this::isBuildInProgress);
     }
     syncPublisher(listener -> listener.buildStarted(context));
   }
@@ -87,7 +94,6 @@ public class GradleBuildState {
       context = myCurrentContext;
       myCurrentContext = null;
       mySummary = new BuildSummary(status, context);
-      IndexingSuspender.getInstance(myProject).deactivateIfPossible();
     }
     syncPublisher(listener -> listener.buildFinished(status, context));
   }

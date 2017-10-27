@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.project.Project;
@@ -71,6 +72,10 @@ public class GradleProjectEventListener extends GradleSyncListener.Adapter imple
       mySyncStarted = false;
       mySyncSkipped = mySyncFinished = true;
     }
+  }
+
+  @Override
+  public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
   }
 
   @Override
