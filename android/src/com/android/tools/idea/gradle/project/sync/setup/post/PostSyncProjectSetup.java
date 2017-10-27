@@ -190,8 +190,8 @@ public class PostSyncProjectSetup {
 
     myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
-    notifySyncFinished(request);
     attemptToGenerateSources(request);
+    notifySyncFinished(request);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
