@@ -17,11 +17,14 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -43,10 +46,16 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private final JButton myFrameBckButton;
 
   private final long myTickStepMs;
+
+  private final long myMinTimeMs;
+  private final long myMaxTimeMs;
+
   /**
    * Slider that allows stepping frame by frame at different speeds
    */
   private final JSlider myFrameControl;
+  @Nullable private final DefaultBoundedRangeModel myTimeSliderModel;
+  private final ChangeListener myTimeSliderChangeModel;
   /**
    * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)
    */
@@ -59,14 +68,21 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * @param parentDisposable Parent {@link Disposable}
    * @param listener {@link AnimationListener} that will be called in every tick
    * @param tickStepMs Number of milliseconds to advance in every animator tick
+   * @param minTimeMs Start milliseconds for the animation
+   * @param maxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
-  public AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs) {
+  private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
+                           long minTimeMs, long maxTimeMs) {
     super(new BorderLayout());
+    setBorder(IdeBorderFactory.createEmptyBorder(0, 10, 0, 10));
+
 
     Disposer.register(parentDisposable, this);
 
     myListener = listener;
     myTickStepMs = tickStepMs;
+    myMinTimeMs = minTimeMs;
+    myMaxTimeMs = maxTimeMs;
 
     JPanel buttonsPanel = new JPanel();
     // TODO: Replace with icons
@@ -84,6 +100,26 @@ public class AnimationToolbar extends JPanel implements Disposable {
 
     myFrameControl = new JSlider(-5, 5, 0);
     myFrameControl.setSnapToTicks(true);
+
+    if (isUnlimitedAnimationToolbar()) {
+      myTimeSliderModel = null;
+      myTimeSliderChangeModel = null;
+    }
+    else {
+      myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
+      myTimeSliderChangeModel = e -> {
+        long newPositionMs = (long)(myMaxTimeMs * (myTimeSliderModel.getValue() / 100f));
+        long elapsed = newPositionMs - myFramePositionMs;
+        onTick(elapsed);
+      };
+      JSlider timeSlider = new JSlider(0, 100, 0);
+      timeSlider.setBorder(IdeBorderFactory.createEmptyBorder(5, 0, 5, 0));
+      timeSlider.setMajorTickSpacing(10);
+      timeSlider.setPaintTicks(true);
+      myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
+      timeSlider.setModel(myTimeSliderModel);
+      add(timeSlider, BorderLayout.NORTH);
+    }
 
     add(buttonsPanel, BorderLayout.LINE_START);
     add(myFrameControl, BorderLayout.LINE_END);
@@ -117,6 +153,38 @@ public class AnimationToolbar extends JPanel implements Disposable {
     });
 
     onStop();
+  }
+
+  /**
+   * Constructs a new AnimationToolbar
+   * @param parentDisposable Parent {@link Disposable}
+   * @param listener {@link AnimationListener} that will be called in every tick
+   * @param tickStepMs Number of milliseconds to advance in every animator tick
+   * @param minTimeMs Start milliseconds for the animation
+   */
+  @NotNull
+  public static AnimationToolbar createUnlimitedAnimationToolbar(@NotNull Disposable parentDisposable,
+                                                                 @NotNull AnimationListener listener,
+                                                                 long tickStepMs,
+                                                                 long minTimeMs) {
+    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, -1);
+  }
+
+  /**
+   * Constructs a new AnimationToolbar
+   * @param parentDisposable Parent {@link Disposable}
+   * @param listener {@link AnimationListener} that will be called in every tick
+   * @param tickStepMs Number of milliseconds to advance in every animator tick
+   * @param minTimeMs Start milliseconds for the animation
+   * @param maxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
+   */
+  @NotNull
+  public static AnimationToolbar createAnimationToolbar(@NotNull Disposable parentDisposable,
+                                                        @NotNull AnimationListener listener,
+                                                        long tickStepMs,
+                                                        long minTimeMs,
+                                                        long maxTimeMs) {
+    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, maxTimeMs);
   }
 
   /**
@@ -167,7 +235,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
 
   private void stopFrameTicker() {
     if (myTicker != null) {
-      myTicker.cancel(true);
+      myTicker.cancel(false);
       myTicker = null;
     }
   }
@@ -176,7 +244,8 @@ public class AnimationToolbar extends JPanel implements Disposable {
     stopFrameTicker();
 
     setEnabledState(true, false, false, true);
-    myFramePositionMs = 500L;
+    myFramePositionMs = myMinTimeMs;
+    onNewFramePosition();
     doFrame();
   }
 
@@ -194,10 +263,35 @@ public class AnimationToolbar extends JPanel implements Disposable {
 
   private void onTick(long elapsed) {
     myFramePositionMs += elapsed;
-    if (myFramePositionMs < 0L) {
-      myFramePositionMs = 0L;
+    if (myFramePositionMs < myMinTimeMs) {
+      myFramePositionMs = myMinTimeMs;
     }
+    else if (!isUnlimitedAnimationToolbar() && myFramePositionMs > myMaxTimeMs) {
+      myFramePositionMs = myMaxTimeMs;
+    }
+    onNewFramePosition();
     doFrame();
+  }
+
+  private void onNewFramePosition() {
+    if (isUnlimitedAnimationToolbar()) {
+      return;
+    }
+
+    if (myFramePositionMs >= myMaxTimeMs) {
+      // We've reached the end. Stop.
+      onPause();
+    }
+
+    myStopButton.setEnabled(myFramePositionMs - myTickStepMs >= myMinTimeMs);
+    myFrameFwdButton.setEnabled(myFramePositionMs + myTickStepMs <= myMaxTimeMs);
+    myFrameBckButton.setEnabled(myFramePositionMs - myTickStepMs >= myMinTimeMs);
+
+    if (myTimeSliderModel != null) {
+      myTimeSliderModel.removeChangeListener(myTimeSliderChangeModel);
+      myTimeSliderModel.setValue((int)(((myFramePositionMs - myMinTimeMs) / (float)(myMaxTimeMs - myMinTimeMs))  * 100));
+      myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
+    }
   }
 
   /**
@@ -205,6 +299,13 @@ public class AnimationToolbar extends JPanel implements Disposable {
    */
   public void stop() {
     onStop();
+  }
+
+  /**
+   * True if this is an animation toolbar for an unlimited toolbar
+   */
+  private boolean isUnlimitedAnimationToolbar() {
+    return myMaxTimeMs == -1;
   }
 
   @Override
