@@ -254,13 +254,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
 
-    Sdk sdk;
-    if (attachSdk) {
-      sdk = addLatestAndroidSdk(module);
-    }
-    else {
-      sdk = null;
-    }
+    Sdk sdk = attachSdk ? addLatestAndroidSdk(module) : null;
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(facetModel::commit);
