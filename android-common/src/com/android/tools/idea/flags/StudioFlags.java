@@ -185,6 +185,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
     "If enabled, Show actions to let user choose overlay image on preview.", true);
 
+  private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
+  public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
+    REFACTORINGS, "enabled", "Enable the Migrate to AppCompat refactoring feature",
+    "If enabled, show the action in the refactoring menu", true);
+
   private StudioFlags() {
   }
 }
