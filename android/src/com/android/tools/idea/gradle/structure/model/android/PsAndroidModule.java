@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -47,8 +48,9 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   public PsAndroidModule(@NotNull PsProject parent,
                          @NotNull Module resolvedModel,
                          @NotNull String gradlePath,
-                         @NotNull AndroidModuleModel gradleModel) {
-    super(parent, resolvedModel, gradlePath);
+                         @NotNull AndroidModuleModel gradleModel,
+                         @NotNull GradleBuildModel parsedModel) {
+    super(parent, resolvedModel, gradlePath, parsedModel);
     myGradleModel = gradleModel;
   }
 

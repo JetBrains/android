@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.JCenter
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -51,12 +53,13 @@ public abstract class PsModule extends PsChildModel {
 
   protected PsModule(@NotNull PsProject parent,
                      @NotNull Module resolvedModel,
-                     @NotNull String gradlePath) {
+                     @NotNull String gradlePath,
+                     @NotNull GradleBuildModel parsedModel) {
     super(parent);
     myResolvedModel = resolvedModel;
     myGradlePath = gradlePath;
     myModuleName = resolvedModel.getName();
-    myParsedModel = GradleBuildModel.get(myResolvedModel);
+    myParsedModel = parsedModel;
   }
 
   protected PsModule(@NotNull PsProject parent, @NotNull String name) {
@@ -154,6 +157,22 @@ public abstract class PsModule extends PsChildModel {
 
   public boolean canDependOn(@NotNull PsModule module) {
     return false;
+  }
+
+  public void applyChanges() {
+    if (isModified()) {
+      GradleBuildModel parsedModel = getParsedModel();
+      if (parsedModel != null && parsedModel.isModified()) {
+        String name = String.format("Applying changes to module '%1$s'", getName());
+        new WriteCommandAction(getParent().getResolvedModel(), name) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            parsedModel.applyChanges();
+            setModified(false);
+          }
+        }.execute();
+      }
+    }
   }
 
   public interface DependenciesChangeListener extends EventListener {
