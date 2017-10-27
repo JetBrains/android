@@ -344,6 +344,15 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
             }
           }
 
+/* Developer services disabled:
+[  55563]   WARN - ture.services.DeveloperService - Caught exception while initializing services
+java.lang.IllegalArgumentException: could not find extension implementation class com.google.services.GoogleServiceLoginListener
+	at com.intellij.openapi.extensions.Extensions.findExtension(Extensions.java:113)
+	at com.google.services.GoogleServiceLoginListener.getInstance(GoogleServiceLoginListener.java:30)
+	at com.google.services.creators.GoogleServiceCreator.initializeContext(GoogleServiceCreator.java:41)
+	at com.android.tools.idea.structure.services.DeveloperServiceCreator.createService(DeveloperServiceCreator.java:174)
+	at com.android.tools.idea.structure.services.DeveloperServices.initializeFor(DeveloperServices.java:65)
+
           if (!myProject.isDefault() && moduleList.getSize() > 0) {
             // This may not be our first time opening the developer services dialog. User may have
             // modified developer service values last time but then pressed cancel. To be safe, we
@@ -370,6 +379,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
               myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
             }
           }
+*/
         }
 
         // Populate the "Modules" section.
