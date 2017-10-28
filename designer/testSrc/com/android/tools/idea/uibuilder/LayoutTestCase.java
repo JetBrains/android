@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.uibuilder;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -35,7 +32,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +39,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -50,14 +47,28 @@ import static org.mockito.Mockito.when;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
 
+  private final List<ScreenFixture> myScreenFixtures = new ArrayList<>();
+
   public LayoutTestCase() {
   }
-
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      for (ScreenFixture fixture : myScreenFixtures) {
+        fixture.tearDown();
+      }
+      myScreenFixtures.clear();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
@@ -103,7 +114,9 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   protected ScreenFixture screen(@NotNull SyncNlModel model) {
-    return new ScreenFixture(model);
+    ScreenFixture fixture = new ScreenFixture(model);
+    myScreenFixtures.add(fixture);
+    return fixture;
   }
 
   // Format the XML using AndroidStudio formatting
