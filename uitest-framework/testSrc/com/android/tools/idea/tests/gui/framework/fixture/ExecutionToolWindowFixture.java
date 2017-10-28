@@ -31,6 +31,7 @@ import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
+import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import com.intellij.xdebugger.impl.frame.XDebuggerFramesList;
@@ -40,11 +41,11 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
+import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -58,6 +59,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
+import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.fail;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
@@ -72,14 +74,14 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       myContent = content;
     }
 
-    public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
-      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
-    }
-
     /**
      * Waits until it grabs the console window and then returns true if its text matches that of {@code matcher}.
      * Note: This method may not terminate if the console view cannot be found.
      */
+    public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
+      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
+    }
+
     public boolean outputMatches(@NotNull TextMatcher matcher) {
       return matcher.isMatching(getOutput());
     }
@@ -243,6 +245,20 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
+    public ContentFixture clickClearAllButton() {
+      List<ActionButton> debug_ActionButtons = getConsoleToolbarButtons();
+      for (ActionButton button : debug_ActionButtons) {
+        String tooltipText = button.getToolTipText();
+        if ("Clear All".equals(tooltipText)) {
+          myRobot.click(button);
+          return this;
+        }
+      }
+
+      throw new IllegalStateException("Could not find the Clear All button");
+    }
+
+    @NotNull
     private JComponent getTabContent(@NotNull final JComponent root,
                                      final Class<? extends JBTabsImpl> parentComponentType,
                                      @NotNull final Class<? extends JComponent> tabContentType,
@@ -325,6 +341,14 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       ActionToolbarImpl toolbar = findComponentOfType(myContent.getComponent(), ActionToolbarImpl.class);
       assert toolbar != null;
       return findComponentsOfType(toolbar, ActionButton.class);
+    }
+
+    @NotNull
+    private List<ActionButton> getConsoleToolbarButtons() {
+      ConsoleViewImpl consoleView = checkNotNull(findConsoleView());
+      Container commonAncestor = SwingUtilities.getAncestorOfClass(JBTabs.class, consoleView);
+      Container actionToolbar = myRobot.finder().find(commonAncestor, Matchers.byType(ActionToolbarImpl.class));
+      return Lists.newArrayList(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
     }
   }  // End class ContentFixture
 
