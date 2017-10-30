@@ -33,10 +33,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"50dp\"\n" +
             "        android:layout_height=\"30dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
             "        android:layout_marginLeft=\"10dp\"\n" +
             "        android:layout_marginTop=\"30dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+            "        android:layout_toRightOf=\"@id/button\"\n" +
+            "        android:layout_below=\"@id/button\" />")
   }
 
   fun testResizeFromTopRight() {
@@ -48,10 +48,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"70dp\"\n" +
             "        android:layout_height=\"30dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
             "        android:layout_marginLeft=\"100dp\"\n" +
             "        android:layout_marginTop=\"30dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+            "        android:layout_toRightOf=\"@id/button\"\n" +
+            "        android:layout_below=\"@id/button\" />")
   }
 
   fun testResizeFromBottomLeft() {
@@ -63,10 +63,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"50dp\"\n" +
             "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
             "        android:layout_marginLeft=\"10dp\"\n" +
             "        android:layout_marginTop=\"100dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+            "        android:layout_toRightOf=\"@id/button\"\n" +
+            "        android:layout_below=\"@id/button\" />")
   }
 
   fun testResizeFromBottomRight() {
@@ -78,10 +78,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"70dp\"\n" +
             "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
             "        android:layout_marginLeft=\"100dp\"\n" +
             "        android:layout_marginTop=\"100dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+            "        android:layout_toRightOf=\"@id/button\"\n" +
+            "        android:layout_below=\"@id/button\" />")
   }
 
   fun testDragComponentToLeftTopSide() {
@@ -93,10 +93,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentStart=\"true\"\n" +
-            "        android:layout_alignParentTop=\"true\"\n" +
             "        android:layout_marginStart=\"145dp\"\n" +
-            "        android:layout_marginTop=\"145dp\" />")
+            "        android:layout_marginTop=\"145dp\"\n" +
+            "        android:layout_alignParentStart=\"true\"\n" +
+            "        android:layout_alignParentTop=\"true\" />")
   }
 
   fun testDragComponentToRightBottomSide() {
@@ -108,10 +108,10 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentBottom=\"true\"\n" +
-            "        android:layout_alignParentEnd=\"true\"\n" +
+            "        android:layout_marginEnd=\"95dp\"\n" +
             "        android:layout_marginBottom=\"95dp\"\n" +
-            "        android:layout_marginEnd=\"95dp\" />")
+            "        android:layout_alignParentEnd=\"true\"\n" +
+            "        android:layout_alignParentBottom=\"true\" />")
   }
 
   fun testDragComponentOverLeftTopEdges() {
@@ -137,8 +137,8 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentBottom=\"true\"\n" +
-            "        android:layout_alignParentEnd=\"true\" />")
+            "        android:layout_alignParentEnd=\"true\"\n" +
+            "        android:layout_alignParentBottom=\"true\" />")
   }
 
   fun testDragComponentCenterHorizontal() {
@@ -150,9 +150,9 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_marginTop=\"25dp\"\n" +
             "        android:layout_alignParentTop=\"true\"\n" +
-            "        android:layout_centerHorizontal=\"true\"\n" +
-            "        android:layout_marginTop=\"25dp\" />")
+            "        android:layout_centerHorizontal=\"true\" />")
   }
 
   fun testDragComponentCenterVertical() {
@@ -164,9 +164,9 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
+            "        android:layout_marginStart=\"25dp\"\n" +
             "        android:layout_alignParentStart=\"true\"\n" +
-            "        android:layout_centerVertical=\"true\"\n" +
-            "        android:layout_marginStart=\"25dp\" />")
+            "        android:layout_centerVertical=\"true\" />")
   }
 
   fun testDragComponentToCenterOfParent() {
@@ -203,8 +203,8 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@+id/button\"\n" +
-            "        android:layout_toEndOf=\"@+id/button\" />")
+            "        android:layout_toEndOf=\"@+id/button\"\n" +
+            "        android:layout_below=\"@+id/button\" />")
   }
 
   override fun createModel(): ModelBuilder {

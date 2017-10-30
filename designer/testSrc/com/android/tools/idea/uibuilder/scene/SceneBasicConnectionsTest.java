@@ -40,8 +40,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
@@ -116,8 +116,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button2\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/button\" />");
   }
