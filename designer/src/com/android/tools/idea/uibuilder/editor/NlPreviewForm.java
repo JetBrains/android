@@ -20,10 +20,7 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
@@ -341,30 +338,32 @@ public class NlPreviewForm implements Disposable, CaretListener {
       return;
     }
 
-    NlComponent transitionLayout = null;
     if (StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get()) {
       // Find if there is a transtion layout
-      transitionLayout = myModel.flattenComponents()
+      NlComponent transitionLayout = myModel.flattenComponents()
         .filter(component -> NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.TRANSITION_LAYOUT))
         .findAny()
         .orElse(null);
+      TransitionLayoutHandler.TransitionLayoutComponentHelper helper = transitionLayout != null ?
+                                                                       new TransitionLayoutHandler.TransitionLayoutComponentHelper(transitionLayout) :
+                                                                       null;
+      long maxTimeMs = helper != null ? helper.getMaxTimeMs() : -1;
+
+
+      // All animations are offset to start at 500ms. The reason is that some animated drawables like the progress bars are not
+      // really visible at 0 since their animation starts in an empty state. 500ms works well for progress bars.
+      if (helper != null) {
+        myAnimationToolbar = AnimationToolbar.createAnimationToolbar(this, (timeMs) -> {
+          LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
+          if (myModel != null && sceneManager != null) {
+            sceneManager.setElapsedFrameTimeMs(timeMs);
+            helper.setValue((timeMs - 500L) / (float)maxTimeMs);
+          }
+        }, 16, 500L, maxTimeMs + 500L);
+      }
     }
 
-    // All animations are offset to start at 500ms. The reason is that some animated drawables like the progress bars are not
-    // really visible at 0 since their animation starts in an empty state. 500ms works well for progress bars.
-    if (transitionLayout != null) {
-      TransitionLayoutHandler.TransitionLayoutComponentHelper helper =
-        new TransitionLayoutHandler.TransitionLayoutComponentHelper(transitionLayout);
-      long maxTimeMs = helper.getMaxTimeMs();
-      myAnimationToolbar = AnimationToolbar.createAnimationToolbar(this, (timeMs) -> {
-        LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
-        if (myModel != null && sceneManager != null) {
-          sceneManager.setElapsedFrameTimeMs(timeMs);
-          helper.setValue((timeMs - 500L) / (float)maxTimeMs);
-        }
-      }, 16, 500L, maxTimeMs + 500L);
-    }
-    else {
+    if (myAnimationToolbar == null) {
       myAnimationToolbar = AnimationToolbar.createUnlimitedAnimationToolbar(this, (timeMs) -> {
         LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
         if (myModel != null && sceneManager != null) {

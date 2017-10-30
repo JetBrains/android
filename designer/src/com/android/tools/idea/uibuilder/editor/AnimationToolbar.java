@@ -48,7 +48,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private final long myTickStepMs;
 
   private final long myMinTimeMs;
-  private final long myMaxTimeMs;
+  private long myMaxTimeMs;
 
   /**
    * Slider that allows stepping frame by frame at different speeds
@@ -70,10 +70,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * @param listener {@link AnimationListener} that will be called in every tick
    * @param tickStepMs Number of milliseconds to advance in every animator tick
    * @param minTimeMs Start milliseconds for the animation
-   * @param maxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
+   * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
   private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
-                           long minTimeMs, long maxTimeMs) {
+                           long minTimeMs, long initialMaxTimeMs) {
     super(new BorderLayout());
     setBorder(IdeBorderFactory.createEmptyBorder(0, 10, 0, 10));
 
@@ -83,7 +83,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
     myListener = listener;
     myTickStepMs = tickStepMs;
     myMinTimeMs = minTimeMs;
-    myMaxTimeMs = maxTimeMs;
+    myMaxTimeMs = initialMaxTimeMs;
 
     JPanel buttonsPanel = new JPanel();
     // TODO: Replace with icons
@@ -108,9 +108,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
     }
     else {
       JCheckBox loopControl = new JCheckBox("Loop", myLoopEnabled);
-      loopControl.addChangeListener(e -> {
-        myLoopEnabled = loopControl.isSelected();
-      });
+      loopControl.addChangeListener(e -> myLoopEnabled = loopControl.isSelected());
       buttonsPanel.add(loopControl);
 
       myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
@@ -183,15 +181,15 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * @param listener {@link AnimationListener} that will be called in every tick
    * @param tickStepMs Number of milliseconds to advance in every animator tick
    * @param minTimeMs Start milliseconds for the animation
-   * @param maxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
+   * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
   @NotNull
   public static AnimationToolbar createAnimationToolbar(@NotNull Disposable parentDisposable,
                                                         @NotNull AnimationListener listener,
                                                         long tickStepMs,
                                                         long minTimeMs,
-                                                        long maxTimeMs) {
-    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, maxTimeMs);
+                                                        long initialMaxTimeMs) {
+    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs);
   }
 
   /**
@@ -301,6 +299,11 @@ public class AnimationToolbar extends JPanel implements Disposable {
       myTimeSliderModel.setValue((int)(((myFramePositionMs - myMinTimeMs) / (float)(myMaxTimeMs - myMinTimeMs))  * 100));
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
     }
+  }
+
+  public void setMaxtimeMs(long maxTimeMs) {
+    assert isUnlimitedAnimationToolbar() : "Max time can not be set for unlimited animations";
+    myMaxTimeMs = maxTimeMs;
   }
 
   /**
