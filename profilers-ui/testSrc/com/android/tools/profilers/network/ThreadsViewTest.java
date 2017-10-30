@@ -41,7 +41,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ThreadsViewTest {
-  public static final ImmutableList<HttpData> FAKE_DATA =
+  private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
       .add(newData(1, 0, 5, 10, 11, "threadA"))
       .add(newData(2, 5, 10, 12, 12, "threadB"))
@@ -116,6 +116,46 @@ public class ThreadsViewTest {
     assertThat(table.getModel().getValueAt(0, 1), is(Collections.singletonList(FAKE_DATA.get(5))));
     assertThat(table.getModel().getValueAt(1, 0), is("threadC"));
     assertThat(table.getModel().getValueAt(1, 1), is(Collections.singletonList(FAKE_DATA.get(6))));
+  }
+
+  @Test
+  public void tableCanBeSortedByInitiatingThreadColumn() {
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    JTable table = getTable();
+
+    selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
+    assertThat(table.convertRowIndexToModel(0), is(0));
+    assertThat(table.convertRowIndexToModel(1), is(1));
+    assertThat(table.convertRowIndexToModel(2), is(2));
+    assertThat(table.convertRowIndexToModel(3), is(3));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
+    assertThat(table.convertRowIndexToModel(0), is(2));
+    assertThat(table.convertRowIndexToModel(1), is(3));
+    assertThat(table.convertRowIndexToModel(2), is(1));
+    assertThat(table.convertRowIndexToModel(3), is(0));
+  }
+
+  @Test
+  public void tableCanBeSortedByTimelineColumn() {
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    JTable table = getTable();
+
+    selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
+    assertThat(table.convertRowIndexToModel(0), is(0));
+    assertThat(table.convertRowIndexToModel(1), is(1));
+    assertThat(table.convertRowIndexToModel(2), is(2));
+    assertThat(table.convertRowIndexToModel(3), is(3));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
+    assertThat(table.convertRowIndexToModel(0), is(3));
+    assertThat(table.convertRowIndexToModel(1), is(2));
+    assertThat(table.convertRowIndexToModel(2), is(1));
+    assertThat(table.convertRowIndexToModel(3), is(0));
   }
 
   @Test
