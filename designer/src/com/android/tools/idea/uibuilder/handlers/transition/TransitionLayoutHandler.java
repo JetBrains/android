@@ -58,10 +58,8 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
         try {
           myCallSetTransitionPosition.invoke(instance, Float.valueOf(position));
         }
-        catch (IllegalAccessException e) {
-          e.printStackTrace();
-        }
-        catch (InvocationTargetException e) {
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallSetTransitionPosition = null;
           e.printStackTrace();
         }
       }
@@ -80,10 +78,8 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
         try {
           myCallEvaluate.invoke(instance);
         }
-        catch (IllegalAccessException e) {
-          e.printStackTrace();
-        }
-        catch (InvocationTargetException e) {
+        catch (ClassCastException |IllegalAccessException | InvocationTargetException e) {
+          myCallEvaluate = null;
           e.printStackTrace();
         }
       }
@@ -121,10 +117,8 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
         try {
           return (long)myGetMaxTimeMethod.invoke(instance);
         }
-        catch (IllegalAccessException e) {
-          e.printStackTrace();
-        }
-        catch (InvocationTargetException e) {
+        catch (IllegalAccessException | InvocationTargetException e) {
+          myGetMaxTimeMethod = null;
           e.printStackTrace();
         }
       }
