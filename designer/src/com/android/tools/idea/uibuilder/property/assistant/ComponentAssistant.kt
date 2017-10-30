@@ -22,6 +22,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -30,6 +32,8 @@ import javax.swing.JPanel
  * to provide custom shortcuts for configuring some component aspects.
  */
 class ComponentAssistant(private val myProject: Project) : JPanel(BorderLayout()), DesignSurfaceListener {
+  var currentComponent : JComponent? = null
+
   /**
    * Interface that allows [com.android.tools.idea.uibuilder.api.ViewHandler]s providing the assistant component.
    */
@@ -38,8 +42,10 @@ class ComponentAssistant(private val myProject: Project) : JPanel(BorderLayout()
   }
 
   override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
+    removeAll()
+
     // The assistant is not available if the flag is disabled or if more than one component is selected
-    if (!NELE_WIDGET_ASSISTANT.get() || newSelection.size != 1) {
+    if (newSelection.size != 1) {
       isVisible = false
       return
     }
@@ -47,12 +53,14 @@ class ComponentAssistant(private val myProject: Project) : JPanel(BorderLayout()
     val panel = ViewHandlerManager.get(myProject)
         .getHandler(newSelection[0].tagName)?.getComponentAssistant(surface, newSelection[0])
     val component = panel?.createComponent(newSelection[0], { isVisible = false })
+    currentComponent = component
     if (component == null) {
       isVisible = false
       return
     }
-    removeAll()
     add(component, BorderLayout.CENTER)
     isVisible = component.isVisible
   }
+
+  override fun getMinimumSize(): Dimension = currentComponent?.minimumSize ?: super.getMinimumSize()
 }

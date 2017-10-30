@@ -19,9 +19,13 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,4 +187,13 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
     return ImmutableList.of(ATTR_TRANSITION_POSITION);
   }
 
+  @Nullable
+  @Override
+  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    if (!StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get() || !SdkConstants.TRANSITION_LAYOUT.equals(component.getTagName())) {
+      return null;
+    }
+
+    return (component1, close) -> new TransitionLayoutAssistantPanel(surface, component1, close);
+  }
 }
