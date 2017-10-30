@@ -27,6 +27,7 @@ import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -131,6 +132,9 @@ public final class GuiTests {
 
     GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
+
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false);
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java");
 
     FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
 
