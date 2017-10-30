@@ -310,6 +310,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     // This takes care of disposing any existing layers
     setLayers(ImmutableList.of());
     myInteractionManager.unregisterListeners();
+    if (myModel != null) {
+      myModel.getConfiguration().removeListener(myConfigurationListener);
+    }
   }
 
   /**
