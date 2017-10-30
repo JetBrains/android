@@ -20,7 +20,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -80,8 +79,9 @@ public abstract class ResourceManager {
   @Nullable
   public abstract AttributeDefinitions getAttributeDefinitions();
 
-  private void processFileResources(@NotNull ResourceFolderType folderType, @NotNull FileResourceProcessor processor,
-                                    boolean withDependencies) {
+  private void processFileResources(boolean withDependencies,
+                                    @NotNull ResourceFolderType folderType,
+                                    @NotNull FileResourceProcessor processor) {
     Multimap<String, VirtualFile> resDirs;
     if (withDependencies) {
       resDirs = getAllResourceDirs();
@@ -125,52 +125,35 @@ public abstract class ResourceManager {
 
   @NotNull
   public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceType) {
-    return findResourceFiles(resourceType, null, true);
-  }
-
-  @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceType,
-                                         @Nullable String resName,
-                                         boolean distinguishDelimetersInName,
-                                         @NotNull String... extensions) {
-    return findResourceFiles(resourceType, resName, distinguishDelimetersInName, true, extensions);
+    return findResourceFiles(resourceType, null, true, true);
   }
 
   @NotNull
   public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceFolderType,
                                          @Nullable String resName1,
                                          boolean distinguishDelimitersInName,
-                                         boolean withDependencies,
-                                         @NotNull String... extensions) {
+                                         boolean withDependencies) {
     List<PsiFile> result = new ArrayList<>();
-    Set<String> extensionSet = ImmutableSet.copyOf(extensions);
-
-    processFileResources(resourceFolderType, (resFile, resName, libraryName) -> {
-      String extension = resFile.getExtension();
-
-      if ((extensions.length == 0 || extensionSet.contains(extension)) &&
-          (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimitersInName))) {
+    processFileResources(withDependencies, resourceFolderType, (resFile, resName, libraryName) -> {
+      if ((resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimitersInName))) {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
         if (file != null) {
           result.add(file);
         }
       }
-    }, withDependencies);
+    });
     return result;
   }
 
   @NotNull
-  public <T> Multimap<String, T> findResourceFilesByLibraryName(@NotNull ResourceFolderType folderType, @NotNull Class<T> fileClass) {
-    Multimap<String, T> result = HashMultimap.create();
-    processFileResources(
-      folderType,
-      (resFile, resName, libraryName) -> {
+  protected Multimap<String, XmlFile> findResourceFilesByLibraryName(@NotNull ResourceFolderType folderType) {
+    Multimap<String, XmlFile> result = HashMultimap.create();
+    processFileResources(true, folderType, (resFile, resName, libraryName) -> {
         PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
-        if (file != null && fileClass.isInstance(file)) {
-          result.put(libraryName, fileClass.cast(file));
+        if (file instanceof XmlFile) {
+          result.put(libraryName, (XmlFile)file);
         }
-      },
-      true);
+      });
     return result;
   }
 
@@ -261,10 +244,9 @@ public abstract class ResourceManager {
   @NotNull
   private Set<String> getFileResourcesNames(@NotNull ResourceFolderType resourceType) {
     Set<String> result = new HashSet<>();
-
-    processFileResources(resourceType, (resFile, resName, libraryName) -> {
+    processFileResources(true, resourceType, (resFile, resName, libraryName) -> {
       result.add(resName);
-    }, true);
+    });
     return result;
   }
 
@@ -473,7 +455,7 @@ public abstract class ResourceManager {
     if (elements.isEmpty()) {
       ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType);
       if (folderType != null) {
-        for (PsiFile file : findResourceFiles(folderType, resName, false)) {
+        for (PsiFile file : findResourceFiles(folderType, resName, false, true)) {
           elements.add(new FileResourceElementWrapper(file));
         }
       }

@@ -117,7 +117,7 @@ public class LocalResourceManager extends ResourceManager {
           systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
       ApplicationManager.getApplication().runReadAction(() -> {
         myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
-                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
+                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES));
       });
     }
     return myAttrDefs;
@@ -224,7 +224,7 @@ public class LocalResourceManager extends ResourceManager {
     }
     ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
     if (folderType != null) {
-      targets.addAll(findResourceFiles(folderType, fieldName, false));
+      targets.addAll(findResourceFiles(folderType, fieldName, false, true));
     }
     for (ResourceElement element : findValueResources(resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());
