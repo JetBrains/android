@@ -197,11 +197,8 @@ public class MethodSet extends ClassifierSet {
       }
 
       assert myMethodId != INVALID_METHOD_ID;
-      StackFrameInfoResponse frameInfo = myCaptureObject.getClient().getStackFrameInfo(
-        StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId()).setSession(myCaptureObject.getSession())
-          .setMethodId(myMethodId).build()
-      );
-
+      StackFrameInfoResponse frameInfo = myCaptureObject.getStackFrameInfoResponse(myMethodId);
+      assert frameInfo != null;
       myClassName = frameInfo.getClassName();
       myMethodName = frameInfo.getMethodName();
       myResolvedNames = true;
