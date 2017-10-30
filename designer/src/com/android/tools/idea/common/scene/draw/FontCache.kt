@@ -18,13 +18,14 @@ package com.android.tools.idea.common.scene.draw
 import com.google.common.cache.CacheBuilder
 import java.awt.Font
 import java.awt.geom.AffineTransform
-import java.util.concurrent.ExecutionException
+import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
 
 object FontCache {
   val SCALE_ADJUST = .88f // a factor to scale fonts from android to Java2d
   val DEFAULT_NAME = "Helvetica"
   val DEFAULT_STYLE = Font.PLAIN
+  val FORMATTER = DecimalFormat("###.00")
 
   private val ourFontCache = CacheBuilder.newBuilder()
       .maximumSize(100)
@@ -32,17 +33,12 @@ object FontCache {
       .build<String, Font>()
 
   fun getFont(size: Int, scale: Float): Font {
-    val key = size.toString() + ' ' + scale
+    val key = FORMATTER.format(scale * size)
 
     // Convert to swing size font
-    try {
-      return ourFontCache.get(key) {
-        Font(DEFAULT_NAME, DEFAULT_STYLE, size)
-            .deriveFont(AffineTransform.getScaleInstance((scale * SCALE_ADJUST).toDouble(), (scale * SCALE_ADJUST).toDouble()))
-      }
-    }
-    catch (e: ExecutionException) {
-      throw RuntimeException(e)
+    return ourFontCache.get(key) {
+      Font(DEFAULT_NAME, DEFAULT_STYLE, size)
+          .deriveFont(AffineTransform.getScaleInstance((scale * SCALE_ADJUST).toDouble(), (scale * SCALE_ADJUST).toDouble()))
     }
   }
 }
