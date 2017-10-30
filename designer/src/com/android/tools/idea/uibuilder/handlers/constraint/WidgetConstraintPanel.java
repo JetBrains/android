@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -23,8 +23,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;

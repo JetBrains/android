@@ -39,7 +39,6 @@
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="eclipse" />
     <orderEntry type="module" module-name="external-system-api" />
-    <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
@@ -72,7 +71,6 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
-    <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="binary-resources" />

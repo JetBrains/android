@@ -23,8 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.sherpa.drawing.ColorSet;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;

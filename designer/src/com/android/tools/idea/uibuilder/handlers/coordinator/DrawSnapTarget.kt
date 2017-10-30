@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawRegion
-import com.android.tools.sherpa.animation.Animation
+import com.android.tools.idea.uibuilder.handlers.constraint.animation.Animation
 import java.awt.Color
 import java.awt.Graphics2D
 

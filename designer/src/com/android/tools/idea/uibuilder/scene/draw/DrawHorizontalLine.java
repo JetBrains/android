@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionU
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import java.awt.*;
 

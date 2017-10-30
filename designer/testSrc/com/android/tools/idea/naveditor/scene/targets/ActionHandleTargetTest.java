@@ -23,10 +23,8 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.naveditor.scene.draw.DrawColor;
-import com.android.tools.sherpa.drawing.ColorSet;
 import junit.framework.TestCase;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 import static org.mockito.Mockito.*;

@@ -12,8 +12,6 @@
     <orderEntry type="module" module-name="core-api" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="sherpa-solver" />
-    <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="module" module-name="xml-psi-api" />
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="module" module-name="pixelprobe" />

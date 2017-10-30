@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
