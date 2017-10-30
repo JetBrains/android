@@ -20,8 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.scene.NavColorSet
-import com.android.tools.sherpa.drawing.ColorSet
-import java.awt.Color
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import java.awt.Dimension
 
 /**

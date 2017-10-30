@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
 import com.intellij.ui.JBColor;
 
 /**

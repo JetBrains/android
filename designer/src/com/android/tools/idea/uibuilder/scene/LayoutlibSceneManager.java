@@ -89,7 +89,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private MergingUpdateQueue myRenderingQueue;
   private static final int RENDER_DELAY_MS = 10;
   private RenderTask myRenderTask;
-  private static final Object RENDERING_LOCK = new Object();
+  public static final Object RENDERING_LOCK = new Object();
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")

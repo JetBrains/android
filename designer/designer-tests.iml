@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="pixelprobe" scope="TEST" />
-    <orderEntry type="module" module-name="sherpa-ui" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="analytics-protos" scope="TEST" />

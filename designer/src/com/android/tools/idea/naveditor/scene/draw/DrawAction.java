@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 

@@ -22,7 +22,7 @@ import com.android.resources.LayoutDirection;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.sherpa.drawing.decorator.TextWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
