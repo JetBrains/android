@@ -97,8 +97,12 @@ public class AndroidGradleTests {
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
     String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
-    newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
-    newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    if (TestUtils.runningFromBazel()) {
+      // only remove google() and jcenter() repositories if tests run in Bazel, because the sandbox will make tests fail with
+      // Gradle 4.2+
+      newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+      newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    }
     return newContents;
   }
 
@@ -111,7 +115,8 @@ public class AndroidGradleTests {
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       prebuiltsRepoDir = new File(tmp, path);
-    } else {
+    }
+    else {
       prebuiltsRepoDir = getWorkspaceFile(path);
     }
     String uri = prebuiltsRepoDir.toURI().toString();
