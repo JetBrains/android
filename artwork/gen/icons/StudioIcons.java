@@ -397,6 +397,14 @@ public class StudioIcons {
       public static final Icon WRAP_HEIGHT = load("/studio/icons/layout-editor/toolbar/wrap-height.png"); // 16x16
       public static final Icon WRAP_WIDTH = load("/studio/icons/layout-editor/toolbar/wrap-width.png"); // 16x16
     }
+
+    public static class Animations {
+      public static final Icon PLAY = load("/studio/icons/layout-editor/anim/play_arrow.png");
+      public static final Icon STOP = load("/studio/icons/layout-editor/anim/stop.png");
+      public static final Icon PAUSE = load("/studio/icons/layout-editor/anim/pause.png");
+      public static final Icon STEP_FWD = load("/studio/icons/layout-editor/anim/skip_next.png");
+      public static final Icon STEP_BCK = load("/studio/icons/layout-editor/anim/skip_previous.png");
+    }
   }
 
   public static class Logcat {
