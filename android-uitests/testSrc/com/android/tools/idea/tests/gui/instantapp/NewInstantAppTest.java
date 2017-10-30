@@ -207,6 +207,24 @@ public class NewInstantAppTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68478730
+  public void addMasterDetailActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_item_detail");
+    assertThat(baseStrings).contains("title_item_list");
+  }
+
   @Test
   public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
     createAndOpenDefaultAIAProject("RouteApp", "routefeature", null);
