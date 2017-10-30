@@ -82,8 +82,8 @@ public class ScoutTest9 extends SceneTest {
                  "        android:id=\"@+id/textView\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:layout_marginLeft=\"16dp\"\n" +
                  "        android:layout_marginStart=\"16dp\"\n" +
+                 "        android:layout_marginLeft=\"16dp\"\n" +
                  "        android:layout_marginTop=\"208dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
@@ -92,8 +92,8 @@ public class ScoutTest9 extends SceneTest {
                  "        android:id=\"@+id/textView2\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:layout_marginLeft=\"16dp\"\n" +
                  "        android:layout_marginStart=\"16dp\"\n" +
+                 "        android:layout_marginLeft=\"16dp\"\n" +
                  "        android:layout_marginTop=\"31dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/textView\" />\n" +
