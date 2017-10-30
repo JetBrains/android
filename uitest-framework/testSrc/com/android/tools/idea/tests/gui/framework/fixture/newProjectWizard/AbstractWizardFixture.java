@@ -53,7 +53,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   @NotNull
   public S clickFinish() {
     findAndClickButtonWhenEnabled(this, "Finish");
-    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    Wait.seconds(10).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myself();
   }
 
