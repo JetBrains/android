@@ -13,25 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.instructions;
+package com.android.tools.adtui.model.updater;
 
+import com.android.tools.adtui.model.StopwatchTimer;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Instruction to create a new row; this has the effect of moving the cursor back to the left.
- */
-public final class NewRowInstruction extends RenderInstruction {
-  private final int myVerticalMargin;
+public class FakeUpdater extends Updater {
+  private List<Updatable> myUpdatables;
 
-  public NewRowInstruction(int verticalMargin) {
-    myVerticalMargin = verticalMargin;
+  public FakeUpdater(@NotNull StopwatchTimer timer) {
+    super(timer);
+    myUpdatables = new ArrayList<>();
   }
 
   @Override
-  public void moveCursor(@NotNull InstructionsRenderer renderer, @NotNull Point cursor) {
-    cursor.y += renderer.getRowHeight() + myVerticalMargin;
-    cursor.x = renderer.getStartX(cursor.y);
+  public void register(Updatable updatable) {
+    super.register(updatable);
+    myUpdatables.add(updatable);
+  }
+
+  @Override
+  public void unregister(@NotNull Updatable updatable) {
+    super.unregister(updatable);
+    myUpdatables.remove(updatable);
+  }
+
+  public List<Updatable> getUpdatables() {
+    return myUpdatables;
   }
 }

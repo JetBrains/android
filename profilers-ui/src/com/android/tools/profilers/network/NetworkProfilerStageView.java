@@ -18,6 +18,8 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
@@ -215,6 +217,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
                                                               ProfilerLayeredPane.class);
     tooltip.registerListenersOn(selection);
 
+    if (!getStage().hasUserUsedNetworkSelection()) {
+      installProfilingInstructions(monitorPanel);
+    }
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
@@ -225,6 +230,16 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
 
     return panel;
+  }
+
+  private void installProfilingInstructions(@NotNull JPanel parent) {
+    assert parent.getLayout().getClass() == TabularLayout.class;
+    InstructionsPanel panel =
+      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect network details"))
+        .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+        .build();
+    parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 
   private void updateConnectionDetailsView() {

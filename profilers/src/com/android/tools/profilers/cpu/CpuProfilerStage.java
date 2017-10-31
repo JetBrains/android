@@ -50,6 +50,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
+  @VisibleForTesting static final String HAS_USED_CPU_CAPTURE = "profiler.used.cpu.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
@@ -87,6 +88,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final DurationDataModel<CpuTraceInfo> myTraceDurations;
   private final EventMonitor myEventMonitor;
   private final SelectionModel mySelectionModel;
+  private final EaseOutModel myInstructionsEaseOutModel;
 
   /**
    * {@link DurationDataModel} used when a trace recording in progress.
@@ -236,6 +238,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
     });
 
+    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
+
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     updateProfilingState();
     updateProfilingConfigurations();
@@ -249,9 +253,18 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return Logger.getInstance(CpuProfilerStage.class);
   }
 
+  public boolean hasUserUsedCpuCapture() {
+    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_CPU_CAPTURE, false);
+  }
+
   @NotNull
   public SelectionModel getSelectionModel() {
     return mySelectionModel;
+  }
+
+  @NotNull
+  public EaseOutModel getInstructionsEaseOutModel() {
+    return myInstructionsEaseOutModel;
   }
 
   public AxisComponentModel getCpuUsageAxis() {
@@ -284,7 +297,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     if (type != null) {
       myTooltip = type.build(this);
-    } else {
+    }
+    else {
       myTooltip = null;
     }
 
@@ -383,6 +397,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(response -> this.startCapturingCallback(response, myProfilingConfiguration),
                        getStudioProfilers().getIdeServices().getMainExecutor());
+
+    getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
+    myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
   private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response,
@@ -510,9 +527,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     List<CpuProfiler.Thread> threads = new ArrayList<>();
     for (CpuThreadInfo thread : capture.getThreads()) {
       threads.add(CpuProfiler.Thread.newBuilder()
-                          .setTid(thread.getId())
-                          .setName(thread.getName())
-                          .build());
+                    .setTid(thread.getId())
+                    .setName(thread.getName())
+                    .build());
     }
 
     CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
@@ -726,7 +743,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
     };
     Profiler.Device selectedDevice = getStudioProfilers().getDevice();
-    boolean isDeviceAtLeastO =  selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
+    boolean isDeviceAtLeastO = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
     getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilingConfiguration, isDeviceAtLeastO, dialogCallback);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }
@@ -906,7 +923,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       @NotNull
       private final Function<CpuProfilerStage, Tooltip> myBuilder;
 
-      Type(@NotNull Function<CpuProfilerStage, Tooltip>  builder) {
+      Type(@NotNull Function<CpuProfilerStage, Tooltip> builder) {
         myBuilder = builder;
       }
 

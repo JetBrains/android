@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -34,6 +35,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
@@ -49,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.adtui.instructions.InstructionsPanel.Builder.DEFAULT_PADDING_Y_PX;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
@@ -408,6 +411,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    if (!getStage().hasUserUsedMemoryCapture()) {
+      installProfilingInstructions(monitorPanel);
+    }
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
@@ -419,6 +425,39 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
     return panel;
+  }
+
+  private void installProfilingInstructions(@NotNull JPanel parent) {
+    assert parent.getLayout().getClass() == TabularLayout.class;
+    RenderInstruction[] instructions;
+    if (getStage().useLiveAllocationTracking()) {
+      RenderInstruction[] liveAllocInstructions = {
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect allocations"),
+        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or click  "),
+        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+      };
+      instructions = liveAllocInstructions;
+    }
+    else {
+      RenderInstruction[] legacyInstructions = {
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Click  "),
+        new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, " to record allocations"),
+        new NewRowInstruction(DEFAULT_PADDING_Y_PX),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "or  "),
+        new IconInstruction(StudioIcons.Profiler.Toolbar.HEAP_DUMP, PROFILING_INSTRUCTIONS_ICON_PADDING, JBColor.background()),
+        new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "  for heap dump")
+      };
+      instructions = legacyInstructions;
+    }
+
+    InstructionsPanel panel = new InstructionsPanel.Builder(instructions)
+      .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC, PROFILING_INSTRUCTIONS_BACKGROUND_ARC)
+      .build();
+    parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 
   @NotNull

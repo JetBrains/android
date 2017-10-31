@@ -936,8 +936,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.ART,
-                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
@@ -1012,6 +1012,15 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(timeline.isStreaming()).isTrue();
     startCapturingSuccess();
     assertThat(timeline.isStreaming()).isTrue();
+  }
+
+  @Test
+  public void testHasUserUsedCapture() {
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
+    startCapturing();
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

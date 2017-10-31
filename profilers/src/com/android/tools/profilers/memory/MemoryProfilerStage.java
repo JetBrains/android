@@ -53,6 +53,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
+  @VisibleForTesting static final String HAS_USED_MEMORY_CAPTURE = "profiler.used.memory.capture";
+
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
@@ -66,6 +68,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final AxisComponentModel myObjectsAxis;
   private final MemoryStageLegends myLegends;
   private final MemoryStageLegends myTooltipLegends;
+  private final EaseOutModel myInstructionsEaseOutModel;
 
   private final int myProcessId;
   @Nullable
@@ -128,6 +131,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
 
+    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
+
     myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
@@ -141,6 +146,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       public void selectionCreated() {
         selectCaptureFromSelectionRange();
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        profilers.getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+        myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
       @Override
@@ -150,6 +157,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     });
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+  }
+
+  public boolean hasUserUsedMemoryCapture() {
+    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_MEMORY_CAPTURE, false);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -314,6 +325,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     getStudioProfilers().getTimeline().setStreaming(true);
+    getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+    myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
   public void forceGarbageCollection() {
@@ -366,6 +379,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     if (myTrackingAllocations) {
       getStudioProfilers().getTimeline().setStreaming(true);
+      getStudioProfilers().getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
+      myInstructionsEaseOutModel.setCurrentPercentage(1);
     }
   }
 
@@ -553,6 +568,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public MemoryStageLegends getTooltipLegends() {
     return myTooltipLegends;
+  }
+
+  @NotNull
+  public EaseOutModel getInstructionsEaseOutModel() {
+    return myInstructionsEaseOutModel;
   }
 
   public EventMonitor getEventMonitor() {

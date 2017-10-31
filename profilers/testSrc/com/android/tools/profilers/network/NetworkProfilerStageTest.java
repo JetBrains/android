@@ -82,7 +82,7 @@ public class NetworkProfilerStageTest {
   public void getConnectionsModel() {
     List<HttpData> dataList = myStage.getConnectionsModel().getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
     assertEquals(1, dataList.size());
-    HttpData data= dataList.get(0);
+    HttpData data = dataList.get(0);
     assertEquals(FAKE_HTTP_DATA.get(0).getStartTimeUs(), data.getStartTimeUs());
     assertEquals(FAKE_HTTP_DATA.get(0).getDownloadingTimeUs(), data.getDownloadingTimeUs());
     assertEquals(FAKE_HTTP_DATA.get(0).getEndTimeUs(), data.getEndTimeUs());
@@ -337,7 +337,9 @@ public class NetworkProfilerStageTest {
     ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
       compressor.write(input.getBytes());
-    } catch (IOException ignored) {}
+    }
+    catch (IOException ignored) {
+    }
     return ByteString.copyFrom(byteOutputStream.toByteArray());
   }
 
@@ -406,5 +408,15 @@ public class NetworkProfilerStageTest {
     myStage.getSelectionModel().set(100, 200);
     assertEquals(0, selection.getMin(), EPSILON);
     assertEquals(100, selection.getMax(), EPSILON);
+  }
+
+  @Test
+  public void testHasUserUsedSelection() {
+    assertEquals(0, myStage.getInstructionsEaseOutModel().getPercentageComplete(), 0);
+    assertFalse(myStage.hasUserUsedNetworkSelection());
+    myStage.getSelectionModel().setSelectionEnabled(true);
+    myStage.getSelectionModel().set(0, 100);
+    assertEquals(1, myStage.getInstructionsEaseOutModel().getPercentageComplete(), 0);
+    assertTrue(myStage.hasUserUsedNetworkSelection());
   }
 }
