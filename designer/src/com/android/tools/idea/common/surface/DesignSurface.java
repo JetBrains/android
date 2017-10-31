@@ -276,7 +276,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       model.getConfiguration().addListener(myConfigurationListener);
       mySceneManager = createSceneManager(model);
       mySceneManager.addRenderListener(this::modelRendered);
-      myScene = mySceneManager.build();
+      myScene = mySceneManager.getScene();
     }
     else {
       myScene = null;

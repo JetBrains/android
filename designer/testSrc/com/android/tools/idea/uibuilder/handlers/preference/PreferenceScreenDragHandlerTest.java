@@ -137,7 +137,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   @NotNull
   private PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull SyncNlModel model) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     ViewEditor editor = editor(screenFixture.getScreen());

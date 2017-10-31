@@ -489,7 +489,7 @@ public class NavSceneTest extends NavigationTestCase {
       }
     }.execute();
     NavSceneManager manager = new NavSceneManager(model, (NavDesignSurface)model.getSurface());
-    Scene scene = manager.build();
+    Scene scene = manager.getScene();
 
     assertTrue(scene.getSceneComponent("myId").isSelected());
   }

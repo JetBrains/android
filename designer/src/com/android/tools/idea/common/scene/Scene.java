@@ -121,12 +121,12 @@ public class Scene implements SelectionListener, Disposable {
 
   private FilterType myFilterTarget = FilterType.NONE;
 
-  public Scene(@NotNull Disposable parentDisposable, @NotNull DesignSurface surface) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
-    mySceneManager = myDesignSurface.getSceneManager();
+    mySceneManager = sceneManager;
     myDesignSurface.getSelectionModel().addListener(this);
 
-    Disposer.register(parentDisposable, this);
+    Disposer.register(sceneManager, this);
   }
 
   @Override
