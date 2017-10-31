@@ -40,12 +40,6 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   private final Range myPreviousSelectionRange;
 
-  /**
-   * The reference range.
-   */
-  @NotNull
-  private final Range myRange;
-
   @NotNull
   private final List<SelectionListener> myListeners = new ArrayList<>();
 
@@ -60,14 +54,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private boolean myIsUpdating;
   private boolean myPostponeSelectionEvent;
 
-  public SelectionModel(@NotNull Range selection, @NotNull Range range) {
-    myRange = range;
+  public SelectionModel(@NotNull Range selection) {
     mySelectionRange = selection;
     myPreviousSelectionRange = new Range(mySelectionRange);
     mySelectionEnabled = true;
 
-    myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
-    mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
+    mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
     myConstraints = new ArrayList<>();
   }
 
@@ -107,6 +99,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     else if (!myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
       event = SelectionListener::selectionCleared;
     }
+    else if (myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
+      event = SelectionListener::selectionCreationFailure;
+    }
 
     myPreviousSelectionRange.set(mySelectionRange);
     if (event != null) {
@@ -114,7 +109,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     }
   }
 
-  private void rangesChanged() {
+  private void selectionChanged() {
     changed(Aspect.SELECTION);
     fireListeners();
   }
@@ -192,6 +187,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     }
     if (resultRange == null) {
       mySelectionRange.clear();
+      if (myPreviousSelectionRange.isEmpty()) {
+        selectionChanged();
+      }
     }
     else if (!mySelectionRange.equals(resultRange)) {
       // In this case, we're completely replacing the existing selection with a brand new selection.
@@ -209,11 +207,6 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   public Range getSelectionRange() {
     return mySelectionRange;
-  }
-
-  @NotNull
-  public Range getRange() {
-    return myRange;
   }
 
   /**

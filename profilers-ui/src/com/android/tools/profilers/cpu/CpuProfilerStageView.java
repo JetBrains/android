@@ -84,6 +84,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private JPanel myTooltip;
 
+  /**
+   * Panel to let user know to take a capture.
+   */
+  @NotNull private final InfoMessagePanel myHelpTipInfoMessagePanel;
+
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CpuProfilerStage.Tooltip, ProfilerTooltipView> myTooltipBinder;
 
@@ -93,7 +98,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myStage = stage;
 
     stage.getAspect().addDependency(this)
-      .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
+      .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
+      .onChange(CpuProfilerAspect.CAPTURE_SELECTION, this::updateCaptureSelection)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
       .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
       .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
@@ -137,7 +143,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
@@ -287,6 +293,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
     details.add(scrollbar, new TabularLayout.Constraint(4, 0));
+
+    myHelpTipInfoMessagePanel = new InfoMessagePanel("Details unavailable", "Click the record button to start CPU profiling or select a capture in the timeline.", null);
 
     mySplitter = new JBSplitter(true);
     mySplitter.setFirstComponent(details);
@@ -507,12 +515,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Stopping record...");
         myCaptureButton.setToolTipText("");
+        break;
     }
+  }
+
+  private void updateCaptureSelection() {
+    updateCaptureState();
     CpuCapture capture = myStage.getCapture();
     if (capture == null) {
       // If the capture is still being parsed, the splitter second component should be myCaptureViewLoading
       if (myStage.getCaptureState() != CpuProfilerStage.CaptureState.PARSING) {
-        mySplitter.setSecondComponent(null);
+        if (myStage.isSelectionFailure()) {
+          mySplitter.setSecondComponent(myHelpTipInfoMessagePanel);
+        }
+        else {
+          mySplitter.setSecondComponent(null);
+        }
       }
       myCaptureView = null;
     }
@@ -545,7 +563,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       CpuThreadsModel.RangedCpuThread thread = myThreads.getModel().getElementAt(i);
       if (myStage.getSelectedThread() == thread.getThreadId()) {
         myThreads.setSelectedIndex(i);
+        break;
       }
+    }
+
+    if (myStage.getSelectedThread() != CaptureModel.NO_THREAD && myStage.isSelectionFailure()) {
+      // If the help tip info panel is already showing and the user clears thread selection, we'll leave the panel showing.
+      mySplitter.setSecondComponent(myHelpTipInfoMessagePanel);
     }
   }
 

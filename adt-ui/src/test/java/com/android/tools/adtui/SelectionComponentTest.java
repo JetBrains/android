@@ -31,8 +31,8 @@ public class SelectionComponentTest {
 
   @Test
   public void clickingInViewRangeCreatesPointSelectionRange() {
-    SelectionModel model = new SelectionModel(new Range(), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range());
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     assertTrue(model.getSelectionRange().isEmpty());
     new FakeUi(component).mouse.click(20, 0);
@@ -42,8 +42,8 @@ public class SelectionComponentTest {
 
   @Test
   public void clickingOutsideOfSelectionCreatesNewSelection() {
-    SelectionModel model = new SelectionModel(new Range(20, 40), new Range(20, 120));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(20, 40));
+    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
@@ -54,8 +54,8 @@ public class SelectionComponentTest {
 
   @Test
   public void pressingEscapeClearsSelection() {
-    SelectionModel model = new SelectionModel(new Range(40, 60), new Range(20, 120));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(40, 60));
+    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(60, model.getSelectionRange().getMax(), DELTA);
@@ -68,14 +68,14 @@ public class SelectionComponentTest {
   @Test
   public void selectionModelReceivesMouseClick() {
     int[] event = new int[1];
-    SelectionModel model = new SelectionModel(new Range(), new Range(20, 120));
+    SelectionModel model = new SelectionModel(new Range());
     model.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
         event[0] = 1;
       }
     });
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(50, 0);
@@ -86,8 +86,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragMinHandleToLowerValue() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
@@ -100,8 +100,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragMaxHandleToHigherValue() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
@@ -114,8 +114,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragSelectionToPan() {
-    SelectionModel model = new SelectionModel(new Range(40, 50), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(40, 50));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(45, 0);
@@ -128,8 +128,8 @@ public class SelectionComponentTest {
 
   @Test
   public void draggingMinHandleAboveMaxHandleSwapsThem() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
@@ -142,8 +142,8 @@ public class SelectionComponentTest {
 
   @Test
   public void draggingMaxHandleBelowMinHandleSwapsThem() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
@@ -156,8 +156,8 @@ public class SelectionComponentTest {
 
   @Test
   public void leftKeyUpdatesModel() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);
@@ -176,8 +176,8 @@ public class SelectionComponentTest {
 
   @Test
   public void rightKeyUpdatesModel() {
-    SelectionModel model = new SelectionModel(new Range(10, 20), new Range(0, 100));
-    SelectionComponent component = new SelectionComponent(model);
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);

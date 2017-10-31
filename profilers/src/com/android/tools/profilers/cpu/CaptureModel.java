@@ -90,7 +90,7 @@ class CaptureModel {
       setThread(NO_THREAD);
     }
     rebuildDetails();
-    myStage.getAspect().changed(CpuProfilerAspect.CAPTURE);
+    myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_SELECTION);
   }
 
   @Nullable
