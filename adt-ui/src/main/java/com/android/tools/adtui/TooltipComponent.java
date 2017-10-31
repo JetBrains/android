@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
+import com.intellij.util.Producer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,29 +32,62 @@ public final class TooltipComponent extends AnimatedComponent {
   @NotNull
   private final Component myOwner;
 
+  /**
+   * Provided for tests, since in tests we can't create JFrames (they would throw a headless
+   * exception), so calling {@code myOwner.isDisplayble()} directly would always return false.
+   */
+  @NotNull
+  private final Producer<Boolean> myIsOwnerDisplayable;
+
   @Nullable
   private Point myLastPoint;
 
   private final ComponentListener myParentListener;
 
   @Nullable
-  private Class<? extends JLayeredPane> myPreferredParent;
+  private Class<? extends JLayeredPane> myPreferredParentClass;
 
-  public TooltipComponent(@NotNull Component content, @NotNull Component owner, @Nullable Class<? extends JLayeredPane> preferredParent) {
+  /**
+   * Construct a tooltip component to show for a particular {@code owner}. After
+   * construction, you should also use {@link #registerListenersOn(Component)} to ensure the
+   * tooltip will show up on mouse movement.
+   *
+   * @param owner                The suggested owner for this tooltip. The tooltip will walk up the
+   *                             tree from this owner searching for a proper place to add itself.
+   * @param preferredParentClass If not {@code null}, the type of pane to use as this tooltip's
+   *                             parent (useful if you have a specific parent pane in mind)
+   */
+  public TooltipComponent(@NotNull Component content,
+                          @NotNull Component owner,
+                          @Nullable Class<? extends JLayeredPane> preferredParentClass) {
+    this(content, owner, preferredParentClass, owner::isDisplayable);
+  }
+
+  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
+    this(content, owner, null);
+  }
+
+  @VisibleForTesting
+  TooltipComponent(@NotNull Component content,
+                   @NotNull Component owner,
+                   @Nullable Class<? extends JLayeredPane> preferredParentClass,
+                   @NotNull Producer<Boolean> isOwnerDisplayable) {
     myContent = content;
     myOwner = owner;
-    myPreferredParent = preferredParent;
+    myIsOwnerDisplayable = isOwnerDisplayable;
+    myPreferredParentClass = preferredParentClass;
     add(content);
-    recomputeParent();
+    removeFromParent();
 
-    owner.addHierarchyListener(event -> {
-      if (!owner.isDisplayable()) {
+    // Note: invokeLater here is important in order to avoid modifying the hierarchy during a
+    // hierarchy event.
+    // We usually handle tooltip removal on mouseexit, but we add this here for possible edge
+    // cases.
+    owner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
+      if (!myIsOwnerDisplayable.produce()) {
         removeFromParent();
       }
-      else {
-        recomputeParent();
-      }
-    });
+    }));
 
     myParentListener = new ComponentAdapter() {
       @Override
@@ -67,25 +102,24 @@ public final class TooltipComponent extends AnimatedComponent {
     };
   }
 
-  public TooltipComponent(@NotNull Component content, @NotNull Component owner) {
-    this(content, owner, null);
-  }
-
   private void recomputeParent() {
-    Component parent = myOwner;
-    JLayeredPane layeredPane = null;
+    if (!myIsOwnerDisplayable.produce()) {
+      // No need to walk ancestors if the owner has been removed from the hierarchy
+      removeFromParent();
+      return;
+    }
 
-    while (parent != null) {
-      if (parent instanceof JLayeredPane) {
-        layeredPane = (JLayeredPane)parent;
-        if (parent.getClass() == myPreferredParent) {
+    JLayeredPane layeredPane = null;
+    for (Component c : new TreeWalker(myOwner).ancestors()) {
+      if (c instanceof JLayeredPane) {
+        layeredPane = (JLayeredPane)c;
+        if (c.getClass() == myPreferredParentClass) {
           break;
         }
       }
-      else if (parent instanceof RootPaneContainer) {
-        layeredPane = ((RootPaneContainer)parent).getLayeredPane();
+      else if (c instanceof RootPaneContainer) {
+        layeredPane = ((RootPaneContainer)c).getLayeredPane();
       }
-      parent = parent.getParent();
     }
 
     if (layeredPane == getParent()) {
@@ -99,6 +133,7 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   private void removeFromParent() {
+    setVisible(false);
     if (getParent() != null) {
       getParent().removeComponentListener(myParentListener);
       getParent().remove(this);
@@ -106,6 +141,7 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   private void setParent(@NotNull JLayeredPane parent) {
+    setVisible(true);
     parent.add(this, JLayeredPane.POPUP_LAYER);
     parent.addComponentListener(myParentListener);
     setBounds();
@@ -129,6 +165,9 @@ public final class TooltipComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         myLastPoint = null;
+        if (isVisible()) {
+          removeFromParent();
+        }
         opaqueRepaint();
       }
 
@@ -138,6 +177,9 @@ public final class TooltipComponent extends AnimatedComponent {
       }
 
       private void handleMove(MouseEvent e) {
+        if (!isVisible()) {
+          recomputeParent();
+        }
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
         opaqueRepaint();
       }
@@ -148,11 +190,7 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myLastPoint == null) {
-      myContent.setVisible(false);
-      return;
-    }
-    myContent.setVisible(true);
+    assert myLastPoint != null; // If we're visible, myLastPoint is not null
 
     Dimension size = myContent.getPreferredSize();
     Dimension minSize = myContent.getMinimumSize();
