@@ -35,6 +35,7 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
@@ -126,16 +127,16 @@ public class ThreadsViewTest {
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
-    assertThat(table.convertRowIndexToModel(0), is(0));
-    assertThat(table.convertRowIndexToModel(1), is(1));
-    assertThat(table.convertRowIndexToModel(2), is(2));
-    assertThat(table.convertRowIndexToModel(3), is(3));
+    assertThat(table.getValueAt(0, 0), is("threadA"));
+    assertThat(table.getValueAt(1, 0), is("threadB"));
+    assertThat(table.getValueAt(2, 0), is("threadC"));
+    assertThat(table.getValueAt(3, 0), is("threadC"));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
-    assertThat(table.convertRowIndexToModel(0), is(2));
-    assertThat(table.convertRowIndexToModel(1), is(3));
-    assertThat(table.convertRowIndexToModel(2), is(1));
-    assertThat(table.convertRowIndexToModel(3), is(0));
+    assertThat(table.getValueAt(0, 0), is("threadC"));
+    assertThat(table.getValueAt(1, 0), is("threadC"));
+    assertThat(table.getValueAt(2, 0), is("threadB"));
+    assertThat(table.getValueAt(3, 0), is("threadA"));
   }
 
   @Test
@@ -146,16 +147,21 @@ public class ThreadsViewTest {
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
-    assertThat(table.convertRowIndexToModel(0), is(0));
-    assertThat(table.convertRowIndexToModel(1), is(1));
-    assertThat(table.convertRowIndexToModel(2), is(2));
-    assertThat(table.convertRowIndexToModel(3), is(3));
+    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(0L));
+    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
-    assertThat(table.convertRowIndexToModel(0), is(3));
-    assertThat(table.convertRowIndexToModel(1), is(2));
-    assertThat(table.convertRowIndexToModel(2), is(1));
-    assertThat(table.convertRowIndexToModel(3), is(0));
+    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
+    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(0L));
+  }
+
+  private static HttpData getFirstHttpDataAtRow(JTable table, int row) {
+    List<HttpData> data = (List<HttpData>)table.getValueAt(row, 1);
+    return data.get(0);
   }
 
   @Test
