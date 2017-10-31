@@ -110,4 +110,11 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
       .map(this::createComponentFixture)
       .collect(Collectors.toList());
   }
+
+  /**
+   * Zooms and pans the designer to ensure all components are visible
+   */
+  public void zoomToFit() {
+    target().zoomToFit();
+  }
 }
