@@ -91,7 +91,7 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
-  public static final Color CPU_THREADS_TOOLTIP_TIME_COLOR = new JBColor(0xACACAC, 0x838485);
+  public static final Color TOOLTIP_TIME_COLOR = new JBColor(0xACACAC, 0x838485);
 
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 
@@ -165,11 +165,7 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
-  public static final Color NETWORK_THREADS_TABLE_SENDING = new JBColor(0xF1B34D, 0xF1B34D);
-
-  public static final Color NETWORK_THREADS_TABLE_RECEIVING = new JBColor(0x6E98F6, 0x6E98F6);
-
-  public static final Color NETWORK_THREADS_TABLE_WARNING = new JBColor(0xD32626, 0xD32626);
+  public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x999999);
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 

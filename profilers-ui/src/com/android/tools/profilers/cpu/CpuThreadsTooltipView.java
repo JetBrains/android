@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
 import com.intellij.ui.ColorUtil;
@@ -51,7 +50,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
       myHeadingLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
                                            title,
-                                           ColorUtil.toHex(ProfilerColors.CPU_THREADS_TOOLTIP_TIME_COLOR),
+                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
                                            time));
       updateMaximumLabelDimensions();
     } else {
