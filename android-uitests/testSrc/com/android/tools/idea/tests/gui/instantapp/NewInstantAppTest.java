@@ -225,6 +225,24 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_item_list");
   }
 
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68684401
+  public void addFullscreenActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_activity_fullscreen");
+  }
+
   @Test
   public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
     createAndOpenDefaultAIAProject("RouteApp", "routefeature", null);
