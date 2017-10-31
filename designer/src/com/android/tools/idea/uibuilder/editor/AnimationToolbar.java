@@ -51,14 +51,13 @@ public class AnimationToolbar extends Box implements Disposable {
   private final long myTickStepMs;
 
   private final long myMinTimeMs;
-  private long myMaxTimeMs;
-
   /**
    * Slider that allows stepping frame by frame at different speeds
    */
   private final JSlider myFrameControl;
   @Nullable private final DefaultBoundedRangeModel myTimeSliderModel;
   private final ChangeListener myTimeSliderChangeModel;
+  private long myMaxTimeMs;
   private boolean myLoopEnabled = true;
   /**
    * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)
@@ -69,10 +68,11 @@ public class AnimationToolbar extends Box implements Disposable {
 
   /**
    * Constructs a new AnimationToolbar
+   *
    * @param parentDisposable Parent {@link Disposable}
-   * @param listener {@link AnimationListener} that will be called in every tick
-   * @param tickStepMs Number of milliseconds to advance in every animator tick
-   * @param minTimeMs Start milliseconds for the animation
+   * @param listener         {@link AnimationListener} that will be called in every tick
+   * @param tickStepMs       Number of milliseconds to advance in every animator tick
+   * @param minTimeMs        Start milliseconds for the animation
    * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
   private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
@@ -119,11 +119,16 @@ public class AnimationToolbar extends Box implements Disposable {
 
       myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
       myTimeSliderChangeModel = e -> {
-        long newPositionMs = (long)(myMaxTimeMs * (myTimeSliderModel.getValue() / 100f));
-        long elapsed = newPositionMs - myFramePositionMs;
-        onTick(elapsed);
+        long newPositionMs = (long)((myMaxTimeMs - myMinTimeMs) * (myTimeSliderModel.getValue() / 100f));
+        seek(newPositionMs);
       };
-      JSlider timeSlider = new JSlider(0, 100, 0);
+      JSlider timeSlider = new JSlider(0, 100, 0) {
+        @Override
+        public void updateUI() {
+          setUI(new AnimationToolbarSliderUI(this));
+          updateLabelUIs();
+        }
+      };
       timeSlider.setBorder(IdeBorderFactory.createEmptyBorder(5, 0, 5, 0));
       timeSlider.setMajorTickSpacing(10);
       timeSlider.setPaintTicks(true);
@@ -173,10 +178,11 @@ public class AnimationToolbar extends Box implements Disposable {
 
   /**
    * Constructs a new AnimationToolbar
+   *
    * @param parentDisposable Parent {@link Disposable}
-   * @param listener {@link AnimationListener} that will be called in every tick
-   * @param tickStepMs Number of milliseconds to advance in every animator tick
-   * @param minTimeMs Start milliseconds for the animation
+   * @param listener         {@link AnimationListener} that will be called in every tick
+   * @param tickStepMs       Number of milliseconds to advance in every animator tick
+   * @param minTimeMs        Start milliseconds for the animation
    */
   @NotNull
   public static AnimationToolbar createUnlimitedAnimationToolbar(@NotNull Disposable parentDisposable,
@@ -188,10 +194,11 @@ public class AnimationToolbar extends Box implements Disposable {
 
   /**
    * Constructs a new AnimationToolbar
+   *
    * @param parentDisposable Parent {@link Disposable}
-   * @param listener {@link AnimationListener} that will be called in every tick
-   * @param tickStepMs Number of milliseconds to advance in every animator tick
-   * @param minTimeMs Start milliseconds for the animation
+   * @param listener         {@link AnimationListener} that will be called in every tick
+   * @param tickStepMs       Number of milliseconds to advance in every animator tick
+   * @param minTimeMs        Start milliseconds for the animation
    * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
   @NotNull
@@ -280,9 +287,7 @@ public class AnimationToolbar extends Box implements Disposable {
     stopFrameTicker();
 
     setEnabledState(true, false, false, true);
-    myFramePositionMs = myMinTimeMs;
-    onNewFramePosition();
-    doFrame();
+    setFramePosition(myMinTimeMs, false);
   }
 
   private void doFrame() {
@@ -297,25 +302,16 @@ public class AnimationToolbar extends Box implements Disposable {
     onTick(-myTickStepMs);
   }
 
-  private void onTick(long elapsed) {
-    myFramePositionMs += elapsed;
-    if (myFramePositionMs < myMinTimeMs) {
-      myFramePositionMs = myLoopEnabled ? myMaxTimeMs : myMinTimeMs;
-    }
-    else if (!isUnlimitedAnimationToolbar() && myFramePositionMs > myMaxTimeMs) {
-      myFramePositionMs = myLoopEnabled ? myMinTimeMs : myMaxTimeMs;
-    }
-    onNewFramePosition();
-    doFrame();
-  }
-
-  private void onNewFramePosition() {
+  /**
+   * Called after a new frame position has been set
+   */
+  private void onNewFramePosition(boolean setByUser) {
     if (isUnlimitedAnimationToolbar()) {
       return;
     }
 
     if (myFramePositionMs >= myMaxTimeMs) {
-      if (!myLoopEnabled) {
+      if (!setByUser && !myLoopEnabled) {
         // We've reached the end. Stop.
         onPause();
       }
@@ -327,9 +323,46 @@ public class AnimationToolbar extends Box implements Disposable {
 
     if (myTimeSliderModel != null) {
       myTimeSliderModel.removeChangeListener(myTimeSliderChangeModel);
-      myTimeSliderModel.setValue((int)(((myFramePositionMs - myMinTimeMs) / (float)(myMaxTimeMs - myMinTimeMs))  * 100));
+      myTimeSliderModel.setValue((int)(((myFramePositionMs - myMinTimeMs) / (float)(myMaxTimeMs - myMinTimeMs)) * 100));
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
     }
+  }
+
+  /**
+   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
+   *
+   * @param newPositionMs new position in ms
+   * @param setByUser     true if this new position was set by the user. In those cases we might want to automatically loop
+   */
+  private void setFramePosition(long newPositionMs, boolean setByUser) {
+    myFramePositionMs = newPositionMs;
+
+    if (myFramePositionMs < myMinTimeMs) {
+      myFramePositionMs = myLoopEnabled ? myMaxTimeMs : myMinTimeMs;
+    }
+    else if (!isUnlimitedAnimationToolbar() && myFramePositionMs > myMaxTimeMs) {
+      myFramePositionMs = myLoopEnabled ? myMinTimeMs : myMaxTimeMs;
+    }
+    onNewFramePosition(setByUser);
+    doFrame();
+  }
+
+  /**
+   * User triggered new position in the animation
+   *
+   * @param newPositionMs
+   */
+  private void seek(long newPositionMs) {
+    setFramePosition(myMinTimeMs + newPositionMs, true);
+  }
+
+  /**
+   * Called for every automatic tick in the animation
+   *
+   * @param elapsed
+   */
+  private void onTick(long elapsed) {
+    setFramePosition(myFramePositionMs + elapsed, false);
   }
 
   public void setMaxtimeMs(long maxTimeMs) {

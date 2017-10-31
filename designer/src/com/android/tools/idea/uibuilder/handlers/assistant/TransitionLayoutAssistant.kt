@@ -21,16 +21,19 @@ import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
+import java.awt.event.HierarchyListener
 import javax.swing.JPanel
 
 class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent, val close: Function0<Unit>) :
     JPanel() {
+  val toolbar: AnimationToolbar
+
   init {
     layout = BorderLayout()
 
     val helper = TransitionLayoutHandler.TransitionLayoutComponentHelper(component)
     val maxTimeMs = helper.maxTimeMs
-    val toolbar = AnimationToolbar.createAnimationToolbar({}, { timeMs ->
+    toolbar = AnimationToolbar.createAnimationToolbar({}, { timeMs ->
       val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
       if (sceneManager != null) {
         sceneManager.setElapsedFrameTimeMs(timeMs)
@@ -38,5 +41,13 @@ class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val compo
       }
     }, 16, 500L, maxTimeMs + 500L)
     add(toolbar)
+  }
+
+  override fun setVisible(aFlag: Boolean) {
+    super.setVisible(aFlag)
+
+    if (!aFlag) {
+      toolbar.stop()
+    }
   }
 }
