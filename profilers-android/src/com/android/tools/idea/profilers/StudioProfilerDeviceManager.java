@@ -213,6 +213,16 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
               getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
               return;
             }
+
+            // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
+            // This is indicated by a "Server listenting on ADDRESS" printout from perfd (ADDRESS can vary depending on pre-O vs JVMTI).
+            // The reason for this check is because we get linker warnings when starting perfd on pre-M devices (an issue which would not
+            // be fixed by now), and we need to avoid starting the proxy in those cases.
+            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP
+              && !s.startsWith("Server listening on")) {
+              return;
+            }
+
             createPerfdProxy();
             getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
           }
