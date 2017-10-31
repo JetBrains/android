@@ -397,7 +397,7 @@ public class StudioIcons {
       public static final Icon WRAP_HEIGHT = load("/studio/icons/layout-editor/toolbar/wrap-height.png"); // 16x16
       public static final Icon WRAP_WIDTH = load("/studio/icons/layout-editor/toolbar/wrap-width.png"); // 16x16
     }
-
+    
     public static class Animations {
       public static final Icon PLAY = load("/studio/icons/layout-editor/anim/play_arrow.png");
       public static final Icon STOP = load("/studio/icons/layout-editor/anim/stop.png");
@@ -405,6 +405,12 @@ public class StudioIcons {
       public static final Icon STEP_FWD = load("/studio/icons/layout-editor/anim/skip_next.png");
       public static final Icon STEP_BCK = load("/studio/icons/layout-editor/anim/skip_previous.png");
     }
+  }
+
+  public static class LayoutInspector {
+    public static final Icon CLEAR_OVERLAY = load("/studio/icons/layout-inspector/clear-overlay.png"); // 16x16
+    public static final Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.png"); // 16x16
+    public static final Icon COLOR_PICKER = load("/studio/icons/layout-inspector/color-picker.png"); // 16x16
   }
 
   public static class Logcat {
@@ -416,19 +422,25 @@ public class StudioIcons {
   }
 
   public static class NavEditor {
+    public static class Properties {
+      public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
+    }
+
     public static class Surface {
       public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.png"); // 24x24
       public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.png"); // 24x24
     }
 
     public static class Toolbar {
-      public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.png"); // 16x16
-      public static final Icon ACTIVITY_DESTINATION = load("/studio/icons/nav-editor/toolbar/activity-destination.png"); // 16x16
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.png"); // 16x16
-      public static final Icon AUTO_ALIGN = load("/studio/icons/nav-editor/toolbar/auto-align.png"); // 16x16
-      public static final Icon DESTINATION_GROUP = load("/studio/icons/nav-editor/toolbar/destination-group.png"); // 16x16
-      public static final Icon DESTINATION = load("/studio/icons/nav-editor/toolbar/destination.png"); // 16x16
-      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/toolbar/start-destination.png"); // 16x16
+      public static final Icon ADD_EXISTING = load("/studio/icons/nav-editor/toolbar/add-existing.png"); // 16x16
+    }
+
+    public static class Tree {
+      public static final Icon ACTIVITY = load("/studio/icons/nav-editor/tree/activity.png"); // 16x16
+      public static final Icon FRAGMENT = load("/studio/icons/nav-editor/tree/fragment.png"); // 16x16
+      public static final Icon INCLUDE_GRAPH = load("/studio/icons/nav-editor/tree/include-graph.png"); // 16x16
+      public static final Icon NESTED_GRAPH = load("/studio/icons/nav-editor/tree/nested-graph.png"); // 16x16
     }
   }
 
