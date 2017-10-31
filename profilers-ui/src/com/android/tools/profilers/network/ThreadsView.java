@@ -27,12 +27,12 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -46,6 +46,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
@@ -277,13 +278,13 @@ final class ThreadsView {
 
     private void drawState(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
       double prev = rangeToPosition(data.getStartTimeUs());
-      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_SENDING);
+      g2d.setColor(ProfilerColors.NETWORK_SENDING_COLOR);
 
       if (data.getDownloadingTimeUs() > 0) {
         double download = rangeToPosition(data.getDownloadingTimeUs());
         // draw sending
         g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, download - prev, STATE_HEIGHT));
-        g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_RECEIVING);
+        g2d.setColor(ProfilerColors.NETWORK_RECEIVING_COLOR);
         prev = download;
       }
 
@@ -336,8 +337,8 @@ final class ThreadsView {
 
       myLabel = new JLabel();
       myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-      myLabel.setBorder(new EmptyBorder(5, 10, 5, 10));
-      myLabel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+      myLabel.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+      myLabel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
       myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
       myLabel.setOpaque(true);
 
@@ -398,22 +399,33 @@ final class ThreadsView {
     private void showTooltip(@NotNull HttpData data) {
       myTooltipComponent.setVisible(true);
 
-      StringBuilder text = new StringBuilder("<html> <style> p { margin-bottom: 5px; }  p, li { font-size: 11;}</style>");
-      text.append("<p style='font-size:12.5'>").append(data.getJavaThreads().get(0).getName()).append("</p>");
+      double ms_to_us = TimeUnit.MILLISECONDS.toMicros(1);
+      String urlName = HttpData.getUrlName(data.getUrl());
+      double duration = (data.getEndTimeUs() - data.getStartTimeUs()) / ms_to_us;
 
-      text.append("<p>").append(HttpData.getUrlName(data.getUrl())).append("</p>");
+      StringBuilder htmlBuilder = new StringBuilder(
+        String.format(
+          "<html>" +
+          "  <p> %s </p>" +
+          "  <p style='color:%s; margin-top: 5px;'> %.2f ms </p>",
+          urlName,
+          ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
+          duration
+        )
+      );
 
       if (data.getJavaThreads().size() > 1) {
-        text.append("<p style='margin-bottom:-5;'>Also accessed by:</p>");
-        text.append("<ul>");
+        htmlBuilder.append(String.format("<div style='border-bottom: 1px solid #%s;'></div>",
+                                         ColorUtil.toHex(ProfilerColors.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)));
+        htmlBuilder.append("<p style='margin-top: 5px;'> <b> Also accessed by </b> </p>");
         for (int i = 1; i < data.getJavaThreads().size(); ++i) {
-          text.append("<li>").append(data.getJavaThreads().get(i).getName()).append("</li>");
+          htmlBuilder.append(String.format("<p style='margin-top: 2px;'> %s </p>",
+                                           data.getJavaThreads().get(i).getName()));
         }
-        text.append("</ul>");
       }
-      text.append("</html>");
 
-      myLabel.setText(text.toString());
+      htmlBuilder.append("</html>");
+      myLabel.setText(htmlBuilder.toString());
     }
 
     private double positionToRange(double x, double width) {

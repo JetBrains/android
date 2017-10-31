@@ -66,6 +66,8 @@ public class ProfilerLayout {
 
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
 
+  public static final Border TOOLTIP_BORDER = new EmptyBorder(5, 10, 5, 10);
+
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }

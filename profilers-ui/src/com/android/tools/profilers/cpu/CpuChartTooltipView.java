@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -50,14 +51,13 @@ class CpuChartTooltipView extends MouseAdapter {
 
     myContent = new JLabel();
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    myContent.setBorder(new EmptyBorder(5, 10, 5, 10));
-    myContent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+    myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     myContent.setFont(myContent.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     myContent.setOpaque(true);
 
     myTooltipComponent = new TooltipComponent(myContent, chart, ProfilerLayeredPane.class);
     myTooltipComponent.registerListenersOn(chart);
-    myChart.addMouseMotionListener(this);
   }
 
   @Override
@@ -78,15 +78,16 @@ class CpuChartTooltipView extends MouseAdapter {
 
     String text = String.format("<html>" +
                                 "<p style='margin-bottom:5px;'>%s</p>" +
-                                "<p style='color:gray'>%s - %s</p>" +
+                                "<p style='color:%s'>%s - %s</p>" +
                                 "</html>",
                                 node.getData().getFullName(),
+                                ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(start),
                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(end));
     myContent.setText(text);
   }
 
   static void install(@NotNull HTreeChart<MethodModel> chart, @NotNull CpuProfilerStageView stageView) {
-    new CpuChartTooltipView(chart, stageView);
+    chart.addMouseMotionListener(new CpuChartTooltipView(chart, stageView));
   }
 }
