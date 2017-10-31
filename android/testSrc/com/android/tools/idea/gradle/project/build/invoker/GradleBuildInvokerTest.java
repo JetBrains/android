@@ -143,7 +143,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 
-    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs);
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs, null);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
