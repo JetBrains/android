@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -583,5 +584,40 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     Truth.assertThat(myStage.getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 1, 0, 0, 0);
     Truth.assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+  }
+
+  @Test
+  public void testHasUserUsedCaptureViaHeapDump() {
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
+    myStage.requestHeapDump();
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
+  }
+
+  @Test
+  public void testHasUserUsedCaptureViaLegacyTracking() {
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myStage.trackAllocations(true);
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
+  }
+
+  @Test
+  public void testHasUserUsedCaptureViaSelection() {
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
+    myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
+        MemoryProfiler.AllocationsInfo.Status.COMPLETED).build()).build());
+    myStage.getSelectionModel().set(5, 10);
+    Truth.assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    Truth.assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 }

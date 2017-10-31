@@ -62,6 +62,7 @@ public final class TextInstruction extends RenderInstruction {
 
     assert (mySize.height <= bounds.height);
     g2d.setColor(c.getForeground());
+    g2d.setFont(myFont);
     FontMetrics metrics = SwingUtilities2.getFontMetrics(c, myFont);
     int textY = bounds.y + metrics.getAscent() + ((bounds.height - mySize.height) / 2);
     g2d.drawString(myText, bounds.x, textY);

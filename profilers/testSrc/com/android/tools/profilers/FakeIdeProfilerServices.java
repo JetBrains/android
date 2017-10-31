@@ -81,6 +81,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
 
+  @NotNull private final ProfilerPreferences myPreferences;
+
+  public FakeIdeProfilerServices() {
+    myPreferences = new FakeProfilerPreferences();
+  }
+
   @NotNull
   @Override
   public Executor getMainExecutor() {
@@ -168,6 +174,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
         return isAtraceEnabled;
       }
     };
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getProfilerPreferences() {
+    return myPreferences;
   }
 
   @Override

@@ -22,10 +22,10 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
@@ -43,6 +43,8 @@ import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
+  @VisibleForTesting static final String HAS_USED_NETWORK_SELECTION = "profiler.used.network.selection";
+
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
 
@@ -70,6 +72,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private final StackTraceModel myStackTraceModel;
   private final SelectionModel mySelectionModel;
   private final HttpDataFetcher myHttpDataFetcher;
+  private final EaseOutModel myInstructionsEaseOutModel;
 
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
@@ -104,6 +107,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        profilers.getIdeServices().getProfilerPreferences().setBoolean(HAS_USED_NETWORK_SELECTION, true);
+        myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
       @Override
@@ -113,6 +118,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     });
 
     myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, timeline.getSelectionRange());
+    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
+  }
+
+  public boolean hasUserUsedNetworkSelection() {
+    return getStudioProfilers().getIdeServices().getProfilerPreferences().getBoolean(HAS_USED_NETWORK_SELECTION, false);
   }
 
   @NotNull
@@ -170,7 +180,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     if (contentEncoding != null && contentEncoding.toLowerCase().contains("gzip")) {
       try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
         bytes = FileUtil.loadBytes(inputStream);
-      } catch (IOException ignored) {}
+      }
+      catch (IOException ignored) {
+      }
     }
 
     FileUtil.writeToFile(file, bytes);
@@ -258,6 +270,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   @NotNull
   public NetworkStageLegends getTooltipLegends() {
     return myTooltipLegends;
+  }
+
+  @NotNull
+  public EaseOutModel getInstructionsEaseOutModel() {
+    return myInstructionsEaseOutModel;
   }
 
   @NotNull

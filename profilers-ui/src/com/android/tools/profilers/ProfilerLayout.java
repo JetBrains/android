@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 
@@ -68,6 +69,10 @@ public class ProfilerLayout {
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
 
   public static final Border TOOLTIP_BORDER = new JBEmptyBorder(5, 10, 5, 10);
+
+  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC = JBUI.scale(10);
+  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
+  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

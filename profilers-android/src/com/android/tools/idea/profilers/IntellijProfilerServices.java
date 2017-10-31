@@ -23,6 +23,7 @@ import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -58,10 +59,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
 
   @NotNull private final Project myProject;
+  @NotNull private final IntellijProfilerPreferences myPreferences;
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
+    myPreferences = new IntellijProfilerPreferences();
   }
 
   @NotNull
@@ -188,6 +191,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
         return StudioFlags.PROFILER_USE_ATRACE.get();
       }
     };
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getProfilerPreferences() {
+    return myPreferences;
   }
 
   @Override
