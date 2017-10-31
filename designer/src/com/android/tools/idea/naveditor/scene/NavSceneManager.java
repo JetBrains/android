@@ -68,17 +68,11 @@ public class NavSceneManager extends SceneManager {
     NavigationSchema schema = surface.getSchema();
     myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
-  }
 
-  @NotNull
-  @Override
-  public Scene build() {
     updateHierarchy(getModel(), null);
-    Scene scene = super.build();
     getModel().addListener(new ModelChangeListener());
-    getDesignSurface().getSelectionModel().addListener((model, selection) -> scene.needsRebuildList());
+    getDesignSurface().getSelectionModel().addListener((unused, selection) -> getScene().needsRebuildList());
     requestRender();
-    return scene;
   }
 
   @Override

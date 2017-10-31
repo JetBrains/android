@@ -176,7 +176,7 @@ public class ModelBuilder {
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
-      Scene scene = sceneManager.build();
+      Scene scene = sceneManager.getScene();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());

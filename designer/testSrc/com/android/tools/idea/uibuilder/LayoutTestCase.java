@@ -89,8 +89,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     return new ModelBuilder(myFacet, myFixture, name, root,
                             model -> {
-                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
                               LayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
+                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
                               return manager;
                             },
                             (model, newModel) ->

@@ -135,7 +135,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     SyncNlModel model = (SyncNlModel)menu.getModel();
 
     LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
-    Scene scene = builder.build();
+    Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);

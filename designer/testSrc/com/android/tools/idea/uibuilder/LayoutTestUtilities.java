@@ -203,7 +203,7 @@ public class LayoutTestUtilities {
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
     when(surface.getCurrentSceneView()).thenReturn(screenView);
     LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
-    Scene scene = builder.build();
+    Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     when(screenView.getScene()).thenReturn(scene);

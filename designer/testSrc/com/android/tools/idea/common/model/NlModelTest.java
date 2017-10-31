@@ -548,8 +548,6 @@ public class NlModelTest extends LayoutTestCase {
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
     when(sceneView.getSurface()).thenReturn(model.getSurface());
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, model.getSurface());
-    sceneManager.build();
     Configuration configuration = model.getConfiguration();
     String defaultTheme = configuration.getTheme();
     assertNotNull(defaultTheme);
