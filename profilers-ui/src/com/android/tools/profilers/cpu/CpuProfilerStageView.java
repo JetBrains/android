@@ -144,6 +144,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));

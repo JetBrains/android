@@ -15,7 +15,8 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionModel;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,27 +92,14 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mousePressed(MouseEvent e) {
         requestFocusInWindow();
-        Dimension size = getSize();
-        int x = e.getX();
-
-        double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
-        double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
-        if (startXPos - HANDLE_WIDTH < x && x < startXPos) {
-          myMode = Mode.ADJUST_MIN;
-        }
-        else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
-          myMode = Mode.ADJUST_MAX;
-        }
-        else if (startXPos <= x && x <= endXPos) {
-          myMode = Mode.MOVE;
-        }
-        else {
+        myMode = getModeAtCurrentPosition(e.getX());
+        if (myMode == Mode.CREATE) {
           myModel.beginUpdate();
-          double value = xToRange(x);
+          double value = xToRange(e.getX());
           myModel.set(value, value);
-          myMode = Mode.CREATE;
         }
         myMousePressed = e.getX();
+        updateCursor(myMode, myMousePressed);
       }
 
       @Override
@@ -121,6 +109,11 @@ public final class SelectionComponent extends AnimatedComponent {
         }
         myMode = Mode.NONE;
         opaqueRepaint();
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        setCursor(Cursor.getDefaultCursor());
       }
     });
     this.addMouseMotionListener(new MouseMotionAdapter() {
@@ -157,11 +150,18 @@ public final class SelectionComponent extends AnimatedComponent {
             myMousePressed = e.getX();
             break;
           case CREATE:
-            myModel.set(pressed < current ? pressed : current, pressed < current ? current : pressed);
+            myModel.set(pressed < current ? pressed : current,
+                        pressed < current ? current : pressed);
             break;
           case NONE:
             break;
         }
+        updateCursor(myMode, e.getX());
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        updateCursor(getModeAtCurrentPosition(e.getX()), e.getX());
       }
     });
     addKeyListener(new KeyAdapter() {
@@ -214,6 +214,54 @@ public final class SelectionComponent extends AnimatedComponent {
   private float rangeToX(double value, Dimension dim) {
     Range range = myViewRange;
     return  (float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin())));
+  }
+
+  private Mode getModeAtCurrentPosition(int x) {
+    Dimension size = getSize();
+    double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
+    double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
+    if (startXPos - HANDLE_WIDTH < x && x < startXPos) {
+      return Mode.ADJUST_MIN;
+    }
+    else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
+      return Mode.ADJUST_MAX;
+    }
+    else if (startXPos <= x && x <= endXPos) {
+      return Mode.MOVE;
+    }
+    return Mode.CREATE;
+  }
+
+  private void updateCursor(Mode newMode, int newX) {
+    switch (newMode) {
+      case ADJUST_MIN:
+        setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+        break;
+      case ADJUST_MAX:
+        setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+        break;
+      case MOVE:
+        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+        break;
+      case CREATE:
+        if (myMode == Mode.CREATE) {
+          // If already in CREATE mode, update cursor in case selection changed direction, e.g.
+          // dragging max handle below min handle.
+          if (myMousePressed < newX) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+          }
+          else {
+            setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+          }
+        }
+        else {
+          setCursor(Cursor.getDefaultCursor());
+        }
+        break;
+      case NONE:
+        // NO-OP: Keep current mouse cursor.
+        break;
+    }
   }
 
   @Override
