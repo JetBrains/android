@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.facet.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,6 +30,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.intellij.ProjectTopics.PROJECT_ROOTS;
 import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
 
@@ -124,7 +124,7 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
     }
     switch (buildMode) {
       case ASSEMBLE:
-        return GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+        return DEFAULT_ASSEMBLE_TASK_NAME;
       case COMPILE_JAVA:
         return COMPILE_JAVA_TASK_NAME;
       default:

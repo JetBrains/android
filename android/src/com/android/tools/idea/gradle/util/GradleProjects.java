@@ -22,9 +22,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.Maps;
-import com.intellij.ide.DataManager;
-import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -44,17 +41,14 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
@@ -120,45 +114,12 @@ public final class GradleProjects {
    * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
    *                    tool window directly.
    * @return the modules to build based on the current selection in the 'Project' tool window.
+   * @deprecated use {@link GradleProjectInfo#getModulesToBuildFromSelection(DataContext)}
    */
+  @Deprecated
   @NotNull
   public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
-    if (dataContext == null) {
-      ProjectView projectView = ProjectView.getInstance(project);
-      AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
-
-      if (pane != null) {
-        JComponent treeComponent = pane.getComponentToFocus();
-        dataContext = DataManager.getInstance().getDataContext(treeComponent);
-      }
-      else {
-        return Module.EMPTY_ARRAY;
-      }
-    }
-    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
-    if (modules != null) {
-      if (modules.length == 1 && isProjectModule(modules[0])) {
-        return ModuleManager.getInstance(project).getModules();
-      }
-      return modules;
-    }
-    Module module = MODULE.getData(dataContext);
-    if (module != null) {
-      return isProjectModule(module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
-    }
-    return Module.EMPTY_ARRAY;
-  }
-
-  private static boolean isProjectModule(@NotNull Module module) {
-    // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
-    // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
-    // to build the whole project.
-    File moduleRootFolderPath = findModuleRootFolderPath(module);
-    if (moduleRootFolderPath == null) {
-      return false;
-    }
-    String basePath = module.getProject().getBasePath();
-    return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
+    return GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext);
   }
 
   @Nullable

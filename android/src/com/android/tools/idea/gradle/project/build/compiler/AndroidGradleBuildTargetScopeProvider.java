@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.compiler.impl.CompositeScope;
@@ -31,11 +29,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.api.CmdlineProtoUtil;
 import org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage.ParametersMessage.TargetTypeBuildScope;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants.TARGET_ID;
+import static com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants.TARGET_TYPE_ID;
+import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
+import static org.jetbrains.jps.api.CmdlineProtoUtil.createTargetsScope;
 
 /**
  * Instructs the JPS builder to use Gradle to build the project.
@@ -74,19 +76,18 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       else {
         // Triggered by menu item.
         // Make selected modules
-        modulesToBuild = GradleProjects.getModulesToBuildFromSelection(project, null);
+        modulesToBuild = getModulesToBuildFromSelection(project, null);
       }
       buildSettings.setModulesToBuild(modulesToBuild);
       buildSettings.setBuildMode(BuildMode.ASSEMBLE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules
-      buildSettings.setModulesToBuild(GradleProjects.getModulesToBuildFromSelection(project, null));
+      buildSettings.setModulesToBuild(getModulesToBuildFromSelection(project, null));
       buildSettings.setBuildMode(BuildMode.COMPILE_JAVA);
     }
 
-    TargetTypeBuildScope scope = CmdlineProtoUtil.createTargetsScope(AndroidGradleBuildTargetConstants.TARGET_TYPE_ID, Collections.singletonList(
-      AndroidGradleBuildTargetConstants.TARGET_ID), forceBuild);
+    TargetTypeBuildScope scope = createTargetsScope(TARGET_TYPE_ID, Collections.singletonList(TARGET_ID), forceBuild);
     return Collections.singletonList(scope);
   }
 }

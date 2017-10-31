@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -24,7 +25,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
 
 public class MakeGradleModuleAction extends AndroidStudioGradleAction {
@@ -40,7 +40,7 @@ public class MakeGradleModuleAction extends AndroidStudioGradleAction {
   public static void updatePresentation(@NotNull AnActionEvent e, @NotNull Project project) {
     DataContext dataContext = e.getDataContext();
 
-    Module[] modules = getModulesToBuildFromSelection(project, dataContext);
+    Module[] modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext);
     int moduleCount = modules.length;
 
     Presentation presentation = e.getPresentation();
@@ -48,22 +48,22 @@ public class MakeGradleModuleAction extends AndroidStudioGradleAction {
 
     String presentationText;
     if (moduleCount > 0) {
-      String text = "Make Module";
+      StringBuilder text = new StringBuilder("Make Module");
       if (moduleCount > 1) {
-        text += "s";
+        text.append("s");
       }
       for (int i = 0; i < moduleCount; i++) {
         if (text.length() > 30) {
-          text = "Make Selected Modules";
+          text = new StringBuilder("Make Selected Modules");
           break;
         }
         Module toMake = modules[i];
         if (i != 0) {
-          text += ",";
+          text.append(",");
         }
-        text += " '" + toMake.getName() + "'";
+        text.append(" '").append(toMake.getName()).append("'");
       }
-      presentationText = text;
+      presentationText = text.toString();
     }
     else {
       presentationText = "Make";
@@ -74,7 +74,7 @@ public class MakeGradleModuleAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    Module[] modules = getModulesToBuildFromSelection(project, e.getDataContext());
-    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL);
+    Module[] modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.getDataContext());
+    GradleBuildInvoker.getInstance(project).assemble(modules, TestCompileType.ALL);
   }
 }

@@ -29,6 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -72,9 +73,8 @@ public class BuildApkAction extends DumbAwareAction {
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
-        gradleBuildInvoker.assemble(appModules.toArray(new Module[appModules.size()]),
-                                    TestCompileType.ALL,
-                                    new OutputBuildAction(getModuleGradlePaths(appModules)));
+        Module[] modulesToBuild = appModules.toArray(new Module[appModules.size()]);
+        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, Collections.emptyList(), new OutputBuildAction(getModuleGradlePaths(appModules)));
       }
     }
   }
