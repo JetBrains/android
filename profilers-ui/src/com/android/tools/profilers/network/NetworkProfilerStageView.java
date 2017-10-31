@@ -195,6 +195,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     getStage().getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {

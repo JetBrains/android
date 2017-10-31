@@ -22,6 +22,8 @@ import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import org.junit.Test;
 
+import java.awt.*;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +40,7 @@ public class SelectionComponentTest {
     new FakeUi(component).mouse.click(20, 0);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -50,6 +53,7 @@ public class SelectionComponentTest {
     new FakeUi(component).mouse.click(60, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(80, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -93,9 +97,11 @@ public class SelectionComponentTest {
     ui.mouse.press(getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
     ui.mouse.dragDelta(-5, 0);
     assertEquals(5, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -107,9 +113,11 @@ public class SelectionComponentTest {
     ui.mouse.press(getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
     ui.mouse.dragDelta(20, 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(40, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -121,9 +129,11 @@ public class SelectionComponentTest {
     ui.mouse.press(45, 0);
     assertEquals(40, model.getSelectionRange().getMin(), DELTA);
     assertEquals(50, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR), component.getCursor());
     ui.mouse.dragDelta(40, 0);
     assertEquals(80, model.getSelectionRange().getMin(), DELTA);
     assertEquals(90, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -135,9 +145,11 @@ public class SelectionComponentTest {
     ui.mouse.press(getMinHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
     ui.mouse.dragDelta(90, 0);
     assertEquals(20, model.getSelectionRange().getMin(), DELTA);
     assertEquals(100, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -149,9 +161,11 @@ public class SelectionComponentTest {
     ui.mouse.press(getMaxHandleX(model), 0);
     assertEquals(10, model.getSelectionRange().getMin(), DELTA);
     assertEquals(20, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
     ui.mouse.dragDelta(-20, 0);
     assertEquals(0, model.getSelectionRange().getMin(), DELTA);
     assertEquals(10, model.getSelectionRange().getMax(), DELTA);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
   }
 
   @Test
@@ -193,6 +207,46 @@ public class SelectionComponentTest {
     // Test alt shrinks the selection by shifting the min range but not the max.
     ui.keyboard.press(FakeKeyboard.Key.ALT);
     shiftAndValidateShift(ui, model, FakeKeyboard.Key.RIGHT, 12,22);
+  }
+
+  @Test
+  public void movingMouseChangesCursor() {
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+
+    // Moving to min handle should change cursor to east resize cursor.
+    ui.mouse.moveTo(getMinHandleX(model), 0);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+
+    // Moving inside the range should change cursor to move cursor.
+    ui.mouse.moveTo(15, 0);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR), component.getCursor());
+
+    // Moving to max handle should change cursor to west resize cursor.
+    ui.mouse.moveTo(getMaxHandleX(model), 50);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+
+    // Moving outside the range should change cursor to default.
+    ui.mouse.moveTo(0, 0);
+    assertEquals(Cursor.getDefaultCursor(), component.getCursor());
+  }
+
+  @Test
+  public void creatingNewSelectionChangesCursor() {
+    SelectionModel model = new SelectionModel(new Range(10, 20));
+    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+
+    ui.mouse.press(30, 0);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    ui.mouse.dragTo(40, 0);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR), component.getCursor());
+    ui.mouse.dragTo(20, 0);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR), component.getCursor());
+    ui.mouse.release();
   }
 
   private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {
