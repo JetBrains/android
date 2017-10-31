@@ -595,12 +595,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setAndSelectCapture(@NotNull CpuCapture capture) {
     // Setting the selection range will cause the timeline to stop.
-    // In the case of selecting a capture, we don't want to change the streaming mode of the timeline,
-    // so we restore its streaming mode after calling selectionRange#set
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    boolean wasStreaming = timeline.isStreaming();
     timeline.getSelectionRange().set(capture.getRange());
-    timeline.setStreaming(wasStreaming);
     setCapture(capture);
   }
 
