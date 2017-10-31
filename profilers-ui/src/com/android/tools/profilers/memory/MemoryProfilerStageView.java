@@ -309,7 +309,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .build();
     lineChart.addCustomRenderer(gcRenderer);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));

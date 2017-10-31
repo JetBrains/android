@@ -177,6 +177,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @Nullable
   private Tooltip myTooltip;
 
+  /**
+   * State to track if an invalid (excluding "cancel") selection has been made.
+   */
+  private boolean mySelectionFailure;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -207,12 +212,27 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myEventMonitor = new EventMonitor(profilers);
 
-    mySelectionModel = new SelectionModel(selectionRange, viewRange);
+    mySelectionModel = new SelectionModel(selectionRange);
     mySelectionModel.addConstraint(myTraceDurations);
     mySelectionModel.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
+        mySelectionFailure = false;
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        selectionChanged();
+      }
+
+      @Override
+      public void selectionCleared() {
+        mySelectionFailure = false;
+        selectionChanged();
+      }
+
+      @Override
+      public void selectionCreationFailure() {
+        mySelectionFailure = true;
+        selectionChanged();
+        setProfilerMode(ProfilerMode.EXPANDED);
       }
     });
 
@@ -293,6 +313,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myEventMonitor;
   }
 
+  public boolean isSelectionFailure() {
+    return mySelectionFailure;
+  }
+
   @Override
   public void enter() {
     myEventMonitor.enter();
@@ -310,7 +334,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::updateProfilingConfigurations);
-    getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
   }
 
   @Override
@@ -329,7 +352,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     getStudioProfilers().removeDependencies(this);
-    getStudioProfilers().getTimeline().getSelectionRange().removeDependencies(this);
 
     mySelectionModel.clearListeners();
 
@@ -545,7 +567,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-
   public void setActiveConfig(CpuProfiler.CpuProfilerType profilerType, CpuProfiler.CpuProfilingAppStartRequest.Mode mode,
                               int bufferSizeLimitMb, int samplingIntervalUs) {
     // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
@@ -566,9 +587,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {
         setCapture(info.value.getTraceId());
-        break; // No need to check other captures if one is already selected
+        return; // No need to check other captures if one is already selected
       }
     }
+
+    // Didn't find anything, so set it to null.
+    setCapture(null);
+    myAspect.changed(CpuProfilerAspect.CAPTURE_SELECTION);
   }
 
   private long currentTimeNs() {
@@ -614,6 +639,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setSelectedThread(int id) {
     myCaptureModel.setThread(id);
+    Range range = getStudioProfilers().getTimeline().getSelectionRange();
+    if (range.isEmpty()) {
+      mySelectionFailure = true;
+      myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
+      setProfilerMode(ProfilerMode.EXPANDED);
+    }
   }
 
   @NotNull
@@ -648,7 +679,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureState = captureState;
     // invalidate the capture start time when setting the capture state
     myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
+    myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
   }
 
   public void setCaptureFilter(@NotNull String filter) {

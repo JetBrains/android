@@ -30,15 +30,15 @@ import java.awt.geom.Rectangle2D;
 public final class SelectionComponent extends AnimatedComponent {
 
   // TODO: support using different colors for selection, border and handle
-  public static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
+  private static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
 
-  public static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
+  private static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
 
   private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
 
-  public static final int HANDLE_HEIGHT = 40;
+  private static final int HANDLE_HEIGHT = 40;
 
-  public static final int HANDLE_WIDTH = 5;
+  static final int HANDLE_WIDTH = 5;
 
   private static final double SELECTION_MOVE_PERCENT = 0.01;
 
@@ -72,17 +72,18 @@ public final class SelectionComponent extends AnimatedComponent {
   @NotNull
   private final SelectionModel myModel;
 
-  public SelectionComponent(@NotNull SelectionModel model) {
+  @NotNull
+  private final Range myViewRange;
+
+  public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange) {
     myModel = model;
+    myViewRange = viewRange;
     myMode = Mode.NONE;
     setFocusable(true);
     initListeners();
 
-    myModel.addDependency(myAspectObserver).onChange(SelectionModel.Aspect.SELECTION, this::modelChanged);
-  }
-
-  private void modelChanged() {
-    opaqueRepaint();
+    myModel.addDependency(myAspectObserver).onChange(SelectionModel.Aspect.SELECTION, this::opaqueRepaint);
+    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
   }
 
   private void initListeners() {
@@ -192,13 +193,13 @@ public final class SelectionComponent extends AnimatedComponent {
   private void shiftModel(ShiftDirection direction, boolean zeroMin, boolean zeroMax) {
     double min = myModel.getSelectionRange().getMin();
     double max = myModel.getSelectionRange().getMax();
-    double rangeDelta = myModel.getRange().getLength() * SELECTION_MOVE_PERCENT;
+    double rangeDelta = myViewRange.getLength() * SELECTION_MOVE_PERCENT;
     rangeDelta = (direction == ShiftDirection.LEFT) ? rangeDelta * -1 : rangeDelta;
     double minDelta = zeroMin ? 0 : rangeDelta;
     double maxDelta = zeroMax ? 0 : rangeDelta;
     // If we don't have a selection attempt to put the selection in the center off the screen.
     if (max < min) {
-      max = min = myModel.getRange().getLength() / 2.0 + myModel.getRange().getMin();
+      max = min = myViewRange.getLength() / 2.0 + myViewRange.getMin();
     }
 
     myModel.beginUpdate();
@@ -206,12 +207,12 @@ public final class SelectionComponent extends AnimatedComponent {
     myModel.endUpdate();
   }
   private double xToRange(int x) {
-    Range range = myModel.getRange();
+    Range range = myViewRange;
     return x / getSize().getWidth() * range.getLength() + range.getMin();
   }
 
   private float rangeToX(double value, Dimension dim) {
-    Range range = myModel.getRange();
+    Range range = myViewRange;
     return  (float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin())));
   }
 

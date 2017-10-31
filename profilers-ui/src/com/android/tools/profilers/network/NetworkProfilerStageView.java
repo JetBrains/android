@@ -194,7 +194,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
     getStage().getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {

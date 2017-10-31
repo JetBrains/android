@@ -80,8 +80,8 @@ public class LineChartVisualTest extends VisualTest {
 
     List<Updatable> componentsList = new ArrayList<>();
 
-    SelectionModel selection = new SelectionModel(new Range(0, 0), timeGlobalRangeUs);
-    mySelectionComponent = new SelectionComponent(selection);
+    SelectionModel selection = new SelectionModel(new Range(0, 0));
+    mySelectionComponent = new SelectionComponent(selection, timeGlobalRangeUs);
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
     // Add the scene components to the list

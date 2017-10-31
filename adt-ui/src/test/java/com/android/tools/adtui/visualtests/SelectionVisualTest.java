@@ -32,7 +32,7 @@ public class SelectionVisualTest extends VisualTest {
 
   private SelectionComponent mySelection;
 
-  private Range myRange;
+  private Range myViewRange;
 
   private Range mySelectionRange;
   private JTextField myRangeMin;
@@ -44,33 +44,33 @@ public class SelectionVisualTest extends VisualTest {
 
   @Override
   protected List<Updatable> createModelList() {
-    myRange = new Range(0, 1000);
+    myViewRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
 
     DefaultDataSeries<DefaultConfigurableDurationData> series1 = new DefaultDataSeries<>();
-    RangedSeries<DefaultConfigurableDurationData> ranged1 = new RangedSeries<>(myRange, series1);
+    RangedSeries<DefaultConfigurableDurationData> ranged1 = new RangedSeries<>(myViewRange, series1);
     DurationDataModel<DefaultConfigurableDurationData> constraint1 = new DurationDataModel<>(ranged1);
     series1.add(100, new DefaultConfigurableDurationData(100, false, true));
     series1.add(300, new DefaultConfigurableDurationData(150, false, false));
     series1.add(700, new DefaultConfigurableDurationData(150, false, true));
 
     DefaultDataSeries<DefaultConfigurableDurationData> series2 = new DefaultDataSeries<>();
-    RangedSeries<DefaultConfigurableDurationData> ranged2 = new RangedSeries<>(myRange, series2);
+    RangedSeries<DefaultConfigurableDurationData> ranged2 = new RangedSeries<>(myViewRange, series2);
     DurationDataModel<DefaultConfigurableDurationData> constraint2 = new DurationDataModel<>(ranged2);
     series2.add(120, new DefaultConfigurableDurationData(20, false, true));
     series2.add(500, new DefaultConfigurableDurationData(50, false, false));
     series2.add(750, new DefaultConfigurableDurationData(50, false, true));
 
-    mySelectionModel = new SelectionModel(mySelectionRange, myRange);
+    mySelectionModel = new SelectionModel(mySelectionRange);
     mySelectionModel.addConstraint(constraint1);
     mySelectionModel.addConstraint(constraint2);
-    mySelection = new SelectionComponent(mySelectionModel);
+    mySelection = new SelectionComponent(mySelectionModel, myViewRange);
 
     // Add the scene components to the list
     List<Updatable> componentsList = new ArrayList<>();
     componentsList.add(frameLength -> {
-      myRangeMin.setText(String.valueOf(myRange.getMin()));
-      myRangeMax.setText(String.valueOf(myRange.getMax()));
+      myRangeMin.setText(String.valueOf(myViewRange.getMin()));
+      myRangeMax.setText(String.valueOf(myViewRange.getMax()));
       mySelectionMin.setText(String.valueOf(mySelectionRange.getMin()));
       mySelectionMax.setText(String.valueOf(mySelectionRange.getMax()));
     });
