@@ -766,14 +766,11 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setAndSelectCaptureShouldNotChangeStreamingMode() throws Exception {
+  public void setAndSelectCaptureShouldStopStreamingMode() throws Exception {
     // Capture has changed, keeps the same type of details
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
     myStage.getStudioProfilers().getTimeline().setIsPaused(false);
     myStage.getStudioProfilers().getTimeline().setStreaming(true);
-    myStage.setAndSelectCapture(capture);
-    assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isTrue();
-    myStage.getStudioProfilers().getTimeline().setStreaming(false);
     myStage.setAndSelectCapture(capture);
     assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isFalse();
   }
