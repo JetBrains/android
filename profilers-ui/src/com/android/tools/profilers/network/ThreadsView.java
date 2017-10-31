@@ -93,7 +93,20 @@ final class ThreadsView {
     sorter.setComparator(1, Comparator.comparing((List <HttpData> data) -> data.get(0).getStartTimeUs()));
     myThreadsTable.setRowSorter(sorter);
 
-    TableTooltipView.install(myThreadsTable, stageView.getStage());
+    myThreadsTable.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        Range selection = stageView.getStage().getStudioProfilers().getTimeline().getSelectionRange();
+        HttpData data = findHttpDataUnderCursor(myThreadsTable, selection, e);
+        if (data != null) {
+          stageView.getStage().setSelectedConnection(data);
+          e.consume();
+        }
+      }
+    });
+
+    TooltipView.install(myThreadsTable, stageView.getStage());
+
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
       .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
@@ -105,6 +118,35 @@ final class ThreadsView {
   @NotNull
   JComponent getComponent() {
     return myThreadsTable;
+  }
+
+  @Nullable
+  private static HttpData findHttpDataUnderCursor(@NotNull JTable table, @NotNull Range range, @NotNull MouseEvent e) {
+    Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), table);
+    int row = table.rowAtPoint(p);
+    int column = table.columnAtPoint(p);
+
+    if (row == -1 || column == -1) {
+      return null;
+    }
+
+    if (column == 1) {
+      Rectangle cellBounds = table.getCellRect(row, column, false);
+      int modelIndex = table.convertRowIndexToModel(row);
+      List<HttpData> dataList = (List<HttpData>)table.getModel().getValueAt(modelIndex, 1);
+      double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth(), range);
+      for (HttpData data : dataList) {
+        if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
+          return data;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private static double positionToRange(double x, double width, @NotNull Range range) {
+    return (x * range.getLength()) / width + range.getMin();
   }
 
   private static final class ThreadsTableModel extends AbstractTableModel {
@@ -323,15 +365,14 @@ final class ThreadsView {
     }
   }
 
-  private final static class TableTooltipView extends MouseAdapter {
+  private final static class TooltipView extends MouseAdapter {
     @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final JTable myTable;
 
     @NotNull private final TooltipComponent myTooltipComponent;
     @NotNull private final JLabel myLabel;
 
-
-    private TableTooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
+    private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
       myStage = stage;
 
@@ -345,55 +386,16 @@ final class ThreadsView {
       myTooltipComponent = new TooltipComponent(myLabel, table, ProfilerLayeredPane.class);
       myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
-      myTable.addMouseMotionListener(this);
-      myTable.addMouseListener(this);
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
       myTooltipComponent.setVisible(false);
-      HttpData data = findHttpDataUnderCursor(e);
+      Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+      HttpData data = findHttpDataUnderCursor(myTable, selection, e);
       if (data != null) {
         showTooltip(data);
       }
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      HttpData data = findHttpDataUnderCursor(e);
-      if (data != null) {
-        myStage.setSelectedConnection(data);
-        e.consume();
-      }
-    }
-
-    @Nullable
-    private HttpData findHttpDataUnderCursor(@NotNull MouseEvent e) {
-      Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), myTable);
-      int row = myTable.rowAtPoint(p);
-      int column = myTable.columnAtPoint(p);
-
-      if (row == -1 || column == -1) {
-        return null;
-      }
-
-      if (column == 1) {
-        Rectangle cellBounds = myTable.getCellRect(row, column, false);
-        int modelIndex = myTable.convertRowIndexToModel(row);
-        List<HttpData> dataList = (List<HttpData>)myTable.getModel().getValueAt(modelIndex, 1);
-        double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth());
-        for (HttpData data : dataList) {
-          if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
-            return data;
-          }
-        }
-      }
-
-      return null;
     }
 
     private void showTooltip(@NotNull HttpData data) {
@@ -428,13 +430,11 @@ final class ThreadsView {
       myLabel.setText(htmlBuilder.toString());
     }
 
-    private double positionToRange(double x, double width) {
-      Range range = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-      return (x * range.getLength()) / width + range.getMin();
-    }
-
+    /**
+     * Construct our tooltip view and attach it to the target table.
+     */
     public static void install(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
-      new TableTooltipView(table, stage);
+      table.addMouseMotionListener(new TooltipView(table, stage));
     }
   }
 }
