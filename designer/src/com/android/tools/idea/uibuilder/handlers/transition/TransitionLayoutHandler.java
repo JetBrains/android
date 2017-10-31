@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.assistant.TransitionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -60,10 +61,17 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
       }
       if (myCallSetTransitionPosition != null) {
         try {
-          myCallSetTransitionPosition.invoke(instance, Float.valueOf(position));
+          RenderService.runRenderAction(() -> {
+            try {
+              myCallSetTransitionPosition.invoke(instance, Float.valueOf(position));
+            }
+            catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+              myCallSetTransitionPosition = null;
+              e.printStackTrace();
+            }
+          });
         }
-        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-          myCallSetTransitionPosition = null;
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -80,10 +88,17 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
       }
       if (myCallEvaluate != null) {
         try {
-          myCallEvaluate.invoke(instance);
+          RenderService.runRenderAction(() -> {
+            try {
+              myCallEvaluate.invoke(instance);
+            }
+            catch (ClassCastException |IllegalAccessException | InvocationTargetException e) {
+              myCallEvaluate = null;
+              e.printStackTrace();
+            }
+          });
         }
-        catch (ClassCastException |IllegalAccessException | InvocationTargetException e) {
-          myCallEvaluate = null;
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -119,10 +134,19 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
 
       if (myGetMaxTimeMethod != null) {
         try {
-          return (long)myGetMaxTimeMethod.invoke(instance);
+          return RenderService.runRenderAction(() -> {
+            try {
+              return (long)myGetMaxTimeMethod.invoke(instance);
+            }
+            catch (IllegalAccessException | InvocationTargetException e) {
+              myGetMaxTimeMethod = null;
+              e.printStackTrace();
+            }
+
+            return 0;
+          }).longValue();
         }
-        catch (IllegalAccessException | InvocationTargetException e) {
-          myGetMaxTimeMethod = null;
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
