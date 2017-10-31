@@ -57,7 +57,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.meta.When;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.*;
@@ -104,10 +103,10 @@ public class Scene implements SelectionListener, Disposable {
   private int myLastMouseX;
   private int myLastMouseY;
 
-  private HitListener myHoverListener = new HitListener();
-  private HitListener myHitListener = new HitListener();
-  private HitListener myFindListener = new HitListener();
-  private HitListener mySnapListener = new HitListener();
+  @NotNull private final SceneHitListener myHoverListener;
+  @NotNull private final SceneHitListener myHitListener;
+  @NotNull private final SceneHitListener myFindListener;
+  @NotNull private final SceneHitListener mySnapListener;
   private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
@@ -124,7 +123,13 @@ public class Scene implements SelectionListener, Disposable {
   public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
-    myDesignSurface.getSelectionModel().addListener(this);
+
+    SelectionModel selectionModel = myDesignSurface.getSelectionModel();
+    myHoverListener = new SceneHitListener(selectionModel);
+    myHitListener = new SceneHitListener(selectionModel);
+    myFindListener = new SceneHitListener(selectionModel);
+    mySnapListener = new SceneHitListener(selectionModel);
+    selectionModel.addListener(this);
 
     Disposer.register(sceneManager, this);
   }
@@ -511,179 +516,6 @@ public class Scene implements SelectionListener, Disposable {
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Hit listener implementation (used for hover / click detection)
-   */
-  class HitListener implements ScenePicker.HitElementListener {
-    private ScenePicker myPicker = new ScenePicker();
-    double myClosestComponentDistance = Double.MAX_VALUE;
-    double myClosestTargetDistance = Double.MAX_VALUE;
-    ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
-    ArrayList<Target> myHitTargets = new ArrayList<>();
-    Target mySkipTarget = null;
-
-    public HitListener() {
-      myPicker.setSelectListener(this);
-    }
-
-    public void skipTarget(Target target) {
-      mySkipTarget = target;
-    }
-
-    public void find(@NotNull SceneContext transform,
-                     @NotNull SceneComponent root,
-                     @AndroidDpCoordinate int x,
-                     @AndroidDpCoordinate int y) {
-      myHitComponents.clear();
-      myHitTargets.clear();
-      myClosestComponentDistance = Double.MAX_VALUE;
-      myClosestTargetDistance = Double.MAX_VALUE;
-      myPicker.reset();
-      root.addHit(transform, myPicker);
-      myPicker.find(transform.getSwingX(x), transform.getSwingY(y));
-    }
-
-    @Override
-    public void over(Object over, double dist) {
-      if (over instanceof Target) {
-        if (mySkipTarget == over) {
-          return;
-        }
-        Target target = (Target)over;
-        if (dist < myClosestTargetDistance) {
-          myHitTargets.clear();
-          myHitTargets.add(target);
-          myClosestTargetDistance = dist;
-        }
-        else if (dist == myClosestTargetDistance) {
-          myHitTargets.add(target);
-        }
-      }
-      else if (over instanceof SceneComponent) {
-        SceneComponent component = (SceneComponent)over;
-        if (dist < myClosestComponentDistance) {
-          myHitComponents.clear();
-          myHitComponents.add(component);
-          myClosestComponentDistance = dist;
-        }
-        else if (dist == myClosestComponentDistance) {
-          myHitComponents.add(component);
-        }
-      }
-    }
-
-    /**
-     * Return the "best" target among the list of targets found by the hit detector.
-     * If more than one target have been found, we pick the top-level target preferably,
-     * unless there's a component selected (in that case, we pick the best top-level target belonging
-     * to a component in the selection)
-     *
-     * @return preferred target
-     */
-    public Target getClosestTarget() {
-      int count = myHitTargets.size();
-      if (count == 0) {
-        return null;
-      }
-      if (count == 1) {
-        return myHitTargets.get(0);
-      }
-      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
-      if (selection.isEmpty()) {
-        Target candidate = myHitTargets.get(count - 1);
-        for (int i = count - 2; i >= 0; i--) {
-          Target target = myHitTargets.get(i);
-          if (target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
-            candidate = target;
-          }
-        }
-        return candidate;
-      }
-      Target candidate = myHitTargets.get(count - 1);
-      boolean inSelection = selection.contains(candidate.getComponent().getNlComponent());
-
-      for (int i = count - 2; i >= 0; i--) {
-        Target target = myHitTargets.get(i);
-        if (!selection.contains(target.getComponent().getNlComponent())) {
-          continue;
-        }
-        if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
-          candidate = target;
-          inSelection = true;
-        }
-      }
-      return candidate;
-    }
-
-    /**
-     * Return a target out of the list of hit targets that doesn't
-     * include filteredTarget -- unless that's the only choice. The idea is that when dealing with targets,
-     * if there's overlap, you don't want to pick on mouseRelease the same one you already clicked on in mouseDown.
-     *
-     * @param filteredTarget
-     * @return the preferred target out of the list
-     */
-    public Target getFilteredTarget(Target filteredTarget) {
-      Target hit = null;
-      boolean found = false;
-      for (Target target : myHitTargets) {
-        if (target == filteredTarget) {
-          found = true;
-          continue;
-        }
-        if (filteredTarget.getClass().isAssignableFrom(target.getClass())) {
-          hit = target;
-        }
-      }
-      if (hit == null && found) {
-        hit = filteredTarget;
-      }
-      return hit;
-    }
-
-    /**
-     * We want to get the best component, defined as the top-level one (in the draw order) and
-     * a preference to the selected one (in case multiple components overlap)
-     *
-     * @return the best component to pick
-     */
-    public SceneComponent getClosestComponent() {
-      int count = myHitComponents.size();
-      if (count == 0) {
-        return null;
-      }
-      if (count == 1) {
-        return myHitComponents.get(0);
-      }
-      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
-      if (selection.isEmpty()) {
-        return myHitComponents.get(count - 1);
-      }
-      SceneComponent candidate = myHitComponents.get(count - 1);
-      boolean inSelection = selection.contains(candidate.getNlComponent());
-      if (inSelection) {
-        return candidate;
-      }
-
-      for (int i = count - 2; i >= 0; i--) {
-        SceneComponent target = myHitComponents.get(i);
-        if (selection.contains(target.getNlComponent())) {
-          candidate = target;
-          break;
-        }
-      }
-      // We now have the first element in the selection. Let's try again this time...
-      for (int i = count - 1; i >= 0; i--) {
-        SceneComponent target = myHitComponents.get(i);
-        if (target.hasAncestor(candidate)) {
-          candidate = target;
-          break;
-        }
-      }
-      return candidate;
-    }
-  }
 
   /**
    * Supports hover
