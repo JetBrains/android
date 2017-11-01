@@ -17,17 +17,17 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,10 +38,11 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -142,6 +143,7 @@ final class ConnectionsView {
 
     myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
     customizeConnectionsTable();
+    createTooltip();
 
     myAspectObserver = new AspectObserver();
     myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateTableSelection);
@@ -200,6 +202,30 @@ final class ConnectionsView {
       // flickering that otherwise occurs in our table.
 
       updateTableSelection();
+    });
+  }
+
+  private void createTooltip() {
+    JTextPane textPane = new JTextPane();
+    textPane.setEditable(false);
+    textPane.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+    textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    textPane.setFont(myConnectionsTable.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    TooltipComponent tooltip = new TooltipComponent(textPane, myConnectionsTable, ProfilerLayeredPane.class);
+    tooltip.registerListenersOn(myConnectionsTable);
+    myConnectionsTable.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        int row = myConnectionsTable.rowAtPoint(e.getPoint());
+        if (row >= 0) {
+          tooltip.setVisible(true);
+          String url = myTableModel.getHttpData(myConnectionsTable.convertRowIndexToModel(row)).getUrl();
+          textPane.setText(url);
+        } else {
+          tooltip.setVisible(false);
+        }
+      }
     });
   }
 
