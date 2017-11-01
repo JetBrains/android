@@ -91,11 +91,11 @@ public class AnimationToolbar extends Box implements Disposable {
 
     Box buttonsPanel = Box.createHorizontalBox();
     // TODO: Replace with icons
-    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Animations.PLAY, "Play", this::onPlay);
-    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Animations.PAUSE, "Pause", this::onPause);
-    myStopButton = newControlButton(StudioIcons.LayoutEditor.Animations.STOP, "Stop", this::onStop);
-    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Animations.STEP_FWD, "Step forward", this::onFrameFwd);
-    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Animations.STEP_BCK, "Step backwards", this::onFrameBck);
+    myPlayButton = newControlButton(StudioIcons.Shell.Toolbar.RUN, "Play", this::onPlay);
+    myPauseButton = newControlButton(StudioIcons.Common.MISSING, "Pause", this::onPause);
+    myStopButton = newControlButton(StudioIcons.Shell.Toolbar.STOP, "Stop", this::onStop);
+    myFrameFwdButton = newControlButton(StudioIcons.Profiler.Toolbar.GOTO_LIVE, "Step forward", this::onFrameFwd);
+    myFrameBckButton = newControlButton(StudioIcons.Common.MISSING, "Step backwards", this::onFrameBck);
 
     JPanel controlBar = new JPanel(new WrappedFlowLayout());
 
