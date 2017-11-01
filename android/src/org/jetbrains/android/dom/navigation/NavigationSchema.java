@@ -106,13 +106,13 @@ public class NavigationSchema implements Disposable {
   }
 
   @NotNull
-  public static NavigationSchema getOrCreateSchema(@NotNull AndroidFacet facet) {
+  public static synchronized NavigationSchema getOrCreateSchema(@NotNull AndroidFacet facet) {
     NavigationSchema result = ourSchemas.get(facet);
     if (result == null) {
       result = new NavigationSchema(facet);
-      ourSchemas.put(facet, result);
       Disposer.register(facet, result);
       result.init();
+      ourSchemas.put(facet, result);
     }
     return result;
   }
