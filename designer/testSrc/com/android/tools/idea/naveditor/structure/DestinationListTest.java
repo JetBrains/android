@@ -52,7 +52,7 @@ public class DestinationListTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    rootComponent().unboundedChildren(
+                    rootComponent("root").unboundedChildren(
                       fragmentComponent("fragment1"),
                       fragmentComponent("fragment2"),
                       navigationComponent("subnav")
@@ -128,7 +128,7 @@ public class DestinationListTest extends NavigationTestCase {
   }
 
   public void testModifyModel() throws Exception {
-    ComponentDescriptor root = rootComponent().unboundedChildren(
+    ComponentDescriptor root = rootComponent("root").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
@@ -170,7 +170,7 @@ public class DestinationListTest extends NavigationTestCase {
 
   public void testBack() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 navigationComponent("subnav")
                                   .withLabelAttribute("sub nav")
                                   .unboundedChildren(navigationComponent("subsubnav")
@@ -213,7 +213,7 @@ public class DestinationListTest extends NavigationTestCase {
 
   public void testRendering() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1").withAttribute(ANDROID_URI, ATTR_LABEL, "fragmentLabel"),
                                 fragmentComponent("fragment2"),
                                 navigationComponent("subnav").withAttribute(ANDROID_URI, ATTR_NAME, "navName"),

@@ -26,7 +26,7 @@ import org.mockito.Mockito.mock
 class VisibleDestinationsEditorTest: NavigationTestCase() {
   fun testVisibleDestinations() {
     val model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent().id("@+id/root")
+        NavModelBuilderUtil.rootComponent("root")
             .unboundedChildren(
                 NavModelBuilderUtil.fragmentComponent("f1")
                     .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "fragment1"),

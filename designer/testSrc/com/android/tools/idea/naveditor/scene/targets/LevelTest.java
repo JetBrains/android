@@ -65,7 +65,7 @@ public class LevelTest extends NavigationTestCase {
   }
 
   public void testLevels() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1"),
         fragmentComponent("fragment2"));

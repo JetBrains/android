@@ -62,8 +62,12 @@ public class NavModelBuilderUtil {
   }
 
   @NotNull
-  public static NavigationComponentDescriptor rootComponent() {
-    return new NavigationComponentDescriptor();
+  public static NavigationComponentDescriptor rootComponent(@Nullable String id) {
+    NavigationComponentDescriptor descriptor = new NavigationComponentDescriptor();
+    if (id != null) {
+      descriptor.id("@+id/" + id);
+    }
+    return descriptor;
   }
 
   @NotNull

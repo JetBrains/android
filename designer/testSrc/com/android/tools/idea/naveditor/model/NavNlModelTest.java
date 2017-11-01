@@ -33,7 +33,7 @@ public class NavNlModelTest extends NavigationTestCase {
   public void testAddChild() throws Exception {
     NlTreeDumper treeDumper = new NlTreeDumper();
     ModelBuilder modelBuilder = model("nav.xml",
-                                      rootComponent().unboundedChildren(
+                                      rootComponent("root").unboundedChildren(
                                         fragmentComponent("fragment1"),
                                         fragmentComponent("fragment2")));
     SyncNlModel model = modelBuilder.build();

@@ -26,7 +26,7 @@ class NavActionsPropertyTest : NavigationTestCase() {
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent().unboundedChildren(
+        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
             NavModelBuilderUtil.fragmentComponent("f1")
                 .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
                     NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),

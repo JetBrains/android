@@ -68,7 +68,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    rootComponent().id("@+id/navigation").unboundedChildren(
+                    rootComponent("navigation").unboundedChildren(
                       fragmentComponent("fragment1"),
                       navigationComponent("subnav")
                         .unboundedChildren(fragmentComponent("fragment2"))))

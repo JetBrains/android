@@ -57,7 +57,7 @@ import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -106,7 +106,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testInclude() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .unboundedChildren(
@@ -136,9 +136,8 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testNegativePositions() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
-      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main"),
@@ -188,9 +187,8 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testVeryPositivePositions() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
-      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main"),
@@ -240,9 +238,8 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testAddComponent() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment2")
-      .id("@+id/root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main")
@@ -288,7 +285,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testRemoveComponent() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -358,7 +355,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testSubflow() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -441,7 +438,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testNonexistentLayout() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_nonexistent")
@@ -465,7 +462,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testSelectedNlComponentSelectedInScene() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -495,7 +492,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testSelfAction() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -525,7 +522,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testDeepLinks() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1")
@@ -554,7 +551,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testSelectedComponent() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1"),
@@ -590,7 +587,7 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testDevices() {
-    SyncNlModel model = model("nav.xml", rootComponent()
+    SyncNlModel model = model("nav.xml", rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1"))).build();
     DisplayList list = new DisplayList();

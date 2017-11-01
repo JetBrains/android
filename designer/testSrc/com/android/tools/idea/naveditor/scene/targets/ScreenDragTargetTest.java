@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 public class ScreenDragTargetTest extends NavigationTestCase {
 
   public void testMove() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment2")
       .unboundedChildren(
         fragmentComponent("fragment1")

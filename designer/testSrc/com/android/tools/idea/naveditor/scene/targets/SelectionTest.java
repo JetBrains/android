@@ -48,7 +48,7 @@ public class SelectionTest extends NavigationTestCase {
   private SceneView mySceneView;
 
   public void testSelection() throws Exception {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1"),
         fragmentComponent("fragment2"));

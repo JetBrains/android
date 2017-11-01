@@ -22,7 +22,7 @@ class NavComponentTypePropertyTest : NavigationTestCase() {
 
   fun testValue() {
     val model = model("nav.xml",
-        rootComponent().id("@+id/root").unboundedChildren(
+        rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
                 .unboundedChildren(actionComponent("a1").withDestinationAttribute("f1")),
             fragmentComponent("f2"),
