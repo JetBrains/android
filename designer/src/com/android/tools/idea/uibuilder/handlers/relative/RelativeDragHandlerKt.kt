@@ -67,13 +67,13 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    editor.insertChildren(layout.nlComponent, components, -1, insertType)
     when (insertType) {
       InsertType.CREATE -> dragWidgetFromPalette(x, y)
       InsertType.MOVE_INTO -> dragWidgetFromComponentTree(x, y)
       else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
     }
 
+    editor.insertChildren(layout.nlComponent, components, -1, insertType)
     // Remove Temporary SceneComponent
     layout.scene.removeComponent(component)
     layout.scene.checkRequestLayoutStatus()
@@ -84,11 +84,7 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
     for (child in components) {
       @AndroidDpCoordinate val dx = x + startX - lastX - component.drawWidth / 2
       @AndroidDpCoordinate val dy = y + startY - lastY - component.drawHeight / 2
-      for (target in component.targets) {
-        if (target is RelativeDragTarget) {
-          target.mouseRelease(dx, dy, child)
-        }
-      }
+      component.targets.filterIsInstance<RelativeDragTarget>().forEach { it.mouseRelease(dx, dy, child) }
     }
   }
 
