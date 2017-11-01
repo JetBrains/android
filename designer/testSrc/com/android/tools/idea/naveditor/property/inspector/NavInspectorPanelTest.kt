@@ -38,7 +38,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
-        rootComponent().unboundedChildren(
+        rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
                 .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2"),
                     actionComponent("a2").withDestinationAttribute("f3")),

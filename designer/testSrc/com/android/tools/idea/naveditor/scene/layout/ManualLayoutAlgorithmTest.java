@@ -38,7 +38,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testSimple() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().id("@+id/root")
+                              rootComponent("root")
                                 .unboundedChildren(
                                   fragmentComponent("fragment1"),
                                   fragmentComponent("fragment2"))).build();
@@ -72,12 +72,12 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testDifferentFiles() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().id("@+id/root")
+                              rootComponent("root")
                                 .unboundedChildren(
                                   fragmentComponent("fragment1"))).build();
 
     SyncNlModel model2 = model("nav2.xml",
-                               rootComponent().id("@+id/root")
+                               rootComponent("root")
                                  .unboundedChildren(
                                    fragmentComponent("fragment1"))).build();
 
@@ -121,7 +121,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testFallback() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().id("@+id/root")
+                              rootComponent("root")
                                 .unboundedChildren(
                                   fragmentComponent("fragment1"),
                                   fragmentComponent("fragment2"),
@@ -171,7 +171,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
 
   public void testSave() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().id("@+id/nav").unboundedChildren(
+                              rootComponent("nav").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"))).build();
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
@@ -186,7 +186,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     assertTrue(FileUtil.loadFile(VfsUtilCore.virtualToIoFile(getProject().getProjectFile())).contains("fragment1"));
 
     // Now create everything anew and verify the old position is restored
-    model = model("nav.xml", rootComponent().id("@+id/nav").unboundedChildren(
+    model = model("nav.xml", rootComponent("nav").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"))).build();
     surface = new NavDesignSurface(getProject(), myRootDisposable);
@@ -201,7 +201,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
   public void testSaveWithError() {
     ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(myModule);
     SyncNlModel model = model("nav.xml",
-                              rootComponent().id("@+id/nav").unboundedChildren(
+                              rootComponent("nav").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"))).build();
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
@@ -217,7 +217,7 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     PlatformTestUtil.saveProject(getProject());
 
     // Now create everything anew and verify the old position is restored
-    model = model("nav.xml", rootComponent().id("@+id/nav").unboundedChildren(
+    model = model("nav.xml", rootComponent("nav").unboundedChildren(
       fragmentComponent("fragment1"),
       fragmentComponent("fragment2"))).build();
     surface = new NavDesignSurface(getProject(), getTestRootDisposable());

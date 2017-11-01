@@ -50,7 +50,7 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
 
   fun testListContent() {
     val model = model("nav.xml",
-        rootComponent().unboundedChildren(
+        rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
                 .withLayoutAttribute("activty_main")
                 .unboundedChildren(
