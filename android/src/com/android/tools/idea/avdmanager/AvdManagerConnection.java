@@ -396,8 +396,7 @@ public class AvdManagerConnection {
     addParameters(info, commandLine);
 
     EmulatorRunner runner = new EmulatorRunner(commandLine, info);
-    EmulatorRunner.ProcessOutputCollector collector = new EmulatorRunner.ProcessOutputCollector();
-    runner.addProcessListener(collector);
+    addListeners(runner);
 
     final ProcessHandler processHandler;
     try {
@@ -437,28 +436,16 @@ public class AvdManagerConnection {
         p.stop();
         p.processFinish();
       }
-
-      processHandler.removeProcessListener(collector);
-      String message = limitErrorMessage(collector.getText());
-
-      if (message.toLowerCase(Locale.ROOT).contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
-        ApplicationManager.getApplication().invokeLater(
-          () -> Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName));
-      }
     });
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
   /**
-   * Limit the error message retrieved from the emulator to the smaller of 1K characters or 30 lines.
+   * Allow subclasses to add listeners before starting the emulator.
    */
-  private static String limitErrorMessage(@NotNull String message) {
-    int offset = StringUtil.lineColToOffset(message, 30, 0);
-    if (offset < 0) {
-      offset = message.length();
-    }
-    return message.substring(0, Math.min(offset, 1024));
+  protected void addListeners(EmulatorRunner runner) {
+
   }
 
   /**
