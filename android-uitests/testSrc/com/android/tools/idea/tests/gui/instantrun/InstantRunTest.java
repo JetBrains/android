@@ -636,6 +636,7 @@ public class InstantRunTest {
    *   Verify that Android Studio does a full build and re-installs the app.
    *   </pre>
    */
+  @Ignore("http://b/68757875")
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/62204067
   @Test
   public void fullBuildAndReinstall() throws Exception {
