@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -42,6 +44,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.util.LinkedList;
@@ -71,6 +74,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private RunManagerImpl myRunManager;
   @Mock private ProvistionTasks myProvisionTasks;
 
+  private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
 
@@ -87,9 +91,11 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, myGradleProjectInfo, mySyncInvoker, mySyncState, myDependencySetupIssues,
-                                       myProjectSetup, myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
-                                       myModuleValidatorFactory, myRunManager, myProvisionTasks);
+    myProjectStructure = new ProjectStructureStub(project);
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
+                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
+                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager,
+                                       myProvisionTasks);
   }
 
   public void testJUnitRunConfigurationSetup() {
@@ -176,6 +182,27 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
   }
 
+  public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.setGenerateSourcesAfterSync(true);
+
+    myProjectStructure.currentAgpVersions = new AndroidPluginVersionsInProject() {
+      @Override
+      public boolean haveVersionsChanged(@NotNull AndroidPluginVersionsInProject other) {
+        return true; // Simulate AGP versions have changed between Sync executions.
+      }
+    };
+
+    mySetup.setUpProject(request, myProgressIndicator);
+
+    // verify "clean" was invoked.
+    verify(myProjectBuilder).cleanAndGenerateSources();
+
+    assertTrue(myProjectStructure.analyzed);
+  }
+
   public void testProvisionBeforeRunTaskIsAdded() {
     // Create android run configurations
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
@@ -196,5 +223,27 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));
+  }
+
+  private static class ProjectStructureStub extends ProjectStructure {
+    AndroidPluginVersionsInProject agpVersionsFromPreviousSync = new AndroidPluginVersionsInProject();
+    AndroidPluginVersionsInProject currentAgpVersions = new AndroidPluginVersionsInProject();
+
+    boolean analyzed;
+
+    ProjectStructureStub(@NotNull Project project) {
+      super(project);
+    }
+
+    @Override
+    public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
+      analyzed = true;
+    }
+
+    @Override
+    @NotNull
+    public AndroidPluginVersionsInProject getAndroidPluginVersions() {
+      return analyzed ? currentAgpVersions : agpVersionsFromPreviousSync;
+    }
   }
 }
