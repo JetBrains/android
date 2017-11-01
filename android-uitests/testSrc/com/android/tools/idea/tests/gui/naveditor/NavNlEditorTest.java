@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -52,8 +51,6 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
 
     layout.waitForRenderToFinish();
-
-    layout.getSurface().zoomToFit();
 
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
