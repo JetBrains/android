@@ -103,7 +103,7 @@ public class EventMonitorTooltipView extends ProfilerTooltipView {
   @Override
   public JComponent createTooltip() {
     JPanel panel = new JPanel(new TabularLayout("*"));
-    panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     myTimeRangeLabel = new JLabel();
     myTimeRangeLabel.setForeground(Color.GRAY);
     myTimeRangeLabel.setFont(myFont);
