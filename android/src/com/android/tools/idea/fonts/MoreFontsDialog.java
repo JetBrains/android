@@ -299,12 +299,12 @@ public class MoreFontsDialog extends DialogWrapper {
 
   private void fontListSelectionChanged() {
     FontFamily family = myFontList.getSelectedValue();
-    myLicenseLabel.setVisible(family.getFontSource() == FontSource.DOWNLOADABLE);
     if (Objects.equals(family, myLastSelectedFont)) {
       // Often we get multiple selection notifications. Avoid multiple downloads of the same files:
       return;
     }
     if (family == null || family.getFontSource() == FontSource.HEADER) {
+      myLicenseLabel.setVisible(false);
       myFontName.setText("");
       myFontNameEditor.setVisible(false);
       myDownloadable.setVisible(false);
@@ -312,6 +312,7 @@ public class MoreFontsDialog extends DialogWrapper {
       setOKActionEnabled(false);
     }
     else {
+      myLicenseLabel.setVisible(family.getFontSource() == FontSource.DOWNLOADABLE);
       Runnable downloaded = () -> selectedFontLoaded(family);
       FontDownloadService.download(Collections.singletonList(family), false, downloaded, downloaded);
       setOKActionEnabled(!myValidatorPanel.hasErrors().get());
