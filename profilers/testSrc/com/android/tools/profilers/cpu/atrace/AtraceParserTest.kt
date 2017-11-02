@@ -28,7 +28,7 @@ class AtraceParserTest {
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
 
     // Value comes from atrace.ctrace file first entry and last entry.
-    val expected = Range(1.54451444E8, 1.61470751E8)
+    val expected = Range(1.1008678125E11, 1.1009711199500002E11)
     val actual = parser.range
     assertThat(actual.min).isWithin(DELTA).of(expected.min)
     assertThat(actual.max).isWithin(DELTA).of(expected.max)

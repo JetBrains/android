@@ -34,18 +34,15 @@ import java.util.Map;
  * populates a minimal data structure to pass to the UI.
  */
 public class AtraceParser implements TraceParser {
-  private double myStartCaptureMonoTimestamp;
-  private double myEndCaptureMonoTimestamp;
+
+  // Trebuchet is our parser for atrace (systrace) raw data. trebuchet.Model is what Trebuchet uses to represent captured data."
+  private Model myModel;
 
   @Override
   public void parse(File file) throws IOException {
     AtraceDecompressor reader = new AtraceDecompressor(file);
     ImportTask task = new ImportTask(new PrintlnImportFeedback());
-    Model model = task.importBuffer(reader);
-    double startTimestamp = secondsToUs(model.getBeginTimestamp());
-    double endTimestamp = secondsToUs(model.getEndTimestamp());
-    myStartCaptureMonoTimestamp = startTimestamp;
-    myEndCaptureMonoTimestamp = endTimestamp;
+    myModel = task.importBuffer(reader);
   }
 
   /**
@@ -71,6 +68,8 @@ public class AtraceParser implements TraceParser {
 
   @Override
   public Range getRange() {
-    return new Range(myStartCaptureMonoTimestamp, myEndCaptureMonoTimestamp);
+    double startTimestampUs = secondsToUs(myModel.getParentTimestamp());
+    double endTimestampUs = secondsToUs((myModel.getEndTimestamp() - myModel.getBeginTimestamp()) + myModel.getParentTimestamp());
+    return new Range(startTimestampUs, endTimestampUs);
   }
 }
