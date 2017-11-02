@@ -20,6 +20,9 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.android.tools.profilers.cpu.TraceParser;
+import trebuchet.model.Model;
+import trebuchet.task.ImportTask;
+import trebuchet.util.PrintlnImportFeedback;
 
 import java.io.*;
 import java.util.HashMap;
@@ -30,46 +33,20 @@ import java.util.zip.DataFormatException;
  * AtraceParser is a minimal implementation parsing the atrace file.
  * The class looks for the first and last lines in the file to get the total time, as well as
  * populates a minimal data structure to pass to the UI.
- * TODO: Use trebuchet to parse the atrace file and return actual objects to the UI. This
- * will require a change to the UI and how we use this object.
  */
 public class AtraceParser implements TraceParser {
-
-  private static final String PARENT_TS_MARKER = "parent_ts=";
   private double myStartCaptureMonoTimestamp;
   private double myEndCaptureMonoTimestamp;
 
   @Override
   public void parse(File file) throws IOException {
     AtraceDecompressor reader = new AtraceDecompressor(file);
-    String line = "";
-    String lastLine = line;
-    double startCaptureTimestamp = 0.0;
-    try {
-      // Until we define our model the only thing we parse from the atrace file is the start timestamp,
-      // and the end timestamp. This helps us build our range for the length of the capture.
-      // Example format of a line.
-      // # TASK-PID    TGID   CPU#  ||||    TIMESTAMP  FUNCTION
-      // #    | |        |      |   ||||       |         |
-      // atrace-1249  ( 1249) [002] ...1 66184.619718: tracing_mark_write: trace_event_clock_sync: parent_ts=16866.169922
-      while ((line = reader.getNextLine()) != null) {
-        lastLine = line;
-        if (line.contains(PARENT_TS_MARKER)) {
-          // parent_ts marker function has the format of
-          // atrace-1249  ( 1249) [002] ...1 12345.619718: tracing_mark_write: trace_event_clock_sync: parent_ts=16866.169922
-          // TODO: Abstract line parsing to a class, this will allow us to parse all components cleanly
-          String parentTimestamp = line.substring(line.lastIndexOf("=") + 1);
-          myStartCaptureMonoTimestamp = secondsToUs(Float.parseFloat(parentTimestamp));
-          startCaptureTimestamp = getTimestampUs(line);
-        }
-      }
-      assert myStartCaptureMonoTimestamp != 0;
-      myEndCaptureMonoTimestamp = getTimestampUs(lastLine) - startCaptureTimestamp + myStartCaptureMonoTimestamp;
-    }
-    catch (DataFormatException ex) {
-      ex.printStackTrace();
-      throw new IOException("Invalid data format.", ex);
-    }
+    ImportTask task = new ImportTask(new PrintlnImportFeedback());
+    Model model = task.importBuffer(reader);
+    double startTimestamp = secondsToUs(model.getBeginTimestamp());
+    double endTimestamp = secondsToUs(model.getEndTimestamp());
+    myStartCaptureMonoTimestamp = startTimestamp;
+    myEndCaptureMonoTimestamp = endTimestamp;
   }
 
   /**
@@ -77,19 +54,8 @@ public class AtraceParser implements TraceParser {
    *             systemTime(CLOCK_MONOTONIC) / 1000000000.0f returning the time in fractions of a second.
    * @return time converted to Us.
    */
-  private double secondsToUs(float time) {
-    return (time * 1000000.0f);
-  }
-
-  /**
-   * @param line from atrace file.
-   *             an example line is: atrace-1249  ( 1249) [002] ...1 66184.619718: tracing_mark_write: trace_event_clock_sync: parent_ts=16866.169922
-   * @return time as double converted to Us.
-   */
-  private double getTimestampUs(String line) {
-    String lineTimestamp = line.substring(0, line.indexOf(":"));
-    lineTimestamp = lineTimestamp.substring(lineTimestamp.lastIndexOf(" "));
-    return secondsToUs(Float.parseFloat(lineTimestamp));
+  private double secondsToUs(double time) {
+    return (time * 1000000.0);
   }
 
   @Override

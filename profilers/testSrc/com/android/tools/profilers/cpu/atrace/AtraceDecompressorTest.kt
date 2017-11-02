@@ -16,35 +16,35 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.intellij.openapi.util.io.FileUtil
+import org.junit.Assert.assertNull
 import org.junit.Test
 
-import java.io.BufferedWriter
-import java.io.FileWriter
-
 import org.junit.Assert.assertTrue
+import org.junit.Before
 
 class AtraceDecompressorTest {
 
-  @Test
-  fun testDecompressFileHasParentTimestamp() {
-    // TODO: When we have a model for an atrace file, update this to use the model. For now
-    // this test only looks for the parent_ts from the atrace file. At the same time, it
-    // parses the whole file to validate that decompressing the entire file works.
+  private lateinit var myDecompressor: AtraceDecompressor
+  @Before
+  fun setup() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val tmpFile = FileUtil.createTempFile("trace", "txt")
-    val bufferedWriter = BufferedWriter(FileWriter(tmpFile))
-    val decompressor = AtraceDecompressor(traceFile)
-    var line = decompressor.nextLine
-    var hasParentTimestamp = false
-    while (line != null) {
-      bufferedWriter.write(line + "\n")
-      if (line.contains("parent_ts=")) {
-        hasParentTimestamp = true
-      }
-      line = decompressor.nextLine
+    myDecompressor = AtraceDecompressor(traceFile)
+  }
+
+  @Test
+  fun testDecompressedLineHasNewLineChar() {
+    var slice = myDecompressor.next()
+    assertTrue(slice.toString().endsWith("\n"))
+  }
+
+  @Test
+  fun testEndOfFileReturnsNull() {
+    do {
+      // Read each line until we hit the end of stream.
+      var line = myDecompressor.nextLine
     }
-    bufferedWriter.close()
-    assertTrue(hasParentTimestamp)
+    while (line != null)
+    // Validate that next returns null to indicate end of stream.
+    assertNull(myDecompressor.next())
   }
 }
