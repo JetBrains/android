@@ -17,6 +17,9 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.google.common.base.Charsets;
 import com.google.protobuf3jarjar.ByteString;
+import org.jetbrains.annotations.Nullable;
+import trebuchet.io.BufferProducer;
+import trebuchet.io.DataSlice;
 
 import java.io.*;
 import java.util.LinkedList;
@@ -24,13 +27,15 @@ import java.util.Queue;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
+import static platform.SystemKt.emptyDataBuffer;
+
 /**
  * This class takes concatenated compressed atrace files and will on the fly decompress them one line at a time.
  * As lines are requested from nextLine this class will read in a chunk of the compressed atrace file decompress it
  * and return the next line decoded. Each line is returned as a string as the atrace file is encoded as a series of
  * strings.
  */
-public class AtraceDecompressor {
+public class AtraceDecompressor implements BufferProducer {
   private static final int BUFFER_SIZE_BYTES = 2048;
   private byte[] myOutputBuffer = new byte[BUFFER_SIZE_BYTES];
   private byte[] myInputBuffer = new byte[BUFFER_SIZE_BYTES];
@@ -54,6 +59,7 @@ public class AtraceDecompressor {
     myInputStream.read(myInputBuffer, 0, HEADER.size());
     verifyHeader();
     myInputBufferOffset = 0;
+    myLineQueue.add("# Initial Data Required by Importer");
   }
 
   private void verifyHeader() throws IOException {
@@ -152,5 +158,39 @@ public class AtraceDecompressor {
       }
     }
     return myLineQueue.remove();
+  }
+
+  /**
+   * Required by {@link BufferProducer}, closes the streams held by the decompressor.
+   */
+  @Override
+  public void close() {
+    try {
+      myInflater.end();
+      myInputStream.close();
+    }
+    catch (IOException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  /**
+   * @return the next line used by {@link BufferProducer}. The parser assumes that each line ends
+   * with \n, so we add a return to the string before returning the next requested slice.
+   */
+  @Nullable
+  @Override
+  public DataSlice next() {
+    try {
+      String line = getNextLine();
+      if (line != null) {
+        byte[] data = String.format("%s\n", line).getBytes();
+        return new DataSlice(data, 0, data.length);
+      }
+    }
+    catch (IOException | DataFormatException ex) {
+      ex.printStackTrace();
+    }
+    return null;
   }
 }

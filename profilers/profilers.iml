@@ -20,5 +20,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module" module-name="profilers-atrace" />
   </component>
 </module>
