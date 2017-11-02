@@ -91,11 +91,11 @@ public class AnimationToolbar extends Box implements Disposable {
 
     Box buttonsPanel = Box.createHorizontalBox();
     // TODO: Replace with icons
-    myPlayButton = newControlButton(StudioIcons.Shell.Toolbar.RUN, "Play", this::onPlay);
-    myPauseButton = newControlButton(StudioIcons.Common.MISSING, "Pause", this::onPause);
-    myStopButton = newControlButton(StudioIcons.Shell.Toolbar.STOP, "Stop", this::onStop);
-    myFrameFwdButton = newControlButton(StudioIcons.Profiler.Toolbar.GOTO_LIVE, "Step forward", this::onFrameFwd);
-    myFrameBckButton = newControlButton(StudioIcons.Common.MISSING, "Step backwards", this::onFrameBck);
+    myPlayButton = newControlButton(">", "Play", this::onPlay);
+    myPauseButton = newControlButton("||", "Pause", this::onPause);
+    myStopButton = newControlButton("■", "Stop", this::onStop);
+    myFrameFwdButton = newControlButton(">|", "Step forward", this::onFrameFwd);
+    myFrameBckButton = newControlButton("|<", "Step backwards", this::onFrameBck);
 
     JPanel controlBar = new JPanel(new WrappedFlowLayout());
 
@@ -230,10 +230,10 @@ public class AnimationToolbar extends Box implements Disposable {
    * Creates a new toolbar control button
    */
   @NotNull
-  private static JButton newControlButton(@NotNull Icon icon, @NotNull String label, @NotNull Runnable callback) {
+  private static JButton newControlButton(@NotNull String iconText, @NotNull String label, @NotNull Runnable callback) {
     JButton button = new JButton();
     button.setName(label);
-    button.setIcon(icon);
+    button.setText(iconText);
     button.addActionListener((e) -> callback.run());
 
     button.setBorder(IdeBorderFactory.createEmptyBorder(15, 10, 15, 10));
