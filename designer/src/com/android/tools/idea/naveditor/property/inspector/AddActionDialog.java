@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -63,12 +62,36 @@ public class AddActionDialog extends DialogWrapper {
     }
   }
 
-  protected AddActionDialog(@NotNull NlComponent action, @Nullable ResourceResolver resourceResolver) {
+  /**
+   * Create a new action for the given component
+   */
+  protected AddActionDialog(@Nullable NlComponent existingAction,
+                            @NotNull NlComponent parent,
+                            @Nullable ResourceResolver resourceResolver) {
     super(false);
-
-    NlModel model = action.getModel();
+    NlModel model = parent.getModel();
     setUpComponents(model, resourceResolver);
 
+    if (existingAction != null) {
+      setupFromExisting(existingAction);
+    }
+
+    myFromComboBox.addItem(parent);
+    NavComponentHelperKt.getVisibleDestinations(parent).forEach(c -> myDestinationComboBox.addItem(c));
+
+    init();
+
+    if (existingAction == null) {
+      myOKAction.putValue(Action.NAME, "Add");
+      setTitle("Add Action");
+    }
+    else {
+      myOKAction.putValue(Action.NAME, "Update");
+      setTitle("Update Action");
+    }
+  }
+
+  private void setupFromExisting(@NotNull NlComponent action) {
     myFromComboBox.addItem(action.getParent());
     String destination = NlComponent.stripId(action.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
     if (destination != null) {
@@ -86,28 +109,6 @@ public class AddActionDialog extends DialogWrapper {
     mySingleTopCheckBox.setSelected(Boolean.valueOf(action.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_SINGLE_TOP)));
     myDocumentCheckBox.setSelected(Boolean.valueOf(action.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DOCUMENT)));
     myClearTaskCheckBox.setSelected(Boolean.valueOf(action.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_CLEAR_TASK)));
-
-    init();
-
-    myOKAction.putValue(Action.NAME, "Update");
-    setTitle("Update Action");
-  }
-
-  protected AddActionDialog(@NotNull List<NlComponent> components, @Nullable ResourceResolver resourceResolver) {
-    super(false);
-    assert components.size() == 1;
-    NlComponent component = components.get(0);
-    NlModel model = component.getModel();
-
-    setUpComponents(model, resourceResolver);
-
-    myFromComboBox.addItem(component);
-    NavComponentHelperKt.getVisibleDestinations(component).forEach(c -> myDestinationComboBox.addItem(c));
-
-    init();
-
-    myOKAction.putValue(Action.NAME, "Add");
-    setTitle("Add Action");
   }
 
   private void setUpComponents(@NotNull NlModel model, @Nullable ResourceResolver resourceResolver) {

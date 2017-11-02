@@ -51,7 +51,7 @@ open class PropertyAdapter(val myName: String, val myComponents: List<NlComponen
 
   override fun getTagName() = tag?.localName
 
-  override fun getChildProperty(name: String) = throw IllegalStateException()
+  override fun getChildProperty(name: String): NlProperty = throw UnsupportedOperationException(name)
 
   override fun getDesignTimeProperty() = throw IllegalStateException()
 }
