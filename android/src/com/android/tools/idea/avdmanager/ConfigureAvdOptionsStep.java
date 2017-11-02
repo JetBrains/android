@@ -177,7 +177,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private String myOriginalName;
   /**
-   * Device's original Sd card size
+   * Device's original SD card size. Used to warn about changing the size.
    */
   private Storage myOriginalSdCard;
   /**
@@ -185,9 +185,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    */
   private int mySelectedCoreCount;
 
+  private AvdOptionsModel myModel;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     super(model, "Android Virtual Device (AVD)");
+    myModel = model;
     myValidatorPanel = new ValidatorPanel(this, myRoot);
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
 
@@ -294,6 +296,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myBuiltInSdCardStorage.setEnabled(true);
       myExternalSdCard.setEnabled(false);
     }
+    myModel.ensureMinimumMemory();
+    // Set 'myOriginalSdCard' so we don't warn the user about making this change
+    myOriginalSdCard = myModel.sdCardStorage().getValue();
   }
 
   @NotNull
@@ -579,7 +584,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage ram) {
         return (ram.getSizeAsUnit(Storage.Unit.MiB) < 128)
-               ? new Result(Severity.ERROR, "RAM must be a numeric (integer) value of at least 128 MB. Recommendation is 1 GB.")
+               ? new Result(Severity.ERROR, "RAM must be at least 128 MB. Recommendation is 1 GB.")
                : Result.OK;
       }
     });
@@ -589,7 +594,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       @Override
       public Result validate(@NotNull Storage heap) {
         return (heap.getSizeAsUnit(Storage.Unit.MiB) < 16)
-               ? new Result(Severity.ERROR, "VM Heap must be a numeric (integer) value of at least 16 MB.")
+               ? new Result(Severity.ERROR, "VM Heap must be at least 16 MB.")
                : Result.OK;
       }
     });
@@ -597,10 +602,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<Storage>() {
       @NotNull
       @Override
-      public Result validate(@NotNull Storage heap) {
-        return (heap.getSizeAsUnit(Storage.Unit.MiB) < 200)
-               ? new Result(Severity.ERROR, "Internal storage must be a numeric (integer) value of at least 200 MB.")
-               : Result.OK;
+      public Result validate(@NotNull Storage internalMem) {
+        if (!internalMem.lessThan(myModel.minInternalMemSize())) {
+          return Result.OK;
+        }
+        String errorMessage = myModel.isPlayStoreCompatible() ?
+                              "Internal storage for Play Store devices must be at least %s." :
+                              "Internal storage must be at least %s.";
+        return new Result(Severity.ERROR, String.format(errorMessage, myModel.minInternalMemSize()));
       }
     });
 
@@ -624,9 +633,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           myOriginalSdCard = getModel().sdCardStorage().getValue();
         }
 
-        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
-            getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10) {
-          return new Result(Severity.ERROR, "The SD card must be at least 10 MB.");
+        if (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent()) {
+          // Internal storage has been selected. Make sure it's big enough.
+          if (getModel().sdCardStorage().getValue().lessThan(myModel.minSdCardSize())) {
+            String errorMessage = myModel.isPlayStoreCompatible() ?
+                                  "The SD card for Play Store devices must be at least %s." :
+                                  "The SD card must be at least %s.";
+            return new Result(Severity.ERROR, String.format(errorMessage, myModel.minSdCardSize()));
+          }
         }
         if (!getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
           return new Result(Severity.WARNING, "Modifying the SD card size will erase the card's contents! " +
@@ -766,10 +780,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private void enforcePlayStore() {
     boolean deviceIsPresent = getModel().device().isPresent().get();
     // Enable if NOT Play Store
-    boolean enable = !(deviceIsPresent &&
-                         getModel().device().getValue().hasPlayStore() &&
-                         getModel().systemImage().isPresent().get() &&
-                         getModel().systemImage().getValue().getSystemImage().hasPlayStore());
+    boolean enable = !myModel.isPlayStoreCompatible();
 
     // Enforce the restrictions
     myChangeDeviceButton.setEnabled(enable);
@@ -779,10 +790,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myQemu2CheckBox.setEnabled(enable);
     myRamStorage.setEnabled(enable);
     myVmHeapStorage.setEnabled(enable);
-    myInternalStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
-    myBuiltInSdCardStorage.setEnabled(enable);
     mySkinComboBox.setEnabled(enable);
     if (!enable) {
       // Selectively disable, but don't enable
@@ -977,6 +986,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         if (image != null) {
           getModel().systemImage().setValue(image);
         }
+        myModel.ensureMinimumMemory();
+        // Set 'myOriginalSdCard' so we don't warn the user about making this change
+        myOriginalSdCard = myModel.sdCardStorage().getValue();
       }
     }
   };
