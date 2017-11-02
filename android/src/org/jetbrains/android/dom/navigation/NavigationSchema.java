@@ -206,6 +206,7 @@ public class NavigationSchema implements Disposable {
       if (type != DestinationType.ACTIVITY) {
         result.put(NavActionElement.class, TAG_ACTION);
       }
+      result.put(DeeplinkElement.class, TAG_DEEPLINK);
       // TODO: other tags
     }
     return result;
