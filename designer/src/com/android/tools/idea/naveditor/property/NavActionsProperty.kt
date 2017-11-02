@@ -18,42 +18,28 @@ package com.android.tools.idea.naveditor.property
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponent.stripId
-import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.property.inspector.PropertyAdapter
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Property representing all the actions (possibly zero) for a destinations.
  */
-class NavActionsProperty(components: List<NlComponent>) : NlProperty by PropertyAdapter("Actions", components) {
-
-  val actions: MutableMap<String, NavActionPropertyItem> = mutableMapOf()
+class NavActionsProperty(components: List<NlComponent>) : ListProperty("Actions", components) {
 
   init {
-    refreshActionList()
+    refreshList()
   }
 
-  fun refreshActionList() {
-    actions.clear()
+  override fun refreshList() {
+    properties.clear()
 
     for (component in components) {
       for (child in component.children ?: listOf()) {
         if (child.tagName == NavigationSchema.TAG_ACTION) {
           child.resolveAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION)?.let {
-            actions.put(it, NavActionPropertyItem(stripId(it) ?: it, listOf(child)))
+            properties.put(it, ListPropertyItem(stripId(it) ?: it, listOf(child)))
           }
         }
       }
     }
   }
-
-  override fun getChildProperty(name: String) = actions[name]!!
-
-  /**
-   * Property representing a single action
-   */
-  class NavActionPropertyItem(name: String, components : List<NlComponent>) : NlProperty by PropertyAdapter(name, components) {
-    // Nothing?
-  }
-
 }
