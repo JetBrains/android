@@ -27,8 +27,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
@@ -59,8 +58,14 @@ import static com.google.common.base.Strings.nullToEmpty;
  * See also {@link AvdDeviceData}, which these options supplement.
  */
 public final class AvdOptionsModel extends WizardModel {
-  final static int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
-  final static int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
+  static final int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
+  static final int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
+
+  private static final Storage minGeneralInternalMemSize = new Storage(200, Storage.Unit.MiB);
+  private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
+  private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
+  private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
+
   private final AvdInfo myAvdInfo;
 
   /**
@@ -148,6 +153,36 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.updateSkinFromDeviceAndSystemImage(myDevice.getValue(), mySystemImage.getValueOrNull());
       }
     });
+  }
+
+  public boolean isPlayStoreCompatible() {
+    return myDevice != null &&
+           myDevice.isPresent().get() &&
+           myDevice.getValue().hasPlayStore() &&
+           mySystemImage.isPresent().get() &&
+           mySystemImage.getValue().getSystemImage().hasPlayStore();
+  }
+
+  public Storage minSdCardSize() {
+    return isPlayStoreCompatible() ? minPlayStoreSdSize : minGeneralSdSize;
+  }
+
+  public Storage minInternalMemSize() {
+    return isPlayStoreCompatible() ? minPlayStoreInternalMemSize : minGeneralInternalMemSize;
+  }
+
+  /**
+   * Ensure that the SD card size and internal memory
+   * size are large enough. (If a device is Play Store
+   * enabled, a larger size is required.)
+   */
+  public void ensureMinimumMemory() {
+    if (mySdCardStorage.getValue().lessThan(minSdCardSize())) {
+      mySdCardStorage.setValue(minSdCardSize());
+    }
+    if (myInternalStorage.get().lessThan(minInternalMemSize())) {
+      myInternalStorage.set(minInternalMemSize());
+    }
   }
 
   /**
