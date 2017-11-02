@@ -40,10 +40,17 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
     "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
   };
-  private static final String[] EMPTIES = new String[] {"activity", "activity_sub", "include" };
+  private static final String[] DEEPLINK_ONLY = new String[] {"activity", "activity_sub"};
+  private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
   private static final String[] ALL =
-    Stream.concat(Stream.concat(Arrays.stream(LEAF_DESTINATIONS), Arrays.stream(GROUPS)), Arrays.stream(EMPTIES)).toArray(String[]::new);
+    Stream.concat(
+      Stream.concat(
+        Stream.concat(
+          Arrays.stream(LEAF_DESTINATIONS),
+          Arrays.stream(GROUPS)),
+        Arrays.stream(EMPTIES)),
+      Arrays.stream(DEEPLINK_ONLY)).toArray(String[]::new);
 
   private static final String PREBUILT_AAR_PATH =
     "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.5.0-alpha1/runtime-0.5.0-alpha1.aar";
@@ -66,6 +73,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
     expected.put(NavActionElement.class, "action");
+    expected.put(DeeplinkElement.class, "deeplink");
     for (String leaf : LEAF_DESTINATIONS) {
       subtags = schema.getDestinationSubtags(leaf);
       assertEquals(leaf, expected, subtags);
