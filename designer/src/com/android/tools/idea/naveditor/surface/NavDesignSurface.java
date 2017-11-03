@@ -30,7 +30,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
-import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -43,7 +42,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
@@ -78,19 +76,6 @@ public class NavDesignSurface extends DesignSurface {
       mySchema = NavigationSchema.getOrCreateSchema(model.getFacet());
     }
     return mySchema;
-  }
-
-  @NotNull
-  public NlComponent createComponent(@NotNull XmlTag tag) {
-    return createComponent(tag, getModel());
-  }
-
-  @NotNull
-  @VisibleForTesting
-  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
-    NlComponent result = new NlComponent(model, tag);
-    NavComponentHelper.INSTANCE.registerComponent(result);
-    return result;
   }
 
   @NotNull

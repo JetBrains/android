@@ -47,7 +47,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @AndroidDpCoordinate public static final int LARGE_RADIUS = 8;
   public static final int MAX_DURATION = 200;
 
-  @AndroidDpCoordinate private int myCurrentRadius = 0;
+  @AndroidDpCoordinate private int myCurrentRadius;
   private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
@@ -97,7 +97,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     new WriteCommandAction(myModel.getProject(), "Create Action", myModel.getFile()) {
       @Override
-      protected void run(@NotNull Result result) throws Throwable {
+      protected void run(@NotNull Result result) {
         XmlTag tag = myNlComponent.getTag().createChildTag(NavigationSchema.TAG_ACTION, null, null, false);
         NlComponent newComponent = myModel.createComponent(tag, myNlComponent, null);
         newComponent.ensureId();

@@ -20,10 +20,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.BaseTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * {@linkplain NavBaseTarget} Contains helper functions common to navigation editor targets.
@@ -77,19 +74,5 @@ public abstract class NavBaseTarget extends BaseTarget {
   @SwingCoordinate
   protected int getSwingCenterY(@NotNull SceneContext sceneContext) {
     return sceneContext.getSwingY(getCenterY());
-  }
-
-  @NotNull
-  protected Color getFrameColor(@NotNull SceneContext sceneContext) {
-    ColorSet colorSet = sceneContext.getColorSet();
-
-    if (getComponent().isSelected()) {
-      return colorSet.getSelectedFrames();
-    }
-    else if (getComponent().getDrawState() == SceneComponent.DrawState.HOVER) {
-      return colorSet.getHighlightedFrames();
-    }
-
-    return colorSet.getFrames();
   }
 }

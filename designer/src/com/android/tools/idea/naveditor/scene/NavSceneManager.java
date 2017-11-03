@@ -20,7 +20,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
@@ -54,7 +53,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 public class NavSceneManager extends SceneManager {
   private static final int SUBNAV_WIDTH = 100;
   private static final int SUBNAV_HEIGHT = 25;
-  @SwingCoordinate private static int PAN_LIMIT = 150;
+  @SwingCoordinate private static final int PAN_LIMIT = 150;
   @AndroidDpCoordinate private static final int BOUNDING_BOX_PADDING = 100;
   private final NavScreenTargetProvider myScreenTargetProvider;
 

@@ -26,7 +26,7 @@ import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
  */
 public class NavigationDomFileDescriptionTest extends NavigationTestCase {
 
-  public void testDescription() throws Exception {
+  public void testDescription() {
     assertFalse(isNavFile("res/layout/activity_main.xml"));
     assertTrue(isNavFile("res/navigation/navigation.xml"));
   }

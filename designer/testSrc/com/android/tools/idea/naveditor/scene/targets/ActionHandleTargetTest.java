@@ -30,26 +30,23 @@ import java.util.ArrayList;
 import static org.mockito.Mockito.*;
 
 public class ActionHandleTargetTest extends TestCase {
-  private static int X = 10;
-  private static int Y = 5;
-  private static int DRAGX = X + 20;
-  private static int DRAGY = Y - 10;
+  private static final int X = 10;
+  private static final int Y = 5;
+  private static final int DRAGX = X + 20;
+  private static final int DRAGY = Y - 10;
 
-  private Scene myScene;
   private SceneContext mySceneContext;
   private SceneComponent mySceneComponent;
   private ActionHandleTarget myActionHandleTarget;
 
   private void setup() {
-    myScene = mock(Scene.class);
-
     mySceneContext = mock(SceneContext.class);
     when(mySceneContext.getSwingX(anyFloat())).thenReturn(X);
     when(mySceneContext.getSwingY(anyFloat())).thenReturn(Y);
     when(mySceneContext.getSwingDimension(anyFloat())).thenAnswer(i -> (int)(float)i.getArguments()[0]);
 
     mySceneComponent = mock(SceneComponent.class);
-    when(mySceneComponent.getScene()).thenReturn(myScene);
+    when(mySceneComponent.getScene()).thenReturn(mock(Scene.class));
     when(mySceneComponent.isSelected()).thenReturn(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
 
