@@ -89,7 +89,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private MergingUpdateQueue myRenderingQueue;
   private static final int RENDER_DELAY_MS = 10;
   private RenderTask myRenderTask;
-  private static final Object RENDERING_LOCK = new Object();
+  public static final Object RENDERING_LOCK = new Object();
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
@@ -139,27 +139,11 @@ public class LayoutlibSceneManager extends SceneManager {
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
     super(model, designSurface);
     updateTrackingConfiguration();
-  }
-
-  @Override
-  @NotNull
-  public SceneDecoratorFactory getSceneDecoratorFactory() {
-    return DECORATOR_FACTORY;
-  }
-
-  /**
-   * Creates a {@link Scene} from our {@link NlModel}. This must only be called once per builder.
-   *
-   * @return
-   */
-  @NotNull
-  @Override
-  public Scene build() {
-    Scene scene = super.build();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
 
-    NlModel model = getModel();
+    Scene scene = getScene();
+
     model.getConfiguration().addListener(myConfigurationChangeListener);
 
     List<NlComponent> components = model.getComponents();
@@ -179,8 +163,12 @@ public class LayoutlibSceneManager extends SceneManager {
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+  }
 
-    return scene;
+  @Override
+  @NotNull
+  public SceneDecoratorFactory getSceneDecoratorFactory() {
+    return DECORATOR_FACTORY;
   }
 
   @Override

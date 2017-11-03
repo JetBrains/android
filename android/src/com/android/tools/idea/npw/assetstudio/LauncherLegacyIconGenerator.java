@@ -166,7 +166,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   @NotNull
   public LauncherLegacyOptions createOptions(boolean forPreview) {
     LauncherLegacyOptions options = new LauncherLegacyOptions();
-    options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       options.sourceImageFuture = asset.toImage();
@@ -180,7 +179,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     options.useForegroundColor = myUseForegroundColor.get();
     options.foregroundColor = myForegroundColor.get().getRGB();
     options.backgroundColor = myBackgroundColor.get().getRGB();
-    options.isWebGraphic = true;
+    options.generateWebIcon = true;
     options.isDogEar = myDogEared.get();
 
     return options;
@@ -291,14 +290,14 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
     BufferedImage shapeImageBack = null, shapeImageFore = null, shapeImageMask = null;
     if (launcherOptions.shape != Shape.NONE && launcherOptions.shape != null && launcherOptions.renderShape) {
-      Density loadImageDensity = (launcherOptions.isWebGraphic ? null : launcherOptions.density);
+      Density loadImageDensity = (launcherOptions.generateWebIcon ? null : launcherOptions.density);
       shapeImageBack = loadBackImage(context, launcherOptions.shape, loadImageDensity);
       shapeImageFore = loadStyleImage(context, launcherOptions.shape, loadImageDensity, launcherOptions.style);
       shapeImageMask = loadMaskImage(context, launcherOptions.shape, loadImageDensity);
     }
 
     Rectangle imageRect = IMAGE_SIZE_WEB;
-    if (!launcherOptions.isWebGraphic) {
+    if (!launcherOptions.generateWebIcon) {
       imageRect = AssetUtil.scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
     }
 
@@ -363,12 +362,12 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
                        @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
-    boolean generateWebImage = launcherOptions.isWebGraphic;
-    launcherOptions.isWebGraphic = false;
+    boolean generateWebImage = launcherOptions.generateWebIcon;
+    launcherOptions.generateWebIcon = false;
     super.generate(category, categoryMap, context, options, name);
 
     if (generateWebImage) {
-      launcherOptions.isWebGraphic = true;
+      launcherOptions.generateWebIcon = true;
       launcherOptions.density = null;
       BufferedImage image = generate(context, options);
       Map<String, BufferedImage> imageMap = new HashMap<>();
@@ -380,7 +379,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   @Override
   @NotNull
   protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
-    if (((LauncherLegacyOptions)options).isWebGraphic) {
+    if (((LauncherLegacyOptions)options).generateWebIcon) {
       return iconName + "-web.png"; // Store at the root of the project
     }
 
@@ -430,6 +429,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
      * #generate(String, Map, GraphicGeneratorContext, Options, String)} method
      * will use this flag to determine whether it should include a web graphic in its iteration.
      */
-    public boolean isWebGraphic;
+    public boolean generateWebIcon;
   }
 }

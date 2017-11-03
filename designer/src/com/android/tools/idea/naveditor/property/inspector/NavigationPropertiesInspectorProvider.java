@@ -23,7 +23,6 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,12 +32,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.naveditor.property.NavComponentTypePropertyKt.TYPE_EDITOR_PROPERTY_LABEL;
+
 /**
  * Creates the properties inspector for navigation Destinations.
  */
 public class NavigationPropertiesInspectorProvider implements InspectorProvider<NavPropertiesManager> {
   private static final String[] NAVIGATION_PROPERTIES = {
-    SdkConstants.ATTR_NAME, SdkConstants.ATTR_ID, SdkConstants.ATTR_LABEL
+    TYPE_EDITOR_PROPERTY_LABEL,
+    SdkConstants.ATTR_NAME,
+    SdkConstants.ATTR_ID,
+    SdkConstants.ATTR_LABEL,
+    NavigationSchema.ATTR_START_DESTINATION,
+    NavigationSchema.ATTR_DESTINATION
   };
 
   private final Map<String, InspectorComponent<NavPropertiesManager>> myInspectors = new HashMap<>();
@@ -47,19 +53,14 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NavPropertiesManager propertiesManager) {
-    if (components.size() != 1) {
+    if (components.isEmpty()) {
       return false;
     }
-    XmlTag tag = components.get(0).getTag();
-    NavigationSchema schema = NavigationSchema.getOrCreateSchema(propertiesManager.getFacet());
-    if (schema.getDestinationClassByTag(tag.getName()) == null) {
-      return false;
-    }
-    String tagName = tag.getName();
+    String tagName = components.get(0).getTag().getName();
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
-    myInspectors.put(tagName, new NavigationInspectorComponent(tagName, properties, propertiesManager));
+    myInspectors.put(tagName, new NavigationInspectorComponent(properties, propertiesManager));
     return true;
   }
 
@@ -81,13 +82,10 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
   }
 
   private static class NavigationInspectorComponent implements InspectorComponent<NavPropertiesManager> {
-    private final String myComponentName;
     private final List<NlComponentEditor> myEditors;
 
-    public NavigationInspectorComponent(@NotNull String tagName,
-                                        @NotNull Map<String, NlProperty> properties,
+    public NavigationInspectorComponent(@NotNull Map<String, NlProperty> properties,
                                         @NotNull NavPropertiesManager propertiesManager) {
-      myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myEditors = new ArrayList<>(NAVIGATION_PROPERTIES.length);
       createEditors(properties, propertiesManager);
     }
@@ -127,7 +125,8 @@ public class NavigationPropertiesInspectorProvider implements InspectorProvider<
       refresh();
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
-        String propertyName = property.getName();
+        JLabel existing = editor.getLabel();
+        String propertyName = existing != null ? existing.getText() : property.getName();
         JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
         editor.setLabel(label);
       }

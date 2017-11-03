@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
  */
 public class ActionTargetTest extends NavigationTestCase {
   public void testSelect() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .withStartDestinationAttribute("fragment1")
       .unboundedChildren(
         fragmentComponent("fragment1")

@@ -16,12 +16,17 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.lang.Language;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED;
 
 public class MigrateToAppCompatAction extends BaseRefactoringAction {
   public MigrateToAppCompatAction() {
@@ -30,6 +35,12 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   @Override
   protected boolean isAvailableInEditorOnly() {
     return false;
+  }
+
+  @Override
+  public void update(AnActionEvent anActionEvent) {
+    final Project project = anActionEvent.getData(CommonDataKeys.PROJECT);
+    anActionEvent.getPresentation().setEnabledAndVisible(project != null && MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED.get());
   }
 
   @Override

@@ -68,6 +68,7 @@ import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToK
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Utility class that sets common Template values used by a project Module.
@@ -122,16 +123,7 @@ public final class TemplateValueInjector {
     addKotlinVersion();
 
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
-      setInstantAppSupport();
-
-      Module baseFeature = InstantApps.findBaseFeature(project);
-      AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
-      assert moduleModel != null;
-      Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-      assert !resDirectories.isEmpty();
-      File baseModuleResourceRoot = resDirectories.iterator().next();
-
-      myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+      setInstantAppSupport(true, project, facet.getModule().getName());
     }
 
     return this;
@@ -303,9 +295,43 @@ public final class TemplateValueInjector {
     return this;
   }
 
-  public TemplateValueInjector setInstantAppSupport() {
+  public TemplateValueInjector setInstantAppSupport(boolean isExistingProject, @NotNull Project project, @NotNull String moduleName) {
     myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
     myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getCompatApiMinVersion());
+
+    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+
+    String projectPath = project.getBasePath();
+    assert projectPath != null;
+    String defaultResourceSuffix = join("src", "main", "res");
+    File projectRoot = new File(projectPath);
+    File baseModuleRoot = new File(projectRoot, "base");
+    File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+    if (isExistingProject) {
+      Module baseFeature = InstantApps.findBaseFeature(project);
+      if (baseFeature == null) {
+        baseModuleRoot = new File(projectRoot, moduleName);
+        baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+        myTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
+        String monolithicModuleName = InstantApps.findMonolithicModuleName(project);
+        if (monolithicModuleName != null) {
+          myTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
+        }
+      }
+      else {
+        AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+        assert moduleModel != null;
+        baseModuleRoot = moduleModel.getRootDirPath();
+        Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+        assert !resDirectories.isEmpty();
+        baseModuleResourceRoot = resDirectories.iterator().next();
+      }
+    }
+
+    myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+    myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+    myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+
     return this;
   }
 

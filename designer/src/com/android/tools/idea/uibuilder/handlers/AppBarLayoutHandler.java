@@ -61,4 +61,11 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
     }
     return true;
   }
+
+  @Override
+  public boolean isVertical(@NotNull NlComponent component) {
+    // AppBarLayout is always vertical and does not support horizontal orientation
+    // https://android.googlesource.com/platform/frameworks/support.git/+/master/design/src/android/support/design/widget/AppBarLayout.java#279
+    return true;
+  }
 }

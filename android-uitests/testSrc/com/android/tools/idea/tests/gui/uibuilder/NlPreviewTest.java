@@ -37,7 +37,6 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
 /**
@@ -287,8 +286,8 @@ public class NlPreviewTest {
       .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY)
       .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.EDITOR);
 
-    TextEditorFixture absolute = checkNotNull(editor.getVisibleTextEditor("absolute.xml"));
-    TextEditorFixture frames = checkNotNull(editor.getVisibleTextEditor("frames.xml"));
+    TextEditorFixture absolute = editor.getVisibleTextEditor("absolute.xml");
+    TextEditorFixture frames = editor.getVisibleTextEditor("frames.xml");
 
     // Navigation in absolute.xml
     navigateEditor(editor, absolute, 323, 1706, frames, 0);
@@ -346,8 +345,8 @@ public class NlPreviewTest {
       .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY);
     editor.getLayoutPreview(true);
 
-    TextEditorFixture launcher = checkNotNull(editor.getVisibleTextEditor("ic_launcher.xml"));
-    TextEditorFixture activity = checkNotNull(editor.getVisibleTextEditor("activity_my.xml"));
+    TextEditorFixture launcher = editor.getVisibleTextEditor("ic_launcher.xml");
+    TextEditorFixture activity = editor.getVisibleTextEditor("activity_my.xml");
 
     launcher.select();
     activity.select();

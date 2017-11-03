@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
@@ -295,12 +296,12 @@ public class IssuePanel extends JPanel implements Disposable {
     return needsRevalidate;
   }
 
-  private void removeOldIssues(@NotNull List<NlIssue> nlIssues) {
+  private void removeOldIssues(@NotNull List<NlIssue> newIssues) {
     Iterator<Map.Entry<NlIssue, IssueView>> iterator = myDisplayedError.entrySet().iterator();
     while (iterator.hasNext()) {
       Map.Entry<NlIssue, IssueView> entry = iterator.next();
       NlIssue nlIssue = entry.getKey();
-      if (!nlIssues.contains(nlIssue)) {
+      if (!newIssues.contains(nlIssue)) {
         IssueView issueView = entry.getValue();
         myErrorListPanel.remove(issueView);
         iterator.remove();
@@ -474,6 +475,19 @@ public class IssuePanel extends JPanel implements Disposable {
       suggestedHeight += myDisplayedError.size() * 30;
     }
     return Math.max(getHeight(), suggestedHeight);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  ImmutableList<IssueView> getIssueViews() {
+    ImmutableList.Builder<IssueView> builder = ImmutableList.builder();
+    for (Component component : myErrorListPanel.getComponents()) {
+      if(component instanceof IssueView) {
+        builder.add(((IssueView)component));
+      }
+    }
+    return builder.build();
+
   }
 
   public interface MinimizeListener {

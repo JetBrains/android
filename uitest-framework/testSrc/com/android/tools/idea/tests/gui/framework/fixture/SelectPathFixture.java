@@ -38,7 +38,7 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
     };
 
     waitUntilShowing(ideFrameFixture.robot(), dialog, animatedIconMatcher);
-    waitUntilGone(ideFrameFixture.robot(), dialog, animatedIconMatcher, 30);
+    waitUntilGone(ideFrameFixture.robot(), dialog, animatedIconMatcher, 60);
 
     return new SelectPathFixture(ideFrameFixture, dialog);
   }

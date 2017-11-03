@@ -42,7 +42,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testComponentActivated() {
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
-    SyncNlModel model = model("nav.xml", rootComponent()
+    SyncNlModel model = model("nav.xml", rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main")
@@ -62,7 +62,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testNoLayoutComponentActivated() {
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
-    SyncNlModel model = model("nav.xml", rootComponent()
+    SyncNlModel model = model("nav.xml", rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "mytest.navtest.MainActivity"),
@@ -80,7 +80,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testSubflowActivated() {
     NavDesignSurface surface = new NavDesignSurface(getProject(), myRootDisposable);
-    SyncNlModel model = model("nav.xml", rootComponent()
+    SyncNlModel model = model("nav.xml", rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1"),
         navigationComponent("subnav")
@@ -94,7 +94,7 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
   }
 
   public void testDoubleClickFragment() {
-    SyncNlModel model = model("nav.xml", rootComponent()
+    SyncNlModel model = model("nav.xml", rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1")
           .withLayoutAttribute("activity_main"),

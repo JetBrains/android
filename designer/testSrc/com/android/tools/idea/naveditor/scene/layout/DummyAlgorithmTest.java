@@ -38,7 +38,7 @@ public class DummyAlgorithmTest extends NavigationTestCase {
    */
   public void testSimple() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"),
                                 fragmentComponent("fragment3"),
@@ -79,7 +79,7 @@ public class DummyAlgorithmTest extends NavigationTestCase {
    */
   public void testSkipOther() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent("fragment1"),
                                 fragmentComponent("fragment2"),
                                 fragmentComponent("fragment3"),

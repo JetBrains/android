@@ -15,17 +15,20 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A JTable which can highlight the hovered row.
@@ -52,6 +55,7 @@ final class HoverRowTable extends JBTable {
     addMouseMotionListener(mouseAdapter);
     addMouseListener(mouseAdapter);
     getEmptyText().clear();
+    setIntercellSpacing(new Dimension());
   }
 
   private void hoveredRowChanged(int row) {
@@ -100,19 +104,53 @@ final class HoverRowTable extends JBTable {
     }
     super.paint(g);
     // Draw column line down to bottom of table, matches the look and feel of BasicTableUI#paintGrid which is private and cannot override.
-    g.setColor(getGridColor());
+    // To avoid non-transparent grid lines on top of selection color, draw them below the last row.
     TableColumnModel columnModel = getColumnModel();
-    int x = 0;
-    if (getComponentOrientation().isLeftToRight()) {
-      for (int column = 0; column < columnModel.getColumnCount() - 1; column++) {
-        x += columnModel.getColumn(column).getWidth();
-        g.drawLine(x - 1, 0, x - 1, getHeight());
-      }
-    } else {
-      for (int column = columnModel.getColumnCount() - 1; column > 0; column--) {
-        x += columnModel.getColumn(column).getWidth();
-        g.drawLine(x - 1, 0, x - 1, getHeight());
-      }
+    List<Integer> columnX = new ArrayList<>();
+    for (int index = 0, x = 0; index < columnModel.getColumnCount() - 1; index++) {
+      int column = getComponentOrientation().isLeftToRight() ? index : columnModel.getColumnCount() - 1 - index;
+      x += columnModel.getColumn(column).getWidth();
+      columnX.add(x - 1);
+    }
+    g.setColor(getGridColor());
+    final int lastRowBottom = getRowCount() * getRowHeight();
+    columnX.forEach((Integer x) -> g.drawLine(x, lastRowBottom, x, getHeight()));
+    // Use a blending color of selection color and grid color to replace transparent grid lines look.
+    if (getSelectedRow() != -1) {
+      g.setColor(AdtUiUtils.overlayColor(getSelectionBackground().getRGB(), getGridColor().getRGB(), 0.25f));
+      Rectangle selectedRowRect = getCellRect(getSelectedRow(), 0, true);
+      columnX.forEach((Integer x) -> g.drawLine(x, selectedRowRect.y, x, selectedRowRect.y + selectedRowRect.height - 1));
+    }
+  }
+
+  /**
+   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
+   *
+   * This should only be called after a table's columns are initialized.
+   */
+  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
+  void setTableHeaderBorder(@NotNull Border border) {
+    TableCellRenderer headerRenderer = this.getTableHeader().getDefaultRenderer();
+    for (int i = 0; i < getColumnModel().getColumnCount(); i++) {
+      TableColumn column = getColumnModel().getColumn(i);
+      column.setHeaderRenderer(new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                                                       Object value,
+                                                       boolean isSelected,
+                                                       boolean hasFocus,
+                                                       int row,
+                                                       int column) {
+          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          if (c instanceof JLabel) {
+            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
+          }
+          if (c instanceof JComponent) {
+            ((JComponent)c).setBorder(border);
+          }
+          return c;
+        }
+      });
     }
   }
 }

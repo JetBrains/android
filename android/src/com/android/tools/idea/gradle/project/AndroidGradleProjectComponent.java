@@ -86,9 +86,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
     });
-
-    // Force registration from the DelayedInitialization component by loading it.
-    DelayedInitialization.getInstance(myProject);
   }
 
   /**

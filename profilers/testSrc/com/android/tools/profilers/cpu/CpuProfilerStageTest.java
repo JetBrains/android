@@ -732,6 +732,23 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void suggestedProfilingConfigurationDependsOnNativePreference() {
+    // Make sure simpleperf is supported.
+    myServices.enableSimplePerf(true);
+    addAndSetDevice(26, "Any Serial");
+
+    myServices.setNativeProfilingConfigurationPreferred(false);
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    // ART Sampled should be the default configuration when there is no preference for a native config.
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+
+    myServices.setNativeProfilingConfigurationPreferred(true);
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    // Simpleperf should be the default configuration when a native config is preferred.
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+  }
+
+  @Test
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException, InterruptedException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
@@ -766,14 +783,11 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setAndSelectCaptureShouldNotChangeStreamingMode() throws Exception {
+  public void setAndSelectCaptureShouldStopStreamingMode() throws Exception {
     // Capture has changed, keeps the same type of details
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
     myStage.getStudioProfilers().getTimeline().setIsPaused(false);
     myStage.getStudioProfilers().getTimeline().setStreaming(true);
-    myStage.setAndSelectCapture(capture);
-    assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isTrue();
-    myStage.getStudioProfilers().getTimeline().setStreaming(false);
     myStage.setAndSelectCapture(capture);
     assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isFalse();
   }

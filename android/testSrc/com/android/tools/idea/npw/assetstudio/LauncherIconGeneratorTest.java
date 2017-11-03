@@ -183,7 +183,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "res/mipmap-anydpi-v26/ic_launcher.xml",
         "res/mipmap-anydpi-v26/ic_launcher_round.xml",
         "res/drawable/ic_launcher_background.xml",
-        "res/drawable/ic_launcher_foreground.xml",
+        "res/drawable-v24/ic_launcher_foreground.xml",
         "res/mipmap-xxxhdpi/ic_launcher.png",
         "res/mipmap-xxxhdpi/ic_launcher_round.png",
         "res/mipmap-xxhdpi/ic_launcher.png",

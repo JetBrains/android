@@ -54,14 +54,26 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
 
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
-    if (myComponent.getParent() == null) {
+    // TODO: Support growing the scrollable area when dragging a control off the screen
+    SceneComponent parent = myComponent.getParent();
+
+    if (parent == null) {
       return;
     }
+
     myComponent.setDragging(true);
     int dx = x - myOffsetX;
     int dy = y - myOffsetY;
-    myComponent.setPosition(dx, dy);
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+
+    if (dx < parent.getDrawX() || dx + myComponent.getDrawWidth() > parent.getDrawX() + parent.getDrawWidth()) {
+      return;
+    }
+
+    if (dy < parent.getDrawY() || dy + myComponent.getDrawHeight() > parent.getDrawY() + parent.getDrawHeight()) {
+      return;
+    }
+
+    myComponent.setPosition(dx, dy, false);
     myChangedComponent = true;
   }
 

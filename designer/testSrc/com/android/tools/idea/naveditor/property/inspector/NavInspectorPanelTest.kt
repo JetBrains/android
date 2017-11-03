@@ -19,6 +19,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -37,7 +38,7 @@ class NavInspectorPanelTest : NavigationTestCase() {
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
-        rootComponent().unboundedChildren(
+        rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
                 .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2"),
                     actionComponent("a2").withDestinationAttribute("f3")),

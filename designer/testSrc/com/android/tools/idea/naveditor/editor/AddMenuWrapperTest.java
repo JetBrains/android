@@ -22,15 +22,19 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.smartPointers.Identikit;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ResourceUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -38,7 +42,9 @@ import sun.awt.image.ToolkitImage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -49,18 +55,20 @@ import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 
+// TODO: testing with custom navigators
 public class AddMenuWrapperTest extends NavigationTestCase {
 
   private SyncNlModel myModel;
   private NavDesignSurface mySurface;
   private AddMenuWrapper myMenu;
 
+  private Map<NavigationSchema.DestinationType, Pair<String, PsiClass>> myItemsByType = new HashMap<>();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    rootComponent().unboundedChildren(
+                    rootComponent("navigation").unboundedChildren(
                       fragmentComponent("fragment1"),
                       navigationComponent("subnav")
                         .unboundedChildren(fragmentComponent("fragment2"))))
@@ -70,6 +78,14 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     mySurface.setModel(myModel);
     myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());
     myMenu.createCustomComponentPopup();
+
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+    ComboBoxModel<Pair<String, PsiClass>> model = myMenu.myKindPopup.getModel();
+    for (int i = 0; i < model.getSize(); i++) {
+      Pair<String, PsiClass> entry = model.getElementAt(i);
+      PsiClass psiClass = entry.getSecond();
+      myItemsByType.put(psiClass == null ? null : schema.getTypeForNavigatorClass(psiClass), entry);
+    }
   }
 
   @Override
@@ -116,7 +132,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testFragmentValidation() {
-    myMenu.myKindPopup.setSelectedItem("fragment");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
     assertTrue(myMenu.validate());
@@ -136,7 +152,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testActivityValidation() {
-    myMenu.myKindPopup.setSelectedItem("activity");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.ACTIVITY));
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
     assertTrue(myMenu.validate());
@@ -156,7 +172,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testNestedValidation() {
-    myMenu.myKindPopup.setSelectedItem("navigation");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.NAVIGATION));
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
     assertTrue(myMenu.validate());
@@ -176,7 +192,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testIncludeValidation() {
-    myMenu.myKindPopup.setSelectedItem("include");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(null));
     myMenu.myIdField.setText("myId");
     myMenu.myLabelField.setText("myLabel");
     // Not possible to have an invalid value in "source"
@@ -198,7 +214,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testVisibleComponents() {
-    myMenu.myKindPopup.setSelectedItem("fragment");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
@@ -206,7 +222,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertTrue(myMenu.myLabelLabel.isVisible());
     assertTrue(myMenu.myIdLabel.isVisible());
 
-    myMenu.myKindPopup.setSelectedItem("navigation");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.NAVIGATION));
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
@@ -214,7 +230,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertTrue(myMenu.myLabelLabel.isVisible());
     assertTrue(myMenu.myIdLabel.isVisible());
 
-    myMenu.myKindPopup.setSelectedItem("include");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(null));
     assertTrue(myMenu.mySourcePopup.isVisible());
     assertTrue(myMenu.mySourceLabel.isVisible());
     assertFalse(myMenu.myIdField.isVisible());
@@ -222,7 +238,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
     assertFalse(myMenu.myLabelLabel.isVisible());
     assertFalse(myMenu.myIdLabel.isVisible());
 
-    myMenu.myKindPopup.setSelectedItem("activity");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.ACTIVITY));
     assertFalse(myMenu.mySourcePopup.isVisible());
     assertFalse(myMenu.mySourceLabel.isVisible());
     assertTrue(myMenu.myIdField.isVisible());
@@ -234,7 +250,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void testCreateNested() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
-    menu.myKindPopup.setSelectedItem("navigation");
+    menu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.NAVIGATION));
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
 
@@ -246,7 +262,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void testCreateFragment() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
-    menu.myKindPopup.setSelectedItem("fragment");
+    menu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
 
@@ -260,7 +276,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void testCreateActivity() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
-    menu.myKindPopup.setSelectedItem("activity");
+    menu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.ACTIVITY));
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
 
@@ -274,7 +290,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   public void testCreateInclude() {
     AddMenuWrapper menu = Mockito.spy(myMenu);
 
-    menu.myKindPopup.setSelectedItem("include");
+    menu.myKindPopup.setSelectedItem(myItemsByType.get(null));
     menu.myIdField.setText("myId");
     menu.myLabelField.setText("myLabel");
     menu.mySourcePopup.setSelectedItem("navigation.xml");
@@ -291,12 +307,12 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testUniqueId() {
-    myMenu.myKindPopup.setSelectedItem("fragment");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     assertEquals("fragment", myMenu.myIdField.getText());
     myMenu.createDestination();
     myMenu = new AddMenuWrapper(mySurface, ImmutableList.of());
     myMenu.createCustomComponentPopup();
-    myMenu.myKindPopup.setSelectedItem("fragment");
+    myMenu.myKindPopup.setSelectedItem(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT));
     assertEquals("fragment2", myMenu.myIdField.getText());
   }
 
@@ -332,14 +348,14 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   }
 
   public void testKindPopup() {
-    ComboBox<String> popup = myMenu.myKindPopup;
-    ListCellRenderer<? super String> renderer = popup.getRenderer();
+    ComboBox<Pair<String, PsiClass>> popup = myMenu.myKindPopup;
+    ListCellRenderer<? super Pair<String, PsiClass>> renderer = popup.getRenderer();
     Set<String> result = new HashSet<>();
     for (int i = 0; i < popup.getItemCount(); i++) {
       result.add(((JLabel)renderer.getListCellRendererComponent(null, popup.getItemAt(i), i, false, false)).getText());
     }
     assertEquals(ImmutableSet.of("Include Graph", "Nested Graph", "Fragment", "Activity"), result);
-    assertEquals("fragment", popup.getSelectedItem());
+    assertEquals(myItemsByType.get(NavigationSchema.DestinationType.FRAGMENT), popup.getSelectedItem());
   }
 
   public void testSourcePopup() {

@@ -211,7 +211,7 @@ class CpuCaptureView {
     sorter.setModel(model, DEFAULT_SORT_ORDER);
 
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    stageView.getIdeComponents().installNavigationContextMenu(tree, navigator, () -> getNavigatableCodeLocation(tree, navigator));
+    stageView.getIdeComponents().installNavigationContextMenu(tree, navigator, () -> getCodeLocation(tree));
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -222,13 +222,31 @@ class CpuCaptureView {
                    .setRenderer(new MethodNameRenderer())
                    .setComparator(new NameValueNodeComparator()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Total (μs)")
+                   .setPreferredWidth(100)
+                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
+                   .setMinWidth(80)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("%")
+                   .setPreferredWidth(60)
+                   .setMinWidth(60)
+                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
@@ -237,15 +255,16 @@ class CpuCaptureView {
                    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.LEFT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
@@ -254,40 +273,24 @@ class CpuCaptureView {
                    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.LEFT))
+                   .setSortOrderPreference(SortOrder.DESCENDING)
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Total (μs)")
-                   .setPreferredWidth(100)
-                   .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
-                   .setMinWidth(80)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
-                   .setComparator(DEFAULT_SORT_ORDER))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("%")
-                   .setPreferredWidth(60)
-                   .setMinWidth(60)
-                   .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-                   .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
-                   .setComparator(DEFAULT_SORT_ORDER))
       .setTreeSorter(sorter)
       .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
       .setShowVerticalLines(true)
+      .setTableIntercellSpacing(new Dimension())
       .build();
   }
 
   @Nullable
-  private static CodeLocation getNavigatableCodeLocation(@NotNull JTree tree, @NotNull CodeNavigator navigator) {
+  private static CodeLocation getCodeLocation(@NotNull JTree tree) {
     if (tree.getSelectionPath() == null) {
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
     CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
-    return new CodeLocation.Builder(cpuNode.getClassName()).setMethodSignature(cpuNode.getMethodName(), cpuNode.getSignature()).build()
-      .filterNavigatable(navigator);
+    return new CodeLocation.Builder(cpuNode.getClassName()).setMethodSignature(cpuNode.getMethodName(), cpuNode.getSignature()).build();
   }
 
   /**
@@ -323,11 +326,15 @@ class CpuCaptureView {
     }
     HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
     chart.setHRenderer(new MethodModelHRenderer(type));
+    chart.setRootVisible(false);
+
     chart.setHTree(node);
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
+    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
     chart.addMouseListener(handler);
-    stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getNavigatableCodeLocation);
+    stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    CpuChartTooltipView.install(chart, stageView);
+
     return chart;
   }
 
@@ -573,12 +580,10 @@ class CpuCaptureView {
 
   private static class TreeChartNavigationHandler extends MouseAdapter {
     @NotNull private final HTreeChart<MethodModel> myChart;
-    @NotNull private final CodeNavigator myNavigator;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart, @NotNull CodeNavigator navigator) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart) {
       myChart = chart;
-      myNavigator = navigator;
     }
 
     @Override
@@ -603,14 +608,13 @@ class CpuCaptureView {
     }
 
     @Nullable
-    private CodeLocation getNavigatableCodeLocation() {
+    private CodeLocation getCodeLocation() {
       HNode<MethodModel> n = myChart.getNodeAt(myLastPopupPoint);
       if (n == null || n.getData() == null) {
         return null;
       }
       MethodModel method = n.getData();
-      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build()
-        .filterNavigatable(myNavigator);
+      return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
     }
   }
 

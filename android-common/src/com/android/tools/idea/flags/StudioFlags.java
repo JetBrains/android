@@ -110,6 +110,10 @@ public final class StudioFlags {
     NELE, "animated.preview", "Show preview animations toolbar",
     "Show an animations bar that allows playback of vector drawable animations.",
     false);
+  public static final Flag<Boolean> NELE_TRANSITION_LAYOUT_ANIMATIONS = Flag.create(
+    NELE, "animated.transition.layout", "Show preview animations toolbar for TransitionLayout",
+    "Show an animations bar that allows playback of TransitionLayout animations.",
+    false);
 
   public static final Flag<Boolean> NELE_SAMPLE_DATA = Flag.create(
     NELE, "mock.data", "Enable \"Sample Data\" for the layout editor",
@@ -180,6 +184,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
     "If enabled, Show actions to let user choose overlay image on preview.", true);
+
+  private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
+  public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
+    REFACTORINGS, "enabled", "Enable the Migrate to AppCompat refactoring feature",
+    "If enabled, show the action in the refactoring menu", true);
 
   private StudioFlags() {
   }

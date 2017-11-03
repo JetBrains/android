@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavigationTestCase
-import com.android.tools.idea.naveditor.property.editor.VisibleDestinationsEditor
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -27,7 +26,7 @@ import org.mockito.Mockito.mock
 class VisibleDestinationsEditorTest: NavigationTestCase() {
   fun testVisibleDestinations() {
     val model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent().id("@+id/root")
+        NavModelBuilderUtil.rootComponent("root")
             .unboundedChildren(
                 NavModelBuilderUtil.fragmentComponent("f1")
                     .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME, "fragment1"),

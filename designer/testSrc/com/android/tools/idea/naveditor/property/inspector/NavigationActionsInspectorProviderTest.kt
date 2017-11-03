@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
@@ -49,7 +50,7 @@ class NavigationActionsInspectorProviderTest: NavigationTestCase() {
 
   fun testListContent() {
     val model = model("nav.xml",
-        rootComponent().unboundedChildren(
+        rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
                 .withLayoutAttribute("activty_main")
                 .unboundedChildren(

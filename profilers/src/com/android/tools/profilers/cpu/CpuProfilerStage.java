@@ -33,6 +33,7 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +61,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * Fake configuration to represent a separator on the profiling configurations combobox.
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
+
+  /**
+   * The amount of dummy {@link ProfilingConfiguration} entries on the configurations combobox.
+   * We have {@link #EDIT_CONFIGURATIONS_ENTRY} and {@link #CONFIG_SEPARATOR_ENTRY}.
+   */
+  private static final int DUMMY_CONFIGURATIONS_ENTRY_COUNT = 2;
+
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
 
   private static final int O_API_LEVEL = 26;
@@ -595,12 +603,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setAndSelectCapture(@NotNull CpuCapture capture) {
     // Setting the selection range will cause the timeline to stop.
-    // In the case of selecting a capture, we don't want to change the streaming mode of the timeline,
-    // so we restore its streaming mode after calling selectionRange#set
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    boolean wasStreaming = timeline.isStreaming();
     timeline.getSelectionRange().set(capture.getRange());
-    timeline.setStreaming(wasStreaming);
     setCapture(capture);
   }
 
@@ -696,7 +700,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }
 
-  public void updateProfilingConfigurations() {
+  private void updateProfilingConfigurations() {
     myProfilingConfigurations = new ArrayList<>();
     // EDIT_CONFIGURATIONS_ENTRY should represent the entry to open the configurations dialog
     myProfilingConfigurations.add(EDIT_CONFIGURATIONS_ENTRY);
@@ -717,7 +721,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // else if only simpleperf is disabled filter that out.
     // else we don't filter anything use the default filer.
     if (!isDeviceAtLeastO || (!isSimplePerfEnabled && !isAtraceEnabled)) {
-      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF && pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
+      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF
+                       && pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
     } else if (!isAtraceEnabled) {
       filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
     } else if (!isSimplePerfEnabled) {
@@ -734,10 +739,23 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     myProfilingConfigurations.addAll(defaultConfigs);
 
-    // Configurations should have more than two elements, as it contains at least
-    // EDIT_CONFIGURATIONS_ENTRY, CONFIG_SEPARATOR_ENTRY, and default configurations.
-    assert myProfilingConfigurations.size() > 2;
-    myProfilingConfiguration = myProfilingConfigurations.get(2);
+    // Configurations should have more than DUMMY_CONFIGURATIONS_ENTRY_COUNT elements.
+    assert myProfilingConfigurations.size() > DUMMY_CONFIGURATIONS_ENTRY_COUNT;
+    // We display a suggested default configuration for the user. Its index should start after the custom configurations.
+    // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
+    int suggestedConfigurationIndex = DUMMY_CONFIGURATIONS_ENTRY_COUNT + savedConfigs.size();
+    // If there is a preference for a native configuration, we select simpleperf.
+    if (getStudioProfilers().getIdeServices().isNativeProfilingConfigurationPreferred() && isDeviceAtLeastO && isSimplePerfEnabled) {
+      suggestedConfigurationIndex +=
+        Iterables.indexOf(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    }
+    // Otherwise we select ART sampled.
+    else {
+      suggestedConfigurationIndex +=
+        Iterables.indexOf(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfiler.CpuProfilerType.ART
+                                                  && pref.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    }
+    myProfilingConfiguration = myProfilingConfigurations.get(suggestedConfigurationIndex);
   }
 
   @NotNull

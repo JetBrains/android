@@ -27,9 +27,8 @@ public class NotificationIconGeneratorTest {
 
   private static void checkGraphic(String baseName, int minSdk, String folderName, int expectedCount) throws IOException {
     NotificationOptions options = new NotificationOptions();
-    options.minSdk = minSdk;
 
-    NotificationIconGenerator generator = new NotificationIconGenerator(7);
+    NotificationIconGenerator generator = new NotificationIconGenerator(minSdk);
     BitmapGeneratorTests.checkGraphic(expectedCount, folderName, baseName, generator, options);
     generator.dispose();
   }

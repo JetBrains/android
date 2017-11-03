@@ -15,54 +15,40 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.SdkConstants;
 import com.android.ide.common.internal.WaitableExecutor;
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutlibCallback;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
-import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.concurrent.FutureUtils;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.lint.checks.ApiLookup;
+import com.android.utils.CharSequences;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.SingleRootFileViewProvider;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.openapi.util.AtomicNullableLazyValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Generator of Android launcher icons.
@@ -95,6 +81,8 @@ public class LauncherIconGenerator extends IconGenerator {
   private final StringProperty myForegroundLayerName = new StringValueProperty();
   private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
+  private final AtomicNullableLazyValue<ApiLookup> myApiLookup;
+
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
    *
@@ -102,7 +90,14 @@ public class LauncherIconGenerator extends IconGenerator {
    * @param minSdkVersion the minimal supported Android SDK version
    */
   public LauncherIconGenerator(@NotNull AndroidFacet facet, int minSdkVersion) {
-    super(minSdkVersion, new GraphicGeneratorContext(40, new MyDrawableRenderer(facet)));
+    super(minSdkVersion, new GraphicGeneratorContext(40, new DrawableRenderer(facet)));
+    myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
+      @Override
+      @Nullable
+      protected ApiLookup compute() {
+        return LintIdeClient.getApiLookup(facet.getModule().getProject());
+      }
+    };
   }
 
   /**
@@ -207,7 +202,6 @@ public class LauncherIconGenerator extends IconGenerator {
     options.generateOutputIcons = !forPreview;
     options.generatePreviewIcons = forPreview;
 
-    options.minSdk = getMinSdkVersion();
     options.useForegroundColor = myUseForegroundColor.get();
     options.foregroundColor = myForegroundColor.get().getRGB();
     // Set foreground image.
@@ -247,33 +241,6 @@ public class LauncherIconGenerator extends IconGenerator {
     options.generateRoundIcon = myGenerateRoundIcon.get();
     options.generateWebIcon = myGenerateWebIcon.get();
     return options;
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(LauncherIconGenerator.class);
-  }
-
-  /**
-   * Creates a PsiFile with the given name and contents corresponding to the given language without storing it on disk.
-   *
-   * @param project the project to associate the file with
-   * @param filename path relative to a source root
-   * @param fileType the type of the file
-   * @param contents the content of the file
-   * @return the created ephemeral file
-   */
-  @NotNull
-  private static PsiFile createEphemeralPsiFile(@NotNull Project project, @NotNull String filename, @NotNull LanguageFileType fileType,
-                                                @NotNull String contents) {
-    PsiManager psiManager = PsiManager.getInstance(project);
-    VirtualFile virtualFile = new LightVirtualFile(filename, fileType, contents);
-    SingleRootFileViewProvider viewProvider = new SingleRootFileViewProvider(psiManager, virtualFile);
-    PsiFile psiFile = viewProvider.getPsi(fileType.getLanguage());
-    if (psiFile == null) {
-      throw new IllegalArgumentException("Unsupported language: " + fileType.getLanguage().getDisplayName());
-    }
-    return psiFile;
   }
 
   @Override
@@ -445,6 +412,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
         String xmlDrawableText = options.foregroundImage.getScaledDrawable();
         assert xmlDrawableText != null;
+        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         Paths.get(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
                                         IconCategory.ADAPTIVE_FOREGROUND_LAYER,
@@ -462,6 +430,7 @@ public class LauncherIconGenerator extends IconGenerator {
 
         String xmlDrawableText = options.backgroundImage.getScaledDrawable();
         assert xmlDrawableText != null;
+        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         Paths.get(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
                                         IconCategory.ADAPTIVE_BACKGROUND_LAYER,
@@ -500,6 +469,51 @@ public class LauncherIconGenerator extends IconGenerator {
         + "    <foreground android:drawable=\"@%s/%s\"/>\n"
         + "</adaptive-icon>";
     return String.format(format, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
+  }
+
+  /**
+   * Determines the minimal API level required to display the given XML drawable.
+   * See <a href="https://issuetracker.google.com/68259550">bug 68259550</a>.
+   *
+   * @param xmlDrawableText the text of the XML drawable
+   * @param minSdk the minimal API level supported by the app
+   * @return the required minimal API level if greater than {@code minSdk}, otherwise zero
+   */
+  private int calculateMinRequiredApiLevel(@NotNull String xmlDrawableText, int minSdk) {
+    ApiLookup apiLookup = myApiLookup.getValue();
+    if (apiLookup == null) {
+      return 0;
+    }
+    KXmlParser parser = new KXmlParser();
+    int requiredApiLevel = 0;
+    try {
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(CharSequences.getReader(xmlDrawableText, true));
+      int type;
+      // Iterate over the XML document and check all attributes to determine the required minimal API level.
+      while ((type = parser.next()) != XmlPullParser.END_DOCUMENT) {
+        if (type == XmlPullParser.START_TAG) {
+          // See similar logic in com.android.tools.lint.checks.ApiDetector.visitAttribute().
+          for (int i = 0; i < parser.getAttributeCount(); i++) {
+            if (SdkConstants.ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
+              String attributeName = parser.getAttributeName(i);
+              if (!attributeName.equals("fillType")) { // Exclude android:fillType since it is supported by AppCompat.
+                int attributeApiLevel = apiLookup.getFieldVersion("android/R$attr", attributeName);
+                if (requiredApiLevel < attributeApiLevel) {
+                  requiredApiLevel = attributeApiLevel;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    catch (XmlPullParserException | IOException e) {
+      // Ignore.
+    }
+
+    // Do not report anything below API 21 or minSdk, whichever is higher.
+    return requiredApiLevel > minSdk && requiredApiLevel > 21 ? requiredApiLevel : 0;
   }
 
   private static void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
@@ -1463,107 +1477,6 @@ public class LauncherIconGenerator extends IconGenerator {
       }
       catch (InterruptedException | ExecutionException e) {
         return IMAGE_SIZE_FULL_BLEED_DP;
-      }
-    }
-  }
-
-  private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
-    @NotNull private final ConcurrentMap<File, String> myFileContent = new ConcurrentHashMap<>();
-    @NotNull private final Project myProject;
-    @NotNull private final RenderLogger myLogger;
-
-    public MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
-      myProject = project;
-      myLogger = logger;
-    }
-
-    @Override
-    @Nullable
-    public ILayoutPullParser create(@NotNull File file, @NotNull LayoutlibCallback layoutlibCallback) {
-      String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
-      if (content == null) {
-        return null;
-      }
-
-      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getName(), StdFileTypes.XML, content);
-      return LayoutPsiPullParser.create(xmlFile, myLogger);
-    }
-
-    void addFileContent(@NotNull File file, @NotNull String content) {
-      myFileContent.put(file, content);
-    }
-  }
-
-  private static class MyDrawableRenderer implements GraphicGeneratorContext.DrawableRenderer {
-    @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
-    @NotNull private final Object myRenderLock = new Object();
-    @NotNull private final MyLayoutPullParserFactory myParserFactory;
-    @NotNull private final AtomicInteger myCounter = new AtomicInteger();
-
-    public MyDrawableRenderer(@NotNull AndroidFacet facet) {
-      Module module = facet.getModule();
-      RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
-      myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
-      // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
-      // Executing them off the UI thread.
-      myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
-        try {
-          Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
-          RenderService service = RenderService.getInstance(facet);
-          RenderTask renderTask = service.createTask(null, configuration, logger, null, myParserFactory);
-          assert renderTask != null;
-          renderTask.getLayoutlibCallback().setLogger(logger);
-          if (logger.hasProblems()) {
-            getLog().error(RenderProblem.format(logger.getMessages()));
-          }
-          return renderTask;
-        } catch (RuntimeException | Error e) {
-          getLog().error(e);
-          return null;
-        }
-      });
-    }
-
-    @Override
-    public void dispose() {
-      synchronized (myRenderLock) {
-        RenderTask renderTask = getRenderTask();
-        if (renderTask != null) {
-          renderTask.dispose();
-        }
-      }
-    }
-
-    @Override
-    @NotNull
-    public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
-      String xmlText = VectorDrawableTransformer.resizeAndCenter(xmlDrawableText, size, 1, null);
-      ResourceUrl url = ResourceUrl.create(null, ResourceType.DRAWABLE, "ic_image_preview");
-      String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
-      ResourceValue value = new ResourceValue(url, resourceName);
-
-      RenderTask renderTask = getRenderTask();
-      if (renderTask == null) {
-        return Futures.immediateFuture(AssetStudioUtils.createDummyImage());
-      }
-
-      synchronized (myRenderLock) {
-        myParserFactory.addFileContent(new File(resourceName), xmlText);
-        renderTask.setOverrideRenderSize(size.width, size.height);
-        renderTask.setMaxRenderSize(size.width, size.height);
-
-        return renderTask.renderDrawable(value);
-      }
-    }
-
-    @Nullable
-    private RenderTask getRenderTask() {
-      try {
-        return myRenderTaskFuture.get();
-      }
-      catch (InterruptedException | ExecutionException e) {
-        // The error was logged earlier.
-        return null;
       }
     }
   }

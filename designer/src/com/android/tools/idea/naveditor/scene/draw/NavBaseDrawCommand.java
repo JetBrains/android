@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.draw;
 
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * {@link NavBaseDrawCommand} Base class for navigation related draw commands.
@@ -35,11 +37,20 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
   @Override
   @NotNull
   public String serialize() {
-    return Joiner.on(',').join(this.getClass().getSimpleName(), this.getLevel(), this.getProperties());
+    return this.getClass().getSimpleName() + "," + Joiner.on(',').join(this.getProperties());
   }
 
   @NotNull
   protected abstract Object[] getProperties();
+
+  @Override
+  public final void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    Graphics2D g2 = (Graphics2D)g.create();
+    onPaint(g2, sceneContext);
+    g2.dispose();
+  }
+
+  protected abstract void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext);
 
   @NotNull
   protected static String rectToString(@NotNull Rectangle r) {
@@ -61,10 +72,10 @@ public abstract class NavBaseDrawCommand implements DrawCommand {
   @NotNull
   protected static String[] parse(@NotNull String s, int expected) {
     String[] sp = s.split(",");
-    if (sp.length != expected) {
+    if (sp.length != expected + 1) {
       throw new IllegalArgumentException();
     }
 
-    return sp;
+    return Arrays.copyOfRange(sp, 1, sp.length);
   }
 }

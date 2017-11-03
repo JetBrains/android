@@ -66,10 +66,10 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   override fun toString(): String = "$mavenGroupId:$mavenArtifactId"
 
   companion object {
-    fun find(groupId: String, artifactId: String): GoogleMavenArtifactId? =
+    @JvmStatic fun find(groupId: String, artifactId: String): GoogleMavenArtifactId? =
         values().asSequence().find { it.mavenGroupId == groupId && it.mavenArtifactId == artifactId }
 
-    fun forCoordinate(coordinate: GradleCoordinate): GoogleMavenArtifactId? {
+    @JvmStatic fun forCoordinate(coordinate: GradleCoordinate): GoogleMavenArtifactId? {
       val groupId = coordinate.groupId ?: return null
       val artifactId = coordinate.artifactId ?: return null
 

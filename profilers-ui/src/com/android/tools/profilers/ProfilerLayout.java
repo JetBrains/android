@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
@@ -65,6 +66,8 @@ public class ProfilerLayout {
   public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
 
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
+
+  public static final Border TOOLTIP_BORDER = new JBEmptyBorder(5, 10, 5, 10);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

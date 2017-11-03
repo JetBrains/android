@@ -22,11 +22,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +55,7 @@ public class EmulatorRunner {
   public ProcessHandler start() throws ExecutionException {
     final Process process = myCommandLine.createProcess();
     myProcessHandler = new EmulatorProcessHandler(process, myCommandLine);
+    myExtraListeners.forEach(myProcessHandler::addProcessListener);
     myProcessHandler.startNotify();
     return myProcessHandler;
   }
@@ -71,19 +69,6 @@ public class EmulatorRunner {
     }
     else {
       myExtraListeners.add(listener);
-    }
-  }
-
-  public static class ProcessOutputCollector extends ProcessAdapter {
-    private final StringBuilder sb = new StringBuilder();
-
-    @Override
-    public void onTextAvailable(ProcessEvent event, Key outputType) {
-      sb.append(event.getText());
-    }
-
-    public String getText() {
-      return sb.toString();
     }
   }
 }

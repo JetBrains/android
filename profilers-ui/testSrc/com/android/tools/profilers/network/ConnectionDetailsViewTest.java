@@ -42,7 +42,10 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConnectionDetailsViewTest {
   private static final String dumbTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 50000, 100000)
-    .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET").build();
+    .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET")
+    .addJavaThread(new HttpData.JavaThread(0, "thread1"))
+    .build();
+
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
   private static final String TEST_RESOURCE_DIR = "tools/adt/idea/profilers-ui/testData/visualtests/";
@@ -83,10 +86,11 @@ public class ConnectionDetailsViewTest {
 
   @NotNull
   private static HttpData.Builder getBuilderFromHttpData(@NotNull HttpData data) {
-    HttpData.Builder builder = new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getEndTimeUs(), data.getDownloadingTimeUs());
-    builder.setUrl(data.getUrl());
-    builder.setMethod(data.getMethod());
-    builder.setTrace(data.getStackTrace().getTrace());
+    HttpData.Builder builder = new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getEndTimeUs(), data.getDownloadingTimeUs())
+      .setUrl(data.getUrl())
+      .setMethod(data.getMethod())
+      .setTrace(data.getStackTrace().getTrace());
+    data.getJavaThreads().forEach(builder::addJavaThread);
     return builder;
   }
 
@@ -148,6 +152,25 @@ public class ConnectionDetailsViewTest {
     myView.setHttpData(DEFAULT_DATA);
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     assertThat(stream.anyMatch(c -> "Content type".equals(c.getName()))).isFalse();
+  }
+
+  @Test
+  public void initiatingThreadFieldIsPresent() {
+    myView.setHttpData(DEFAULT_DATA);
+    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Initiating thread".equals(c.getName()))).isTrue();
+  }
+
+  @Test
+  public void otherThreadsFieldIsPresent() {
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).addJavaThread(new HttpData.JavaThread(1, "thread2")).build();
+    myView.setHttpData(data);
+    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Other threads".equals(c.getName()))).isTrue();
+  }
+
+  @Test
+  public void otherThreadsFieldIsAbsentWhenOnlyOneThread() {
+    myView.setHttpData(DEFAULT_DATA);
+    assertThat(new TreeWalker(myView).descendantStream().anyMatch(c -> "Other threads".equals(c.getName()))).isFalse();
   }
 
   @Test
@@ -291,7 +314,8 @@ public class ConnectionDetailsViewTest {
                                            long endTimeUs,
                                            String sentLegend,
                                            String receivedLegend) {
-    HttpData data = new HttpData.Builder(0, startTimeUs, endTimeUs, downloadingTimeUs).setUrl("unusedUrl").setMethod("GET").build();
+    HttpData data = new HttpData.Builder(0, startTimeUs, endTimeUs, downloadingTimeUs).setUrl("unusedUrl").setMethod("GET")
+      .addJavaThread(new HttpData.JavaThread(0, "thread1")).build();
     myView.setHttpData(data);
 
     LegendComponent legendComponent =

@@ -197,6 +197,11 @@ public class GradleSyncInvoker {
       return;
     }
 
+    // Do clean up tasks before calling sync started.
+    // During clean up, we might change some gradle files, for example, gradle property files based on http settings, gradle wrappers and etc.
+    // And any changes to gradle files after sync started will result in another sync needed.
+    myPreSyncProjectCleanUp.cleanUp(project);
+
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     boolean started;
@@ -214,7 +219,6 @@ public class GradleSyncInvoker {
     if (!useNewGradleSync) {
       removeAndroidModels(project);
     }
-    myPreSyncProjectCleanUp.cleanUp(project);
 
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);

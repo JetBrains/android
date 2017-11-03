@@ -57,7 +57,7 @@ public class IntegratedSdkManagerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String INSTALL_PACKAGE_TAB = "SDK Platforms";
-  private static final String SDK_PLATFORM_VERSION = "API 21";
+  private static final String SDK_PLATFORM_VERSION = "API 18";
 
   /**
    * To verify that the new SDK Manager integrates into the Android Studio user interface,
@@ -72,14 +72,14 @@ public class IntegratedSdkManagerTest {
    *   1. Open Android Studio
    *   2. Open File > Settings > System Settings > Android SDK
    *   3. Select "SDK Tools" tab
-   *   4. Select a package that is not pre-installed (we choose "API 21" here)
+   *   4. Select a package that is not pre-installed
    *   5. Click OK
    *   6. Click yes to confirm
    *   7. Wait until the package is installed and click finish.
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/38453585
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void installPackage() throws Exception {
     guiTest.importSimpleApplication();
@@ -99,7 +99,8 @@ public class IntegratedSdkManagerTest {
               method("cycleState").in(object).invoke();
               return true;
             }
-          } catch (ReflectionError e) {
+          } catch (ReflectionError ignored) {
+            //ignored. Continue iterating through the loop
           }
         }
         return false;

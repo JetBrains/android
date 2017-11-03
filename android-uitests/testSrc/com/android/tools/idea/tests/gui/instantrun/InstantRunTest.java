@@ -53,6 +53,7 @@ public class InstantRunTest {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
+  private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern CMAKE_RUN_OUTPUT =
@@ -649,10 +650,15 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture
+    PatternTextMatcher runningAppMatcher = new PatternTextMatcher(RUN_OUTPUT);
+
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture
       .getRunToolWindow()
-      .findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      .findContent(APP_NAME);
+    contentFixture.waitForOutput(runningAppMatcher, EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+
+    contentFixture.clickClearAllButton()
+      .waitForOutput(new PatternTextMatcher(EMPTY_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     ideFrameFixture
       .getEditor()
@@ -664,5 +670,6 @@ public class InstantRunTest {
       .waitForGradleProjectSyncToFinish()
       .findApplyChangesButton()
       .click();
+    contentFixture.waitForOutput(runningAppMatcher, EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

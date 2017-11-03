@@ -43,7 +43,7 @@ public class DragCreateActionTest extends NavigationTestCase {
 
   public void testDragCreateToSelf() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent(FRAGMENT1))).build();
 
 
@@ -64,7 +64,7 @@ public class DragCreateActionTest extends NavigationTestCase {
 
   public void testDragCreateToOtherFragment() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent(FRAGMENT1),
                                 fragmentComponent(FRAGMENT2).unboundedChildren(
                                   actionComponent(ACTION).withDestinationAttribute(FRAGMENT1)))).build();
@@ -88,7 +88,7 @@ public class DragCreateActionTest extends NavigationTestCase {
 
   public void testDragAbandon() {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 fragmentComponent(FRAGMENT1))).build();
 
     NavDesignSurface surface = initializeNavDesignSurface(model);

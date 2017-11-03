@@ -209,7 +209,7 @@ public class IdeaSyncPopulateProjectTask {
         myDataManager.importData(activeModules, project, true /* synchronous */);
       }
     }
-    catch (RuntimeException unexpected) {
+    catch (Throwable unexpected) {
       String message = getRootCause(unexpected).getMessage();
       Logger.getInstance(getClass()).warn("Sync failed: " + message, unexpected);
 

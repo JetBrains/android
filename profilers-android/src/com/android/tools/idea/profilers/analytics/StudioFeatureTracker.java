@@ -124,7 +124,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSelectRange() {
-    track(AndroidProfilerEvent.Type.SELECT_RANGE);
+    // We set the device when tracking range selection because we need to distinguish selections made on pre-O and post-O devices.
+    newTracker(AndroidProfilerEvent.Type.SELECT_RANGE).setDevice(myActiveDevice).track();
   }
 
   @Override

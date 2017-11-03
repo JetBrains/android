@@ -132,15 +132,7 @@ public class GradleBuildInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    assemble(modules, testCompileType, Collections.emptyList());
-  }
-
-  public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @Nullable BuildAction<?> buildAction) {
-    assemble(modules, testCompileType, Collections.emptyList(), buildAction);
-  }
-
-  public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @NotNull List<String> arguments) {
-    assemble(modules, testCompileType, arguments, null);
+    assemble(modules, testCompileType, Collections.emptyList(), null);
   }
 
   public void assemble(@NotNull Module[] modules,

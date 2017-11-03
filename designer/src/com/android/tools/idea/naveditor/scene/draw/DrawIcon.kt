@@ -39,9 +39,9 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
         else -> throw IllegalArgumentException()
       }
 
-  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[2]), IconType.valueOf(sp[3]))
+  private constructor(sp: Array<String>) : this(NavBaseDrawCommand.stringToRect(sp[0]), IconType.valueOf(sp[1]))
 
-  constructor(s: String) : this(parse(s, 4))
+  constructor(s: String) : this(parse(s, 2))
 
   override fun getLevel(): Int {
     return NavBaseDrawCommand.DRAW_ICON
@@ -51,15 +51,11 @@ class DrawIcon(@SwingCoordinate private val myRectangle: Rectangle, private val 
     return arrayOf(NavBaseDrawCommand.rectToString(myRectangle), myIconType)
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val scaleX = myRectangle.width.toDouble() / myIcon.iconWidth
     val scaleY = myRectangle.height.toDouble() / myIcon.iconHeight
 
-    val g2 = g.create() as Graphics2D
-
-    g2.scale(scaleX, scaleY)
-    myIcon.paintIcon(null, g2, (myRectangle.x / scaleX).toInt(), (myRectangle.y / scaleY).toInt())
-
-    g2.dispose()
+    g.scale(scaleX, scaleY)
+    myIcon.paintIcon(null, g, (myRectangle.x / scaleX).toInt(), (myRectangle.y / scaleY).toInt())
   }
 }

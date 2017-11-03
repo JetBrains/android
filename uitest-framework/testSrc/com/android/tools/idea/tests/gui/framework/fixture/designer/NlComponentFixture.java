@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.common.model.Coordinates;
@@ -71,7 +72,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
-    return new Point(midX, midY);
+    return convertToViewport(midX, midY);
   }
 
   /**
@@ -82,7 +83,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int x = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
     int y = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
-    return new Point(x, y);
+    return convertToViewport(x, y);
   }
 
   /**
@@ -93,7 +94,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int bottomY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
-    return new Point(midX, bottomY);
+    return convertToViewport(midX, bottomY);
   }
 
   /**
@@ -104,7 +105,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int topY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY());
-    return new Point(midX, topY);
+    return convertToViewport(midX, topY);
   }
 
   /**
@@ -115,7 +116,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int leftX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
-    return new Point(leftX, midY);
+    return convertToViewport(leftX, midY);
   }
 
   /**
@@ -126,7 +127,7 @@ public class NlComponentFixture {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int rightX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
-    return new Point(rightX, midY);
+    return convertToViewport(rightX, midY);
   }
 
   @NotNull
@@ -270,6 +271,11 @@ public class NlComponentFixture {
   public void invokeContextMenuAction(@NotNull String actionLabel) {
     rightClick();
     new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(JMenuItem.class, actionLabel))).click();
+  }
+
+  /** Converts from scrollable area coordinate system to viewpoint coordinate system */
+  private Point convertToViewport(@SwingCoordinate int x, @SwingCoordinate int y) {
+    return SwingUtilities.convertPoint(mySurface.getLayeredPane(), x, y, mySurface.getScrollPane().getViewport());
   }
 
   @NotNull

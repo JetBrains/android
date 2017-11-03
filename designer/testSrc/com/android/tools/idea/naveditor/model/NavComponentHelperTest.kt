@@ -59,7 +59,7 @@ class NavComponentHelperTest2 : NavigationTestCase() {
 
   fun testVisibleDestinations() {
     val model = model("nav.xml",
-        rootComponent().id("@+id/root")
+        rootComponent("root")
             .unboundedChildren(
                 fragmentComponent("f1")
                     .unboundedChildren(
@@ -99,7 +99,7 @@ class NavComponentHelperTest2 : NavigationTestCase() {
 
   fun testFindVisibleDestination() {
     val model = model("nav.xml",
-        rootComponent().id("@+id/root")
+        rootComponent("root")
             .unboundedChildren(
                 fragmentComponent("f1"),
                 activityComponent("activity1"),

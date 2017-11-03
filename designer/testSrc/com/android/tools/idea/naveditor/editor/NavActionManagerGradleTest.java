@@ -36,7 +36,7 @@ public class NavActionManagerGradleTest extends NavigationGradleTestCase {
 
   public void testGetDestinations() throws Exception {
     SyncNlModel model = model("nav.xml",
-                              rootComponent().unboundedChildren(
+                              rootComponent("root").unboundedChildren(
                                 navigationComponent("subflow").
                                   unboundedChildren(fragmentComponent("fragment2")),
                                 fragmentComponent("fragment1"))).build();

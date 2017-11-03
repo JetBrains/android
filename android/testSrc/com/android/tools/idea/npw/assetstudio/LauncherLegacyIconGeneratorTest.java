@@ -35,17 +35,17 @@ public class LauncherLegacyIconGeneratorTest {
       @NonNull IconGenerator.Style style,
       boolean crop,
       int background,
-      boolean isWebGraphic)
+      boolean generateWebIcon)
       throws IOException {
     LauncherLegacyOptions options = new LauncherLegacyOptions();
     options.shape = shape;
     options.crop = crop;
     options.style = style;
     options.backgroundColor = background;
-    options.isWebGraphic = isWebGraphic;
+    options.generateWebIcon = generateWebIcon;
 
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(15);
-    BitmapGeneratorTests.checkGraphic(5 + (isWebGraphic ? 1 : 0), "launcher", baseName, generator, options);
+    BitmapGeneratorTests.checkGraphic(5 + (generateWebIcon ? 1 : 0), "launcher", baseName, generator, options);
     generator.dispose();
   }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavigationTestCase
+import com.android.tools.idea.naveditor.property.NavActionsProperty
 
 class NavActionsPropertyTest : NavigationTestCase() {
   private lateinit var model: SyncNlModel
@@ -25,7 +26,7 @@ class NavActionsPropertyTest : NavigationTestCase() {
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
-        NavModelBuilderUtil.rootComponent().unboundedChildren(
+        NavModelBuilderUtil.rootComponent("root").unboundedChildren(
             NavModelBuilderUtil.fragmentComponent("f1")
                 .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2"),
                     NavModelBuilderUtil.actionComponent("a2").withDestinationAttribute("f3")),

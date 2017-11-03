@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -29,11 +28,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.TAG_ACTION;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.*;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,11 +45,16 @@ public class NavModelBuilderUtil {
 
   @NotNull
   public static ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root, @NotNull AndroidFacet facet,
-                               @NotNull JavaCodeInsightTestFixture fixture) {
+                                   @NotNull JavaCodeInsightTestFixture fixture) {
     Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
-      when(((NavDesignSurface)model.getSurface()).getSchema()).thenReturn(NavigationSchema.getOrCreateSchema(facet));
-      when(((NavDesignSurface)model.getSurface()).getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
-      return new NavSceneManager(model, (NavDesignSurface)model.getSurface());
+      NavDesignSurface surface = (NavDesignSurface)model.getSurface();
+
+      when(surface.getSchema()).thenReturn(NavigationSchema.getOrCreateSchema(facet));
+      when(surface.getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
+      when(surface.getExtentSize()).thenReturn(new Dimension(500, 500));
+      when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+      return new NavSceneManager(model, surface);
     };
 
     return new ModelBuilder(facet, fixture, name, root, managerFactory,
@@ -57,8 +62,12 @@ public class NavModelBuilderUtil {
   }
 
   @NotNull
-  public static NavigationComponentDescriptor rootComponent() {
-    return new NavigationComponentDescriptor();
+  public static NavigationComponentDescriptor rootComponent(@Nullable String id) {
+    NavigationComponentDescriptor descriptor = new NavigationComponentDescriptor();
+    if (id != null) {
+      descriptor.id("@+id/" + id);
+    }
+    return descriptor;
   }
 
   @NotNull

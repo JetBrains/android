@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
 

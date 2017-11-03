@@ -163,6 +163,12 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
 
   @NotNull
   public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS) {
+    return newHttpDataBuilder(id, startS, downloadS, endS, 0, "thread1");
+  }
+
+  @NotNull
+  public static HttpData.Builder newHttpDataBuilder(long id, long startS, long downloadS, long endS,
+                                                    long threadId, String threadName) {
     long startUs = TimeUnit.SECONDS.toMicros(startS);
     long downloadUs = TimeUnit.SECONDS.toMicros(downloadS);
     long endUs = TimeUnit.SECONDS.toMicros(endS);
@@ -170,6 +176,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     builder.setTrace(String.format(FAKE_STACK_TRACE, id));
     builder.setUrl("http://example.com/" + id);
     builder.setMethod("method " + id);
+    builder.addJavaThread(new HttpData.JavaThread(threadId, threadName));
     if (endS != 0) {
       builder.setResponsePayloadId("payloadId " + id);
       builder.setResponseFields(formatFakeResponseFields(id));

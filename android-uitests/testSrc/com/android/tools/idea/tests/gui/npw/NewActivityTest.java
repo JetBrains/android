@@ -78,12 +78,6 @@ public class NewActivityTest {
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
   }
 
-  @After
-  public void tearDown() {
-    setSavedKotlinSupport(false);
-    setSavedRenderSourceLanguage(Language.JAVA);
-  }
-
   /**
    * Verifies that a new activity can be created through the Wizard
    * <p>
@@ -365,16 +359,8 @@ public class NewActivityTest {
     return PropertiesComponent.getInstance().isTrueValue("SAVED_PROJECT_KOTLIN_SUPPORT");
   }
 
-  private static void setSavedKotlinSupport(boolean isSupported) {
-    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", isSupported);
-  }
-
   @NotNull
   private static Language getSavedRenderSourceLanguage() {
       return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
-  }
-
-  private static void setSavedRenderSourceLanguage(Language language) {
-    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", language.getName());
   }
 }

@@ -23,8 +23,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +40,12 @@ public class ThemeHelper {
   private static final String ALTERNATE_THEME_NAME = "Theme.App"; //$NON-NLS-1$
   private static final String APP_COMPAT = "Theme.AppCompat.";    //$NON-NLS-1$
 
-  private Module myModule;
-  private LocalResourceRepository myRepository;
+  private final Module myModule;
+  private final ProjectResourceRepository myProjectRepository;
 
   public ThemeHelper(@NotNull Module module) {
     myModule = module;
-    myRepository = ModuleResourceRepository.getOrCreateInstance(module);
+    myProjectRepository = ProjectResourceRepository.getOrCreateInstance(module);
   }
 
   @Nullable
@@ -56,17 +55,17 @@ public class ThemeHelper {
       manifestTheme = trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX);
       return manifestTheme;
     }
-    if (getLocalStyleResource(DEFAULT_THEME_NAME) != null) {
+    if (getProjectStyleResource(DEFAULT_THEME_NAME) != null) {
       return DEFAULT_THEME_NAME;
     }
-    if (getLocalStyleResource(ALTERNATE_THEME_NAME) != null) {
+    if (getProjectStyleResource(ALTERNATE_THEME_NAME) != null) {
       return ALTERNATE_THEME_NAME;
     }
     return null;
   }
 
   public boolean isAppCompatTheme(@NotNull String themeName) {
-    StyleResourceValue theme = getLocalStyleResource(themeName);
+    StyleResourceValue theme = getProjectStyleResource(themeName);
     return isAppCompatTheme(themeName, theme);
   }
 
@@ -75,7 +74,7 @@ public class ThemeHelper {
   }
 
   public boolean isLocalTheme(@NotNull String themeName) {
-    return getLocalStyleResource(themeName) != null;
+    return getProjectStyleResource(themeName) != null;
   }
 
   public static Boolean hasActionBar(@NotNull Configuration configuration, @NotNull String themeName) {
@@ -105,11 +104,11 @@ public class ThemeHelper {
   }
 
   @Nullable
-  private StyleResourceValue getLocalStyleResource(@Nullable String theme) {
+  private StyleResourceValue getProjectStyleResource(@Nullable String theme) {
     if (theme == null) {
       return null;
     }
-    List<ResourceItem> items = myRepository.getResourceItem(ResourceType.STYLE, theme);
+    List<ResourceItem> items = myProjectRepository.getResourceItem(ResourceType.STYLE, theme);
     if (items == null || items.isEmpty()) {
       return null;
     }
@@ -128,7 +127,7 @@ public class ThemeHelper {
         }
       }
       themeName = parentThemeName;
-      localTheme = getLocalStyleResource(themeName);
+      localTheme = getProjectStyleResource(themeName);
     }
     return themeName.startsWith(APP_COMPAT);
   }

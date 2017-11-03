@@ -20,6 +20,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.EmptyRunnable;
@@ -34,13 +35,14 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ThreadsViewTest {
-  public static final ImmutableList<HttpData> FAKE_DATA =
+  private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
       .add(newData(1, 0, 5, 10, 11, "threadA"))
       .add(newData(2, 5, 10, 12, 12, "threadB"))
@@ -65,7 +67,7 @@ public class ThreadsViewTest {
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);
     myThreadsView.getComponent().setSize(new Dimension(300, 50));
-
+    getTable().setUI(new HeadlessTableUI());
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
     // passes, as well as firing a event that happens on another thread, so the timing is not
@@ -118,6 +120,51 @@ public class ThreadsViewTest {
   }
 
   @Test
+  public void tableCanBeSortedByInitiatingThreadColumn() {
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    JTable table = getTable();
+
+    selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
+    assertThat(table.getValueAt(0, 0), is("threadA"));
+    assertThat(table.getValueAt(1, 0), is("threadB"));
+    assertThat(table.getValueAt(2, 0), is("threadC"));
+    assertThat(table.getValueAt(3, 0), is("threadC"));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Initiating thread").getModelIndex());
+    assertThat(table.getValueAt(0, 0), is("threadC"));
+    assertThat(table.getValueAt(1, 0), is("threadC"));
+    assertThat(table.getValueAt(2, 0), is("threadB"));
+    assertThat(table.getValueAt(3, 0), is("threadA"));
+  }
+
+  @Test
+  public void tableCanBeSortedByTimelineColumn() {
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    JTable table = getTable();
+
+    selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
+    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(0L));
+    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
+
+    table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
+    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
+    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(0L));
+  }
+
+  private static HttpData getFirstHttpDataAtRow(JTable table, int row) {
+    List<HttpData> data = (List<HttpData>)table.getValueAt(row, 1);
+    return data.get(0);
+  }
+
+  @Test
   public void ensureAxisInList() {
     JTable table = getTable();
     Range selection = myStageView.getTimeline().getSelectionRange();
@@ -159,8 +206,6 @@ public class ThreadsViewTest {
 
   @NotNull
   private static HttpData newData(long id, long start, long download, long end, long threadId, String threadName) {
-    return FakeNetworkService.newHttpDataBuilder(id, start, download, end)
-      .addJavaThread(new HttpData.JavaThread(threadId, threadName))
-      .build();
+    return FakeNetworkService.newHttpDataBuilder(id, start, download, end, threadId, threadName).build();
   }
 }

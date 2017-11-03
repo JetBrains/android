@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +35,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -186,6 +190,57 @@ public class NewInstantAppTest {
       .moveBetween("FullscreenTheme", "")
       .moveBetween("FullscreenActionBarStyle", "");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68122671
+  public void addMapActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
+      .clickFinish();
+
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish();
+
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/debug/res/values/google_maps_api.xml")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68478730
+  public void addMasterDetailActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_item_detail");
+    assertThat(baseStrings).contains("title_item_list");
+  }
+
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68684401
+  public void addFullscreenActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_activity_fullscreen");
   }
 
   @Test

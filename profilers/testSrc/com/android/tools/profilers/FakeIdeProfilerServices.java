@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +70,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
+
+  /**
+   * Whether a native CPU profiling configuration is preferred over a Java one.
+   */
+  private boolean myNativeProfilingConfigurationPreferred = false;
 
   @NotNull
   @Override
@@ -177,6 +181,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
     return new ArrayList<>();
+  }
+
+  @Override
+  public boolean isNativeProfilingConfigurationPreferred() {
+    return myNativeProfilingConfigurationPreferred;
+  }
+
+  public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
+    myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {

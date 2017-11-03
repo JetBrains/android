@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidgetContainer;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.ConnectionDraw;
-import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.android.tools.sherpa.structure.WidgetsScene;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
+import com.android.tools.idea.uibuilder.handlers.constraint.structure.WidgetCompanion;
+import com.android.tools.idea.uibuilder.handlers.constraint.structure.WidgetsScene;
 import com.intellij.ui.JBColor;
 import icons.StudioIcons;
 

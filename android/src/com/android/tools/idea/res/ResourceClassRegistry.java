@@ -16,9 +16,9 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.io.FileWrapper;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
@@ -77,8 +77,7 @@ public class ResourceClassRegistry implements ProjectComponent {
     File manifest = new File(aarDir, ANDROID_MANIFEST_XML);
     if (manifest.exists()) {
       try {
-        // TODO: Come up with something more efficient! A pull parser can do this quickly
-        return AndroidManifest.getPackage(new FileWrapper(manifest));
+        return AndroidManifestParser.parse(new FileWrapper(manifest)).getPackage();
       }
       catch (Exception e) {
         // No go

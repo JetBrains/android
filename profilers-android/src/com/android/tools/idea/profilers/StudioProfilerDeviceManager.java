@@ -210,10 +210,21 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
             if (myDeviceProxies.containsKey(myDevice)) {
-              // PerfdProxy for the current device was already created.
+              getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
               return;
             }
+
+            // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
+            // This is indicated by a "Server listenting on ADDRESS" printout from perfd (ADDRESS can vary depending on pre-O vs JVMTI).
+            // The reason for this check is because we get linker warnings when starting perfd on pre-M devices (an issue which would not
+            // be fixed by now), and we need to avoid starting the proxy in those cases.
+            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP
+              && !s.startsWith("Server listening on")) {
+              return;
+            }
+
             createPerfdProxy();
+            getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
           }
 
           @Override
@@ -276,12 +287,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       try {
         // TODO: Handle the case where we don't have file for this platform.
         // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
-        assert file != null;
+        if (file == null) {
+          throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
+        }
         // TODO: Add debug support for development
         /*
          * If copying the agent fails, we will attach the previous version of the agent
          * Hence we first delete old agent before copying new one
          */
+        getLogger().info(String.format("Pushing %s to %s...", fileName, deviceDir));
         myDevice.executeShellCommand("rm -f " + deviceDir + fileName, new NullOutputReceiver());
         myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
         myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
@@ -297,6 +311,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             myDevice.executeShellCommand("chmod 777 " + deviceDir + fileName, new NullOutputReceiver());
           }
         }
+        getLogger().info(String.format("Successfully pushed %s to %s.", fileName, deviceDir));
       }
       catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
         throw new RuntimeException(e);
@@ -367,6 +382,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void createPerfdProxy() {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
+        if (myLocalPort < 0) {
+          throw new RuntimeException("Unable to find available socket port");
+        }
+
         if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
           myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
                                  IDevice.DeviceUnixSocketNamespace.ABSTRACT);
@@ -374,9 +393,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         else {
           myDevice.createForward(myLocalPort, DEVICE_PORT);
         }
-        if (myLocalPort < 0) {
-          return;
-        }
+        getLogger().info(String.format("Port forwarding created for port: %d", myLocalPort));
+
         /*
           Creates the channel that is used to connect to the device perfd.
 

@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.builder.model.SyncIssue;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
+import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -66,14 +67,13 @@ import org.jetbrains.jps.model.serialization.PathMacroUtil;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
-import static com.android.tools.idea.gradle.util.GradleProjects.getPluginVersionsPerModule;
-import static com.android.tools.idea.gradle.util.GradleProjects.storePluginVersionsPerModule;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final ProjectStructure myProjectStructure;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
@@ -95,6 +95,7 @@ public class PostSyncProjectSetup {
   @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
                               @NotNull IdeInfo ideInfo,
+                              @NotNull ProjectStructure projectStructure,
                               @NotNull GradleProjectInfo gradleProjectInfo,
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
@@ -103,7 +104,7 @@ public class PostSyncProjectSetup {
                               @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
+    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
          new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
   }
@@ -111,6 +112,7 @@ public class PostSyncProjectSetup {
   @VisibleForTesting
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
+                       @NotNull ProjectStructure projectStructure,
                        @NotNull GradleProjectInfo gradleProjectInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
@@ -125,6 +127,7 @@ public class PostSyncProjectSetup {
                        @NotNull ProvistionTasks provistionTasks) {
     myProject = project;
     myIdeInfo = ideInfo;
+    myProjectStructure = projectStructure;
     myGradleProjectInfo = gradleProjectInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
@@ -190,8 +193,12 @@ public class PostSyncProjectSetup {
 
     myProvistionTasks.addInstantAppProvisionTaskToRunConfigurations(myProject);
 
+    AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
+    myProjectStructure.analyzeProjectStructure(progressIndicator);
+    boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
+
+    attemptToGenerateSources(request, cleanProjectAfterSync);
     notifySyncFinished(request);
-    attemptToGenerateSources(request);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
@@ -308,30 +315,9 @@ public class PostSyncProjectSetup {
     myRunManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
   }
 
-  private void attemptToGenerateSources(@NotNull Request request) {
+  private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
     if (!request.isGenerateSourcesAfterSync()) {
       return;
-    }
-    boolean cleanProjectAfterSync = request.isCleanProjectAfterSync();
-    if (!cleanProjectAfterSync) {
-      // Figure out if the plugin version changed. If it did, force a clean.
-      // See: https://code.google.com/p/android/issues/detail?id=216616
-      Map<String, GradleVersion> previousPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
-      storePluginVersionsPerModule(myProject);
-      if (previousPluginVersionsPerModule != null && !previousPluginVersionsPerModule.isEmpty()) {
-
-        Map<String, GradleVersion> currentPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
-        assert currentPluginVersionsPerModule != null;
-
-        for (Map.Entry<String, GradleVersion> entry : currentPluginVersionsPerModule.entrySet()) {
-          String modulePath = entry.getKey();
-          GradleVersion previous = previousPluginVersionsPerModule.get(modulePath);
-          if (previous == null || entry.getValue().compareTo(previous) != 0) {
-            cleanProjectAfterSync = true;
-            break;
-          }
-        }
-      }
     }
     if (cleanProjectAfterSync) {
       myProjectBuilder.cleanAndGenerateSources();

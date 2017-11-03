@@ -55,12 +55,12 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   }
 
   public DrawActionHandle(String s) {
-    this(parse(s, 8));
+    this(parse(s, 6));
   }
 
   private DrawActionHandle(String[] sp) {
-    this(Integer.parseInt(sp[2]), Integer.parseInt(sp[3]), Integer.parseInt(sp[4]),
-         Integer.parseInt(sp[5]), DrawColor.valueOf(sp[6]), Integer.parseInt(sp[7]));
+    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), Integer.parseInt(sp[2]),
+         Integer.parseInt(sp[3]), DrawColor.valueOf(sp[4]), Integer.parseInt(sp[5]));
   }
 
   @Override
@@ -75,7 +75,7 @@ public class DrawActionHandle extends NavBaseDrawCommand {
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     long currentTime = sceneContext.getTime();
 
     if (myStartTime == -1) {
@@ -85,20 +85,16 @@ public class DrawActionHandle extends NavBaseDrawCommand {
     int delta = myFinalRadius - myInitialRadius;
     int elapsed = (int)(currentTime - myStartTime);
 
-    Graphics2D g2 = (Graphics2D)g.create();
-
     @SwingCoordinate int r = (elapsed < myDuration)
                              ? myInitialRadius + delta * elapsed / myDuration
                              : myFinalRadius;
-    fillCircle(g2, r, sceneContext.getColorSet().getBackground());
+    fillCircle(g, r, sceneContext.getColorSet().getBackground());
 
     r *= INNER_CIRCLE_FRACTION;
-    fillCircle(g2, r, myBorderColor.color(sceneContext));
+    fillCircle(g, r, myBorderColor.color(sceneContext));
 
     r -= INNER_CIRCLE_THICKNESS;
-    fillCircle(g2, r, sceneContext.getColorSet().getBackground());
-
-    g2.dispose();
+    fillCircle(g, r, sceneContext.getColorSet().getBackground());
 
     if (elapsed < myDuration) {
       sceneContext.repaint();

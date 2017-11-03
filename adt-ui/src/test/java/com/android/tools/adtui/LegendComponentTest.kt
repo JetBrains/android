@@ -15,7 +15,12 @@
  */
 package com.android.tools.adtui
 
-import com.android.tools.adtui.LegendComponent.*
+import com.android.tools.adtui.LegendComponent.IconInstruction
+import com.android.tools.adtui.LegendComponent.Orientation
+import com.android.tools.adtui.instructions.GapInstruction
+import com.android.tools.adtui.instructions.NewRowInstruction
+import com.android.tools.adtui.instructions.RenderInstruction
+import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.google.common.truth.Truth.assertThat
@@ -249,14 +254,14 @@ class LegendComponentTest {
 
     val instructions = legendComponent.instructions
     val first = instructions.first { it is IconInstruction }
-    val getNext = { item: LegendInstruction -> instructions.get(instructions.indexOf(item) + 1) }
+    val getNext = { item: RenderInstruction -> instructions.get(instructions.indexOf(item) + 1) }
     instructions.filterIsInstance<IconInstruction>().forEach {
-      assertThat(it.size.w + getNext(it).size.w).isEqualTo(first.size.w + getNext(first).size.w)
+      assertThat(it.size.width + getNext(it).size.width).isEqualTo(first.size.width + getNext(first).size.width)
     }
   }
 
   private fun assertText(legend: LegendComponent, text: List<String>) {
-    assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.myText })
+    assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text })
         .containsExactlyElementsIn(text).inOrder()
   }
 
@@ -272,6 +277,8 @@ class LegendComponentTest {
     private var _value = value
     override fun getName(): String = _name
     override fun getValue(): String? = _value
-    fun setValue(value: String) { _value = value }
+    fun setValue(value: String) {
+      _value = value
+    }
   }
 }

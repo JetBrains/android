@@ -24,13 +24,17 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.utils.Pair;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -53,6 +57,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -76,7 +81,7 @@ public class AddMenuWrapper extends DropDownAction {
   @VisibleForTesting
   public final List<NavActionManager.Destination> myDestinations;
   @VisibleForTesting
-  public ComboBox<String> myKindPopup;
+  public ComboBox<Pair<String, PsiClass>> myKindPopup;
   @VisibleForTesting
   JTextField myLabelField;
   @VisibleForTesting
@@ -215,7 +220,14 @@ public class AddMenuWrapper extends DropDownAction {
 
   @VisibleForTesting
   void createDestination() {
-    if (TAG_INCLUDE.equals(myKindPopup.getSelectedItem())) {
+    @SuppressWarnings("unchecked") Pair<String, PsiClass> selected = (Pair<String, PsiClass>)myKindPopup.getSelectedItem();
+
+    if (selected == null) {
+      return;
+    }
+    // Should only be true for "include"
+    PsiClass psiClass = selected.getSecond();
+    if (psiClass == null) {
       String filename;
       if (mySourcePopup.getSelectedItem() == null) {
         // TODO: implement "new graph"
@@ -229,15 +241,16 @@ public class AddMenuWrapper extends DropDownAction {
       closePopup();
       return;
     }
-    NavigationSchema.DestinationType type = mySchema.getDestinationType((String)myKindPopup.getSelectedItem());
+    NavigationSchema.DestinationType type = mySchema.getTypeForNavigatorClass(psiClass);
     if (type == ACTIVITY || type == FRAGMENT) {
+      //noinspection ConstantConditions  At this point we know that there's a tag associated with this type
       NavActionManager.Destination dest =
         new NavActionManager.Destination(null, "", "",
-                                         (String)myKindPopup.getSelectedItem(), null);
+                                         mySchema.getDefaultTag(type), null);
       addElement(dest, mySurface, myIdField.getText(), myLabelField.getText());
     }
     else if (type == NAVIGATION) {
-      addElement(mySurface, (String)myKindPopup.getSelectedItem(), myIdField.getText(), myLabelField.getText(), null);
+      addElement(mySurface, mySchema.getTag(psiClass), myIdField.getText(), myLabelField.getText(), null);
     }
     closePopup();
   }
@@ -287,18 +300,22 @@ public class AddMenuWrapper extends DropDownAction {
     createKindPopup();
     selectionGrid.add(myKindPopup, new TabularLayout.Constraint(0, 2));
 
-    myKindPopup.setSelectedItem(mySchema.getTag(FRAGMENT));
+    myKindPopup.setSelectedItem(mySchema.getDefaultTag(FRAGMENT));
     updateDefaultIdAndLabel();
     return selectionGrid;
   }
 
   private void updateDefaultIdAndLabel() {
-    String newKind = (String)myKindPopup.getSelectedItem();
-    assert newKind != null;
+    @SuppressWarnings("unchecked") Pair<String, PsiClass> item = (Pair<String, PsiClass>)myKindPopup.getSelectedItem();
+    if (item == null) {
+      return;
+    }
+    PsiClass navigatorClass = item.getSecond();
+    String tag = navigatorClass == null ? TAG_INCLUDE : mySchema.getTag(navigatorClass);
     // If we haven't changed from the default, update the value
     if (myDefaultId == null || myIdField.getText().equals(myDefaultId)) {
       NlModel model = mySurface.getModel();
-      myDefaultId = NlComponent.generateId(newKind, model.getIds(), ResourceFolderType.NAVIGATION,
+      myDefaultId = NlComponent.generateId(tag, model.getIds(), ResourceFolderType.NAVIGATION,
                                            model.getModule());
       myIdField.setText(myDefaultId);
     }
@@ -306,7 +323,7 @@ public class AddMenuWrapper extends DropDownAction {
       Matcher m = Pattern.compile("\\d*$").matcher(myDefaultId);
       if (m.find()) {
         String n = m.group();
-        myDefaultLabel = getTypeLabel((String)myKindPopup.getSelectedItem()) + (n.isEmpty() ? "" : " " + n);
+        myDefaultLabel = mySchema.getTagLabel(tag) + (n.isEmpty() ? "" : " " + n);
         myLabelField.setText(myDefaultLabel);
       }
     }
@@ -316,6 +333,7 @@ public class AddMenuWrapper extends DropDownAction {
     mySourcePopup = new ComboBox<>();
     mySourcePopup.addItem(null);
     ResourceManager resourceManager = LocalResourceManager.getInstance(mySurface.getModel().getModule());
+    //noinspection ConstantConditions  We can't get in here without a facet, which is the only reason resourceManager would be null.
     for (PsiFile navPsi : resourceManager.findResourceFiles(ResourceFolderType.NAVIGATION)) {
       if (mySurface.getModel().getFile().equals(navPsi)) {
         continue;
@@ -337,21 +355,37 @@ public class AddMenuWrapper extends DropDownAction {
     myKindPopup = new ComboBox<>();
 
     myKindPopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
-      String text = getTypeLabel(value);
+      String text = value.getFirst();
       RENDERER_COMPONENT.setText(text);
       return RENDERER_COMPONENT;
     });
-    for (NavigationSchema.DestinationType type : values()) {
-      for (String tag : mySchema.getDestinationClassByTagMap(type).keySet()) {
-        if (tag != null) {
-          myKindPopup.addItem(tag);
+    Multimap<String, PsiClass> tagToClass = HashMultimap.create();
+    mySchema.getNavigatorClassTagMap().forEach((psiClass, tag) -> tagToClass.put(tag, psiClass));
+    Pair<String, PsiClass> defaultSelection = null;
+    String defaultTag = mySchema.getDefaultTag(FRAGMENT);
+    // Iterate over tagTypeMap since it includes <include>
+    for (String tag : mySchema.getTagTypeMap().keySet()) {
+      Collection<PsiClass> classes = tagToClass.get(tag);
+      String label = mySchema.getTagLabel(tag);
+      for (PsiClass psiClass : classes) {
+        if (classes.size() > 1) {
+          label += " " + psiClass.getName();
         }
+        Pair<String, PsiClass> item = Pair.of(label, psiClass);
+        if (tag.equals(defaultTag)) {
+          defaultSelection = item;
+        }
+        myKindPopup.addItem(item);
+      }
+      if (classes.isEmpty()) {
+        // Dummy value, like <include>. Add it with a null class.
+        myKindPopup.addItem(Pair.of(label, null));
       }
     }
 
     myKindPopup.addItemListener(itemEvent -> {
-      String item = (String)itemEvent.getItem();
-      if (TAG_INCLUDE.equals(item)) {
+      //noinspection unchecked
+      if (NavigationSchema.INCLUDE_GRAPH_LABEL.equals(((Pair<String, PsiClass>)itemEvent.getItem()).getFirst())) {
         myIdField.setVisible(false);
         myLabelField.setVisible(false);
         myIdLabel.setVisible(false);
@@ -369,34 +403,8 @@ public class AddMenuWrapper extends DropDownAction {
       }
       updateDefaultIdAndLabel();
     });
-  }
 
-  @NotNull
-  private String getTypeLabel(String tag) {
-    NavigationSchema.DestinationType type = mySchema.getDestinationType(tag);
-    String text = null;
-    if (TAG_INCLUDE.equals(tag)) {
-      text = "Include Graph";
-    }
-    else {
-      if (type == NAVIGATION) {
-        text = "Nested Graph";
-      }
-      else if (type == FRAGMENT) {
-        text = "Fragment";
-      }
-      else if (type == ACTIVITY) {
-        text = "Activity";
-      }
-      if (type != null && !tag.equals(mySchema.getTag(type))) {
-        // If it's a custom tag, show it
-        text += " (" + tag + ")";
-      }
-    }
-    if (text == null) {
-      text = tag;
-    }
-    return text;
+    myKindPopup.setSelectedItem(defaultSelection);
   }
 
   @NotNull
@@ -485,8 +493,9 @@ public class AddMenuWrapper extends DropDownAction {
     myDestinationsGallery.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {
-        if (myDestinationsGallery.getSelectedIndex() != -1) {
-          addElement(myDestinationsGallery.getSelectedElement(), mySurface, null, null);
+        NavActionManager.Destination element = myDestinationsGallery.getSelectedElement();
+        if (element != null) {
+          addElement(element, mySurface, null, null);
           closePopup();
         }
       }

@@ -35,7 +35,6 @@ import java.util.zip.ZipFile;
 import static com.android.SdkConstants.DOT_XML;
 
 public final class MaterialDesignIcons {
-
     public static final String PATH = "images/material_design_icons/";
     private static final Pattern CATEGORY = Pattern.compile(PATH + "(\\w+)/");
 
@@ -44,22 +43,19 @@ public final class MaterialDesignIcons {
 
     @Nullable
     public static String getPathForBasename(@NonNull String basename) {
-        return getBasenameToPathMap(path -> IconGenerator.getResourcesNames(path, DOT_XML))
-                .get(basename);
+        return getBasenameToPathMap(path -> BuiltInImages.getResourcesNames(path, DOT_XML)).get(basename);
     }
 
     @NonNull
     @VisibleForTesting
-    static Map<String, String> getBasenameToPathMap(
-            @NonNull Function<String, Iterator<String>> generator) {
+    static Map<String, String> getBasenameToPathMap(@NonNull Function<String, List<String>> generator) {
         ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
         int dotXmlLength = DOT_XML.length();
 
         for (String category : getCategories()) {
             String path = PATH + category + '/';
 
-            for (Iterator<String> i = generator.apply(path); i.hasNext(); ) {
-                String name = i.next();
+            for (String name : generator.apply(path)) {
                 builder.put(name.substring(0, name.length() - dotXmlLength), path + name);
             }
         }

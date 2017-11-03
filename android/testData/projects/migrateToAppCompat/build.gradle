@@ -1,5 +1,7 @@
 buildscript {
-  repositories {}
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
   dependencies {
     classpath 'com.android.tools.build:gradle:+'
   }

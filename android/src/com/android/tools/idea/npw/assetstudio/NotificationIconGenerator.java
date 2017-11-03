@@ -44,7 +44,6 @@ public class NotificationIconGenerator extends IconGenerator {
   @NotNull
   public NotificationOptions createOptions(boolean forPreview) {
     NotificationOptions options = new NotificationOptions();
-    options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       options.sourceImageFuture = asset.toImage();
@@ -121,26 +120,26 @@ public class NotificationIconGenerator extends IconGenerator {
   public void generate(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
                        @NotNull GraphicGeneratorContext context, @NotNull Options baseOptions, @NotNull String name) {
     NotificationOptions options = (NotificationOptions) baseOptions;
-    if (options.minSdk < 9) {
+    if (myMinSdkVersion < 9) {
       options.version = Version.OLDER;
       super.generate(options.version.getDisplayName(), categoryMap, context, options, name);
     }
-    if (options.minSdk < 11) {
+    if (myMinSdkVersion < 11) {
       options.version = Version.V9;
       super.generate(options.version.getDisplayName(), categoryMap, context, options, name);
     }
     options.version = Version.V11;
-    super.generate(options.minSdk < 11 ? options.version.getDisplayName() : null, categoryMap, context, options, name);
+    super.generate(myMinSdkVersion < 11 ? options.version.getDisplayName() : null, categoryMap, context, options, name);
   }
 
   @Override
   @NotNull
   protected String getIconFolder(@NotNull Options options) {
     String folder = super.getIconFolder(options);
-    Version version = ((NotificationOptions) options).version;
-    if (version == Version.V11 && options.minSdk < 11) {
+    Version version = ((NotificationOptions)options).version;
+    if (version == Version.V11 && myMinSdkVersion < 11) {
       return folder + "-v11"; //$NON-NLS-1$
-    } else if (version == Version.V9 && options.minSdk < 9) {
+    } else if (version == Version.V9 && myMinSdkVersion < 9) {
       return folder + "-v9"; //$NON-NLS-1$
     } else {
       return folder;
@@ -175,11 +174,11 @@ public class NotificationIconGenerator extends IconGenerator {
     }
 
     /**
-     * Returns the display name for this version, typically shown as a
-     * category
+     * Returns the display name for this version, typically shown as a category.
      *
-     * @return the display name, never null
+     * @return the display name
      */
+    @NotNull
     public String getDisplayName() {
       return mDisplayName;
     }

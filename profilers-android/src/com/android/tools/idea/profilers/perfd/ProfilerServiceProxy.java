@@ -71,7 +71,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to obtain the device
       Profiler.GetDevicesResponse devices = myServiceStub.getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-
       //TODO Remove set functions when we move functionality over to perfd.
       assert devices.getDeviceList().size() == 1;
       myProfilerDevice = profilerDeviceFromIDevice(device, devices.getDevice(0).toBuilder());
@@ -81,6 +80,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       myProfilerDevice =
         profilerDeviceFromIDevice(device, Profiler.Device.newBuilder().setBootId(String.valueOf(device.getSerialNumber().hashCode())));
     }
+    getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
     updateProcesses();
 

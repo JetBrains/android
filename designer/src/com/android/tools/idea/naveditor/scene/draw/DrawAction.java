@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,8 +45,8 @@ public class DrawAction extends NavBaseDrawCommand {
 
   private static final GeneralPath PATH = new GeneralPath();
   private final ActionTarget.ConnectionType myConnectionType;
-  @SwingCoordinate private Rectangle mySource = new Rectangle();
-  @SwingCoordinate private Rectangle myDest = new Rectangle();
+  @SwingCoordinate private final Rectangle mySource = new Rectangle();
+  @SwingCoordinate private final Rectangle myDest = new Rectangle();
   private static final Stroke BACKGROUND_STROKE = new BasicStroke(8.0f, CAP_BUTT, JOIN_MITER);
   private static final Stroke REGULAR_ACTION_STROKE = new BasicStroke(3.0f);
   private static final Stroke SELF_ACTION_STROKE = new BasicStroke(3.0f,
@@ -66,12 +66,7 @@ public class DrawAction extends NavBaseDrawCommand {
   }
 
   public DrawAction(@NotNull String s) {
-    String[] sp = s.split(",");
-    int c = -1;
-    myConnectionType = ActionTarget.ConnectionType.valueOf(sp[++c]);
-    mySource = stringToRect(sp[++c]);
-    myDest = stringToRect(sp[++c]);
-    myMode = DrawMode.valueOf(sp[++c]);
+    this(parse(s, 4));
   }
 
   @Override
@@ -80,26 +75,24 @@ public class DrawAction extends NavBaseDrawCommand {
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     g.setRenderingHints(HQ_RENDERING_HITS);
-    Color previousColor = g.getColor();
-    Stroke previousStroke = g.getStroke();
     ColorSet color = sceneContext.getColorSet();
     draw(g, color, myConnectionType, mySource, myDest, myMode, sceneContext);
-    g.setColor(previousColor);
-    g.setStroke(previousStroke);
   }
 
-  private DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
+  public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
                      @SwingCoordinate Rectangle source,
                      @SwingCoordinate Rectangle dest,
                      @NotNull DrawMode mode) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
     myConnectionType = connectionType;
-    mySource.setBounds(source);
-    myDest.setBounds(dest);
     myMode = mode;
+  }
+
+  private DrawAction(@NotNull String[] s) {
+    this(ActionTarget.ConnectionType.valueOf(s[0]), stringToRect(s[1]), stringToRect(s[2]), DrawMode.valueOf(s[3]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,

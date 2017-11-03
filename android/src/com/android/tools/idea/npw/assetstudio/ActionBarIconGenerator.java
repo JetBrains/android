@@ -64,7 +64,6 @@ public class ActionBarIconGenerator extends IconGenerator {
   @NotNull
   public ActionBarOptions createOptions(boolean forPreview) {
     ActionBarOptions options = new ActionBarOptions();
-    options.minSdk = getMinSdkVersion();
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       options.sourceImageFuture = asset.toImage();

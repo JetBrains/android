@@ -71,7 +71,10 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
 }
 
 val NlComponent.resolvedId
-    get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
+  get() = NlComponent.stripId(resolveAttribute(ANDROID_URI, ATTR_ID))
+
+val NlComponent.destinationType
+  get() = model.schema.getDestinationType(tagName)
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)

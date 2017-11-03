@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -64,7 +65,7 @@ public class LevelTest extends NavigationTestCase {
   }
 
   public void testLevels() {
-    ComponentDescriptor root = rootComponent()
+    ComponentDescriptor root = rootComponent("root")
       .unboundedChildren(
         fragmentComponent("fragment1"),
         fragmentComponent("fragment2"));
@@ -117,12 +118,15 @@ public class LevelTest extends NavigationTestCase {
   }
 
   private void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, Coordinates.getSwingXDip(mySceneView, x),
-                                   Coordinates.getSwingYDip(mySceneView, y), 0);
+    @SwingCoordinate int swingX = Coordinates.getSwingXDip(mySceneView, x);
+    @SwingCoordinate int swingY = Coordinates.getSwingYDip(mySceneView, y);
+    @SwingCoordinate int swingDrag = Coordinates.getSwingDimension(mySceneView, DRAG);
 
-    LayoutTestUtilities.dragMouse(myInteractionManager, x, y, x + DRAG, y + DRAG, 0);
+    LayoutTestUtilities.pressMouse(myInteractionManager, BUTTON1, swingX, swingY, 0);
+
+    LayoutTestUtilities.dragMouse(myInteractionManager, swingX, swingY, swingX + swingDrag, swingY + swingDrag, 0);
     mySceneView.getScene().layout(0, SceneContext.get());
-    LayoutTestUtilities.dragMouse(myInteractionManager, x + DRAG, y + DRAG, x, y, 0);
+    LayoutTestUtilities.dragMouse(myInteractionManager, swingX + swingDrag, swingY + swingDrag, swingX, swingY, 0);
     mySceneView.getScene().layout(0, SceneContext.get());
   }
 

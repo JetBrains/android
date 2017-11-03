@@ -17,8 +17,9 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -33,11 +34,20 @@ import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
+/**
+ * Keeps track of which of the dependencies for all the components on a palette are currently
+ * missing from a project. DependencyManager does this by caching dependency information available
+ * through the instance of {@link com.android.tools.idea.projectsystem.AndroidModuleSystem} associated
+ * with the module of the palette. This allows callers to quickly check if a particular palette item has
+ * a missing dependency via the {@link #needsLibraryLoad(Palette.Item)} method.
+ *
+ * The set of missing dependencies is recomputed each time the project is synced (in case new dependencies have
+ * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette(Palette, Module)}).
+ */
 public class DependencyManager {
   private final Project myProject;
   private final Set<String> myMissingLibraries;
@@ -107,14 +117,21 @@ public class DependencyManager {
 
   private boolean checkForNewMissingDependencies() {
     Set<String> missing = Collections.emptySet();
+
     if (myModule != null && !myModule.isDisposed()) {
-      GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-      List<GradleCoordinate> coordinates = toGradleCoordinatesFromIds(myPalette.getGradleCoordinateIds());
-      missing = fromGradleCoordinatesToIds(manager.findMissingDependencies(myModule, coordinates));
+      missing = myPalette.getGradleCoordinateIds().stream()
+        .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
+        .filter(Objects::nonNull)
+        .map(GoogleMavenArtifactId::forCoordinate)
+        .filter(artifactId -> artifactId != null && !DependencyManagementUtil.dependsOn(myModule, artifactId))
+        .map(GoogleMavenArtifactId::toString)
+        .collect(Collectors.toSet());
+
       if (myMissingLibraries.equals(missing)) {
         return false;
       }
     }
+
     myMissingLibraries.clear();
     myMissingLibraries.addAll(missing);
     return true;
@@ -126,21 +143,5 @@ public class DependencyManager {
           paletteUI.repaint();
       }
     });
-  }
-
-  @NotNull
-  private static Set<String> fromGradleCoordinatesToIds(@NotNull Collection<GradleCoordinate> coordinates) {
-    return coordinates.stream()
-      .map(GradleCoordinate::getId)
-      .filter(dependency -> dependency != null)
-      .collect(Collectors.toSet());
-  }
-
-  @NotNull
-  private static List<GradleCoordinate> toGradleCoordinatesFromIds(@NotNull Collection<String> dependencies) {
-    return dependencies.stream()
-      .map(dependency -> GradleCoordinate.parseCoordinateString(dependency + ":+"))
-      .filter(coordinate -> coordinate != null)
-      .collect(Collectors.toList());
   }
 }

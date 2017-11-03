@@ -33,17 +33,16 @@ public class NavSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
 
   public NavSceneDecoratorFactory(@NotNull NavigationSchema schema) {
-    for (NavigationSchema.DestinationType type : NavigationSchema.DestinationType.values()) {
-      for (String tag : schema.getDestinationClassByTagMap(type).keySet()) {
-        try {
-          Constructor<? extends SceneDecorator> constructor = type == NavigationSchema.DestinationType.NAVIGATION
-                                       ? NavigationDecorator.class.getConstructor()
-                                       : NavScreenDecorator.class.getConstructor();
-          ourConstructorMap.put(tag, constructor);
-        }
-        catch (NoSuchMethodException e) {
-          // shouldn't happen, ignore
-        }
+    for (Map.Entry<String, NavigationSchema.DestinationType> entry : schema.getTagTypeMap().entrySet()) {
+
+      try {
+        Constructor<? extends SceneDecorator> constructor = entry.getValue() == NavigationSchema.DestinationType.NAVIGATION
+                                                            ? NavigationDecorator.class.getConstructor()
+                                                            : NavScreenDecorator.class.getConstructor();
+        ourConstructorMap.put(entry.getKey(), constructor);
+      }
+      catch (NoSuchMethodException e) {
+        assert false;
       }
     }
   }

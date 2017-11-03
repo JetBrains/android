@@ -16,9 +16,9 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.rendering.ImagePool;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,13 +56,11 @@ public class DrawNavScreen extends NavBaseDrawCommand {
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     g.setRenderingHints(HQ_RENDERING_HITS);
-    Shape previousClip = g.getClip();
     g.clipRect(myX, myY, myWidth, myHeight);
     // TODO: better scaling (similar to ScreenViewLayer)
     myImage.drawImageTo(g, myX, myY, myWidth, myHeight);
-    g.setClip(previousClip);
   }
 
   @Override

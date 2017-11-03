@@ -275,6 +275,27 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.add(timingLabel, new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(createTimingBar(httpData), new TabularLayout.Constraint(row, 2));
 
+    row++;
+    myFieldsPanel.add(new NoWrapBoldLabel("Initiating thread"), new TabularLayout.Constraint(row, 0));
+    JLabel initiatingThreadLabel = new JLabel(httpData.getJavaThreads().get(0).getName());
+    initiatingThreadLabel.setName("Initiating thread");
+    myFieldsPanel.add(initiatingThreadLabel, new TabularLayout.Constraint(row, 2));
+
+    if (httpData.getJavaThreads().size() > 1) {
+      StringBuilder otherThreadsBuilder = new StringBuilder();
+      for (int i = 1; i < httpData.getJavaThreads().size(); ++i) {
+        if (otherThreadsBuilder.length() > 0) {
+          otherThreadsBuilder.append(", ");
+        }
+        otherThreadsBuilder.append(httpData.getJavaThreads().get(i).getName());
+      }
+
+      row++;
+      myFieldsPanel.add(new NoWrapBoldLabel("Other threads"), new TabularLayout.Constraint(row, 0));
+      JLabel otherThreadsLabel = new JLabel(otherThreadsBuilder.toString());
+      otherThreadsLabel.setName("Other threads");
+      myFieldsPanel.add(otherThreadsLabel, new TabularLayout.Constraint(row, 2));
+    }
     new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> adjustFont(c));
 
     myFieldsPanel.setName("Response fields");

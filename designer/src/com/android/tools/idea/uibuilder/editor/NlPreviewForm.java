@@ -20,16 +20,15 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
+import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
@@ -79,7 +78,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private boolean isActive = true;
   private ActionsToolbar myActionsToolbar;
   private JComponent myContentPanel;
-  private final AnimationToolbar myAnimationToolbar;
+  @Nullable private AnimationToolbar myAnimationToolbar;
 
   private NlModel myModel;
 
@@ -108,21 +107,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) {
-      myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
-        SceneView screenView = mySurface.getCurrentSceneView();
-        NlModel model = screenView != null ? screenView.getModel() : null;
-        LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
-        if (model != null && sceneManager != null) {
-          sceneManager.setElapsedFrameTimeMs(timeMs);
-          sceneManager.requestRender();
-        }
-      }, 16);
-    }
-    else {
-      myAnimationToolbar = null;
-    }
-
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
     myWorkBench.setLoadingText("Waiting for build to finish...");
 
@@ -132,10 +116,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private void createContentPanel() {
     myContentPanel = new JPanel(new BorderLayout());
     myContentPanel.add(mySurface, BorderLayout.CENTER);
-
-    if (myAnimationToolbar != null) {
-      myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
-    }
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -345,6 +325,57 @@ public class NlPreviewForm implements Disposable, CaretListener {
     initNeleModel();
   }
 
+  private void initAnimationsToolbar() {
+    if (myAnimationToolbar != null) {
+      myContentPanel.remove(myAnimationToolbar);
+    }
+
+    boolean animationsBarEnabled = StudioFlags.NELE_ANIMATIONS_PREVIEW.get() ||
+                                   StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get();
+
+    if (!animationsBarEnabled || myModel == null) {
+      myAnimationToolbar = null;
+      return;
+    }
+
+    if (StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get()) {
+      // Find if there is a transtion layout
+      NlComponent transitionLayout = myModel.flattenComponents()
+        .filter(component -> NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.TRANSITION_LAYOUT))
+        .findAny()
+        .orElse(null);
+      TransitionLayoutHandler.TransitionLayoutComponentHelper helper = transitionLayout != null ?
+                                                                       new TransitionLayoutHandler.TransitionLayoutComponentHelper(transitionLayout) :
+                                                                       null;
+      long maxTimeMs = helper != null ? helper.getMaxTimeMs() : -1;
+
+
+      // All animations are offset to start at 500ms. The reason is that some animated drawables like the progress bars are not
+      // really visible at 0 since their animation starts in an empty state. 500ms works well for progress bars.
+      if (helper != null) {
+        myAnimationToolbar = AnimationToolbar.createAnimationToolbar(this, (timeMs) -> {
+          LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
+          if (myModel != null && sceneManager != null) {
+            sceneManager.setElapsedFrameTimeMs(timeMs);
+            helper.setValue((timeMs - 500L) / (float)maxTimeMs);
+          }
+        }, 16, 500L, maxTimeMs + 500L);
+      }
+    }
+
+    if (myAnimationToolbar == null) {
+      myAnimationToolbar = AnimationToolbar.createUnlimitedAnimationToolbar(this, (timeMs) -> {
+        LayoutlibSceneManager sceneManager = mySurface.getSceneManager();
+        if (myModel != null && sceneManager != null) {
+          sceneManager.setElapsedFrameTimeMs(timeMs);
+          sceneManager.requestRender();
+        }
+      }, 16, 500L);
+    }
+
+    myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
+  }
+
   private void initNeleModel() {
     XmlFile xmlFile = myFile;
     AndroidFacet facet = xmlFile != null ? AndroidFacet.getInstance(xmlFile) : null;
@@ -422,6 +453,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
         myWorkBench.setMinimizePanelsVisible(true);
       }
     }
+
+    initAnimationsToolbar();
   }
 
   private void disposeActionsToolbar() {

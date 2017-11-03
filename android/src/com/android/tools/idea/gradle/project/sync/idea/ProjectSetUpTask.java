@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.android.tools.idea.project.IndexingSuspender;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
@@ -110,7 +109,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
     startupManager.runWhenProjectIsInitialized(() -> {
-      IndexingSuspender.getInstance(myProject).activate("Project Setup", GradleSyncState.getInstance(myProject)::isSyncInProgress);
       doPopulateProject(projectInfo);
     });
   }

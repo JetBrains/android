@@ -15,31 +15,20 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
-import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -50,6 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class BuildApkActionTest extends IdeaTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
+  @Mock private ProjectStructure myProjectStructure;
   private BuildApkAction myAction;
 
   @Override
@@ -59,16 +49,16 @@ public class BuildApkActionTest extends IdeaTestCase {
 
     IdeComponents.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker);
     IdeComponents.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo);
+    IdeComponents.replaceService(myProject, ProjectStructure.class, myProjectStructure);
     myAction = new BuildApkAction();
   }
 
   public void testActionPerformed() {
-    Module app1Module = createAndroidModule("app1", PROJECT_TYPE_APP);
-    Module app2Module = createAndroidModule("app2", PROJECT_TYPE_APP);
-    Module instantApp = createAndroidModule("instantApp", PROJECT_TYPE_INSTANTAPP);
-    Module[] appModules = {app1Module, app2Module, instantApp};
-    createAndroidModule("androidLib", PROJECT_TYPE_LIBRARY);
+    Module app1Module = createModule("app1");
+    Module app2Module = createModule("app2");
 
+    Module[] appModules = {app1Module, app2Module};
+    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     AnActionEvent event = mock(AnActionEvent.class);
@@ -76,32 +66,6 @@ public class BuildApkActionTest extends IdeaTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
-  }
-
-  @NotNull
-  private Module createAndroidModule(@NotNull String name, int type) {
-    Module module = createModule(name);
-
-    AndroidFacet facet = createAndAddAndroidFacet(module);
-    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    facet.setAndroidModel(androidModel);
-
-    facet.getConfiguration().getState().ASSEMBLE_TASK_NAME = ":" + name + ":debugAssemble";
-
-    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getProjectType()).thenReturn(type);
-    when(androidModel.getAndroidProject()).thenReturn(androidProject);
-    IdeAndroidArtifact mainArtifact =
-      new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, "f1fa-debug", "debug", new FileStructure(new File("debug"))) {
-        @Override
-        @NotNull
-        public Collection<AndroidArtifactOutput> getOutputs() {
-          return Collections.emptyList();
-        }
-      };
-    when(androidModel.getMainArtifact()).thenReturn(mainArtifact);
-
-    return module;
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(Collections.emptyList()), any(OutputBuildAction.class));
   }
 }

@@ -41,11 +41,15 @@ public class DeviceRenderer {
   private DeviceRenderer() {
   }
 
-  public static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component, boolean showSerialNumber) {
-    renderDeviceName(d, component, showSerialNumber, null);
+  public static void renderDeviceName(@NotNull IDevice d,
+                                      @NotNull DeviceNameProperties deviceProperties,
+                                      @NotNull ColoredTextContainer component,
+                                      boolean showSerialNumber) {
+    renderDeviceName(d, deviceProperties, component, showSerialNumber, null);
   }
 
   public static void renderDeviceName(@NotNull IDevice d,
+                                      @NotNull DeviceNameProperties deviceNameProperties,
                                       @NotNull ColoredTextContainer component,
                                       boolean showSerialNumber,
                                       @Nullable AvdManager avdManager) {
@@ -56,7 +60,7 @@ public class DeviceRenderer {
       name = getEmulatorDeviceName(d, avdManager);
     }
     else {
-      name = getDeviceName(d);
+      name = getDeviceName(deviceNameProperties);
     }
 
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
@@ -71,7 +75,8 @@ public class DeviceRenderer {
     }
 
     if (deviceState != IDevice.DeviceState.DISCONNECTED && deviceState != IDevice.DeviceState.OFFLINE) {
-      component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+      component.append(DevicePropertyUtil.getBuild(deviceNameProperties.getBuildVersion(), deviceNameProperties.getApiLevel()),
+                       SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
   }
 
@@ -88,6 +93,12 @@ public class DeviceRenderer {
       avdName = "unknown";
     }
     return String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
+  }
+
+  @NotNull
+  private static String getDeviceName(@NotNull DeviceNameProperties deviceNameProperties) {
+    return String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(deviceNameProperties.getManufacturer(), false, ""),
+                         DevicePropertyUtil.getModel(deviceNameProperties.getModel(), ""));
   }
 
   @NotNull
@@ -116,10 +127,14 @@ public class DeviceRenderer {
     @NotNull
     private String myEmptyText;
     private boolean myShowSerial;
+    private DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public DeviceComboBoxRenderer(@NotNull String emptyText, boolean showSerial) {
+    public DeviceComboBoxRenderer(@NotNull String emptyText,
+                                  boolean showSerial,
+                                  @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myEmptyText = emptyText;
       myShowSerial = showSerial;
+      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
     }
 
     public void setShowSerial(boolean showSerial) {
@@ -132,7 +147,8 @@ public class DeviceRenderer {
         append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
       else if (value instanceof IDevice) {
-        renderDeviceName((IDevice)value, this, myShowSerial);
+        IDevice device = (IDevice)value;
+        renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, myShowSerial);
       }
       else if (value == null) {
         append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
@@ -144,9 +160,11 @@ public class DeviceRenderer {
     private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
     private final DeviceNameRendererEx[] myRenderers = EP_NAME.getExtensions();
     private final AvdManager myAvdManager;
+    private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public DeviceNameRenderer(@Nullable AvdManager avdManager) {
+    public DeviceNameRenderer(@Nullable AvdManager avdManager, @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myAvdManager = avdManager;
+      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
     }
 
     @Override
@@ -162,8 +180,7 @@ public class DeviceRenderer {
           return;
         }
       }
-
-      renderDeviceName(device, this, false, myAvdManager);
+      renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, false, myAvdManager);
     }
   }
 }

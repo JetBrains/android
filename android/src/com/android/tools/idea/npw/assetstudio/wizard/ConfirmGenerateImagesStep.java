@@ -75,8 +75,6 @@ import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_
  * are about to be created.
  */
 public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
-  private static final DefaultTreeModel EMPTY_MODEL = new DefaultTreeModel(null);
-
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
   private final JBLabel myPreviewIcon;
@@ -138,7 +136,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     });
     myPathsComboBox.setModel(moduleTemplatesModel);
 
-    myOutputPreviewTree.setModel(EMPTY_MODEL);
+    DefaultTreeModel emptyModel = new DefaultTreeModel(null);
+    myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
     myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.

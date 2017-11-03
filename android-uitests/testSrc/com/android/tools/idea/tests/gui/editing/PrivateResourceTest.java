@@ -40,6 +40,8 @@ public class PrivateResourceTest {
    * Verifies that private resources from libraries are not suggested to the
    * layout editor.
    *
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   *
    * <p>TT ID: 749615f9-4a70-4d97-a9cf-35e9a2af2452
    *
    * <pre>

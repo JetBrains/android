@@ -58,6 +58,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @GuardedBy("ISSUE_MAP_LOCK")
   private static volatile List<Tools> ourDynamicTools;
 
+  private static boolean ourRegisterDynamicToolsFromTests;
+
   protected final Issue myIssue;
   private String[] myGroupPath;
   private final String myDisplayName;
@@ -327,6 +329,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     ourDynamicTools = null;
   }
 
+  @TestOnly
+  public static void setRegisterDynamicToolsFromTests(boolean registerDynamicToolsFromTests) {
+    ourRegisterDynamicToolsFromTests = registerDynamicToolsFromTests;
+  }
+
   @Nullable
   public static List<Tools> getDynamicTools() {
     synchronized (ISSUE_MAP_LOCK) {
@@ -334,11 +341,44 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
   }
 
-  @Nullable
   public static void resetDynamicTools() {
     synchronized (ISSUE_MAP_LOCK) {
       ourDynamicTools = null;
     }
+  }
+
+  @Nullable
+  public static Issue findIssueByShortName(@Nullable Project project, @NotNull String name) {
+    // Look up issue by inspections (for third-party issues)
+    String inspectionName = name.startsWith(LINT_INSPECTION_PREFIX) ? name : LINT_INSPECTION_PREFIX + name;
+
+    Issue issue = null;
+    List<Tools> tools = getDynamicTools();
+    if (tools != null) {
+      for (Tools tool : tools) {
+        if (inspectionName.equals(tool.getShortName())) {
+          InspectionProfileEntry e = tool.getTool().getTool();
+          if (e instanceof AndroidLintInspectionBase) {
+            issue = ((AndroidLintInspectionBase)e).getIssue();
+            break;
+          }
+        }
+      }
+    }
+
+    if (issue == null && project != null) {
+      InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+      for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+        if (inspectionName.equals(e.getShortName())) {
+          InspectionProfileEntry entry = e.getTool();
+          if (entry instanceof AndroidLintInspectionBase) {
+            issue = ((AndroidLintInspectionBase)entry).getIssue();
+          }
+        }
+      }
+    }
+
+    return issue;
   }
 
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
@@ -366,7 +406,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // inspection profiles containing only the to-be-tested inspections
       // and we don't want random other inspections to show up)
       String name = ourIssue2InspectionShortName.get(issue);
-      if (name == null && !ApplicationManager.getApplication().isUnitTestMode()) {
+      if (name == null &&
+          (!ApplicationManager.getApplication().isUnitTestMode() || ourRegisterDynamicToolsFromTests)) {
         AndroidLintInspectionBase tool = createInspection(issue);
         LintInspectionFactory factory = new LintInspectionFactory(tool);
         // We have to add the tool both to the current and the base profile; otherwise, bringing up

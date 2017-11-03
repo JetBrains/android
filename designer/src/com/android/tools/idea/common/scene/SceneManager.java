@@ -41,15 +41,17 @@ abstract public class SceneManager implements Disposable {
 
   public static final boolean SUPPORTS_LOCKING = false;
 
-  private final NlModel myModel;
-  final private DesignSurface myDesignSurface;
-  private Scene myScene;
+  @NotNull private final NlModel myModel;
+  @NotNull private final DesignSurface myDesignSurface;
+  @NotNull private final Scene myScene;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
-  public SceneManager(NlModel model, DesignSurface surface) {
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
+
+    myScene = new Scene(this, myDesignSurface);
   }
 
   @Override
@@ -58,19 +60,7 @@ abstract public class SceneManager implements Disposable {
   }
 
   /**
-   * Constructs a {@link Scene} from our {@link NlModel}. Must only be called once. For updates use {@link #update()}.
-   */
-  @NotNull
-  public Scene build() {
-    assert myScene == null;
-    myScene = new Scene(this, myDesignSurface);
-    return myScene;
-  }
-
-  /**
-   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
-   * <p/>
-   * {@link #build()} must have been invoked already.<br/>
+   * Update the Scene with the components in the current NlModel. This method needs to be called in the dispatch thread.<br/>
    * This includes marking the display list as dirty.
    */
   public void update() {
@@ -210,8 +200,7 @@ abstract public class SceneManager implements Disposable {
   }
 
   @NotNull
-  protected Scene getScene() {
-    assert myScene != null;
+  public Scene getScene() {
     return myScene;
   }
 

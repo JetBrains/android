@@ -13,5 +13,7 @@ buildscript {
 }
 
 allprojects {
-    // This will be populated by AndroidGradleTestCase
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
 }

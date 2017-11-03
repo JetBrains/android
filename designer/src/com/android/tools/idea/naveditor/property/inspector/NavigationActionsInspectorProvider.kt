@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.common.util.WhiteIconGenerator
+import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
@@ -105,7 +106,7 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
           super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
           text = (value as NlProperty?)?.name
           icon = if (isSelected) WHITE_ACTION
-                 else StudioIcons.NavEditor.Toolbar.ACTION
+                 else StudioIcons.NavEditor.Properties.ACTION
           return this
         }
       }
@@ -167,7 +168,7 @@ class NavigationActionsInspectorProvider : InspectorProvider<NavPropertiesManage
   }
 }
 
-private val WHITE_ACTION = WhiteIconGenerator.generateWhiteIcon(StudioIcons.NavEditor.Toolbar.ACTION)
+private val WHITE_ACTION = WhiteIconGenerator.generateWhiteIcon(StudioIcons.NavEditor.Properties.ACTION)
 
 private fun addOrUpdateAction(addActionDialog: AddActionDialog, componentProducer: () -> NlComponent) {
   if (addActionDialog.showAndGet()) {

@@ -25,8 +25,7 @@ import java.util.List;
  */
 @DefinesXml
 public interface NavDestinationElement extends AndroidDomElement {
-  // TODO: put in graph-specific subclass?
-  List<NavDestinationElement> getDestinations();
-
   List<NavActionElement> getActions();
+
+  List<DeeplinkElement> getDeeplinks();
 }
