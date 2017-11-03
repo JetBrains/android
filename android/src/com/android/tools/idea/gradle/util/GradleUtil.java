@@ -382,13 +382,7 @@ public final class GradleUtil {
     }
 
     try {
-      GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
-      if (settings != null) {
-        // By setting the Gradle daemon timeout to -1, we don't allow IDEA to set it to 1 minute. Gradle daemons need to be reused as
-        // much as possible. The default timeout is 3 hours.
-        settings.setRemoteProcessIdleTtlInMs(GRADLE_DAEMON_TIMEOUT_MS);
-      }
-      return settings;
+      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
     }
     catch (IllegalArgumentException e) {
       LOG.info("Failed to obtain Gradle execution settings", e);
