@@ -18,16 +18,9 @@ package org.jetbrains.android.dom.navigation;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 
-import java.util.List;
-
 /**
- * An element representing an destination (fragment, navigation, ...) tag in a navigation graph.
+ * An element representing a argument tag in a navigation graph.
  */
 @DefinesXml
-public interface NavDestinationElement extends AndroidDomElement {
-  List<NavActionElement> getActions();
-
-  List<DeeplinkElement> getDeeplinks();
-
-  List<ArgumentElement> getArguments();
+public interface ArgumentElement extends AndroidDomElement {
 }

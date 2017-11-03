@@ -33,6 +33,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import static com.android.SdkConstants.TAG_DEEPLINK;
+
 /**
  * Tests for {@link NavigationSchema}.
  */
@@ -69,11 +71,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testSubtags() {
     NavigationSchema schema = NavigationSchema.getOrCreateSchema(myFacet);
+
+    // Destination types
     Multimap<Class<? extends AndroidDomElement>, String> subtags;
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
-    expected.put(NavActionElement.class, "action");
-    expected.put(DeeplinkElement.class, "deeplink");
+    expected.put(NavActionElement.class, NavigationSchema.TAG_ACTION);
+    expected.put(DeeplinkElement.class, TAG_DEEPLINK);
+    expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
     for (String leaf : LEAF_DESTINATIONS) {
       subtags = schema.getDestinationSubtags(leaf);
       assertEquals(leaf, expected, subtags);
@@ -88,6 +93,13 @@ public class NavigationSchemaTest extends AndroidTestCase {
     for (String empty : EMPTIES) {
       assertTrue(schema.getDestinationSubtags(empty).isEmpty());
     }
+
+    // Non-destination types
+    expected.clear();
+    assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ARGUMENT));
+    assertEquals(expected, schema.getDestinationSubtags(TAG_DEEPLINK));
+    expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
+    assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ACTION));
   }
 
   public void testDestinationClassByTag() {

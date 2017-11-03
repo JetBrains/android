@@ -17,10 +17,7 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -197,6 +194,9 @@ public class NavigationSchema implements Disposable {
   // TODO: it seems like the framework should do this somehow
   @NotNull
   public Multimap<Class<? extends AndroidDomElement>, String> getDestinationSubtags(@NotNull String tagName) {
+    if (tagName.equals(TAG_ACTION)) {
+      return ImmutableSetMultimap.of(ArgumentElement.class, TAG_ARGUMENT);
+    }
     DestinationType type = getDestinationType(tagName);
     if (type == null) {
       return ImmutableListMultimap.of();
@@ -210,7 +210,7 @@ public class NavigationSchema implements Disposable {
         result.put(NavActionElement.class, TAG_ACTION);
       }
       result.put(DeeplinkElement.class, TAG_DEEPLINK);
-      // TODO: other tags
+      result.put(ArgumentElement.class, TAG_ARGUMENT);
     }
     return result;
   }
