@@ -446,7 +446,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
     long beforeParsingTime = System.currentTimeMillis();
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceId, traceBytes, myProfilerModel.getActiveConfig().getProfilerType());
+    CompletableFuture<CpuCapture> capture =
+      myCaptureParser.parse(traceId, getStudioProfilers().getProcessId(), traceBytes, myProfilerModel.getActiveConfig().getProfilerType());
     if (capture == null) {
       // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
       setCaptureState(CaptureState.IDLE);
@@ -756,7 +757,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // TODO: investigate if this call can take too much time as it's blocking.
       CpuProfiler.GetTraceResponse trace = cpuService.getTrace(request);
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
-        capture = myCaptureParser.parse(traceId, trace.getData(), trace.getProfilerType());
+        capture = myCaptureParser.parse(traceId, getStudioProfilers().getProcessId(), trace.getData(), trace.getProfilerType());
       }
     }
     return capture;
