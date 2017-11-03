@@ -124,10 +124,4 @@ public class NdkModuleNode extends ProjectViewModuleNode {
     }
     return String.format("%1$s (Native-Android-Gradle)", getValue().getName());
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
-    return super.equals(o);
-  }
 }

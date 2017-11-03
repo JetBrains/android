@@ -179,10 +179,4 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s (Android)", getModule().getName());
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
-    return super.equals(o);
-  }
 }

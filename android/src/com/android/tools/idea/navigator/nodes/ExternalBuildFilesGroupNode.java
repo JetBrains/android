@@ -106,10 +106,4 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return "External Build Files";
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
-    return super.equals(o);
-  }
 }
