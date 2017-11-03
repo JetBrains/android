@@ -83,16 +83,16 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -210,11 +210,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       });
     selectProjectMakeAction();
 
-    waitForBuildToFinish(COMPILE_JAVA, wait);
+    waitForBuildToFinish(ASSEMBLE, wait);
 
     Wait.seconds(10)
       .expecting("Listeners to be notified of build-finished event")
-      .until(()->{return resultRef.get() != null;});
+      .until(()-> resultRef.get() != null);
     return resultRef.get();
   }
 
