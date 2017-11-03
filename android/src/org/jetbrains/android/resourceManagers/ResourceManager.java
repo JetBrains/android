@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -316,13 +317,14 @@ public abstract class ResourceManager {
         for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
           Set<ResourceEntry> resourcesInFile = file2resourceSet.get(file);
 
-        if (resourcesInFile == null) {
-          resourcesInFile = new HashSet<>();
-          file2resourceSet.put(file, resourcesInFile);
+          if (resourcesInFile == null) {
+            resourcesInFile = new HashSet<>();
+            file2resourceSet.put(file, resourcesInFile);
+          }
+          resourcesInFile.add(info.getResourceEntry());
         }
-        resourcesInFile.add(info.getResourceEntry());
+        return true;
       }
-      return true;
     }, scope);
 
     List<ResourceEntry> result = new ArrayList<>();
@@ -538,6 +540,7 @@ public abstract class ResourceManager {
           }
         }
         return true;
+      }
       },
       scope);
     return result;

@@ -134,6 +134,6 @@ public class BufferingFileWrapper implements IAbstractFile {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this.getClass()).add("file", myFile).toString();
+    return Objects.toStringHelper(this.getClass().getName()).add("file", myFile).toString();
   }
 }
