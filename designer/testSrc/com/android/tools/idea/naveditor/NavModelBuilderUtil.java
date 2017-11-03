@@ -170,7 +170,7 @@ public class NavModelBuilderUtil {
 
   public static class DeepLinkComponentDescriptor extends ComponentDescriptor {
     public DeepLinkComponentDescriptor() {
-      super(NavigationSchema.TAG_DEEPLINK);
+      super(SdkConstants.TAG_DEEPLINK);
     }
 
     @NotNull
