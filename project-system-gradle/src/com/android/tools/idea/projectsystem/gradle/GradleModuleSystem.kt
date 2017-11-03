@@ -42,11 +42,11 @@ class GradleModuleSystem(val module: Module) : AndroidModuleSystem {
           DependencyManagementException.ErrorCodes.MALFORMED_PROJECT)
       GoogleMavenVersionLookup.findVersion(coordinate, null, allowPreview = false)
           ?: throw DependencyManagementException("Could not find an $coordinate artifact for addition!",
-          DependencyManagementException.ErrorCodes.UNSUPPORTED)
+          DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
     }
     else {
       version.mavenVersion ?: throw DependencyManagementException("Adding dependencies without specified gradle version is not supported" +
-          " gradle projects.", DependencyManagementException.ErrorCodes.UNSUPPORTED)
+          " gradle projects.", DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
     }
 
     val gradleDependencyManager = GradleDependencyManager.getInstance(module.project)
