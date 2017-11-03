@@ -179,6 +179,7 @@ public class LegendComponent extends AnimatedComponent {
       myInstructions.add(new TextInstruction(getFont(), name));
       if (StringUtil.isNotEmpty(value)) {
         TextInstruction valueInstruction = new TextInstruction(getFont(), value);
+        myInstructions.add(valueInstruction);
         if (myOrientation != Orientation.VERTICAL) {
           // In order to prevent one legend's value changing causing the other legends from jumping
           // around, we remember the text's largest size and never shrink.
@@ -191,7 +192,6 @@ public class LegendComponent extends AnimatedComponent {
             myMinWidths.put(legend, valueInstruction.getSize().width);
           }
         }
-        myInstructions.add(valueInstruction);
       }
     }
 
