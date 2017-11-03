@@ -96,11 +96,6 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
     return ANDROID_TESTS;
   }
 
-  @Override
-  public boolean equals(Object object) {
-    return object instanceof AndroidTestsNode && super.equals(object);
-  }
-
   @NotNull
   @Override
   public PsiDirectory[] getDirectories() {

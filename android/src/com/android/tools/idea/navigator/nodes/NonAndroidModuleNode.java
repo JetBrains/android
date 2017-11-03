@@ -87,10 +87,4 @@ public class NonAndroidModuleNode extends ProjectViewModuleNode {
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s (non-Android)", getValue().getName());
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
-    return super.equals(o);
-  }
 }
