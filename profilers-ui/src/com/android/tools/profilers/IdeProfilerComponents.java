@@ -17,10 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;

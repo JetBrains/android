@@ -102,14 +102,15 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @NotNull
   @Override
   public StackTraceView createStackView(@NotNull StackTraceModel model) {
-    return new IntelliJStackTraceView(myProject, model);
+    IntelliJStackTraceView stackTraceView = new IntelliJStackTraceView(myProject, model);
+    stackTraceView.installNavigationContextMenu(this);
+    return stackTraceView;
   }
 
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
                                            @NotNull CodeNavigator navigator,
                                            @NotNull Supplier<CodeLocation> codeLocationSupplier) {
-
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
     popupGroup.add(new NavigateToCodeAction(codeLocationSupplier, navigator));
   }
