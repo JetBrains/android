@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -18,6 +19,8 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
+  private static final String API_LEVELS_URL = "https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#ApiLevels";
+
   public AndroidManifestDomTest() {
     super("dom/manifest");
   }
@@ -103,7 +106,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testTagNameCompletion1() throws Throwable {
-    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration", "uses-feature");
+    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration",
+                             "uses-feature", "uses-split");
   }
 
   public void testSoftTagsAndAttrs() throws Throwable {
@@ -178,6 +182,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestCompletionVariants(getTestName(false) + ".xml", ".MyBackupAgent");
   }
 
+  public void testUsesSplits() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testUsesPermissionCompletion() throws Throwable {
     doTestCompletion(false);
   }
@@ -220,6 +228,13 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
+  public void testUsesPermissionCompletion6() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
   public void testUsesPermissionDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -231,6 +246,12 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   public void testUsesPermissionDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testUsesPermissionDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
+    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    doTestDoc("Removed in <a href=\"" + API_LEVELS_URL + "\">API level 24</a>");
   }
 
   public void testIntentActionDoc() throws Throwable {
@@ -253,7 +274,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testIntentActionCompletion1() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CALL", "android.intent.action.CALL_BUTTON");
+    doTestCompletionVariants(getTestName(false) + ".xml",
+                             "android.intent.action.CALL",
+                             "android.intent.action.CALL_BUTTON",
+                             "android.intent.action.CARRIER_SETUP");
   }
 
   public void testIntentActionCompletion2() throws Throwable {
@@ -480,8 +504,14 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
 
-    ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk, getTestRootDisposable()));
-    doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                             "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25");
+    ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
+    try {
+      doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                               "26");
+    }
+    finally {
+      ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
+    }
   }
 }

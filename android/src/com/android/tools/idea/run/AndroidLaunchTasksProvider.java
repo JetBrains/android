@@ -85,8 +85,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.addAll(getDeployTasks(device));
 
       packageName = myApplicationIdProvider.getPackageName();
-      if (myInstantRunBuildAnalyzer != null) {
-        launchTasks.add(new LaunchInstantRunServiceTask(packageName));
+
+      // launch the contributors before launching the application in case
+      // the contributors need to start listening on logcat for the application launch itself
+      for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+        LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName);
+        if (task != null) {
+          launchTasks.add(task);
+        }
       }
 
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
@@ -114,12 +120,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
     }
 
-    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-      if (taskContributor.isApplicable(myFacet.getModule())) {
-        launchTasks.add(taskContributor.getTask(packageName));
-      }
-    }
-
     return launchTasks;
   }
 
@@ -135,7 +135,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      return ImmutableList.of(new DeployIapkTask(myApkProvider.getApks(device)));
+      return ImmutableList.of(new DeployInstantAppTask(myApkProvider.getApks(device)));
     }
 
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");

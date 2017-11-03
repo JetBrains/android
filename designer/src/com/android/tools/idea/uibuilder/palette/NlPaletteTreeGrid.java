@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
-import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.adtui.workbench.StartFilteringListener;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -41,9 +49,11 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.event.*;
+import java.io.IOException;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
@@ -52,8 +62,11 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlPaletteTreeGrid extends JPanel implements Disposable {
+  static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
+  static final int DEFAULT_CATEGORY_WIDTH = 100;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 20;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 40;
+
   private final Project myProject;
   private final DependencyManager myDependencyManager;
   private final Runnable myCloseAutoHideCallback;
@@ -61,53 +74,78 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final TreeGrid<Palette.Item> myTree;
   private final MyFilter myFilter;
   private final IconPreviewFactory myIconPreviewFactory;
+  private final ComponentsSplitter mySplitter;
   private PaletteMode myMode;
   private SelectionListener myListener;
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private Palette myPalette;
+  private StartFilteringListener myStartFilteringCallback;
 
   public NlPaletteTreeGrid(@NotNull Project project,
+                           @NotNull PaletteMode initialMode,
                            @NotNull DependencyManager dependencyManager,
                            @NotNull Runnable closeAutoHideCallback,
-                           @Nullable DesignSurface designSurface,
+                           @Nullable NlDesignSurface designSurface,
                            @NotNull IconPreviewFactory iconFactory) {
     myProject = project;
     myDependencyManager = dependencyManager;
     myCloseAutoHideCallback = closeAutoHideCallback;
     mySurface = designSurface;
-    myMode = PaletteMode.ICON_AND_NAME;
+    myMode = initialMode;
     myIconPreviewFactory = iconFactory;
-    myTree = new TreeGrid<>();
+    myTree = createItemTreeGrid(project);
+    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
+    myTree.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(@NotNull KeyEvent event) {
+        handleKeyEvent(event);
+      }
+    });
+
     //noinspection unchecked
     myCategoryList = new JBList();
     myCategoryList.setBackground(UIUtil.getPanelBackground());
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
     myCategoryList.addListSelectionListener(this::categorySelectionChanged);
     myCategoryList.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
-    myFilter = new MyFilter(myCategoryList);
+    myCategoryList.setCellRenderer(new MyCategoryCellRenderer());
+    myFilter = new MyFilter();
 
     JScrollPane categoryPane = ScrollPaneFactory.createScrollPane(myCategoryList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     categoryPane.setBorder(BorderFactory.createEmptyBorder());
 
     JScrollPane paletteScrollPane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    paletteScrollPane.setFocusable(false);
     paletteScrollPane.setBorder(BorderFactory.createEmptyBorder());
     paletteScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     paletteScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
 
     // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
-    ComponentsSplitter palette = new ComponentsSplitter(false, true);
-    palette.setFirstComponent(categoryPane);
-    palette.setInnerComponent(paletteScrollPane);
-    palette.setHonorComponentsMinimumSize(true);
-    palette.setFirstSize(JBUI.scale(100));
-    setMinimumWidth(categoryPane, 20);
-    setMinimumWidth(paletteScrollPane, 20);
-    Disposer.register(this, palette);
+    mySplitter = new ComponentsSplitter(false, true);
+    mySplitter.setFirstComponent(categoryPane);
+    mySplitter.setInnerComponent(paletteScrollPane);
+    mySplitter.setHonorComponentsMinimumSize(true);
+    mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
+    mySplitter.setFocusCycleRoot(false);
+    myCategoryList.addComponentListener(createCategoryWidthUpdater());
+    setMinimumWidth(categoryPane, JBUI.scale(20));
+    setMinimumWidth(paletteScrollPane, JBUI.scale(20));
+    Disposer.register(this, mySplitter);
 
     setLayout(new BorderLayout());
-    add(palette, BorderLayout.CENTER);
-    setFocusCycleRoot(true);
-    setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
+    add(mySplitter, BorderLayout.CENTER);
+    setFocusTraversalPolicyProvider(true);
+  }
+
+  private static TreeGrid<Palette.Item> createItemTreeGrid(@NotNull Project project) {
+    TreeGrid<Palette.Item> grid = new TreeGrid<>();
+    grid.setName("itemTreeGrid");
+    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+      Palette.Item item = grid.getSelectedElement();
+      return item != null ? item.getTagName() : null;
+    });
+    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, grid);
+    return grid;
   }
 
   @Override
@@ -145,10 +183,17 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setCellRenderer(new MyCellRenderer(myDependencyManager, mode));
   }
 
-  public void populateUiModel(@NotNull Palette palette, @NotNull DesignSurface designSurface) {
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myStartFilteringCallback = listener;
+  }
+
+  public void populateUiModel(@NotNull Palette palette, @NotNull NlDesignSurface designSurface) {
     mySurface = designSurface;
     myPalette = palette;
     myCategoryList.setModel(new TreeCategoryProvider(palette));
+    if (myCategoryList.getSelectedValue() == null) {
+      myCategoryList.setSelectedValue(ALL, true);
+    }
     updateTreeModel();
   }
 
@@ -157,10 +202,8 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
                                      ? new TreeProvider(myProject, myPalette)
                                      : new SingleListTreeProvider(myProject, myPalette);
     myTree.setModel(provider);
-    myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
-    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
-    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, this::getSelectedItem, myIconPreviewFactory));
+    myTree.setTransferHandler(new MyItemTransferHandler(mySurface, myDependencyManager, this::getSelectedItem, myIconPreviewFactory));
     setMode(myMode);
   }
 
@@ -170,12 +213,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     if (pattern.isEmpty()) {
       if (!oldPattern.isEmpty()) {
         updateTreeModel();
+        myTree.setVisibleSection(myCategoryList.getSelectedValue());
       }
       myTree.setFilter(null);
     }
     else {
       if (oldPattern.isEmpty()) {
         updateTreeModel();
+        myTree.setVisibleSection(ALL.getName());
       }
       myTree.setFilter(myFilter);
       myTree.selectIfUnique();
@@ -187,26 +232,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     return myFilter.getPattern();
   }
 
-  private void categorySelectionChanged(@NotNull ListSelectionEvent event) {
-    myTree.setVisibleSection(myCategoryList.getSelectedValue());
-    if (!myFilter.getPattern().isEmpty()) {
-      setFilter(myFilter.getPattern());
-    }
-  }
-
-  @NotNull
-  protected MouseListener createMouseListenerForLoadMissingDependency() {
-    return new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent event) {
-        Palette.Item item = getSelectedItem();
-        if (item != null && myDependencyManager.needsLibraryLoad(item)) {
-          if (!myDependencyManager.ensureLibraryIsIncluded(item)) {
-            clearSelection();
-          }
-        }
+  private void categorySelectionChanged(@Nullable @SuppressWarnings("unused") ListSelectionEvent event) {
+    if (myFilter.getPattern().isEmpty()) {
+      myTree.setVisibleSection(myCategoryList.getSelectedValue());
+      Palette.Item selected = myTree.getSelectedVisibleElement();
+      if (selected == null) {
+        myTree.getFocusRecipient();  // Will select the first item in a visible list
       }
-    };
+    }
   }
 
   public void setSelectionListener(@NotNull SelectionListener listener) {
@@ -219,13 +252,35 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     }
   }
 
+  public void handleKeyEvent(@NotNull KeyEvent event) {
+    if (myStartFilteringCallback != null) {
+      myStartFilteringCallback.startFiltering(event.getKeyChar());
+    }
+  }
+
   @Nullable
   public Palette.Item getSelectedItem() {
     return myTree.getSelectedElement();
   }
 
-  private void clearSelection() {
-    myTree.setSelectedElement(null);
+  @NotNull
+  private ComponentListener createCategoryWidthUpdater() {
+    return new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        PropertiesComponent.getInstance()
+          .setValue(PALETTE_CATEGORY_WIDTH, String.valueOf(AdtUiUtils.unscale(mySplitter.getFirstSize())));
+      }
+    };
+  }
+
+  private static int getInitialCategoryWidth() {
+    try {
+      return Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH, String.valueOf(DEFAULT_CATEGORY_WIDTH)));
+    }
+    catch (NumberFormatException unused) {
+      return DEFAULT_CATEGORY_WIDTH;
+    }
   }
 
   @TestOnly
@@ -240,6 +295,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     return myTree;
   }
 
+  @TestOnly
+  @NotNull
+  public ComponentsSplitter getSplitter() {
+    return mySplitter;
+  }
+
   @Override
   public void dispose() {
   }
@@ -247,9 +308,10 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private class MyItemTransferHandler extends ItemTransferHandler {
 
     public MyItemTransferHandler(@NotNull DesignSurface designSurface,
+                                 @NotNull DependencyManager dependencyManager,
                                  @NotNull Supplier<Palette.Item> itemSupplier,
                                  @NotNull IconPreviewFactory iconPreviewFactory) {
-      super(designSurface, itemSupplier, iconPreviewFactory);
+      super(designSurface, dependencyManager, itemSupplier, iconPreviewFactory);
     }
 
     @Override
@@ -257,6 +319,53 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
       Transferable transferable = super.createTransferable(component);
       myCloseAutoHideCallback.run();
       return transferable;
+    }
+
+    @Override
+    protected void exportDone(@NotNull JComponent source, @Nullable Transferable data, int action) {
+      if (action != DnDConstants.ACTION_NONE && data != null) {
+        DnDTransferComponent component = getDndComponent(data);
+        if (component != null) {
+          NlUsageTrackerManager.getInstance(mySurface)
+            .logDropFromPalette(component.getTag(), component.getRepresentation(), myMode, getGroupName(), myTree.getFilterMatchCount());
+        }
+      }
+    }
+
+    @NotNull
+    private String getGroupName() {
+      Palette.Group group = myCategoryList.getSelectedValue();
+      return group != null ? group.getName() : "";
+    }
+
+    @Nullable
+    private DnDTransferComponent getDndComponent(@NotNull Transferable data) {
+      try {
+        DnDTransferItem item = (DnDTransferItem)data.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        if (item != null) {
+          List<DnDTransferComponent> components = item.getComponents();
+          if (components.size() == 1) {
+            return components.get(0);
+          }
+        }
+      }
+      catch (UnsupportedFlavorException | IOException ex) {
+        Logger.getInstance(NlPaletteTreeGrid.class).warn("Could not un-serialize a transferable", ex);
+      }
+      return null;
+    }
+  }
+
+  private static class MyCategoryCellRenderer extends ColoredListCellRenderer<Palette.Group> {
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, @NotNull Palette.Group group, int index, boolean selected, boolean hasFocus) {
+      if (selected) {
+        // Use the tree colors.
+        // This makes the designer tools look consistent with the component tree.
+        setBackground(UIUtil.getTreeSelectionBackground(hasFocus));
+        mySelectionForeground = UIUtil.getTreeForeground(true, hasFocus);
+      }
+      append(group.getName());
     }
   }
 
@@ -274,6 +383,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, @NotNull Palette.Item item, int index, boolean selected, boolean hasFocus) {
+      if (selected) {
+        // Use the tree colors.
+        // This makes the designer tools look consistent with the component tree.
+        setBackground(UIUtil.getTreeSelectionBackground(hasFocus));
+        mySelectionForeground = UIUtil.getTreeForeground(true, hasFocus);
+      }
       switch (myMode) {
         case ICON_AND_NAME:
           setIcon(myDependencyManager.createItemIcon(item, list));
@@ -282,76 +397,22 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
         case LARGE_ICONS:
           setIcon(myDependencyManager.createLargeItemIcon(item, list));
+          setToolTipText(item.getTitle());
           break;
 
         case SMALL_ICONS:
           setIcon(myDependencyManager.createItemIcon(item, list));
+          setToolTipText(item.getTitle());
           break;
       }
-    }
-  }
-
-  private static class MyFocusTraversalPolicy extends FocusTraversalPolicy {
-    private final JList<Palette.Group> myCategoryList;
-    private final TreeGrid<Palette.Item> myTree;
-
-    private MyFocusTraversalPolicy(@NotNull JList<Palette.Group> categoryList, @NotNull TreeGrid<Palette.Item> tree) {
-      myCategoryList = categoryList;
-      myTree = tree;
-    }
-
-    @Override
-    public Component getComponentAfter(Container container, Component component) {
-      return getOtherComponent(component);
-    }
-
-    @Override
-    public Component getComponentBefore(Container container, Component component) {
-      return getOtherComponent(component);
-    }
-
-    @Override
-    public Component getFirstComponent(Container container) {
-      return getTreeComponent();
-    }
-
-    @Override
-    public Component getLastComponent(Container container) {
-      return myCategoryList;
-    }
-
-    @Override
-    public Component getDefaultComponent(Container container) {
-      return getTreeComponent();
-    }
-
-    @NotNull
-    private Component getOtherComponent(Component component) {
-      if (component != null && SwingUtilities.isDescendingFrom(component, myTree)) {
-        return myCategoryList;
-      }
-      else {
-        return getTreeComponent();
-      }
-    }
-
-    @NotNull
-    private Component getTreeComponent() {
-      Component component = myTree.getFocusRecipient();
-      if (component != null) {
-        return component;
-      }
-      return myTree;
     }
   }
 
   private static class MyFilter implements Condition<Palette.Item> {
     private final SpeedSearchComparator myComparator;
-    private final JList<Palette.Group> myCategoryList;
     private String myPattern;
 
-    public MyFilter(@NotNull JList<Palette.Group> categoryList) {
-      myCategoryList = categoryList;
+    public MyFilter() {
       myComparator = new SpeedSearchComparator(false);
       myPattern = "";
     }
@@ -367,10 +428,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
     @Override
     public boolean value(@NotNull Palette.Item item) {
-      Palette.Group group = myCategoryList.getSelectedValue();
-      if (group != null && group != ALL && group != item.getParent()) {
-        return false;
-      }
       return myComparator.matchingFragments(myPattern, item.getTitle()) != null;
     }
   }

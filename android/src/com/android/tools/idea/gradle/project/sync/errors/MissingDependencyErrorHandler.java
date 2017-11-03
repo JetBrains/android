@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
@@ -44,7 +44,10 @@ public class MissingDependencyErrorHandler extends SyncErrorHandler {
     //noinspection ThrowableResultOfMethodCallIgnored
     Throwable rootCause = getRootCause(error);
     String text = rootCause.getMessage();
-    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
+    List<String> message = getMessageLines(text);
+    if (message.isEmpty()) {
+      return false;
+    }
     String firstLine = message.get(0);
 
     Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
@@ -102,6 +105,6 @@ public class MissingDependencyErrorHandler extends SyncErrorHandler {
       hyperlinks.add(0, disableOfflineMode);
     }
     hyperlinks.add(new SearchInBuildFilesHyperlink(dependency));
-    SyncMessages.getInstance(project).updateNotification(notification, msg, hyperlinks);
+    GradleSyncMessages.getInstance(project).updateNotification(notification, msg, hyperlinks);
   }
 }

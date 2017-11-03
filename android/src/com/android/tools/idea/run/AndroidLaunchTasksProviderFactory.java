@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.ddmlib.IDevice;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -26,6 +27,10 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFactory {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -67,7 +72,8 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     InstantRunBuildAnalyzer analyzer = null;
     InstantRunBuildInfo instantRunBuildInfo = myInstantRunContext != null ? myInstantRunContext.getInstantRunBuildInfo() : null;
     if (instantRunBuildInfo != null) {
-      analyzer = new InstantRunBuildAnalyzer(project, myInstantRunContext, myPreviousSessionProcessHandler);
+      analyzer = new InstantRunBuildAnalyzer(project, myInstantRunContext, myPreviousSessionProcessHandler, getApks(),
+                                             InstantRunSettings.isRestartActivity());
 
       if (InstantRunSettings.isRecorderEnabled()) {
         if (!myDeviceFutures.getDevices().isEmpty()) { // Instant Run is guaranteed to be for exactly 1 device
@@ -78,9 +84,23 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     }
 
     if (analyzer != null && analyzer.canReuseProcessHandler()) {
-      return new UpdateSessionTasksProvider(analyzer);
+      return new UpdateSessionTasksProvider(analyzer, myLaunchOptions);
     }
 
     return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, analyzer, myApplicationIdProvider, myApkProvider, myLaunchOptions);
+  }
+
+  @NotNull
+  private Collection<ApkInfo> getApks() {
+    try {
+      List<IDevice> devices = myDeviceFutures.getIfReady();
+      if (devices != null && !devices.isEmpty()) {
+        return myApkProvider.getApks(devices.get(0));
+      }
+    }
+    catch (ApkProvisionException e) {
+      InstantRunManager.LOG.warn("Unable to get APKs from APK Provider: ", e);
+    }
+    return Collections.EMPTY_LIST;
   }
 }

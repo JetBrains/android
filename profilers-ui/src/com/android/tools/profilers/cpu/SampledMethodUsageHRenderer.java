@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
+import com.android.tools.profilers.ProfilerColors;
+import com.intellij.openapi.util.text.StringUtil;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -24,41 +26,43 @@ import java.util.regex.Pattern;
 // TODO: cleanup/refactor/document/rename. Eventually delete the one in adt-ui
 public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
 
+  private static final int LEFT_MARGIN_PX = 3;
+
   protected boolean isMethodPlatform(MethodModel method) {
-    return method.getNameSpace().startsWith("android.");
+    return method.getClassName().startsWith("android.");
   }
 
   protected boolean isMethodVendor(MethodModel method) {
-    return method.getNameSpace().startsWith("java.") ||
-           method.getNameSpace().startsWith("sun.") ||
-           method.getNameSpace().startsWith("javax.") ||
-           method.getNameSpace().startsWith("apple.") ||
-           method.getNameSpace().startsWith("com.apple.");
+    return method.getClassName().startsWith("java.") ||
+           method.getClassName().startsWith("sun.") ||
+           method.getClassName().startsWith("javax.") ||
+           method.getClassName().startsWith("apple.") ||
+           method.getClassName().startsWith("com.apple.");
   }
 
   @Override
   protected Color getFillColor(MethodModel m) {
     if (isMethodVendor(m)) {
-      return fillVendorColor;
+      return ProfilerColors.CPU_TREECHART_VENDOR;
     }
     else if (isMethodPlatform(m)) {
-      return fillPlatformColor;
+      return ProfilerColors.CPU_TREECHART_PLATFORM;
     }
     else {
-      return fillAppColor;
+      return ProfilerColors.CPU_TREECHART_APP;
     }
   }
 
   @Override
   protected Color getBordColor(MethodModel m) {
     if (isMethodVendor(m)) {
-      return bordVendorColor;
+      return ProfilerColors.CPU_TREECHART_VENDOR_BORDER;
     }
     else if (isMethodPlatform(m)) {
-      return bordPlatformColor;
+      return ProfilerColors.CPU_TREECHART_PLATFORM_BORDER;
     }
     else {
-      return bordAppColor;
+      return ProfilerColors.CPU_TREECHART_APP_BORDER;
     }
   }
 
@@ -69,26 +73,43 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
    */
   @Override
   protected String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
-    // Try: java.lang.String.toString
-    String fullyQualified = node.getNameSpace() + "." + node.getName();
-    if (fontMetrics.stringWidth(fullyQualified) < rect.getWidth()) {
+    double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
+    // Try: java.lang.String.toString. Add a "." separator between class name and method name.
+    // Native methods (e.g. clock_gettime) don't have a class name and, therefore, we don't add a "." before them.
+    String separator = StringUtil.isEmpty(node.getClassName()) ? "" : ".";
+    String fullyQualified = node.getClassName() + separator + node.getName();
+    if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
-    String abbrevPackage = getShortPackageName(node.getNameSpace()) + "." + node.getName();
-    if (fontMetrics.stringWidth(abbrevPackage) < rect.getWidth()) {
+    String shortPackage =  getShortPackageName(node.getClassName());
+    separator = StringUtil.isEmpty(shortPackage) ? "" : ".";
+    String abbrevPackage = shortPackage + separator + node.getName();
+    if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
       return abbrevPackage;
     }
 
+    String name = node.getName();
     // Try: toString
-    if (fontMetrics.stringWidth(node.getName()) < rect.getWidth()) {
-      return node.getName();
+    if (fontMetrics.stringWidth(name) < maxWidth) {
+      return name;
+    }
+
+    // Try: t...
+    if (!name.isEmpty() && fontMetrics.stringWidth(name.charAt(0) + "...") < maxWidth) {
+      return name.charAt(0) + "...";
     }
 
     return "";
   }
 
+  @Override
+  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
+    float textPositionX = LEFT_MARGIN_PX + rect.x;
+    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
+    g.drawString(text, textPositionX, textPositionY);
+  }
 
   protected String getShortPackageName(String nameSpace) {
     if (nameSpace == null || nameSpace.equals("")) {

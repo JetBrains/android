@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

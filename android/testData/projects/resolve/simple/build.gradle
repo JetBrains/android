@@ -1,9 +1,6 @@
 buildscript {
   repositories {
     jcenter()
-    if (System.getenv("MAVEN_URL") != null) {
-      maven {url System.getenv("MAVEN_URL")}
-    }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:0.14.4'
@@ -20,7 +17,7 @@ android {
   buildToolsVersion "19.1.0"
 
   defaultConfig {
-    minSdkVersion 8
+    minSdkVersion 9
   }
 
   buildTypes {
@@ -30,6 +27,7 @@ android {
     }
   }
 
+  flavorDimensions 'foo'
   productFlavors {
     flavor1 {
       applicationId "com.example.flavor1"

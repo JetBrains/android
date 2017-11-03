@@ -36,7 +36,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
 
   @Nullable private final String myProject;
   @Nullable private final String myProjectVariant;
-
+  private MavenCoordinatesStub myResolvedCoordinates;
 
   public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile) {
     this(bundle, jarFile, null);
@@ -51,6 +51,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
     myJarFile = jarFile;
     myProject = project;
     myProjectVariant = projectVariant;
+    myResolvedCoordinates = new MavenCoordinatesStub("group", bundle.getName(), "1.0", "jar");
   }
 
   @Override
@@ -91,7 +92,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public File getManifest() {
-    throw new UnsupportedOperationException();
+    return new File("manifest");
   }
 
   @Override
@@ -125,55 +126,55 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public File getAssetsFolder() {
-    throw new UnsupportedOperationException();
+    return new File("assets");
   }
 
   @Override
   @NotNull
   public File getJniFolder() {
-    throw new UnsupportedOperationException();
+    return new File("jni");
   }
 
   @Override
   @NotNull
   public File getAidlFolder() {
-    throw new UnsupportedOperationException();
+    return new File("aidl");
   }
 
   @Override
   @NotNull
   public File getRenderscriptFolder() {
-    throw new UnsupportedOperationException();
+    return new File("renderscript");
   }
 
   @Override
   @NotNull
   public File getProguardRules() {
-    throw new UnsupportedOperationException();
+    return new File("proguardRules");
   }
 
   @Override
   @NotNull
   public File getLintJar() {
-    throw new UnsupportedOperationException();
+    return new File("lint.jar");
   }
 
   @Override
   @NotNull
   public File getExternalAnnotations() {
-    throw new UnsupportedOperationException();
+    return new File("externalAnnotations");
   }
 
   @Override
   @NotNull
   public File getPublicResources() {
-    throw new UnsupportedOperationException();
+    return new File("publicResources");
   }
 
   @Override
   @NotNull
   public File getSymbolFile() {
-    throw new UnsupportedOperationException();
+    return new File("symbolFile");
   }
 
   @Override
@@ -189,13 +190,13 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @Nullable
   public MavenCoordinates getRequestedCoordinates() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
-  @Nullable
+  @NotNull
   public MavenCoordinates getResolvedCoordinates() {
-    return null;
+    return myResolvedCoordinates;
   }
 
   @Override

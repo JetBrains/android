@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public class MockupLayer extends Layer {
     if (nlModel != null && nlModel != myNlModel) {
       nlModel.addListener(new ModelListener() {
         @Override
-        public void modelChanged(@NotNull NlModel model) {
+        public void modelDerivedDataChanged(@NotNull NlModel model) {
           myMockups = Mockup.createAll(myNlModel);
         }
 
@@ -69,7 +70,7 @@ public class MockupLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D g) {
-    if (!myScreenView.getSurface().isMockupVisible() || myMockups.isEmpty()) {
+    if (!((NlDesignSurface)myScreenView.getSurface()).isMockupVisible() || myMockups.isEmpty()) {
       return;
     }
     final Composite composite = g.getComposite();

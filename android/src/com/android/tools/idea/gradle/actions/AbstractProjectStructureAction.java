@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT;
 
@@ -91,7 +91,7 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
   }
 
   private static boolean isGradleModule(@Nullable Module module) {
-    return module != null && isBuildWithGradle(module);
+    return module != null && GradleFacet.isAppliedTo(module);
   }
 
   protected abstract void doPerform(@NotNull Module module,

@@ -126,7 +126,7 @@ public class HaxmAlert extends JPanel {
       if (warningTextBuilder.length() > 0) {
         warningTextBuilder.append("<br>");
       }
-      warningTextBuilder.append("Consider using an x86 system image on a x86 host for better emulation performance.<br>");
+      warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
     }
 
     if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {

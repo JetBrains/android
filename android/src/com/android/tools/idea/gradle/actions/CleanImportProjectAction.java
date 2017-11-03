@@ -129,7 +129,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
           if (!delete(file)) {
             LOG.info(String.format("Failed to delete file '%1$s'", path));
           }
-          indicator.setFraction(i / fileCount);
+          indicator.setFraction(i / (double)fileCount);
         }
         indicator.setFraction(1d);
       }

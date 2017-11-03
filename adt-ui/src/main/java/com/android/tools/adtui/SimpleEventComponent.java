@@ -16,15 +16,15 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.intellij.util.containers.ImmutableList;
+import com.android.tools.adtui.model.event.EventModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,70 +33,75 @@ import java.util.Map;
 public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
   @NotNull
-  private final RangedSeries<EventAction<EventAction.Action, E>> mData;
+  private final EventModel<E> myModel;
 
   @NotNull
-  private final Map<E, SimpleEventRenderer> mRenderers;
+  private final Map<E, SimpleEventRenderer<E>> mRenderers;
 
   @NotNull
-  private final ArrayList<EventRenderData> mIconsToDraw;
+  private final ArrayList<EventRenderData<E>> mIconsToDraw;
 
+  private boolean myRender;
   /**
    * Component that renders EventActions as a series of icons.
    */
-  public SimpleEventComponent(
-    @NotNull RangedSeries<EventAction<EventAction.Action, E>> data,
-    @NotNull Map<E, SimpleEventRenderer> renderers) {
-    mData = data;
+  public SimpleEventComponent(@NotNull EventModel<E> model, @NotNull Map<E, SimpleEventRenderer<E>> renderers) {
+    myModel = model;
     mRenderers = renderers;
     mIconsToDraw = new ArrayList<>();
+    myRender = true;
+    myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
   }
 
-  @Override
-  protected void updateData() {
+  private void modelChanged() {
+    myRender = true;
+    opaqueRepaint();
+  }
+
+  protected void render() {
     //TODO Pull logic of combining events out of component and into EventHandler
-    double max = mData.getXRange().getMax();
+    double max = myModel.getRangedSeries().getXRange().getMax();
     mIconsToDraw.clear();
-    ImmutableList<SeriesData<EventAction<EventAction.Action, E>>> series = mData.getSeries();
+    List<SeriesData<EventAction<E>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<EventAction.Action, E>> seriesData = series.get(i);
-      EventAction<EventAction.Action, ? extends Enum> data = seriesData.value;
+      SeriesData<EventAction<E>> seriesData = series.get(i);
+      EventAction<E> data = seriesData.value;
       long endTimeUs = data.getEndUs() == 0L ? (long)max : data.getEndUs();
-      mIconsToDraw.add(new EventRenderData(data.getValueData(), data.getStartUs(), endTimeUs));
+      mIconsToDraw.add(new EventRenderData<>(data.getStartUs(), endTimeUs, data));
     }
   }
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+    if (myRender) {
+      render();
+      myRender = false;
+    }
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    double min = mData.getXRange().getMin();
-    double max = mData.getXRange().getMax();
+    double min = myModel.getRangedSeries().getXRange().getMin();
+    double max = myModel.getRangedSeries().getXRange().getMax();
     double scaleFactor = dim.getWidth();
     for (int i = 0; i < mIconsToDraw.size(); i++) {
-      EventRenderData data = mIconsToDraw.get(i);
+      EventRenderData<E> data = mIconsToDraw.get(i);
       double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
       double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
       AffineTransform translate = AffineTransform
         .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
-      mRenderers.get(data.getKey()).draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart)*scaleFactor);
+      EventAction<E> action = data.getAction();
+      SimpleEventRenderer<E> renderer = mRenderers.get(action.getType());
+      renderer.draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart) * scaleFactor, action);
     }
   }
 
-  @Override
-  protected void debugDraw(Graphics2D g) {
-    super.debugDraw(g);
-  }
-
   private static class EventRenderData<E> {
-
-    private final E mKey;
     private final long mStartTimestamp;
     private final long mEndTimestamp;
+    private final EventAction<E> mAction;
 
-    public E getKey() {
-      return mKey;
+    public EventAction<E> getAction() {
+      return mAction;
     }
 
     public long getStartTimestamp() {
@@ -106,10 +111,10 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       return mEndTimestamp;
     }
 
-    public EventRenderData(E key, long startTimestamp, long endTimestamp) {
-      mKey = key;
+    public EventRenderData(long startTimestamp, long endTimestamp, EventAction<E> action) {
       mStartTimestamp = startTimestamp;
       mEndTimestamp = endTimestamp;
+      mAction = action;
     }
   }
 }

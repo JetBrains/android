@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.ActionBarIconGenerator;
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -32,10 +31,13 @@ import java.awt.*;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
-
   private final ObjectProperty<ActionBarIconGenerator.Theme> myTheme =
-    new ObjectValueProperty<>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
+      new ObjectValueProperty<>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
   private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(new Color(51, 181, 229));
+
+  public AndroidActionBarIconGenerator(int minSdkVersion) {
+    super(minSdkVersion, new ActionBarIconGenerator());
+  }
 
   /**
    * The theme for this icon, which influences its foreground/background colors.
@@ -47,31 +49,32 @@ public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
 
   /**
    * A custom color which will be used if {@link #theme()} is set to
-   * {@link ActionBarIconGenerator.Theme#CUSTOM}
+   * {@link ActionBarIconGenerator.Theme#CUSTOM}.
    */
   @NotNull
   public ObjectProperty<Color> customColor() {
     return myCustomColor;
   }
 
-  @NotNull
   @Override
-  protected GraphicGenerator createGenerator() {
-    return new ActionBarIconGenerator();
-  }
-
   @NotNull
-  @Override
-  protected ActionBarIconGenerator.ActionBarOptions createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    ActionBarIconGenerator.ActionBarOptions actionBarOptions = new ActionBarIconGenerator.ActionBarOptions();
-
-    actionBarOptions.theme = myTheme.get();
-    if (actionBarOptions.theme == ActionBarIconGenerator.Theme.CUSTOM) {
-      actionBarOptions.customThemeColor = myCustomColor.get().getRGB();
+  public ActionBarIconGenerator.ActionBarOptions createOptions(boolean forPreview) {
+    ActionBarIconGenerator.ActionBarOptions options = new ActionBarIconGenerator.ActionBarOptions();
+    options.minSdk = getMinSdkVersion();
+    BaseAsset asset = sourceAsset().getValueOrNull();
+    if (asset != null) {
+      options.sourceImageFuture = asset.toImage();
+      options.isTrimmed = asset.trimmed().get();
+      options.paddingPercent = asset.paddingPercent().get();
     }
 
-    actionBarOptions.sourceIsClipart = (assetType.equals(VectorAsset.class));
+    options.theme = myTheme.get();
+    if (options.theme == ActionBarIconGenerator.Theme.CUSTOM) {
+      options.customThemeColor = myCustomColor.get().getRGB();
+    }
 
-    return actionBarOptions;
+    options.sourceIsClipart = asset instanceof VectorAsset;
+
+    return options;
   }
 }

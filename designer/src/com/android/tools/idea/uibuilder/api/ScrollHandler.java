@@ -27,4 +27,9 @@ public interface ScrollHandler {
    * Finishes a scroll of scrollAmount pixels.
    */
   void commit(int scrollAmount);
+
+  /**
+   * Returns whether a scroll of scrollAmount pixels is possible.
+   */
+  boolean canScroll(int scrollAmount);
 }

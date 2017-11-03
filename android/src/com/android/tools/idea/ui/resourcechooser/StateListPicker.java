@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -29,7 +29,6 @@ import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResource
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -302,7 +301,7 @@ public class StateListPicker extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      SwatchComponent source = myComponent.getAlphaComponent();
+      ResourceSwatchComponent source = myComponent.getAlphaComponent();
       String itemValue = source.getText();
 
       ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
@@ -344,50 +343,50 @@ public class StateListPicker extends JPanel {
       try {
         float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
         Font iconFont = JBUI.Fonts.smallFont().asBold();
-        component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
+        component.getAlphaComponent().setSwatchIcon(new ResourceSwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
       }
       catch (NumberFormatException e) {
         component.showAlphaError(true);
-        component.getAlphaComponent().setSwatchIcon(SwatchComponent.WARNING_ICON);
+        component.getAlphaComponent().setSwatchIcon(ResourceSwatchComponent.WARNING_ICON);
       }
     }
     else {
       Font iconFont = JBUI.Fonts.smallFont().asBold();
-      component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon("1.00", iconFont));
+      component.getAlphaComponent().setSwatchIcon(new ResourceSwatchComponent.TextIcon("1.00", iconFont));
     }
   }
 
   @NotNull
-  public static SwatchComponent.SwatchIcon getSwatchIcon(@Nullable String resourceName, @NotNull ResourceResolver resourceResolver, @NotNull RenderTask renderTask) {
+  public static ResourceSwatchComponent.SwatchIcon getSwatchIcon(@Nullable String resourceName, @NotNull ResourceResolver resourceResolver, @NotNull RenderTask renderTask) {
     ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
     resValue = resourceResolver.resolveResValue(resValue);
 
     if (resValue == null || resValue.getResourceType() == ResourceType.COLOR) {
       final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue, renderTask.getModule().getProject());
-      SwatchComponent.SwatchIcon icon;
+      ResourceSwatchComponent.SwatchIcon icon;
       if (colors.isEmpty()) {
         Color colorValue = ResourceHelper.parseColor(resourceName);
         if (colorValue != null) {
-          icon = new SwatchComponent.ColorIcon(colorValue);
+          icon = new ResourceSwatchComponent.ColorIcon(colorValue);
         }
         else {
-          icon = SwatchComponent.WARNING_ICON;
+          icon = ResourceSwatchComponent.WARNING_ICON;
         }
       }
       else {
-        icon = new SwatchComponent.ColorIcon(Iterables.getLast(colors));
+        icon = new ResourceSwatchComponent.ColorIcon(Iterables.getLast(colors));
         icon.setIsStack(colors.size() > 1);
       }
       return icon;
     }
 
     List<BufferedImage> images = renderTask.renderDrawableAllStates(resValue);
-    SwatchComponent.SwatchIcon icon;
+    ResourceSwatchComponent.SwatchIcon icon;
     if (images.isEmpty()) {
-      icon = SwatchComponent.WARNING_ICON;
+      icon = ResourceSwatchComponent.WARNING_ICON;
     }
     else {
-      icon = new SwatchComponent.SquareImageIcon(Iterables.getLast(images));
+      icon = new ResourceSwatchComponent.SquareImageIcon(Iterables.getLast(images));
       icon.setIsStack(images.size() > 1);
     }
     return icon;
@@ -402,7 +401,7 @@ public class StateListPicker extends JPanel {
 
   private class StateComponent extends Box {
     private final ResourceComponent myResourceComponent;
-    private final SwatchComponent myAlphaComponent;
+    private final ResourceSwatchComponent myAlphaComponent;
     private final JBLabel myAlphaErrorLabel;
     private AlphaActionListener myAlphaActionListener;
 
@@ -412,7 +411,7 @@ public class StateListPicker extends JPanel {
       myResourceComponent = new ResourceComponent(project, true);
       add(myResourceComponent);
 
-      myAlphaComponent = new SwatchComponent(project, true);
+      myAlphaComponent = new ResourceSwatchComponent(project, true);
       add(myAlphaComponent);
 
       Font font = StateListPicker.this.getFont();
@@ -433,7 +432,7 @@ public class StateListPicker extends JPanel {
     }
 
     @NotNull
-    public SwatchComponent getAlphaComponent() {
+    public ResourceSwatchComponent getAlphaComponent() {
       return myAlphaComponent;
     }
 
@@ -459,7 +458,7 @@ public class StateListPicker extends JPanel {
       myAlphaComponent.setVisible(isVisible);
     }
 
-    public void setValueIcon(@NotNull SwatchComponent.SwatchIcon icon) {
+    public void setValueIcon(@NotNull ResourceSwatchComponent.SwatchIcon icon) {
       myResourceComponent.setSwatchIcon(icon);
     }
 

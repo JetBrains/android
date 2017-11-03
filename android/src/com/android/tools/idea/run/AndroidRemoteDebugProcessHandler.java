@@ -94,7 +94,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
 
   @Override
   public boolean isSilentlyDestroyOnClose() {
-    return true;
+    return false;
   }
 
   @Override

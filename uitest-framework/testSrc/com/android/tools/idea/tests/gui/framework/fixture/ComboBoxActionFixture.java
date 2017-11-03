@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.ui.JBListWithHintProvider;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -33,7 +33,6 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
@@ -89,7 +88,7 @@ public class ComboBoxActionFixture {
   }
 
   private void selectItemByText(@NotNull final String text) {
-    JList list = GuiTests.waitUntilFound(myRobot, Matchers.byType(JBListWithHintProvider.class));
+    JList list = GuiTests.waitUntilShowingAndEnabled(myRobot, null, Matchers.byType(JBList.class));
     Wait.seconds(1).expecting("the list to be populated")
       .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
@@ -115,12 +114,7 @@ public class ComboBoxActionFixture {
       });
     assertThat(appIndex).isAtLeast(0);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        list.setSelectedIndex(appIndex);
-      }
-    });
+    GuiTask.execute(() -> list.setSelectedIndex(appIndex));
     assertEquals(text, ((PopupFactoryImpl.ActionItem)list.getSelectedValue()).getText());
   }
 }

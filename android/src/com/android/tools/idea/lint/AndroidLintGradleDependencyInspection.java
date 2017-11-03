@@ -17,12 +17,15 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import java.util.Objects;
 
 public class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDependencyInspection() {
@@ -31,17 +34,16 @@ public class AndroidLintGradleDependencyInspection extends AndroidLintInspection
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String before = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
-    String after = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
-    if (before != null && after != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
-    }
-
-    if (ConstraintLayoutDetector.isUpgradeDependencyError(message, RAW)) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    Class detector = LintFix.getData(fixData, Class.class);
+    if (Objects.equals(detector, ConstraintLayoutDetector.class)) {
+      // Is this an upgrade message from the ConstraintLayoutDetector instead?
       return new AndroidLintQuickFix[]{new UpgradeConstraintLayoutFix()};
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

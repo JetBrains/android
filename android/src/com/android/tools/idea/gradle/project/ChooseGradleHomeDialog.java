@@ -35,10 +35,10 @@ import javax.swing.event.DocumentListener;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.*;
 
@@ -168,7 +168,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
 
   @NotNull
   private static File getGradleHomePath(@NotNull String gradleHome) {
-    return new File(toSystemDependentName(gradleHome));
+    return toSystemDependentPath(gradleHome);
   }
 
   public void storeLastUsedGradleHomePath() {

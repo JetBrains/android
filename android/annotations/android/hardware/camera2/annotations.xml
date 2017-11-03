@@ -121,6 +121,9 @@
   <item name="android.hardware.camera2.CameraCaptureSession.StateCallback void onActive(android.hardware.camera2.CameraCaptureSession) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.hardware.camera2.CameraCaptureSession.StateCallback void onCaptureQueueEmpty(android.hardware.camera2.CameraCaptureSession) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraCaptureSession.StateCallback void onClosed(android.hardware.camera2.CameraCaptureSession) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -186,6 +189,9 @@
   <item name="android.hardware.camera2.CameraDevice void createCaptureSession(java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraDevice void createCaptureSessionByOutputConfigurations(java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.hardware.camera2.CameraDevice void createConstrainedHighSpeedCaptureSession(java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -235,6 +241,11 @@
   </item>
   <item name="android.hardware.camera2.CameraDevice.StateCallback void onOpened(android.hardware.camera2.CameraDevice) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.CAMERA_SERVICE" />
+    </annotation>
   </item>
   <item name="android.hardware.camera2.CameraManager android.hardware.camera2.CameraCharacteristics getCameraCharacteristics(java.lang.String)">
     <annotation name="android.support.annotation.NonNull" />

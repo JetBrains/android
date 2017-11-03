@@ -21,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
@@ -46,5 +47,5 @@ public abstract class ClassJarProvider {
   }
 
   @NotNull
-  public abstract List<VirtualFile> getModuleExternalLibraries(@NotNull Module module);
+  public abstract List<File> getModuleExternalLibraries(@NotNull Module module);
 }

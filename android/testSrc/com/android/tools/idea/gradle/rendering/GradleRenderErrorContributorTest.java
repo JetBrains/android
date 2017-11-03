@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.rendering;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -38,16 +39,19 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class GradleRenderErrorContributorTest extends IdeaTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
   private RenderErrorModel myRenderErrorModel;
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+    myDependenciesFactory = new IdeDependenciesFactory();
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class));
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 
     setUpAndroidFacetWithGradleModelWithIssue();
@@ -112,7 +116,8 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     // https://code.google.com/p/android/issues/detail?id=170841
     androidProject.setModelVersion("1.2.2");
 
-    AndroidModuleModel model = new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug");
+    AndroidModuleModel model =
+      new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
     facet.setAndroidModel(model);
     model = AndroidModuleModel.get(myModule);
 

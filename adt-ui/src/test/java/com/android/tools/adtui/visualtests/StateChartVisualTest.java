@@ -16,14 +16,10 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.chart.StateChart;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StateChartVisualTest extends VisualTest {
+
+  private StateChartModel<MockFruitState> myNetworkModel;
+  private StateChartModel<MockStrengthState> myRadioModel;
 
   public enum MockFruitState {
     NONE,
@@ -91,7 +90,7 @@ public class StateChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     mTimeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, 0);
@@ -101,15 +100,17 @@ public class StateChartVisualTest extends VisualTest {
     RangedSeries<MockFruitState> networkData = new RangedSeries<>(mTimeGlobalRangeUs, networkSeries);
     RangedSeries<MockStrengthState> radioData = new RangedSeries<>(mTimeGlobalRangeUs, radioSeries);
 
-    mNetworkStatusChart = new StateChart<>(getFruitStateColor());
-    mNetworkStatusChart.addSeries(networkData);
+    myNetworkModel = new StateChartModel<>();
+    mNetworkStatusChart = new StateChart<>(myNetworkModel, getFruitStateColor());
+    myNetworkModel.addSeries(networkData);
     mNetworkDataEntries.add(networkSeries);
 
-    mRadioStateChart = new StateChart<>(getStrengthColor());
-    mRadioStateChart.addSeries(radioData);
+    myRadioModel = new StateChartModel<>();
+    mRadioStateChart = new StateChart<>(myRadioModel, getStrengthColor());
+    myRadioModel.addSeries(radioData);
     mRadioDataEntries.add(radioSeries);
 
-    return Arrays.asList(mAnimatedTimeRange, mNetworkStatusChart, mRadioStateChart);
+    return Arrays.asList(mAnimatedTimeRange, myNetworkModel, myRadioModel);
   }
 
   @Override
@@ -189,30 +190,6 @@ public class StateChartVisualTest extends VisualTest {
     };
     updateDataThread.start();
 
-    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.Value() {
-      @Override
-      public void set(int v) {
-        mNetworkStatusChart.setArcWidth(v / 100f);
-        mRadioStateChart.setArcWidth(v / 100f);
-      }
-
-      @Override
-      public int get() {
-        return -1; // unused
-      }
-    }));
-    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.Value() {
-      @Override
-      public void set(int v) {
-        mNetworkStatusChart.setArcHeight(v / 100f);
-        mRadioStateChart.setArcHeight(v / 100f);
-      }
-
-      @Override
-      public int get() {
-        return -1; // unused
-      }
-    }));
     controls.add(VisualTest.createVariableSlider("Gap", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
@@ -261,13 +238,13 @@ public class StateChartVisualTest extends VisualTest {
     controls.add(VisualTest.createButton("Add Fruit Series", e -> {
       DefaultDataSeries<MockFruitState> networkSeries = new DefaultDataSeries<>();
       RangedSeries<MockFruitState> networkData = new RangedSeries(mTimeGlobalRangeUs, networkSeries);
-      mNetworkStatusChart.addSeries(networkData);
+      myNetworkModel.addSeries(networkData);
       mNetworkDataEntries.add(networkSeries);
     }));
     controls.add(VisualTest.createButton("Add Strength Series", e -> {
       DefaultDataSeries<MockStrengthState> radioSeries = new DefaultDataSeries<>();
       RangedSeries<MockStrengthState> radioData = new RangedSeries(mTimeGlobalRangeUs, radioSeries);
-      mRadioStateChart.addSeries(radioData);
+      myRadioModel.addSeries(radioData);
       mRadioDataEntries.add(radioSeries);
     }));
     controls.add(VisualTest.createCheckbox("Shift xRange Min",

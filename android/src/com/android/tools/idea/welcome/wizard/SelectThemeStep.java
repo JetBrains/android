@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ide.customize.CustomizeUIThemeStepPanel;
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -29,11 +27,9 @@ import javax.swing.*;
  */
 public class SelectThemeStep extends FirstRunWizardStep {
   private final CustomizeUIThemeStepPanel themePanel;
-  private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
 
-  public SelectThemeStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
+  public SelectThemeStep() {
     super("Select UI Theme");
-    myKeyCustomInstall = keyCustomInstall;
     themePanel = new CustomizeUIThemeStepPanel();
     setComponent(themePanel);
   }
@@ -54,11 +50,6 @@ public class SelectThemeStep extends FirstRunWizardStep {
     }
 
     return super.commitStep();
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return myState.getNotNull(myKeyCustomInstall, true);
   }
 
   @Nullable

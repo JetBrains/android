@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 
 public class BuildProjectHyperlink extends NotificationHyperlink {
   public BuildProjectHyperlink() {
@@ -31,9 +32,10 @@ public class BuildProjectHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && isDirectGradleInvocationEnabled(project)) {
+    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() &&
+        GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
-      GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleBuildInvoker.TestCompileType.NONE);
+      GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.ALL);
       return;
     }
     CompilerManager.getInstance(project).make(null);

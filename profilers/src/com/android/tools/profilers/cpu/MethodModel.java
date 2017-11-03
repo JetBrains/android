@@ -16,67 +16,44 @@
 
 package com.android.tools.profilers.cpu;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class MethodModel {
+  @NotNull private final String myClassName;
+  @NotNull private final String myName;
+  @NotNull private final String mySignature;
 
-  private String myNamespace;
-  private String myName;
-  private String mySignature;
-  private String myFilename;
-  private int myLineNumber;
-
-  @VisibleForTesting
-  public MethodModel(String name) {
-    myNamespace = "";
+  public MethodModel(@NotNull String name, @NotNull String className, @NotNull String signature) {
     myName = name;
-    mySignature = "";
+    myClassName = className;
+    mySignature = signature;
   }
 
-  public MethodModel() {
+  public MethodModel(String name) {
+    this(name, "", "");
   }
 
-  public String getNameSpace() {
-    return myNamespace;
-  }
-
+  @NotNull
   public String getName() {
     return myName;
   }
 
-  public void setName(String name) {
-    myName = name;
+  @NotNull
+  public String getClassName() {
+    return myClassName;
   }
 
+  @NotNull
   public String getSignature() {
     return mySignature;
   }
 
-  public void setSignature(String signature) {
-    mySignature = signature;
-  }
-
-  public String getFilename() {
-    return myFilename;
-  }
-
-  public void setFilename(String filename) {
-    myFilename = filename;
-  }
-
-  public int getLineNumber() {
-    return myLineNumber;
-  }
-
-  public void setLineNumber(int lineNumber) {
-    myLineNumber = lineNumber;
-  }
-
-  public void setNamespace(String namespace) {
-    myNamespace = namespace;
-  }
-
   public String getId() {
-    return myNamespace + ":" + myName + ":" + mySignature;
+    // Separator is only needed if we have a class name, otherwise we're gonna end up with a leading "." character.
+    // We don't have a class name, for instance, for native methods (e.g. clock_gettime)
+    // or the special nodes created to represent a thread (e.g. AsyncTask #1).
+    String separator = StringUtil.isEmpty(myClassName) ? "" : ".";
+    return String.format("%s%s%s%s", myClassName, separator, myName, mySignature);
   }
 }

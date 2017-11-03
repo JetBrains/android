@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -149,15 +150,30 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   }
 
   @NotNull
-  private String getWidthPropertyName() {
+  private String getUnscaledWidthPropertyName() {
+    return TOOL_WINDOW_PROPERTY_PREFIX + myBenchName + "." + myToolName + ".UNSCALED.WIDTH";
+  }
+
+  @NotNull
+  private String getScaledWidthPropertyName() {
     return TOOL_WINDOW_PROPERTY_PREFIX + myBenchName + "." + myToolName + ".WIDTH";
   }
 
   private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
-    return myPropertiesComponent.getInt(getWidthPropertyName(), tool.getDefinition().getInitialMinimumWidth());
+    int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(), -1);
+    if (width != -1) {
+      return JBUI.scale(width);
+    }
+    int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(), -1);
+    if (scaledWidth == -1) {
+      return tool.getDefinition().getInitialMinimumWidth();
+    }
+    myPropertiesComponent.unsetValue(getScaledWidthPropertyName());
+    setToolWidth(scaledWidth);
+    return scaledWidth;
   }
 
   private void setToolWidth(int width) {
-    myPropertiesComponent.setValue(getWidthPropertyName(), width, -1);
+    myPropertiesComponent.setValue(getUnscaledWidthPropertyName(), AdtUiUtils.unscale(width), -1);
   }
 }

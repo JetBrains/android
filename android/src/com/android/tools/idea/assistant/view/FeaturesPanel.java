@@ -80,7 +80,9 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     // Add all tutorial cards.
     for (FeatureData feature : bundle.getFeatures()) {
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), myProject, hideChooserAndNavigationalBar), tutorial.getKey());
+        addCard(
+          new TutorialCard(this, tutorial, feature, bundle.getName(), myProject, hideChooserAndNavigationalBar, bundle.isStepByStep()),
+          tutorial.getKey());
       }
     }
     add(myCards);

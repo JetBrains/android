@@ -16,13 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;

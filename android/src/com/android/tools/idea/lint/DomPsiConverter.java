@@ -16,6 +16,8 @@
 package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.blame.SourcePosition;
+import com.android.utils.PositionXmlParser;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -128,7 +130,12 @@ class DomPsiConverter {
   /** Gets the {@link TextRange} for a {@link Node} created with this converter */
   @NotNull
   public static TextRange getTextRange(@NotNull Node node) {
-    assert node instanceof DomNode;
+    if (!(node instanceof DomNode)) {
+      SourcePosition position = PositionXmlParser.getPosition(node);
+      return position != SourcePosition.UNKNOWN ?
+             new TextRange(position.getStartOffset(), position.getEndOffset()) : new TextRange(0, 0);
+    }
+
     // For elements, don't highlight the entire element range; instead, just
     // highlight the element name
     if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -142,7 +149,10 @@ class DomPsiConverter {
   /** Gets the {@link TextRange} for a {@link Node} created with this converter */
   @NotNull
   public static TextRange getTextNameRange(@NotNull Node node) {
-    assert node instanceof DomNode;
+    if (!(node instanceof DomNode)) {
+      return getTextRange(node);
+    }
+
     DomNode domNode = (DomNode)node;
     XmlElement element = domNode.myElement;
 
@@ -169,7 +179,10 @@ class DomPsiConverter {
   /** Gets the {@link TextRange} for the value region of a {@link Node} created with this converter */
   @NotNull
   public static TextRange getTextValueRange(@NotNull Node node) {
-    assert node instanceof DomNode;
+    if (!(node instanceof DomNode)) {
+      return getTextRange(node);
+    }
+
     DomNode domNode = (DomNode)node;
     XmlElement element = domNode.myElement;
     TextRange textRange = element.getTextRange();
@@ -953,6 +966,17 @@ class DomPsiConverter {
       }
 
       return myTag.getName();
+    }
+
+    @Nullable
+    @Override
+    public String getLocalName() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction((Computable<String>)this::getTagName);
+      }
+
+      return myTag.getLocalName();
     }
 
     @NotNull

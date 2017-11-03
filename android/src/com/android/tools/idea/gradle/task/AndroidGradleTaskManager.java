@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.task;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -83,7 +84,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
              .withEnvironmentVariables(effectiveSettings.getEnv())
              .passParentEnvs(effectiveSettings.isPassParentEnvs())
              .setTaskListener(listener)
-             .setWaitForCompletion(true);
+             .waitForCompletion();
       // @formatter:on
 
       gradleBuildInvoker.executeTasks(request);

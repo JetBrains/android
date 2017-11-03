@@ -18,17 +18,17 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.core.matcher.JButtonMatcher;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +57,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JTextComponentFixture getNameTextField() {
-    return new JTextComponentFixture(robot(), (JTextComponent)robot().finder().findByLabel("Name"));
+    return new JTextComponentFixture(robot(), (JTextComponent)robot().finder().findByLabel(target(), "Name"));
   }
 
   public JTextComponentFixture getSearchField() {
@@ -81,21 +81,12 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JLabel waitForErrorLabel() {
-    return GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel component) {
-        return !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.General.Error;
-      }
-    });
+    return (JLabel)GuiTests.waitUntilShowing(
+      robot(), Matchers.byText(JLabel.class, "").negate().and(Matchers.byIcon(JLabel.class, AllIcons.General.Error)));
   }
 
   public void requireNoError() {
-    GuiTests.waitUntilGone(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel component) {
-        return component.isShowing() && component.getIcon() == AllIcons.General.Error;
-      }
-    });
+    GuiTests.waitUntilGone(robot(), target(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).andIsShowing());
   }
 
   @NotNull
@@ -124,11 +115,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JPopupMenuFixture clickNewResource() {
-    JButtonFixture button = new JButtonFixture(robot(), robot().finder().find(target(), JButtonMatcher.withText("New Resource").andShowing()));
-    button.click();
-    JPopupMenu contextMenu = robot().findActivePopupMenu();
-    assert contextMenu != null;
-    return new JPopupMenuFixture(robot(), contextMenu);
+    new JLabelFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), JLabelMatcher.withText("Add new resource"))).click();
+    return new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
   }
 
   public JTableFixture getResourceNameTable() {
@@ -179,5 +167,10 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     }
 
     return sb.toString();
+  }
+
+  public String getSelectedTabTitle() {
+    JTabbedPane type = robot().finder().findByType(JTabbedPane.class);
+    return type.getTitleAt(type.getSelectedIndex());
   }
 }

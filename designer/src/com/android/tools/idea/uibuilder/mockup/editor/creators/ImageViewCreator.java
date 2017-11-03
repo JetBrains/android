@@ -20,9 +20,9 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ExtractBackgroundForm;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -56,13 +56,11 @@ public class ImageViewCreator extends SimpleViewCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */
-  public ImageViewCreator(@NotNull Mockup mockup,
-                          @NotNull NlModel model,
-                          @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+  public ImageViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
     mySelection = selection;
     myRemoveBackgroundPanel = new RemoveBackgroundPanel();

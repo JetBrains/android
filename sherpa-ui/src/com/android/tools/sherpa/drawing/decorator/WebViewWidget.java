@@ -42,18 +42,6 @@ public class WebViewWidget extends WidgetDecorator {
         wrapContent();
     }
 
-    public void setTextSize() {
-        wrapContent();
-    }
-
-    /**
-     * Apply the size behaviour
-     */
-    @Override
-    public void applyDimensionBehaviour() {
-        wrapContent();
-    }
-
     /**
      * Utility method computing the size of the widget if dimensions are set
      * to wrap_content, using the default font
@@ -93,14 +81,6 @@ public class WebViewWidget extends WidgetDecorator {
         if (mColorSet.drawBackground()) {
             fakeUIPaint(transform,g, mWidget.getDrawX(), mWidget.getDrawY());
         }
-    }
-
-    Graphics2D getClipGraphics(ViewTransform transform, Graphics2D g) {
-        int l = transform.getSwingX(mWidget.getDrawX());
-        int t = transform.getSwingY(mWidget.getDrawY());
-        int w = transform.getSwingDimension(mWidget.getDrawWidth());
-        int h = transform.getSwingDimension(mWidget.getDrawHeight());
-        return (Graphics2D) g.create(l, t, w, h);
     }
 
     protected void fakeUIPaint(ViewTransform transform, Graphics2D g, int x, int y) {

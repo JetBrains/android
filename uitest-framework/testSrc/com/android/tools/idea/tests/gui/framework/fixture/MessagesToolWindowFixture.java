@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.errorTreeView.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.externalSystem.service.notification.NotificationMessageElement;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -28,7 +29,6 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
@@ -148,18 +147,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     @NotNull
     protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
       return new SyncMessageFixture(myRobot, element);
-    }
-  }
-
-  public class BuildContentFixture extends ContentFixture {
-    BuildContentFixture(@NotNull Content content) {
-      super(content);
-    }
-
-    @Override
-    @NotNull
-    protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
-      throw new UnsupportedOperationException();
     }
   }
 
@@ -299,16 +286,10 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     private void click(boolean synchronous) {
       if (synchronous) {
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() {
-            HyperlinkFixture.this.doClick();
-          }
-        });
+        ApplicationManager.getApplication().invokeAndWait(this::doClick);
       }
       else {
-        //noinspection SSBasedInspection
-        SwingUtilities.invokeLater(this::doClick);
+        ApplicationManager.getApplication().invokeLater(this::doClick);
       }
     }
 

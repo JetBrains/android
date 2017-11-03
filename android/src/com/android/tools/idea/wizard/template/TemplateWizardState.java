@@ -18,8 +18,7 @@ package com.android.tools.idea.wizard.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -84,48 +83,48 @@ public class TemplateWizardState implements Function<String, Object> {
    */
   public static final String LAYOUT_NAME_PREFIX = "activity_";
 
+  private static final String MAIN_FLAVOR_SOURCE_PATH = "src" + File.separator + "main";
+  private static final String TEST_SOURCE_PATH = "src" + File.separator + "androidTest";
+  private static final String JAVA_SOURCE_PATH = "java";
+  private static final String RESOURCE_SOURCE_PATH = "res";
+  private static final String AIDL_SOURCE_PATH = "aidl";
+
   private static final Logger logger = Logger.getInstance(TemplateWizardState.class);
 
   /**
    * Template handler responsible for instantiating templates and reading resources
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public Template myTemplate;
-
-  /**
-   * Targeted source set
-   */
-  protected SourceProvider mySourceProvider;
+  @Nullable
+  private Template myTemplate;
 
   /**
    * Configured parameters, by id
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public final Map<String, Object> myParameters = new HashMap<String, Object>();
+  private final Map<String, Object> myParameters = new HashMap<>();
 
   /**
    * Ids for parameters which should be hidden (because the client wizard already
    * has information for these parameters)
    */
   // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myHidden = new HashSet<String>();
+  public final Set<String> myHidden = new HashSet<>();
 
   /**
    * Ids for parameters whose values should not change.
    */
-  // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myFinal = new HashSet<String>();
+  private final Set<String> myFinal = new HashSet<>();
 
   /**
    * Ids for parameters which have been modified directly by the user.
    */
   // TODO: Temporary change. Set to private in a followup CL!
-  public final Set<String> myModified = new HashSet<String>();
+  public final Set<String> myModified = new HashSet<>();
 
   public TemplateWizardState() {
     put(ATTR_IS_NEW_PROJECT, false);
     put(ATTR_IS_GRADLE, true);
     put(ATTR_IS_LIBRARY_MODULE, false);
+    put(ATTR_HAS_APPLICATION_THEME, true);
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
@@ -134,33 +133,32 @@ public class TemplateWizardState implements Function<String, Object> {
     put(ATTR_TEST_DIR, "src/androidTest");
   }
 
+  public TemplateWizardState(@NotNull Template template) {
+    this();
+    myTemplate = template;
+  }
+
   /**
    * Sets a number of parameters that get picked up as globals in the Freemarker templates. These are used to specify the directories where
    * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
    * structure and new-style Gradle builds with the new structure.
    */
   public void populateDirectoryParameters() {
-    File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, getString(FormFactorUtils.ATTR_MODULE_NAME));
-    File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
-    File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
+    File projectRoot = new File(getString(NewProjectWizardState.ATTR_PROJECT_LOCATION));
+    File moduleRoot = new File(projectRoot, getString(ATTR_MODULE_NAME));
+    File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
+    File testSourceRoot = new File(moduleRoot, TEST_SOURCE_PATH);
 
     // Set Res directory if we don't have one
     if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
-      File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
+      File resourceSourceRoot = new File(mainFlavorSourceRoot, RESOURCE_SOURCE_PATH);
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
-    }
-
-    // Set AIDL directory if we don't have one
-    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
-      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
-      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
     }
 
     String javaPackageDir = getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar);
     // Set Src directory if we don't have one
     if (!myParameters.containsKey(ATTR_SRC_OUT) || myParameters.get(ATTR_SRC_OUT) == null) {
-      File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
+      File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
       File javaSourcePackageRoot;
       if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
         javaSourcePackageRoot = new File(getString(ATTR_PACKAGE_ROOT));
@@ -174,6 +172,13 @@ public class TemplateWizardState implements Function<String, Object> {
       put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
     }
 
+    // Set AIDL directory if we don't have one
+    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
+      File aidlRoot = new File(mainFlavorSourceRoot, AIDL_SOURCE_PATH);
+      File aidlOut = new File(aidlRoot, javaPackageDir);
+      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlOut.getPath()));
+    }
+
     // Set Manifest directory if we don't have one
     if (!myParameters.containsKey(ATTR_MANIFEST_OUT) || myParameters.get(ATTR_MANIFEST_OUT) == null) {
       put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
@@ -181,43 +186,13 @@ public class TemplateWizardState implements Function<String, Object> {
 
     // Set Test directory if we don't have one
     if (!myParameters.containsKey(ATTR_TEST_OUT) || myParameters.get(ATTR_TEST_OUT) == null) {
-      String relativeTestOut = FileUtil.join(TemplateWizard.JAVA_SOURCE_PATH, javaPackageDir);
+      String relativeTestOut = FileUtil.join(JAVA_SOURCE_PATH, javaPackageDir);
       File testOut = new File(testSourceRoot, relativeTestOut);
       put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getPath()));
     }
 
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
     put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
-
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    if (mavenUrl != null) {
-      put(ATTR_MAVEN_URL, mavenUrl);
-    }
-
-    populateRelativePackage(null);
-  }
-
-  public void populateRelativePackage(@Nullable Module module) {
-    // If the module's application package is "foo.bar", and we're creating an activity
-    // in the "foo.bar.baz.bay" package, the package prefix should be ".baz.bay". That lets
-    // templates (for example) specify activity names in the manifest relative to the application
-    // package node.
-    String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
-    if (pkg != null) {
-      if (module != null) {
-        String applicationId = MergedManifest.get(module).getPackage();
-        if (applicationId != null) {
-          if (pkg.startsWith(applicationId) && pkg.length() > applicationId.length() &&
-              pkg.charAt(applicationId.length()) == '.') {
-            pkg = pkg.substring(applicationId.length());
-          }
-        }
-      }
-      else {
-        pkg = "";
-      }
-      put(ATTR_RELATIVE_PACKAGE, pkg);
-    }
   }
 
   public boolean hasTemplate() {
@@ -230,15 +205,6 @@ public class TemplateWizardState implements Function<String, Object> {
   }
 
   @Nullable
-  public SourceProvider getSourceProvider() {
-    return mySourceProvider;
-  }
-
-  public void setSourceProvider(@Nullable SourceProvider provider) {
-    mySourceProvider = provider;
-  }
-
-  @Nullable
   public TemplateMetadata getTemplateMetadata() {
     if (myTemplate == null) {
       return null;
@@ -246,6 +212,7 @@ public class TemplateWizardState implements Function<String, Object> {
     return myTemplate.getMetadata();
   }
 
+  @NotNull
   public Map<String, Object> getParameters() {
     return myParameters;
   }

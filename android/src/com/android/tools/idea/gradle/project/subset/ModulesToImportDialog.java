@@ -35,11 +35,9 @@ import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.Cell;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.PairFunction;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.SystemProperties;
 import org.jdesktop.swingx.JXLabel;
@@ -60,21 +58,17 @@ import java.io.File;
 import java.io.IOException;
 import java.text.Collator;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static icons.AndroidIcons.AppModule;
-import static icons.AndroidIcons.LibraryModule;
 import static java.awt.BorderLayout.NORTH;
 import static java.awt.BorderLayout.SOUTH;
 import static java.awt.event.InputEvent.CTRL_MASK;
@@ -249,15 +243,12 @@ public class ModulesToImportDialog extends DialogWrapper {
 
   private void createUIComponents() {
     myModulesTable = new ModuleTable();
-    new TableSpeedSearch(myModulesTable, new PairFunction<Object, Cell, String>() {
-      @Override
-      public String fun(Object o, Cell v) {
-        if (o instanceof ModuleRow) {
-          ModuleRow row = (ModuleRow)o;
-          return getNameOf(row.module);
-        }
-        return o == null || o instanceof Boolean ? "" : o.toString();
+    new TableSpeedSearch(myModulesTable, (o, v) -> {
+      if (o instanceof ModuleRow) {
+        ModuleRow row = (ModuleRow)o;
+        return getNameOf(row.module);
       }
+      return o == null || o instanceof Boolean ? "" : o.toString();
     });
   }
 
@@ -284,7 +275,7 @@ public class ModulesToImportDialog extends DialogWrapper {
   }
 
   public void clearSelection() {
-    List<String> selection = Collections.emptyList();
+    List<String> selection = emptyList();
     updateSelection(selection);
   }
 
@@ -535,12 +526,7 @@ public class ModulesToImportDialog extends DialogWrapper {
   private static class ModuleTableRowSorter extends TableRowSorter<ModuleTableModel> {
     ModuleTableRowSorter(@NotNull ModuleTableModel model) {
       super(model);
-      setComparator(MODULE_NAME_COLUMN, new Comparator<ModuleRow>() {
-        @Override
-        public int compare(ModuleRow row1, ModuleRow row2) {
-          return Collator.getInstance().compare(row1.toString(), row2.toString());
-        }
-      });
+      setComparator(MODULE_NAME_COLUMN, (row1, row2) -> Collator.getInstance().compare(row1.toString(), row2.toString()));
       List<RowSorter.SortKey> sortKeys = Lists.newArrayList();
       sortKeys.add(new RowSorter.SortKey(MODULE_NAME_COLUMN, SortOrder.ASCENDING));
       setSortKeys(sortKeys);
@@ -666,7 +652,7 @@ public class ModulesToImportDialog extends DialogWrapper {
         DataNode<AndroidModuleModel> child = getFirstItem(children);
         if (child != null) {
           AndroidModuleModel androidModel = child.getData();
-          return androidModel.getProjectType() == PROJECT_TYPE_APP ? AppModule : LibraryModule;
+          return getAndroidModuleIcon(androidModel);
         }
       }
       return PpJdk;

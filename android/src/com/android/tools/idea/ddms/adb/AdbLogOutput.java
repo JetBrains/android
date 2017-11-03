@@ -39,6 +39,10 @@ public class AdbLogOutput {
       reportAdbLog(logLevel, tag, message);
     }
 
+    public static Logger getLogger() {
+      return LOG;
+    }
+
     private static void reportAdbLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
       if (StringUtil.isEmpty(message)) {
         return;

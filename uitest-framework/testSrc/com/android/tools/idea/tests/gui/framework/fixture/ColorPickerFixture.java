@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import org.fest.swing.core.GenericTypeMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
@@ -92,12 +92,7 @@ public class ColorPickerFixture extends JPanelFixture {
 
   @NotNull
   public SlideFixture getAlphaSlide() {
-    return new SlideFixture(robot(), robot().finder()
-      .find(this.target(), new GenericTypeMatcher<ColorPicker.SlideComponent>(ColorPicker.SlideComponent.class) {
-        @Override
-        protected boolean isMatching(@NotNull ColorPicker.SlideComponent component) {
-          return !(component instanceof ColorPicker.HueSlideComponent);
-        }
-      }));
+    return new SlideFixture(robot(), (ColorPicker.SlideComponent)robot().finder().find(
+      this.target(), Matchers.byType(ColorPicker.HueSlideComponent.class).negate().and(Matchers.byType(ColorPicker.SlideComponent.class))));
   }
 }

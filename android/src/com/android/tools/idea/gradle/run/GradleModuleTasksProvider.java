@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.fd.InstantRunTasksProvider;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -28,6 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 
 public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   private final Module[] myModules;
@@ -54,7 +58,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
-    return GradleBuildInvoker.findTasksToExecute(affectedModules, buildMode, GradleBuildInvoker.TestCompileType.UNIT_TESTS);
+    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(myModules, affectedModules, buildMode, UNIT_TESTS);
   }
 
   @NotNull
@@ -67,11 +71,11 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   @NotNull
   @Override
   public ListMultimap<Path, String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, GradleBuildInvoker.TestCompileType.NONE);
+    return getTasksFor(ASSEMBLE, TestCompileType.ALL);
   }
 
   @NotNull
   public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleBuildInvoker.TestCompileType testCompileType) {
-    return GradleBuildInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
+    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }

@@ -58,21 +58,16 @@ public class RecyclerViewHelper {
     MethodVisitor mv;
     AnnotationVisitor av0;
 
-    cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, "com/android/layoutlib/bridge/android/support/Adapter",
-             "Landroid/support/v7/widget/RecyclerView$Adapter<Landroid/support/v7/widget/RecyclerView$ViewHolder;>;",
-             "android/support/v7/widget/RecyclerView$Adapter", null);
+    cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, "com/android/layoutlib/bridge/android/support/Adapter", "Landroid/support/v7/widget/RecyclerView$Adapter<Landroid/support/v7/widget/RecyclerView$ViewHolder;>;", "android/support/v7/widget/RecyclerView$Adapter", null);
 
-    cw.visitInnerClass("com/android/layoutlib/bridge/android/support/Adapter$ViewHolder",
-                       "com/android/layoutlib/bridge/android/support/Adapter", "ViewHolder", ACC_PRIVATE + ACC_STATIC);
+    cw.visitInnerClass("com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", "com/android/layoutlib/bridge/android/support/Adapter", "ViewHolder", ACC_PRIVATE + ACC_STATIC);
 
-    cw.visitInnerClass("android/support/v7/widget/RecyclerView$ViewHolder", "android/support/v7/widget/RecyclerView", "ViewHolder",
-                       ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
+    cw.visitInnerClass("android/support/v7/widget/RecyclerView$ViewHolder", "android/support/v7/widget/RecyclerView", "ViewHolder", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 
-    cw.visitInnerClass("android/support/v7/widget/RecyclerView$Adapter", "android/support/v7/widget/RecyclerView", "Adapter",
-                       ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
+    cw.visitInnerClass("android/support/v7/widget/RecyclerView$Adapter", "android/support/v7/widget/RecyclerView", "Adapter", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 
     {
-      fv = cw.visitField(ACC_PRIVATE + ACC_FINAL + ACC_STATIC, "ITEM_COUNT", "I", null, new Integer(10));
+      fv = cw.visitField(ACC_PRIVATE, "mItemCount", "I", null, null);
       fv.visitEnd();
     }
     {
@@ -84,14 +79,15 @@ public class RecyclerViewHelper {
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitMethodInsn(INVOKESPECIAL, "android/support/v7/widget/RecyclerView$Adapter", "<init>", "()V", false);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitIntInsn(BIPUSH, 10);
+      mv.visitFieldInsn(PUTFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mItemCount", "I");
       mv.visitInsn(RETURN);
-      mv.visitMaxs(1, 1);
+      mv.visitMaxs(2, 1);
       mv.visitEnd();
     }
     {
-      mv =
-        cw.visitMethod(ACC_PUBLIC, "onCreateViewHolder", "(Landroid/view/ViewGroup;I)Landroid/support/v7/widget/RecyclerView$ViewHolder;",
-                       null, null);
+      mv = cw.visitMethod(ACC_PUBLIC, "onCreateViewHolder", "(Landroid/view/ViewGroup;I)Landroid/support/v7/widget/RecyclerView$ViewHolder;", null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
@@ -99,8 +95,7 @@ public class RecyclerViewHelper {
       mv.visitJumpInsn(IFLE, l0);
       mv.visitVarInsn(ALOAD, 1);
       mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getContext", "()Landroid/content/Context;", false);
-      mv.visitMethodInsn(INVOKESTATIC, "android/view/LayoutInflater", "from", "(Landroid/content/Context;)Landroid/view/LayoutInflater;",
-                         false);
+      mv.visitMethodInsn(INVOKESTATIC, "android/view/LayoutInflater", "from", "(Landroid/content/Context;)Landroid/view/LayoutInflater;", false);
       mv.visitVarInsn(ALOAD, 0);
       mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
       mv.visitVarInsn(ALOAD, 1);
@@ -118,12 +113,11 @@ public class RecyclerViewHelper {
       mv.visitMethodInsn(INVOKESPECIAL, "android/widget/TextView", "<init>", "(Landroid/content/Context;)V", false);
       mv.visitVarInsn(ASTORE, 3);
       mv.visitLabel(l1);
-      mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{"android/view/View"}, 0, null);
+      mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {"android/view/View"}, 0, null);
       mv.visitTypeInsn(NEW, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder");
       mv.visitInsn(DUP);
       mv.visitVarInsn(ALOAD, 3);
-      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", "<init>",
-                         "(Landroid/view/View;)V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", "<init>", "(Landroid/view/View;)V", false);
       mv.visitInsn(ARETURN);
       mv.visitMaxs(4, 4);
       mv.visitEnd();
@@ -144,8 +138,7 @@ public class RecyclerViewHelper {
       mv.visitTypeInsn(NEW, "java/util/LinkedList");
       mv.visitInsn(DUP);
       mv.visitMethodInsn(INVOKESPECIAL, "java/util/LinkedList", "<init>", "()V", false);
-      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews",
-                         "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews", "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
       mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
       mv.visitInsn(DUP);
       mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
@@ -159,9 +152,7 @@ public class RecyclerViewHelper {
       mv.visitVarInsn(ISTORE, 6);
       Label l0 = new Label();
       mv.visitLabel(l0);
-      mv.visitFrame(Opcodes.F_FULL, 7, new Object[]{"com/android/layoutlib/bridge/android/support/Adapter",
-        "android/support/v7/widget/RecyclerView$ViewHolder", Opcodes.INTEGER, "android/view/View", "java/util/ArrayList",
-        "java/lang/String", Opcodes.INTEGER}, 0, new Object[]{});
+      mv.visitFrame(Opcodes.F_FULL, 7, new Object[] {"com/android/layoutlib/bridge/android/support/Adapter", "android/support/v7/widget/RecyclerView$ViewHolder", Opcodes.INTEGER, "android/view/View", "java/util/ArrayList", "java/lang/String", Opcodes.INTEGER}, 0, new Object[] {});
       mv.visitVarInsn(ILOAD, 6);
       mv.visitVarInsn(ALOAD, 4);
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "size", "()I", false);
@@ -185,7 +176,7 @@ public class RecyclerViewHelper {
       mv.visitIincInsn(6, 1);
       mv.visitJumpInsn(GOTO, l0);
       mv.visitLabel(l1);
-      mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
+      mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
       mv.visitInsn(RETURN);
       mv.visitMaxs(5, 7);
       mv.visitEnd();
@@ -193,7 +184,8 @@ public class RecyclerViewHelper {
     {
       mv = cw.visitMethod(ACC_PUBLIC, "getItemCount", "()I", null, null);
       mv.visitCode();
-      mv.visitIntInsn(BIPUSH, 10);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mItemCount", "I");
       mv.visitInsn(IRETURN);
       mv.visitMaxs(1, 1);
       mv.visitEnd();
@@ -209,20 +201,33 @@ public class RecyclerViewHelper {
       mv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PRIVATE, "findTextViews", "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V",
-                          "(Landroid/view/View;Ljava/util/ArrayList<Landroid/widget/TextView;>;Ljava/util/LinkedList<Landroid/view/View;>;)V",
-                          null);
+      mv = cw.visitMethod(ACC_PUBLIC, "setItemCount", "(I)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ILOAD, 1);
+      mv.visitFieldInsn(PUTFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mItemCount", "I");
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(2, 2);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PRIVATE, "findTextViews", "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", "(Landroid/view/View;Ljava/util/ArrayList<Landroid/widget/TextView;>;Ljava/util/LinkedList<Landroid/view/View;>;)V", null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 1);
       mv.visitTypeInsn(INSTANCEOF, "android/widget/TextView");
       Label l0 = new Label();
       mv.visitJumpInsn(IFEQ, l0);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(CHECKCAST, "android/widget/TextView");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/widget/TextView", "getText", "()Ljava/lang/CharSequence;", false);
+      mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/CharSequence", "length", "()I", true);
+      Label l1 = new Label();
+      mv.visitJumpInsn(IFNE, l1);
       mv.visitVarInsn(ALOAD, 2);
       mv.visitVarInsn(ALOAD, 1);
       mv.visitTypeInsn(CHECKCAST, "android/widget/TextView");
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "add", "(Ljava/lang/Object;)Z", false);
       mv.visitInsn(POP);
-      Label l1 = new Label();
       mv.visitJumpInsn(GOTO, l1);
       mv.visitLabel(l0);
       mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
@@ -233,7 +238,7 @@ public class RecyclerViewHelper {
       mv.visitVarInsn(ISTORE, 4);
       Label l2 = new Label();
       mv.visitLabel(l2);
-      mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{Opcodes.INTEGER}, 0, null);
+      mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {Opcodes.INTEGER}, 0, null);
       mv.visitVarInsn(ILOAD, 4);
       mv.visitVarInsn(ALOAD, 1);
       mv.visitTypeInsn(CHECKCAST, "android/view/ViewGroup");
@@ -249,7 +254,7 @@ public class RecyclerViewHelper {
       mv.visitIincInsn(4, 1);
       mv.visitJumpInsn(GOTO, l2);
       mv.visitLabel(l1);
-      mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
+      mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
       mv.visitVarInsn(ALOAD, 3);
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "isEmpty", "()Z", false);
       Label l3 = new Label();
@@ -260,8 +265,7 @@ public class RecyclerViewHelper {
       mv.visitTypeInsn(CHECKCAST, "android/view/View");
       mv.visitVarInsn(ALOAD, 2);
       mv.visitVarInsn(ALOAD, 3);
-      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews",
-                         "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews", "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
       mv.visitLabel(l3);
       mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
       mv.visitInsn(RETURN);
@@ -323,7 +327,7 @@ public class RecyclerViewHelper {
   //
   //public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   //
-  //  private static final int ITEM_COUNT = 10;
+  //  private int mItemCount = 10;
   //  private int mId;
   //
   //  @Override
@@ -352,16 +356,22 @@ public class RecyclerViewHelper {
   //
   //  @Override
   //  public int getItemCount() {
-  //    return ITEM_COUNT;
+  //    return mItemCount;
   //  }
   //
   //  public void setLayoutId(int id) {
   //    mId = id;
   //  }
   //
+  //  public void setItemCount(int itemCount) {
+  //    mItemCount = itemCount;
+  //  }
+  //
   //  private void findTextViews(View view, ArrayList<TextView> out, LinkedList<View> queue) {
   //    if (view instanceof TextView) {
-  //      out.add((TextView) view);
+  //      if (((TextView) view).getText().length() == 0) {
+  //        out.add((TextView) view);
+  //      }
   //    } else if (view instanceof ViewGroup) {
   //      for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
   //        queue.add(((ViewGroup) view).getChildAt(i));

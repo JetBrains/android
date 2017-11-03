@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.builder.model.*;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -27,7 +30,6 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +42,6 @@ import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -124,11 +124,12 @@ class ExcludedRoots {
   private void addModuleIfNecessary(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      BaseArtifact unitTestArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
-      BaseArtifact androidTestArtifact = androidModel.getAndroidTestArtifactInSelectedVariant();
+      IdeVariant variant = androidModel.getSelectedVariant();
+      IdeBaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
+      IdeBaseArtifact androidTestArtifact = variant.getAndroidTestArtifact();
 
-      BaseArtifact excludeArtifact = myAndroidTest ? unitTestArtifact : androidTestArtifact;
-      BaseArtifact includeArtifact = myAndroidTest ? androidTestArtifact : unitTestArtifact;
+      IdeBaseArtifact excludeArtifact = myAndroidTest ? unitTestArtifact : androidTestArtifact;
+      IdeBaseArtifact includeArtifact = myAndroidTest ? androidTestArtifact : unitTestArtifact;
 
       if (excludeArtifact != null) {
         processFolders(excludeArtifact, androidModel, myExcludedRoots::add);
@@ -140,11 +141,11 @@ class ExcludedRoots {
     }
   }
 
-  private static void processFolders(@NotNull BaseArtifact artifact,
+  private static void processFolders(@NotNull IdeBaseArtifact artifact,
                                      @NotNull AndroidModuleModel androidModel,
                                      @NotNull Consumer<File> action) {
     action.accept(artifact.getClassesFolder());
-    for (File file : getGeneratedSourceFolders(artifact)) {
+    for (File file : artifact.getGeneratedSourceFolders()) {
       action.accept(file);
     }
 
@@ -185,20 +186,21 @@ class ExcludedRoots {
   private void addLibraryPaths(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model != null) {
-      BaseArtifact exclude = myAndroidTest ? model.getUnitTestArtifactInSelectedVariant() : model.getAndroidTestArtifactInSelectedVariant();
-      BaseArtifact include = myAndroidTest ? model.getAndroidTestArtifactInSelectedVariant() : model.getUnitTestArtifactInSelectedVariant();
+      IdeVariant variant = model.getSelectedVariant();
+      IdeBaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();
+      IdeBaseArtifact include = myAndroidTest ? variant.getAndroidTestArtifact() : variant.getUnitTestArtifact();
       if (exclude != null) {
-        addLibraryPaths(exclude, model);
+        addLibraryPaths(exclude);
       }
       if (include != null) {
-        removeLibraryPaths(include, model);
+        removeLibraryPaths(include);
       }
     }
   }
 
-  private void addLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
-    for (AndroidLibrary library : dependencies.getLibraries()) {
+  private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
+    IdeDependencies dependencies = artifact.getDependencies();
+    dependencies.forEachLibrary(library -> {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {
           if (!isAlreadyIncluded(file)) {
@@ -206,15 +208,15 @@ class ExcludedRoots {
           }
         }
       }
-    }
-    for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      if (isEmpty(getProject(library))) {
+    });
+    dependencies.forEachJavaLibrary(library -> {
+      if (isEmpty(library.getProject())) {
         File jarFile = library.getJarFile();
         if (!isAlreadyIncluded(jarFile)) {
           myExcludedRoots.add(jarFile);
         }
       }
-    }
+    });
   }
 
   private boolean isAlreadyIncluded(@NotNull File file) {
@@ -224,30 +226,20 @@ class ExcludedRoots {
     return myIncludedRootNames.contains(file.getName());
   }
 
-  private void removeLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
-    for (AndroidLibrary library : dependencies.getLibraries()) {
+  private void removeLibraryPaths(@NotNull IdeBaseArtifact artifact) {
+    IdeDependencies dependencies = artifact.getDependencies();
+    dependencies.forEachLibrary(library -> {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {
           myExcludedRoots.remove(file);
         }
       }
-    }
-    for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      if (isEmpty(getProject(library))) {
+    });
+    dependencies.forEachJavaLibrary(library -> {
+      if (isEmpty(library.getProject())) {
         myExcludedRoots.remove(library.getJarFile());
       }
-    }
-  }
-
-  @Nullable
-  private static String getProject(@NotNull JavaLibrary library) {
-    try {
-      return library.getProject();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
+    });
   }
 
   @NotNull

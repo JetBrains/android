@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.swing.util.FormScalingUtil;
+import com.android.tools.adtui.util.FormScalingUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.BrowserUtil;
@@ -149,7 +149,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       String packageText = myPackageField.getText();
       if (!myInputValidator.checkInput(nameText)) {
         String errorText = LangBundle.message("incorrect.name");
-        String message = myInputValidator.getErrorText(nameText);
+        String message = myInputValidator.getNameErrorText(nameText);
         if (message != null) {
           errorText = message;
         }
@@ -159,14 +159,22 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
       if (!superclassAsString.isEmpty()) {
         Type superclassAsType = Type.newType(superclassAsString, myProject);
-        if (mySuperclassField.isVisible() && (!superclassAsType.canUseAsClass() || !myInputValidator.checkSuperclass(superclassAsString))) {
-          return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+        if (mySuperclassField.isVisible()) {
+          if (!superclassAsType.canUseAsClass()) {
+            return new ValidationInfo(myInputValidator.getNotAClassErrorText(superclassAsString), mySuperclassField);
+          }
+          else if (!myInputValidator.checkSuperclass(superclassAsString)) {
+            return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+          }
         }
       }
 
       for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
         Type interfaceAsType = Type.newType(interfaceAsString, myProject);
-        if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
+        if (!interfaceAsType.canUseAsInterface()) {
+          return new ValidationInfo(myInputValidator.getNotAnInterfaceErrorText(interfaceAsString), myInterfacesField);
+        }
+        else if (!myInputValidator.checkInterface(interfaceAsString)) {
           return new ValidationInfo(myInputValidator.getInterfacesErrorText(interfaceAsString), myInterfacesField);
         }
       }
@@ -335,6 +343,11 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       @Override
       protected String getActionName(String newName) {
         return creator.getActionName(newName, myKindCombo.getSelectedName());
+      }
+
+      @Override
+      public boolean startInWriteAction() {
+        return false; // Should return false if e.g. modal dialog is shown inside the action.
       }
     };
 
@@ -519,7 +532,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
         throw new IllegalArgumentException("className is empty.");
       }
 
-      int lastDotIndex = className.lastIndexOf(".");
+      int lastDotIndex = className.lastIndexOf('.');
       if (lastDotIndex != -1) {
         myPackage = className.substring(0, lastDotIndex);
         myClass = className.substring(lastDotIndex + 1);

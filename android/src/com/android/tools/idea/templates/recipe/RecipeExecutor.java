@@ -76,7 +76,7 @@ public interface RecipeExecutor {
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
-  void updateAndSyncGradle();
+  void updateAndSync();
 
   /**
    * Set the current folder that relative paths will be resolved against.

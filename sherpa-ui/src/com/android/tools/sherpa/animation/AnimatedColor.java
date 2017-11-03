@@ -17,7 +17,6 @@
 package com.android.tools.sherpa.animation;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import android.support.constraint.solver.widgets.Animator;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -71,10 +70,10 @@ public class AnimatedColor extends Animation {
         eG = Math.pow(eG, 2.2);
         eB = Math.pow(eB, 2.2);
 
-        double r = Animator.EaseInOutinterpolator(progress, bR, eR);
-        double g = Animator.EaseInOutinterpolator(progress, bG, eG);
-        double b = Animator.EaseInOutinterpolator(progress, bB, eB);
-        double a = Animator.EaseInOutinterpolator(progress, bA, eA);
+        double r = Animation.EaseInOutinterpolator(progress, bR, eR);
+        double g = Animation.EaseInOutinterpolator(progress, bG, eG);
+        double b = Animation.EaseInOutinterpolator(progress, bB, eB);
+        double a = Animation.EaseInOutinterpolator(progress, bA, eA);
 
         r = Math.pow(r, 1.0 / 2.2);
         g = Math.pow(g, 1.0 / 2.2);

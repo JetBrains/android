@@ -1,0 +1,42 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Adam">
+        <item name="android:textSize">36sp</item>
+        <item name="android:lineSpacingExtra">36sp</item>
+    </style>
+
+    <style name="Eve">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="Ying" parent="Yang">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="Yang" parent="Ying">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="Text34" parent="android:style/TextAppearance.Material">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="TextAppearance" parent="TextAppearance.AppCompat.Display1">
+    </style>
+
+    <style name="Text2" parent="Text34">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+</resources>

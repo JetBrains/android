@@ -44,7 +44,7 @@ public class SyncIssuesReporter {
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
     this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
-         new BuildToolsTooLowReporter());
+         new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter());
   }
 
   @VisibleForTesting

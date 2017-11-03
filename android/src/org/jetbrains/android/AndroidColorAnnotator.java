@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -27,6 +28,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -43,7 +45,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -85,9 +86,6 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * or references it from Java code (R.color.name). It also previews small icons.
  * <p>
  * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
- *
- * TODO: Add test. Unfortunately, it looks like none of the existing Annotator classes
- * in IntelliJ have unit tests, so there doesn't appear to be fixture support for this.
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
@@ -161,43 +159,6 @@ public class AndroidColorAnnotator implements Annotator {
     }
   }
 
-  /**
-   * When annotating Java files, we need to find an associated layout file to pick the resource
-   * resolver from (e.g. to for example have a theme association which will drive how colors are
-   * resolved). This file picks one of the open layout files, and if not found, the first layout
-   * file found in the resources (if any).
-   * */
-  @Nullable
-  public static VirtualFile pickLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
-    VirtualFile layout = null;
-    VirtualFile[] openFiles = FileEditorManager.getInstance(module.getProject()).getOpenFiles();
-    for (VirtualFile file : openFiles) {
-      if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
-          file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
-        layout = file;
-        break;
-      }
-    }
-
-    if (layout == null) {
-      // Pick among actual files in the project
-      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
-        for (VirtualFile folder : resourceDir.getChildren()) {
-          if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
-            for (VirtualFile file : folder.getChildren()) {
-              if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
-                  file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
-                layout = file;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-    return layout;
-  }
-
   private static void annotateResourceReference(@NotNull ResourceType type,
                                                 @NotNull AnnotationHolder holder,
                                                 @NotNull PsiElement element,
@@ -233,7 +194,8 @@ public class AndroidColorAnnotator implements Annotator {
 
   /** Picks a suitable configuration to use for resource resolution */
   @Nullable
-  private static Configuration pickConfiguration(AndroidFacet facet, Module module, PsiFile file) {
+  @VisibleForTesting
+  static Configuration pickConfiguration(AndroidFacet facet, Module module, PsiFile file) {
     VirtualFile virtualFile = file.getVirtualFile();
     if (virtualFile == null) {
       return null;
@@ -246,7 +208,7 @@ public class AndroidColorAnnotator implements Annotator {
     VirtualFile layout;
     String parentName = parent.getName();
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = pickLayoutFile(module, facet);
+      layout = ResourceHelper.pickAnyLayoutFile(module, facet);
       if (layout == null) {
         return null;
       }
@@ -254,7 +216,7 @@ public class AndroidColorAnnotator implements Annotator {
       layout = virtualFile;
     }
 
-    return facet.getConfigurationManager().getConfiguration(layout);
+    return ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout);
   }
 
   /** Annotates the given element with the resolved value of the given {@link ResourceValue} */
@@ -302,7 +264,7 @@ public class AndroidColorAnnotator implements Annotator {
         String attribute = null;
         if ("vector".equals(tag)) {
           // Take a look and see if we have a bitmap we can fall back to
-          AppResourceRepository resourceRepository = AppResourceRepository.getAppResources(facet, true);
+          AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
           List<com.android.ide.common.res2.ResourceItem> items =
             resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
           if (items != null) {
@@ -353,7 +315,7 @@ public class AndroidColorAnnotator implements Annotator {
         }
         if (attribute != null && target.hasAttributeNS(ANDROID_URI, attribute)) {
           String src = target.getAttributeNS(ANDROID_URI, attribute);
-          ResourceValue value = resourceResolver.findResValue(src, false);
+          ResourceValue value = resourceResolver.findResValue(src, resourceValue.isFramework());
           if (value != null) {
             return ResourceHelper.resolveDrawable(resourceResolver, value, project);
 
@@ -452,7 +414,7 @@ public class AndroidColorAnnotator implements Annotator {
       ResourceItem item = frameworkResources.getResourceItem(type, name);
       return item.getResourceValue(type, configuration.getFullConfig(), false);
     } else {
-      LocalResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources == null) {
         return null;
       }
@@ -508,16 +470,13 @@ public class AndroidColorAnnotator implements Annotator {
             //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             final Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
             if (color != null) {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (myElement instanceof XmlTag) {
-                    ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
-                  } else if (myElement instanceof XmlAttributeValue) {
-                    XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
-                    if (attribute != null) {
-                      attribute.setValue(ResourceHelper.colorToString(color));
-                    }
+              ApplicationManager.getApplication().runWriteAction(() -> {
+                if (myElement instanceof XmlTag) {
+                  ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
+                } else if (myElement instanceof XmlAttributeValue) {
+                  XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
+                  if (attribute != null) {
+                    attribute.setValue(ResourceHelper.colorToString(color));
                   }
                 }
               });

@@ -199,7 +199,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   }
 
   public boolean canRunAnalysis() {
-    return myEnabledTasks.size() > 0 && myCanRunAnalysis;
+    return !myEnabledTasks.isEmpty() && myCanRunAnalysis;
   }
 
   /**

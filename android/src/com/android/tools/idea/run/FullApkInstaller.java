@@ -68,7 +68,8 @@ public class FullApkInstaller {
       return false;
     }
 
-    RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, myLaunchOptions.getPmInstallOptions());
+    String pmInstallOptions = getPmInstallOptions(device);
+    RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, pmInstallOptions);
     RetryingInstaller retryingInstaller = new RetryingInstaller(myProject, device, installer, packageName, myPrinter, launchStatus);
 
     boolean installed = retryingInstaller.install();
@@ -82,6 +83,18 @@ public class FullApkInstaller {
       }
     }
     return installed;
+  }
+
+  @VisibleForTesting
+  String getPmInstallOptions(@NotNull IDevice device) {
+    String pmInstallOptions = myLaunchOptions.getPmInstallOptions();
+    // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user interaction/display.
+    // However, regular installation will not grant some permissions until the next device reboot. Installing with "-g" guarantees that
+    // the permissions are properly granted at install time.
+    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
+      pmInstallOptions = StringUtil.trimLeading(StringUtil.notNullize(pmInstallOptions) + " -g");
+    }
+    return pmInstallOptions;
   }
 
   @VisibleForTesting
@@ -120,7 +133,7 @@ public class FullApkInstaller {
     }
   }
 
-  private static final class ApkInstaller implements RetryingInstaller.Installer {
+  static final class ApkInstaller implements RetryingInstaller.Installer {
     private final String myRemotePath;
     private final ConsolePrinter myPrinter;
     private final String myPmInstallOptions;
@@ -149,8 +162,9 @@ public class FullApkInstaller {
       return InstallResult.forLaunchOutput(receiver);
     }
 
+    @VisibleForTesting
     @NotNull
-    private static String getPmInstallCommand(@NotNull String remotePath, @Nullable String pmInstallOptions) {
+    static String getPmInstallCommand(@NotNull String remotePath, @Nullable String pmInstallOptions) {
       StringBuilder sb = new StringBuilder(30);
       sb.append("pm install ");
 
@@ -159,7 +173,7 @@ public class FullApkInstaller {
         sb.append(' ');
       }
 
-      sb.append("-r \"");
+      sb.append("-t -r \"");
       sb.append(remotePath);
       sb.append("\"");
       return sb.toString();

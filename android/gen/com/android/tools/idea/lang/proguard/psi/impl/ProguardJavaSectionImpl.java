@@ -1,4 +1,21 @@
-// This is a generated file. Not intended for manual editing.
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ATTENTION: This file has been automatically generated from Proguard.bnf. Do not edit it manually.
+
 package com.android.tools.idea.lang.proguard.psi.impl;
 
 import java.util.List;
@@ -17,8 +34,12 @@ public class ProguardJavaSectionImpl extends ASTWrapperPsiElement implements Pro
     super(node);
   }
 
+  public void accept(@NotNull ProguardVisitor visitor) {
+    visitor.visitJavaSection(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof ProguardVisitor) ((ProguardVisitor)visitor).visitJavaSection(this);
+    if (visitor instanceof ProguardVisitor) accept((ProguardVisitor)visitor);
     else super.accept(visitor);
   }
 

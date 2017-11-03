@@ -15,12 +15,12 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.containers.ImmutableList;
+import java.util.List;
 
 /**
  * An interface that provides data to all RangedSeries used by the UI.
  */
 public interface DataSeries<E> {
 
-  ImmutableList<SeriesData<E>> getDataForXRange(Range xRange);
+  List<SeriesData<E>> getDataForXRange(Range xRange);
 }

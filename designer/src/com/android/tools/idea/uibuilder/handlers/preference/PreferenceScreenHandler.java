@@ -18,7 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ public final class PreferenceScreenHandler extends ViewGroupHandler {
   @NotNull
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent preferenceScreen,
+                                       @NotNull SceneComponent preferenceScreen,
                                        @NotNull List<NlComponent> preferences,
                                        @NotNull DragType type) {
     return new PreferenceScreenDragHandler(editor, this, preferenceScreen, preferences, type);

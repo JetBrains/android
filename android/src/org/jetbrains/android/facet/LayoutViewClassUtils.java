@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.facet;
 
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -64,9 +65,8 @@ public class LayoutViewClassUtils {
     final Project project = module.getProject();
 
     if (!name.contains(".")) {
-      final PsiClass[] classes = PsiShortNamesCache.getInstance(project).
-        getClassesByName(name, module.getModuleWithLibrariesScope());
-      final int apiLevel = facet.getModuleMinApi();
+      final PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(name, module.getModuleWithLibrariesScope());
+      final int apiLevel = AndroidModuleInfo.getInstance(facet).getModuleMinApi();
 
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();

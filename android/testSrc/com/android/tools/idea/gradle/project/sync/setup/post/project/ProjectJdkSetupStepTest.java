@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.ComponentStack;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
@@ -39,36 +45,64 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Mock private IdeSdks myIdeSdks;
   @Mock private Jdks myJdks;
-  private SyncMessagesStub mySyncMessages;
+  @Mock private IdeInfo myIdeInfo;
+  @Mock private ProjectRootManager myProjectRootManager;
+  @Mock private Sdk myProjectSdk;
 
+  private GradleSyncMessagesStub mySyncMessages;
+  private ProgressIndicator myIndicator;
   private ProjectJdkSetupStep mySetupStep;
+  private ComponentStack myComponentStack;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks);
+    mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks, myIdeInfo);
+    myIndicator = new EmptyProgressIndicator();
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myComponentStack = new ComponentStack(getProject());
+    myComponentStack.registerComponentImplementation(ProjectRootManager.class, myProjectRootManager);
+    when(myProjectRootManager.getProjectSdk()).thenReturn(myProjectSdk);
+    when(myProjectSdk.getHomePath()).thenReturn("somePath");
+  }
 
-    mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myComponentStack.restoreComponents();
+      myIdeSdks = null;
+      myJdks = null;
+      myIdeInfo = null;
+      myProjectRootManager = null;
+      myProjectSdk = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testDoSetUpProjectWithAndroidStudio() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+
     Sdk jdk = mock(Sdk.class);
     when(jdk.getHomePath()).thenReturn("somePath");
 
     when(myIdeSdks.getJdk()).thenReturn(jdk);
 
     Project project = getProject();
-    mySetupStep.doSetUpProject(project, true /* Android Studio */);
+    mySetupStep.setUpProject(project, myIndicator);
 
+    UIUtil.dispatchAllInvocationEvents();
     verify(myJdks, times(1)).setJdk(project, jdk);
   }
 
   public void testDoSetUpProjectWithAndroidStudioAndNoJdk() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     when(myIdeSdks.getJdk()).thenReturn(null);
 
     Project project = getProject();
-    mySetupStep.doSetUpProject(project, true /* Android Studio */);
+    mySetupStep.setUpProject(project, myIndicator);
 
     SyncMessage message = mySyncMessages.getFirstReportedMessage();
     assertNotNull(message);
@@ -83,6 +117,8 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   }
 
   public void testDoSetUpProjectWithIdea() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(false);
+
     Sdk jdk = mock(Sdk.class);
     when(jdk.getHomePath()).thenReturn("somePath");
 
@@ -90,8 +126,20 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     when(myJdks.chooseOrCreateJavaSdk(JDK_1_8)).thenReturn(jdk);
 
     Project project = getProject();
-    mySetupStep.doSetUpProject(project, false /* IDEA */);
+    mySetupStep.setUpProject(project, myIndicator);
 
+    UIUtil.dispatchAllInvocationEvents();
     verify(myJdks, times(1)).setJdk(project, jdk);
+  }
+
+  public void testDoSetUpProjectWithIdeaWithApplicableProjectJdk() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(false);
+    when(myJdks.isApplicableJdk(myProjectSdk, JDK_1_8)).thenReturn(true);
+
+    Project project = getProject();
+    mySetupStep.setUpProject(project, myIndicator);
+
+    UIUtil.dispatchAllInvocationEvents();
+    verify(myJdks, times(1)).setJdk(project, myProjectSdk);
   }
 }

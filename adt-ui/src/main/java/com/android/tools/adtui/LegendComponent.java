@@ -16,202 +16,510 @@
 
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.intellij.ui.components.JBLabel;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.HashMap;
+import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A label component that updates its value based on the reporting series passed to it.
  */
 public class LegendComponent extends AnimatedComponent {
 
+  /**
+   * Space, in pixels, between vertical legends.
+   */
+  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(10);
+
+  /**
+   * Space, in pixels, between horizontal legends.
+   */
+  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(12);
+
+  /**
+   * Space between a legend icon and its text
+   */
+  private static final int ICON_MARGIN_PX = JBUI.scale(7);
+
+  private final int myLeftPadding;
+  private final int myRightPadding;
+  private final int myVerticalPadding;
+  private final LegendComponentModel myModel;
+  /**
+   * The visual configuration of the legends
+   */
+  private final Map<Legend, LegendConfig> myConfigs;
+
+  /**
+   * In order to prevent legend text jumping as values change, we keep the max text width
+   * encountered so far and never let the text get smaller as long as the legend is in use.
+   */
+  private final Map<Legend, Integer> myMinWidths = new HashMap<>();
+
+  @NotNull
+  private final Orientation myOrientation;
+
+  @NotNull
+  private final List<LegendInstruction> myInstructions = new ArrayList<>();
+
+  /**
+   * Convenience method for creating a default, horizontal legend component based on a target
+   * model. If you want to override defaults, use a {@link Builder} instead.
+   */
+  public LegendComponent(@NotNull LegendComponentModel model) {
+    this(new Builder(model));
+  }
+
+  /**
+   * Legend component that renders a label, and icon for each series in a chart.
+   */
+  private LegendComponent(@NotNull Builder builder) {
+    myModel = builder.myModel;
+    myConfigs = new HashMap<>();
+    myOrientation = builder.myOrientation;
+    myLeftPadding = builder.myLeftPadding;
+    myRightPadding = builder.myRightPadding;
+    myVerticalPadding = builder.myVerticalPadding;
+    myModel.addDependency(myAspectObserver)
+      .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
+    setFont(AdtUiUtils.DEFAULT_FONT);
+    modelChanged();
+  }
+
+  public void configure(Legend legend, LegendConfig config) {
+    myConfigs.put(legend, config);
+  }
+
+  @NotNull
+  public LegendComponentModel getModel() {
+    return myModel;
+  }
+
+  /**
+   * A list of instructions for composing this legend. It can be iterated through either to render
+   * the legend or figure out its bounds.
+   */
+  @VisibleForTesting
+  @NotNull
+  List<LegendInstruction> getInstructions() {
+    return myInstructions;
+  }
+
+  @NotNull
+  private LegendConfig getConfig(Legend data) {
+    LegendConfig config = myConfigs.get(data);
+    if (config == null) {
+      config = new LegendConfig(LegendConfig.IconType.NONE, Color.RED);
+      myConfigs.put(data, config);
+    }
+    return config;
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    int width = 0;
+    int height = 0;
+
+    LegendState state = new LegendState(myInstructions);
+    LegendCursor cursor = new LegendCursor();
+    for (LegendInstruction instruction : myInstructions) {
+      instruction.moveCursor(state, cursor);
+      width = Math.max(cursor.x, width);
+      height = Math.max(cursor.y + state.rowHeight, height);
+    }
+
+    return new Dimension(width + myLeftPadding + myRightPadding, height + 2 * myVerticalPadding);
+  }
+
+  @Override
+  public Dimension getMinimumSize() {
+    return this.getPreferredSize();
+  }
+
+  @Override
+  protected void draw(Graphics2D g2d, Dimension dim) {
+    LegendState state = new LegendState(myInstructions);
+    LegendCursor cursor = new LegendCursor();
+    LegendBounds bounds = new LegendBounds(myLeftPadding, myVerticalPadding);
+    for (LegendInstruction instruction : myInstructions) {
+      bounds.update(state, cursor, instruction.getSize());
+      instruction.render(this, g2d, bounds);
+      instruction.moveCursor(state, cursor);
+    }
+  }
+
+  private void modelChanged() {
+    Dimension prevSize = getPreferredSize();
+
+    myInstructions.clear();
+
+    for (Legend legend : myModel.getLegends()) {
+      if (legend != myModel.getLegends().get(0)) {
+        if (myOrientation == Orientation.HORIZONTAL) {
+          myInstructions.add(new GapInstruction(LEGEND_HORIZ_MARGIN_PX));
+        }
+        else {
+          myInstructions.add(new NewRowInstruction());
+        }
+      }
+
+      LegendConfig config = getConfig(legend);
+      if (config.getIcon() != LegendConfig.IconType.NONE) {
+        myInstructions.add(new IconInstruction(config.getIcon(), config.getColor()));
+        myInstructions.add(new GapInstruction(ICON_MARGIN_PX));
+      }
+
+      String name = legend.getName();
+      String value = legend.getValue();
+      if (!name.isEmpty() && StringUtil.isNotEmpty(value)) {
+        name += ": ";
+      }
+
+      myInstructions.add(new TextInstruction(getFont(), name));
+      if (StringUtil.isNotEmpty(value)) {
+        TextInstruction valueInstruction = new TextInstruction(getFont(), value);
+        if (myOrientation != Orientation.VERTICAL) {
+          // In order to prevent one legend's value changing causing the other legends from jumping
+          // around, we remember the text's largest size and never shrink.
+          Integer minWidth = myMinWidths.getOrDefault(legend, 0);
+          if (valueInstruction.getSize().w < minWidth) {
+            // Add a gap, effectively right-justifying the text
+            myInstructions.add(new GapInstruction(minWidth - valueInstruction.getSize().w));
+          }
+          else {
+            myMinWidths.put(legend, valueInstruction.getSize().w);
+          }
+        }
+        myInstructions.add(valueInstruction);
+      }
+    }
+
+    if (!getPreferredSize().equals(prevSize)) {
+      revalidate();
+    }
+  }
+
   public enum Orientation {
     HORIZONTAL,
     VERTICAL,
   }
 
-  private static final BasicStroke LINE_STROKE = new BasicStroke(3);
-  private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
+  public static final class Builder {
+    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(5);
+    private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);
+
+    private final LegendComponentModel myModel;
+    private int myLeftPadding = DEFAULT_PADDING_X_PX;
+    private int myRightPadding = DEFAULT_PADDING_X_PX;
+    private int myVerticalPadding = DEFAULT_PADDING_Y_PX;
+    private Orientation myOrientation = Orientation.HORIZONTAL;
+
+    public Builder(@NotNull LegendComponentModel model) {
+      myModel = model;
+    }
+
+    @NotNull
+    public Builder setVerticalPadding(int verticalPadding) {
+      myVerticalPadding = verticalPadding;
+      return this;
+    }
+
+    @NotNull
+    public Builder setLeftPadding(int leftPadding) {
+      myLeftPadding = leftPadding;
+      return this;
+    }
+
+    @NotNull
+    public Builder setRightPadding(int rightPadding) {
+      myRightPadding = rightPadding;
+      return this;
+    }
+
+    @NotNull
+    public Builder setHorizontalPadding(int padding) {
+      setLeftPadding(padding);
+      setRightPadding(padding);
+      return this;
+    }
+
+    @NotNull
+    public Builder setOrientation(@NotNull Orientation orientation) {
+      myOrientation = orientation;
+      return this;
+    }
+
+    @NotNull
+    public LegendComponent build() {
+      return new LegendComponent(this);
+    }
+  }
 
   /**
-   * Side of the (squared) box icon in pixels.
+   * State global to all instructions which needs to be pre-calculated before rendering them.
    */
-  private static final int ICON_WIDTH_PX = 10;
+  private static final class LegendState {
+    private int rowHeight = 0;
+
+    public LegendState(List<LegendInstruction> instructions) {
+      for (LegendInstruction instruction : instructions) {
+        rowHeight = Math.max(instruction.getSize().h, rowHeight);
+      }
+    }
+  }
 
   /**
-   * Distance, in pixels, between icons and their correspondent labels.
+   * Maintains current pixel positions of legend elements as we run through instructions.
    */
-  private static final int ICON_MARGIN_PX = 5;
+  private static final class LegendCursor {
+    public int x;
+    public int y;
+  }
 
   /**
-   * Vertical space, in pixels, between the legend and the border of the parent component
-   * or the next/previous vertical legend.
+   * The size of a legend's area represented by an instruction.
    */
-  private static final int LEGEND_VERTICAL_PADDING_PX = 5;
+  private static final class LegendSize {
+    private static final LegendSize EMPTY = new LegendSize(0, 0);
+
+    public final int w;
+    public final int h;
+
+    private LegendSize(int w, int h) {
+      this.w = w;
+      this.h = h;
+    }
+  }
 
   /**
-   * Distance, in pixels, between legends.
+   * Bounds area used when rendering legend elements.
    */
-  private int LEGEND_MARGIN_PX = 10;
+  private static final class LegendBounds {
+    private final int myLeftX;
+    private final int myTopY;
+
+    private int x;
+    private int y;
+    private int w;
+    private int h;
+
+    public LegendBounds(int leftX, int topY) {
+      myLeftX = leftX;
+      myTopY = topY;
+    }
+
+    public void update(@NotNull LegendState state, @NotNull LegendCursor cursor, @NotNull LegendSize size) {
+      x = myLeftX + cursor.x;
+      y = myTopY + cursor.y;
+      w = size.w;
+      h = state.rowHeight;
+    }
+  }
 
   /**
-   * Min width of the label so that the legends don't shuffle around as the magnitude of the data changes.
-   */
-  private static final int LABEL_MIN_WIDTH_PX = 100;
-
-  private int mFrequencyMillis;
-
-  private List<JLabel> mLabelsToDraw;
-
-  private long mLastUpdate;
-
-  private List<LegendRenderData> mLegendRenderData;
-
-  private Orientation mOrientation;
-
-  /**
-   * Legend component that renders a label, and icon for each series in a chart.
+   * Base class for instructions used in updating state and rendering legend elements.
    *
-   * @param orientation     Determines if we want the labels to be stacked horizontally or vertically
-   * @param frequencyMillis How frequently the labels get updated
+   * To render a legend, you can iterate through a list of instructions, creating the current
+   * {@link LegendBounds} from the current {@link LegendCursor} position, and then moving the
+   * cursor to the next instruction using {@link #moveCursor(LegendState, LegendCursor)}
    */
-  public LegendComponent(Orientation orientation, int frequencyMillis) {
-    mFrequencyMillis = frequencyMillis;
-    mOrientation = orientation;
-    mLastUpdate = 0;
+  static abstract class LegendInstruction {
+    @NotNull
+    public LegendSize getSize() {
+      return LegendSize.EMPTY;
+    }
+
+    public void moveCursor(@NotNull LegendState state, @NotNull LegendCursor cursor) {
+      LegendSize size = getSize();
+      cursor.x += size.w;
+    }
+
+    public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull LegendBounds bounds) {
+    }
   }
 
   /**
-   * Clears existing LegendRenderData and adds new ones.
+   * An instruction to render an {@link LegendConfig.IconType} icon.
    */
-  public void setLegendData(List<LegendRenderData> data) {
-    mLegendRenderData = new ArrayList<>(data);
-    mLabelsToDraw = new ArrayList<>(mLegendRenderData.size());
-    for (LegendRenderData initialData : mLegendRenderData) {
-      JBLabel label = new JBLabel();
-      label.setFont(AdtUiUtils.DEFAULT_FONT);
-      mLabelsToDraw.add(label);
+  @VisibleForTesting
+  static final class IconInstruction extends LegendInstruction {
+    private static final int ICON_HEIGHT_PX = 15;
+    private static final int LINE_THICKNESS = 3;
+
+    // Non-even size chosen because that centers well (e.g. (15 - 11) / 2, vs. (15 - 10) / 2)
+    private static final LegendSize BOX_SIZE = new LegendSize(11, 11);
+    private static final LegendSize BOX_BOUNDS = new LegendSize(11, ICON_HEIGHT_PX);
+    private static final LegendSize LINE_SIZE = new LegendSize(12, LINE_THICKNESS);
+    private static final LegendSize LINE_BOUNDS = new LegendSize(12, ICON_HEIGHT_PX);
+
+    private static final BasicStroke LINE_STROKE = new BasicStroke(LINE_THICKNESS);
+    private static final BasicStroke DASH_STROKE = new BasicStroke(LINE_THICKNESS,
+                                                                   BasicStroke.CAP_BUTT,
+                                                                   BasicStroke.JOIN_BEVEL,
+                                                                   10.0f,  // Miter limit, Swing's default
+                                                                   new float[]{5.0f, 2f},  // Dash pattern in pixel
+                                                                   0.0f);  // Dash phase - just starts at zero.
+    private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
+
+    @VisibleForTesting
+    @NotNull
+    final LegendConfig.IconType myType;
+    @NotNull private final Color myColor;
+    @NotNull private final Color myBorderColor;
+
+    public IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
+      switch (type) {
+        case BOX:
+        case LINE:
+        case DASHED_LINE:
+          break;
+        default:
+          throw new IllegalArgumentException(type.toString());
+      }
+
+      myType = type;
+      myColor = color;
+
+      // TODO: make the border customizable. Profilers, for instance, shouldn't have a border in Darcula.
+      int r = (int)(myColor.getRed() * .8f);
+      int g = (int)(myColor.getGreen() * .8f);
+      int b = (int)(myColor.getBlue() * .8f);
+      myBorderColor = new Color(r, g, b);
+    }
+
+    @NotNull
+    @Override
+    public LegendSize getSize() {
+      switch (myType) {
+        case BOX:
+          return BOX_BOUNDS;
+        case LINE:
+        case DASHED_LINE:
+          return LINE_BOUNDS;
+        default:
+          throw new IllegalStateException(myType.toString());
+      }
+    }
+
+    @Override
+    public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull LegendBounds bounds) {
+      // The legend icon is a short, straight line, or a small box.
+      // Turning off anti-aliasing makes it look sharper in a good way.
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
+      Stroke prevStroke = g2d.getStroke();
+      switch (myType) {
+        case BOX:
+          assert (BOX_SIZE.w <= bounds.w);
+          assert (BOX_SIZE.h <= bounds.h);
+          int boxX = bounds.x;
+          int boxY = bounds.y + ((bounds.h - BOX_SIZE.h) / 2);
+          g2d.setColor(myColor);
+          g2d.fillRect(boxX, boxY, BOX_SIZE.w, BOX_SIZE.h);
+
+          g2d.setColor(myBorderColor);
+          g2d.setStroke(BORDER_STROKE);
+          g2d.drawRect(boxX, boxY, BOX_SIZE.w, BOX_SIZE.h);
+          break;
+
+        case LINE:
+        case DASHED_LINE:
+          assert (LINE_SIZE.w <= bounds.w);
+          assert (LINE_SIZE.h <= bounds.h);
+          g2d.setColor(myColor);
+          g2d.setStroke(myType == LegendConfig.IconType.LINE ? LINE_STROKE : DASH_STROKE);
+          int lineX = bounds.x;
+          int lineY = bounds.y + (bounds.h / 2);
+          g2d.drawLine(lineX, lineY, lineX + LINE_SIZE.w, lineY);
+          break;
+
+        default:
+          throw new IllegalStateException(myType.toString());
+      }
+      g2d.setStroke(prevStroke);
     }
   }
 
-  @Override
-  protected void updateData() {
-    long now = System.currentTimeMillis();
-    if (now - mLastUpdate > mFrequencyMillis) {
-      mLastUpdate = now;
-      for (int i = 0; i < mLegendRenderData.size(); ++i) {
-        LegendRenderData data = mLegendRenderData.get(i);
-        JLabel label = mLabelsToDraw.get(i);
-        if (data.hasData()) {
-          label.setText(String.format("%s: %s", data.getLabel(), data.getFormattedData()));
-        }
-        else {
-          label.setText(data.getLabel());
-        }
-        Dimension preferredSize = label.getPreferredSize();
-        if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {
-          preferredSize.width = LABEL_MIN_WIDTH_PX;
-          label.setPreferredSize(preferredSize);
-        }
-        label.setBounds(0, 0, preferredSize.width, preferredSize.height);
-      }
+  /**
+   * Instruction for rendering text.
+   */
+  @VisibleForTesting
+  static final class TextInstruction extends LegendInstruction {
+    @VisibleForTesting
+    @NotNull
+    final String myText;
+    @NotNull private final Font myFont;
+    @NotNull private final LegendSize mySize;
 
-      // As we adjust the size of the label we need to adjust our own size
-      // to tell our parent to give us enough room to draw.
-      Dimension newSize = getLegendPreferredSize();
-      if (newSize != getPreferredSize()) {
-        setPreferredSize(newSize);
-        // Set the minimum height of the component to avoid hiding all the labels
-        // in case they are longer than the component's total width
-        setMinimumSize(new Dimension(getMinimumSize().width, newSize.height));
-        revalidate();
-      }
+    private TextInstruction(@NotNull Font font, @NotNull String text) {
+      myFont = font;
+      myText = text;
+
+      Rectangle2D bounds = myFont.getStringBounds(myText, new FontRenderContext(null, true, true));
+      int w = (int)bounds.getWidth();
+      int h = (int)bounds.getHeight();
+
+      mySize = new LegendSize(w, h);
+    }
+
+    @NotNull
+    @Override
+    public LegendSize getSize() {
+      return mySize;
+    }
+
+    @Override
+    public void render(@NotNull JComponent c, @NotNull Graphics2D g2d, @NotNull LegendBounds bounds) {
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2d.setColor(c.getForeground());
+      FontMetrics metrics = SwingUtilities2.getFontMetrics(c, myFont);
+      assert (mySize.h <= bounds.h);
+      int textY = bounds.y + metrics.getAscent() + ((bounds.h - mySize.h) / 2);
+      g2d.drawString(myText, bounds.x, textY);
     }
   }
 
-  @Override
-  protected void draw(Graphics2D g2d, Dimension dim) {
-    // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
-    Stroke defaultStroke = g2d.getStroke();
+  /**
+   * Instruction to skip a bit of horizontal space, useful for margins between elements.
+   */
+  @VisibleForTesting
+  static final class GapInstruction extends LegendInstruction {
+    private final LegendSize mySize;
 
-    for (int i = 0; i < mLegendRenderData.size(); ++i) {
-      LegendRenderData data = mLegendRenderData.get(i);
-      JLabel label = mLabelsToDraw.get(i);
-      Dimension labelPreferredSize = label.getPreferredSize();
-      int xOffset = 0;
+    private GapInstruction(int w) {
+      mySize = new LegendSize(w, 0);
+    }
 
-      // Draw the icon, and apply a translation offset for the label to be drawn.
-      // TODO: Add config for LegendRenderData.IconType.DOTTED_LINE once we support dashed lines.
-      if (data.getIcon() == LegendRenderData.IconType.BOX) {
-        // Adjust the box initial Y coordinate to align the box and the label vertically.
-        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
-        Color fillColor = data.getColor();
-        g2d.setColor(fillColor);
-        g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
-
-        int r = (int)(fillColor.getRed() * .8f);
-        int g = (int)(fillColor.getGreen() * .8f);
-        int b = (int)(fillColor.getBlue() * .8f);
-
-        Color borderColor = new Color(r,g,b);
-        g2d.setColor(borderColor);
-        g2d.setStroke(BORDER_STROKE);
-        g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
-        g2d.setStroke(defaultStroke);
-
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
-      }
-      else if (data.getIcon() == LegendRenderData.IconType.LINE) {
-        g2d.setColor(data.getColor());
-        g2d.setStroke(LINE_STROKE);
-        int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
-        g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
-        g2d.setStroke(defaultStroke);
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
-      }
-      g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
-      label.paint(g2d);
-
-      // Translate the draw position for the next set of labels.
-      if (mOrientation == Orientation.HORIZONTAL) {
-        g2d.translate(labelPreferredSize.width + LEGEND_MARGIN_PX, -LEGEND_VERTICAL_PADDING_PX);
-      }
-      else if (mOrientation == Orientation.VERTICAL) {
-        g2d.translate(-xOffset, labelPreferredSize.height + LEGEND_VERTICAL_PADDING_PX);
-      }
+    @NotNull
+    @Override
+    public LegendSize getSize() {
+      return mySize;
     }
   }
 
-  private Dimension getLegendPreferredSize() {
-    int totalWidth = 0;
-    int totalHeight = 0;
-    // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
-    int iconPaddedSize = ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
-    // Calculate total size of all icons + labels.
-    for (JLabel label : mLabelsToDraw) {
-      Dimension size = label.getPreferredSize();
-      if (mOrientation == Orientation.HORIZONTAL) {
-        totalWidth += iconPaddedSize + size.width;
-        if (totalHeight < size.height) {
-          totalHeight = size.height;
-        }
-      }
-      else if (mOrientation == Orientation.VERTICAL) {
-        totalHeight += iconPaddedSize;
-        if (totalWidth < size.width + iconPaddedSize) {
-          totalWidth = size.width + iconPaddedSize;
-        }
-      }
+  /**
+   * Instruction to create a new row in a {@link Orientation#VERTICAL} legend; this has the effect
+   * of moving the cursor back to the left.
+   */
+  @VisibleForTesting
+  static final class NewRowInstruction extends LegendInstruction {
+    @Override
+    public void moveCursor(@NotNull LegendState state, @NotNull LegendCursor cursor) {
+      cursor.y += state.rowHeight + LEGEND_VERT_MARGIN_PX;
+      cursor.x = 0;
     }
-    int heightPadding = 2 * LEGEND_VERTICAL_PADDING_PX;
-    // In the case of vertical legends, we have vertical padding for all the legends
-    if (mOrientation == Orientation.VERTICAL) {
-      heightPadding *= mLabelsToDraw.size();
-    }
-    return new Dimension(totalWidth, totalHeight + heightPadding);
   }
 }

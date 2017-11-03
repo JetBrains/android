@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.graphics.fonts.FontVariationAxis FontVariationAxis(java.lang.String, float) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.fonts.FontVariationAxis android.graphics.fonts.FontVariationAxis[] fromFontVariationSettings(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.fonts.FontVariationAxis android.graphics.fonts.FontVariationAxis[] fromFontVariationSettings(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.fonts.FontVariationAxis java.lang.String toFontVariationSettings(android.graphics.fonts.FontVariationAxis[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.fonts.FontVariationAxis java.lang.String toFontVariationSettings(android.graphics.fonts.FontVariationAxis[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

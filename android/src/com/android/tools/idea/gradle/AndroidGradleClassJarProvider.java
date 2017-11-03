@@ -18,18 +18,25 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.utils.ImmutableCollectors;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Contains Android-Gradle related state necessary for finding classes (from build output)
@@ -44,19 +51,22 @@ public class AndroidGradleClassJarProvider extends ClassJarProvider {
     if (model == null) {
       return null;
     }
-    VirtualFile outputDir = getCompilerOutputRoot(model);
-    if (outputDir == null) {
-      return null;
+    for (VirtualFile outputDir : getCompilerOutputRoots(model)) {
+      VirtualFile file = ClassJarProvider.findClassFileInPath(outputDir, className);
+      if (file != null) {
+        return file;
+      }
     }
-    return ClassJarProvider.findClassFileInPath(outputDir, className);
+    return null;
   }
 
-  @Nullable
-  private static VirtualFile getCompilerOutputRoot(@NotNull AndroidModuleModel model) {
+  @NotNull
+  private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull AndroidModuleModel model) {
     Variant variant = model.getSelectedVariant();
     String variantName = variant.getName();
     AndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
+    ImmutableList.Builder<VirtualFile> listBuilder = new ImmutableList.Builder<>();
 
     // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
     //noinspection ConstantConditions
@@ -72,14 +82,34 @@ public class AndroidGradleClassJarProvider extends ClassJarProvider {
                               // Change variant name variant-release into variant/release directories
                               variantName.replace('-', File.separatorChar));
     if (outFolder.exists()) {
-      return VfsUtil.findFileByIoFile(outFolder, true);
+      VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
+      if (file != null) {
+        listBuilder.add(file);
+      }
     }
-    return null;
+
+    for (File additionalFolder : mainArtifactInfo.getAdditionalClassesFolders()) {
+      VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
+      if (file != null) {
+        listBuilder.add(file);
+      }
+    }
+
+    return listBuilder.build();
   }
 
   @Override
   @NotNull
-  public List<VirtualFile> getModuleExternalLibraries(@NotNull Module module) {
-    return AndroidRootUtil.getExternalLibraries(module);
+  public List<File> getModuleExternalLibraries(@NotNull Module module) {
+    AndroidModuleModel model = AndroidModuleModel.get(module);
+    if (model == null) {
+      return Lists.transform(AndroidRootUtil.getExternalLibraries(module), VfsUtilCore::virtualToIoFile);
+    }
+
+    return Stream.concat(model.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
+                           .map(library -> new File(library.getJarFile())),
+                         model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
+                           .map(Library::getArtifact))
+      .collect(ImmutableCollectors.toImmutableList());
   }
 }

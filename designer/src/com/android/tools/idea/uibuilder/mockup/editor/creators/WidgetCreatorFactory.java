@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +35,11 @@ public final class WidgetCreatorFactory {
    * If no {@link WidgetCreator} exists for the given tagName, returns a {@link SimpleViewCreator}
    * that will create a simple View tag
    *
-   * @param tagName    The tag of the view to create
-   * @param mockup     The mockup to extract information from
-   * @param model      The model to add the new component to
+   * @param tagName   The tag of the view to create
+   * @param mockup    The mockup to extract information from
+   * @param model     The model to add the new component to
    * @param screenView The current ScreenView where the Mockup is used
-   * @param selection  The bounds of the selection on the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   * @param selection The bounds of the selection on the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    * @return A {@link WidgetCreator} to create the view with tagName or default to a simple View
    */
   @NotNull

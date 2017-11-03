@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawRegion;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +100,7 @@ public class ImageViewDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawImageView(int x, int y, int width, int height) {
+    DrawImageView(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
 
@@ -125,7 +127,7 @@ public class ImageViewDecorator extends SceneDecorator {
 
         Graphics2D clipGraphics = ((Graphics2D)g.create(x, y, width, height));
 
-        clipGraphics.setColor(ColorTheme.updateBrightness(sceneContext.getColorSet().getBackground(), 0.8f));
+        clipGraphics.setColor(ColorTheme.updateBrightness(sceneContext.getColorSet().getBackground(), 0.8f, 64));
 
         shape = sClosedPath2D.createTransformedShape(mTransform);
         clipGraphics.fill(shape);

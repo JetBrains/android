@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -42,5 +48,20 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
     return RECYCLER_VIEW_LIB_ARTIFACT;
+  }
+
+  @Nullable
+  @Override
+  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    if (component.getAttribute(TOOLS_URI, ATTR_LISTITEM) != null) {
+      return null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
+    if (facet == null) {
+      return null;
+    }
+
+    return RecyclerViewAssistant::new;
   }
 }

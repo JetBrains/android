@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.configurations.FlatComboAction;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
+import com.android.tools.idea.common.actions.DeselectAllAction;
+import com.android.tools.idea.common.actions.GotoComponentAction;
+import com.android.tools.idea.common.actions.SelectAllAction;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -26,35 +35,23 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.InteractionManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,16 +59,16 @@ import java.util.List;
 /**
  * Provides and handles actions in the layout editor
  */
-public class NlActionManager {
-  private final DesignSurface mySurface;
+public class NlActionManager extends ActionManager<NlDesignSurface> {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
 
-  public NlActionManager(@NotNull DesignSurface surface) {
-    mySurface = surface;
+  public NlActionManager(@NotNull NlDesignSurface surface) {
+    super(surface);
   }
 
+  @Override
   public void registerActions(@NotNull JComponent component) {
     assert mySelectAllAction == null; // should only be called once!
     mySelectAllAction = new SelectAllAction(mySurface);
@@ -84,24 +81,11 @@ public class NlActionManager {
     mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
   }
 
-  private static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
-    action.registerCustomShortcutSet(
-      ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-      component
-    );
-  }
-
-  @NotNull
-  public JComponent createToolbar(@NotNull NlModel model) {
-    NlActionsToolbar actionsToolbar = new NlActionsToolbar(mySurface);
-    actionsToolbar.setModel(model);
-    return actionsToolbar.getToolbarComponent();
-  }
-
   @NotNull
   private static ActionGroup createRefactoringMenu() {
     DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
-    ActionManager manager = ActionManager.getInstance();
+    com.intellij.openapi.actionSystem.ActionManager manager =
+      com.intellij.openapi.actionSystem.ActionManager.getInstance();
 
     AnAction action = manager.getAction(AndroidExtractStyleAction.ACTION_ID);
     group.add(new AndroidRefactoringActionWrapper("_Extract Style...", action));
@@ -148,35 +132,13 @@ public class NlActionManager {
     }
   }
 
-  public void showPopup(@NotNull MouseEvent event) {
-    NlComponent component = null;
-    int x = event.getX();
-    int y = event.getY();
-    ScreenView screenView = mySurface.getScreenView(x, y);
-    if (screenView == null) {
-      screenView = mySurface.getCurrentScreenView();
-    }
-    if (screenView != null) {
-      component = Coordinates.findComponent(screenView, x, y);
-    }
-    showPopup(event, screenView, component);
-  }
-
-  public void showPopup(@NotNull MouseEvent event, @Nullable ScreenView screenView, @Nullable NlComponent leafComponent) {
-    ActionManager actionManager = ActionManager.getInstance();
-
-    DefaultActionGroup group = createPopupMenu(actionManager, screenView, leafComponent);
-    ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    popupMenu.getComponent().show(invoker, event.getX(), event.getY());
-  }
-
+  @Override
   @NotNull
-  private DefaultActionGroup createPopupMenu(@NotNull ActionManager actionManager,
-                                             @Nullable ScreenView screenView,
-                                             @Nullable NlComponent leafComponent) {
+  protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
+                                               @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
@@ -186,8 +148,11 @@ public class NlActionManager {
       group.addSeparator();
     }
 
+    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
+      group.add(new MorphComponentAction(leafComponent, mySurface));
+    }
     group.add(new MockupEditAction(mySurface));
-    if(leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
+    if (leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
     }
     group.addSeparator();
@@ -216,7 +181,7 @@ public class NlActionManager {
     // Look up view handlers
     int prevCount = group.getChildrenCount();
     NlComponent parent = !component.isRoot() ? component.getParent() : null;
-    addViewActions(group, component, parent, selection, false);
+    addActions(group, component, parent, selection, false);
     if (group.getChildrenCount() > prevCount) {
       group.addSeparator();
     }
@@ -240,9 +205,10 @@ public class NlActionManager {
     return group;
   }
 
-  public void addViewActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
-                             @NotNull List<NlComponent> newSelection, boolean toolbar) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+  @Override
+  public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
+                         @NotNull List<NlComponent> newSelection, boolean toolbar) {
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null || (parent == null && component == null)) {
       return;
     }
@@ -279,16 +245,16 @@ public class NlActionManager {
     List<ViewAction> viewActions = createViewActionList();
     if (toolbar) {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
-    } else {
+    }
+    else {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(handler));
     }
     Collections.sort(viewActions);
 
     group.removeAll();
     List<AnAction> target = Lists.newArrayList();
-    NlActionManager actionManager = mySurface.getActionManager();
     for (ViewAction viewAction : viewActions) {
-      actionManager.addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
+      addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
     }
     boolean lastWasSeparator = false;
     for (AnAction action : target) {
@@ -411,15 +377,9 @@ public class NlActionManager {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
       if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-          }
-        }.execute();
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
+          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
       }
       else {
         // Catch missing write lock and diagnose as missing affectsRedo
@@ -520,16 +480,8 @@ public class NlActionManager {
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
-
       if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            applySelection(state);
-          }
-        }.execute();
+        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(state));
       }
       else {
         try {
@@ -665,7 +617,7 @@ public class NlActionManager {
     }
   }
 
-  private class ViewActionToolbarMenuWrapper extends FlatComboAction implements ViewActionPresentation {
+  private class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
     private final NestedViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -678,6 +630,7 @@ public class NlActionManager {
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,
                                         @NotNull List<NlComponent> selectedChildren) {
+      super("", action.getLabel(), action.getDefaultIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
@@ -699,29 +652,28 @@ public class NlActionManager {
       }
     }
 
-    @NotNull
     @Override
-    protected DefaultActionGroup createPopupActionGroup() {
+    protected boolean updateActions() {
+      removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
         List<AnAction> actions = Lists.newArrayList();
         for (ViewAction viewAction : rows.get(0)) {
           addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
         }
-        return new DefaultActionGroup(actions);
-      } else {
-        return new DefaultActionGroup();
+        addAll(actions);
       }
+      return true;
     }
 
     @Override
-    protected JBPopup createPopup(@Nullable Runnable onDispose, @Nullable DataContext context) {
+    protected JPanel createCustomComponentPopup() {
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
-        return super.createPopup(onDispose, context);
+        return null;
       }
 
-      ActionManager actionManager = ActionManager.getInstance();
+      com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
       JPanel panel = new JPanel(new VerticalLayout(0));
       for (List<ViewAction> row : rows) {
         if (row.size() == 1 && row.get(0) instanceof ViewActionSeparator) {
@@ -736,20 +688,7 @@ public class NlActionManager {
         ActionToolbar toolbar = actionManager.createActionToolbar("DynamicToolbar", group, true);
         panel.add(toolbar.getComponent());
       }
-
-      return JBPopupFactory.getInstance().createComponentPopupBuilder(panel, panel)
-        .setRequestFocus(true)
-        .setCancelOnClickOutside(true)
-        .setLocateWithinScreenBounds(true)
-        .setShowShadow(true)
-        .setCancelOnWindowDeactivation(true)
-        .setCancelCallback(() -> {
-          if (onDispose != null) {
-            onDispose.run();
-          }
-          return Boolean.TRUE;
-        })
-        .createPopup();
+      return panel;
     }
 
     // ---- Implements ViewActionPresentation ----

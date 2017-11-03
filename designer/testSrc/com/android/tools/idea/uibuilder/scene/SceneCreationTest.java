@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.InOrder;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.*;
 
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
@@ -48,26 +56,23 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(component.getScene(), myScene);
     NlComponent nlComponent = component.getNlComponent();
     assertEquals(component, myScene.getSceneComponent(nlComponent));
-    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
-    myScene.setDpiFactorOverride(3.5f);
-    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
   }
 
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
-    scene.setDpiFactorOverride(1);
-    scene.setAnimate(false);
+    SyncNlModel model = builder.build();
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    Scene scene = sceneBuilder.build();
+    scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
     ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT, TEXT_VIEW);
     ComponentDescriptor editText = parent.addChild(component(EDIT_TEXT)
-                                                     .withBounds(110, 220, 200, 30)
+                                                     .withBounds(220, 440, 400, 60)
                                                      .width("200dp")
                                                      .height("30dp"), textView);
-    builder.updateModel(model, false);
-    scene.updateFrom(model);
+    builder.updateModel(model);
+    sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
     List<SceneComponent> children = scene.getRoot().getChildren();
     SceneComponent sceneTextView = children.get(0);
@@ -81,8 +86,8 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(200, sceneEditText.getDrawWidth());
     assertEquals(30, sceneEditText.getDrawHeight());
     parent.removeChild(textView);
-    builder.updateModel(model, false);
-    scene.updateFrom(model);
+    builder.updateModel(model);
+    sceneBuilder.update();
     assertEquals(1, scene.getRoot().getChildren().size());
     sceneTextView = scene.getRoot().getChildren().get(0);
     assertEquals(110, sceneTextView.getDrawX());
@@ -91,12 +96,38 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(30, sceneTextView.getDrawHeight());
   }
 
+  public void testSceneDisposal() {
+    DesignSurface surfaceNoSpy = new NlDesignSurface(getProject(), false, getTestRootDisposable());
+    DesignSurface surface = spy(surfaceNoSpy);
+    Disposer.register(surfaceNoSpy, surface); // When real object is disposed, dispose the spy and its registered children
+
+    SelectionModel selectionModel = spy(new SelectionModel());
+    when(surface.getSelectionModel()).thenReturn(selectionModel);
+
+    // Create a sample model
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
+    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile);
+
+    // Setting the model on the surface registers the listener
+    surface.setModel(model);
+
+    Scene scene = surface.getScene();
+    InOrder inOrder = inOrder(selectionModel);
+    inOrder.verify(selectionModel).addListener(scene);
+    inOrder.verify(selectionModel, never()).removeListener(scene);
+
+    // Disposal of the model should remove the listener
+    Disposer.dispose(model);
+    inOrder.verify(selectionModel).removeListener(scene);
+    inOrder.verify(selectionModel, never()).addListener(scene);
+  }
+
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
-    scene.setDpiFactorOverride(1);
-    scene.setAnimate(false);
+    SyncNlModel model = builder.build();
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    Scene scene = sceneBuilder.build();
+    scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
     parent.addChild(component(CONSTRAINT_LAYOUT)
@@ -104,15 +135,15 @@ public class SceneCreationTest extends SceneTest {
                       .withBounds(200, 300, 200, 200)
                       .width("200dp")
                       .height("200dp"), null);
-    builder.updateModel(model, false);
-    scene.updateFrom(model);
+    builder.updateModel(model);
+    sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
 
     NlComponent textView = scene.getRoot().getChild(0).getNlComponent();
     NlComponent container = scene.getRoot().getChild(1).getNlComponent();
     scene.getRoot().getNlComponent().removeChild(textView);
     container.addChild(textView);
-    scene.updateFrom(model);
+    sceneBuilder.update();
     assertEquals(1, scene.getRoot().getChildCount());
     SceneComponent layout = scene.getSceneComponent("layout");
     assertEquals(1, layout.getChildCount());
@@ -124,30 +155,31 @@ public class SceneCreationTest extends SceneTest {
 
   public void testDeviceChange() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
+    SyncNlModel model = builder.build();
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
-    scene.setAnimate(false);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    scene.setAnimated(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
     ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT, TEXT_VIEW);
     SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
 
     float dpiFactor =  560 / 160f;
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
-    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
-    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawX());
+    assertEquals(pxToDp(400, dpiFactor), sceneTextView.getDrawY());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth());
+    assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight());
 
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus S"), false);
     dpiFactor = 240 / 160f;
 
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
-    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
-    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
+    // Allow 1dp difference for rounding
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawX(), 1);
+    assertEquals(pxToDp(400, dpiFactor), sceneTextView.getDrawY(), 1);
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth(), 1);
+    assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight(), 1);
   }
 
 
@@ -157,14 +189,14 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")

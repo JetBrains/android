@@ -16,6 +16,8 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -24,10 +26,8 @@ import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.collections.ObservableList;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.swing.*;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
@@ -225,7 +225,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(findOnlyReferences)
-        .withGradleSync(false)
+        .withPerformSync(false)
         .intoOpenFiles(openFiles)
         .intoDependencies(dependencies)
         .intoClasspathEntries(classpathEntries)

@@ -20,6 +20,9 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
+import com.android.tools.idea.ddms.actions.ScreenshotAction;
+import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFormatter;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -35,6 +38,8 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
@@ -55,7 +60,7 @@ import static javax.swing.BoxLayout.X_AXIS;
 /**
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
-public abstract class AndroidLogcatView implements Disposable {
+public class AndroidLogcatView implements Disposable {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
@@ -64,6 +69,8 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
+  private final String myToolWindowId;
+  private final boolean myHideMonitors;
 
   private JPanel myPanel;
   private DefaultComboBoxModel myFilterComboBoxModel;
@@ -73,8 +80,6 @@ public abstract class AndroidLogcatView implements Disposable {
   private final FormattedLogcatReceiver myLogcatReceiver;
   private final AndroidLogFilterModel myLogFilterModel;
 
-  private final IDevice myPreselectedDevice;
-
   /**
    * A default filter which will always let everything through.
    */
@@ -83,6 +88,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   /**
    * Called internally when the device may have changed, or been significantly altered.
+   *
    * @param forceReconnect Forces the logcat connection to restart even if the device has not changed.
    */
   private void notifyDeviceUpdated(final boolean forceReconnect) {
@@ -116,14 +122,14 @@ public abstract class AndroidLogcatView implements Disposable {
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  public AndroidLogcatView(@NotNull final Project project, @NotNull DeviceContext deviceContext) {
-    this(project, null, deviceContext);
-  }
-
-  private AndroidLogcatView(final Project project, @Nullable IDevice preselectedDevice, @Nullable DeviceContext deviceContext) {
+  public AndroidLogcatView(@NotNull final Project project,
+                           @NotNull DeviceContext deviceContext,
+                           @NotNull String toolWindowId,
+                           boolean hideMonitors) {
     myDeviceContext = deviceContext;
     myProject = project;
-    myPreselectedDevice = preselectedDevice;
+    myToolWindowId = toolWindowId;
+    myHideMonitors = hideMonitors;
 
     Disposer.register(myProject, this);
 
@@ -169,7 +175,7 @@ public abstract class AndroidLogcatView implements Disposable {
       }
     };
 
-    if (preselectedDevice == null && deviceContext != null) {
+    if (deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
         new DeviceContext.DeviceSelectionListener() {
           @Override
@@ -298,7 +304,10 @@ public abstract class AndroidLogcatView implements Disposable {
     return searchComponent;
   }
 
-  protected abstract boolean isActive();
+  private boolean isActive() {
+    ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(myToolWindowId);
+    return window.isVisible();
+  }
 
   public final void activate() {
     if (isActive()) {
@@ -328,10 +337,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Nullable
   public final IDevice getSelectedDevice() {
-    if (myPreselectedDevice != null) {
-      return myPreselectedDevice;
-    }
-    else if (myDeviceContext != null) {
+    if (myDeviceContext != null) {
       return myDeviceContext.getSelectedDevice();
     }
     else {
@@ -465,6 +471,14 @@ public abstract class AndroidLogcatView implements Disposable {
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
         c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
+        if (myHideMonitors) {
+          // TODO: Decide if these should be part of the profiler window
+          c.addCustomConsoleAction(new Separator());
+          c.addCustomConsoleAction(new ScreenshotAction(project, myDeviceContext));
+          c.addCustomConsoleAction(new ScreenRecorderAction(project, myDeviceContext));
+          c.addCustomConsoleAction(new Separator());
+          c.addCustomConsoleAction(new TerminateVMAction(myDeviceContext));
+        }
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new BrowserHelpAction("logcat", "http://developer.android.com/r/studio-ui/am-logcat.html"));
       }

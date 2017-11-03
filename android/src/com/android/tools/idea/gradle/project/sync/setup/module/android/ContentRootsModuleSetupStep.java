@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
 import com.google.common.annotations.VisibleForTesting;
@@ -93,13 +93,12 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Source folder(s) setup";
+  public boolean invokeOnBuildVariantChange() {
+    return true;
   }
 
   @Override
-  public boolean invokeOnBuildVariantChange() {
+  public boolean invokeOnSkippedSync() {
     return true;
   }
 }

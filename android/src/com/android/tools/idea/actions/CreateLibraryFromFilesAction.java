@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -56,6 +55,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Replaces the {@linkplain MarkLibraryRootAction} for Android-Gradle projects. This action, given an input of a number of
@@ -178,8 +179,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
     @Override
     protected void doOKAction() {
-      AccessToken token = WriteAction.start();
-      try {
+      WriteAction.run(() -> {
         final Module module = myModulesComboBox.getSelectedModule();
         if (module == null) { return; }
         String moduleGradlePath = GradleSettingsFile.getModuleGradlePath(module);
@@ -196,7 +196,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
             if (path == null) {
               path = local.getPath();
             }
-            Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path);
+            Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+            Dependency newDependency = new Dependency(scope, Dependency.Type.FILES, path);
             if (!dependencies.contains(newDependency)) {
               dependencies.add((newDependency));
               added = true;
@@ -211,11 +212,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
             }.execute();
           }
         }
-      }
-      finally {
-        token.finish();
-      }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      });
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
 
       super.doOKAction();
     }

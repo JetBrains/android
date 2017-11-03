@@ -15,9 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
-import com.android.tools.adtui.model.Range;
-import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -26,25 +23,21 @@ import java.util.*;
  * A top-down CPU usage tree. This is a node on that tree and represents all the calls that share the same callstack upto a point.
  * It's created from an execution tree by merging the nodes with the same path from the root.
  */
-class TopDownNode {
-  private final List<HNode<MethodModel>> myNodes;
-  private final List<TopDownNode> myChildren;
-  private final String myId;
-  private double myTotal;
+class TopDownNode extends CpuTreeNode<TopDownNode> {
+  private static final String INVALID_ID = "";
 
-  public TopDownNode(@NotNull HNode<MethodModel> node) {
-    myNodes = new LinkedList<>();
-    myChildren = new ArrayList<>();
-    myId = node.getData().getId();
-    myNodes.add(node);
+  public TopDownNode(@NotNull CaptureNode node) {
+    super(node.getData() == null ? INVALID_ID : node.getData().getId());
+    addNode(node);
 
     Map<String, TopDownNode> children = new TreeMap<>();
-    for (HNode<MethodModel> child : node.getChildren()) {
+    for (CaptureNode child : node.getChildren()) {
+      assert child.getData() != null;
       TopDownNode prev = children.get(child.getData().getId());
       TopDownNode other = new TopDownNode(child);
       if (prev == null) {
         children.put(child.getData().getId(), other);
-        myChildren.add(other);
+        addChild(other);
       }
       else {
         prev.merge(other);
@@ -53,69 +46,37 @@ class TopDownNode {
   }
 
   private void merge(TopDownNode other) {
-    myNodes.addAll(other.myNodes);
+    addNodes(other.getNodes());
     Map<String, TopDownNode> children = new TreeMap<>();
-    for (TopDownNode child : myChildren) {
-      children.put(child.myId, child);
+    for (TopDownNode child : getChildren()) {
+      children.put(child.getId(), child);
     }
-    for (TopDownNode otherChild : other.myChildren) {
-      TopDownNode existing = children.get(otherChild.myId);
+    for (TopDownNode otherChild : other.getChildren()) {
+      TopDownNode existing = children.get(otherChild.getId());
       if (existing != null) {
         existing.merge(otherChild);
       }
       else {
-        myChildren.add(otherChild);
+        addChild(otherChild);
       }
     }
   }
 
-  public String getId() {
-    return myId;
-  }
-
-  public List<TopDownNode> getChildren() {
-    return myChildren;
-  }
-
-  public boolean inRange(Range range) {
-    return Iterables.any(myNodes, node -> node.getStart() < range.getMax() && range.getMin() < node.getEnd());
-  }
-
+  @Override
   public String getMethodName() {
-    MethodModel data = myNodes.get(0).getData();
-    return data.getName();
+    MethodModel data = getNodes().get(0).getData();
+    return data == null ? "" : data.getName();
   }
 
-  public String getPackage() {
-    MethodModel data = myNodes.get(0).getData();
-    return data.getNameSpace();
+  @Override
+  public String getClassName() {
+    MethodModel data = getNodes().get(0).getData();
+    return data == null ? "" : data.getClassName();
   }
 
-  public double getTotal() {
-    return myTotal;
-  }
-
-  public double getSelf() {
-    return getTotal() - getChildrenTotal();
-  }
-
-  public double getChildrenTotal() {
-    double total = 0;
-    for (TopDownNode child : myChildren) {
-      total += child.getTotal();
-    }
-    return total;
-  }
-
-  public void update(Range range) {
-    myTotal = 0.0;
-    for (HNode<MethodModel> node : myNodes) {
-      Range intersection = range.getIntersection(new Range(node.getStart(), node.getEnd()));
-      myTotal += intersection.isEmpty() ? 0 : intersection.getLength();
-    }
-  }
-
-  public void reset() {
-    myTotal = 0.0;
+  @Override
+  public String getSignature() {
+    MethodModel data = getNodes().get(0).getData();
+    return data == null ? "" : data.getSignature();
   }
 }

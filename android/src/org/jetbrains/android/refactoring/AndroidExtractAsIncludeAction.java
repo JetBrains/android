@@ -141,10 +141,10 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
     assert parentTag != null;
 
     final List<XmlTag> tagsInRange = collectAllTags(from, to);
-    assert tagsInRange.size() > 0 : "there is no tag inside the range";
+    assert !tagsInRange.isEmpty() : "there is no tag inside the range";
     final String fileName = myTestConfig != null ? myTestConfig.myLayoutFileName : null;
     final String dirName = dir.getName();
-    final FolderConfiguration config = dirName.length() > 0
+    final FolderConfiguration config = !dirName.isEmpty()
                                        ? FolderConfiguration.getConfig(dirName.split(SdkConstants.RES_QUALIFIER_SEP))
                                        : null;
     final String title = "Extract Android Layout";
@@ -194,7 +194,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
         super.visitXmlTag(tag);
         final String prefix = tag.getNamespacePrefix();
 
-        if (!unknownPrefixes.contains(prefix) && tag.getNamespace().length() == 0) {
+        if (!unknownPrefixes.contains(prefix) && tag.getNamespace().isEmpty()) {
           unknownPrefixes.add(prefix);
         }
       }
@@ -203,7 +203,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       public void visitXmlAttribute(XmlAttribute attribute) {
         final String prefix = attribute.getNamespacePrefix();
 
-        if (!unknownPrefixes.contains(prefix) && attribute.getNamespace().length() == 0) {
+        if (!unknownPrefixes.contains(prefix) && attribute.getNamespace().isEmpty()) {
           unknownPrefixes.add(prefix);
         }
       }
@@ -219,7 +219,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       final String namespace = parentTag.getNamespaceByPrefix(prefix);
       final String xmlNsAttrName = "xmlns:" + prefix;
 
-      if (namespace.length() > 0 && rootTag.getAttribute(xmlNsAttrName) == null) {
+      if (!namespace.isEmpty() && rootTag.getAttribute(xmlNsAttrName) == null) {
         final XmlAttribute xmlnsAttr = elementFactory.createXmlAttribute(xmlNsAttrName, namespace);
 
         if (firstAttribute != null) {

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.Jdks;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +34,7 @@ public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     // Example:
     // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
     String text = rootCause.getMessage();
@@ -52,9 +51,7 @@ public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     return myJdks.getWrongJdkQuickFixes(project);
   }
 }

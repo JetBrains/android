@@ -15,103 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.sync.GradleSyncFailureHandler;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.open;
-import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static com.intellij.openapi.module.StdModuleTypes.JAVA;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public abstract class NewProjectImportGradleSyncListener extends GradleSyncListener.Adapter {
   @Override
   public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
-    ApplicationManager.getApplication().invokeLater(() -> createTopLevelProjectAndOpen(project));
-  }
-
-  public static void createTopLevelProjectAndOpen(@NotNull final Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> createTopLevelModule(project));
-
-    // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
-    open(project);
-
-    // Activate "Project View" so users don't get an empty window.
-    activateProjectView(project);
-  }
-
-  @VisibleForTesting
-  public static void createTopLevelModule(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-
-    File projectRootDir = getBaseDirPath(project);
-    VirtualFile contentRoot = findFileByIoFile(projectRootDir, true);
-
-    if (contentRoot != null) {
-      File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-      Module module = moduleManager.newModule(moduleFile.getPath(), JAVA.getId());
-
-      // This prevents the balloon "Unsupported Modules detected".
-      ExternalSystemModulePropertyManager.getInstance(module).setExternalId(GRADLE_SYSTEM_ID);
-
-      ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-      model.addContentEntry(contentRoot);
-      if (IdeInfo.getInstance().isAndroidStudio()) {
-        // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
-        // users will update build.gradle files to fix Gradle sync.)
-        // See: https://code.google.com/p/android/issues/detail?id=194621
-        Sdk jdk = IdeSdks.getInstance().getJdk();
-        if (jdk != null) {
-          model.setSdk(jdk);
-        }
-      }
-      model.commit();
-
-      FacetManager facetManager = FacetManager.getInstance(module);
-      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-      try {
-        GradleFacet gradleFacet = GradleFacet.getInstance(module);
-        if (gradleFacet == null) {
-          // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-          gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-          facetModel.addFacet(gradleFacet);
-        }
-        gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR;
-
-        // Add "android" facet to avoid the balloon "Android Framework detected".
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet == null) {
-          androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-          facetModel.addFacet(androidFacet);
-        }
-
-        // This is what actually stops Studio from showing the balloon.
-        androidFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-      }
-      finally {
-        facetModel.commit();
-      }
-    }
+    ApplicationManager.getApplication().invokeLater(() -> GradleSyncFailureHandler.getInstance().createTopLevelModelAndOpenProject(project));
   }
 
   @Override

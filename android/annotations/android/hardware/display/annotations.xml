@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.hardware.display.DisplayManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.DISPLAY_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.hardware.display.DisplayManager android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, android.view.Surface, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

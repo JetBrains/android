@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -29,6 +29,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,7 +41,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.lint.LintIdeClient;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -183,7 +184,7 @@ public class ResolutionUtils {
       if (configuration == null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         assert facet != null;
-        target = facet.getConfigurationManager().getDefaultTarget(); // same as getHighestApiTarget();
+        target = ConfigurationManager.getOrCreateInstance(module).getDefaultTarget(); // same as getHighestApiTarget();
       }
       else {
         target = configuration.getRealTarget();
@@ -199,7 +200,7 @@ public class ResolutionUtils {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null : String.format("Module %s is not an Android module", module.getName());
 
-      definitions = facet.getLocalResourceManager().getAttributeDefinitions();
+      definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
     }
     if (definitions == null) {
       return null;
@@ -313,7 +314,7 @@ public class ResolutionUtils {
   public static FolderConfiguration getFolderConfiguration(@NotNull AndroidFacet facet, @NotNull ResourceValue resolvedValue, @NotNull FolderConfiguration configuration) {
     List<? extends Configurable> configurables;
     if (resolvedValue.isFramework()) {
-      ConfigurationManager configurationManager = facet.getConfigurationManager();
+      ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = configurationManager.getDefaultTarget(); // same as getHighestApiTarget();
       assert target != null;
       ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
@@ -322,7 +323,7 @@ public class ResolutionUtils {
       configurables = resourceItem.getSourceFileList();
     }
     else {
-      AppResourceRepository appResourceRepository = facet.getAppResources(true);
+      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
       configurables = appResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
     }
     Configurable configurable = configuration.findMatchingConfigurable(configurables);

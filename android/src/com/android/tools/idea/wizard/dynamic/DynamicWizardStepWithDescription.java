@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.android.tools.swing.util.FormScalingUtil;
+import com.android.tools.adtui.util.FormScalingUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;

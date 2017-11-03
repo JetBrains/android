@@ -25,15 +25,15 @@ import org.jetbrains.annotations.NotNull;
 public class RangedContinuousSeries extends RangedSeries<Long> {
 
   @NotNull
-  private final String mLabel;
+  private final String myName;
 
   @NotNull
   private final Range mYRange;
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series) {
+  public RangedContinuousSeries(@NotNull String name, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries<Long> series) {
     super(xRange, series);
     mYRange = yRange;
-    mLabel = label;
+    myName = name;
   }
 
   @NotNull
@@ -42,7 +42,7 @@ public class RangedContinuousSeries extends RangedSeries<Long> {
   }
 
   @NotNull
-  public String getLabel() {
-    return mLabel;
+  public String getName() {
+    return myName;
   }
 }

@@ -20,7 +20,7 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
+import java.awt.*;
 
 /**
  * Common layout constants that are shared across profiler views.
@@ -28,16 +28,13 @@ import javax.swing.border.MatteBorder;
 public class ProfilerLayout {
 
   /**
-   * Refresh rate for the values in the LegendComponent
-   */
-  public static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
-
-  /**
    * Common length for spacing between axis tick markers
    */
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
-  public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
+  public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
+
+  public static final float TOOLTIP_FONT_SIZE = 11f;
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
@@ -46,9 +43,28 @@ public class ProfilerLayout {
 
   public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
 
-  public static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
-    new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
-    new EmptyBorder(0, 0, 0, 0));
+  public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
+
+  public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
+
+  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
+
+  /**
+   * Space on the right for all legends when inside a profiler. Chosen so it lines up with the right axis units.
+   */
+  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
+
+  public static final int ROW_HEIGHT_PADDING = JBUI.scale(4);
+
+  public static final Border TABLE_ROW_BORDER = new EmptyBorder(0, 10, 0, 0);
+  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(3, 10, 3, 0);
+  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = new EmptyBorder(3, 0, 3, 10);
+
+  public static final Insets TABLE_ROW_INSETS = new Insets(0, 10, 0, 0);
+  public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
+  public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
+
+  public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

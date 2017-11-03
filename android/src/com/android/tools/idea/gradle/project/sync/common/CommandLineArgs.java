@@ -15,68 +15,49 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.gson.GsonBuilder;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.project.Project;
-import org.codehaus.groovy.runtime.typehandling.ShortTypeHandling;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.ProjectImportAction;
-import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.containers.ContainerUtil.addAll;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.generateInitScript;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 public class CommandLineArgs {
+  @NotNull private final ApplicationInfo myApplicationInfo;
+  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
-  @Nullable private final File myClasspathInitScript;
+  private final boolean myApplyJavaLibraryPlugin;
 
-  public CommandLineArgs(boolean generateClasspathInitScript) {
-    this(GradleInitScripts.getInstance(), generateClasspathInitScript);
+  public CommandLineArgs(boolean applyJavaLibraryPlugin) {
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), applyJavaLibraryPlugin);
   }
 
   @VisibleForTesting
-  CommandLineArgs(@NotNull GradleInitScripts initScripts, boolean generateClasspathInitScript) {
+  CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
+                  @NotNull IdeInfo ideInfo,
+                  @NotNull GradleInitScripts initScripts,
+                  boolean applyJavaLibraryPlugin) {
+    myApplicationInfo = applicationInfo;
+    myIdeInfo = ideInfo;
     myInitScripts = initScripts;
-    if (generateClasspathInitScript) {
-      myClasspathInitScript = generateInitScript(false, getToolingExtensionsClasses());
-    }
-    else {
-      myClasspathInitScript = null;
-    }
-  }
-
-  // This is necessary to obtain the custom models we need to configure Java library modules, given that Gradle own models do not expose
-  // all the information Android Studio needs.
-  // TODO contribute to Gradle the extra models we need, once that is done, we can remove the dependency on the module
-  // 'gradle-tooling-extension-impl'
-  @NotNull
-  private static Set<Class> getToolingExtensionsClasses() {
-    return Sets.newHashSet(SyncAction.class, ExternalSystemException.class, ExternalSystemSourceType.class, ProjectImportAction.class,
-                           ModelBuildScriptClasspathBuilderImpl.class, ModelBuilderService.class, Multimap.class, GsonBuilder.class,
-                           ShortTypeHandling.class);
+    myApplyJavaLibraryPlugin = applyJavaLibraryPlugin;
   }
 
   @NotNull
@@ -84,18 +65,18 @@ public class CommandLineArgs {
     List<String> args = new ArrayList<>();
 
     // TODO: figure out why this is making sync fail.
-    if (myClasspathInitScript != null) {
-      addAll(args, INIT_SCRIPT_CMD_OPTION, myClasspathInitScript.getPath());
+    if (myApplyJavaLibraryPlugin) {
+      myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
     args.add("-Djava.awt.headless=true");
 
     if (project != null) {
-      String[] options = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
-      if (options != null) {
+      String[] extraOptions = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
+      if (extraOptions != null) {
         project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
-        Collections.addAll(args, options);
+        Collections.addAll(args, extraOptions);
       }
     }
 
@@ -103,6 +84,13 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
+    // Sent to plugin starting with Studio 3.0
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED,
+                                   NewGradleSync.isLevel4Model() ? MODEL_LEVEL_4_NEW_DEP_MODEL : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
+    if (myIdeInfo.isAndroidStudio()) {
+      // Example of version to pass: 2.4.0.6
+      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
+    }
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
@@ -112,12 +100,16 @@ public class CommandLineArgs {
       }
     }
 
-    if (isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (isGuiTestingMode() || application.isUnitTestMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      ApplicationManager.getApplication().putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    myInitScripts.addLocalMavenRepoInitScriptCommandLineArgTo(args);
+    if (project == null || GradleProjectInfo.getInstance(project).canUseLocalMavenRepo()) {
+      // null project happens when is a new project.
+      myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    }
     return args;
   }
 }

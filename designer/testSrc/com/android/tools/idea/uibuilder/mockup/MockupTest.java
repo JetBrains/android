@@ -17,10 +17,11 @@ package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
@@ -213,7 +214,7 @@ public class MockupTest extends MockupTestCase {
 
   public void testGetBounds_Normal_Position() {
     final NlModel model = createModel1Mockup(MOCKUP_PSD, "0 0 -1 -1 10 10 120 50");
-    DesignSurface mockSurface = mock(DesignSurface.class);
+    NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
 
     Configuration configuration = mock(Configuration.class);
@@ -241,7 +242,7 @@ public class MockupTest extends MockupTestCase {
     final NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
-    DesignSurface mockSurface = mock(DesignSurface.class);
+    NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
@@ -258,11 +259,11 @@ public class MockupTest extends MockupTestCase {
     final NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
-    DesignSurface mockSurface = mock(DesignSurface.class);
+    NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
-    assertEquals(new Rectangle(0, 0, component.w, component.h), destinationRectangle);
+    assertEquals(new Rectangle(0, 0, NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)), destinationRectangle);
   }
 }
 

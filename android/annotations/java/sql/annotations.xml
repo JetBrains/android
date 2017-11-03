@@ -110,14 +110,14 @@
       <val name="value" val="{java.sql.ResultSetMetaData.columnNoNulls, java.sql.ResultSetMetaData.columnNullable, java.sql.ResultSetMetaData.columnNullableUnknown}" />
     </annotation>
   </item>
-  <item name="java.sql.Statement boolean getMoreResults(int) 0">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.sql.Statement.CLOSE_CURRENT_RESULT, java.sql.Statement.KEEP_CURRENT_RESULT, java.sql.Statement.CLOSE_ALL_RESULTS}" />
-    </annotation>
-  </item>
   <item name="java.sql.Statement boolean execute(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{java.sql.Statement.RETURN_GENERATED_KEYS, java.sql.Statement.NO_GENERATED_KEYS}" />
+    </annotation>
+  </item>
+  <item name="java.sql.Statement boolean getMoreResults(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{java.sql.Statement.CLOSE_CURRENT_RESULT, java.sql.Statement.KEEP_CURRENT_RESULT, java.sql.Statement.CLOSE_ALL_RESULTS}" />
     </annotation>
   </item>
   <item name="java.sql.Statement int executeUpdate(java.lang.String, int) 1">

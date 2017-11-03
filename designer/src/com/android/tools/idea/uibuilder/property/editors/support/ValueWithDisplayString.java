@@ -19,6 +19,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Objects;
 
 /**
@@ -31,6 +32,7 @@ public class ValueWithDisplayString {
   private final String myDisplayString;
   private final String myValue;
   private final String myHint;
+  private final ValueSelector mySelector;
   private boolean myUseValueForToString;
 
   public ValueWithDisplayString(@Nullable String displayString, @Nullable String value) {
@@ -38,9 +40,17 @@ public class ValueWithDisplayString {
   }
 
   public ValueWithDisplayString(@Nullable String displayString, @Nullable String value, @Nullable String hint) {
+    this(displayString, value, hint, null);
+  }
+
+  public ValueWithDisplayString(@Nullable String displayString,
+                                @Nullable String value,
+                                @Nullable String hint,
+                                @Nullable ValueSelector selector) {
     myDisplayString = StringUtil.notNullize(displayString);
     myValue = value;
     myHint = hint;
+    mySelector = selector;
   }
 
   @Override
@@ -64,8 +74,13 @@ public class ValueWithDisplayString {
     return myHint;
   }
 
+  @Nullable
+  public ValueSelector getValueSelector() {
+    return mySelector;
+  }
+
   /**
-   * This value is a hack to get around a problem where swing will call {@link javax.swing.DefaultComboBoxModel#setSelectedItem}
+   * This value is a hack to get around a problem where swing will call {@link DefaultComboBoxModel#setSelectedItem}
    * with the toString() value of this class.
    * See comment in {@link com.android.tools.idea.uibuilder.property.editors.NlEnumEditor#setModel}.
    */
@@ -87,5 +102,10 @@ public class ValueWithDisplayString {
     return Objects.equals(myValue, value.myValue) &&
            Objects.equals(myDisplayString, value.myDisplayString) &&
            Objects.equals(myHint, value.myHint);
+  }
+
+  public interface ValueSelector {
+    @Nullable
+    ValueWithDisplayString selectValue(@Nullable String currentValue);
   }
 }

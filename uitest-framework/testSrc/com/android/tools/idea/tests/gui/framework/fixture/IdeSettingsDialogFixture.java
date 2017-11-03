@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import org.fest.swing.cell.JTreeCellReader;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JTreeFixture;
@@ -37,14 +36,20 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
   @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
-    String title = SystemInfo.isMac ? "Preferences" : "Settings";
-    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, Matchers.byTitle(JDialog.class, title)));
+    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog component) {
+        // Title is different for mac and if it's global/project settings
+        return component.getTitle().matches("(Default )?(Preferences|Settings)");
+      }
+    }));
   }
 
   private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<SettingsDialog> dialogAndWrapper) {
@@ -91,6 +96,10 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
       }
     });
     return this;
+  }
+
+  public void clickOK() {
+    findAndClickButtonWhenEnabled(this, "OK");
   }
 
   private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {

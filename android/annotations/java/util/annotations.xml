@@ -344,11 +344,6 @@
       <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
-  <item name="java.util.Calendar int get(int)">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.SUNDAY, java.util.Calendar.MONDAY, java.util.Calendar.TUESDAY, java.util.Calendar.WEDNESDAY, java.util.Calendar.THURSDAY, java.util.Calendar.FRIDAY, java.util.Calendar.SATURDAY}" />
-    </annotation>
-  </item>
   <item name="java.util.Calendar int get(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
@@ -564,6 +559,9 @@
   <item name="java.util.Collections java.util.List&lt;T&gt; nCopies(int, T)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.Collections java.util.List&lt;T&gt; singletonList(T)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.Collections java.util.List&lt;T&gt; synchronizedList(java.util.List&lt;T&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -594,6 +592,12 @@
   <item name="java.util.Collections java.util.Map&lt;K,V&gt; unmodifiableMap(java.util.Map&lt;? extends K,? extends V&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.Collections java.util.Queue&lt;E&gt; checkedQueue(java.util.Queue&lt;E&gt;, java.lang.Class&lt;E&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.Queue&lt;E&gt; checkedQueue(java.util.Queue&lt;E&gt;, java.lang.Class&lt;E&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.Collections java.util.Queue&lt;T&gt; asLifoQueue(java.util.Deque&lt;T&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -607,6 +611,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.Set&lt;T&gt; emptySet()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.Set&lt;T&gt; singleton(T)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.Set&lt;T&gt; synchronizedSet(java.util.Set&lt;T&gt;) 0">
@@ -634,6 +641,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.SortedSet&lt;E&gt; checkedSortedSet(java.util.SortedSet&lt;E&gt;, java.lang.Class&lt;E&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.SortedSet&lt;E&gt; emptySortedSet()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.SortedSet&lt;T&gt; synchronizedSortedSet(java.util.SortedSet&lt;T&gt;) 0">
@@ -741,9 +751,6 @@
   <item name="java.util.LinkedList LinkedList(java.util.Collection&lt;? extends E&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="java.util.List java.util.ListIterator&lt;E&gt; listIterator()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="java.util.List T[] toArray(T[])">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -774,6 +781,9 @@
   <item name="java.util.List java.util.List&lt;E&gt; subList(int, int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.List java.util.ListIterator&lt;E&gt; listIterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.List java.util.ListIterator&lt;E&gt; listIterator(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -792,6 +802,9 @@
   <item name="java.util.NavigableSet java.util.Iterator&lt;E&gt; descendingIterator()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.NavigableSet java.util.Iterator&lt;E&gt; iterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.NavigableSet java.util.NavigableSet&lt;E&gt; descendingSet()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -804,6 +817,15 @@
   <item name="java.util.NavigableSet java.util.NavigableSet&lt;E&gt; tailSet(E, boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; headSet(E)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; subSet(E, E)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; tailSet(E)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.Objects T requireNonNull(T)">
     <annotation name="org.jetbrains.annotations.Contract">
       <val name="value" val="&quot;null-&gt;fail&quot;" />
@@ -812,6 +834,17 @@
   <item name="java.util.Objects T requireNonNull(T, java.lang.String)">
     <annotation name="org.jetbrains.annotations.Contract">
       <val name="value" val="&quot;null,_-&gt;fail&quot;" />
+    </annotation>
+  </item>
+  <item name="java.util.Optional T get()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
+  <item name="java.util.Optional T orElse(T)">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="&quot;!null -&gt; !null&quot;" />
     </annotation>
   </item>
   <item name="java.util.ResourceBundle boolean containsKey(java.lang.String) 0">
@@ -926,6 +959,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Scanner Scanner(java.nio.channels.ReadableByteChannel, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Scanner boolean hasNext(java.lang.String) 0">

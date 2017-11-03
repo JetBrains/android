@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.intellij.util.ui.JBUI;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -417,6 +418,34 @@ public final class TabularLayoutTest {
     assertThat(cellSW.getHeight()).isEqualTo(500);
     assertThat(cellSE.getWidth()).isEqualTo(50);
     assertThat(cellSE.getHeight()).isEqualTo(500);
+  }
+
+  @Test
+  public void fixedSizeConsidersScaleFactor() {
+    float originalFactor = JBUI.scale(1.0f);
+    float scaleFactor = 2f;
+    JBUI.setUserScaleFactor(scaleFactor);
+
+    TabularLayout layout = new TabularLayout("50px");
+    layout.setRowSizing(0, "100px");
+    layout.setRowSizing(1, "200px");
+
+    final JPanel panel = new JPanel(layout);
+    final Component row0 = new JPanel();
+    final Component row1 = new JPanel();
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo((int)scaleFactor * 300);
+    assertThat(row0.getHeight()).isEqualTo((int)scaleFactor * 100);
+    assertThat(row1.getHeight()).isEqualTo((int)scaleFactor * 200);
+    assertThat(row0.getWidth()).isEqualTo((int)scaleFactor * 50);
+    assertThat(row1.getWidth()).isEqualTo((int)scaleFactor * 50);
+
+    JBUI.setUserScaleFactor(originalFactor);
   }
 
   @Test

@@ -222,13 +222,28 @@
   </item>
   <item name="android.provider.CallLog.Calls CONTENT_URI_WITH_VOICEMAIL">
     <annotation name="android.support.annotation.RequiresPermission.Read">
-      <val name="value" val="" />
+      <val name="allOf" val="{&quot;android.permission.READ_CALL_LOG&quot;, &quot;com.android.voicemail.permission.READ_VOICEMAIL&quot;}" />
     </annotation>
     <annotation name="android.support.annotation.RequiresPermission.Write">
-      <val name="value" val="" />
+      <val name="allOf" val="{&quot;android.permission.WRITE_CALL_LOG&quot;, &quot;com.android.voicemail.permission.WRITE_VOICEMAIL&quot;}" />
     </annotation>
   </item>
   <item name="android.provider.DocumentsContract boolean isDocumentUri(android.content.Context, android.net.Uri) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.DocumentsContract.Path Path(java.lang.String, java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.DocumentsContract.Path java.lang.String getRootId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.DocumentsProvider android.content.IntentSender createWebLinkIntent(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.DocumentsProvider android.database.Cursor queryChildDocuments(java.lang.String, java.lang.String[], android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.DocumentsProvider android.database.Cursor queryChildDocuments(java.lang.String, java.lang.String[], android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.provider.DocumentsProvider android.net.Uri canonicalize(android.net.Uri)">
@@ -236,6 +251,96 @@
   </item>
   <item name="android.provider.DocumentsProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.provider.DocumentsProvider android.provider.DocumentsContract.Path findDocumentPath(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String, java.util.List&lt;java.util.List&lt;byte[]&gt;&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String, java.util.List&lt;java.util.List&lt;byte[]&gt;&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String, java.util.List&lt;java.util.List&lt;byte[]&gt;&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontRequest FontRequest(java.lang.String, java.lang.String, java.lang.String, java.util.List&lt;java.util.List&lt;byte[]&gt;&gt;) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract android.graphics.Typeface buildTypeface(android.content.Context, android.os.CancellationSignal, android.provider.FontsContract.FontInfo[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract android.graphics.Typeface buildTypeface(android.content.Context, android.os.CancellationSignal, android.provider.FontsContract.FontInfo[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.FontsContract android.graphics.Typeface buildTypeface(android.content.Context, android.os.CancellationSignal, android.provider.FontsContract.FontInfo[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract android.provider.FontsContract.FontFamilyResult fetchFonts(android.content.Context, android.os.CancellationSignal, android.provider.FontRequest)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract android.provider.FontsContract.FontFamilyResult fetchFonts(android.content.Context, android.os.CancellationSignal, android.provider.FontRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract android.provider.FontsContract.FontFamilyResult fetchFonts(android.content.Context, android.os.CancellationSignal, android.provider.FontRequest) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.FontsContract android.provider.FontsContract.FontFamilyResult fetchFonts(android.content.Context, android.os.CancellationSignal, android.provider.FontRequest) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract void requestFonts(android.content.Context, android.provider.FontRequest, android.os.Handler, android.os.CancellationSignal, android.provider.FontsContract.FontRequestCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract void requestFonts(android.content.Context, android.provider.FontRequest, android.os.Handler, android.os.CancellationSignal, android.provider.FontsContract.FontRequestCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract void requestFonts(android.content.Context, android.provider.FontRequest, android.os.Handler, android.os.CancellationSignal, android.provider.FontsContract.FontRequestCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract void requestFonts(android.content.Context, android.provider.FontRequest, android.os.Handler, android.os.CancellationSignal, android.provider.FontsContract.FontRequestCallback) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.FontsContract void requestFonts(android.content.Context, android.provider.FontRequest, android.os.Handler, android.os.CancellationSignal, android.provider.FontsContract.FontRequestCallback) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract.FontFamilyResult android.provider.FontsContract.FontInfo[] getFonts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract.FontFamilyResult int getStatusCode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.provider.FontsContract.FontFamilyResult.STATUS_OK, android.provider.FontsContract.FontFamilyResult.STATUS_WRONG_CERTIFICATES, android.provider.FontsContract.FontFamilyResult.STATUS_UNEXPECTED_DATA_PROVIDED}" />
+    </annotation>
+  </item>
+  <item name="android.provider.FontsContract.FontInfo android.graphics.fonts.FontVariationAxis[] getAxes()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.provider.FontsContract.FontInfo android.net.Uri getUri()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.provider.FontsContract.FontInfo int getTtcIndex()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.provider.FontsContract.FontInfo int getWeight()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+      <val name="to" val="1000" />
+    </annotation>
+  </item>
+  <item name="android.provider.FontsContract.FontRequestCallback void onTypefaceRequestFailed(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.provider.FontsContract.FontRequestCallback.FAIL_REASON_PROVIDER_NOT_FOUND, android.provider.FontsContract.FontRequestCallback.FAIL_REASON_FONT_LOAD_ERROR, android.provider.FontsContract.FontRequestCallback.FAIL_REASON_FONT_NOT_FOUND, android.provider.FontsContract.FontRequestCallback.FAIL_REASON_FONT_UNAVAILABLE, android.provider.FontsContract.FontRequestCallback.FAIL_REASON_MALFORMED_QUERY}" />
+    </annotation>
   </item>
   <item name="android.provider.UserDictionary CONTENT_URI">
     <annotation name="android.support.annotation.RequiresPermission.Read">

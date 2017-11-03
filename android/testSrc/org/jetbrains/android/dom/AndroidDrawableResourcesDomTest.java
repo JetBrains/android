@@ -296,8 +296,11 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  /* Disabled until the attrs.xml file in the unit test distribution is updated to Android L
   public void testAnimatedVectorHighlighting1() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testAnimatedVectorHighlighting2() throws Throwable {
     doTestHighlighting();
   }
 
@@ -308,13 +311,26 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public void testVectorHighlighting2() throws Throwable {
     doTestHighlighting();
   }
-  */
+
+  public void testAdaptiveIconCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testAdaptiveIconCompletion1() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testAdaptiveIconCompletionSubtags() throws Throwable {
+    doTestCompletion();
+  }
 
   public void testRootTagCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
                              "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate",
                              // API 21:
-                             "ripple", "vector", "animated-vector", "animated-selector");
+                             "ripple", "vector", "animated-vector", "animated-selector", "drawable",
+                             // API 26:
+                             "adaptive-icon", "maskable-icon");
   }
 
   public void testInlineClip() throws Throwable {
@@ -327,6 +343,22 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     final VirtualFile javaFile = copyFileToProject("IdsClass.java", "src/p1/p2/IdsClass.java");
     myFixture.configureFromExistingVirtualFile(javaFile);
     myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testDrawableHighlighting() throws Throwable {
+    final VirtualFile javaFile = copyFileToProject("TestDrawable.java", "src/p1/p2/TestDrawable.java");
+    myFixture.configureFromExistingVirtualFile(javaFile);
+    doTestHighlighting();
+  }
+
+  public void testDrawableCompletion1() throws Throwable {
+    toTestFirstCompletion("drawableCompletion1.xml", "drawableCompletion1_after.xml");
+  }
+
+  public void testDrawableCompletion2() throws Throwable {
+    final VirtualFile javaFile = copyFileToProject("TestDrawable.java", "src/p1/p2/TestDrawable.java");
+    myFixture.configureFromExistingVirtualFile(javaFile);
+    toTestFirstCompletion("drawableCompletion2.xml", "drawableCompletion2_after.xml");
   }
 
   private void doTestOnlyDrawableReferences() throws IOException {

@@ -30,6 +30,7 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -116,6 +117,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     private JBLabel myPackages;
     private JBLabel myDownloadSize;
     private JEditorPane mySettingsLink;
+    private JBScrollPane myScrollPane;
 
     public UpdateInfoPanel(List<RemotePackage> packages) {
       configureMessageArea(mySettingsLink);
@@ -136,23 +138,28 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       packageHtmlBuilder.openHtmlBody();
 
       if (versionedPackages.containsKey(noVersion)) {
-        packageHtmlBuilder.newline();
         for (RemotePackage p : versionedPackages.getOrDefault(noVersion, Collections.emptySet())) {
           packageHtmlBuilder.addNbsps(4).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
         }
         versionedPackages.remove(noVersion);
       }
+      boolean first = true;
       for (AndroidVersion version : versionedPackages.keySet()) {
-        packageHtmlBuilder.newline();
+        if (!first) {
+          packageHtmlBuilder.newline();
+        }
+        else {
+          first = false;
+        }
         packageHtmlBuilder.addNbsps(4).addBold(SdkVersionInfo.getVersionWithCodename(version) + ":").newline();
         for (RemotePackage p : versionedPackages.get(version)) {
           packageHtmlBuilder.addNbsps(8).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
         }
       }
-      packageHtmlBuilder.newline();
 
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());
+      myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     }
 
     public JPanel getRootPanel() {

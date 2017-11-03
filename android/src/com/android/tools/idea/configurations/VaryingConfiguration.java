@@ -203,7 +203,7 @@ public class VaryingConfiguration extends NestedConfiguration {
         IAndroidTarget mostRecent = manager.getHighestApiTarget();
         if (target.equals(mostRecent)) {
           // Find oldest supported
-          AndroidModuleInfo info = AndroidModuleInfo.get(manager.getModule());
+          AndroidModuleInfo info = AndroidModuleInfo.getInstance(manager.getModule());
           if (info != null) {
             int minSdkVersion = info.getMinSdkVersion().getFeatureLevel();
             for (IAndroidTarget t : targets) {

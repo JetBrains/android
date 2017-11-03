@@ -5,7 +5,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.util.ui.AnimatedIcon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -39,7 +38,7 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
     };
 
     waitUntilShowing(ideFrameFixture.robot(), dialog, animatedIconMatcher);
-    waitUntilGone(ideFrameFixture.robot(), dialog, animatedIconMatcher);
+    waitUntilGone(ideFrameFixture.robot(), dialog, animatedIconMatcher, 30);
 
     return new SelectPathFixture(ideFrameFixture, dialog);
   }
@@ -72,12 +71,7 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
   public IdeFrameFixture clickOK() {
     JButton button = GuiTests.waitUntilShowingAndEnabled(myRobot, myDialog, Matchers.byText(JButton.class, "OK"));
     // Click the "OK" button pragmatically to eliminate the flakiness due to a possible click miss.
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        button.doClick();
-      }
-    });
+    GuiTask.execute(() -> button.doClick());
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }

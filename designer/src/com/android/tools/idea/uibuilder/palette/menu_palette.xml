@@ -14,11 +14,24 @@
   ~ limitations under the License.
   -->
 <palette>
-  <item tag="item" title="Menu Item">
+  <item tag="item" title="Cast Button" handler-class="com.android.tools.idea.uibuilder.menu.CastButtonHandler"
+        coordinate="com.android.support:mediarouter-v7">
+    <xml>
+      <![CDATA[
+        <item xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/media_route_menu_item"
+            android:title="Cast"
+            app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+            tools:icon="@drawable/mr_button_light" />
+      ]]>
+    </xml>
+  </item>
+
+  <item tag="item" title="Menu Item" handler-class="com.android.tools.idea.uibuilder.menu.ItemHandler">
     <xml><![CDATA[<item android:title="Item" />]]></xml>
   </item>
 
-  <item tag="item" title="Search Item">
+  <item tag="item" title="Search Item" handler-class="com.android.tools.idea.uibuilder.menu.SearchItemHandler">
     <xml>
       <![CDATA[
         <item
@@ -29,7 +42,7 @@
     </xml>
   </item>
 
-  <item tag="item" title="Switch Item">
+  <item tag="item" title="Switch Item" handler-class="com.android.tools.idea.uibuilder.menu.SwitchItemHandler">
     <xml>
       <![CDATA[
         <item

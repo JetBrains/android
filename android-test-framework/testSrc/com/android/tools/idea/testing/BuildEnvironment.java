@@ -18,7 +18,7 @@ package com.android.tools.idea.testing;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 
 public class BuildEnvironment {

@@ -37,30 +37,29 @@ public class OpenAssistSidePanelAction extends AnAction {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
 
+    openWindow(actionId, thisProject);
+  }
+
+  /**
+   * Opens the assistant associated with the given actionId
+   */
+  public final void openWindow(String actionId, Project project) {
     ApplicationManager.getApplication().invokeLater(() -> {
 
       AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
-      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
       ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
 
       if (toolWindow == null) {
         // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
-        toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, thisProject, true);
+        toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true);
       }
-      toolWindow.setIcon(AndroidIcons.Assistant.Assist);
+      toolWindow.setIcon(AndroidIcons.Assistant.Assistant);
 
-      factory.createToolWindowContent(thisProject, toolWindow);
+      factory.createToolWindowContent(project, toolWindow);
 
       // Always active the window, in case it was previously minimized.
       toolWindow.activate(null);
     });
-    onActionPerformed(event);
   }
-
-  /**
-   * Allows plugins to perform some action on panel being opened without requiring/allowing them to override {@code actionPerformed}.
-   */
-  public void onActionPerformed(AnActionEvent event) {
-  }
-
 }

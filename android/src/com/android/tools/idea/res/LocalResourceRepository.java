@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
@@ -140,8 +141,11 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * the current module's current flavor. This will allow us to for example preview the string translations
  * for a given resource name not just for the current flavor but for all other flavors as well.
  * </p>
+ * <p>
+ * See also the {@code README.md} file in this package.
+ * </p>
  */
-@SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
+@SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
@@ -149,17 +153,18 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   private final String myDisplayName;
 
+  @GuardedBy("ITEM_MAP_LOCK")
   @Nullable private List<MultiResourceRepository> myParents;
 
-  protected long myGeneration;
+  private volatile long myGeneration;
 
   private final Object RESOURCE_DIRS_LOCK = new Object();
   @Nullable private Set<VirtualFile> myResourceDirs;
 
   protected LocalResourceRepository(@NotNull String displayName) {
-    super(false);
+    super();
     myDisplayName = displayName;
-    myGeneration = ourModificationCounter.incrementAndGet();
+    setModificationCount(ourModificationCounter.incrementAndGet());
   }
 
   @NotNull
@@ -167,38 +172,55 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myDisplayName;
   }
 
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
   @Override
   public void dispose() {
   }
 
-  @Override
-  public final boolean isFramework() {
-    return false;
-  }
-
   public void addParent(@NonNull MultiResourceRepository parent) {
-    if (myParents == null) {
-      myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents == null) {
+        myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+      }
+      myParents.add(parent);
     }
-    myParents.add(parent);
   }
 
   public void removeParent(@NonNull MultiResourceRepository parent) {
-    if (myParents != null) {
-      myParents.remove(parent);
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        myParents.remove(parent);
+      }
     }
   }
 
-  protected void invalidateItemCaches(@Nullable ResourceType... types) {
-    if (myParents != null) {
-      for (MultiResourceRepository parent : myParents) {
-        parent.invalidateCache(this, types);
+  protected void invalidateParentCaches() {
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (MultiResourceRepository parent : myParents) {
+          parent.invalidateCache(this);
+        }
+      }
+    }
+  }
+
+  protected void invalidateParentCaches(@Nullable String namespace, @NotNull ResourceType... types) {
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (MultiResourceRepository parent : myParents) {
+          parent.invalidateCache(this, namespace, types);
+        }
       }
     }
   }
 
   /** If this repository has not already been visited, merge its items of the given type into result. */
   protected final void merge(@NotNull Set<LocalResourceRepository> visited,
+                             @Nullable String namespace,
                              @NotNull ResourceType type,
                              @NotNull SetMultimap<String, String> seenQualifiers,
                              @NotNull ListMultimap<String, ResourceItem> result) {
@@ -206,21 +228,22 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return;
     }
     visited.add(this);
-    doMerge(visited, type, seenQualifiers, result);
+    doMerge(visited, namespace, type, seenQualifiers, result);
   }
 
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
+                         @Nullable String namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
-    ListMultimap<String, ResourceItem> items = getMap(type, false);
+    ListMultimap<String, ResourceItem> items = getMap(namespace, type, false);
     if (items == null) {
       return;
     }
     for (ResourceItem item : items.values()) {
       String name = item.getName();
       String qualifiers = item.getQualifiers();
-      if (!result.containsKey(name) || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
+      if (!result.containsKey(name) || type == ResourceType.DECLARE_STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
         // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
         // not an id; id's are allowed to be defined in multiple places even with the same
         // qualifiers)
@@ -259,6 +282,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myGeneration;
   }
 
+  protected void setModificationCount(long count) {
+    myGeneration = count;
+  }
+
   @Nullable
   public VirtualFile getMatchingFile(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
     List<VirtualFile> matches = getMatchingFiles(file, type, config);
@@ -268,7 +295,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @NonNull
   public List<VirtualFile> getMatchingFiles(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
     List<ResourceFile> matches = super.getMatchingFiles(ResourceHelper.getResourceName(file), type, config);
-    List<VirtualFile> matchesFiles = new ArrayList<VirtualFile>(matches.size());
+    List<VirtualFile> matchesFiles = new ArrayList<>(matches.size());
     for (ResourceFile match : matches) {
       if (match != null) {
         if (match instanceof PsiResourceFile) {
@@ -448,9 +475,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     synchronized (RESOURCE_DIRS_LOCK) {
       myResourceDirs = null;
     }
-    if (myParents != null) {
-      for (LocalResourceRepository parent : myParents) {
-        parent.invalidateResourceDirs();
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (LocalResourceRepository parent : myParents) {
+          parent.invalidateResourceDirs();
+        }
       }
     }
   }

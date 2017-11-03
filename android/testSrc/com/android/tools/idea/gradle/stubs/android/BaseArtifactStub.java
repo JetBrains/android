@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
@@ -27,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,16 +33,20 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final String myName;
-  @NotNull protected final String myDirName;
+  @NotNull protected final String myFolderName;
   @NotNull protected final DependenciesStub myDependencies;
   @NotNull protected final String myBuildType;
   @NotNull protected final FileStructure myFileStructure;
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
+  @NotNull private final Set<File> myAdditionalClassesFolders = new HashSet<>();
 
-  public BaseArtifactStub(@NotNull String name, @NotNull String dirName, @NotNull DependenciesStub dependencies, @NotNull String buildType,
+  public BaseArtifactStub(@NotNull String name,
+                          @NotNull String folderName,
+                          @NotNull DependenciesStub dependencies,
+                          @NotNull String buildType,
                           @NotNull FileStructure fileStructure) {
     myName = name;
-    myDirName = dirName;
+    myFolderName = folderName;
     myDependencies = dependencies;
     myBuildType = buildType;
     myFileStructure = fileStructure;
@@ -71,14 +74,20 @@ public class BaseArtifactStub implements BaseArtifact {
   @Override
   @NotNull
   public File getClassesFolder() {
-    String path = "build/intermediates/classes/" + myDirName;
+    String path = "build/intermediates/classes/" + myFolderName;
     return new File(myFileStructure.getRootFolderPath(), path);
   }
 
-  @NonNull
+  @NotNull
   @Override
+  public Set<File> getAdditionalClassesFolders() {
+    return myAdditionalClassesFolders;
+  }
+
+  @Override
+  @NotNull
   public File getJavaResourcesFolder() {
-    String path = "build/intermediates/javaResources/" + myDirName;
+    String path = "build/intermediates/javaResources/" + myFolderName;
     return new File(myFileStructure.getRootFolderPath(), path);
   }
 
@@ -95,8 +104,8 @@ public class BaseArtifactStub implements BaseArtifact {
     return getDependencies();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public DependencyGraphs getDependencyGraphs() {
     throw new UnsupportedOperationException();
   }
@@ -113,7 +122,8 @@ public class BaseArtifactStub implements BaseArtifact {
     return null;
   }
 
-  @Override@NotNull
+  @Override
+  @NotNull
   public Set<String> getIdeSetupTaskNames() {
     return Collections.emptySet();
   }
@@ -132,5 +142,9 @@ public class BaseArtifactStub implements BaseArtifact {
   public void addGeneratedSourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedSourceFolders.add(directory);
+  }
+
+  public void addAdditionalClassesFolder(@NotNull File folder) {
+    myAdditionalClassesFolders.add(folder);
   }
 }

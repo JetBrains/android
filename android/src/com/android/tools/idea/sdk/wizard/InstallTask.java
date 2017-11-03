@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.*;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
@@ -28,9 +29,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +46,7 @@ import java.util.function.Function;
  * {@link Task} that installs SDK packages.
  */
 class InstallTask extends Task.Backgroundable {
-  private final com.android.repository.api.ProgressIndicator myLogger;
+  private final ProgressIndicator myLogger;
   private Collection<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
   private final RepoManager myRepoManager;
@@ -63,7 +62,7 @@ class InstallTask extends Task.Backgroundable {
   public InstallTask(@NotNull InstallerFactory installerFactory,
                      @NotNull AndroidSdkHandler sdkHandler,
                      @NotNull SettingsController settings,
-                     @NotNull com.android.repository.api.ProgressIndicator logger) {
+                     @NotNull ProgressIndicator logger) {
     super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
     myLogger = logger;
     myRepoManager = sdkHandler.getSdkManager(logger);
@@ -77,33 +76,40 @@ class InstallTask extends Task.Backgroundable {
     myLogger.cancel();
   }
 
-  @Override
-  public void processSentToBackground() {
+  /**
+   * This task is always run in the background, but there's another progress indicator shown in the foreground.
+   * This should be called when the foreground progress is closed, thus making it look like we're in the background.
+   */
+  public void foregroundIndicatorClosed() {
     myBackgrounded = true;
   }
 
   @Override
-  public void run(@NotNull ProgressIndicator indicator) {
+  public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
     final List<RepoPackage> failures = Lists.newArrayList();
 
     LinkedHashMap<RepoPackage, PackageOperation> operations = new LinkedHashMap<>();
     for (UpdatablePackage install : myInstallRequests) {
-      operations.put(install.getRemote(), getOrCreateInstaller(install.getRemote(), indicator));
+      operations.put(install.getRemote(), getOrCreateInstaller(install.getRemote()));
     }
     for (LocalPackage uninstall : myUninstallRequests) {
       operations.put(uninstall, getOrCreateUninstaller(uninstall));
     }
     try {
       while (!operations.isEmpty()) {
+        // If we end up having to retry some, we'll start from 0 again.
+        myLogger.setFraction(0);
         preparePackages(operations, failures);
         if (myPrepareCompleteCallback != null) {
           myPrepareCompleteCallback.run();
         }
         if (!myBackgrounded) {
-          completePackages(operations, failures);
+          completePackages(operations, failures, myLogger.createSubProgress(0.9));
+          myLogger.setFraction(0.9);
         }
         else {
           // Otherwise show a notification that we're ready to complete.
+          myLogger.setFraction(1);
           showPrepareCompleteNotification(operations.keySet());
           return;
         }
@@ -123,6 +129,7 @@ class InstallTask extends Task.Backgroundable {
     if (myCompleteCallback != null) {
       myCompleteCallback.apply(failures);
     }
+    myLogger.setFraction(1);
   }
 
   /**
@@ -132,15 +139,21 @@ class InstallTask extends Task.Backgroundable {
    * {@code failures}.
    */
   @VisibleForTesting
-  void completePackages(@NotNull Map<RepoPackage, PackageOperation> operations, @NotNull List<RepoPackage> failures) {
-    for (RepoPackage p : ImmutableSet.copyOf(operations.keySet())) {
+  void completePackages(@NotNull Map<RepoPackage, PackageOperation> operations, @NotNull List<RepoPackage> failures,
+                        @NotNull ProgressIndicator progress) {
+    double progressMax = 0;
+    ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(operations.keySet());
+    double progressIncrement = 1. / packages.size();
+    for (RepoPackage p : packages) {
       PackageOperation installer = operations.get(p);
       // If we're not backgrounded, go on to the final part immediately.
-      if (!installer.complete(myLogger)) {
+      progressMax += progressIncrement;
+      if (!installer.complete(progress.createSubProgress(progressMax))) {
+        progress.setFraction(progressMax);
         PackageOperation fallback = installer.getFallbackOperation();
         if (fallback != null) {
           // retry the whole thing with the fallback
-          myLogger.logWarning(String.format("Failed to complete operation using %s, retrying with %s", installer.getClass().getName(),
+          progress.logWarning(String.format("Failed to complete operation using %s, retrying with %s", installer.getClass().getName(),
                                             fallback.getClass().getName()));
           operations.put(p, fallback);
         }
@@ -151,16 +164,17 @@ class InstallTask extends Task.Backgroundable {
       }
       else {
         operations.remove(p);
+        progress.setFraction(progressMax);
       }
     }
   }
 
   @NotNull
-  private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p, @NotNull ProgressIndicator indicator) {
+  private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p) {
     // If there's already an installer in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
     if (op == null || !(op instanceof Installer)) {
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(indicator), myFileOp);
+      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(), myFileOp);
     }
     return op;
   }
@@ -183,12 +197,25 @@ class InstallTask extends Task.Backgroundable {
   @VisibleForTesting
   void preparePackages(@NotNull Map<RepoPackage, PackageOperation> packageOperationMap,
                        @NotNull List<RepoPackage> failures) {
-    for (RepoPackage pack : ImmutableSet.copyOf(packageOperationMap.keySet())) {
+    double progressMax = 0;
+    ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(packageOperationMap.keySet());
+    double progressIncrement = 1. / (packages.size() * 2.);
+    boolean wasBackgrounded = false;
+    for (RepoPackage pack : packages) {
       PackageOperation op = packageOperationMap.get(pack);
       boolean success = false;
       while (op != null) {
+        if (myBackgrounded && !wasBackgrounded) {
+          // We're not going to try to complete, so made this progress go all the way to the end.
+          progressIncrement *= 2.;
+          myLogger.setFraction(myLogger.getFraction() * 2.);
+          wasBackgrounded = myBackgrounded;
+        }
+        double currentProgress = myLogger.getFraction();
         try {
-          success = op.prepare(myLogger);
+          progressMax += progressIncrement;
+          success = op.prepare(myLogger.createSubProgress(progressMax));
+          myLogger.setFraction(progressMax);
         }
         catch (Exception e) {
           Logger.getInstance(getClass()).warn(e);
@@ -198,6 +225,11 @@ class InstallTask extends Task.Backgroundable {
           break;
         }
         op = op.getFallbackOperation();
+        if (op != null) {
+          // We're going to try again, so reset the progress.
+          progressMax -= progressIncrement;
+          myLogger.setFraction(currentProgress);
+        }
       }
       if (!success) {
         failures.add(pack);

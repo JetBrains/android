@@ -18,10 +18,11 @@ package com.android.tools.adtui.common;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -40,14 +41,13 @@ public final class AdtUiUtils {
    */
   public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();
 
-  /**
-   * Default background color of charts and components.
-   */
-  public static final Color DEFAULT_BACKGROUND_COLOR = JBColor.background();
-
-  public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._96, Gray._192);
-
-  public static final Color GRID_COLOR = new JBColor(Gray._192, Gray._96);
+  public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
+  public static final Border DEFAULT_TOP_BORDER = BorderFactory.createMatteBorder(1, 0, 0, 0, DEFAULT_BORDER_COLOR);
+  public static final Border DEFAULT_LEFT_BORDER = BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR);
+  public static final Border DEFAULT_BOTTOM_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR);
+  public static final Border DEFAULT_RIGHT_BORDER = BorderFactory.createMatteBorder(0, 0, 0, 1, DEFAULT_BORDER_COLOR);
+  public static final Border DEFAULT_HORIZONTAL_BORDERS = BorderFactory.createMatteBorder(1, 0, 1, 0, DEFAULT_BORDER_COLOR);
+  public static final Border DEFAULT_VERTICAL_BORDERS = BorderFactory.createMatteBorder(0, 1, 0, 1, DEFAULT_BORDER_COLOR);
 
   public static final GridBagConstraints GBC_FULL =
     new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.BASELINE, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
@@ -87,15 +87,9 @@ public final class AdtUiUtils {
   }
 
   /**
-   * Creates a static rectangular image with given color, width and height.
+   * Does the reverse of {@link JBUI#scale(int) }
    */
-  public static Icon buildStaticImage(Color color, int width, int height) {
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        image.setRGB(x, y, color.getRGB());
-      }
-    }
-    return new ImageIcon(image);
+  public static int unscale(int i) {
+    return Math.round(i / JBUI.scale(1.0f));
   }
 }

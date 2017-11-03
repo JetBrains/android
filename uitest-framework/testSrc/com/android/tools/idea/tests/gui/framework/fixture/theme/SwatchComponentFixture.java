@@ -16,22 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.android.tools.swing.ui.ClickableLabel;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.adtui.ui.ClickableLabel;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class SwatchComponentFixture extends JComponentFixture<SwatchComponentFixture, SwatchComponent> {
-  public SwatchComponentFixture(Robot robot, SwatchComponent target) {
+public class SwatchComponentFixture extends JComponentFixture<SwatchComponentFixture, ResourceSwatchComponent> {
+  public SwatchComponentFixture(Robot robot, ResourceSwatchComponent target) {
     super(SwatchComponentFixture.class, robot, target);
   }
 
   @NotNull
   public static SwatchComponentFixture find(@NotNull Robot robot, @NotNull Container target) {
-    return new SwatchComponentFixture(robot, robot.finder().findByType(target, SwatchComponent.class));
+    return new SwatchComponentFixture(robot, robot.finder().findByType(target, ResourceSwatchComponent.class));
   }
 
   @NotNull

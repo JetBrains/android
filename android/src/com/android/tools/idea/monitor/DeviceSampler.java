@@ -17,11 +17,11 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.Client;
 import com.android.tools.adtui.TimelineData;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -53,9 +53,9 @@ public abstract class DeviceSampler {
    */
   public static final int INHERITED_TYPE_START = 3;
 
-  @NotNull protected final List<TimelineEventListener> myListeners = Lists.newLinkedList();
+  @NotNull protected final List<TimelineEventListener> myListeners = new ArrayList<>();
 
-  protected int mySampleFrequencyMs;
+  protected final int mySampleFrequencyMs;
 
   @NotNull private volatile TimelineData myTimelineData;
 
@@ -63,7 +63,7 @@ public abstract class DeviceSampler {
 
   @NotNull private final Semaphore myDataSemaphore;
 
-  @Nullable private volatile CountDownLatch myTaskFinished = null;
+  @Nullable private volatile CountDownLatch myTaskFinished;
 
   /**
    * The future representing the task being executed, which will return null upon successful completion.
@@ -71,9 +71,9 @@ public abstract class DeviceSampler {
    */
   @Nullable private volatile Future<?> myExecutingTask;
 
-  private volatile boolean myRunning = false;
+  private volatile boolean myRunning;
 
-  private volatile boolean myIsPaused = false;
+  private volatile boolean myIsPaused;
 
   public DeviceSampler(@NotNull TimelineData timelineData, int sampleFrequencyMs) {
     myTimelineData = timelineData;
@@ -167,10 +167,10 @@ public abstract class DeviceSampler {
     Client client = myClient;
     if (myExecutingTask == null && client != null) {
       myRunning = true;
+      CountDownLatch taskFinished = new CountDownLatch(1);
+      myTaskFinished = taskFinished;
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(() -> {
         long timeToWait = mySampleFrequencyMs;
-        CountDownLatch taskFinished = new CountDownLatch(1);
-        myTaskFinished = taskFinished;
         try {
           while (myRunning) {
             long start = System.currentTimeMillis();
@@ -196,6 +196,7 @@ public abstract class DeviceSampler {
           taskFinished.countDown();
         }
       });
+
       client.setHeapInfoUpdateEnabled(true);
 
       for (TimelineEventListener listener : myListeners) {

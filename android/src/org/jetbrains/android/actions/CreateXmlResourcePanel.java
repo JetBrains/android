@@ -16,7 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -87,7 +87,7 @@ public interface CreateXmlResourcePanel {
    * Return a resource name validator for the given scope. The UI may optionally allow a user to change scope.
    * @return a resource name validator
    */
-  ResourceNameValidator getResourceNameValidator();
+  IdeResourceNameValidator getResourceNameValidator();
 
   /**
    * Return a module that represents the scope of the resources for this panel.

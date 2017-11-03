@@ -32,10 +32,18 @@ public final class AvdScreenData {
     myDeviceData = deviceData;
   }
 
-  public static double calculateDpi(double screenResolutionWidth, double screenResolutionHeight, double diagonalScreenSize) {
-    // Calculate diagonal resolution in pixels using the Pythagorean theorem: Dp = (pixelWidth^2 + pixelHeight^2)^1/2
-    double diagonalPixelResolution = Math.sqrt(Math.pow(screenResolutionWidth, 2) + Math.pow(screenResolutionHeight, 2));
-    // Calculate dos per inch: DPI = Dp / diagonalInchSize
+  public static double calculateDpi(double screenResolutionWidth, double screenResolutionHeight,
+                                    double diagonalScreenSize, boolean isRound) {
+    double diagonalPixelResolution;
+    if (isRound) {
+      // Round: The "diagonal" is the same as the diameter.
+      // Use the width so we don't have to consider a possible chin.
+      diagonalPixelResolution = screenResolutionWidth;
+    } else {
+      // Calculate diagonal resolution in pixels using the Pythagorean theorem: Dp = (pixelWidth^2 + pixelHeight^2)^1/2
+      diagonalPixelResolution = Math.sqrt(Math.pow(screenResolutionWidth, 2) + Math.pow(screenResolutionHeight, 2));
+    }
+    // Calculate dots per inch: DPI = Dp / diagonalInchSize
     return diagonalPixelResolution / diagonalScreenSize;
   }
 
@@ -139,9 +147,15 @@ public final class AvdScreenData {
     int screenWidth  = myDeviceData.screenResolutionWidth().get();
     int screenHeight = myDeviceData.screenResolutionHeight().get();
     double screenDiagonal = myDeviceData.diagonalScreenSize().get();
+    double effectiveDiagonal = screenDiagonal;
+    if (myDeviceData.isScreenRound().get()) {
+      // For round devices, compute the diagonal of
+      // the enclosing square.
+      effectiveDiagonal *= Math.sqrt(2.0);
+    }
 
     screen.setDiagonalLength(screenDiagonal);
-    screen.setSize(getScreenSize(screenDiagonal));
+    screen.setSize(getScreenSize(effectiveDiagonal));
     screen.setXDimension(screenWidth);
     screen.setYDimension(screenHeight);
 
@@ -149,7 +163,7 @@ public final class AvdScreenData {
 
     Double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {
-      dpi = calculateDpi(screenWidth, screenHeight, screenDiagonal);
+      dpi = calculateDpi(screenWidth, screenHeight, screenDiagonal, myDeviceData.isScreenRound().get());
     }
 
     dpi = Math.round(dpi * 100) / 100.0;

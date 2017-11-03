@@ -16,9 +16,9 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.adtui.DocumentAccessor;
-import com.android.tools.idea.ui.TextAccessors;
+import com.android.tools.adtui.TextAccessors;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;

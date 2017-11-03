@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
@@ -30,12 +30,12 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link ErrorOpeningZipFileErrorHandler}.
  */
 public class ErrorOpeningZipFileErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleError() throws Exception {
@@ -43,7 +43,7 @@ public class ErrorOpeningZipFileErrorHandlerTest extends AndroidGradleTestCase {
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Failed to open zip file.\n" +

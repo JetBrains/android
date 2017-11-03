@@ -16,26 +16,18 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.AppState;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.fd.client.InstantRunPushFailedException;
-import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.fd.*;
-import com.android.tools.idea.fd.actions.RestartActivityAction;
+import com.android.tools.ir.client.InstantRunClient;
+import com.android.tools.ir.client.InstantRunPushFailedException;
+import com.android.tools.ir.client.UpdateMode;
+import com.android.tools.idea.fd.DeployType;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.keymap.KeymapUtil;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.HyperlinkEvent;
 import java.io.IOException;
 
 public class HotSwapTask implements LaunchTask {
@@ -63,7 +55,7 @@ public class HotSwapTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     InstantRunManager manager = InstantRunManager.get(myProject);
-    UpdateMode updateMode = null;
+    UpdateMode updateMode;
     try {
       InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(myInstantRunContext);
       if (instantRunClient == null) {

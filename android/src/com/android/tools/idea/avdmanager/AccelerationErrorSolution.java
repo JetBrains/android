@@ -104,14 +104,14 @@ public class AccelerationErrorSolution {
   /**
    * Returns a {@link Runnable} with code for applying the solution for a given problem {@link AccelerationErrorCode}.
    * In some cases all we can do is present some text to the user in which case the returned {@link Runnable} will simply
-   * display a dialog box with text that the user can use as a guide for solving the problem on their own.</br>
-   * In other cases we can install the component that is required.</br>
+   * display a dialog box with text that the user can use as a guide for solving the problem on their own.<br>
+   * In other cases we can install the component that is required.<br>
    * It is guaranteed that one and only one of the callbacks {@code refresh} and {@code cancel} is called if they are both supplied.
    * @param error the problem we are creating an action for
    * @param project the project (may be null but this circumvents certain updates)
    * @param refresh a {@link Runnable} to execute after a change has been applied
    * @param cancel a {@link Runnable} to execute if no change was applied
-   * @return a {link Runnable} to "fix" or display a "fix" for/to the user
+   * @return a {@link Runnable} to "fix" or display a "fix" for/to the user
    */
   public static Runnable getActionForFix(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh, @Nullable Runnable cancel) {
     return new AccelerationErrorSolution(error, project, refresh, cancel).getAction();
@@ -135,135 +135,118 @@ public class AccelerationErrorSolution {
     switch (myError.getSolution()) {
       case DOWNLOAD_EMULATOR:
       case UPDATE_EMULATOR:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              showQuickFix(ImmutableList.of(SdkConstants.FD_TOOLS, SdkConstants.FD_PLATFORM_TOOLS));
-            }
-            finally {
-              reportBack();
-            }
+        return () -> {
+          try {
+            showQuickFix(ImmutableList.of(SdkConstants.FD_TOOLS, SdkConstants.FD_PLATFORM_TOOLS));
+          }
+          finally {
+            reportBack();
           }
         };
 
       case UPDATE_PLATFORM_TOOLS:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              showQuickFix(ImmutableList.of(SdkConstants.FD_PLATFORM_TOOLS));
-            }
-            finally {
-              reportBack();
-            }
+        return () -> {
+          try {
+            showQuickFix(ImmutableList.of(SdkConstants.FD_PLATFORM_TOOLS));
+          }
+          finally {
+            reportBack();
           }
         };
 
       case UPDATE_SYSTEM_IMAGES:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
-              showQuickFix(avdManager.getSystemImageUpdates());
-            }
-            finally {
-              reportBack();
-            }
+        return () -> {
+          try {
+            AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
+            showQuickFix(avdManager.getSystemImageUpdates());
+          }
+          finally {
+            reportBack();
           }
         };
 
       case INSTALL_KVM:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              GeneralCommandLine install = createKvmInstallCommand();
-              if (install == null) {
-                BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
+        return () -> {
+          try {
+            GeneralCommandLine install = createKvmInstallCommand();
+            if (install == null) {
+              BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
+            }
+            else {
+              String text = String.format(
+                "Linux systems vary a great deal; the installation steps we will attempt may not work in your particular scenario.\n\n" +
+                "The steps are:\n\n"                                                                                                    +
+                "  %1$s\n\n"                                                                                                            +
+                "If you prefer, you can skip this step and perform the KVM installation steps on your own.\n\n"                         +
+                "There might be more details at: %2$s\n", install.getCommandLineString(), KVM_INSTRUCTIONS);
+              int response = Messages
+                .showDialog(text, myError.getSolution().getDescription(), new String[]{"Skip", "Proceed"}, 1, Messages.getQuestionIcon());
+              if (response == 1) {
+                try {
+                  execute(install);
+                  myChangesMade = true;
+                }
+                catch (ExecutionException ex) {
+                  LOG.error(ex);
+                  BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
+                  Messages.showWarningDialog(myProject,
+                                             "Automatic KVM installation failed, please retry manually.\n\n" +
+                                             "For more details on the automatic installation failure, " +
+                                             "please consult the IDE log (Help | Show Log)",
+                                             "Installation Failed");
+                }
               }
               else {
-                String text = String.format(
-                  "Linux systems vary a great deal; the installation steps we will attempt may not work in your particular scenario.\n\n" +
-                  "The steps are:\n\n"                                                                                                    +
-                  "  %1$s\n\n"                                                                                                            +
-                  "If you prefer, you can skip this step and perform the KVM installation steps on your own.\n\n"                         +
-                  "There might be more details at: %2$s\n", install.getCommandLineString(), KVM_INSTRUCTIONS);
-                int response = Messages
-                  .showDialog(text, myError.getSolution().getDescription(), new String[]{"Skip", "Proceed"}, 1, Messages.getQuestionIcon());
-                if (response == 1) {
-                  try {
-                    execute(install);
-                    myChangesMade = true;
-                  }
-                  catch (ExecutionException ex) {
-                    LOG.error(ex);
-                    BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-                    Messages.showWarningDialog(myProject, "Please install KVM on your own", "Installation Failed");
-                  }
-                }
-                else {
-                  BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-                }
+                BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
               }
             }
-            finally {
-              reportBack();
-            }
+          }
+          finally {
+            reportBack();
           }
         };
 
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              HaxmWizard wizard = new HaxmWizard(false);
-              wizard.init();
-              myChangesMade = wizard.showAndGet();
-            }
-            finally {
-              reportBack();
-            }
+        return () -> {
+          try {
+            HaxmWizard wizard = new HaxmWizard(false);
+            wizard.init();
+            myChangesMade = wizard.showAndGet();
+          }
+          finally {
+            reportBack();
           }
         };
 
       case TURNOFF_HYPER_V:
-        return new Runnable() {
-          @Override
-          public void run() {
+        return () -> {
+          try {
+            GeneralCommandLine turnHyperVOff = new ElevatedCommandLine().withTempFilePrefix("turn_hypervisor_off");
+            turnHyperVOff.setExePath("bcdedit");
+            turnHyperVOff.addParameters("/set", "hypervisorlaunchtype", "off");
+            turnHyperVOff.setWorkDirectory(FileUtilRt.getTempDirectory());
             try {
-              GeneralCommandLine turnHyperVOff = new ElevatedCommandLine();
-              turnHyperVOff.setExePath("bcdedit");
-              turnHyperVOff.addParameters("/set", "hypervisorlaunchtype", "off");
-              turnHyperVOff.setWorkDirectory(FileUtilRt.getTempDirectory());
-              try {
-                execute(turnHyperVOff);
-                promptAndReboot(SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF);
-              }
-              catch (ExecutionException ex) {
-                LOG.error(ex);
-                Messages.showWarningDialog(myProject, SOLUTION_TURN_OFF_HYPER_V, "Operation Failed");
-              }
+              execute(turnHyperVOff);
+              promptAndReboot(SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF);
             }
-            finally {
-              reportBack();
+            catch (ExecutionException ex) {
+              LOG.error(ex);
+              Messages.showWarningDialog(myProject, SOLUTION_TURN_OFF_HYPER_V, "Operation Failed");
             }
+          }
+          finally {
+            reportBack();
           }
         };
 
       default:
-        return new Runnable() {
-          @Override
-          public void run() {
-            try {
-              Messages.showWarningDialog(myProject, myError.getSolutionMessage(), myError.getSolution().getDescription());
-            }
-            finally {
-              reportBack();
-            }
+        return () -> {
+          try {
+            Messages.showWarningDialog(myProject, myError.getSolutionMessage(), myError.getSolution().getDescription());
+          }
+          finally {
+            reportBack();
           }
         };
     }
@@ -276,7 +259,6 @@ public class AccelerationErrorSolution {
    *
    * @param prompt the message to display to the user
    * @exception ExecutionException if the shutdown command fails to execute
-   * @return No return value
    */
   public static void promptAndReboot(@NotNull String prompt) throws ExecutionException {
     int response = Messages
@@ -302,7 +284,6 @@ public class AccelerationErrorSolution {
    *
    * @param prompt the message to display to the user
    * @param modality ModalityState which determines when the reboot prompt will actually appear
-   * @return No return value
    */
   public static void promptAndRebootAsync(@NotNull String prompt, @NotNull ModalityState modality) {
     if (ourRebootRequestedAsync.compareAndSet(false, true)) {
@@ -319,6 +300,7 @@ public class AccelerationErrorSolution {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private static String execute(@NotNull String command, String... parameters) throws ExecutionException {
     return execute(generateCommand(command, parameters));
   }
@@ -355,10 +337,7 @@ public class AccelerationErrorSolution {
         return generateCommand("gksudo", "apt-get --assume-yes", "install", "qemu-kvm", "libvirt-bin", "ubuntu-vm-builder", "bridge-utils");
       }
     }
-    catch (ExecutionException ex) {
-      LOG.error(ex);
-    }
-    catch (NumberFormatException ex) {
+    catch (ExecutionException | NumberFormatException ex) {
       LOG.error(ex);
     }
     return null;

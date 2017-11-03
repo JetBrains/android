@@ -84,7 +84,8 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
             boolean dependsOn;
             switch (configuration) {
               case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
-                dependsOn = GradleUtil.dependsOn(androidModel, artifact);
+                dependsOn = GradleUtil.dependsOn(androidModel, artifact) ||
+                            GradleUtil.dependsOnJavaLibrary(androidModel, artifact); // For Kotlin dependencies
                 break;
               case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
                 dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);

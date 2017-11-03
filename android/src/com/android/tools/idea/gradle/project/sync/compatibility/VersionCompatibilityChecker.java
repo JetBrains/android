@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
@@ -37,7 +38,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 
 /**
@@ -66,6 +67,8 @@ import static com.intellij.openapi.util.JDOMUtil.writeDocument;
  * </p>
  */
 public class VersionCompatibilityChecker {
+  public static final String VERSION_COMPATIBILITY_ISSUE_GROUP = "Version Compatibility Issues";
+
   @NotNull private CompatibilityChecksMetadata myMetadata = new CompatibilityChecksMetadata(1);
 
   @NotNull
@@ -116,6 +119,8 @@ public class VersionCompatibilityChecker {
   }
 
   public void checkAndReportComponentIncompatibilities(@NotNull Project project) {
+    GradleSyncMessages.getInstance(project).removeMessages(VERSION_COMPATIBILITY_ISSUE_GROUP);
+
     ComponentVersionAndReaderCache cache = new ComponentVersionAndReaderCache();
     Map<String, VersionIncompatibility> incompatibilitiesByCheck = Maps.newHashMap();
 
@@ -232,11 +237,8 @@ public class VersionCompatibilityChecker {
         cache.projectComponents.put(componentName, readerAndVersion);
       }
       else {
-        Map<String, Pair<ComponentVersionReader, String>> componentVersionsByModule = cache.moduleComponents.get(componentName);
-        if (componentVersionsByModule == null) {
-          componentVersionsByModule = Maps.newHashMap();
-          cache.moduleComponents.put(componentName, componentVersionsByModule);
-        }
+        Map<String, Pair<ComponentVersionReader, String>> componentVersionsByModule =
+          cache.moduleComponents.computeIfAbsent(componentName, k -> Maps.newHashMap());
         componentVersionsByModule.put(module.getName(), readerAndVersion);
       }
 

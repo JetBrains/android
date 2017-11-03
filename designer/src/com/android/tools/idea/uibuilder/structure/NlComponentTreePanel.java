@@ -15,31 +15,38 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.Nullable;
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ScrollPaneFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSurface> {
   private final NlComponentTree myTree;
+  private final BackNavigationComponent myNavigationComponent;
 
-  public NlComponentTreePanel() {
+  public NlComponentTreePanel(@NotNull Project project) {
     super(new BorderLayout());
-    myTree = new NlComponentTree(null);
-    add(ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+    myTree = new NlComponentTree(project, null);
+    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    pane.setBorder(null);
+    myNavigationComponent = new BackNavigationComponent();
+    add(myNavigationComponent, BorderLayout.NORTH);
+    add(pane, BorderLayout.CENTER);
     Disposer.register(this, myTree);
   }
 
@@ -49,7 +56,8 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
-    myTree.setDesignSurface(designSurface);
+    myNavigationComponent.setDesignSurface(designSurface);
+    myTree.setDesignSurface((NlDesignSurface)designSurface);
   }
 
   @NotNull
@@ -71,24 +79,5 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
       return Collections.emptyList();
     }
     return Collections.singletonList(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myTree));
-  }
-
-  @NotNull
-  @Override
-  public List<AnAction> getAdditionalActions() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
-  }
-
-  @Override
-  public boolean supportsFiltering() {
-    return false;
-  }
-
-  @Override
-  public void setFilter(@NotNull String filter) {
   }
 }

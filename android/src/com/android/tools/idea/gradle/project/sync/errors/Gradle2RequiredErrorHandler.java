@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +30,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class Gradle2RequiredErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
       updateUsageTracker();
@@ -42,9 +41,7 @@ public class Gradle2RequiredErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new CreateGradleWrapperHyperlink());
     return hyperlinks;

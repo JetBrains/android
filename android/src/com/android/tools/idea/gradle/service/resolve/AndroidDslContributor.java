@@ -41,7 +41,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
@@ -115,8 +114,6 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     if (!DSL_ANDROID.equals(topLevel)) {
       return true;
     }
-
-    GroovyPsiManager psiManager = GroovyPsiManager.getInstance(place.getProject());
 
     // top level android block
     if (callStack.size() == 1) {

@@ -35,6 +35,7 @@ public class VisualTests {
    */
   abstract static class ValueAdapter implements Value {
     private int myValue;
+
     @Override
     public final void set(int v) {
       myValue = v;
@@ -51,22 +52,24 @@ public class VisualTests {
 
   public static void main(String[] args) throws Exception {
     SwingUtilities.invokeAndWait(() -> {
-        VisualTestsDialog dialog = new VisualTestsDialog();
-        dialog.addTest(new FlameGraphVisualTest());
-        dialog.addTest(new AccordionVisualTest());
-        dialog.addTest(new ThreadCallsVisualTest());
-        dialog.addTest(new AxisLineChartVisualTest());
-        dialog.addTest(new StateChartVisualTest());
-        dialog.addTest(new LineChartVisualTest());
-        dialog.addTest(new SelectionVisualTest());
-        dialog.addTest(new SunburstVisualTest());
-        dialog.addTest(new TimelineVisualTest());
-        dialog.addTest(new EventVisualTest());
-        dialog.addTest(new DataReducerVisualTest());
-        dialog.addTest(new StateChartReducerVisualTest());
-        dialog.setTitle("Visual Tests");
-        dialog.pack();
-        dialog.setVisible(true);
+      VisualTestsDialog dialog = new VisualTestsDialog();
+      dialog.addTest(new FlatTabbedPaneTest());
+      dialog.addTest(new SelectionVisualTest());
+      dialog.addTest(new TooltipVisualTest());
+      dialog.addTest(new LineChartVisualTest());
+      dialog.addTest(new FlameGraphVisualTest());
+      dialog.addTest(new AccordionVisualTest());
+      dialog.addTest(new ThreadCallsVisualTest());
+      dialog.addTest(new AxisLineChartVisualTest());
+      dialog.addTest(new StateChartVisualTest());
+      dialog.addTest(new SunburstVisualTest());
+      dialog.addTest(new TimelineVisualTest());
+      dialog.addTest(new EventVisualTest());
+      dialog.addTest(new LineChartReducerVisualTest());
+      dialog.addTest(new StateChartReducerVisualTest());
+      dialog.setTitle("Visual Tests");
+      dialog.pack();
+      dialog.setVisible(true);
     });
     System.exit(0);
   }

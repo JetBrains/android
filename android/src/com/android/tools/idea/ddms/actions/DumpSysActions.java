@@ -19,11 +19,14 @@ package com.android.tools.idea.ddms.actions;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DumpSysAction;
+import com.android.tools.idea.run.DeviceStateCache;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
 
 public class DumpSysActions {
   public static DefaultActionGroup create(@NotNull Project p, @NotNull final DeviceContext context) {
@@ -66,15 +69,33 @@ public class DumpSysActions {
   }
 
   private static class MyDumpProcStatsAction extends MyDumpSysAction {
+    // Only need to cache if device supports recording, so key can be empty string.
+    private static final String PKG_NAME = "";
+
+    private final DeviceStateCache<CompletableFuture> myCache;
+
     public MyDumpProcStatsAction(@NotNull Project p, @NotNull DeviceContext context, @NotNull String service, @NotNull String description) {
       super(p, context, service, description);
+
+      myCache = new DeviceStateCache<>(p);
     }
 
     @Override
     protected boolean isEnabled() {
-      return super.isEnabled() &&
-             myDeviceContext.getSelectedDevice() != null &&
-             myDeviceContext.getSelectedDevice().supportsFeature(IDevice.Feature.PROCSTATS);
+      if (!super.isEnabled()) {
+        return false;
+      }
+
+      IDevice device = myDeviceContext.getSelectedDevice();
+      CompletableFuture<Boolean> cf = myCache.get(device, PKG_NAME);
+      // first time execution for this device, async query if device supports recording and save it in the cache.
+      if (cf == null) {
+        cf = CompletableFuture.supplyAsync(() -> device.supportsFeature(IDevice.Feature.PROCSTATS));
+        myCache.put(device, PKG_NAME, cf);
+      }
+
+      // default return false until future is complete since this method will be called each time studio udpates
+      return cf.getNow(false);
     }
   }
 }

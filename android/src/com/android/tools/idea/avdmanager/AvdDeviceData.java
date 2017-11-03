@@ -23,9 +23,9 @@ import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.ui.properties.expressions.double_.DoubleExpression;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.expressions.double_.DoubleExpression;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +85,8 @@ public final class AvdDeviceData {
       @Override
       public Double get() {
         // The diagonal DPI will be somewhere in between the X and Y dpi if they differ
-        return AvdScreenData.calculateDpi(myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get());
+        return AvdScreenData.calculateDpi(
+            myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
       }
     };
 

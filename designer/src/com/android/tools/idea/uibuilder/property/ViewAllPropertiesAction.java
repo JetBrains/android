@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
+
 public class ViewAllPropertiesAction extends ToggleAction {
-  public static final String VIEW_ALL_PROPERTIES = "View all properties";
-  public static final String VIEW_FEWER_PROPERTIES = "View fewer properties";
+  public static final String VIEW_ALL_ATTRIBUTES = "View all attributes";
+  public static final String VIEW_FEWER_ATTRIBUTES = "View fewer attributes";
+  public static final String VIEW_XML_ATTRIBUTES = "View XML attributes";
   private final Model myModel;
 
   public interface Model {
@@ -32,13 +36,30 @@ public class ViewAllPropertiesAction extends ToggleAction {
   }
 
   public ViewAllPropertiesAction(@NotNull Model model) {
+    myModel = model;
     Presentation presentation = getTemplatePresentation();
-    String text = VIEW_ALL_PROPERTIES;
+    String text = getActualText();
     presentation.setText(text);
     presentation.setDescription(text);
-    presentation.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
+    presentation.setIcon(StudioIcons.LayoutEditor.Properties.TOGGLE_PROPERTIES);
+  }
 
-    myModel = model;
+  @Override
+  public void update(@NotNull AnActionEvent event) {
+    super.update(event);
+    Presentation presentation = event.getPresentation();
+    String text = getActualText();
+    presentation.setText(text);
+    presentation.setDescription(text);
+  }
+
+  @NotNull
+  private String getActualText() {
+    if (myModel.isAllPropertiesPanelVisible()) {
+      return VIEW_FEWER_ATTRIBUTES;
+    }
+    PropertiesComponent properties = PropertiesComponent.getInstance();
+    return properties.getBoolean(NL_XML_PROPERTY_EDITOR) ? VIEW_XML_ATTRIBUTES : VIEW_ALL_ATTRIBUTES;
   }
 
   @Override

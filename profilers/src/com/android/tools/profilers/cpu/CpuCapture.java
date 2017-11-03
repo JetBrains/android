@@ -15,63 +15,40 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.HNode;
+
+import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
-import com.android.tools.perflib.vmtrace.VmTraceData;
-import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.util.io.FileUtil;
+import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-public class CpuCapture implements DurationData {
+public class CpuCapture implements ConfigurableDurationData {
 
   public static final String MAIN_THREAD_NAME = "main";
 
   private final int myMainThreadId;
 
   @NotNull
-  private final Map<ThreadInfo, HNode<MethodModel>> myCaptureTrees;
+  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
 
   @NotNull
-  private final Range myRange;
+  private Range myRange;
 
-  public CpuCapture(@NotNull ByteString bytes) {
+  @NotNull
+  private ClockType myClockType;
 
-    // TODO: Move file parsing/manipulation to another thread.
-    // TODO: Remove layers, analyze whether we can keep the whole file in memory.
-    try {
-      File trace = FileUtil.createTempFile("cpu_trace", ".trace");
-      VmTraceData data;
-      try (FileOutputStream out = new FileOutputStream(trace)) {
-        out.write(bytes.toByteArray());
-        VmTraceParser parser = new VmTraceParser(trace);
-        parser.parse();
-        data = parser.getTraceData();
-      }
-
-      CpuTraceArt traceArt = new CpuTraceArt();
-      traceArt.parse(data);
-      myCaptureTrees = traceArt.getThreadsGraph();
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
+  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees) {
+    myRange = captureRange;
+    myCaptureTrees = captureTrees;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
-    Map.Entry<ThreadInfo, HNode<MethodModel>> main = null;
+    Map.Entry<CpuThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
-    myRange = new Range();
-    for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
         foundMainThread = true;
@@ -79,12 +56,17 @@ public class CpuCapture implements DurationData {
       if (!foundMainThread && (main == null || main.getValue().duration() < entry.getValue().duration())) {
         main = entry;
       }
-      myRange.expand(entry.getValue().getStart(), entry.getValue().getEnd());
     }
-    if (main == null) {
-      throw new IllegalArgumentException("Invalid trace");
-    }
+    // If there is no thread named "main", the trace file is not valid.
+    // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
+    // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
+    assert main != null;
     myMainThreadId = main.getKey().getId();
+
+    // Set clock type
+    CaptureNode mainNode = getCaptureNode(myMainThreadId);
+    assert mainNode != null;
+    myClockType = mainNode.getClockType();
   }
 
   public int getMainThreadId() {
@@ -97,8 +79,8 @@ public class CpuCapture implements DurationData {
   }
 
   @Nullable
-  public HNode<MethodModel> getCaptureNode(int threadId) {
-    for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry : myCaptureTrees.entrySet()) {
+  public CaptureNode getCaptureNode(int threadId) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();
       }
@@ -107,7 +89,7 @@ public class CpuCapture implements DurationData {
   }
 
   @NotNull
-  public Set<ThreadInfo> getThreads() {
+  Set<CpuThreadInfo> getThreads() {
     return myCaptureTrees.keySet();
   }
 
@@ -118,5 +100,38 @@ public class CpuCapture implements DurationData {
   @Override
   public long getDuration() {
     return (long)myRange.getLength();
+  }
+
+  @Override
+  public boolean getSelectableWhenMaxDuration() {
+    return false;
+  }
+
+  @Override
+  public boolean canSelectPartialRange() {
+    return true;
+  }
+
+  public void updateClockType(@NotNull ClockType clockType) {
+    if (myClockType == clockType) {
+      // Avoid traversing the capture trees if there is no change.
+      return;
+    }
+    myClockType = clockType;
+
+    for (CaptureNode tree : myCaptureTrees.values()) {
+      updateClockType(tree, clockType);
+    }
+  }
+
+  private static void updateClockType(@Nullable CaptureNode node, @NotNull ClockType clockType) {
+    if (node == null) {
+      return;
+    }
+    node.setClockType(clockType);
+    for (CaptureNode child : node.getChildren()) {
+      // CpuTraceArt should parse the capture into CaptureNode objects
+      updateClockType(child, clockType);
+    }
   }
 }

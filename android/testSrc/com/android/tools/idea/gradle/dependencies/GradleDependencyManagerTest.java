@@ -23,11 +23,15 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -38,13 +42,15 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
   private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
+
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
   public void testDependsOn() throws Exception {
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    assertThat(dependencyManager.dependsOn(myModules.getAppModule(), SdkConstants.APPCOMPAT_LIB_ARTIFACT)).isTrue();
-    assertThat(dependencyManager.dependsOn(myModules.getAppModule(), SdkConstants.LEANBACK_V17_ARTIFACT)).isFalse();
+    Module appModule = myModules.getAppModule();
+    assertTrue(dependencyManager.dependsOn(appModule, APPCOMPAT_LIB_ARTIFACT));
+    assertFalse(dependencyManager.dependsOn(appModule, LEANBACK_V17_ARTIFACT));
   }
 
   public void testFindMissingDependenciesWithRegularProject() throws Exception {
@@ -64,27 +70,47 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   @SuppressWarnings("unused")
   public void ignore_testDependencyAarIsExplodedForLayoutLib() throws Exception {
     loadSimpleApplication();
+
     List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+
     Messages.setTestDialog(new TestMessagesDialog(Messages.OK));
+
     boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
-    assertThat(found).isTrue();
-    List<ResourceItem> items = AppResourceRepository
-      .getAppResources(myAndroidFacet, true)
-      .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
+    assertTrue(found);
+
+    // @formatter:off
+    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myAndroidFacet)
+                                                    .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
+    // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
   }
 
   public void testDependencyCanBeCancelledByUser() throws Exception {
     loadSimpleApplication();
+
     List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+
     Messages.setTestDialog(new TestMessagesDialog(Messages.NO));
+
     boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
-    assertThat(found).isFalse();
+    assertFalse(found);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+  }
+
+  public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {
+    // Load a library with an explicit appcompat-v7 version that is older than the most recent version:
+    loadProject(SIMPLE_APP_WITH_OLDER_SUPPORT_LIB);
+
+    List<GradleCoordinate> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies);
+    assertThat(missing.size()).isEqualTo(1);
+    assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
+    assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
   }
 }

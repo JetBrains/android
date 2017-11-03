@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -29,13 +29,9 @@ public abstract class ModuleSetupStep<T> {
                                 @Nullable SyncAction.ModuleModels gradleModels,
                                 @Nullable ProgressIndicator indicator) {
     if (gradleModel == null) {
-      gradleModelNotFound(module, ideModelsProvider);
       return;
     }
     doSetUpModule(module, ideModelsProvider, gradleModel, gradleModels, indicator);
-  }
-
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
   }
 
   protected abstract void doSetUpModule(@NotNull Module module,
@@ -44,14 +40,11 @@ public abstract class ModuleSetupStep<T> {
                                         @Nullable SyncAction.ModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
-  public void displayDescription(@NotNull Module module, @NotNull ProgressIndicator indicator) {
-    indicator.setText2(String.format("Module ''%1$s': %2$s", module.getName(), getDescription()));
+  public boolean invokeOnBuildVariantChange() {
+    return false;
   }
 
-  @NotNull
-  public abstract String getDescription();
-
-  public boolean invokeOnBuildVariantChange() {
+  public boolean invokeOnSkippedSync() {
     return false;
   }
 }

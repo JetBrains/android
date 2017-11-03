@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.openapi.application.PathManager;
@@ -23,26 +24,18 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.junit.Assert.fail;
 
 public class NativeDebuggerGuiTestRule extends GuiTestRule {
   /** Environment variable containing the full path to an NDK install */
   private static final String TEST_NDK_PATH_ENV = "ANDROID_NDK_HOME";
-  private static final String TEST_DATA_DIR_PATH = PathManager.getHomePath() + "/../vendor/google/android-ndk/testData/guiTests/debugger/";
+  private static final String TEST_DATA_DIR_PATH = PathManager.getHomePath() + "/../adt/idea/android-uitests/testData/debugger/";
 
   @Override
   @NotNull
   protected File getMasterProjectDirPath(@NotNull String projectDirName) {
     return new File(toCanonicalPath(toSystemDependentName(TEST_DATA_DIR_PATH + projectDirName)));
-  }
-
-  @Override
-  @NotNull
-  protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(toCanonicalPath(toSystemDependentName(TEST_DATA_DIR_PATH + "newProjects/" + projectDirName)));
   }
 
   @Override
@@ -55,14 +48,7 @@ public class NativeDebuggerGuiTestRule extends GuiTestRule {
 
   @NotNull
   public static File getAndroidNdkPath() {
-    String path = System.getenv(TEST_NDK_PATH_ENV);
-    if (isNullOrEmpty(path)) {
-      String message = String.format("Please specify the path of an Android NDK in the environment variable '%1$s'",
-                                     TEST_NDK_PATH_ENV);
-      fail(message);
-    }
-    // If we got here is because the path is not null or empty.
-    return new File(toCanonicalPath(path));
+    return TestUtils.getNdk();
   }
 
 }

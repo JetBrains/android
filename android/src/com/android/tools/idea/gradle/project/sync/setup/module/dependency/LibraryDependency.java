@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,6 +65,12 @@ public class LibraryDependency extends Dependency {
     super(scope);
     myArtifactPath = artifactPath;
     setName(name);
+
+    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance();
+    File javadocJarPath = libraryFilePaths.findJavadocJarPath(artifactPath);
+    if (javadocJarPath != null) {
+      addPath(PathType.DOCUMENTATION, javadocJarPath);
+    }
   }
 
   @VisibleForTesting
@@ -74,6 +81,10 @@ public class LibraryDependency extends Dependency {
       myPathsByType.put(type, paths);
     }
     paths.add(path);
+  }
+
+  void addPath(@NotNull PathType type, @NotNull String path) {
+    addPath(type, new File(path));
   }
 
   @NotNull
@@ -97,6 +108,25 @@ public class LibraryDependency extends Dependency {
     // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
     String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
     myName = name.isEmpty() || StringUtil.startsWith(name, prefix) ? name : prefix + name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LibraryDependency)) {
+      return false;
+    }
+    LibraryDependency that = (LibraryDependency)o;
+    return Objects.equals(myPathsByType, that.myPathsByType) &&
+           Objects.equals(myArtifactPath, that.myArtifactPath) &&
+           Objects.equals(myName, that.myName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myPathsByType, myArtifactPath, myName);
   }
 
   @Override

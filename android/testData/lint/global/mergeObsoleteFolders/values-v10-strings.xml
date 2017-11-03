@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Application From v10</string>
+    <string name="string_in_v10">Only in v10</string>
+    <string name="string_in_v8">Changed v8 in v10</string>
+    <dimen name="dimen_in_v10">Dimen in v10</dimen>
+</resources>

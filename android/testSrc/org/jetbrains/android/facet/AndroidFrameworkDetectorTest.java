@@ -34,6 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class AndroidFrameworkDetectorTest extends IdeaTestCase {
   @Mock private FrameworkDetectionContext myContext;
+  @Mock GradleProjectInfo myProjectInfo;
 
   private AndroidFrameworkDetector myDetector;
 
@@ -43,22 +44,21 @@ public class AndroidFrameworkDetectorTest extends IdeaTestCase {
     initMocks(this);
 
     when(myContext.getProject()).thenReturn(getProject());
-
     myDetector = new AndroidFrameworkDetector();
   }
 
   public void testDetectWithGradleProject() {
-    GradleProjectInfo projectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
-    when(projectInfo.isBuildWithGradle()).thenReturn(true);
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myProjectInfo);
+    when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
     assertThat(descriptions).isEmpty();
   }
 
   public void testDetectWithProjectWithBuildFile() {
-    GradleProjectInfo projectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
-    when(projectInfo.isBuildWithGradle()).thenReturn(false);
-    when(projectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myProjectInfo);
+    when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
+    when(myProjectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
     assertThat(descriptions).isEmpty();

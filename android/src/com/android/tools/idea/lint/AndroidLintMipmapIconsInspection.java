@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.tools.lint.checks.ManifestDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase {
   public AndroidLintMipmapIconsInspection() {
@@ -31,7 +33,10 @@ public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase 
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
     PsiElement parent = startElement.getParent();
     if (parent instanceof XmlAttribute) {
       XmlAttribute attribute = (XmlAttribute)parent;
@@ -43,6 +48,6 @@ public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase 
         }
       }
     }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

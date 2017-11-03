@@ -39,7 +39,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
@@ -283,7 +282,7 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     }
     else {
       myVisibleOverlays.remove(orderedText);
-      if (myVisibleOverlays.size() > 0) {
+      if (!myVisibleOverlays.isEmpty()) {
         updateOverlayText(myVisibleOverlays.peek().myText);
       }
       else {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.wizard.model.demo.npw.steps;
 
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.swing.SelectedIndexProperty;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.ui.SelectedIndexProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.demo.npw.android.ActivityTemplate;

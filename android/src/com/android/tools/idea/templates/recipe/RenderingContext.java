@@ -56,7 +56,7 @@ public class RenderingContext {
   private final Map<String, Object> myParamMap;
   private final File myOutputRoot;
   private final File myModuleRoot;
-  private final boolean myGradleSync;
+  private final boolean myPerformSync;
   private final boolean myFindOnlyReferences;
   private final StudioTemplateLoader myLoader;
   private final Configuration myFreemarker;
@@ -76,7 +76,7 @@ public class RenderingContext {
                            @NotNull Map<String, Object> paramMap,
                            @NotNull File outputRoot,
                            @NotNull File moduleRoot,
-                           boolean gradleSyncIfNeeded,
+                           boolean performSyncIfNeeded,
                            boolean findOnlyReferences,
                            boolean dryRun,
                            boolean showErrors,
@@ -91,7 +91,7 @@ public class RenderingContext {
     myParamMap = FreemarkerUtils.createParameterMap(paramMap);
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
-    myGradleSync = gradleSyncIfNeeded;
+    myPerformSync = performSyncIfNeeded;
     myFindOnlyReferences = findOnlyReferences;
     myDryRun = dryRun;
     myShowErrors = showErrors;
@@ -147,11 +147,11 @@ public class RenderingContext {
   }
 
   /**
-   * If true perform a Gradle sync at the end of the template execution.
-   * A false means do NOT perform a Gradle sync since we plan to do this later.
+   * If true perform a build system sync at the end of the template execution.
+   * A false means do NOT perform a build system sync since we plan to do this later.
    */
-  public boolean performGradleSync() {
-    return myGradleSync;
+  public boolean performSync() {
+    return myPerformSync;
   }
 
   /**
@@ -259,7 +259,7 @@ public class RenderingContext {
    * @return true if the target files should be reformatted after the template is rendered
    */
   public boolean shouldReformat() {
-    return !myDryRun && myProject.isInitialized();
+    return !myDryRun;
   }
 
   /**
@@ -277,7 +277,7 @@ public class RenderingContext {
            ", myParamMap=" + myParamMap +
            ", myOutputRoot=" + myOutputRoot +
            ", myModuleRoot=" + myModuleRoot +
-           ", myGradleSync=" + myGradleSync +
+           ", myPerformSync=" + myPerformSync +
            ", myFindOnlyReferences=" + myFindOnlyReferences +
            ", myLoader=" + myLoader +
            ", myFreemarker=" + myFreemarker +
@@ -306,7 +306,7 @@ public class RenderingContext {
     private Map<String, Object> myParams;
     private File myOutputRoot;
     private File myModuleRoot;
-    private boolean myGradleSync;
+    private boolean myPerformSync;
     private boolean myFindOnlyReferences;
     private boolean myDryRun;
     private boolean myShowErrors;
@@ -324,7 +324,7 @@ public class RenderingContext {
       myParams = Collections.emptyMap();
       myOutputRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
       myModuleRoot = myOutputRoot;
-      myGradleSync = true;
+      myPerformSync = true;
       myFindOnlyReferences = false;
       myDryRun = false;
       myShowErrors = false;
@@ -392,12 +392,12 @@ public class RenderingContext {
     }
 
     /**
-     * Specify if a Gradle sync should be performed at the end of the template execution.
-     * A false means do NOT perform a Gradle sync since we plan to do this later.
+     * Specify if a build system sync should be performed at the end of the template execution.
+     * A false means do NOT perform a build system sync since we plan to do this later.
      * Default: true.
      */
-    public Builder withGradleSync(boolean gradleSync) {
-      myGradleSync = gradleSync;
+    public Builder withPerformSync(boolean performSync) {
+      myPerformSync = performSync;
       return this;
     }
 
@@ -493,7 +493,7 @@ public class RenderingContext {
         myClasspathEntries = null;
         myDependencies = null;
       }
-      return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
+      return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myPerformSync,
                                   myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
                                   myPlugins, myClasspathEntries, myDependencies);
     }

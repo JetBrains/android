@@ -15,35 +15,36 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.UpdatablePackage;
+import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.npw.template.TemplateHandle;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.npw.validator.ModuleValidator;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
-import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -51,32 +52,44 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
-public final class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleModel> {
-  @NotNull private final StudioWizardStepPanel myRootPanel;
-  @NotNull private final FormFactor myFormFactor;
+public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleModel> {
+  private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
+  private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
+  private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
-  private final int myMinSdkLevel;
 
-  private ChooseActivityTypeStep myChooseActivityTypeStep;
+  @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private ValidatorPanel myValidatorPanel;
+  @NotNull private final FormFactor myFormFactor;
+
+  private final int myMinSdkLevel;
+  private final boolean myIsLibrary;
+  private final boolean myIsInstantApp;
 
   private FormFactorApiComboBox mySdkControls;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
 
-  public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, @NotNull String title) {
-    super(model, title);
+  @NotNull private RenderTemplateModel myRenderModel;
+
+  public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
+                                    boolean isLibrary, boolean isInstantApp, @NotNull String title) {
+    super(model, title, formFactor.getIcon());
 
     myFormFactor = formFactor;
     myMinSdkLevel = minSdkLevel;
+    myIsLibrary = isLibrary;
+    myIsInstantApp = isInstantApp;
 
     StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -89,7 +102,8 @@ public final class ConfigureAndroidModuleStep extends SkippableWizardStep<NewMod
     myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     // Project should never be null (we are adding a new module to an existing project)
-    Project project = getModel().getProject().getValue();
+    NewModuleModel moduleModel = getModel();
+    Project project = moduleModel.getProject().getValue();
 
     Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.applicationName());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
@@ -99,9 +113,9 @@ public final class ConfigureAndroidModuleStep extends SkippableWizardStep<NewMod
 
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
 
-    ValidatorPanel validatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
 
-    validatorPanel.registerValidator(model.applicationName(), value -> {
+    myValidatorPanel.registerValidator(model.applicationName(), value -> {
       if (value.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
@@ -111,46 +125,34 @@ public final class ConfigureAndroidModuleStep extends SkippableWizardStep<NewMod
       return Validator.Result.OK;
     });
 
-    Expression<File> locationFile = model.moduleName().transform((String str) -> new File(project.getBasePath(), str));
-    validatorPanel.registerValidator(locationFile, PathValidator.createDefault("module location"));
-
-    validatorPanel.registerValidator(model.packageName(),
+    myValidatorPanel.registerValidator(model.moduleName(), new ModuleValidator(project));
+    myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myRootPanel = new StudioWizardStepPanel(validatorPanel, message("android.wizard.module.config.title"));
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
-  }
+    AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
 
-  @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myListeners.listen(getModel().isLibrary(), sender -> {
-      myChooseActivityTypeStep.setShouldShow(!getModel().isLibrary().get());
-      wizard.updateNavigationProperties();
-    });
+    myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet, message("android.wizard.activity.add", myFormFactor.id));
+
+    myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
+
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    List<TemplateHandle> templateList = TemplateManager.getInstance().getTemplateList(myFormFactor);
-    AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
+    // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
+    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
+    chooseActivityStep.setShouldShow(!myIsLibrary || myIsInstantApp);
 
-    RenderTemplateModel renderModel = new RenderTemplateModel(getModel().getProject(), getModel().packageName(), templateList.get(0),
-                                                              dummySourceSet, message("android.wizard.activity.add"));
+    LicenseAgreementStep licenseAgreementStep =
+      new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
 
-    // Some changes on this step model trigger changes on the Render Model
-    myListeners.listenAll(getModel().getProject(), getModel().moduleName()).withAndFire(() -> {
-      String moduleName = getModel().moduleName().get();
-      Project project = getModel().getProject().getValue();
+    InstallSelectedPackagesStep installPackagesStep =
+      new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
 
-      renderModel.getSourceSet().set(new AndroidSourceSet("main", new AndroidProjectPaths(new File(project.getBasePath(), moduleName))));
-    });
-
-    myBindings.bind(renderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
-
-    myChooseActivityTypeStep = new ChooseActivityTypeStep(getModel(), renderModel, templateList, Lists.newArrayList());
-
-    return Lists.newArrayList(myChooseActivityTypeStep);
+    return Lists.newArrayList(chooseActivityStep, licenseAgreementStep, installPackagesStep);
   }
 
   @Override
@@ -158,13 +160,43 @@ public final class ConfigureAndroidModuleStep extends SkippableWizardStep<NewMod
     // TODO: 1 - In the old version, the combo box was initially populated with local data, and then later (asynchronously) with remote data
     // now, the init is only called when all data is loaded, so the combo box stays empty for longer
     // 2 - The old version only loaded the list of version once, and kept everything on a static field
-    // Possible solutions: Move AndroidVersionsInfo/load to the to the class that instantiates this step?
+    // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
     // Add a new method to androidVersionsInfo.ItemsLoaded interface: onDataLoadedStarted(List<VersionItem> items) that provides the already
     // loaded Local Store items?
-    AndroidVersionsInfo androidVersionsInfo = new AndroidVersionsInfo();
-    androidVersionsInfo.load();
+    myAndroidVersionsInfo.load();
+    myAndroidVersionsInfo.loadTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
+  }
 
-    androidVersionsInfo.loadTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onProceeding() {
+    NewModuleModel moduleModel = getModel();
+    moduleModel.getTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
+
+    // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
+    getModel().moduleName().set(myModuleName.getText());
+    Project project = moduleModel.getProject().getValue();
+    File moduleRoot = new File(project.getBasePath(), moduleModel.moduleName().get());
+    myRenderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
+
+    if (myIsLibrary) {
+      moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
+
+      new TemplateValueInjector(moduleModel.getTemplateValues())
+        .setProjectDefaults(project, moduleModel.applicationName().get(), myIsInstantApp);
+    }
+
+    myInstallRequests.clear();
+    myInstallLicenseRequests.clear();
+
+    List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(myRenderModel.androidSdkInfo().getValue());
+    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
+    myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }
 
   @NotNull

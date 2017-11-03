@@ -35,4 +35,9 @@ public class DefaultDataSeries<E> extends BaseDataSeries<E> {
   public E getY(int index) {
     return mY.get(index);
   }
+
+  public void clear() {
+    mX.clear();
+    mY.clear();
+  }
 }

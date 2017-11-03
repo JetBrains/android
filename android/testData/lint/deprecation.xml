@@ -21,7 +21,7 @@
         <warning descr="`android:numeric` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:numeric="true"</warning>
         <warning descr="`android:password` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:password="true"</warning>
         <warning descr="`android:phoneNumber` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:phoneNumber="true"</warning>
-        <warning>android:singleLine="true"</warning> />
+        android:singleLine="true" />
 
     <EditText <warning descr="`android:editable` is deprecated: `<EditText>` is already editable" textAttributesKey="DEPRECATED_ATTRIBUTES">android:editable="true"</warning> />
     <EditText <warning descr="`android:editable` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:editable="false"</warning> />

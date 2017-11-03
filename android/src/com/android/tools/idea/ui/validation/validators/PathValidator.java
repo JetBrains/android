@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@ package com.android.tools.idea.ui.validation.validators;
 
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.List;
@@ -282,6 +284,10 @@ public final class PathValidator implements Validator<File> {
     return new Builder().withAllRules(Severity.ERROR).build(pathName);
   }
 
+  private static Logger getLogger() {
+    return Logger.getInstance(PathValidator.class);
+  }
+
   /**
    * Validate that the target location passes all tests.
    *
@@ -290,16 +296,21 @@ public final class PathValidator implements Validator<File> {
   @NotNull
   @Override
   public Result validate(@NotNull File file) {
-    Result result = validate(file, Severity.ERROR);
-    if (result != Result.OK) {
-      return result;
-    }
+    try {
+      Result result = validate(file, Severity.ERROR);
+      if (result != Result.OK) {
+        return result;
+      }
 
-    result = validate(file, Severity.WARNING);
-    if (result != Result.OK) {
-      return result;
+      result = validate(file, Severity.WARNING);
+      if (result != Result.OK) {
+        return result;
+      }
     }
-
+    catch (Exception ex) {
+      getLogger().warn(ex);
+      return new Result(Severity.ERROR, String.format("Invalid file, see Help -> Show Log for more details: %1$s", file));
+    }
     return Result.OK;
   }
 
@@ -321,8 +332,14 @@ public final class PathValidator implements Validator<File> {
     return Result.OK;
   }
 
+  @NotNull
+  @TestOnly
+  public Iterable<Rule> getErrors() {
+    return myErrors;
+  }
+
   /**
-   * A single validation rule which tests a target file to see if it violates it.
+   * A single validation ruleModuleValidatorTest which tests a target file to see if it violates it.
    */
   public interface Rule {
     /**
@@ -347,10 +364,12 @@ public final class PathValidator implements Validator<File> {
      */
     @NotNull
     public Builder withAllRules(@NotNull Severity pathNotWritable) {
+      // Note: Order of rules is important, we want to check for invalid slashes, chars, etc before checking if we can write
+      withCommonRules();
       withRule(IS_EMPTY, Severity.ERROR);
       withRule(PATH_NOT_WRITABLE, pathNotWritable);
       withRule(NON_EMPTY_DIRECTORY, Severity.WARNING);
-      return withCommonRules();
+      return this;
     }
 
     /**

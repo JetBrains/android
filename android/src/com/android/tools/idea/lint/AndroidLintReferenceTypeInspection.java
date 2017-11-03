@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.DuplicateResourceDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintReferenceTypeInspection extends AndroidLintInspectionBase {
   public AndroidLintReferenceTypeInspection() {
     super(AndroidBundle.message("android.lint.inspections.reference.type"), DuplicateResourceDetector.TYPE_MISMATCH);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String expected = DuplicateResourceDetector.getExpectedType(message, RAW);
-    if (expected != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "(@.*/)", "@" + expected + "/")};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.view.autofill.AutofillManager">
+  </item>
+  <item name="android.view.autofill.AutofillManager void notifyViewEntered(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void notifyViewEntered(android.view.View, int, android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void notifyViewEntered(android.view.View, int, android.graphics.Rect) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void notifyViewExited(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void notifyViewExited(android.view.View, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void registerCallback(android.view.autofill.AutofillManager.AutofillCallback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void requestAutofill(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void requestAutofill(android.view.View, int, android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void requestAutofill(android.view.View, int, android.graphics.Rect) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager void unregisterCallback(android.view.autofill.AutofillManager.AutofillCallback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.autofill.AutofillManager.AutofillCallback void onAutofillEvent(android.view.View, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager.AutofillCallback void onAutofillEvent(android.view.View, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.autofill.AutofillManager.AutofillCallback.EVENT_INPUT_SHOWN, android.view.autofill.AutofillManager.AutofillCallback.EVENT_INPUT_HIDDEN}" />
+    </annotation>
+  </item>
+  <item name="android.view.autofill.AutofillManager.AutofillCallback void onAutofillEvent(android.view.View, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.autofill.AutofillManager.AutofillCallback void onAutofillEvent(android.view.View, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.autofill.AutofillManager.AutofillCallback.EVENT_INPUT_SHOWN, android.view.autofill.AutofillManager.AutofillCallback.EVENT_INPUT_HIDDEN}" />
+    </annotation>
+  </item>
+  <item name="android.view.autofill.AutofillValue android.view.autofill.AutofillValue forText(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.autofill.AutofillValue java.lang.CharSequence getTextValue()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

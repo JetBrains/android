@@ -15,94 +15,103 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-public final class PreferenceCategoryDragHandlerTest {
+public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTestCase {
   private NlGraphics myGraphics;
 
-  @Before
-  public void initGraphics() {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     myGraphics = Mockito.mock(NlGraphics.class);
   }
 
-  @Test
-  public void paint() {
-    DragHandler handler = newPreferenceCategoryDragHandler(PreferenceScreenTestFactory.newPreferenceCategory(0, 162, 768, 65));
+  public void testPaint() {
+    SyncNlModel model = model("model.xml", preferenceCategory(0, 162, 768, 65).id("@+id/category")).build();
+    DragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(360, 180, 0);
+    handler.update(180, 90, 0);
     handler.paint(myGraphics);
 
-    Rectangle bounds = new Rectangle(0, 162, 768, 67);
+    @AndroidDpCoordinate Rectangle bounds = new Rectangle(0, 81, 384, 34);
 
     Mockito.verify(myGraphics).useStyle(NlDrawingStyle.DROP_PREVIEW);
-    Mockito.verify(myGraphics).drawBottom(bounds);
+    Mockito.verify(myGraphics).drawBottomDp(bounds);
 
     Mockito.verify(myGraphics).useStyle(NlDrawingStyle.DROP_RECIPIENT);
-    Mockito.verify(myGraphics).drawTop(bounds);
-    Mockito.verify(myGraphics).drawLeft(bounds);
-    Mockito.verify(myGraphics).drawRight(bounds);
+    Mockito.verify(myGraphics).drawTopDp(bounds);
+    Mockito.verify(myGraphics).drawLeftDp(bounds);
+    Mockito.verify(myGraphics).drawRightDp(bounds);
   }
 
-  @Test
-  public void drawDropRecipientLines() {
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(PreferenceScreenTestFactory.newPreferenceCategory());
+  public void testDrawDropRecipientLines() {
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(360, 350, 0);
+    handler.update(180, 175, 0);
     handler.drawDropRecipientLines(myGraphics);
 
-    Rectangle bounds = new Rectangle(0, 332, 768, 379);
+    @AndroidDpCoordinate Rectangle bounds = new Rectangle(0, 166, 384, 190);
 
-    Mockito.verify(myGraphics).drawTop(bounds);
-    Mockito.verify(myGraphics).drawLeft(bounds);
-    Mockito.verify(myGraphics).drawRight(bounds);
-    Mockito.verify(myGraphics).drawBottom(bounds);
+    Mockito.verify(myGraphics).drawTopDp(bounds);
+    Mockito.verify(myGraphics).drawLeftDp(bounds);
+    Mockito.verify(myGraphics).drawRightDp(bounds);
+    Mockito.verify(myGraphics).drawBottomDp(bounds);
   }
 
-  @Test
-  public void drawDropZoneLinesPointerIsInSecondHalfOfFirstChild() {
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(PreferenceScreenTestFactory.newPreferenceCategory());
+  public void testDrawDropZoneLinesPointerIsInSecondHalfOfFirstChild() {
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(360, 480, 0);
+    handler.update(180, 240, 0);
     handler.drawDropZoneLines(myGraphics);
 
-    List<NlComponent> preferences = handler.myGroup.getChildren();
+    List<SceneComponent> preferences = handler.myGroup.getChildren();
 
-    Mockito.verify(myGraphics).drawTop(preferences.get(0));
-    Mockito.verify(myGraphics).drawTop(preferences.get(2));
+    Mockito.verify(myGraphics).drawTop(preferences.get(0).getNlComponent());
+    Mockito.verify(myGraphics).drawTop(preferences.get(2).getNlComponent());
   }
 
-  @Test
-  public void drawDropZoneLinesPointerIsInFirstHalfOfSecondChild() {
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(PreferenceScreenTestFactory.newPreferenceCategory());
+  public void testDrawDropZoneLinesPointerIsInFirstHalfOfSecondChild() {
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(360, 530, 0);
+    handler.update(180, 265, 0);
     handler.drawDropZoneLines(myGraphics);
 
-    List<NlComponent> preferences = handler.myGroup.getChildren();
+    List<SceneComponent> preferences = handler.myGroup.getChildren();
 
-    Mockito.verify(myGraphics).drawTop(preferences.get(0));
-    Mockito.verify(myGraphics).drawTop(preferences.get(2));
+    Mockito.verify(myGraphics).drawTop(preferences.get(0).getNlComponent());
+    Mockito.verify(myGraphics).drawTop(preferences.get(2).getNlComponent());
   }
 
   @NotNull
-  private static PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull NlComponent category) {
-    ViewEditor editor = PreferenceScreenTestFactory.mockEditor();
-    List<NlComponent> preferences = Collections.singletonList(Mockito.mock(NlComponent.class));
+  private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull SyncNlModel model, @NotNull NlComponent category) {
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    scene.buildDisplayList(new DisplayList(), 0);
 
-    return new PreferenceCategoryDragHandler(editor, new ViewGroupHandler(), category, preferences, DragType.MOVE);
+    SceneComponent component = scene.getSceneComponent(category);
+    return new PreferenceCategoryDragHandler(
+      editor(screenFixture.getScreen()), new ViewGroupHandler(), component, Collections.singletonList(component.getNlComponent()),
+      DragType.MOVE);
   }
 }

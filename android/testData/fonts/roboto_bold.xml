@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:android="http://schemas.android.com/apk/res/android"
+             android:fontProviderAuthority="com.google.android.gms.fonts"
+             android:fontProviderQuery="name=Roboto&amp;weight=700&amp;width=75&amp;italic=1">
+</font-family>

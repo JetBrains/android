@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.Constraint;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.ViewData;
-import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Insets;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.*;
@@ -61,6 +63,7 @@ public class GuidelineHandler {
   /**
    * The bounds of the primary child node being dragged
    */
+  @AndroidCoordinate
   protected Rectangle myBounds;
 
   /**
@@ -230,7 +233,7 @@ public class GuidelineHandler {
     myVerticalEdges = new ArrayList<>();
     myCenterVertEdges = new ArrayList<>();
     myCenterHorizEdges = new ArrayList<>();
-    myDependencyGraph = DependencyGraph.get(layout);
+    myDependencyGraph = layout.getDependencyGraph();
   }
 
   /**
@@ -319,9 +322,10 @@ public class GuidelineHandler {
    */
   protected void addBounds(NlComponent node, String id, boolean addHorizontal, boolean addVertical, boolean includePadding) {
     // TODO - inline constants
-    Rectangle b = new Rectangle(node.x, node.y, node.w, node.h);
-    Insets m = node.getMargins();
-    Insets p = includePadding ? node.getPadding() : Insets.NONE;
+    Rectangle b = new Rectangle(NlComponentHelperKt.getX(node), NlComponentHelperKt.getY(node), NlComponentHelperKt.getW(node),
+                                NlComponentHelperKt.getH(node));
+    Insets m = NlComponentHelperKt.getMargins(node);
+    Insets p = includePadding ? NlComponentHelperKt.getPadding(node) : Insets.NONE;
 
     if (addHorizontal) {
       if (m.top != 0) {
@@ -364,7 +368,7 @@ public class GuidelineHandler {
    */
   protected void addCenter(NlComponent node, String id) {
     // TODO - inline constants
-    Rectangle b = new Rectangle(node.x, node.y, node.w, node.h);
+    Rectangle b = new Rectangle(NlComponentHelperKt.getX(node), NlComponentHelperKt.getY(node), NlComponentHelperKt.getW(node), NlComponentHelperKt.getH(node));
 
     myCenterHorizEdges.add(new Segment(centerY(b), b.x, x2(b), node, id, SegmentType.CENTER_HORIZONTAL, NO_MARGIN));
     myCenterVertEdges.add(new Segment(centerX(b), b.y, y2(b), node, id, SegmentType.CENTER_VERTICAL, NO_MARGIN));
@@ -374,10 +378,11 @@ public class GuidelineHandler {
    * Records the baseline edge for the given node to the potential match list
    */
   protected int addBaseLine(NlComponent node, String id) {
-    int baselineY = node.getBaseline();
+    int baselineY = NlComponentHelperKt.getBaseline(node);
     if (baselineY != -1) {
       // TODO - inline constants
-      Rectangle b = new Rectangle(node.x, node.y, node.w, node.h);
+      Rectangle b = new Rectangle(NlComponentHelperKt.getX(node), NlComponentHelperKt.getY(node), NlComponentHelperKt.getW(node),
+                                  NlComponentHelperKt.getH(node));
       myHorizontalEdges.add(new Segment(b.y + baselineY, b.x, x2(b), node, id, SegmentType.BASELINE, NO_MARGIN));
     }
 
@@ -448,7 +453,7 @@ public class GuidelineHandler {
 
   protected void addClosest(Segment draggedEdge, List<Segment> edges, List<Match> closest) {
     int at = draggedEdge.at;
-    int closestDelta = closest.size() > 0 ? closest.get(0).delta : Integer.MAX_VALUE;
+    int closestDelta = !closest.isEmpty() ? closest.get(0).delta : Integer.MAX_VALUE;
     int closestDistance = Math.abs(closestDelta);
     for (Segment edge : edges) {
       assert draggedEdge.edgeType.isHorizontal() == edge.edgeType.isHorizontal();
@@ -566,7 +571,7 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
       clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeft());
-      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeftOf());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRightOf());
     }
 
     if (myMoveRight) {
@@ -578,7 +583,7 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_LEFT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
       clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRight());
-      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRightOf());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeftOf());
     }
 
     if (myMoveTop && myCurrentTopMatch != null) {
@@ -626,6 +631,10 @@ public class GuidelineHandler {
         if (requiresRightLeft()) {
           applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
         }
+        else {
+          // don't need margin left, clean it if exist.
+          clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+        }
         applyMargin(n, myTextDirection.getAttrMarginLeft(), getLeftMarginDp());
       }
       else {
@@ -636,6 +645,10 @@ public class GuidelineHandler {
       if (supportsStartEnd()) {
         if (requiresRightLeft()) {
           applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
+        }
+        else {
+          // don't need margin right, clean it if exist.
+          clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
         }
         applyMargin(n, myTextDirection.getAttrMarginRight(), getRightMarginDp());
       }

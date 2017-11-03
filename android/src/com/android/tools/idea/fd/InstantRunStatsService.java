@@ -18,7 +18,7 @@ package com.android.tools.idea.fd;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -167,8 +167,6 @@ public class InstantRunStatsService {
         return InstantRunDeploymentKind.HOT_SWAP;
       case SPLITAPK:
         return InstantRunDeploymentKind.SPLIT_APK;
-      case DEX:
-        return InstantRunDeploymentKind.DEX;
       case WARMSWAP:
         return InstantRunDeploymentKind.WARM_SWAP;
       case NO_CHANGES:

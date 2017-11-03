@@ -19,24 +19,33 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceRepository;
+import com.android.ide.common.res2.ResourceTable;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static java.io.File.separatorChar;
+
 public class ResourceClassGeneratorTest extends AndroidTestCase {
+  private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
+
   public void test() throws Exception {
-    final ResourceRepository repository = TestResourceRepository.createRes2(false, new Object[]{
+    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -74,27 +83,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                                "<resources>\n" +
                                "    <string name=\"show_all_apps\">Todo</string>\n" +
                                "</resources>\n",});
-    LocalResourceRepository resources = new LocalResourceRepository("test") {
-      @NonNull
-      @Override
-      protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-        return repository.getItems();
-      }
-
-      @Nullable
-      @Override
-      protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-        return repository.getItems().get(type);
-      }
-
-      @NotNull
-      @Override
-      protected Set<VirtualFile> computeResourceDirs() {
-        return ImmutableSet.of();
-      }
-    };
+    LocalResourceRepository resources = new LocalResourceRepositoryDelegate("test", repository);
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
-                                                                   Collections.<FileResourceRepository>emptyList());
+                                                                   Collections.emptyList());
 
     ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
     assertNotNull(generator);
@@ -189,6 +180,114 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //assertNotNull(clz.getField("top"));
     //assertNotNull(clz.getField("bottom"));
     //assertNotNull(clz.getField("center_vertical"));
+  }
+
+  public void testStyleableMerge() throws Exception {
+    final ResourceRepository repositoryA = TestResourceRepository.createRes2(new Object[]{
+      "values/styles.xml", "" +
+                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<resources>\n" +
+                           "    <attr name=\"app_declared_attr\" />\n" +
+                           "    <declare-styleable name=\"Styleable1\">\n" +
+                           "    </declare-styleable>\n" +
+                           "    <declare-styleable name=\"Styleable.with.dots\">\n" +
+                           "        <attr name=\"app_declared_attr\" />\n" +
+                           "        <attr name=\"some_attr\" />\n" + // Duplicate attr
+                           "        <attr name=\"android:layout_height\" />\n" +
+                           "    </declare-styleable>\n" +
+                           "    <declare-styleable name=\"AppStyleable\">\n" +
+                           "    </declare-styleable>" +
+                           "</resources>\n"});
+    LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
+    String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
+                     "rendering" + separatorChar +
+                     EXPLODED_AAR + separatorChar +
+                     "my_aar_lib" + separatorChar +
+                     "res";
+    FileResourceRepository libraryRepository = FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
+    AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resourcesA, libraryRepository),
+                                                                   Collections.singletonList(libraryRepository));
+
+    // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
+    //
+    //    1 unique styleable from the app
+    //    1 unique styleable from the library
+    //    2 styles declared in both
+    //------------------------------------------
+    //    4 total styles
+    assertEquals(4, appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE).size());
+
+    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    assertNotNull(generator);
+    String name = "my.test.pkg.R";
+    Class<?> clz = generateClass(generator, name);
+    assertNotNull(clz);
+    assertEquals(name, clz.getName());
+    assertNotNull(clz.newInstance());
+
+    name = "my.test.pkg.R$styleable";
+    clz = generateClass(generator, name);
+    assertNotNull(clz);
+    assertEquals(name, clz.getName());
+    String rStyleable = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+    assertEquals(
+      "public static final int[] my.test.pkg.R$styleable.Styleable_with_underscore\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr1\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr2\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr3\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr1\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr2\n" +
+      "public static final int[] my.test.pkg.R$styleable.Styleable_with_dots\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_dots_some_attr\n" + // Duplicated attr
+      "public static final int my.test.pkg.R$styleable.Styleable_with_dots_app_declared_attr\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_dots_android_layout_height\n" +
+      "public static final int[] my.test.pkg.R$styleable.AppStyleable\n" +
+      "public static final int[] my.test.pkg.R$styleable.Styleable1\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable1_some_attr",
+      rStyleable);
+    assertNotNull(clz.newInstance());
+
+    name = "my.test.pkg.R$attr";
+    clz = generateClass(generator, name);
+    assertNotNull(clz);
+    assertEquals(name, clz.getName());
+    String rAttr = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+    assertEquals("public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
+    assertNotNull(clz.newInstance());
+  }
+
+  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
+
+    private final ResourceRepository myDelegate;
+
+    protected LocalResourceRepositoryDelegate(@NotNull String displayName, ResourceRepository delegate) {
+      super(displayName);
+      myDelegate = delegate;
+    }
+
+    @NonNull
+    @Override
+    protected ResourceTable getFullTable() {
+      return myDelegate.getItems();
+    }
+
+    @Nullable
+    @Override
+    protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
+      return myDelegate.getItems().get(namespace, type);
+    }
+
+    @NonNull
+    @Override
+    public Set<String> getNamespaces() {
+      return myDelegate.getNamespaces();
+    }
+
+    @NotNull
+    @Override
+    protected Set<VirtualFile> computeResourceDirs() {
+      return ImmutableSet.of();
+    }
   }
 
   private static void styleTest(ResourceClassGenerator generator)

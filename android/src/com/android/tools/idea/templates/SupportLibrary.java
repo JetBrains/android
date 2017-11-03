@@ -39,6 +39,7 @@ public enum SupportLibrary {
   TEST_RUNNER("com.android.support.test", "runner"),
   ESPRESSO_CORE("com.android.support.test.espresso", "espresso-core"),
   ESPRESSO_CONTRIB("com.android.support.test.espresso", "espresso-contrib"),
+  EXIF_INTERFACE("com.android.support", "exifinterface"),
 
   // Google repo:
   PLAY_SERVICES("com.google.android.gms", "play-services"),

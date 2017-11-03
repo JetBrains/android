@@ -19,23 +19,21 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
@@ -45,10 +43,13 @@ import static com.android.SdkConstants.FN_RESOURCE_TEXT;
  * in output folders such as build, where Studio will not create PsiDirectories, and
  * as a result cannot use the normal {@link ResourceFolderRepository}. This is the case
  * for example for the expanded {@code .aar} directories.
+ *
+ * <p>Most of the implementation is based on {@link ResourceMerger} which means the behavior is highly
+ * consistent with what will happen at build time.
  */
 public class FileResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
-  protected final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
+  protected final ResourceTable myFullTable = new ResourceTable();
   /**
    * A collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
    * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains
@@ -57,23 +58,30 @@ public class FileResourceRepository extends LocalResourceRepository {
    * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
    * have the associated {@link ResourceItem} with it.
    */
-  protected Collection<String> myAarDeclaredIds;
-  private final File myFile;
+  @Nullable protected Collection<String> myAarDeclaredIds;
+
+  @NotNull private final File myFile;
+  @Nullable private final String myNamespace;
+  @Nullable private final String myLibraryName;
+
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
-  private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
+  private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
 
-  private FileResourceRepository(@NotNull File file) {
+  private FileResourceRepository(@NotNull File file, @Nullable String namespace, @Nullable String libraryName) {
     super(file.getName());
     myFile = file;
+    myNamespace = namespace;
+    myLibraryName = libraryName;
   }
 
   @NotNull
-  static FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
+  // TODO: namespaces
+  static synchronized FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
     FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
-      repository = create(file, libraryName);
+      repository = create(file, null, libraryName);
       ourCache.put(file, repository);
     }
 
@@ -82,16 +90,16 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @VisibleForTesting
-  static FileResourceRepository getCached(@NotNull final File file) {
+  static synchronized FileResourceRepository getCached(@NotNull final File file) {
     return ourCache.get(file);
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull final File file, @Nullable String libraryName) {
-    final FileResourceRepository repository = new FileResourceRepository(file);
+  private static FileResourceRepository create(@NotNull final File file, @Nullable String namespace, @Nullable String libraryName) {
+    final FileResourceRepository repository = new FileResourceRepository(file, namespace, libraryName);
     try {
-      ResourceMerger resourceMerger = createResourceMerger(file, libraryName);
-      resourceMerger.mergeData(repository.createMergeConsumer(), true);
+      ResourceMerger resourceMerger = createResourceMerger(file, namespace, libraryName);
+      repository.getItems().update(resourceMerger);
     }
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
@@ -109,24 +117,37 @@ public class FileResourceRepository extends LocalResourceRepository {
     return repository;
   }
 
+  @NotNull
+  public static FileResourceRepository createForTest(@NotNull final File file, @Nullable String namespace, @Nullable String libraryName) {
+    assert ApplicationManager.getApplication().isUnitTestMode();
+    return create(file, namespace, libraryName);
+  }
+
   @Nullable
   File getResourceTextFile() {
     return myResourceTextFile;
   }
 
-  public static void reset() {
+  public static synchronized void reset() {
     ourCache.clear();
   }
 
+  @NotNull
   public File getResourceDirectory() {
     return myFile;
   }
 
-  private static ResourceMerger createResourceMerger(File file, String libraryName) {
-    ILogger logger = new LogWrapper(LOG);
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return myLibraryName;
+  }
+
+  private static ResourceMerger createResourceMerger(File file, String namespace, String libraryName) {
+    ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
     ResourceMerger merger = new ResourceMerger(0);
 
-    ResourceSet resourceSet = new ResourceSet(file.getName(), libraryName, false /* validateEnabled */);
+    ResourceSet resourceSet = new ResourceSet(file.getName(), namespace, libraryName, false /* validateEnabled */);
     resourceSet.addSource(file);
     resourceSet.setTrackSourcePositions(false);
     try {
@@ -145,19 +166,25 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Override
   @NonNull
-  protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-    return myItems;
+  protected ResourceTable getFullTable() {
+    return myFullTable;
   }
 
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = myItems.get(type);
+  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
+    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = ArrayListMultimap.create();
-      myItems.put(type, multimap);
+      myFullTable.put(namespace, type, multimap);
     }
     return multimap;
+  }
+
+  @Override
+  @NotNull
+  public Set<String> getNamespaces() {
+    return myFullTable.rowKeySet();
   }
 
   /** @see #myAarDeclaredIds */

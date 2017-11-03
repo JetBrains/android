@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.SceneMouseInteraction;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.intellij.openapi.util.Disposer;
 
 import java.awt.image.BufferedImage;
@@ -30,29 +34,40 @@ import java.util.Arrays;
  */
 public abstract class SceneTest extends LayoutTestCase {
 
-  NlModel myModel;
-  Scene myScene;
-  ScreenFixture myScreen;
-  SceneMouseInteraction myInteraction;
+  protected SyncNlModel myModel;
+  protected Scene myScene;
+  protected SceneManager mySceneManager;
+  protected ScreenFixture myScreen;
+  protected SceneMouseInteraction myInteraction;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myModel = createModel().build();
-    myScreen = surface().screen(myModel);
+    myScreen = new ScreenFixture(myModel);
     myScreen.withScale(1);
-    myScene = Scene.createScene(myModel, myScreen.getScreen());
+    buildScene();
+    ConstraintLayoutHandler.forceDefaultVisualProperties();
+  }
+
+  protected void buildScene() {
+    mySceneManager = myModel.getSurface().getSceneManager();
+    myScene = myModel.getSurface().getScene();
     myScene.setShowAllConstraints(true);
-    myScene.setDpiFactorOverride(1);
-    myScene.setAnimate(false);
-    myScene.updateFrom(myModel);
-    myInteraction = new SceneMouseInteraction(myScene, myScreen.getScreen());
+    myScene.setAnimated(false);
+    mySceneManager.update();
+    myInteraction = new SceneMouseInteraction(myScene);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myModel);
+      myModel = null;
+      myScene = null;
+      mySceneManager = null;
+      myScreen = null;
+      myInteraction = null;
     } finally {
       super.tearDown();
     }

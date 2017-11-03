@@ -16,8 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
@@ -75,9 +75,17 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     if (fileType == StdFileTypes.JAVA) { // fail fast for vital file type
       return false;
     }
+    if (fileType == StdFileTypes.XML) {
+      return true;
+    }
+
     // TODO: ensure that only android compatible images are recognized.
-    return fileType == StdFileTypes.XML ||
-           fileType.isBinary() && fileType == ImageFileTypeManager.getInstance().getImageFileType();
+    if (fileType.isBinary()) {
+      return fileType == ImageFileTypeManager.getInstance().getImageFileType() ||
+             fileType == FontFileType.INSTANCE;
+    }
+
+    return false;
   }
 
   static boolean isRelevantFile(@NotNull VirtualFile file) {
@@ -247,6 +255,18 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
 
   @Override
   public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+    PsiFile psiFile = event.getFile();
+    if (psiFile != null && isRelevantFile(psiFile)) {
+      VirtualFile file = psiFile.getVirtualFile();
+      dispatchBeforeChildrenChange(event, file);
+    }
+  }
+
+  private void dispatchBeforeChildrenChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
+    ResourceFolderRepository repository = findRepository(virtualFile);
+    if (repository != null) {
+      repository.getPsiListener().beforeChildrenChange(event);
+    }
   }
 
   @Override
@@ -267,6 +287,13 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
 
   @Override
   public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
+  }
+
+  private void dispatchBeforeChildMovement(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
+    ResourceFolderRepository repository = findRepository(virtualFile);
+    if (repository != null) {
+      repository.getPsiListener().beforeChildrenChange(event);
+    }
   }
 
   @Override

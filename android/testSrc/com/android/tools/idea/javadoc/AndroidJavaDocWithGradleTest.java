@@ -37,6 +37,7 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
     assertNotNull("File '" + path + "' not found.", file);
     return file;
   }
+
   private void checkJavadoc(@NotNull String targetPath, @Nullable String expectedDoc) {
     VirtualFile f = findFile(targetPath);
     myFixture.configureFromExistingVirtualFile(f);

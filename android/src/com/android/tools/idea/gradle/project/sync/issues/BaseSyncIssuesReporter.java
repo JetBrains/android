@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.MagicConstant;
@@ -25,13 +25,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
 abstract class BaseSyncIssuesReporter {
   @NotNull
-  SyncMessages getSyncMessages(@NotNull Module module) {
-    return SyncMessages.getInstance(module.getProject());
+  GradleSyncMessages getSyncMessages(@NotNull Module module) {
+    return GradleSyncMessages.getInstance(module.getProject());
   }
 
   @MagicConstant(valuesFromClass = SyncIssue.class)

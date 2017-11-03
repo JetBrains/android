@@ -79,7 +79,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
     for (int i = 0; i < nameParts.length; i++) {
       final String name = nameParts[i];
 
-      if (name.length() > 0) {
+      if (!name.isEmpty()) {
         offset += name.length();
         final TextRange range = new TextRange(offset - name.length(), offset);
         final boolean isPackage = i < nameParts.length - 1;

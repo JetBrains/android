@@ -30,9 +30,20 @@
       <val name="value" val="{android.view.Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION, android.view.Display.HdrCapabilities.HDR_TYPE_HDR10, android.view.Display.HdrCapabilities.HDR_TYPE_HLG}" />
     </annotation>
   </item>
+  <item name="android.view.FocusFinder android.view.View findNextKeyboardNavigationCluster(android.view.View, android.view.View, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.FocusFinder android.view.View findNextKeyboardNavigationCluster(android.view.View, android.view.View, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.FocusFinder android.view.View findNextKeyboardNavigationCluster(android.view.View, android.view.View, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    </annotation>
+  </item>
   <item name="android.view.FrameMetrics long getMetric(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.FrameMetrics.UNKNOWN_DELAY_DURATION, android.view.FrameMetrics.INPUT_HANDLING_DURATION, android.view.FrameMetrics.ANIMATION_DURATION, android.view.FrameMetrics.LAYOUT_MEASURE_DURATION, android.view.FrameMetrics.DRAW_DURATION, android.view.FrameMetrics.SYNC_DURATION, android.view.FrameMetrics.COMMAND_ISSUE_DURATION, android.view.FrameMetrics.SWAP_BUFFERS_DURATION, android.view.FrameMetrics.TOTAL_DURATION, android.view.FrameMetrics.FIRST_DRAW_FRAME}" />
+      <val name="value" val="{android.view.FrameMetrics.UNKNOWN_DELAY_DURATION, android.view.FrameMetrics.INPUT_HANDLING_DURATION, android.view.FrameMetrics.ANIMATION_DURATION, android.view.FrameMetrics.LAYOUT_MEASURE_DURATION, android.view.FrameMetrics.DRAW_DURATION, android.view.FrameMetrics.SYNC_DURATION, android.view.FrameMetrics.COMMAND_ISSUE_DURATION, android.view.FrameMetrics.SWAP_BUFFERS_DURATION, android.view.FrameMetrics.TOTAL_DURATION, android.view.FrameMetrics.FIRST_DRAW_FRAME, android.view.FrameMetrics.INTENDED_VSYNC_TIMESTAMP, android.view.FrameMetrics.VSYNC_TIMESTAMP}" />
     </annotation>
   </item>
   <item name="android.view.KeyboardShortcutGroup KeyboardShortcutGroup(java.lang.CharSequence) 0">
@@ -46,6 +57,11 @@
   </item>
   <item name="android.view.KeyboardShortcutInfo java.lang.CharSequence getLabel()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.LayoutInflater">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.LAYOUT_INFLATER_SERVICE" />
+    </annotation>
   </item>
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.LayoutRes" />
@@ -80,11 +96,23 @@
   <item name="android.view.MenuInflater void inflate(int, android.view.Menu) 0">
     <annotation name="android.support.annotation.MenuRes" />
   </item>
+  <item name="android.view.MenuItem android.content.res.ColorStateList getIconTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.MenuItem android.graphics.PorterDuff.Mode getIconTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.MenuItem android.view.MenuItem setActionView(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.view.MenuItem android.view.MenuItem setIcon(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.view.MenuItem android.view.MenuItem setIconTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.MenuItem android.view.MenuItem setIconTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.MenuItem android.view.MenuItem setTitle(int) 0">
     <annotation name="android.support.annotation.StringRes" />
@@ -101,6 +129,21 @@
   <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -111,6 +154,48 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Window, android.graphics.Rect, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 4">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.PixelCopy.OnPixelCopyFinishedListener void onPixelCopyFinished(int) 0">
@@ -148,6 +233,9 @@
   <item name="android.view.View">
     <annotation name="android.support.annotation.UiThread" />
   </item>
+  <item name="android.view.View T findViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -171,9 +259,7 @@
   </item>
   <item name="android.view.View android.os.Parcelable onSaveInstanceState()">
     <annotation name="android.support.annotation.CallSuper" />
-  </item>
-  <item name="android.view.View android.view.View findViewById(int) 0">
-    <annotation name="android.support.annotation.IdRes" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View android.view.View focusSearch(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -182,6 +268,14 @@
   </item>
   <item name="android.view.View android.view.View inflate(android.content.Context, int, android.view.ViewGroup) 1">
     <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.view.View android.view.View keyboardNavigationClusterSearch(android.view.View, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    </annotation>
+  </item>
+  <item name="android.view.View android.view.autofill.AutofillValue getAutofillValue()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View boolean dispatchNestedPreScroll(int, int, int[], int[]) 2">
     <annotation name="android.support.annotation.Nullable" />
@@ -212,6 +306,11 @@
   <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View int getAutofillType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
   <item name="android.view.View int getBaseline()">
     <annotation name="android.support.annotation.Px" />
   </item>
@@ -226,6 +325,11 @@
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
   </item>
+  <item name="android.view.View int getFocusable()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.NOT_FOCUSABLE, android.view.View.FOCUSABLE, android.view.View.FOCUSABLE_AUTO}" />
+    </annotation>
+  </item>
   <item name="android.view.View int getHeight()">
     <annotation name="android.support.annotation.Px" />
   </item>
@@ -238,6 +342,11 @@
   <item name="android.view.View int getImportantForAccessibility()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}" />
+    </annotation>
+  </item>
+  <item name="android.view.View int getImportantForAutofill()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_AUTOFILL_AUTO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES, android.view.View.IMPORTANT_FOR_AUTOFILL_NO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES_EXCLUDE_DESCENDANTS, android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS}" />
     </annotation>
   </item>
   <item name="android.view.View int getLabelFor()">
@@ -312,10 +421,25 @@
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
+  <item name="android.view.View java.lang.CharSequence getTooltipText()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View java.lang.String[] getAutofillHints()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View java.util.ArrayList&lt;android.view.View&gt; getFocusables(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
+  </item>
+  <item name="android.view.View void addExtraDataToAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void addExtraDataToAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void addExtraDataToAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -333,6 +457,12 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.view.View void addKeyboardNavigationClusters(java.util.Collection&lt;android.view.View&gt;, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void autofill(android.util.SparseArray&lt;android.view.autofill.AutofillValue&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.View void dispatchDisplayHint(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
@@ -340,6 +470,15 @@
   </item>
   <item name="android.view.View void dispatchFinishTemporaryDetach()">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void dispatchProvideAutofillStructure(android.view.ViewStructure, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void dispatchProvideAutofillStructure(android.view.ViewStructure, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_FLAG_INCLUDE_NOT_IMPORTANT_VIEWS}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.view.View void dispatchStartTemporaryDetach()">
     <annotation name="android.support.annotation.CallSuper" />
@@ -443,8 +582,17 @@
   <item name="android.view.View void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.view.View void onPointerCaptureChange(boolean)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void onPopulateAccessibilityEvent(android.view.accessibility.AccessibilityEvent)">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onProvideAutofillStructure(android.view.ViewStructure, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_FLAG_INCLUDE_NOT_IMPORTANT_VIEWS}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.view.View void onRestoreInstanceState(android.os.Parcelable)">
     <annotation name="android.support.annotation.CallSuper" />
@@ -500,6 +648,9 @@
       <val name="to" val="1.0" />
     </annotation>
   </item>
+  <item name="android.view.View void setAutofillHints(java.lang.String...) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setBackgroundColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -529,6 +680,11 @@
   <item name="android.view.View void setFadingEdgeLength(int) 0">
     <annotation name="android.support.annotation.Px" />
   </item>
+  <item name="android.view.View void setFocusable(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.NOT_FOCUSABLE, android.view.View.FOCUSABLE, android.view.View.FOCUSABLE_AUTO}" />
+    </annotation>
+  </item>
   <item name="android.view.View void setForegroundTintList(android.content.res.ColorStateList) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -541,6 +697,11 @@
   <item name="android.view.View void setImportantForAccessibility(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setImportantForAutofill(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_AUTOFILL_AUTO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES, android.view.View.IMPORTANT_FOR_AUTOFILL_NO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES_EXCLUDE_DESCENDANTS, android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS}" />
     </annotation>
   </item>
   <item name="android.view.View void setLabelFor(int) 0">
@@ -638,6 +799,9 @@
       <val name="value" val="{android.view.View.TEXT_DIRECTION_INHERIT, android.view.View.TEXT_DIRECTION_LTR, android.view.View.TEXT_DIRECTION_RTL, android.view.View.TEXT_DIRECTION_ANY_RTL, android.view.View.TEXT_DIRECTION_LOCALE, android.view.View.TEXT_DIRECTION_FIRST_STRONG, android.view.View.TEXT_DIRECTION_FIRST_STRONG_LTR, android.view.View.TEXT_DIRECTION_FIRST_STRONG_RTL}" />
     </annotation>
   </item>
+  <item name="android.view.View void setTooltipText(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setTop(int) 0">
     <annotation name="android.support.annotation.Px" />
   </item>
@@ -666,6 +830,18 @@
   </item>
   <item name="android.view.View void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View.AccessibilityDelegate void addExtraDataToAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View.AccessibilityDelegate void addExtraDataToAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View.AccessibilityDelegate void addExtraDataToAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View.AccessibilityDelegate void addExtraDataToAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo, java.lang.String, android.os.Bundle) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View.MeasureSpec int getMode(int)">
     <annotation name="android.support.annotation.IntDef">
@@ -696,6 +872,21 @@
       <val name="value" val="{android.view.ViewGroup.PERSISTENT_NO_CACHE, android.view.ViewGroup.PERSISTENT_ANIMATION_CACHE, android.view.ViewGroup.PERSISTENT_SCROLLING_CACHE, android.view.ViewGroup.PERSISTENT_ALL_CACHES}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.view.ViewGroup void dispatchProvideAutofillStructure(android.view.ViewStructure, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_FLAG_INCLUDE_NOT_IMPORTANT_VIEWS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.ViewGroup void onDescendantInvalidated(android.view.View, android.view.View)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.ViewGroup void onDescendantInvalidated(android.view.View, android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewGroup void onDescendantInvalidated(android.view.View, android.view.View) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void setDescendantFocusability(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -756,6 +947,53 @@
   <item name="android.view.ViewOverlay void remove(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.ViewParent void notifySubtreeAccessibilityStateChanged(android.view.View, android.view.View, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewParent void onDescendantInvalidated(android.view.View, android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewParent void onDescendantInvalidated(android.view.View, android.view.View) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure android.view.ViewStructure.HtmlInfo.Builder newHtmlInfoBuilder(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure android.view.autofill.AutofillId getAutofillId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.ViewStructure void setAutofillHints(java.lang.String[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.ViewStructure void setAutofillId(android.view.autofill.AutofillId) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure void setAutofillId(android.view.autofill.AutofillId, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure void setAutofillType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
+    </annotation>
+  </item>
+  <item name="android.view.ViewStructure void setHtmlInfo(android.view.ViewStructure.HtmlInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure void setWebDomain(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.ViewStructure.HtmlInfo java.lang.String getTag()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure.HtmlInfo java.util.List&lt;android.util.Pair&lt;java.lang.String,java.lang.String&gt;&gt; getAttributes()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.ViewStructure.HtmlInfo.Builder android.view.ViewStructure.HtmlInfo.Builder addAttribute(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStructure.HtmlInfo.Builder android.view.ViewStructure.HtmlInfo.Builder addAttribute(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.ViewStub ViewStub(android.content.Context, int) 1">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
@@ -771,14 +1009,19 @@
   <item name="android.view.ViewStub void setLayoutResource(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
+  <item name="android.view.Window T findViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.Window android.view.LayoutInflater getLayoutInflater()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.Window android.view.View findViewById(int) 0">
-    <annotation name="android.support.annotation.IdRes" />
-  </item>
   <item name="android.view.Window android.view.View getCurrentFocus()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.Window int getColorMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
+    </annotation>
   </item>
   <item name="android.view.Window int getNavigationBarColor()">
     <annotation name="android.support.annotation.ColorInt" />
@@ -791,6 +1034,11 @@
   </item>
   <item name="android.view.Window void setBackgroundDrawableResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.view.Window void setColorMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
+    </annotation>
   </item>
   <item name="android.view.Window void setContentView(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
@@ -828,9 +1076,30 @@
   <item name="android.view.Window.Callback void onProvideKeyboardShortcuts(java.util.List&lt;android.view.KeyboardShortcutGroup&gt;, android.view.Menu, int) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.WindowManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.WINDOW_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.view.WindowManager.LayoutParams int getColorMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
+    </annotation>
+  </item>
+  <item name="android.view.WindowManager.LayoutParams softInputMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.view.WindowManager.LayoutParams type">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR, android.view.WindowManager.LayoutParams.TYPE_SEARCH_BAR, android.view.WindowManager.LayoutParams.TYPE_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, android.view.WindowManager.LayoutParams.TYPE_TOAST, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_PRIORITY_PHONE, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL, android.view.WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG, android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD_DIALOG}" />
+      <val name="value" val="{android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING, android.view.WindowManager.LayoutParams.TYPE_DRAWN_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR, android.view.WindowManager.LayoutParams.TYPE_SEARCH_BAR, android.view.WindowManager.LayoutParams.TYPE_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, android.view.WindowManager.LayoutParams.TYPE_TOAST, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_PRIORITY_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG, android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_WALLPAPER, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL, android.view.WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY}" />
+    </annotation>
+  </item>
+  <item name="android.view.WindowManager.LayoutParams void setColorMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
     </annotation>
   </item>
 </root>

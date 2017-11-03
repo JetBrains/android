@@ -22,7 +22,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -48,12 +48,12 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     assert resourceResolver != null;
 
     final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, item.getSelectedValue(), context.getProject());
-    SwatchComponent.SwatchIcon icon;
+    ResourceSwatchComponent.SwatchIcon icon;
     if (colors.isEmpty()) {
-      icon = SwatchComponent.WARNING_ICON;
+      icon = ResourceSwatchComponent.WARNING_ICON;
     }
     else {
-      icon = new SwatchComponent.ColorIcon(Iterables.getLast(colors));
+      icon = new ResourceSwatchComponent.ColorIcon(Iterables.getLast(colors));
       icon.setIsStack(colors.size() > 1);
     }
     component.setSwatchIcon(icon);

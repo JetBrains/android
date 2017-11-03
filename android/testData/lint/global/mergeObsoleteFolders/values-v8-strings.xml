@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Application in V8</string>
+    <string name="string_in_v8">Only in v8</string>
+    <dimen name="dimen_in_v8">Dimen in v8</dimen>
+    <item type="id" name="my_id" />
+</resources>

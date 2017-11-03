@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
@@ -202,7 +203,7 @@ public abstract class AndroidPluginGeneration {
     List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
     Optional<GradleCoordinate> highestValueCoordinate = repoPaths.stream()
       .map(repoPath -> getHighestInstalledVersion(getGroupId(), artifactId, repoPath, null /* filter */, true /* allow preview */, fileOp))
-      .filter(coordinate -> coordinate != null)
+      .filter(Objects::nonNull)
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {

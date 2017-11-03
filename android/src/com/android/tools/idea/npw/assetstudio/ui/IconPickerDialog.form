@@ -18,7 +18,7 @@
             <border type="none"/>
             <children/>
           </grid>
-          <component id="7dda6" class="com.android.tools.idea.ui.SearchField" binding="mySearchField" custom-create="true">
+          <component id="7dda6" class="com.android.tools.adtui.SearchField" binding="mySearchField" custom-create="true">
             <constraints border-constraint="North"/>
             <properties/>
           </component>

@@ -20,9 +20,11 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -48,7 +50,10 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * A {@link LayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
-public class RenderLogger extends LayoutLog {
+public class RenderLogger extends LayoutLog implements IRenderLogger {
+  public static final String TAG_MISSING_DIMENSION = "missing.dimension";
+  public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
+  public static final String TAG_STILL_BUILDING = "project.building";
   static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
   /**
    * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
@@ -60,10 +65,6 @@ public class RenderLogger extends LayoutLog {
    */
   @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
   private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog");
-
-  public static final String TAG_MISSING_DIMENSION = "missing.dimension";
-  public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
-  public static final String TAG_STILL_BUILDING = "project.building";
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
@@ -72,7 +73,7 @@ public class RenderLogger extends LayoutLog {
   private final String myName;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
-  private Map<String,Integer> myTags;
+  private Multiset<String> myTags;
   private List<Throwable> myTraces;
   private List<RenderProblem> myMessages;
   private List<RenderProblem> myFidelityWarnings;
@@ -103,10 +104,68 @@ public class RenderLogger extends LayoutLog {
     this(name, module, null);
   }
 
+  /**
+   * Clears all the fidelity warning ignores.
+   * @see #ignoreAllFidelityWarnings()
+   * @see #ignoreFidelityWarning(Object)
+   */
+  @VisibleForTesting
+  static void resetFidelityErrorsFilters() {
+    ourIgnoreAllFidelityWarnings = false;
+    if (ourIgnoredFidelityWarnings != null) {
+      ourIgnoredFidelityWarnings.clear();
+    }
+  }
+
+  /**
+   * Ignore the given render fidelity warning for the current session
+   *
+   * @param clientData the client data stashed on the render problem
+   */
+  public static void ignoreFidelityWarning(@NotNull Object clientData) {
+    if (ourIgnoredFidelityWarnings == null) {
+      ourIgnoredFidelityWarnings = new HashSet<>();
+    }
+    ourIgnoredFidelityWarnings.add((String)clientData);
+  }
+
+  public static void ignoreAllFidelityWarnings() {
+    ourIgnoreAllFidelityWarnings = true;
+  }
+
+  public static void ignoreFragments() {
+    ourIgnoreFragments = true;
+  }
+
+  @NotNull
+  private static String describe(@Nullable String message, @Nullable Throwable throwable) {
+    if (StringUtil.isEmptyOrSpaces(message)) {
+      return throwable != null && throwable.getMessage() != null ? throwable.getMessage() : "";
+    }
+
+    return message;
+  }
+
+  static boolean isIssue164378(@Nullable Throwable throwable) {
+    if (throwable instanceof NoSuchFieldError) {
+      StackTraceElement[] stackTrace = throwable.getStackTrace();
+      if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static boolean isLoggingAllErrors() {
+    return LOG_ALL;
+  }
+
   @Nullable
   public Module getModule() {
     return myModule;
   }
+
+  // ---- extends LayoutLog ----
 
   @Nullable
   public Project getProject() {
@@ -116,6 +175,7 @@ public class RenderLogger extends LayoutLog {
     return null;
   }
 
+  @Override
   public void addMessage(@NotNull RenderProblem message) {
     if (myMessages == null) {
       myMessages = Lists.newArrayList();
@@ -150,28 +210,22 @@ public class RenderLogger extends LayoutLog {
 
   /**
    * Returns a list of traces encountered during rendering, or null if none
-   *
-   * @return a list of traces encountered during rendering, or null if none
    */
   @NotNull
   public List<Throwable> getTraces() {
-    return myTraces != null ? myTraces : Collections.<Throwable>emptyList();
+    return myTraces != null ? myTraces : Collections.emptyList();
   }
 
   /**
    * Returns the fidelity warnings
-   *
-   * @return the fidelity warnings
    */
-  @Nullable
+  @NotNull
   public List<RenderProblem> getFidelityWarnings() {
-    return myFidelityWarnings;
+    return myFidelityWarnings != null ? myFidelityWarnings : Collections.emptyList();
   }
 
-  // ---- extends LayoutLog ----
-
   @Override
-  public void error(@Nullable String tag, @Nullable String message, @Nullable Object data) {
+  public void error(@Nullable String tag, @Nullable String message, @Nullable Object viewCookie, @Nullable Object data) {
     String description = describe(message, null);
 
     if (LOG_ALL) {
@@ -206,7 +260,11 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
+  public void error(@Nullable String tag,
+                    @Nullable String message,
+                    @Nullable Throwable throwable,
+                    @Nullable Object viewCookie,
+                    @Nullable Object data) {
     String description = describe(message, throwable);
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
@@ -229,7 +287,7 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
-      if (checkForIssue164378(throwable)) {
+      if (isIssue164378(throwable)) {
         return;
       }
 
@@ -238,54 +296,15 @@ public class RenderLogger extends LayoutLog {
                        "down to API 21";
       }
 
-      if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
+      if (description.isEmpty()) {
+        description = "Exception raised during rendering";
+      }
+      else if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
-      } else if (message == null) {
-        // See if it looks like the known issue with CalendarView; if so, add a more intuitive message
-        StackTraceElement[] stackTrace = throwable.getStackTrace();
-        if (stackTrace.length >= 2 &&
-            stackTrace[0].getClassName().equals("android.text.format.DateUtils") &&
-            stackTrace[1].getClassName().equals("android.widget.CalendarView")) {
-          RenderProblem.Html problem = RenderProblem.create(WARNING);
-          problem.tag("59732");
-          problem.throwable(throwable);
-          HtmlBuilder builder = problem.getHtmlBuilder();
-          builder.add("<CalendarView> and <DatePicker> are broken in this version of the rendering library. " +
-                      "Try updating your SDK in the SDK Manager when issue 59732 is fixed.");
-          builder.add(" (");
-          builder.addLink("Open Issue 59732", "http://b.android.com/59732");
-          builder.add(", ");
-          ShowExceptionFix detailsFix = new ShowExceptionFix(getModule().getProject(), throwable);
-          builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
-          builder.add(")");
-          addMessage(problem);
-          return;
-        }
-        else if (stackTrace.length >= 2 &&
-                 stackTrace[0].getClassName().equals("android.support.v7.widget.RecyclerView") &&
-                 stackTrace[0].getMethodName().equals("onMeasure") &&
-                 stackTrace[1].getClassName().equals("android.view.View") &&
-                 throwable.toString().equals("java.lang.NullPointerException")) {
-          RenderProblem.Html problem = RenderProblem.create(WARNING);
-          String issue = "72117";
-          problem.tag(issue);
-          problem.throwable(throwable);
-          HtmlBuilder builder = problem.getHtmlBuilder();
-          builder.add("The new RecyclerView does not yet work in Studio. We are working on a fix. ");
-          // TODO: Add more specific error message here when we know where we are fixing it, e.g. either
-          // to update their layoutlib (if we work around it there), or a new version of the recyclerview AAR.
-          builder.add(" (");
-          builder.addLink("Open Issue " + issue, "http://b.android.com/" + issue);
-          builder.add(", ");
-          ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
-          builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
-          builder.add(")");
-          addMessage(problem);
-          return;
-        }
-      } else if (message.equals("onMeasure error") &&
-                 throwable.toString()
-                   .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
+      }
+      else if (message != null && message.equals("onMeasure error") &&
+               throwable.toString()
+                 .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
         RenderProblem.Html problem = RenderProblem.create(WARNING);
         String issue = "214853";
         problem.tag(issue);
@@ -296,12 +315,13 @@ public class RenderLogger extends LayoutLog {
         builder.add(" (");
         builder.addLink("Update Library", getLinkManager().createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
         builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
+        ShowExceptionFix detailsFix = new ShowExceptionFix(getProject(), throwable);
         builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
         builder.add(")");
         addMessage(problem);
         return;
-      } else if (message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
+      }
+      else if (message != null && message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
         StackTraceElement[] frames = throwable.getStackTrace();
         for (StackTraceElement frame : frames) {
@@ -315,12 +335,11 @@ public class RenderLogger extends LayoutLog {
             builder.add("Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.");
             builder.newline().newline();
             path = FileUtil.toSystemIndependentName(path);
-            String basePath = FileUtil.toSystemIndependentName(myModule.getProject().getBasePath());
-            if (path.startsWith(basePath)) {
+            String basePath = getProject() != null && getProject().getBasePath() != null ?
+                              FileUtil.toSystemIndependentName(getProject().getBasePath()) : null;
+            if (basePath != null && path.startsWith(basePath)) {
               path = path.substring(basePath.length());
-              if (path.startsWith(File.separator)) {
-                path = path.substring(File.separator.length());
-              }
+              path = StringUtil.trimStart(path, File.separator);
             }
             path = FileUtil.toSystemDependentName(path);
             builder.add("The relevant image is ").add(path);
@@ -341,11 +360,14 @@ public class RenderLogger extends LayoutLog {
 
             addMessage(problem);
             return;
-          } else if (frame.getClassName().startsWith("com.android.tools.")) {
+          }
+          else if (frame.getClassName().startsWith("com.android.tools.")) {
             break;
           }
         }
-      } else if (message.startsWith("Failed to parse file ") && throwable instanceof XmlPullParserException) {
+      }
+      else if (message != null && message.startsWith("Failed to parse file ")
+               && throwable instanceof XmlPullParserException) {
         XmlPullParserException e = (XmlPullParserException)throwable;
         String msg = e.getMessage();
         if (msg.startsWith("Binary XML file ")) {
@@ -402,11 +424,13 @@ public class RenderLogger extends LayoutLog {
     addTag(tag);
     if (getProject() == null) {
       addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
-    } else {
+    }
+    else {
       addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable).tag(tag));
     }
-
   }
+
+  // ---- Tags ----
 
   /**
    * Record that the given exception was encountered during rendering
@@ -415,13 +439,13 @@ public class RenderLogger extends LayoutLog {
    */
   public void recordThrowable(@NotNull Throwable throwable) {
     if (myTraces == null) {
-      myTraces = new ArrayList<Throwable>();
+      myTraces = new ArrayList<>();
     }
     myTraces.add(throwable);
   }
 
   @Override
-  public void warning(@Nullable String tag, @NotNull String message, @Nullable Object data) {
+  public void warning(@Nullable String tag, @NotNull String message, @Nullable Object viewCookie, @Nullable Object data) {
     String description = describe(message, null);
 
     if (TAG_INFO.equals(tag)) {
@@ -476,12 +500,13 @@ public class RenderLogger extends LayoutLog {
           return;
         }
       }
-    } else if (TAG_MISSING_FRAGMENT.equals(tag)) {
+    }
+    else if (TAG_MISSING_FRAGMENT.equals(tag)) {
       if (!ourIgnoreFragments) {
         if (myMissingFragments == null) {
           myMissingFragments = Lists.newArrayList();
         }
-        String name = data instanceof String ? (String) data : null;
+        String name = data instanceof String ? (String)data : null;
         myMissingFragments.add(name);
       }
       return;
@@ -492,7 +517,11 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void fidelityWarning(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
+  public void fidelityWarning(@Nullable String tag,
+                              @Nullable String message,
+                              @Nullable Throwable throwable,
+                              @Nullable Object viewCookie,
+                              @Nullable Object data) {
     if (ourIgnoreAllFidelityWarnings || ourIgnoredFidelityWarnings != null && ourIgnoredFidelityWarnings.contains(message)) {
       return;
     }
@@ -520,7 +549,7 @@ public class RenderLogger extends LayoutLog {
     RenderProblem error = RenderProblem.createDeferred(ERROR, tag, description, throwable);
     error.setClientData(description);
     if (myFidelityWarnings == null) {
-      myFidelityWarnings = new ArrayList<RenderProblem>();
+      myFidelityWarnings = new ArrayList<>();
       myFidelityWarningStrings = Sets.newHashSet();
     }
 
@@ -530,51 +559,24 @@ public class RenderLogger extends LayoutLog {
     addTag(tag);
   }
 
-  /**
-   * Ignore the given render fidelity warning for the current session
-   *
-   * @param clientData the client data stashed on the render problem
-   */
-  public static void ignoreFidelityWarning(@NotNull Object clientData) {
-    if (ourIgnoredFidelityWarnings == null) {
-      ourIgnoredFidelityWarnings = new HashSet<String>();
-    }
-    ourIgnoredFidelityWarnings.add((String) clientData);
-  }
-
-  public static void ignoreAllFidelityWarnings() {
-    ourIgnoreAllFidelityWarnings = true;
-  }
-
-  public static void ignoreFragments() {
-    ourIgnoreFragments = true;
-  }
-
-  @NotNull
-  private static String describe(@Nullable String message, @Nullable Throwable throwable) {
-    if (StringUtil.isEmptyOrSpaces(message)) {
-      return throwable != null && throwable.getMessage() != null ? throwable.getMessage() : "";
-    }
-    else {
-      return message;
-    }
-  }
-
-  // ---- Tags ----
-
   private void addTag(@Nullable String tag) {
-    if (tag != null) {
-      if (myTags == null) {
-        myTags = Maps.newHashMap();
-      }
-      Integer count = myTags.get(tag);
-      if (count == null) {
-        myTags.put(tag, 1);
-      } else {
-        myTags.put(tag, count + 1);
-      }
+    if (tag == null) {
+      return;
     }
+
+    if (myTags == null) {
+      myTags = HashMultiset.create();
+    }
+
+    myTags.add(tag);
   }
+
+  // ---- Class loading and instantiation problems ----
+  //
+  // These are recorded in the logger such that they can later be
+  // aggregated by the error panel. It is also written into the logger
+  // rather than stashed on the ViewLoader, since the ViewLoader is reused
+  // across multiple rendering operations.
 
   /**
    * Returns true if the given tag prefix has been seen
@@ -583,28 +585,15 @@ public class RenderLogger extends LayoutLog {
    * @return true iff any tags with the given prefix was seen during the render
    */
   public boolean seenTagPrefix(@NotNull String prefix) {
-    if (myTags != null) {
-      for (String tag : myTags.keySet()) {
-        if (tag.startsWith(prefix)) {
-          return true;
-        }
-      }
+    if (myTags == null) {
+      return false;
     }
 
-    return false;
+    return myTags.stream().anyMatch(s -> s.startsWith(prefix));
   }
 
-  /**
-   * Returns the number of occurrences of the given tag
-   *
-   * @param tag the tag to look up
-   * @return the number of occurrences of the given tag
-   */
-  public int getTagCount(@NotNull String tag) {
-    Integer count = myTags != null ? myTags.get(tag) : null;
-    return count != null ? count.intValue() : 0;
-  }
-
+  @Override
+  @NotNull
   public HtmlLinkManager getLinkManager() {
     if (myLinkManager == null) {
       myLinkManager = new HtmlLinkManager();
@@ -612,23 +601,9 @@ public class RenderLogger extends LayoutLog {
     return myLinkManager;
   }
 
-// ---- Class loading and instantiation problems ----
-  //
-  // These are recorded in the logger such that they can later be
-  // aggregated by the error panel. It is also written into the logger
-  // rather than stashed on the ViewLoader, since the ViewLoader is reused
-  // across multiple rendering operations.
-
-  public void setResourceClass(@NotNull String resourceClass) {
-    myResourceClass = resourceClass;
-  }
-
-  public void setMissingResourceClass(boolean missingResourceClass) {
-    myMissingResourceClass = missingResourceClass;
-  }
-
-  public void setHasLoadedClasses(boolean hasLoadedClasses) {
-    myHasLoadedClasses = hasLoadedClasses;
+  @Override
+  public void setHasLoadedClasses() {
+    myHasLoadedClasses = true;
   }
 
   public boolean isMissingSize() {
@@ -643,43 +618,56 @@ public class RenderLogger extends LayoutLog {
     return myMissingResourceClass;
   }
 
+  @Override
+  public void setMissingResourceClass() {
+    myMissingResourceClass = true;
+  }
+
   @Nullable
   public String getResourceClass() {
     return myResourceClass;
   }
 
-  @Nullable
+  @Override
+  public void setResourceClass(@NotNull String resourceClass) {
+    myResourceClass = resourceClass;
+  }
+
+  @NotNull
   public Map<String, Throwable> getClassesWithIncorrectFormat() {
-    return myClassesWithIncorrectFormat;
+    return myClassesWithIncorrectFormat != null ? myClassesWithIncorrectFormat : Collections.emptyMap();
   }
 
-  @Nullable
+  @NotNull
   public Map<String, Throwable> getBrokenClasses() {
-    return myBrokenClasses;
+    return myBrokenClasses != null ? myBrokenClasses : Collections.emptyMap();
   }
 
-  @Nullable
+  @NotNull
   public Set<String> getMissingClasses() {
-    return myMissingClasses;
+    return myMissingClasses != null ? myMissingClasses : Collections.emptySet();
   }
 
+  @Override
   public void addMissingClass(@NotNull String className) {
     if (!className.equals(VIEW_FRAGMENT)) {
       if (myMissingClasses == null) {
-        myMissingClasses = new TreeSet<String>();
+        myMissingClasses = new TreeSet<>();
       }
       myMissingClasses.add(className);
     }
   }
 
+  @Override
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
     if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new HashMap<String, Throwable>();
+      myClassesWithIncorrectFormat = new HashMap<>();
     }
     myClassesWithIncorrectFormat.put(className, exception);
   }
 
+  @Override
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {
     while (exception.getCause() != null && exception.getCause() != exception) {
@@ -687,7 +675,7 @@ public class RenderLogger extends LayoutLog {
     }
 
     if (myBrokenClasses == null) {
-      myBrokenClasses = new HashMap<String, Throwable>();
+      myBrokenClasses = new HashMap<>();
     }
     myBrokenClasses.put(className, exception);
   }
@@ -695,54 +683,5 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
-  }
-
-  /**
-   * Check if this is possibly an instance of http://b.android.com/164378. If likely, this adds a message with the recommended workaround.
-   */
-  private boolean checkForIssue164378(@Nullable Throwable throwable) {
-    if (isIssue164378(throwable)) {
-        RenderProblem.Html problem = RenderProblem.create(ERROR);
-        HtmlBuilder builder = problem.getHtmlBuilder();
-        addHtmlForIssue164378(throwable, myModule, getLinkManager(), builder, true);
-        addMessage(problem);
-        return true;
-    }
-    return false;
-  }
-
-
-  static boolean isIssue164378(@Nullable Throwable throwable) {
-    if (throwable instanceof NoSuchFieldError) {
-      StackTraceElement[] stackTrace = throwable.getStackTrace();
-      if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static void addHtmlForIssue164378(@NotNull Throwable throwable,
-                                    Module module,
-                                    HtmlLinkManager linkManager,
-                                    HtmlBuilder builder,
-                                    boolean addShowExceptionLink) {
-    builder.add("Rendering failed with a known bug. ");
-    if (module == null) {
-      // Unlikely, but just in case.
-      builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
-      return;
-    }
-    builder.addLink("Please try a ", "rebuild", ".", linkManager.createBuildProjectUrl());
-    builder.newline().newline();
-    if (!addShowExceptionLink) {
-      return;
-    }
-    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
-    builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
-  }
-
-  static boolean isLoggingAllErrors() {
-    return LOG_ALL;
   }
 }

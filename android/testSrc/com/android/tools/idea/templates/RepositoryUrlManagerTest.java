@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -25,21 +26,22 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import junit.framework.TestCase;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Tests for the local repository utility class
  */
-public class RepositoryUrlManagerTest extends TestCase {
+public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   private static final File SDK_DIR = new File("/sdk");
   private static final File ANDROID_HOME = new File("/android-home");
 
@@ -66,6 +68,7 @@ public class RepositoryUrlManagerTest extends TestCase {
       "extras/android/m2repository/com/android/support/appcompat-v7/20.0.0/appcompat-v7-20.0.0.aar",
       "extras/android/m2repository/com/android/support/appcompat-v7/21.0.0/appcompat-v7-21.0.0.aar",
       "extras/android/m2repository/com/android/support/appcompat-v7/21.0.2/appcompat-v7-21.0.2.aar",
+      "extras/android/m2repository/com/android/support/appcompat-v7/22.0.0-alpha1/appcompat-v7-22.0.0-alpha1.aar",
       "extras/android/m2repository/com/android/support/cardview-v7/21.0.0/cardview-v7-21.0.0.aar",
       "extras/android/m2repository/com/android/support/cardview-v7/21.0.2/cardview-v7-21.0.2.aar",
       "extras/android/m2repository/com/android/support/support-v13/20.0.0/support-v13-20.0.0.aar",
@@ -105,12 +108,16 @@ public class RepositoryUrlManagerTest extends TestCase {
 
   /** Common boilerplate code for invoking getLibraryRevision. */
   private String getLibraryRevision(SupportLibrary library, boolean preview) {
-    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), null, preview, SDK_DIR, myFileOp);
+    return getLibraryRevision(library, preview, null);
+  }
+
+  private String getLibraryRevision(SupportLibrary library, boolean preview, Predicate<GradleVersion> filter) {
+    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), filter, preview, SDK_DIR, myFileOp);
   }
 
   public void testGetLibraryRevision() throws Exception {
     // Check missing Maven metadata file. We should fall back to scanning the files.
-    assertEquals("21.0.2", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
 
     // Set up our fake file contents for the "maven-metadata.xml" file
     myFileOp.recordExistingFile(new File(SDK_DIR, "extras/android/m2repository/com/android/support/support-v4/maven-metadata.xml").getAbsolutePath(),
@@ -118,8 +125,8 @@ public class RepositoryUrlManagerTest extends TestCase {
                                 "<version>13.0.0</version> <version>19.0.1</version> <version>20.0.0-rc1</version>" +
                                 "</versioning>");
 
-    assertEquals("19.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, false));
-    assertEquals("20.0.0-rc1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("25.4.0", getLibraryRevision(SupportLibrary.SUPPORT_V4, false));
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** Checks {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
@@ -147,12 +154,21 @@ public class RepositoryUrlManagerTest extends TestCase {
                                                          myFileOp));
   }
 
-  public void testGetLibraryRevision_missingSdk() throws Exception {
-    myFileOp.deleteFileOrFolder(SDK_DIR);
-    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+  public void testGetLibraryRevision_SdkOnly() throws Exception {
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
-  /** @see com.android.ide.common.repository.MavenRepositories#isPreview(com.android.ide.common.repository.GradleCoordinate) */
+  public void testGetLibraryRevision_missingSdk() throws Exception {
+    myFileOp.deleteFileOrFolder(SDK_DIR);
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, v -> v.getMajor() == 24));
+  }
+
+  public void testGetLibraryRevision_offlineIndex() throws Exception {
+    myFileOp.deleteFileOrFolder(SDK_DIR);
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+  }
+
+  /** @see com.android.ide.common.repository.MavenRepositories#isPreview(GradleCoordinate) */
   public void testGetLibraryRevision_playServices_preview() throws Exception {
     // Check without metadata file.
     assertEquals("5.0.89", getLibraryRevision(SupportLibrary.PLAY_SERVICES, false));
@@ -212,7 +228,7 @@ public class RepositoryUrlManagerTest extends TestCase {
 
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
     assertNotNull(coordinate);
-    assertEquals("21.0.2", resolveDynamicCoordinateVersion(coordinate));
+    assertEquals("25.4.0", resolveDynamicCoordinateVersion(coordinate));
 
     // Make sure already resolved coordinates are handled correctly
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
@@ -273,6 +289,13 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals(3, result.size());
   }
 
+  public void testResolveDynamicSdkDepsAlpha1() {
+    Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:22.+"));
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "22.", mySdk, myFileOp);
+    assertEquals("com.android.support:appcompat-v7:22.0.0-alpha1", result.get(0).toString());
+  }
+
   public void testResolveDynamicSdkDependenciesWithSupportVersionFromFilter() {
     Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
     dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:+"));
@@ -281,7 +304,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     dependencies.put("com.android.support.constraint:constraint-layout", GradleCoordinate.parseCoordinateString("com.android.support.constraint:constraint-layout:0.+"));
     List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
     result.sort(Comparator.comparing(GradleCoordinate::toString));
-    assertEquals("com.android.support.constraint:constraint-layout:1.0.0-alpha7", result.get(0).toString());
+    assertEquals("com.android.support.constraint:constraint-layout:1.0.2", result.get(0).toString());
     assertEquals("com.android.support:appcompat-v7:20.0.0", result.get(1).toString());
     assertEquals("com.android.support:support-v4:20.0.0", result.get(2).toString());
     assertEquals("com.google.android.support:wearable:1.0.0", result.get(3).toString());

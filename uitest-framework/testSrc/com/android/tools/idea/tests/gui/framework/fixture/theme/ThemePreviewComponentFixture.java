@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static org.junit.Assert.assertEquals;
 
@@ -37,20 +35,9 @@ public class ThemePreviewComponentFixture extends JPanelFixture {
       .findByType(target(), AndroidThemePreviewPanel.class));
   }
 
-  @Nullable
-  private Configuration getConfiguration() {
-    return getThemePreviewPanel().target().getConfiguration();
-  }
-
-  @NotNull
-  public ThemePreviewComponentFixture requireDevice(@NotNull String id) {
-    assertEquals(id, getConfiguration().getDevice().getId());
-    return this;
-  }
-
   @NotNull
   public ThemePreviewComponentFixture requireApi(int apiLevel) {
-    assertEquals(apiLevel, getConfiguration().getTarget().getVersion().getApiLevel());
+    assertEquals(apiLevel, getThemePreviewPanel().target().getConfiguration().getTarget().getVersion().getApiLevel());
     return this;
   }
 }

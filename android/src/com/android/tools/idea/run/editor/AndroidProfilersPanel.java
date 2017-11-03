@@ -15,28 +15,48 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.HyperlinkLabel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * The configuration panel for the Android profiler settings.
  */
-public class AndroidProfilersPanel {
-  private static final boolean EXPERIMENTAL_ENABLED = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListener {
 
-  private JPanel myPanel;
+  private static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.4.0";
+  private static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+
+  private final Project myProject;
+  private JPanel myDescription;
   private JCheckBox myAdvancedProfilingCheckBox;
+  private HyperlinkLabel myHyperlinkLabel;
+  private JTextPane myAdvancedProfilingDescription;
+  private JLabel mySyncStatusMessage;
 
   public JComponent getComponent() {
-    return myPanel;
+    return myDescription;
   }
 
   AndroidProfilersPanel(Project project, ProfilerState state) {
-    myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_ENABLED);
-
+    myProject = project;
+    updateHyperlink("");
     resetFrom(state);
   }
 
@@ -44,14 +64,90 @@ public class AndroidProfilersPanel {
    * Resets the settings panel to the values in the specified {@link ProfilerState}.
    */
   void resetFrom(ProfilerState state) {
-    myAdvancedProfilingCheckBox.setSelected(state.ENABLE_ADVANCED_PROFILING);
+    boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
+    myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
+    myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
   }
 
   /**
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    boolean enabled = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
-    state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && enabled;
+    state.ADVANCED_PROFILING_ENABLED = StudioFlags.PROFILER_ENABLED.get() && myAdvancedProfilingCheckBox.isSelected();
+  }
+
+  private void createUIComponents() {
+    // TODO: Hyperlink label has a fixed 2 pixel offset at the beginning and cannot be indented. Change for a good component later.
+    myHyperlinkLabel = new HyperlinkLabel();
+    myHyperlinkLabel.addHyperlinkListener(this);
+  }
+
+  private void updateHyperlink(String message) {
+    boolean supported = true;
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+      if (model != null) {
+        GradleVersion modelVersion = model.getModelVersion();
+        supported = modelVersion != null && modelVersion.compareIgnoringQualifiers(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+        if (!supported) {
+          break;
+        }
+      }
+    }
+    myHyperlinkLabel.setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ","Update project", "");
+    myHyperlinkLabel.setVisible(!supported);
+    mySyncStatusMessage.setText(message);
+    myHyperlinkLabel.setVisible(!supported);
+    myDescription.setEnabled(supported);
+    myAdvancedProfilingCheckBox.setEnabled(supported);
+  }
+
+  @Override
+  public void hyperlinkUpdate(HyperlinkEvent e) {
+    GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+    GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+
+    // Don't bother sync'ing if latest is less than our minimum requirement.
+    if (MINIMUM_GRADLE_PLUGIN_VERSION.compareIgnoringQualifiers(pluginVersion) > 0) {
+      updateHyperlink("(No matching gradle version found)");
+      return;
+    }
+
+    // Update plugin version
+    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
+    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion);
+    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
+      // Request a sync
+      // TODO change to plugin upgrade trigger if it is created
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(
+        TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, this);
+    } else {
+      updateHyperlink("(Update failed)");
+    }
+  }
+
+  @Override
+  public void syncStarted(@NotNull Project project) {
+    updateHyperlink("(Syncing...)");
+  }
+
+  @Override
+  public void setupStarted(@NotNull Project project) {
+  }
+
+  @Override
+  public void syncSucceeded(@NotNull Project project) {
+    updateHyperlink("");
+  }
+
+  @Override
+  public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    updateHyperlink("(Sync failed)");
+  }
+
+  @Override
+  public void syncSkipped(@NotNull Project project) {
+    updateHyperlink("");
   }
 }

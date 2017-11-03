@@ -25,8 +25,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static org.mockito.Mockito.*;
 
 /**
@@ -73,7 +72,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     assertEquals("com.foo.bar", myState.getString(ATTR_PACKAGE_NAME));
 
     // Test 2: put the package location in and let the package name be calculated
-    myState.myParameters.remove(ATTR_SRC_OUT);
+    myState.getParameters().remove(ATTR_SRC_OUT);
     packageRoot = new File(javaSourceRoot, FileUtil.toSystemDependentName("org/bar/foo"));
     // The java source root must exist in order for getRelativePath to work
     assertTrue(packageRoot.mkdirs());
@@ -173,19 +172,19 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     // 3 tests: 1st make sure a new template can be set. 2 check that resetting the same template
     // is a no-op. 3 check that setting to a new template works
 
-    assertNull(myState.myTemplate);
+    assertNull(myState.getTemplate());
     File templateFile = new File(TemplateManager.getTemplateRootFolder(),
                                  FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidProject"));
     myState.setTemplateLocation(templateFile);
-    assertFalse(myState.myParameters.isEmpty());
-    assertEquals(templateFile, myState.myTemplate.getRootPath());
+    assertFalse(myState.getParameters().isEmpty());
+    assertEquals(templateFile, myState.getTemplate().getRootPath());
 
     myState.setTemplateLocation(templateFile);
 
     // This should only have occurred once since the 2nd setTemplateLocation should have
     // been a no-op.
     verify(myState, times(1)).setParameterDefaults();
-    assertEquals(templateFile, myState.myTemplate.getRootPath());
+    assertEquals(templateFile, myState.getTemplate().getRootPath());
 
     File templateFile2 = new File(TemplateManager.getTemplateRootFolder(),
                                   FileUtil.join(Template.CATEGORY_ACTIVITIES, "BlankActivity"));
@@ -194,7 +193,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     // This should only have occurred twice since the 2nd setTemplateLocation should have
     // been a no-op.
     verify(myState, times(2)).setParameterDefaults();
-    assertEquals(templateFile2, myState.myTemplate.getRootPath());
+    assertEquals(templateFile2, myState.getTemplate().getRootPath());
   }
 
   public void testConvertApisToInt() throws Exception {

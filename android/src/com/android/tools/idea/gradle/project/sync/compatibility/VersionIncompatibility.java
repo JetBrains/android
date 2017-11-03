@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRange;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
 class VersionIncompatibility {
@@ -106,15 +106,15 @@ class VersionIncompatibility {
     String[] text = toStringArray(textLines);
 
     if (position != null) {
-      message = new SyncMessage(project, DEFAULT_GROUP, messageType, position, text);
+      message = new SyncMessage(project, VERSION_COMPATIBILITY_ISSUE_GROUP, messageType, position, text);
     }
     else {
-      message = new SyncMessage(DEFAULT_GROUP, messageType, text);
+      message = new SyncMessage(VERSION_COMPATIBILITY_ISSUE_GROUP, messageType, text);
     }
 
     message.add(myRequirementVersionReader.getQuickFixes(myModule, requirementVersionRange, position));
 
-    SyncMessages.getInstance(project).report(message);
+    GradleSyncMessages.getInstance(project).report(message);
   }
 
   @NotNull

@@ -36,7 +36,7 @@ public abstract class ProjectFolder {
   public abstract void createIdeaProjectFolder() throws IOException;
 
   public static class Factory {
-    @NotNull ProjectFolder create(@NotNull File projectFolderPath) {
+    @NotNull public ProjectFolder create(@NotNull File projectFolderPath) {
       return new ProjectFolderImpl(projectFolderPath);
     }
   }
@@ -70,8 +70,7 @@ public abstract class ProjectFolder {
         if (librariesFolderPath.exists()) {
           // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
           // created with Studio 0.4.3 or earlier.)
-          boolean librariesFolderDeleted = delete(librariesFolderPath);
-          if (!librariesFolderDeleted) {
+          if (!delete(librariesFolderPath)) {
             getLogger().info(String.format("Failed to delete %1$s'", librariesFolderPath.getPath()));
           }
         }

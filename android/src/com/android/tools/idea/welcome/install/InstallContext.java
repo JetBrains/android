@@ -17,12 +17,8 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -30,85 +26,33 @@ import java.io.File;
  * Keeps installation process state.
  */
 public class InstallContext {
-  private final File myTempDirectory;
-  @Nullable private final ProgressStep myProgressStep;
+  @NotNull private final ProgressStep myProgressStep;
 
-  public InstallContext(@NotNull File tempDirectory) {
-    assert ApplicationManager.getApplication().isUnitTestMode();
-    myTempDirectory = tempDirectory;
-    myProgressStep = null;
-  }
-
-  @SuppressWarnings("NullableProblems")
   public InstallContext(@NotNull File tempDirectory, @NotNull ProgressStep progressStep) {
-    myTempDirectory = tempDirectory;
     myProgressStep = progressStep;
   }
 
-  public File getTempDirectory() {
-    return myTempDirectory;
-  }
-
   public void checkCanceled() throws InstallationCancelledException {
-    if (myProgressStep != null && myProgressStep.isCanceled()) {
+    if (myProgressStep.isCanceled()) {
       throw new InstallationCancelledException();
     }
   }
 
   @SuppressWarnings("UseOfSystemOutOrSystemErr")
   public void print(String message, ConsoleViewContentType contentType) {
-    if (myProgressStep != null) {
-      myProgressStep.print(message, contentType);
+    if (contentType == ConsoleViewContentType.ERROR_OUTPUT) {
+      System.err.println(message);
     }
     else {
-      if (contentType == ConsoleViewContentType.ERROR_OUTPUT) {
-        System.err.println(message);
-      }
-      else {
-        System.out.println(message);
-      }
+      System.out.println(message);
     }
   }
 
   public <R, E extends Exception> R run(ThrowableComputable<R, E> operation, double progressRatio) throws E {
-    Wrapper<R, E> wrapper = new Wrapper<R, E>(operation);
-    if (myProgressStep != null) {
-      myProgressStep.run(wrapper, progressRatio);
-    }
-    else {
-      ProgressManager.getInstance().executeProcessUnderProgress(wrapper, new TestingProgressIndicator());
-    }
+    Wrapper<R, E> wrapper = new Wrapper<>(operation);
+    myProgressStep.run(wrapper, progressRatio);
+
     return wrapper.getResult();
-  }
-
-  public void advance(double progress) {
-    if (myProgressStep != null) {
-      myProgressStep.advance(progress);
-    }
-  }
-
-  @SuppressWarnings("UseOfSystemOutOrSystemErr")
-  private static class TestingProgressIndicator extends ProgressIndicatorBase {
-    private int previous = 0;
-
-    @Override
-    public void setText(String text) {
-      System.out.println(text);
-    }
-
-    @Override
-    public void setText2(String text) {
-      System.out.println("Text2: " + text);
-    }
-
-    @Override
-    public void setFraction(double fraction) {
-      int p = (int)Math.floor(fraction * 20);
-      if (p > previous) {
-        previous = p;
-        System.out.print(".");
-      }
-    }
   }
 
   private static class Wrapper<R, E extends Exception> implements Runnable {

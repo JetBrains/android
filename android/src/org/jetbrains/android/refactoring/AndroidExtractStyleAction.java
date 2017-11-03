@@ -60,7 +60,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
   }
 
   public static boolean doIsEnabled(@NotNull XmlTag tag) {
-    return getLayoutViewElement(tag) != null && getExtractableAttributes(tag).size() > 0;
+    return getLayoutViewElement(tag) != null && !getExtractableAttributes(tag).isEmpty();
   }
 
   @Nullable
@@ -79,7 +79,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     final List<XmlAttribute> extractableAttributes = getExtractableAttributes(viewTag);
     final Project project = module.getProject();
 
-    if (extractableAttributes.size() == 0) {
+    if (extractableAttributes.isEmpty()) {
       AndroidUtils.reportError(project, "The tag doesn't contain any attributes that can be extracted", dialogTitle);
       return null;
     }
@@ -92,7 +92,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
     if (parentStyleValue != null) {
       parentStyle = parentStyleValue.getResourceName();
-      if (ResourceType.STYLE != parentStyleValue.getType() || parentStyle == null || parentStyle.length() == 0) {
+      if (ResourceType.STYLE != parentStyleValue.getType() || parentStyle == null || parentStyle.isEmpty()) {
         AndroidUtils.reportError(project, "Invalid parent style reference " + parentStyleValue.toString(), dialogTitle);
         return null;
       }

@@ -16,13 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.AbstractButtonDriver;
-import org.fest.swing.driver.BasicJComboBoxCellReader;
-import org.fest.swing.driver.JComboBoxDriver;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,37 +30,47 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull final FormFactor formFactor, @NotNull final String api) {
-    JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox checkBox) {
-        String text = checkBox.getText();
-        // "startsWith" instead of "equals" because the UI may add "(Not installed)" at the end.
-        return text != null && text.startsWith(formFactor.toString());
-      }
-    });
-    AbstractButtonDriver buttonDriver = new AbstractButtonDriver(robot());
-    buttonDriver.requireEnabled(checkBox);
-    buttonDriver.select(checkBox);
-
-    final JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
-    int itemIndex = GuiQuery.getNonNull(
-      () -> {
-        BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
-        int itemCount = comboBox.getItemCount();
-        for (int i = 0; i < itemCount; i++) {
-          String value = cellReader.valueAt(comboBox, i);
-          if (value != null && value.startsWith("API " + api + ":")) {
-            return i;
-          }
+  public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
+    String formFactorName = formFactor.toString();
+    JCheckBoxFixture checkBox =
+      new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+        @Override
+        protected boolean isMatching(@NotNull JCheckBox checkBox) {
+          String text = checkBox.getText();
+          // "startsWith" instead of "equals" because the UI may add "(Not installed)" at the end.
+          return text != null && text.startsWith(formFactorName);
         }
-        return -1;
-      });
-    if (itemIndex < 0) {
-      throw new LocationUnavailableException("Unable to find SDK " + api + " in " + formFactor + " drop-down");
+      }));
+    checkBox.requireEnabled().select();
+
+    if (formFactor != FormFactor.CAR) {
+      ApiLevelComboBoxFixture apiLevelComboBox =
+        new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class));
+      apiLevelComboBox.selectApiLevel(api);
     }
-    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot());
-    comboBoxDriver.selectItem(comboBox, itemIndex);
     return this;
   }
+
+  @NotNull
+  public ConfigureFormFactorStepFixture selectInstantAppSupport(@NotNull FormFactor formFactor) {
+    findInstantAppCheckbox(formFactor).select();
+    return this;
+  }
+
+  public ConfigureFormFactorStepFixture waitForErrorMessageToContain(@NotNull String errorMessage) {
+    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel label) {
+        String text = label.getText();
+        return text != null && text.contains(errorMessage);
+      }
+    });
+    return this;
+  }
+
+  @NotNull
+  public JCheckBoxFixture findInstantAppCheckbox(@NotNull FormFactor formFactor) {
+    return new JCheckBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".instantApp", JCheckBox.class, false));
+  }
+
 }

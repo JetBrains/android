@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.utils.SdkUtils;
+import com.android.utils.StringHelper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -171,7 +169,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
 
     // Dump stack back to string to make sure we have the same exception
-    desc = desc.replace("\n", SdkUtils.getLineSeparator());
+    desc = StringHelper.toSystemLineSeparator(desc);
     assertEquals(desc, AndroidCommonUtils.getStackTrace(throwable));
 
     return throwable;
@@ -191,7 +189,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   @Nullable
-  private IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
+  private static IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
     String platformDir = TestUtils.getLatestAndroidPlatform();
     for (IAndroidTarget target : configurationManager.getTargets()) {
       if (!ConfigurationManager.isLayoutLibTarget(target)) {
@@ -216,7 +214,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     IAndroidTarget target = getTestTarget(configurationManager);
     assertNotNull(target);
@@ -224,13 +222,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
-      // TODO: Remove this after http://b.android.com/203392 is released
-      // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
-      configuration.setTheme("android:Theme.Material");
-    }
+    // TODO: Remove this after http://b.android.com/203392 is released
+    // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
+    configuration.setTheme("android:Theme.Material");
 
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
@@ -303,90 +299,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       issues.get(0));
   }
 
-  public void testBrokenLayoutLib() {
-    LogOperation operation = (logger, render) -> {
-      // MANUALLY register errors
-      logger.error(null, "This is an error with entities: & < \"", null);
-
-      Throwable throwable = createExceptionFromDesc(
-        "java.lang.NullPointerException\n" +
-        "\tat android.text.format.DateUtils.getDayOfWeekString(DateUtils.java:248)\n" +
-        "\tat android.widget.CalendarView.setUpHeader(CalendarView.java:1034)\n" +
-        "\tat android.widget.CalendarView.<init>(CalendarView.java:403)\n" +
-        "\tat android.widget.CalendarView.<init>(CalendarView.java:333)\n" +
-        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
-        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)\n" +
-        "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)\n" +
-        "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\n" +
-        "\tat android.view.LayoutInflater.createView(LayoutInflater.java:594)\n" +
-        "\tat android.view.BridgeInflater.onCreateView(BridgeInflater.java:86)\n" +
-        "\tat android.view.LayoutInflater.onCreateView(LayoutInflater.java:669)\n" +
-        "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:694)\n" +
-        "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:131)\n" +
-        "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)\n" +
-        "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)\n" +
-        "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:727)\n" +
-        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:492)\n" +
-        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:397)\n" +
-        "\tat android.widget.DatePicker.<init>(DatePicker.java:171)\n" +
-        "\tat android.widget.DatePicker.<init>(DatePicker.java:145)\n" +
-        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
-        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)\n" +
-        "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)\n" +
-        "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\n" +
-        "\tat android.view.LayoutInflater.createView(LayoutInflater.java:594)\n" +
-        "\tat android.view.BridgeInflater.onCreateView(BridgeInflater.java:86)\n" +
-        "\tat android.view.LayoutInflater.onCreateView(LayoutInflater.java:669)\n" +
-        "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:694)\n" +
-        "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:131)\n" +
-        "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)\n" +
-        "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)\n" +
-        "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:727)\n" +
-        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:492)\n" +
-        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:373)\n" +
-        "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:385)\n" +
-        "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:332)\n" +
-        "\tat com.android.ide.common.rendering.LayoutLibrary.createSession(LayoutLibrary.java:325)\n" +
-        "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:525)\n" +
-        "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:518)\n" +
-        "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:958)\n" +
-        "\tat com.android.tools.idea.rendering.RenderService.createRenderSession(RenderService.java:518)\n" +
-        "\tat com.android.tools.idea.rendering.RenderService.render(RenderService.java:555)\n" +
-        "\tat com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel$7$2.compute(AndroidDesignerEditorPanel.java:498)\n" +
-        "\tat com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel$7$2.compute(AndroidDesignerEditorPanel.java:491)\n" +
-        "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:969)\n" +
-        "\tat com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel$7.run(AndroidDesignerEditorPanel.java:491)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:320)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:310)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue$2.run(MergingUpdateQueue.java:254)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:269)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:227)\n" +
-        "\tat com.intellij.util.ui.update.MergingUpdateQueue.run(MergingUpdateQueue.java:217)\n" +
-        "\tat com.intellij.util.concurrency.QueueProcessor.runSafely(QueueProcessor.java:237)\n" +
-        "\tat com.intellij.util.Alarm$Request$1.run(Alarm.java:297)\n" +
-        "\tat java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:439)\n" +
-        "\tat java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:303)\n" +
-        "\tat java.util.concurrent.FutureTask.run(FutureTask.java:138)\n" +
-        "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
-        "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
-        "\tat java.lang.Thread.run(Thread.java:680)\n");
-      logger.error(null, null, throwable, null);
-    };
-    List<RenderErrorModel.Issue> issues =
-      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(2, issues);
-
-    assertHtmlEquals(
-      "This is an error with entities: &amp; &lt; \"<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
-
-    assertHtmlEquals(
-      "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
-      "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
-      "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(1));
-  }
-
   public void testBrokenCustomView() {
     final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = (logger, render) -> {
@@ -456,14 +368,14 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
-        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file://$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "<BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
       assertHtmlEquals(
@@ -685,25 +597,26 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "Read access not allowed during rendering (/)<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
-        "&nbsp;&nbsp;at java.io.File.list(<A HREF=\"file://$SDK_HOME/sources/android-18/java/io/File.java:971\">File.java:971</A>)<BR/>" +
-        "&nbsp;&nbsp;at java.io.File.listFiles(<A HREF=\"file://$SDK_HOME/sources/android-18/java/io/File.java:1051\">File.java:1051</A>)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-26/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
@@ -737,7 +650,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   public void testFidelityErrors() {
-    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
@@ -746,8 +659,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "<BR/></DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(0));
 
     operation = (logger, render) -> {
-      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
-      logger.error("Error", "An error", null, null);
+      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
+      logger.error("Error", "An error", null);
     };
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(2, issues);
@@ -817,12 +730,56 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
   }
 
+  public void testAppCompatException() {
+    LogOperation operation = (logger, render) -> {
+      Throwable throwable = createExceptionFromDesc(
+        "java.lang.IllegalArgumentException: You need to use a Theme.AppCompat theme (or descendant) with the design library.\n" +
+        "\tat android.support.design.widget.ThemeUtils.checkAppCompatTheme(ThemeUtils.java:36)\n" +
+        "\tat android.support.design.widget.FloatingActionButton.<init>(FloatingActionButton.java:159)\n" +
+        "\tat android.support.design.widget.FloatingActionButton.<init>(FloatingActionButton.java:153)\n" +
+        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
+        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n" +
+        "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n" +
+        "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.createNewInstance(ViewLoader.java:488)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.loadClass(ViewLoader.java:266)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.loadView(ViewLoader.java:224)\n" +
+        "\tat com.android.tools.idea.rendering.LayoutlibCallbackImpl.loadView(LayoutlibCallbackImpl.java:189)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:337)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:348)\n" +
+        "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:248)\n" +
+        "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:727)\n" +
+        "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:860)\n" +
+        "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:72)\n" +
+        "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:834)\n" +
+        "\tat android.view.LayoutInflater.rInflateChildren(LayoutInflater.java:821)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:518)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:397)\n" +
+        "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:345)\n" +
+        "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:431)\n" +
+        "\tat com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:193)\n" +
+        "\tat com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:591)\n" +
+        "\tat com.android.tools.idea.rendering.RenderTask.lambda$inflate$3(RenderTask.java:739)\n" +
+        "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266)\n" +
+        "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n" +
+        "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n" +
+        "\tat java.lang.Thread.run(Thread.java:745)\n");
+      logger.addBrokenClass("com.example.myapplication.MyButton", throwable);
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(1, issues);
+    assertHtmlEquals("Select <I>Theme.AppCompat</I> or a descendant in the theme selector.", issues.get(0));
+  }
+
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
     String location = platform.getSdkData().getLocation().getPath();
     location = FileUtil.toSystemIndependentName(location);
-    html = html.replace(location, "$SDK_HOME");
+    html = html.replace(location, "$SDK_HOME")
+      .replace("file:///", "file://"); // On Windows JavaDoc source may start with /
     return html;
   }
 

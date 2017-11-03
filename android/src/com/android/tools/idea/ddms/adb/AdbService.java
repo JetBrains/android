@@ -17,22 +17,23 @@ package com.android.tools.idea.ddms.adb;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.concurrent.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
@@ -46,11 +47,14 @@ import java.util.concurrent.TimeoutException;
  * by first invoking {@link #getDebugBridge(File)} to obtain the bridge, and implementing
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService implements Disposable {
+public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
+  public static final int TIMEOUT = 3000000;
 
   @GuardedBy("this")
   @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
+
+  private final AtomicReference<File> myAdb = new AtomicReference<>();
 
   /**
    * adb initialization and termination could occur in separate threads (see {@link #terminateDdmlib()} and {@link CreateBridgeTask}.
@@ -63,18 +67,29 @@ public class AdbService implements Disposable {
   }
 
   private AdbService() {
-    DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
-    DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
+    // Synchronize ddmlib log level with the corresponding IDEA log level
+    String defaultLogLevel = AdbLogOutput.SystemLogRedirecter.getLogger().isTraceEnabled()
+                   ? Log.LogLevel.VERBOSE.getStringValue()
+                   : AdbLogOutput.SystemLogRedirecter.getLogger().isDebugEnabled()
+                     ? Log.LogLevel.DEBUG.getStringValue()
+                     : Log.LogLevel.INFO.getStringValue();
+    DdmPreferences.setLogLevel(defaultLogLevel);
+    DdmPreferences.setTimeOut(TIMEOUT);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
+
+    AdbOptionsService.getInstance().addListener(this);
   }
 
   @Override
   public void dispose() {
     terminateDdmlib();
+    AdbOptionsService.getInstance().removeListener(this);
   }
 
   public synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+    myAdb.set(adb);
+
     // Cancel previous requests if they were unsuccessful
     if (myFuture != null && myFuture.isDone() && !wasSuccessful(myFuture)) {
       terminateDdmlib();
@@ -82,7 +97,7 @@ public class AdbService implements Disposable {
 
     if (myFuture == null) {
       Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
-      // TODO: expose connection timeout in some settings UI? Also see AndroidUtils.TIMEOUT which is way too long
+      // TODO: expose connection timeout in some settings UI? Also see TIMEOUT which is way too long
       myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
 
@@ -99,19 +114,6 @@ public class AdbService implements Disposable {
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
     }
-  }
-
-  public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
-    return isDdmsCorrupted(bridge) || allDevicesAreEmpty(bridge);
-  }
-
-  private static boolean allDevicesAreEmpty(@NotNull AndroidDebugBridge bridge) {
-    for (IDevice device : bridge.getDevices()) {
-      if (device.getClients().length > 0) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public static boolean isDdmsCorrupted(@NotNull AndroidDebugBridge bridge) {
@@ -131,12 +133,9 @@ public class AdbService implements Disposable {
     return false;
   }
 
-  public synchronized ListenableFuture<AndroidDebugBridge> restartDdmlib(@NotNull Project project) {
+  @NotNull
+  public synchronized ListenableFuture<AndroidDebugBridge> restartDdmlib(@NotNull File adb) {
     terminateDdmlib();
-    File adb = AndroidSdkUtils.getAdb(project);
-    if (adb == null) {
-      throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
-    }
     return getDebugBridge(adb);
   }
 
@@ -155,6 +154,19 @@ public class AdbService implements Disposable {
     }
   }
 
+  @Override
+  public void optionsChanged() {
+    File adb = myAdb.get();
+    // we use the presence of myAdb as an indication that adb was started earlier
+    if (adb != null) {
+      LOG.info("Terminating adb server");
+      terminateDdmlib();
+
+      LOG.info("Restart adb server");
+      getDebugBridge(adb);
+    }
+  }
+
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
 
@@ -167,12 +179,21 @@ public class AdbService implements Disposable {
       boolean clientSupport = AndroidEnableAdbServiceAction.isAdbServiceEnabled();
       LOG.info("Initializing adb using: " + myAdb.getAbsolutePath() + ", client support = " + clientSupport);
 
+      ImmutableMap<String, String> env;
+      if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
+        // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
+        env = ImmutableMap.of("HOME", Files.createTempDir().getAbsolutePath());
+      }
+      else {
+        env = ImmutableMap.of();
+      }
+
       AndroidDebugBridge bridge;
       AdbLogOutput.ToStringLogger toStringLogger = new AdbLogOutput.ToStringLogger();
       Log.addLogger(toStringLogger);
       try {
         synchronized (ADB_INIT_LOCK) {
-          AndroidDebugBridge.init(clientSupport);
+          AndroidDebugBridge.init(clientSupport, AdbOptionsService.getInstance().shouldUseLibusb(), env);
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
         }
 
@@ -225,9 +246,7 @@ public class AdbService implements Disposable {
                                                          @NotNull final TimeUnit unit) {
     final SettableFuture<AndroidDebugBridge> future = SettableFuture.create();
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
         try {
           BridgeConnectionResult value = delegate.get(timeout, unit);
           if (value.error != null) {
@@ -240,17 +259,33 @@ public class AdbService implements Disposable {
         catch (ExecutionException e) {
           future.setException(e.getCause());
         }
-        catch (InterruptedException e) {
+      catch (InterruptedException | TimeoutException e) {
           delegate.cancel(true);
           future.setException(e);
         }
-        catch (TimeoutException e) {
-          delegate.cancel(true);
-          future.setException(e);
-        }
-      }
     });
 
     return future;
+  }
+
+  public static String getDebugBridgeDiagnosticErrorMessage(@NotNull Throwable t, @NotNull File adb) {
+    // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
+    // wrong. The only identified reason so far is that some machines have incompatible versions of adb that were already running.
+    // e.g. Genymotion, some HTC flashing software, Ubuntu's adb package may all conflict with the version of adb in the SDK.
+    String msg;
+    if (t.getMessage() != null) {
+      msg = t.getMessage();
+    }
+    else {
+      msg = String.format("Unable to establish a connection to adb.\n\n" +
+                          "Check the Event Log for possible issues.\n" +
+                          "This can happen if you have an incompatible version of adb running already.\n" +
+                          "Try re-opening %1$s after killing any existing adb daemons.\n\n" +
+                          "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
+                          "  1. Output of the command: '%2$s devices'\n" +
+                          "  2. Your idea.log file (Help | Show Log in Explorer)\n",
+                          ApplicationNamesInfo.getInstance().getProductName(), adb.getAbsolutePath());
+    }
+    return msg;
   }
 }

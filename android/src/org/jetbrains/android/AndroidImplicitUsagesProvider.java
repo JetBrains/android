@@ -27,7 +27,11 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     }
     else if (element instanceof PsiMethod) {
       PsiMethod method = (PsiMethod)element;
-      return method.isConstructor() && isImplicitConstructorUsage(method);
+      if (method.isConstructor()) {
+        return isImplicitConstructorUsage(method);
+      } else {
+        return isImplicitMethodUsage(method);
+      }
     }
     return false;
   }
@@ -110,7 +114,7 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     PsiReferenceExpression exp = (PsiReferenceExpression)value;
     String refName = exp.getReferenceName();
 
-    if (refName == null || refName.length() == 0) {
+    if (refName == null || refName.isEmpty()) {
       return false;
     }
     PsiExpression qExp = exp.getQualifierExpression();
@@ -121,7 +125,7 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     exp = (PsiReferenceExpression)qExp;
     refName = exp.getReferenceName();
 
-    if (refName == null || refName.length() == 0) {
+    if (refName == null || refName.isEmpty()) {
       return false;
     }
     qExp = exp.getQualifierExpression();
@@ -131,6 +135,18 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     }
     exp = (PsiReferenceExpression)qExp;
     return AndroidUtils.R_CLASS_NAME.equals(exp.getReferenceName());
+  }
+
+  public boolean isImplicitMethodUsage(PsiMethod method) {
+     // Methods annotated with lifecycle annotations are not unused
+    for (PsiAnnotation annotation : method.getModifierList().getAnnotations()) {
+      String qualifiedName = annotation.getQualifiedName();
+      if ("android.arch.lifecycle.OnLifecycleEvent".equals(qualifiedName)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public boolean isImplicitConstructorUsage(PsiMethod method) {

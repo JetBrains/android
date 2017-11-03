@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -95,7 +96,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
+    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     mySupportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
                       ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
@@ -138,7 +139,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     }.installOn(myDeviceTable);
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
-    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(facet.getAvdManagerSilently()));
+    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(ModuleAvds.getInstance(facet).getAvdManagerSilently()));
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -209,7 +210,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
   private void resetSelection(@NotNull String[] selectedSerials) {
     MyDeviceTableModel model = (MyDeviceTableModel)myDeviceTable.getModel();
-    Set<String> selectedSerialsSet = new HashSet<String>();
+    Set<String> selectedSerialsSet = new HashSet<>();
     Collections.addAll(selectedSerialsSet, selectedSerials);
     IDevice[] myDevices = model.myDevices;
     ListSelectionModel selectionModel = myDeviceTable.getSelectionModel();
@@ -251,12 +252,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       });
     }
 
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        myDevicesDetected.set(devices.length > 0);
-        refreshTable(devices);
-      }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myDevicesDetected.set(devices.length > 0);
+      refreshTable(devices);
     });
   }
 
@@ -271,7 +269,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
     myProcessSelectionFlag = false;
     myDeviceTable.setModel(new MyDeviceTableModel(devices));
-    if (selectedRows.size() == 0 && devices.length > 0) {
+    if (selectedRows.isEmpty() && devices.length > 0) {
       myDeviceTable.getSelectionModel().setSelectionInterval(0, 0);
     }
     for (int selectedRow : selectedRows.toNativeArray()) {
@@ -335,7 +333,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   @NotNull
   private IDevice[] getSelectedDevices(boolean onlyCompatible) {
     int[] rows = mySelectedRows != null ? mySelectedRows : myDeviceTable.getSelectedRows();
-    List<IDevice> result = new ArrayList<IDevice>();
+    List<IDevice> result = new ArrayList<>();
     for (int row : rows) {
       if (row >= 0) {
         if (onlyCompatible && !isRowCompatible(row)) {
@@ -361,7 +359,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       return EMPTY_DEVICE_ARRAY;
     }
 
-    final List<IDevice> filteredDevices = new ArrayList<IDevice>();
+    final List<IDevice> filteredDevices = new ArrayList<>();
     for (IDevice device : bridge.getDevices()) {
       if (myFilter == null || myFilter.apply(device)) {
         filteredDevices.add(device);
@@ -413,17 +411,17 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   }
 
   @Override
-  public void deviceConnected(IDevice device) {
+  public void deviceConnected(@NotNull IDevice device) {
     postUpdate();
   }
 
   @Override
-  public void deviceDisconnected(IDevice device) {
+  public void deviceDisconnected(@NotNull IDevice device) {
     postUpdate();
   }
 
   @Override
-  public void deviceChanged(IDevice device, int changeMask) {
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
     postUpdate();
   }
 

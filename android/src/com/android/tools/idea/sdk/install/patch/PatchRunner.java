@@ -71,35 +71,6 @@ public class PatchRunner {
    */
   private static Map<LocalPackage, PatchRunner> ourCache = ContainerUtil.createWeakMap();
 
-  @Nullable
-  public static PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
-    PatchRunner result = ourCache.get(runnerPackage);
-    if (result != null) {
-      return result;
-    }
-    try {
-      File patcherFile = getPatcherFile(runnerPackage, fop);
-      if (patcherFile == null) {
-        progress.logWarning("Failed to find patcher JAR!");
-        return null;
-      }
-      ClassLoader loader = getClassLoader(patcherFile, progress);
-      Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
-      Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
-      Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
-      Class generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
-
-      result = new PatchRunner(patcherFile, runnerClass, uiBaseClass, uiClass, generatorClass);
-    }
-    catch (ClassNotFoundException e) {
-      progress.logWarning("Failed to load patcher classes!");
-      return null;
-    }
-    ourCache.put(runnerPackage, result);
-    return result;
-  }
-
-
   /**
    * Run the IJ patcher by reflection.
    */
@@ -186,10 +157,7 @@ public class PatchRunner {
     }
     catch (InvocationTargetException e) {
       Throwable reason = e.getTargetException();
-      progress.logWarning("Patch invocation failed! " + reason);
-      if (reason != null) {
-        reason.printStackTrace();
-      }
+      progress.logWarning("Patch invocation failed! ", reason);
       return false;
     }
     catch (IllegalAccessException e) {
@@ -209,7 +177,7 @@ public class PatchRunner {
               @NotNull Class runnerClass,
               @NotNull Class uiBaseClass,
               @NotNull Class uiClass,
-              @NotNull Class generatorClass) throws ClassNotFoundException {
+              @NotNull Class generatorClass) {
     myPatcherJar = jarFile;
     myRunnerClass = runnerClass;
     myUiBaseClass = uiBaseClass;
@@ -221,7 +189,7 @@ public class PatchRunner {
    * Gets a class loader for the given jar.
    */
   @NotNull
-  private static ClassLoader getClassLoader(@NotNull File patcherJar, @NotNull ProgressIndicator progress) {
+  private static ClassLoader getClassLoader(@NotNull File patcherJar) {
     ClassLoader loader;
     try {
       loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
@@ -238,8 +206,42 @@ public class PatchRunner {
     return myPatcherJar;
   }
 
-
   public static class RestartRequiredException extends RuntimeException {
   }
 
+  public interface Factory {
+    @Nullable
+    PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop);
+  }
+
+  public static class DefaultFactory implements Factory {
+    @Override
+    @Nullable
+    public PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
+      PatchRunner result = ourCache.get(runnerPackage);
+      if (result != null) {
+        return result;
+      }
+      try {
+        File patcherFile = getPatcherFile(runnerPackage, fop);
+        if (patcherFile == null) {
+          progress.logWarning("Failed to find patcher JAR!");
+          return null;
+        }
+        ClassLoader loader = getClassLoader(patcherFile);
+        Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
+        Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
+        Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
+        Class generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
+
+        result = new PatchRunner(patcherFile, runnerClass, uiBaseClass, uiClass, generatorClass);
+        ourCache.put(runnerPackage, result);
+        return result;
+      }
+      catch (ClassNotFoundException e) {
+        progress.logWarning("Failed to load patcher classes!");
+        return null;
+      }
+    }
+  }
 }

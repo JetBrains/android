@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.android.tools.idea.run.ValidationError;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Ordering;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
@@ -88,7 +90,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
     Disposer.register(project, this);
-
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
       public boolean isModuleAccepted(Module module) {
@@ -120,7 +121,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         DeployTargetProvider target = (DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem();
-        myDeployTargetConfigurableCardPanel.select(myDeployTargetConfigurables.get(target.getId()), true);
+        if (target != null) {
+          myDeployTargetConfigurableCardPanel.select(myDeployTargetConfigurables.get(target.getId()), true);
+        }
       }
     });
 
@@ -135,6 +138,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     mySkipNoOpApkInstallation.addActionListener(actionListener);
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
+    myModulesComboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        androidDebuggerContext.setDebuggeeModule(myModulesComboBox.getSelectedModule());
+      }
+    });
+
     if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
       myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
@@ -142,6 +152,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
     myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
+
+    checkValidationResults(config.validate(null));
   }
 
   public void setConfigurationSpecificEditor(ConfigurationSpecificEditor<T> configurationSpecificEditor) {
@@ -149,6 +161,21 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
     myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
+  }
+
+  /**
+   * Allows the editor UI to response based on any validation errors.
+   * The {@link ValidationError.Category} with the most severe errors should be responded to first.
+   */
+  private void checkValidationResults(@NotNull List<ValidationError> errors) {
+    if (errors.isEmpty()) {
+      return;
+    }
+
+    ValidationError topError = Ordering.natural().max(errors);
+    if (ValidationError.Category.PROFILER.equals(topError.getCategory())) {
+      myTabbedPane.setSelectedComponent(myAndroidProfilersPanel.getComponent());
+    }
   }
 
   @Override
@@ -195,7 +222,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     deployTargetContext.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
       DeployTargetState state = deployTargetContext.getDeployTargetState(target);
-      myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
+      if (target != null) {
+        myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
+      }
     }
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
@@ -233,7 +262,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   private void createUIComponents() {
     // JBColor keeps a strong reference to its parameter func, so, using a lambda avoids this reference and fixes a leak
-    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(UIUtil::getLabelBackground), PlatformColors.BLUE);
+    myOldVersionLabel = new HyperlinkLabel();
 
     setSyncLinkMessage("");
     myOldVersionLabel.addHyperlinkListener(this);

@@ -22,6 +22,8 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
@@ -35,34 +37,25 @@ import java.nio.file.Paths;
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
-  com.android.tools.idea.templates.TemplateTest.class, // we typically set DISABLE_STUDIO_TEMPLATE_TESTS because it's so slow
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
+  com.android.tools.idea.templates.TemplateTest.CoverageChecker.class, // Inner class is used to test TemplateTest covers all templates
+
   // The following classes had failures when run in Bazel.
-  com.android.tools.idea.ddms.adb.AdbServiceTest.class,
-  com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
-  com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
-  com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
-  com.android.tools.idea.gradle.project.sync.errors.MissingCMakeErrorHandlerTest.class,  // fails in bazel sandbox
-  com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
-  com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
-  com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
-  com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
-  com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  org.jetbrains.android.AndroidLintTest.class,
+  com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
-  org.jetbrains.android.dom.AndroidLayoutDomTest.class,
-  org.jetbrains.android.dom.AndroidManifestDomTest.class,
-  org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
 
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
-  org.jetbrains.android.dom.AndroidValueResourcesTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
+
+  // Empty test in gradle-feature - http://b.android.com/230792
+  com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
+
+  // http://b/35788260
+  com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
 })
 public class IdeaTestSuite {
 
@@ -79,16 +72,19 @@ public class IdeaTestSuite {
     VfsRootAccess.allowRootAccess("/");
 
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
-    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
-    symbolicLinkInTmpDir("tools/base/templates");
-    symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
+    symbolicLinkInTmpDir("tools/adt/idea/artwork/resources/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/android/lib");
+    symbolicLinkInTmpDir("tools/base/templates");
+    symbolicLinkInTmpDir("tools/idea/java");
     symbolicLinkInTmpDir("prebuilts/studio/jdk");
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
+
+    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    System.setProperty("plugin.path", TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
   }
 
   /**
@@ -114,7 +110,8 @@ public class IdeaTestSuite {
     try {
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -131,7 +128,8 @@ public class IdeaTestSuite {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
     return path;
@@ -139,21 +137,28 @@ public class IdeaTestSuite {
 
   private static void setUpOfflineMavenRepos() {
     // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
-    createTmpDir("prebuilts/tools/common/offline-m2");
+    symbolicLinkInTmpDir("prebuilts/tools/common/offline-m2");
 
     // If present, also adds the offline repo we built from the source tree.
-    File offlineRepoZip = TestUtils.getWorkspaceFile("tools/base/bazel/offline_repo_repo.zip");
-    if (offlineRepoZip.exists()) {
-      try {
-        InstallerUtil.unzip(
-          offlineRepoZip,
-          createTmpDir("out/studio/repo").toFile(),
-          FileOpUtils.create(),
-          offlineRepoZip.length(),
-          new FakeProgressIndicator());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
+
+    // Parts of prebuilts/tools/common that we need.
+    setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
+  }
+
+  private static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
+    File offlineRepoZip = TestUtils.getWorkspaceFile(repoZip);
+    try {
+      InstallerUtil.unzip(
+        offlineRepoZip,
+        createTmpDir(outputPath).toFile(),
+        FileOpUtils.create(),
+        offlineRepoZip.length(),
+        new FakeProgressIndicator());
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -161,5 +166,10 @@ public class IdeaTestSuite {
   public static void leakChecker() throws Exception {
     Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
     leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
+  }
+
+  @AfterClass
+  public static void killGradleDaemons() {
+    DefaultGradleConnector.close();
   }
 }

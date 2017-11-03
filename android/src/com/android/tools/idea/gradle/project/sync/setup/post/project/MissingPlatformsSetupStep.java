@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -26,12 +26,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 
 public class MissingPlatformsSetupStep extends ProjectSetupStep {
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
-    SyncMessages syncMessages = SyncMessages.getInstance(project);
+    GradleSyncMessages syncMessages = GradleSyncMessages.getInstance(project);
     int sdkErrorCount = syncMessages.getMessageCount(SDK_SETUP_ISSUES);
     if (sdkErrorCount > 0) {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and

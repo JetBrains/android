@@ -16,20 +16,27 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -43,17 +50,23 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.FD_RES;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
- * Resource repository which merges in resources from the libraries and modules which are
- * transitive dependencies of the given AndroidFacet / module.
+ * This repository gives you a merged view of all the resources available to the app, as seen from the given module, with the current
+ * variant. That includes not just the resources defined in this module, but in any other modules that this module depends on, as well as
+ * any libraries those modules may depend on (such as appcompat).
+ *
+ * <p>When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources
+ * just like the app does.
+ *
+ * <p>This class also keeps track of IDs assigned to resources and can generate unused IDs.
  */
 public class AppResourceRepository extends MultiResourceRepository {
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
+  private static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
   private final AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
@@ -68,68 +81,84 @@ public class AppResourceRepository extends MultiResourceRepository {
   private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
 
-  protected AppResourceRepository(@NotNull AndroidFacet facet,
-                                  @NotNull List<? extends LocalResourceRepository> delegates,
-                                  @NotNull List<FileResourceRepository> libraries) {
-    super(facet.getModule().getName() + " with modules and libraries", delegates);
-    myFacet = facet;
-    myLibraries = libraries;
-    for (FileResourceRepository library : libraries) {
-      if (library.getResourceTextFile() != null) {
-        myAarLibraries.add(library);
-      }
-    }
-  }
-
   /**
-   * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
-   * and any libraries this project depends on.
-   *
-   * @param module            the module to look up resources for
-   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
-   * @return the resource repository
+   * Map from library name to resource dirs.
+   * The key library name may be null.
    */
+  private final Object RESOURCE_MAP_LOCK = new Object();
+  @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
+
   @Nullable
-  public static AppResourceRepository getAppResources(@NotNull Module module, boolean createIfNecessary) {
+  public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      return facet.getAppResources(createIfNecessary);
-    }
-
-    return null;
-  }
-
-  /**
-   * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
-   * and any libraries this project depends on.
-   *
-   * @param facet             the module facet to look up resources for
-   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
-   * @return the resource repository
-   */
-  @Contract("!null, true -> !null")
-  @Nullable
-  public static AppResourceRepository getAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    return facet.getAppResources(createIfNecessary);
+    return facet != null ? getOrCreateInstance(facet) : null;
   }
 
   @NotNull
-  public static AppResourceRepository create(@NotNull AndroidFacet facet) {
-    List<FileResourceRepository> libraries = computeLibraries(facet);
-    List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
-    AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
+  public static AppResourceRepository getOrCreateInstance(@NotNull AndroidFacet facet) {
+    return findAppResources(facet, true);
+  }
 
+  @Nullable
+  public static AppResourceRepository findExistingInstance(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? findExistingInstance(facet) : null;
+  }
+
+  @Nullable
+  public static AppResourceRepository findExistingInstance(@NotNull AndroidFacet facet) {
+    return findAppResources(facet, false);
+  }
+
+  @Contract("_, true -> !null")
+  @Nullable
+  private static AppResourceRepository findAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
+    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
+    return repositories.getAppResources(createIfNecessary);
+  }
+
+  @NotNull
+  static AppResourceRepository create(@NotNull AndroidFacet facet) {
+    List<FileResourceRepository> libraries = computeLibraries(facet);
+    AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, libraries), libraries);
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
   }
 
-  private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet,
-                                                                 List<FileResourceRepository> libraries) {
+  /**
+   * Return true if this project is build with Gradle but the AndroidModuleModel did not exist when the resources were cached.
+   * And reset the state.
+   */
+  public static boolean testAndClearTempResourceCached(@NotNull Project project) {
+    if (project.getUserData(TEMPORARY_RESOURCE_CACHE) != Boolean.TRUE) {
+      return false;
+    }
+    project.putUserData(TEMPORARY_RESOURCE_CACHE, null);
+    return true;
+  }
+
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    synchronized (RESOURCE_MAP_LOCK) {
+      if (myResourceDirMap == null) {
+        myResourceDirMap = HashMultimap.create();
+        for (LocalResourceRepository resourceRepository : getChildren()) {
+          myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+        }
+      }
+      return myResourceDirMap;
+    }
+  }
+
+  private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
+                                                                   List<FileResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
-    LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
+    LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
+    if (StudioFlags.NELE_SAMPLE_DATA.get()) {
+      repositories.add(new SampleDataResourceRepository(facet));
+    }
     return repositories;
   }
 
@@ -176,7 +205,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // which have been persisted since the most recent sync
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     if (androidModuleModel != null) {
-      List<AndroidLibrary> libraries = Lists.newArrayList();
+      List<Library> libraries = Lists.newArrayList();
       addGradleLibraries(libraries, androidModuleModel);
       for (AndroidFacet dependentFacet : dependentFacets) {
         AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
@@ -184,14 +213,20 @@ public class AppResourceRepository extends MultiResourceRepository {
           addGradleLibraries(libraries, dependentGradleModel);
         }
       }
-      return findAarLibrariesFromGradle(androidModuleModel.getModelVersion(), dependentFacets, libraries);
+      GradleVersion modelVersion = androidModuleModel.getModelVersion();
+      assert modelVersion != null;
+      return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
+    }
+    Project project = facet.getModule().getProject();
+    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      project.putUserData(TEMPORARY_RESOURCE_CACHE, true);
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
 
   @NotNull
-  public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<AndroidLibrary> libraries = Lists.newArrayList();
+  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<Library> libraries = Lists.newArrayList();
     if (facet.requiresAndroidModel()) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -229,7 +264,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
                                                               List<AndroidFacet> dependentFacets,
-                                                              List<AndroidLibrary> libraries) {
+                                                              List<Library> libraries) {
     // Pull out the unique directories, in case multiple modules point to the same .aar folder
     Map<File, String> files = new HashMap<>(libraries.size());
 
@@ -238,38 +273,15 @@ public class AppResourceRepository extends MultiResourceRepository {
       moduleNames.add(f.getModule().getName());
     }
     try {
-      for (AndroidLibrary library : libraries) {
+      for (Library library : libraries) {
         // We should only add .aar dependencies if they aren't already provided as modules.
         // For now, the way we associate them with each other is via the library name;
         // in the future the model will provide this for us
-        String libraryName = null;
-        String projectName = library.getProject();
-        if (projectName != null && !projectName.isEmpty()) {
-          libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
-          // Since this library has project!=null, it exists in module form; don't
-          // add it here.
-          moduleNames.add(libraryName);
-          continue;
-        }
-        else {
-          File folder = library.getFolder();
-          String name = folder.getName();
-          if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
-            // Library.getName() was added in 2.2
-            libraryName = library.getName();
-          }
-          else if (name.endsWith(DOT_AAR)) {
-            libraryName = name.substring(0, name.length() - DOT_AAR.length());
-          }
-          else if (folder.getPath().contains(AndroidModuleModel.EXPLODED_AAR)) {
-            libraryName = folder.getParentFile().getName();
-          }
-        }
-        if (libraryName != null && !moduleNames.contains(libraryName)) {
-          File resFolder = library.getResFolder();
+        String libraryName = library.getArtifactAddress();
+        if (!moduleNames.contains(libraryName)) {
+          File resFolder = new File(library.getResFolder());
           if (resFolder.exists()) {
             files.put(resFolder, libraryName);
-
             // Don't add it again!
             moduleNames.add(libraryName);
           }
@@ -287,26 +299,31 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   // TODO: b/23032391
-  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidModuleModel androidModuleModel) {
-    Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
-    Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary library : libraries) {
-      addGradleLibrary(list, library, unique);
+  private static void addGradleLibraries(List<Library> list, AndroidModuleModel androidModuleModel) {
+    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
+  }
+
+  protected AppResourceRepository(@NotNull AndroidFacet facet,
+                                  @NotNull List<? extends LocalResourceRepository> delegates,
+                                  @NotNull List<FileResourceRepository> libraries) {
+    super(facet.getModule().getName() + " with modules and libraries", delegates);
+    myFacet = facet;
+    myLibraries = libraries;
+    for (FileResourceRepository library : libraries) {
+      if (library.getResourceTextFile() != null) {
+        myAarLibraries.add(library);
+      }
     }
   }
 
-  private static void addGradleLibrary(List<AndroidLibrary> list, AndroidLibrary library, Set<File> unique) {
-    File folder = library.getFolder();
-    if (!unique.add(folder)) {
-      return;
-    }
-    list.add(library);
-    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-      addGradleLibrary(list, dependency, unique);
-    }
+  @Override
+  public void dispose() {
+    super.dispose();
   }
 
-  /** Returns the libraries among the app resources, if any */
+  /**
+   * Returns the libraries among the app resources, if any
+   */
   @NotNull
   public List<FileResourceRepository> getLibraries() {
     return myLibraries;
@@ -358,9 +375,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
     myResourceVisibilityProvider = null;
+    synchronized (RESOURCE_MAP_LOCK) {
+      myResourceDirMap = null;
+    }
     invalidateResourceDirs();
 
-    if (resources.equals(myChildren)) {
+    if (resources.equals(getChildren())) {
       // Nothing changed (including order); nothing to do
       return;
     }
@@ -495,16 +515,22 @@ public class AppResourceRepository extends MultiResourceRepository {
   // which should be fine.
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
 
-  /** Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java */
+  /**
+   * Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java
+   */
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
-  /** Map of (id, [name, resType]) for all resources coming from R.java */
+  /**
+   * Map of (id, [name, resType]) for all resources coming from R.java
+   */
   @SuppressWarnings("deprecation")  // For Pair
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
-  /** Map of (int[], name) for styleable resources coming from R.java */
+  /**
+   * Map of (int[], name) for styleable resources coming from R.java
+   */
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
 
-  private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<TypedResourceName>();
-  private final TIntObjectHashMap<TypedResourceName> myDynamicId2ResourceMap = new TIntObjectHashMap<TypedResourceName>();
+  private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<>();
+  private final TIntObjectHashMap<TypedResourceName> myDynamicId2ResourceMap = new TIntObjectHashMap<>();
   private int myDynamicSeed = DYNAMIC_ID_SEED_START;
   private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
 
@@ -559,7 +585,15 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (resourceTextFile == null) {
         continue;
       }
-      Integer[] in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
+      Integer[] in = null;
+      try {
+        in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
+      }
+      catch (Throwable e) {
+        // Filter all possible errors while parsing the R.txt file
+        assert false : e.getLocalizedMessage();
+        LOG.warn("Error while parsing R.txt", e);
+      }
       if (in != null) {
         // Reorder the list to place this library first. It's likely that there will be more calls to the same library.
         iter.remove();
@@ -605,10 +639,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static final class TypedResourceName {
-    @Nullable
-    final ResourceType myType;
-    @NotNull
-    final String myName;
+    @Nullable final ResourceType myType;
+    @NotNull final String myName;
     @SuppressWarnings("deprecation") Pair<ResourceType, String> myPair;
 
     public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {

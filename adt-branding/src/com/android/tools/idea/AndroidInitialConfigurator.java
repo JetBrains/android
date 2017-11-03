@@ -36,20 +36,27 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 /** Customize Android IDE specific experience. */
+@SuppressWarnings("UtilityClassWithPublicConstructor") // Application component registered in AndroidStudioPlugin.xml
 public class AndroidInitialConfigurator {
   @NonNls
   private static final ExtensionPointName<Runnable> EP_NAME =
     ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
   @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
-  @NonNls private static final String CONFIG_V2 = "AndroidInitConfigurator.V2";
   @NonNls private static final String CONFIG_V3 = "AndroidInitConfigurator.V3";
-  @NonNls private static final String CONFIG_V4 = "AndroidInitConfigurator.V4";
+  // 2 and 4 no longer applicable
+  @NonNls private static final String CONFIG_V5 = "AndroidInitConfigurator.V5";
 
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
+  @NonNls private static final String ANDROIDMONITOR_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
+  @SuppressWarnings("SpellCheckingInspection")
+  @NonNls private static final String LOGCAT_TOOLWINDOW_ACTION_ID = "ActivateLogcatToolWindow";
+
+  @NonNls private static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED =
+    !"false".equals(System.getProperty("enable.experimental.profiling"));
+
 
   @SuppressWarnings("UnusedParameters")
   public AndroidInitialConfigurator(MessageBus bus,
@@ -101,8 +108,8 @@ public class AndroidInitialConfigurator {
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V4)) {
-      propertiesComponent.setValue(CONFIG_V4, "true");
+    if (!propertiesComponent.getBoolean(CONFIG_V5)) {
+      propertiesComponent.setValue(CONFIG_V5, "true");
       UISettings.getInstance().setHideToolStripes(false);
 
       if (!propertiesComponent.getBoolean(CONFIG_V3)) {
@@ -124,10 +131,7 @@ public class AndroidInitialConfigurator {
         }
       }
 
-      if (!propertiesComponent.getBoolean(CONFIG_V2)) {
-        propertiesComponent.setValue(CONFIG_V2, "true");
-        UISettings.getInstance().setShowMainToolbar(true);
-      }
+      // CONFIG_V2 no longer done: we used to force UISettings#SHOW_MAIN_TOOLBAR=true
     }
   }
 
@@ -175,7 +179,11 @@ public class AndroidInitialConfigurator {
   private static void setActivateAndroidToolWindowShortcut(Keymap keymap) {
     KeyboardShortcut shortcut = removeFirstKeyboardShortcut(keymap, TODO_TOOLWINDOW_ACTION_ID);
     if (shortcut != null) {
-      keymap.addShortcut(ANDROID_TOOLWINDOW_ACTION_ID, shortcut);
+      if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
+        keymap.addShortcut(LOGCAT_TOOLWINDOW_ACTION_ID, shortcut);
+      } else {
+        keymap.addShortcut(ANDROIDMONITOR_TOOLWINDOW_ACTION_ID, shortcut);
+      }
     }
   }
 

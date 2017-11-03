@@ -20,10 +20,10 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -68,7 +68,7 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
     List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
     if (!hyperlinks.isEmpty()) {
       updateUsageTracker();
-      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+      GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }
     return false;

@@ -18,7 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
@@ -159,5 +159,5 @@ public interface NewResourceCreationHandler {
     boolean chooseFilename,
     @Nullable VirtualFile defaultFile,
     @Nullable VirtualFile contextFile,
-    @NotNull final Function<Module, ResourceNameValidator> nameValidatorFactory);
+    @NotNull final Function<Module, IdeResourceNameValidator> nameValidatorFactory);
 }

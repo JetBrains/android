@@ -27,7 +27,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.ChooseElementsDialog;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -54,8 +53,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ActionRunner;
-import com.intellij.util.PlatformIcons;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +65,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
+import static icons.StudioIcons.Shell.Filetree.*;
 
 /**
  * A GUI object that displays and modifies dependencies for an Android-Gradle module.
@@ -117,8 +115,10 @@ public class ModuleDependenciesPanel extends EditorPanel {
       return;
     }
     final boolean isAndroid = myGradleBuildFile.hasAndroidPlugin();
+    boolean compat = GradleUtil.useCompatibilityConfigurationNames(project);
     List<Dependency.Scope> scopes = Lists.newArrayList(
-      Sets.filter(EnumSet.allOf(Dependency.Scope.class), input -> isAndroid ? input.isAndroidScope() : input.isJavaScope()));
+      Sets.filter(EnumSet.allOf(Dependency.Scope.class),
+                  input ->  input != null && compat == input.isCompat() && (isAndroid ? input.isAndroidScope() : input.isJavaScope())));
     ComboBoxModel<Dependency.Scope> boxModel = new CollectionComboBoxModel<>(scopes, null);
     JComboBox<Dependency.Scope> scopeEditor = new ComboBox<>(boxModel);
     myEntryTable.setDefaultEditor(Dependency.Scope.class, new DefaultCellEditor(scopeEditor));
@@ -196,17 +196,17 @@ public class ModuleDependenciesPanel extends EditorPanel {
     final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myEntryTable);
     decorator.setAddAction(button -> {
       ImmutableList<PopupAction> popupActions = ImmutableList.of(
-        new PopupAction(AndroidIcons.MavenLogo, 1, "Library dependency") {
+        new PopupAction(MAVEN, 1, "Library dependency") {
           @Override
           public void run() {
             addExternalDependency();
           }
-        }, new PopupAction(PlatformIcons.LIBRARY_ICON, 2, "Jar dependency") {
+        }, new PopupAction(LIBRARY_MODULE, 2, "Jar dependency") {
           @Override
           public void run() {
             addFileDependency();
           }
-        }, new PopupAction(AllIcons.Nodes.Module, 3, "Module dependency") {
+        }, new PopupAction(ANDROID_MODULE, 3, "Module dependency") {
           @Override
           public void run() {
             addModuleDependency();
@@ -260,8 +260,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
       String coordinateText = dialog.getSearchText();
       coordinateText = installRepositoryIfNeeded(coordinateText);
       if (coordinateText != null) {
+        Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
         myModel.addItem(new ModuleDependenciesTableItem(
-            new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
+            new Dependency(scope, Dependency.Type.EXTERNAL, coordinateText)));
       }
     }
     myModel.fireTableDataChanged();
@@ -318,7 +319,8 @@ public class ModuleDependenciesPanel extends EditorPanel {
       if (path == null) {
         path = virtualFile.getPath();
       }
-      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path)));
+      Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(scope, Dependency.Type.FILES, path)));
     }
     myModel.fireTableDataChanged();
   }
@@ -344,7 +346,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     ChooseElementsDialog<String> dialog = new ChooseElementsDialog<String>(parent, modules, title, description, true) {
       @Override
       protected Icon getItemIcon(final String item) {
-        return AllIcons.Nodes.Module;
+        return ANDROID_MODULE;
       }
 
       @Override
@@ -353,9 +355,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
       }
     };
     dialog.show();
+    Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
     for (String module : dialog.getChosenElements()) {
-      myModel.addItem(new ModuleDependenciesTableItem(
-          new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, module)));
+      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(scope, Dependency.Type.MODULE, module)));
     }
     myModel.fireTableDataChanged();
   }
@@ -439,13 +441,13 @@ public class ModuleDependenciesPanel extends EditorPanel {
       //noinspection EnumSwitchStatementWhichMissesCases
       switch (dependency.type) {
         case EXTERNAL:
-          icon = AndroidIcons.MavenLogo;
+          icon = MAVEN;
           break;
         case FILES:
-          icon = PlatformIcons.LIBRARY_ICON;
+          icon = LIBRARY_MODULE;
           break;
         case MODULE:
-          icon = AllIcons.Nodes.Module;
+          icon = ANDROID_MODULE;
           break;
       }
     } else if (entry != null) {

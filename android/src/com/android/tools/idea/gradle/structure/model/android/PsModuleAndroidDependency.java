@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class PsModuleAndroidDependency extends PsAndroidDependency implements PsModuleDependency {
   @NotNull private final String myGradlePath;
@@ -74,7 +76,10 @@ public class PsModuleAndroidDependency extends PsAndroidDependency implements Ps
   @Override
   @Nullable
   public Icon getIcon() {
-    return AllIcons.Nodes.Module;
+    if (myResolvedModel != null) {
+      return getModuleIcon(myResolvedModel);
+    }
+    return ANDROID_MODULE;
   }
 
   @Override

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.input.InputManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.INPUT_SERVICE" />
+    </annotation>
+  </item>
+</root>
+

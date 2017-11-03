@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -36,25 +37,30 @@ import javax.swing.event.HyperlinkEvent;
 import java.util.Set;
 
 public class InstantRunNotificationTask implements LaunchTask {
+  public static final String INSTANT_RUN_URL = "http://developer.android.com/r/studio-ui/instant-run.html";
   // We only need to show this message once per IDE session, but we do want to show it once per project
   // So this is the set of all projects for which we've displayed that message once in this IDE session.
   @GuardedBy("LOCK")
   private static Set<String> ourBrokenForSecondaryUserMessageDisplayed = new HashSet<>();
   private static final Object LOCK = new Object();
 
+  private static boolean ourShouldShowIRAd = true;
+
   private final Project myProject;
   private final InstantRunContext myContext;
   private final InstantRunNotificationProvider myNotificationsProvider;
   private final boolean myShowBrokenForSecondaryUserMessage;
+  private final BuildSelection myBuildSelection;
 
   public InstantRunNotificationTask(@NotNull Project project,
                                     @NotNull InstantRunContext context,
                                     @NotNull InstantRunNotificationProvider provider,
-                                    boolean showBrokenForSecondaryUserMessage) {
+                                    @Nullable BuildSelection buildSelection) {
     myProject = project;
     myContext = context;
     myNotificationsProvider = provider;
-    myShowBrokenForSecondaryUserMessage = showBrokenForSecondaryUserMessage;
+    myBuildSelection = buildSelection;
+    myShowBrokenForSecondaryUserMessage = buildSelection.brokenForSecondaryUser;
   }
 
   @NotNull
@@ -74,9 +80,15 @@ public class InstantRunNotificationTask implements LaunchTask {
       return true;
     }
 
-    String notificationText = myNotificationsProvider.getNotificationText();
+    String notificationText =
+      myNotificationsProvider.getNotificationText();
     if (notificationText != null) {
       showNotification(myProject, myContext, notificationText);
+    }
+
+    if (myBuildSelection != null && shouldShowIRAd(myBuildSelection.why, myContext.getInstantRunBuildInfo().getBuildInstantRunEligibility())) {
+      ourShouldShowIRAd = false;
+      new InstantRunPrompt(myProject).show();
     }
 
     if (myShowBrokenForSecondaryUserMessage) {
@@ -94,6 +106,12 @@ public class InstantRunNotificationTask implements LaunchTask {
     }
 
     return true;
+  }
+
+  private boolean shouldShowIRAd(@NotNull BuildCause buildCause, String eligibility) {
+    return ourShouldShowIRAd &&
+           buildCause == BuildCause.USER_CHOSE_TO_COLDSWAP &&
+           InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE.equals(eligibility);
   }
 
   private static void showIrBrokenForSecondaryUsersNotification(@NotNull Project project) {
@@ -141,7 +159,7 @@ public class InstantRunNotificationTask implements LaunchTask {
           RestartActivityAction.restartActivity(project, context);
         }
         else if ("learnmore".equals(description)) {
-          BrowserUtil.browse("http://developer.android.com/r/studio-ui/instant-run.html", project);
+          BrowserUtil.browse(INSTANT_RUN_URL, project);
         }
         else if ("updategradle".equals(description)) {
           InstantRunConfigurable.updateProjectToInstantRunTools(project, null);

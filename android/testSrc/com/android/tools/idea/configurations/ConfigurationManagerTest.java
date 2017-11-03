@@ -33,9 +33,9 @@ public class ConfigurationManagerTest extends AndroidTestCase {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     List<Locale> locales = manager.getLocales();
     assertEquals(Arrays.asList(Locale.create("no"), Locale.create("no-rNO"), Locale.create("se")), locales);
@@ -48,9 +48,9 @@ public class ConfigurationManagerTest extends AndroidTestCase {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
-    assertSame(manager, facet.getConfigurationManager());
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
     assertSame(myModule, manager.getModule());
 
     Configuration configuration1 = manager.getConfiguration(file1);

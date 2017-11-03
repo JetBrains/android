@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.intellij.openapi.module.Module;
 import junit.framework.TestCase;
 import org.mockito.Mock;
@@ -35,6 +36,9 @@ public class ModuleTypeComparatorTest extends TestCase {
   @Mock private AndroidModuleModel myGradleModel1;
   @Mock private AndroidModuleModel myGradleModel2;
 
+  @Mock private IdeAndroidProject myAndroidProject1;
+  @Mock private IdeAndroidProject myAndroidProject2;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -42,6 +46,9 @@ public class ModuleTypeComparatorTest extends TestCase {
 
     when(myModule1.getName()).thenReturn("a");
     when(myModule2.getName()).thenReturn("b");
+
+    when(myGradleModel1.getAndroidProject()).thenReturn(myAndroidProject1);
+    when(myGradleModel2.getAndroidProject()).thenReturn(myAndroidProject2);
   }
 
   public void testWithJavaModules() {
@@ -51,8 +58,8 @@ public class ModuleTypeComparatorTest extends TestCase {
   }
 
   public void testWithAndroidApplicationModules() {
-    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
-    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myAndroidProject1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_APP);
 
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
@@ -60,8 +67,8 @@ public class ModuleTypeComparatorTest extends TestCase {
   }
 
   public void testWithAndroidLibraryModules() {
-    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
-    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
+    when(myAndroidProject1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
+    when(myAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
@@ -69,22 +76,22 @@ public class ModuleTypeComparatorTest extends TestCase {
   }
 
   public void testWithAndroidApplicationModuleAndLibraryModule() {
-    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
-    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
+    when(myAndroidProject1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
   }
 
   public void testWithAndroidApplicationModuleAndJavaModule() {
-    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myAndroidProject1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
 
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, null) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myGradleModel1) > 0);
   }
 
   public void testWithAndroidLibraryModuleAndJavaModule() {
-    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
+    when(myAndroidProject1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, null) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myGradleModel1) > 0);

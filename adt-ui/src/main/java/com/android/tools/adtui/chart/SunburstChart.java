@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.chart;
 
-import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.LegacyAnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.ValuedTreeNode;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ import java.util.List;
  * <a href="https://en.wikipedia.org/wiki/Pie_chart#Ring_chart_.2F_Sunburst_chart_.2F_Multilevel_pie_chart">
  * sunburst chart</a> that can be unrolled by setting its angle.
  */
-public final class SunburstChart extends AnimatedComponent {
+public final class SunburstChart extends LegacyAnimatedComponent {
 
   private static final Color[] COLORS = {
     new Color(0x6baed6),
@@ -311,6 +311,7 @@ public final class SunburstChart extends AnimatedComponent {
 
   @Override
   protected void debugDraw(Graphics2D g2d) {
+    super.debugDraw(g2d);
     addDebugInfo("Total slices: %d", mData.getCount());
     addDebugInfo("Paths %d", mPaths.size());
     g2d.setColor(Color.GREEN);

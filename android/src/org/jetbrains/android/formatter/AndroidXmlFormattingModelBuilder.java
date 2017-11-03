@@ -1,5 +1,7 @@
 package org.jetbrains.android.formatter;
 
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
@@ -11,15 +13,10 @@ import com.intellij.psi.formatter.xml.XmlBlock;
 import com.intellij.psi.formatter.xml.XmlPolicy;
 import com.intellij.psi.formatter.xml.XmlTagBlock;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.xml.DomFileDescription;
-import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.color.ColorDomFileDescription;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
-import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
-import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings.MySettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,27 +27,40 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
   private final XmlFormattingModelBuilder myXmlFormattingModelBuilder = new XmlFormattingModelBuilder();
 
   @Override
-  public boolean isEngagedToFormat(PsiElement context) {
-    return getContextSpecificSettings(context) != null;
+  public boolean isEngagedToFormat(@NotNull PsiElement context) {
+    Object psiFile = context.getContainingFile();
+
+    if (!(psiFile instanceof XmlFile)) {
+      return false;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+
+    return ColorDomFileDescription.isColorResourceFile(xmlFile) ||
+           new DrawableStateListDomFileDescription().isMyFile(xmlFile, null) ||
+           ManifestDomFileDescription.isManifestFile(xmlFile) ||
+           ResourceHelper.getFolderType(xmlFile) != null;
   }
 
   @NotNull
   @Override
-  public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
-    final FormattingModel baseModel = myXmlFormattingModelBuilder.createModel(element, settings);
-    final AndroidXmlCodeStyleSettings baseSettings = AndroidXmlCodeStyleSettings.getInstance(settings);
+  public FormattingModel createModel(PsiElement element, CodeStyleSettings codeStyleSettings) {
+    final FormattingModel baseModel = myXmlFormattingModelBuilder.createModel(element, codeStyleSettings);
+    final AndroidXmlCodeStyleSettings baseSettings = AndroidXmlCodeStyleSettings.getInstance(codeStyleSettings);
 
     if (!baseSettings.USE_CUSTOM_SETTINGS) {
       return baseModel;
     }
-    final ContextSpecificSettingsProviders.Provider provider = getContextSpecificSettings(element);
-    final AndroidXmlCodeStyleSettings.MySettings s = provider != null ? provider.getSettings(baseSettings) : null;
-    return s != null ? new DelegatingFormattingModel(baseModel, createDelegatingBlock(baseModel, s, settings)) : baseModel;
+
+    MySettings settings = getContextSpecificSettings(element, baseSettings);
+    return settings != null
+           ? new DelegatingFormattingModel(baseModel, createDelegatingBlock(baseModel, settings, codeStyleSettings))
+           : baseModel;
   }
 
   private static Block createDelegatingBlock(FormattingModel model,
-                                     AndroidXmlCodeStyleSettings.MySettings customSettings,
-                                     CodeStyleSettings settings) {
+                                             AndroidXmlCodeStyleSettings.MySettings customSettings,
+                                             CodeStyleSettings settings) {
     final Block block = model.getRootBlock();
 
     if (block instanceof XmlBlock) {
@@ -77,29 +87,51 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
   }
 
   @Nullable
-  private static ContextSpecificSettingsProviders.Provider getContextSpecificSettings(PsiElement context) {
-    final PsiFile file = context.getContainingFile();
+  private static MySettings getContextSpecificSettings(@NotNull PsiElement context, @NotNull AndroidXmlCodeStyleSettings settings) {
+    Object psiFile = context.getContainingFile();
 
-    if (!(file instanceof XmlFile) ||
-        AndroidFacet.getInstance(file) == null) {
+    if (!(psiFile instanceof XmlFile)) {
       return null;
     }
-    final DomFileDescription<?> description = DomManager.getDomManager(
-      context.getProject()).getDomFileDescription((XmlFile)file);
-    if (description instanceof LayoutDomFileDescription) {
-      return ContextSpecificSettingsProviders.LAYOUT;
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+
+    if (ColorDomFileDescription.isColorResourceFile(xmlFile) || new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
+      return settings.VALUE_RESOURCE_FILE_SETTINGS;
     }
-    else if (description instanceof ManifestDomFileDescription) {
-      return ContextSpecificSettingsProviders.MANIFEST;
+
+    if (ManifestDomFileDescription.isManifestFile(xmlFile)) {
+      return settings.MANIFEST_SETTINGS;
     }
-    else if (description instanceof ResourcesDomFileDescription ||
-             description instanceof DrawableStateListDomFileDescription ||
-             description instanceof ColorDomFileDescription) {
-      return ContextSpecificSettingsProviders.VALUE_RESOURCE_FILE;
+
+    ResourceFolderType type = ResourceHelper.getFolderType(xmlFile);
+
+    if (type == null) {
+      return null;
     }
-    else if (description instanceof AndroidResourceDomFileDescription) {
-      return ContextSpecificSettingsProviders.OTHER;
+
+    switch (type) {
+      case ANIM:
+      case ANIMATOR:
+      case COLOR:
+      case DRAWABLE:
+      case FONT:
+      case INTERPOLATOR:
+        return settings.OTHER_SETTINGS;
+      case LAYOUT:
+        return settings.LAYOUT_SETTINGS;
+      case MENU:
+      case MIPMAP:
+      case NAVIGATION:
+      case RAW:
+      case TRANSITION:
+        return settings.OTHER_SETTINGS;
+      case VALUES:
+        return settings.VALUE_RESOURCE_FILE_SETTINGS;
+      case XML:
+        return settings.OTHER_SETTINGS;
+      default:
+        return null;
     }
-    return null;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,21 @@
  */
 package com.android.tools.idea.npw.cpp;
 
-import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Joiner;
-import com.intellij.openapi.Disposable;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -29,91 +38,58 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Set;
 
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * Step for configuring native (C++) related parameters in new project wizard
  */
-public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
-  private static final ScopedStateStore.Key<CppStandardType> KEY_STANDARD_TYPE = createKey("cppStandard", STEP, CppStandardType.class);
-  private static final ScopedStateStore.Key<Boolean> KEY_ENABLE_EXCEPTIONS = createKey("cppEnableExceptions", STEP, Boolean.class);
-  private static final ScopedStateStore.Key<Boolean> KEY_ENABLE_RTTI = createKey("cppEnableRtti", STEP, Boolean.class);
-  private static final ScopedStateStore.Key<RuntimeLibraryType> KEY_RUNTIME_LIBRARY_TYPE =
-    createKey("cppRuntimeLibrary", STEP, RuntimeLibraryType.class);
-  private static final ScopedStateStore.Key<String> KEY_RUNTIME_LIBRARY_TYPE_STRING =
-    createKey("cppRuntimeLibraryString", STEP, String.class);
+public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
 
-
-  private JPanel myPanel;
+  private JPanel myRootPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
   private JCheckBox myExceptionSupportCheck;
   private JBLabel myIconLabel;
   private JComboBox<RuntimeLibraryType> myRuntimeLibraryCombo;
   private JCheckBox myRttiSupportCheck;
   private JBLabel myRuntimeLibraryLabel;
+  private HyperlinkLabel myDocumentationLink;
 
-  public ConfigureCppSupportStep(@NotNull Disposable disposable) {
-    super(disposable);
-    myPanel.setBorder(createBodyBorder());
-    setBodyComponent(myPanel);
+  public ConfigureCppSupportStep(@NotNull NewProjectModel model) {
+    super(model, message("android.wizard.activity.add.cpp"));
+
     myIconLabel.setIcon(AndroidIcons.Wizards.CppConfiguration);
+    myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
+    myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
+
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @Override
-  public void init() {
-    super.init();
-
-    //noinspection unchecked
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myRuntimeLibraryCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(RuntimeLibraryType.values())));
-    //noinspection unchecked
+    OptionalProperty<RuntimeLibraryType> runtimeLibrary = new OptionalValueProperty<>(RuntimeLibraryType.GABIXX);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myRuntimeLibraryCombo), runtimeLibrary);
+
     myCppStandardCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(CppStandardType.values())));
+    OptionalProperty<CppStandardType> cppStandard = new OptionalValueProperty<>(CppStandardType.DEFAULT);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myCppStandardCombo), cppStandard);
 
-    // Connect widgets to wizard keys
-    register(KEY_RUNTIME_LIBRARY_TYPE, myRuntimeLibraryCombo);
-    register(KEY_STANDARD_TYPE, myCppStandardCombo);
-    register(KEY_ENABLE_EXCEPTIONS, myExceptionSupportCheck);
-    register(KEY_ENABLE_RTTI, myRttiSupportCheck);
+    BoolProperty exceptionSupport = new BoolValueProperty();
+    myBindings.bindTwoWay(new SelectedProperty(myExceptionSupportCheck), exceptionSupport);
 
-    // Put default values for selected C++ stardard version and runtime library type
-    myState.put(KEY_RUNTIME_LIBRARY_TYPE, RuntimeLibraryType.GABIXX);
-    myState.put(KEY_STANDARD_TYPE, CppStandardType.DEFAULT);
+    BoolProperty rttiSupport = new BoolValueProperty();
+    myBindings.bindTwoWay(new SelectedProperty(myRttiSupportCheck), rttiSupport);
 
-    // Convert runtime library type enum to string for consumption inside Freemarker templates
-    registerValueDeriver(KEY_RUNTIME_LIBRARY_TYPE_STRING, new ValueDeriver<String>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(KEY_RUNTIME_LIBRARY_TYPE);
-      }
+    myListeners.listenAll(runtimeLibrary, cppStandard, exceptionSupport, rttiSupport).withAndFire(() -> {
+      final ArrayList<Object> flags = new ArrayList<>();
+      flags.add(cppStandard.getValueOr(CppStandardType.DEFAULT).getCompilerFlag());
+      flags.add(rttiSupport.get() ? "-frtti" : null);
+      flags.add(exceptionSupport.get() ? "-fexceptions" : null);
 
-      @Nullable
-      @Override
-      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        final RuntimeLibraryType type = state.get(KEY_RUNTIME_LIBRARY_TYPE);
-        return type == null ? null : type.getGradleName();
-      }
-    });
-
-    // Combine standard combo box and checkboxes into line of parameters passed to C++ compiler
-    registerValueDeriver(WizardConstants.CPP_FLAGS_KEY, new ValueDeriver<String>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(KEY_STANDARD_TYPE, KEY_ENABLE_EXCEPTIONS, KEY_ENABLE_RTTI);
-      }
-
-      @Nullable
-      @Override
-      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        final ArrayList<Object> flags = new ArrayList<>();
-        flags.add(state.getNotNull(KEY_STANDARD_TYPE, CppStandardType.DEFAULT).getCompilerFlag());
-        flags.add(state.getNotNull(KEY_ENABLE_RTTI, false) ? "-frtti" : null);
-        flags.add(state.getNotNull(KEY_ENABLE_EXCEPTIONS, false) ? "-fexceptions" : null);
-        return Joiner.on(' ').skipNulls().join(flags);
-      }
+      getModel().cppFlags().set(Joiner.on(' ').skipNulls().join(flags));
     });
 
     // TODO: un-hide UI components once dsl support would be available
@@ -123,24 +99,24 @@ public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
 
   @NotNull
   @Override
-  public String getStepName() {
-    return "Customize C++ Support";
-  }
-
-  @NotNull
-  @Override
-  protected String getStepTitle() {
-    return "Customize C++ Support";
+  protected JComponent getComponent() {
+    return myRootPanel;
   }
 
   @Nullable
   @Override
-  protected String getStepDescription() {
-    return null;
+  protected JComponent getPreferredFocusComponent() {
+    return myCppStandardCombo;
   }
 
   @Override
-  public JComponent getPreferredFocusedComponent() {
-    return myCppStandardCombo;
+  protected boolean shouldShow() {
+    return getModel().enableCppSupport().get();
+  }
+
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
+    myListeners.releaseAll();
   }
 }

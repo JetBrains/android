@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -32,6 +33,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +44,6 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
@@ -93,20 +93,17 @@ public class SdkSync {
       ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
-        invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-              String error = validationResult.message;
-              if (isEmpty(error)) {
-                error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
-              }
-              String format =
-                "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
-              Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            String error = validationResult.message;
+            if (isEmpty(error)) {
+              error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
             }
-            setProjectSdk(localProperties, ideAndroidSdkPath);
+            String format =
+              "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
+            Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
           }
+          setProjectSdk(localProperties, ideAndroidSdkPath);
         });
         return;
       }
@@ -140,27 +137,24 @@ public class SdkSync {
                                  "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
                                  "necessary Android platforms or build tools.",
                                  ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
-          // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
-          // showing a message, to ensure that the message shows in the IDE instance containing the project.
-          int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
-            .noText("Use Project's SDK")
-            .project(project)
-            .show();
-          if (result == Messages.YES) {
-            // Use Android Studio's SDK
-            setProjectSdk(localProperties, ideAndroidSdkPath);
-          }
-          else {
-            // Use project's SDK
-            setIdeSdk(localProperties, projectAndroidSdkPath);
-          }
-          if (isGuiTestingMode() && !getGuiTestSuiteState().isSkipSdkMerge()) {
-            mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
-          }
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
+        // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
+        // showing a message, to ensure that the message shows in the IDE instance containing the project.
+        int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
+          .noText("Use Project's SDK")
+          .project(project)
+          .show();
+        if (result == Messages.YES) {
+          // Use Android Studio's SDK
+          setProjectSdk(localProperties, ideAndroidSdkPath);
+        }
+        else {
+          // Use project's SDK
+          setIdeSdk(localProperties, projectAndroidSdkPath);
+        }
+        if (isGuiTestingMode() && !getGuiTestSuiteState().isSkipSdkMerge()) {
+          mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
         }
       });
     }
@@ -209,9 +203,9 @@ public class SdkSync {
     // Just to be on the safe side, we update local.properties.
     setProjectSdk(localProperties, projectAndroidSdkPath);
 
-    invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+    GuiUtils.invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       myIdeSdks.setAndroidSdkPath(projectAndroidSdkPath, null);
-    }));
+    }), ModalityState.defaultModalityState());
   }
 
   private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull File androidSdkPath) {
@@ -255,12 +249,7 @@ public class SdkSync {
     @Nullable
     File selectValidSdkPath() {
       Ref<File> pathRef = new Ref<>();
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          findValidSdkPath(pathRef);
-        }
-      });
+      ApplicationManager.getApplication().invokeAndWait(() -> findValidSdkPath(pathRef));
       return pathRef.get();
     }
 

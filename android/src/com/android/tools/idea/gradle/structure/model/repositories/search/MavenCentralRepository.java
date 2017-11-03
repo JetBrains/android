@@ -19,7 +19,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.util.JdomKt;
 import com.intellij.util.io.HttpRequests;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -30,6 +29,7 @@ import java.io.Reader;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MavenCentralRepository extends ArtifactRepository {
@@ -109,7 +109,7 @@ public class MavenCentralRepository extends ArtifactRepository {
     List<FoundArtifact> artifacts = Lists.newArrayList();
     int totalFound = 0;
 
-    Element root = JdomKt.loadElement(response);
+    Element root = load(response);
     Element result = root.getChild("result");
     if (result != null) {
       String found = result.getAttributeValue("numFound");

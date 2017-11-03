@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
@@ -42,8 +43,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +65,7 @@ class AttachedToolWindow<T> implements Disposable {
   static final String LABEL_HEADER = "LABEL";
   static final String SEARCH_HEADER = "SEARCH";
 
-  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, FLOATING}
+  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
   private final String myWorkBenchName;
   private final ToolWindowDefinition<T> myDefinition;
@@ -70,9 +74,9 @@ class AttachedToolWindow<T> implements Disposable {
   private final JPanel myPanel;
   private final List<UpdatableActionButton> myActionButtons;
   private final AbstractButton myMinimizedButton;
-  private final ButtonDragListener<T> myDragListener;
-  private final SearchTextField mySearchField;
+  private final MySearchField mySearchField;
   private final ActionButton mySearchActionButton;
+  private ButtonDragListener<T> myDragListener;
 
   @Nullable
   private ToolContent<T> myContent;
@@ -89,23 +93,17 @@ class AttachedToolWindow<T> implements Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
+    myPanel.setFocusCycleRoot(true);
+    myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField();
+    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBenchName + ".TEXT_SEARCH_HISTORY");
     mySearchActionButton = createActionButton(new SearchAction(), myDefinition.getButtonSize());
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
-    mySearchField.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        if (myContent != null) {
-          myContent.setFilter(mySearchField.getText().trim());
-        }
-      }
-    });
   }
 
   @Override
@@ -113,6 +111,8 @@ class AttachedToolWindow<T> implements Disposable {
     if (myContent != null) {
       Disposer.dispose(myContent);
       myContent = null;
+      myDragListener = null;
+      myPanel.removeAll();
     }
   }
 
@@ -188,6 +188,14 @@ class AttachedToolWindow<T> implements Disposable {
     setProperty(PropertyType.FLOATING, value);
   }
 
+  public boolean isDetached() {
+    return getProperty(PropertyType.DETACHED);
+  }
+
+  public void setDetached(boolean value) {
+    setProperty(PropertyType.DETACHED, value);
+  }
+
   public boolean getProperty(@NotNull PropertyType property) {
     if (property == PropertyType.MINIMIZED && isAutoHide()) {
       return !myAutoHideOpen;
@@ -217,7 +225,8 @@ class AttachedToolWindow<T> implements Disposable {
 
   public void setDefaultProperty(@NotNull PropertyType property, boolean defaultValue) {
     if (!myPropertiesComponent.isValueSet(getPropertyName(Layout.DEFAULT, property))) {
-      setLayoutProperty(Layout.DEFAULT, property, defaultValue);
+      // Force write of all default values:
+      myPropertiesComponent.setValue(getPropertyName(Layout.DEFAULT, property), defaultValue, !defaultValue);
       setLayoutProperty(Layout.CURRENT, property, defaultValue);
     }
   }
@@ -228,6 +237,10 @@ class AttachedToolWindow<T> implements Disposable {
 
   public void setPropertyAndUpdate(@NotNull PropertyType property, boolean value) {
     setProperty(property, value);
+    if (property == PropertyType.FLOATING && value) {
+      property = PropertyType.DETACHED;
+      setProperty(property, true);
+    }
     updateContent();
     updateActions();
     myModel.update(this, property);
@@ -261,24 +274,32 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private void updateContent() {
-    if (isFloating() && myContent != null) {
+    if (isDetached() && myContent != null) {
       myPanel.removeAll();
       myContent.setToolContext(null);
       Disposer.dispose(myContent);
       myContent = null;
     }
-    else if (!isFloating() && myContent == null) {
+    else if (!isDetached() && myContent == null) {
       myContent = myDefinition.getFactory().create();
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
-      myContent.registerCloseAutoHideWindow(this::closeAutoHideWindow);
+      myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
+      myContent.setRestoreToolWindow(this::restore);
+      myContent.setStartFiltering(this::startFiltering);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
   }
 
+  private void restore() {
+    if (!isDetached() && isMinimized()) {
+      setPropertyAndUpdate(PropertyType.MINIMIZED, false);
+    }
+  }
+
   private void closeAutoHideWindow() {
-    if (!isFloating() && isAutoHide() && !isMinimized()) {
+    if (!isDetached() && isAutoHide() && !isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, true);
     }
   }
@@ -322,6 +343,14 @@ class AttachedToolWindow<T> implements Disposable {
     mySearchActionButton.setVisible(!show);
   }
 
+  private void startFiltering(char character) {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
+    mySearchField.setText(String.valueOf(character));
+    showSearchField(true);
+  }
+
   @NotNull
   private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
     Dimension buttonSize = myDefinition.getButtonSize();
@@ -345,6 +374,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private ActionButton createActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
     UpdatableActionButton button = new UpdatableActionButton(action, buttonSize);
+    button.setFocusable(true);
     myActionButtons.add(button);
     return button;
   }
@@ -373,6 +403,7 @@ class AttachedToolWindow<T> implements Disposable {
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
+    attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
     group.add(attachedSide);
     ActionManager manager = ActionManager.getInstance();
     group.add(new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
@@ -433,8 +464,13 @@ class AttachedToolWindow<T> implements Disposable {
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
       setFocusable(false);
       setRolloverEnabled(true);
-      setOpaque(true);
       setSelected(!toolWindow.isMinimized());
+
+      // This is needed on Linux otherwise the button shows
+      // the Metal L&F gradient even though opaque is false
+      setOpaque(false);
+      setBackground(null);
+
       MouseInputAdapter listener = new MouseInputAdapter() {
         @Override
         public void mouseDragged(@NotNull MouseEvent event) {
@@ -538,7 +574,13 @@ class AttachedToolWindow<T> implements Disposable {
 
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      ActionUtil.performDumbAwareUpdate(myAction, event, false);
+      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
+    }
+
+    @Override
+    protected void presentationPropertyChanded(@NotNull PropertyChangeEvent event) {
+      super.presentationPropertyChanded(event);
+      update();
     }
   }
 
@@ -557,7 +599,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class GearAction extends AnAction {
     public GearAction() {
-      super("Gear");
+      super("More Options");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.Gear);
       presentation.setHoveredIcon(AllIcons.General.GearHover);
@@ -661,11 +703,58 @@ class AttachedToolWindow<T> implements Disposable {
     }
   }
 
-  private class MySearchField extends SearchTextField {
+  private class MySearchField extends SearchTextFieldWithStoredHistory implements KeyListener {
+    private MySearchField(@NotNull String propertyName) {
+      super(propertyName);
+      addKeyboardListener(this);
+      addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(DocumentEvent e) {
+          if (myContent != null) {
+            myContent.setFilter(getText().trim());
+          }
+        }
+      });
+    }
+
     @Override
     protected void onFocusLost() {
-      if (getText().trim().isEmpty()) {
+      Component focusedDescendent = IdeFocusManager.getGlobalInstance().getFocusedDescendantFor(this);
+      if (focusedDescendent == null && getText().trim().isEmpty()) {
         showSearchField(false);
+      }
+    }
+
+    @Override
+    public void keyTyped(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyTyped(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
+      }
+    }
+
+    @Override
+    public void keyPressed(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyPressed(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
+      }
+      if (event.getKeyCode() == KeyEvent.VK_ESCAPE && getText().isEmpty()) {
+        showSearchField(false);
+      }
+    }
+
+    @Override
+    public void keyReleased(@NotNull KeyEvent event) {
+      if (myContent != null && myContent.getFilterKeyListener() != null) {
+        myContent.getFilterKeyListener().keyReleased(event);
+        if (event.isConsumed()) {
+          addCurrentTextToHistory();
+        }
       }
     }
   }

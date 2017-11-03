@@ -22,10 +22,9 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.AppState;
-import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.ir.client.AppState;
+import com.android.tools.ir.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.gradle.run.BeforeRunBuilder;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -38,8 +37,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,11 +111,11 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
     args.addAll(getInstantRunArguments(buildSelection.getBuildMode()));
     args.addAll(getFlightRecorderArguments());
+    if (myInstantRunContext.getGradlePluginVersion().isAtLeast(3, 0, 0, "alpha", 4, false)) {
+      args.add("--no-build-cache"); // Instant Run doesn't work with task caching (introduced in 3.0.0-alpha4).
+    }
 
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-    if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
-      tasks.putAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
-    }
     tasks.putAll(myTasksProvider.getFullBuildTasks());
     return taskRunner.run(tasks, null, args);
   }
@@ -135,10 +136,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   private BuildCause computeBuildCause(@Nullable IDevice device) {
     if (device == null) { // i.e. emulator is still launching..
       return BuildCause.NO_DEVICE;
-    }
-
-    if (myRunContext.isCleanRerun()) {
-      return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
@@ -165,7 +162,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     // a bit earlier than that here (turning the Gradle file save into a no-op) because the we need to check whether the
     // manifest file or a resource referenced from the manifest has changed since the last build.
     if (ApplicationManager.getApplication() != null) { // guard against invoking this in unit tests
-      GradleBuildInvoker.saveAllFilesSafely();
+      TransactionGuard.submitTransaction(ApplicationManager.getApplication(), () -> FileDocumentManager.getInstance().saveAllDocuments());
     }
 
     if (manifestResourceChanged(device)) {
@@ -245,7 +242,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
         break;
       case FULL:
-      case CLEAN:
         sb.append(",").append(OptionalCompilationStep.FULL_APK.name());
         break;
     }

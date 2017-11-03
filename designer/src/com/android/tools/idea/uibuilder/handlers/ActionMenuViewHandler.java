@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 

@@ -49,7 +49,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
   public void update(AnActionEvent e) {
     final Module module = e.getData(DataKeys.MODULE);
     final Project project = e.getData(DataKeys.PROJECT);
-    boolean visible = project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0;
+    boolean visible = project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty();
     String title = TITLE;
 
     if (visible) {
@@ -94,7 +94,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
         modulesToProcess.add(module);
       }
     }
-    if (modulesToProcess.size() > 0) {
+    if (!modulesToProcess.isEmpty()) {
       generate(project, modulesToProcess.toArray(new Module[modulesToProcess.size()]));
     }
   }

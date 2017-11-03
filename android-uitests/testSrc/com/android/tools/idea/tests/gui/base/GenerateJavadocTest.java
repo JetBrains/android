@@ -41,7 +41,7 @@ public class GenerateJavadocTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C13809689
+   * TT ID: def7117b-080f-45b8-9594-d5f918690c4f
    * <p>
    *   <pre>
    *   Steps:

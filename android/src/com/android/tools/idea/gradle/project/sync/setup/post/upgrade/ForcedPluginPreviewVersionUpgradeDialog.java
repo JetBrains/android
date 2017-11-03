@@ -32,9 +32,9 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   private JPanel myCenterPanel;

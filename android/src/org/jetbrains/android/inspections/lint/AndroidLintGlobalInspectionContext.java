@@ -17,7 +17,6 @@ import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -74,12 +73,12 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!AndroidFacet.hasAndroid(project)) {
       return;
     }
 
-    List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
-    if (issues.size() == 0) {
+    Set<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
+    if (issues.isEmpty()) {
       return;
     }
 
@@ -89,7 +88,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
       Issue issue = new LintIdeIssueRegistry().getIssue(id);
       if (issue != null && !issue.isEnabledByDefault()) {
-        issues = Collections.singletonList(issue);
+        issues = Collections.singleton(issue);
         issue.setEnabledByDefault(true);
         // And turn it back off again in cleanup
         myEnabledIssue = issue;
@@ -106,7 +105,6 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     final LintIdeClient client = LintIdeClient.forBatch(project, problemMap, scope, issues);
-    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
 
     final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     if (indicator != null) {
@@ -144,7 +142,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
         files = Lists.newArrayList();
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
           final PsiElement[] elements = localSearchScope.getScope();
@@ -236,6 +234,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
+    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
 
     // Baseline analysis?
     myBaseline = null;
@@ -272,7 +271,27 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    lint.analyze(request);
+    lint.analyze();
+
+    List<Tools> tools = AndroidLintInspectionBase.getDynamicTools();
+    AndroidLintInspectionBase.resetDynamicTools();
+    if (tools != null) {
+      for (Tools tool : tools) {
+        // can't just call globalTools.contains(tool): ToolsImpl.equals does *not* check
+        // tool identity, it just checks settings identity.
+        String name = tool.getShortName();
+        boolean found = false;
+        for (Tools registered : globalTools) {
+          if (registered.getShortName().equals(name)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          globalTools.add(tool);
+        }
+      }
+    }
 
     AndroidLintLintBaselineInspection.clearNextRunState();
 
@@ -298,7 +317,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         if (myBaseline.isRemoveFixed()) {
           message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
                                   myBaseline.getFixedCount(),
-                                  LintUtils.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false));
+                                  LintUtils.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
+                                                           true));
         } else {
           message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
                                   myBaseline.getTotalCount());

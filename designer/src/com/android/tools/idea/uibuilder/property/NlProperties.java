@@ -16,16 +16,14 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.utils.Pair;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
@@ -34,24 +32,21 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
-import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -69,29 +64,30 @@ public class NlProperties {
   }
 
   @NotNull
-  public Table<String, String, NlPropertyItem> getProperties(@NotNull List<NlComponent> components) {
+  public Table<String, String, NlPropertyItem> getProperties(@NotNull NlPropertiesManager propertiesManager,
+                                                             @NotNull List<NlComponent> components) {
     AndroidFacet facet = getFacet(components);
     if (facet == null) {
       return ImmutableTable.of();
     }
-    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(facet.getModule().getProject());
-    return getProperties(facet, components, dependencyManager);
+    return getProperties(facet, propertiesManager, components);
   }
 
   @VisibleForTesting
   Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                      @NotNull List<NlComponent> components,
-                                                      @NotNull GradleDependencyManager dependencyManager) {
-    return ApplicationManager.getApplication().runReadAction(
-      (Computable<Table<String, String, NlPropertyItem>>)() -> getPropertiesWithReadLock(facet, components, dependencyManager));
+                                                      @NotNull NlPropertiesManager propertiesManager,
+                                                      @NotNull List<NlComponent> components) {
+    return ApplicationManager.getApplication().runReadAction((Computable<Table<String, String, NlPropertyItem>>)() ->
+      getPropertiesWithReadLock(facet, propertiesManager, components));
   }
 
   @NotNull
   private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull AndroidFacet facet,
-                                                                          @NotNull List<NlComponent> components,
-                                                                          @NotNull GradleDependencyManager dependencyManager) {
-    ResourceManager localResourceManager = facet.getLocalResourceManager();
-    ResourceManager systemResourceManager = facet.getSystemResourceManager();
+                                                                          @NotNull NlPropertiesManager propertiesManager,
+                                                                          @NotNull List<NlComponent> components) {
+    ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
+    ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
+    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
     if (systemResourceManager == null) {
       Logger.getInstance(NlProperties.class).error("No system resource manager for module: " + facet.getModule().getName());
       return ImmutableTable.of();
@@ -117,11 +113,11 @@ public class NlProperties {
       Table<String, String, NlPropertyItem> properties = HashBasedTable.create(3, descriptors.length);
 
       for (XmlAttributeDescriptor desc : descriptors) {
-        String namespace = getNamespace(desc, tag);
-        AttributeDefinitions attrDefs = NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
-        AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-        NlPropertyItem property = NlPropertyItem.create(components, desc, namespace, attrDef);
-        properties.put(StringUtil.notNullize(namespace), property.getName(), property);
+        XmlName name = getXmlName(desc, tag);
+        AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
+        NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
+        properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
       }
 
       // Exceptions:
@@ -130,10 +126,10 @@ public class NlProperties {
           // An AutoCompleteTextView has a popup that is created at runtime.
           // Properties for this popup can be added to the AutoCompleteTextView tag.
           properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, NlPropertyItem.create(
+            new XmlName(ATTR_POPUP_BACKGROUND, ANDROID_URI),
+            systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null,
             components,
-            new AndroidAnyAttributeDescriptor(ATTR_POPUP_BACKGROUND),
-            ANDROID_URI,
-            systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null));
+            propertiesManager));
           break;
       }
 
@@ -147,7 +143,7 @@ public class NlProperties {
     combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
     setUpDesignProperties(combinedProperties);
-    setUpSrcCompat(combinedProperties, facet, components, dependencyManager);
+    setUpSrcCompat(combinedProperties, facet, components, propertiesManager);
 
     initStarState(combinedProperties);
 
@@ -160,10 +156,7 @@ public class NlProperties {
     if (components.isEmpty()) {
       return null;
     }
-    NlComponent first = components.get(0);
-    XmlTag firstTag = first.getTag();
-
-    return AndroidFacet.getInstance(firstTag);
+    return components.get(0).getModel().getFacet();
   }
 
   private static void initStarState(@NotNull Table<String, String, NlPropertyItem> properties) {
@@ -176,21 +169,25 @@ public class NlProperties {
     }
   }
 
-  public static void saveStarState(@Nullable String propertyNamespace, @NotNull String propertyName, boolean starred) {
+  public static void saveStarState(@Nullable String propertyNamespace,
+                                   @NotNull String propertyName,
+                                   boolean starred,
+                                   @NotNull NlPropertiesManager propertiesManager) {
     String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
-    StringBuilder builder = new StringBuilder();
+    List<String> favorites = new ArrayList<>();
     for (String starredProperty : getStarredProperties()) {
       if (!starredProperty.equals(propertyNameWithPrefix)) {
-        builder.append(starredProperty);
-        builder.append(";");
+        favorites.add(starredProperty);
       }
     }
     if (starred) {
-      builder.append(propertyNameWithPrefix);
-      builder.append(";");
+      favorites.add(propertyNameWithPrefix);
     }
     PropertiesComponent properties = PropertiesComponent.getInstance();
-    properties.setValue(STARRED_PROP, builder.toString());
+    properties.setValue(STARRED_PROP, Joiner.on(';').join(favorites));
+    String added = starred ? propertyNameWithPrefix : "";
+    String removed = !starred ? propertyNameWithPrefix : "";
+    propertiesManager.logFavoritesChange(added, removed, favorites);
   }
 
   public static String getStarredPropertiesAsString() {
@@ -231,13 +228,13 @@ public class NlProperties {
     return Pair.of(ANDROID_URI, propertyNameWithPrefix);
   }
 
-  @Nullable
-  private static String getNamespace(@NotNull XmlAttributeDescriptor descriptor, @NotNull XmlTag context) {
+  @NotNull
+  private static XmlName getXmlName(@NotNull XmlAttributeDescriptor descriptor, @NotNull XmlTag context) {
+    String namespace = null;
     if (descriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      return ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(context);
-    } else {
-      return null;
+      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(context);
     }
+    return new XmlName(descriptor.getName(), namespace);
   }
 
   private static Table<String, String, NlPropertyItem> combine(@NotNull Table<String, String, NlPropertyItem> properties,
@@ -283,61 +280,45 @@ public class NlProperties {
   private static void setUpSrcCompat(@NotNull Table<String, String, NlPropertyItem> properties,
                                      @NotNull AndroidFacet facet,
                                      @NotNull List<NlComponent> components,
-                                     @NotNull GradleDependencyManager dependencyManager) {
+                                     @NotNull NlPropertiesManager propertiesManager) {
     NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
-    if (srcProperty != null && shouldAddSrcCompat(facet, components, dependencyManager)) {
+    if (srcProperty != null && shouldAddSrcCompat(facet, components)) {
       AttributeDefinition srcDefinition = srcProperty.getDefinition();
       assert srcDefinition != null;
-      AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT, null, srcDefinition.getFormats());
+      AttributeDefinition srcCompatDefinition =
+        new AttributeDefinition(ATTR_SRC_COMPAT, SUPPORT_LIB_ARTIFACT, null, srcDefinition.getFormats());
       srcCompatDefinition.getParentStyleables().addAll(srcDefinition.getParentStyleables());
-      NlPropertyItem srcCompatProperty = new NlPropertyItem(components, AUTO_URI, srcCompatDefinition);
+      NlPropertyItem srcCompatProperty =
+        NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, propertiesManager);
       properties.put(AUTO_URI, ATTR_SRC_COMPAT, srcCompatProperty);
     }
   }
 
   private static boolean shouldAddSrcCompat(@NotNull AndroidFacet facet,
-                                            @NotNull List<NlComponent> components,
-                                            @NotNull GradleDependencyManager dependencyManager) {
-    return dependencyManager.dependsOn(facet.getModule(), APPCOMPAT_LIB_ARTIFACT) &&
-           allComponentsAreImageViews(facet, components) &&
-           currentActivityIfFoundIsDerivedFromAppCompatActivity(components);
+                                            @NotNull List<NlComponent> components) {
+
+    return !components.isEmpty() &&
+           allComponentsNeedSrcCompat(facet, components);
   }
 
-  private static boolean allComponentsAreImageViews(@NotNull AndroidFacet facet, @NotNull List<NlComponent> components) {
+  private static boolean allComponentsNeedSrcCompat(@NotNull AndroidFacet facet, @NotNull List<NlComponent> components) {
+    NlModel model = components.get(0).getModel();
+
     ViewHandlerManager manager = ViewHandlerManager.get(facet);
-    if (components.isEmpty()) {
-      return false;
-    }
+    Set<String> knownTagNames = new HashSet<>();
     for (NlComponent component : components) {
-      ViewHandler handler = manager.getHandler(component.getTagName());
-      if (!(handler instanceof ImageViewHandler)) {
-        return false;
+      String tagName = component.getTagName();
+      if (knownTagNames.add(tagName)) {
+        ViewHandler handler = manager.getHandler(component.getTagName());
+        if (!(handler instanceof ImageViewHandler)) {
+          return false;
+        }
+        ImageViewHandler imageViewHandler = (ImageViewHandler)handler;
+        if (!imageViewHandler.shouldUseSrcCompat(model)) {
+          return false;
+        }
       }
     }
     return true;
-  }
-
-  private static boolean currentActivityIfFoundIsDerivedFromAppCompatActivity(@NotNull List<NlComponent> components) {
-    assert !components.isEmpty();
-    NlModel model = components.get(0).getModel();
-    Configuration configuration = model.getConfiguration();
-    String activityClassName = configuration.getActivity();
-    if (activityClassName == null) {
-      // The activity is not specified in the XML file.
-      // We cannot know if the activity is derived from AppCompatActivity.
-      // Assume we are since this is how the default activities are created.
-      return true;
-    }
-    if (activityClassName.startsWith(".")) {
-      MergedManifest manifest = MergedManifest.get(model.getModule());
-      String pkg = StringUtil.notNullize(manifest.getPackage());
-      activityClassName = pkg + activityClassName;
-    }
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(model.getProject());
-    PsiClass activityClass = facade.findClass(activityClassName, model.getModule().getModuleScope());
-    while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.equals(activityClass.getQualifiedName())) {
-      activityClass = activityClass.getSuperClass();
-    }
-    return activityClass != null;
   }
 }

@@ -120,7 +120,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
-    return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
+    return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
   }
 
   public static boolean isAndroidTheme(@Nullable PsiFile file) {

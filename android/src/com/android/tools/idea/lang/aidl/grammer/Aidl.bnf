@@ -85,6 +85,8 @@
   mixin(".*Declaration")="com.android.tools.idea.lang.aidl.psi.impl.AbstractAidlDeclarationImpl"
 
   extends(".*Type")=type
+
+  classHeader='generatedFilesHeader.txt'
 }
 
 document ::= headers body  { pin=1 }

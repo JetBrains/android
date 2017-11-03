@@ -19,6 +19,7 @@ import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.android.SdkConstants.CLASS_PARCEL;
@@ -201,8 +203,8 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       myTType = PsiType.getTypeByName(CLASS_T, myProject, GlobalSearchScope.allScope(myProject));
       myTArrayType = PsiType.getTypeByName(CLASS_T_ARRAY, myProject, GlobalSearchScope.allScope(myProject));
       myTListType = myFactory.createType(myList, myTType);
-      myPersistenceMap = new HashMap<PsiType, FieldPersistence>();
-      myIgnoredMethods = new HashSet<String>();
+      myPersistenceMap = new HashMap<>();
+      myIgnoredMethods = new HashSet<>();
       populateIgnoredMethods();
       populateFieldPersistenceByType();
     }
@@ -392,6 +394,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       String paramName = constructor.getParameterList().getParameters()[0].getName();
       PsiCodeBlock body = constructor.getBody();
       assert body != null;
+      assert paramName != null;
       for (PsiField field : myParcelable.getFields()) {
         FieldPersistence persistence = findFieldPersistence(field);
         if (persistence != null) {
@@ -411,6 +414,8 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       String flagsName = writeToParcel.getParameterList().getParameters()[1].getName();
       PsiCodeBlock body = writeToParcel.getBody();
       assert body != null;
+      assert parcelName != null;
+      assert flagsName != null;
       for (PsiField field : myParcelable.getFields()) {
         FieldPersistence persistence = findFieldPersistence(field);
         if (persistence != null) {
@@ -464,6 +469,23 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       if (elemType != null && myParcelableType.isAssignableFrom(elemType) && !myParcelableType.equals(elemType)) {
         return myPersistenceMap.get(myTListType);
       }
+
+      String qualifiedName = type.getCanonicalText();
+      switch (qualifiedName) {
+        case "java.lang.Byte": return new NumberObjectPersistence("Byte");
+        case "java.lang.Double":  return new NumberObjectPersistence("Double");
+        case "java.lang.Float":  return new NumberObjectPersistence("Float");
+        case "java.lang.Integer": return new NumberObjectPersistence("Int");
+        case "java.lang.Long": return new NumberObjectPersistence("Long");
+
+        case "java.lang.Character": return new ShortOrCharObjectFieldPersistence("char");
+        case "java.lang.Short": return new ShortOrCharObjectFieldPersistence("short");
+        case "short": return new ShortOrCharFieldPersistence("short");
+        case "char": return new ShortOrCharFieldPersistence("char");
+
+        case "java.lang.Boolean": return new BooleanObjectFieldPersistence();
+      }
+
       return null;
     }
 
@@ -486,7 +508,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     }
 
     private static void delete(@Nullable PsiElement element) {
-      if (element != null && FileModificationService.getInstance().preparePsiElementForWrite(element)) {
+      if (element != null) {
         element.delete();
       }
     }
@@ -509,8 +531,8 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       if (parcel == null) {
         return;
       }
-      Map<PsiType, PsiMethod> setters = new HashMap<PsiType, PsiMethod>();
-      Map<PsiType, PsiMethod> getters = new HashMap<PsiType, PsiMethod>();
+      Map<PsiType, PsiMethod> setters = new HashMap<>();
+      Map<PsiType, PsiMethod> getters = new HashMap<>();
       for (PsiMethod method : parcel.getMethods()) {
         if (!myIgnoredMethods.contains(method.getName())) {
           if (isSimpleWrite(method) || isWriteWithParcelableFlags(method)) {
@@ -574,7 +596,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
         return false;
       }
       PsiParameter param = method.getParameterList().getParameters()[1];
-      return param.getType().equals(PsiType.INT) && param.getName().equals("parcelableFlags");
+      return param.getType().equals(PsiType.INT) && Objects.equals(param.getName(), "parcelableFlags");
     }
 
     private static boolean isSimpleRead(@NotNull PsiMethod method) {
@@ -686,6 +708,111 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
         return new String[]{String.format("%1$s = %2$s.readByte() != 0;\n", field.getName(), parcelVariableName)};
       }
+    }
+
+    private static class NumberObjectPersistence implements FieldPersistence {
+      private String myMethodSuffix;
+
+      public NumberObjectPersistence(String methodSuffix) {
+        myMethodSuffix = methodSuffix;
+      }
+
+      @Override
+      public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
+        return new String[]{
+          String.format("if (%2$s == null) { %1$s.writeByte((byte)0); } else { %1$s.writeByte((byte)1); %1$s.write%3$s(%2$s); }",
+                        parcelVariableName, field.getName(), myMethodSuffix),
+        };
+      }
+
+      @Override
+      public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
+        return new String[]{String.format("if (%2$s.readByte() == 0) { %1$s = null; } else { %1$s = %2$s.read%3$s(); }", field.getName(),
+                                          parcelVariableName, myMethodSuffix)};
+      }
+    }
+  }
+
+  /**
+   * Boolean (primitive wrapper objects for boolean) can be encoded more efficiently than the other
+   * primitive wrappers; instead of a separate byte for nullness and a byte for the value, we'll just
+   * use 3 byte values: 0=null, 1=true, 2=false
+   */
+  private static class BooleanObjectFieldPersistence implements QuickFixWorker.FieldPersistence {
+    @Override
+    public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
+      return new String[]{
+        String.format("%1$s.writeByte((byte)(%2$s == null ? 0 : %2$s ? 1 : 2));\n", parcelVariableName, field.getName())};
+    }
+
+    @Override
+    public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
+      String fieldName = field.getName();
+      assert fieldName != null;
+      String var = "tmp" + StringUtil.capitalize(fieldName);
+      return new String[]{
+        String.format("byte %1$s = %2$s.readByte();", var, parcelVariableName),
+        String.format("%1$s = %2$s == 0 ? null : %2$s == 1;\n", fieldName, var)
+      };
+    }
+  }
+
+  /**
+   * char and short don't work with the normal {@link QuickFixWorker.SimpleFieldPersistence} since there
+   * are no readChar or readShort methods. Handle these via int's instead.
+   */
+  private static class ShortOrCharFieldPersistence implements QuickFixWorker.FieldPersistence {
+    private String myCast;
+
+    public ShortOrCharFieldPersistence(String cast) {
+      myCast = cast;
+    }
+
+    @Override
+    public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
+      return new String[]{
+        String.format("%1$s.writeInt((int)%2$s);", parcelVariableName, field.getName()),
+      };
+    }
+
+    @Override
+    public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
+      return new String[]{
+        String.format("%1$s = (%2$s)%3$s.readInt();", field.getName(), myCast, parcelVariableName)
+      };
+    }
+  }
+
+  /**
+   * Like {@link ShortOrCharFieldPersistence}, but when wrapping Short and Character primitive wrapper
+   * objects we also need to be prepared to handle null. We use Integer.MAX_VALUE to track this.
+   * We could technically get away with 3 bytes (1 for nullness and 2 for the value) but these objects
+   * are not common so not worrying about optimizing it.
+   */
+  private static class ShortOrCharObjectFieldPersistence implements QuickFixWorker.FieldPersistence {
+    private String myCast;
+
+    public ShortOrCharObjectFieldPersistence(String cast) {
+      myCast = cast;
+    }
+
+    @Override
+    public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
+      // Allow null
+      return new String[]{
+        String.format("%1$s.writeInt(%2$s != null ? (int)%2$s : Integer.MAX_VALUE);", parcelVariableName, field.getName()),
+      };
+    }
+
+    @Override
+    public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
+      String fieldName = field.getName();
+      assert fieldName != null;
+      String var = "tmp" + StringUtil.capitalize(fieldName);
+      return new String[]{
+        String.format("int %1$s = %2$s.readInt();", var, parcelVariableName),
+        String.format("%1$s = %2$s != Integer.MAX_VALUE ? (%3$s) %2$s : null;", fieldName, var, myCast)
+      };
     }
   }
 }

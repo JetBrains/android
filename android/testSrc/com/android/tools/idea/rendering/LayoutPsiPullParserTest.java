@@ -24,6 +24,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -202,6 +203,37 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals(END_TAG, parser.nextTag()); // NotAImageView (@id/third)
   }
 
+  public void testAdAndMapViews() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/adandmapviews.xml", "res/layout/adandmapviews.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("ImageView", parser.getName());
+    assertEquals(4, parser.getAttributeCount()); // id + layout_width + layout_height + src
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
+
+    assertEquals(START_TAG, parser.nextTag()); // com.google.android.gms.maps.MapView (@id/second)
+    assertEquals("com.google.android.gms.maps.MapView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // id + layout_ * 2 + tools:background + tools:minHeight + tools:minWidth
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_WIDTH));
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_HEIGHT));
+    assertEquals("#AAA", parser.getAttributeValue(TOOLS_URI, ATTR_BACKGROUND));
+    assertEquals(END_TAG, parser.nextTag()); // com.google.android.gms.maps.MapView (@id/second) (@id/second)
+
+    assertEquals(START_TAG, parser.nextTag()); // com.google.android.gms.ads.AdView (@id/third)
+    assertEquals("com.google.android.gms.ads.AdView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // id + layout_ * 2 + tools:background + tools:minHeight + tools:minWidth
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_WIDTH));
+    assertEquals("50dp", parser.getAttributeValue(TOOLS_URI, ATTR_MIN_HEIGHT));
+    assertEquals("#AAA", parser.getAttributeValue(TOOLS_URI, ATTR_BACKGROUND));
+    assertEquals(END_TAG, parser.nextTag()); // com.google.android.gms.ads.AdView (@id/third)
+  }
+
   /**
    * Verifies that the passed parser contains an empty LinearLayout. That layout is returned by the LayoutPsiPullParser when the passed
    * file is invalid or empty.
@@ -219,10 +251,171 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger));
 
     XmlTag emptyTag = mock(XmlTag.class);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
 
     when(emptyTag.isValid()).thenReturn(true);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
+  }
+
+  public void testAaptAttr() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/aaptattr.xml", "res/layout/aaptattr.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    long expectedId = AaptAttrAttributeSnapshot.ourUniqueId.get();
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("ImageView", parser.getName());
+    assertEquals("@aapt:_aapt/" + expectedId, parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
+
+    assertEquals(START_TAG, parser.nextTag()); // ImageView (@id/second)
+    assertEquals("@aapt:_aapt/" + (expectedId + 1), parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals(END_TAG, parser.nextTag()); // ImageView
+
+    assertEquals("21dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId)).getAttribute("width", ANDROID_URI));
+    assertEquals("22dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId + 1)).getAttribute("width", ANDROID_URI));
+  }
+
+
+  public void testMergeTag() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/merge.xml", "res/layout/merge.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true);
+    assertEquals("LinearLayout", parser.myRoot.tagName);
+    assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
+
+    // Now, do not honor the parentTag. We should get the <merge> tag as root.
+    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false);
+    assertEquals("merge", parser.myRoot.tagName);
+    assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
+  }
+
+  public void testToolsAttributes() throws Exception {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        app:autoSizeText=\"none\"\n" +
+                           "        tools:autoSizeText=\"uniform\"\n" +
+                           "        android:text=\"Hello world\"\n" +
+                           "        tools:text=\"Tools content\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("TextView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // layout_width + layout_height + 2*autoSizeText + 2*text
+
+    assertEquals("uniform", parser.getAttributeValue(TOOLS_URI, "autoSizeText"));
+    assertEquals("uniform", parser.getAttributeValue(AUTO_URI, "autoSizeText"));
+    assertEquals("Tools content", parser.getAttributeValue(ANDROID_URI, "text"));
+  }
+
+  public void testAppAttributes() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:text=\"Content\"\n" +
+                           "        app:randomAttr=\"123\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("TextView", parser.getName());
+    // Make sure that library namespaces are converted into app
+    assertEquals("123", parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "randomAttr"));
+    // Check that we do not accidentally convert android namespace
+    assertNull(parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "text"));
+  }
+
+  public void testDatabindig() throws Exception {
+    @Language("XML")
+    String contents = "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                      "  android:layout_width=\"match_parent\"\n" +
+                      "  android:layout_height=\"match_parent\"\n" +
+                      "  android:orientation=\"vertical\"\n" +
+                      "  tools:parentTag=\"LinearLayout\">\n" +
+                      "\n" +
+                      "  <TextView\n" +
+                      "      android:id=\"@+id/test1\"\n" +
+                      "      android:layout_width=\"wrap_content\"\n" +
+                      "      android:layout_height=\"wrap_content\"\n" +
+                      "      tools:text=\"Hello\"/>\n" +
+                      "  \n" +
+                      "  <FrameLayout\n" +
+                      "      android:layout_width=\"wrap_content\"\n" +
+                      "      android:layout_height=\"wrap_content\">\n" +
+                      "    <TextView\n" +
+                      "        android:id=\"@+id/test2\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"World\" />\n" +
+                      "  </FrameLayout>\n" +
+                      "\n" +
+                      "</merge>\n";
+    PsiFile noLayoutPsiFile = myFixture.addFileToProject("res/layout/no_data_binding.xml", contents);
+    PsiFile layoutPsiFile = myFixture.addFileToProject("res/layout/data_binding.xml",
+                                                       "<layout>" + contents + "</layout>");
+    XmlFile xmlFile = (XmlFile)layoutPsiFile;
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("layout/data_binding_0", parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName());
+    assertEquals("layout/data_binding_1", parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    // The children should not have tag
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+
+    // Now check that if the file is not a databinding layout, the tags are not included
+    xmlFile = (XmlFile)noLayoutPsiFile;
+
+    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName());
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_TAG));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }

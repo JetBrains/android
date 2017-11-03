@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -38,21 +41,32 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class JavaModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
+  @Mock private JavaModuleCleanupStep myCleanupStep;
+  @Mock private GradleSyncState mySyncState;
 
   private IdeModifiableModelsProvider myModelsProvider;
-  private JavaModuleModelDataService myDataService;
+  private JavaModuleModelDataService myService;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myDataService = new JavaModuleModelDataService(myModuleSetup);
+    myService = new JavaModuleModelDataService(myModuleSetup, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
-    assertSame(JAVA_MODULE_MODEL, myDataService.getTargetDataKey());
+    assertSame(JAVA_MODULE_MODEL, myService.getTargetDataKey());
+  }
+
+  public void testImportDataWithoutModels() {
+    Module appModule = createModule("app");
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+
+    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
+    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
   }
 
   public void testImportData() {
@@ -65,8 +79,15 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     DataNode<JavaModuleModel> dataNode = new DataNode<>(JAVA_MODULE_MODEL, model, null);
     Collection<DataNode<JavaModuleModel>> dataNodes = Collections.singleton(dataNode);
 
-    myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
+    myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
+    verify(mySyncState).isSyncSkipped();
+    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
+  }
+
+  public void testOnModelsNotFound() {
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myService.onModelsNotFound(modelsProvider);
+    verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
   }
 }

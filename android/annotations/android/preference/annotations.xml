@@ -24,6 +24,12 @@
   <item name="android.preference.MultiSelectListPreference void setEntryValues(int) 0">
     <annotation name="android.support.annotation.ArrayRes" />
   </item>
+  <item name="android.preference.Preference android.preference.PreferenceDataStore getPreferenceDataStore()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.Preference android.preference.PreferenceGroup getParent()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.preference.Preference android.view.View onCreateView(android.view.ViewGroup)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
@@ -47,6 +53,9 @@
   </item>
   <item name="android.preference.Preference void setLayoutResource(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.preference.Preference void setRecycleEnabled(boolean)">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.preference.Preference void setSummary(int) 0">
     <annotation name="android.support.annotation.StringRes" />
@@ -87,6 +96,24 @@
   <item name="android.preference.PreferenceActivity.Header titleRes">
     <annotation name="android.support.annotation.StringRes" />
   </item>
+  <item name="android.preference.PreferenceDataStore java.lang.String getString(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceDataStore java.lang.String getString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceDataStore java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceDataStore java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceDataStore void putString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceDataStore void putStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.preference.PreferenceFragment android.view.View onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -103,6 +130,12 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.preference.PreferenceFragment void onViewCreated(android.view.View, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceManager android.preference.Preference findPreference(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.preference.PreferenceManager android.preference.PreferenceDataStore getPreferenceDataStore()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.preference.PreferenceManager void setDefaultValues(android.content.Context, int, boolean) 1">

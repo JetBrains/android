@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.instantapp.InstantAppUrlFinder;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   public static final DeepLinkLaunch INSTANCE = new DeepLinkLaunch();
@@ -46,11 +54,23 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      if  (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
+      if (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
         return ImmutableList.of(ValidationError.warning("URL not specified"));
-      } else {
-        return ImmutableList.of();
       }
+      else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+        boolean matched = false;
+        List<Module> featureModules = findFeatureModules(facet);
+        for (Module featureModule : featureModules) {
+          if (new InstantAppUrlFinder(MergedManifest.get(featureModule)).matchesUrl(DEEP_LINK)) {
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          return ImmutableList.of(ValidationError.warning("URL \"" + DEEP_LINK + "\" not defined in the manifest."));
+        }
+      }
+      return ImmutableList.of();
     }
   }
 

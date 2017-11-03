@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -31,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.intellij.openapi.vfs.ReadonlyStatusHandler.ensureFilesWritable;
 
 /**
@@ -99,7 +99,8 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   @Nullable
   @Override
   public Icon getIcon(boolean expanded) {
-    return AllIcons.Nodes.Module;
+    // Use Android Studio icons
+    return getModuleIcon(myModule);
   }
 
   public void selectDependency(@NotNull GradleCoordinate dependency) {

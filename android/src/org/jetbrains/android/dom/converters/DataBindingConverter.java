@@ -15,24 +15,27 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiJavaParserFacadeImpl;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,44 +48,52 @@ import java.util.List;
 import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
 
 /**
- * The converter for "type" attribute in databinding layouts.
+ * The converter for "type" attribute of "import" element in databinding layouts.
  */
-public class DataBindingConverter extends ResolvingConverter<PsiClass> implements CustomReferenceConverter<PsiClass> {
-
+public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   /**
-   * Get the fully qualified name of the class referenced by {@code nameOrAlias}.
-   * <p/>
-   * It is not guaranteed that the class will exist. Also, the name returned here uses '.' for inner classes (like import declarations) and
-   * not '$' as used by JVM.
+   * Resolves a class name using import statements in the data binding information.
    *
-   * @param nameOrAlias     a fully qualified name, or an alias as declared in an {@code <import>} or an inner class of the alias.
-   * @param dataBindingInfo for getting the list of {@code <import>} tags.
-   * @return the fully qualified name. This does not guarantee that the class will exist.
+   * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
+   * @param dataBindingInfo the data binding information containing the import statements to use for class resolution.
+   * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
+   *     any import statement.
    */
-  public static String getQualifiedType(@Nullable String nameOrAlias, @Nullable final DataBindingInfo dataBindingInfo) {
-    if (nameOrAlias == null) {
-      return null;
-    }
-    nameOrAlias = nameOrAlias.replace('$', '.');
-    if (dataBindingInfo == null) {
-      return nameOrAlias;
-    }
-    final int i = nameOrAlias.indexOf('.');
-    final String alias = i >= 0 ? nameOrAlias.substring(0, i) : nameOrAlias;
-    PsiDataBindingResourceItem imp = getImport(alias, dataBindingInfo);
-    if (imp != null) {
-      final String type = imp.getTypeDeclaration();
-      if (type != null) {
-        return nameOrAlias.equals(alias) ? type : type + nameOrAlias.substring(alias.length());
+  @NotNull
+  protected static String resolveImport(@NotNull String className, @Nullable DataBindingInfo dataBindingInfo) {
+    if (dataBindingInfo != null) {
+      int dotOffset = className.indexOf('.');
+      if (dotOffset != 0) {
+        String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
+        String importedType = getImport(firstSegment, dataBindingInfo);
+        if (importedType != null) {
+          return dotOffset >= 0 ? importedType + className.substring(dotOffset) : importedType;
+        }
       }
     }
-    return nameOrAlias;
+    return className;
   }
 
-  private static PsiDataBindingResourceItem getImport(@NotNull String alias, @NotNull DataBindingInfo dataBindingInfo) {
-    for (final PsiDataBindingResourceItem anImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
-      if (alias.equals(AndroidLayoutUtil.getAlias(anImport))) {
-        return anImport;
+  private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
+    DataBindingInfo bindingInfo = getDataBindingInfo(context);
+    if (bindingInfo == null) {
+      return null;
+    }
+    return getImport(alias, bindingInfo);
+  }
+
+  private static String getImport(String name, DataBindingInfo dataBindingInfo) {
+    for (PsiDataBindingResourceItem importItem : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
+      String alias = DataBindingUtil.getAlias(importItem);
+      if (alias == null) {
+        String importedType = importItem.getTypeDeclaration();
+        if (importedType != null && importedType.endsWith(name)
+            && importedType.length() > name.length() + 1
+            && importedType.charAt(importedType.length() - name.length()) == '.') {
+          return importedType;
+        }
+      } else if (name.equals(alias)) {
+        return importItem.getTypeDeclaration();
       }
     }
     return null;
@@ -93,26 +104,26 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
    */
   @NotNull
   @Override
-  public Collection<? extends PsiClass> getVariants(final ConvertContext context) {
+  public Collection<? extends PsiClass> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 
   @Nullable
   @Override
-  public PsiClass fromString(@Nullable @NonNls final String s, final ConvertContext context) {
-    final DataBindingInfo bindingInfo = getDataBindingInfo(context);
-    final String qualifiedName = getQualifiedType(s, bindingInfo);
-    if (qualifiedName == null) {
+  public PsiElement fromString(@Nullable @NonNls String type, ConvertContext context) {
+    if (type == null) {
       return null;
     }
-    final Module module = context.getModule();
+    Module module = context.getModule();
     if (module == null) {
       return null;
     }
+    DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
+    String qualifiedName = resolveImport(type, dataBindingInfo);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
-    if (qualifiedName.length() > 0 && qualifiedName.indexOf('.') < 0) {
+    if (!qualifiedName.isEmpty() && qualifiedName.indexOf('.') < 0) {
       if (Character.isLowerCase(qualifiedName.charAt(0))) {
         PsiPrimitiveType primitiveType = PsiJavaParserFacadeImpl.getPrimitiveType(qualifiedName);
         if (primitiveType != null) {
@@ -135,142 +146,147 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
 
   @Nullable
   @Override
-  public String toString(@Nullable final PsiClass psiClass, final ConvertContext context) {
-    if (psiClass == null) {
-      return null;
-    }
-    final String qualifiedName = psiClass.getName();
-    // try and replace with import if possible.
-    final DataBindingInfo bindingInfo = getDataBindingInfo(context);
-    if (bindingInfo != null) {
-      int longestPrefix = 0;
-      PsiDataBindingResourceItem longestImport = null;
-      for (final PsiDataBindingResourceItem anImport : bindingInfo.getItems(DataBindingResourceType.IMPORT)) {
-        // Try and find the longest matching import. For inner classes, either the outer or the inner class may be imported.
-        final String prefix = getLongestPrefix(anImport.getTypeDeclaration(), qualifiedName);
-        if (prefix.length() > longestPrefix) {
-          if (qualifiedName.length() == prefix.length()) {
-            return AndroidLayoutUtil.getAlias(anImport);
-          }
-          final char c = qualifiedName.charAt(prefix.length());
-          if (c == '.') {
-            longestPrefix = prefix.length();
-            longestImport = anImport;
-          }
+  public String toString(@Nullable PsiElement element, ConvertContext context) {
+    if (element instanceof PsiClass) {
+      String type = ((PsiClass)element).getQualifiedName();
+      if (type != null) {
+        DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
+        if (dataBindingInfo != null) {
+          type = unresolveImport(type, dataBindingInfo);
         }
       }
-      if (longestImport != null) {
-        return AndroidLayoutUtil.getAlias(longestImport) + qualifiedName.substring(longestPrefix);
+      return type;
+    }
+
+    if (element instanceof PsiTypeElement) {
+      return ((PsiTypeElement)element).getType().getCanonicalText();
+    }
+    return null;
+  }
+
+  /**
+   * Replaces the fully qualified name of a class with a shorter name that can be resolved to the original name using the data binding
+   * import statements.
+   *
+   * @param className the fully qualified class name
+   * @param dataBindingInfo the data binding information containing the import statements to use
+   * @return a shorter class name, or the original name if it doesn't match any import statement
+   *
+   * @see #resolveImport
+   */
+  private static String unresolveImport(String className, DataBindingInfo dataBindingInfo) {
+    List<String> segments = StringUtil.split(className, ".");
+    if (!segments.isEmpty()) {
+      String alias = null;
+      int maxMatchedSegments = 0;
+      for (PsiDataBindingResourceItem psiImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
+        String importedType = psiImport.getTypeDeclaration();
+        int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
+        if (matchedSegments > maxMatchedSegments) {
+          maxMatchedSegments = matchedSegments;
+          alias = psiImport.getExtra(SdkConstants.ATTR_ALIAS);
+        }
+      }
+      if (maxMatchedSegments != 0 && alias != null) {
+        segments = segments.subList(maxMatchedSegments - 1, segments.size());
+        segments.set(0, alias);
+        return StringUtil.join(segments, ".");
       }
     }
-    if (qualifiedName.startsWith(JAVA_LANG)) {
-      return qualifiedName.substring(JAVA_LANG.length());
+    return className;
+  }
+
+  private static int getNumberOfMatchedSegments(String str, List<String> qName) {
+    int offset = 0;
+    for (int i = 0; i < qName.size(); i++) {
+      String segment = qName.get(i);
+      int endOffset = offset + segment.length();
+      if (!str.regionMatches(offset, segment, 0, segment.length())
+          || (endOffset != str.length() && str.charAt(endOffset) != '.')) {
+        return i;
+      }
+      offset = endOffset + 1;
     }
-    return qualifiedName;
+    return qName.size();
   }
 
   @NotNull
   @Override
-  public PsiReference[] createReferences(final GenericDomValue<PsiClass> value, final PsiElement element, final ConvertContext context) {
+  public PsiReference[] createReferences(GenericDomValue<PsiElement> value, PsiElement element, ConvertContext context) {
     assert element instanceof XmlAttributeValue;
-    final XmlAttributeValue attrValue = (XmlAttributeValue)element;
-    final String strValue = attrValue.getValue();
-
-    final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
+    XmlAttributeValue attrValue = (XmlAttributeValue)element;
+    String strValue = attrValue.getValue();
 
     List<PsiReference> result = new ArrayList<>();
-    final String[] nameParts = strValue.split("[$.]");
+    int startOffset = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
+    createReferences(element, strValue, false, startOffset, context, result);
+    return result.toArray(new PsiReference[result.size()]);
+  }
+
+  /**
+   * Creates references for the given class name and adds them to the {@code result} list.
+   */
+  protected static void createReferences(PsiElement element, String className, boolean resolveType, int startOffset, ConvertContext context,
+                                         List<PsiReference> result) {
     Module module = context.getModule();
-    if (nameParts.length == 0 || module == null) {
-      return PsiReference.EMPTY_ARRAY;
+    if (module == null) {
+      return;
     }
 
-    int offset = start;
+    int offset = startOffset;
+    List<String> nameParts = StringUtil.split(className, ".");
+    if (nameParts.isEmpty()) {
+      return;
+    }
 
+    int idx = 0;   // For iterating over the nameParts.
     // Check if the first namePart is an alias.
-    DataBindingInfo bindingInfo = getDataBindingInfo(context);
-    int idx = 0;   // for iterating over the nameParts.
-    int diff = 0;  // difference in lengths of the "type" and the "alias". Used in range computation later.
-    String fullType = strValue.replace('$', '.');
-    if (bindingInfo != null) {
-      String alias = nameParts[idx];
-      PsiDataBindingResourceItem anImport = getImport(alias, bindingInfo);
-      if (anImport != null) {
-        // Found an import matching the first namePart. Add a reference from this to the type.
-        idx++;
-        TextRange range = new TextRange(offset, offset += alias.length());
-        offset++;  // Skip the next dot or dollar separator (if any)
-        String type = anImport.getTypeDeclaration();
-        result.add(new AliasedReference(element, range, type, module));
-        fullType = type + fullType.substring(alias.length());
-        diff = type.length() - alias.length();
-      }
-      else {
-        //  Check java.lang and primitives
-        if (nameParts.length == 1) {
-          if (alias.length() > 0) {
-            if (Character.isLowerCase(alias.charAt(0))) {
-              final PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(alias);
-              if (primitive != null) {
-                result.add(new PsiReferenceBase<PsiElement>(element, true) {
-                  @Nullable
-                  @Override
-                  public PsiElement resolve() {
-                    return myElement;
-                  }
-
-                  @NotNull
-                  @Override
-                  public Object[] getVariants() {
-                    return ArrayUtil.EMPTY_OBJECT_ARRAY;
-                  }
-                });
-              }
+    String alias = nameParts.get(idx);
+    String importedType = resolveType ? getImport(alias, context) : null;
+    if (importedType != null) {
+      // Found an import matching the first namePart. Add a reference from this to the type.
+      idx++;
+      TextRange range = new TextRange(offset, offset += alias.length());
+      offset++;  // Skip the next dot or dollar separator (if any)
+      result.add(new AliasedReference(element, range, importedType, module));
+    }
+    else {
+      //  Check primitives and java.lang.
+      if (nameParts.size() == 1) {
+        if (!alias.isEmpty()) {
+          if (Character.isLowerCase(alias.charAt(0))) {
+            PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(alias);
+            if (primitive != null) {
+              result.add(new PsiReferenceBase.Immediate(element, true, element));
             }
-            else {
-              // java.lang
-              PsiClass aClass = JavaPsiFacade.getInstance(context.getProject())
-                .findClass(JAVA_LANG + alias, GlobalSearchScope.moduleWithLibrariesScope(module));
-              if (aClass != null) {
-                final TextRange range = new TextRange(offset, offset += alias.length());
-                result.add(new ClassReference(element, range, aClass));
-              }
-            }
-            idx++;
           }
+          else {
+            // java.lang
+            PsiClass psiClass = JavaPsiFacade.getInstance(context.getProject())
+                .findClass(JAVA_LANG + alias, GlobalSearchScope.moduleWithLibrariesScope(module));
+            if (psiClass != null) {
+              TextRange range = new TextRange(offset, offset += alias.length());
+              result.add(new ClassReference(element, range, psiClass));
+            }
+          }
+          idx++;
         }
       }
     }
-    for (; idx < nameParts.length; idx++,offset++) {
-      final String packageName = nameParts[idx];
-      if (packageName.length() > 0) {
-        final TextRange range = new TextRange(offset, offset += packageName.length());
-        result.add(new AliasedReference(element, range, fullType.substring(0, diff + offset - start), module));
+
+    for (; idx < nameParts.size(); idx++, offset++) {
+      String packageName = nameParts.get(idx);
+      if (!packageName.isEmpty()) {
+        TextRange range = new TextRange(offset, offset += packageName.length());
+        result.add(new AliasedReference(element, range, String.join(".", nameParts.subList(0, idx + 1)), module));
       }
     }
-
-    return result.toArray(new PsiReference[result.size()]);
-
   }
 
   @Nullable
-  private static DataBindingInfo getDataBindingInfo(@NotNull final ConvertContext context) {
+  protected static DataBindingInfo getDataBindingInfo(@NotNull final ConvertContext context) {
     return DataBindingXmlReferenceContributor.getDataBindingInfo(context.getFile());
   }
-
-  private static String getLongestPrefix(@Nullable final String a, @Nullable final String b) {
-    if (a == null || b == null) {
-      return "";
-    }
-    final String shorter = a.length() > b.length() ? b : a;
-    final String longer = a.length() > b.length() ? a : b;
-    int i = 0;
-    while (i < shorter.length() && shorter.charAt(i) == longer.charAt(i)) {
-      i++;
-    }
-    return shorter.substring(0, i);
-  }
-
 
   private static class AliasedReference extends PsiReferenceBase<PsiElement> {
     private final String myReferenceTo;
@@ -285,31 +301,24 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
     @Nullable
     @Override
     public PsiElement resolve() {
-      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
-
-        @Override
-        public PsiElement resolve(@NotNull PsiReference psiReference, boolean incompleteCode) {
-          return resolveInner();
-        }
-      }, false, false);
+      ResolveCache cache = ResolveCache.getInstance(myElement.getProject());
+      return cache.resolveWithCaching(this, (psiReference, incompleteCode) -> resolveInner(), false, false);
     }
 
     private PsiElement resolveInner() {
-      final JavaPsiFacade facade = JavaPsiFacade.getInstance(myElement.getProject());
+      JavaPsiFacade facade = JavaPsiFacade.getInstance(myElement.getProject());
       PsiPackage aPackage = facade.findPackage(myReferenceTo);
       if (aPackage != null) {
         return aPackage;
       }
-      else {
-        PsiClass aClass = facade.findClass(myReferenceTo, myModule != null
-                                                          ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
-                                                          : myElement.getResolveScope());
-        if (aClass != null) {
-          return aClass;
-        }
-        return null;
-      }
 
+      PsiClass aClass = facade.findClass(myReferenceTo, myModule != null
+                                                        ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
+                                                        : myElement.getResolveScope());
+      if (aClass != null) {
+        return aClass;
+      }
+      return null;
     }
 
     /**
@@ -327,29 +336,35 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
     public String getCanonicalText() {
       return myReferenceTo;
     }
+
+    @Override
+    public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+      if (element instanceof PsiClass) {
+        PsiClass psiClass = (PsiClass)element;
+        String newName = psiClass.getQualifiedName();
+        ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
+        if (manipulator != null) {
+          return manipulator.handleContentChange(myElement, newName);
+        }
+      }
+      return super.bindToElement(element);
+    }
   }
 
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
-
     @NotNull private final PsiElement myResolveTo;
 
     public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
-      super(element, range);
+      super(element, range, true);
       myResolveTo = resolveTo;
     }
 
     @Nullable
     @Override
     public PsiElement resolve() {
-      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
-
-        @Override
-        public PsiElement resolve(@NotNull PsiReference psiReference, boolean incompleteCode) {
-          return resolveInner();
-        }
-      }, false, false);
+      ResolveCache cache = ResolveCache.getInstance(myElement.getProject());
+      return cache.resolveWithCaching(this, (psiReference, incompleteCode) -> resolveInner(), false, false);
     }
-
 
     private PsiElement resolveInner() {
       return myResolveTo;

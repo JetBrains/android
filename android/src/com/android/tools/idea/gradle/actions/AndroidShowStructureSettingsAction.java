@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 /**
  * Displays the "Project Structure" dialog.
  */
@@ -70,7 +72,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
       projectStructure.showDialog();
       projectStructure.remove(changeListener);
       if (needsSync.get()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
       }
       return;
     }

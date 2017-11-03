@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -31,23 +33,26 @@ import org.mockito.ArgumentCaptor;
 
 import java.awt.datatransfer.Transferable;
 
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_MODE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class NlPalettePanelTest extends AndroidTestCase {
   private CopyPasteManager myCopyPasteManager;
+  private NlDesignSurface mySurface;
   private NlPalettePanel myPanel;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     Configuration configuration = mock(Configuration.class);
     when(configuration.getModule()).thenReturn(myModule);
-    DesignSurface surface = mock(DesignSurface.class);
-    when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getConfiguration()).thenReturn(configuration);
+    mySurface = mock(NlDesignSurface.class);
+    when(mySurface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
+    when(mySurface.getConfiguration()).thenReturn(configuration);
     myCopyPasteManager = mock(CopyPasteManager.class);
-    myPanel = new NlPalettePanel(getProject(), surface, myCopyPasteManager);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
   }
 
   @Override
@@ -87,7 +92,7 @@ public class NlPalettePanelTest extends AndroidTestCase {
     DnDTransferItem dndItem = (DnDTransferItem)item;
     assertThat(dndItem.getComponents().size()).isEqualTo(1);
     DnDTransferComponent component = dndItem.getComponents().get(0);
-    assertThat(component.getRepresentation()).startsWith(("<TextView"));
+    assertThat(component.getRepresentation()).startsWith(("<Button"));
   }
 
   public void testSupportsFiltering() {
@@ -98,5 +103,29 @@ public class NlPalettePanelTest extends AndroidTestCase {
     assertThat(myPanel.getTreeGrid().getFilter()).isEmpty();
     myPanel.setFilter("button");
     assertThat(myPanel.getTreeGrid().getFilter()).isEqualTo("button");
+  }
+
+  public void testDefaultMode() {
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.ICON_AND_NAME);
+  }
+
+  public void testInitialModeIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PALETTE_MODE, PaletteMode.LARGE_ICONS.toString());
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.LARGE_ICONS);
+  }
+
+  public void testInitialModeFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PALETTE_MODE, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.ICON_AND_NAME);
+  }
+
+  public void testInitialModeIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isNull();
+    myPanel.setMode(PaletteMode.SMALL_ICONS);
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isEqualTo(PaletteMode.SMALL_ICONS.toString());
   }
 }

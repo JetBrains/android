@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.progress;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.ProgressRunner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -25,12 +26,13 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * {@link ProgressRunner} implementation that uses Studio's {@link ProgressManager} mechanism for showing progress and running tasks.
  * Invokes all tasks on the UI thread.
  */
 public class StudioProgressRunner implements ProgressRunner {
-  private final boolean myInvokeInUiThread;
   private boolean myModal;
   private final boolean myCancellable;
   private final Project myProject;
@@ -39,17 +41,20 @@ public class StudioProgressRunner implements ProgressRunner {
   public StudioProgressRunner(boolean modal,
                               boolean cancellable,
                               String progressTitle,
-                              boolean invokeInUiThread,
                               @Nullable Project project) {
     myModal = modal;
     myCancellable = cancellable;
     myProject = project;
     myProgressTitle = progressTitle;
-    myInvokeInUiThread = invokeInUiThread;
   }
 
   @Override
   public void runAsyncWithProgress(@NotNull final ProgressRunnable r) {
+    runAsyncWithProgress(r, false);
+  }
+
+  @VisibleForTesting
+  public void runAsyncWithProgress(@NotNull final ProgressRunnable r, boolean overrideTestMode) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
@@ -61,12 +66,18 @@ public class StudioProgressRunner implements ProgressRunner {
         }) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
+            ApplicationManager.getApplication().executeOnPooledThread(
+              () -> r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this));
           }
 
           @Override
           public boolean isConditionalModal() {
             return true;
+          }
+
+          @Override
+          public boolean isHeadless() {
+            return overrideTestMode ? false : super.isHeadless();
           }
         };
 
@@ -84,40 +95,30 @@ public class StudioProgressRunner implements ProgressRunner {
   }
 
   @Override
-  public void runSyncWithProgress(@NotNull final ProgressRunnable r) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        Task task;
-        if (myModal) {
-          task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-              r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
-            }
-          };
+  public void runSyncWithProgress(@NotNull final ProgressRunnable progressRunnable) {
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      Task task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          doRunSync(indicator, progressRunnable);
         }
-        else {
-          task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-              r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
-            }
-          };
-        }
-
-        ProgressManager.getInstance().run(task);
-      }
+      };
+      ProgressManager.getInstance().run(task);
     });
+  }
+
+  private void doRunSync(@NotNull ProgressIndicator indicator, @NotNull ProgressRunnable progressRunnable) {
+    RepoProgressIndicatorAdapter repoProgress = new RepoProgressIndicatorAdapter(indicator);
+    try {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> progressRunnable.run(repoProgress, this)).get();
+    }
+    catch (InterruptedException | ExecutionException e) {
+      // shouldn't happen
+    }
   }
 
   @Override
   public void runSyncWithoutProgress(@NotNull Runnable r) {
-    if (myInvokeInUiThread) {
-      ApplicationManager.getApplication().invokeAndWait(r, ModalityState.any());
-    }
-    else {
-      r.run();
-    }
+    r.run();
   }
 }

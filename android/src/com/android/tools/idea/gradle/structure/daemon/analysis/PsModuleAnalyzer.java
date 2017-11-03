@@ -44,7 +44,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
 
     PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
     assert declaredSpec != null;
-    String declaredVersion = declaredSpec.version;
+    String declaredVersion = declaredSpec.getVersion();
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
       PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
@@ -57,7 +57,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
     }
 
     if (dependency.hasPromotedVersion()) {
-      String message = "Gradle promoted library version from " + declaredVersion + " to " + resolvedSpec.version;
+      String message = "Gradle promoted library version from " + declaredVersion + " to " + resolvedSpec.getVersion();
       String description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
                            "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
                            "documentation</a>";

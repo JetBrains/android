@@ -20,6 +20,7 @@ import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.LightVirtualFileBase;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -60,7 +61,9 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
       return false;
     }
 
-    if (ApkFileSystem.getInstance().equals(file.getVirtualFile().getFileSystem())) {
+    // ignore files coming out of an APK, or manually constructed using a LightVirtualFile
+    if (ApkFileSystem.getInstance().equals(file.getVirtualFile().getFileSystem())
+      || (file.getVirtualFile() instanceof LightVirtualFileBase)) {
       return false;
     }
 
@@ -69,7 +72,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
-           facet.requiresAndroidModel() && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
+           facet.requiresAndroidModel() && file.getVirtualFile() != null && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
   }
 
   @Override

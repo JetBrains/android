@@ -16,37 +16,34 @@
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.util.Pair;
+import com.intellij.testFramework.IdeaTestCase;
 
+import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link VersionIncompatibility}.
  */
-public class VersionIncompatibilityTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+public class VersionIncompatibilityTest extends IdeaTestCase {
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testReportMessagesWithWarning() throws Exception {
-    loadSimpleApplication();
+  public void testReportMessagesWithWarning() {
     mySyncMessagesStub.clearReportedMessages();
-
-    Module appModule = myModules.getAppModule();
 
     Component base = new Component("android-gradle-plugin", "2.1.3", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(ANDROID_GRADLE_PLUGIN, "2.1.3");
@@ -57,7 +54,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
 
     CompatibilityCheck check = new CompatibilityCheck(base, WARNING);
 
-    VersionIncompatibility incompatibility = new VersionIncompatibility(appModule, check, baseReaderAndVersion, requirement, GRADLE);
+    VersionIncompatibility incompatibility = new VersionIncompatibility(getModule(), check, baseReaderAndVersion, requirement, GRADLE);
     incompatibility.reportMessages(getProject());
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
@@ -67,15 +64,13 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasType(WARNING)
                                             .hasMessageLine("Android Gradle plugin 2.1.3 requires Gradle 2.14.1 (or newer)", 0)
-                                            .hasMessageLine(failureMessage, 1);
+                                            .hasMessageLine(failureMessage, 1)
+                                            .hasGroup(VERSION_COMPATIBILITY_ISSUE_GROUP);
     // @formatter:on
   }
 
-  public void testReportMessagesWithError() throws Exception {
-    loadSimpleApplication();
+  public void testReportMessagesWithError() {
     mySyncMessagesStub.clearReportedMessages();
-
-    Module appModule = myModules.getAppModule();
 
     Component base = new Component("grade", "2.14.1", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(GRADLE, "2.14.1");
@@ -86,8 +81,8 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
 
     CompatibilityCheck check = new CompatibilityCheck(base, ERROR);
 
-    VersionIncompatibility incompatibility =
-      new VersionIncompatibility(appModule, check, baseReaderAndVersion, requirement, ANDROID_GRADLE_PLUGIN);
+    VersionIncompatibility incompatibility = new VersionIncompatibility(getModule(), check, baseReaderAndVersion, requirement,
+                                                                        ANDROID_GRADLE_PLUGIN);
     incompatibility.reportMessages(getProject());
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
@@ -97,7 +92,8 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasType(ERROR)
                                             .hasMessageLine("Gradle 2.14.1 requires Android Gradle plugin 2.1.3 (or newer)", 0)
-                                            .hasMessageLine(failureMessage, 1);
+                                            .hasMessageLine(failureMessage, 1)
+                                            .hasGroup(VERSION_COMPATIBILITY_ISSUE_GROUP);
     // @formatter:on
   }
 }

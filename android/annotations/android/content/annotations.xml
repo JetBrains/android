@@ -1,5 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.content.ClipboardManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.CLIPBOARD_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.content.ComponentCallbacks2 void onTrimMemory(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE, android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE, android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND, android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN, android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL, android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW, android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE}" />
+    </annotation>
+  </item>
+  <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.Class&lt;?&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.Class&lt;?&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName ComponentName(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName ComponentName(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName createRelative(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName unflattenFromString(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ComponentName android.content.ComponentName unflattenFromString(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName java.lang.String flattenToShortString()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName java.lang.String flattenToString()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName java.lang.String getClassName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ComponentName java.lang.String getPackageName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.ContentProvider android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -58,6 +122,21 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
@@ -179,6 +258,12 @@
   </item>
   <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 4">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentProvider int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -312,6 +397,18 @@
   <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -403,6 +500,12 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentProviderClient int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
@@ -533,6 +636,22 @@
   <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Read" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -651,6 +770,15 @@
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_SYNC_STATS&quot;" />
     </annotation>
+  </item>
+  <item name="android.content.ContentResolver boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver boolean refresh(android.net.Uri, android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
     <annotation name="android.support.annotation.RequiresPermission.Write" />
@@ -820,6 +948,15 @@
   <item name="android.content.ContentResolver void unregisterContentObserver(android.database.ContentObserver) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Context T getSystemService(java.lang.Class&lt;T&gt;)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context T getSystemService(java.lang.Class&lt;T&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context android.content.ComponentName startForegroundService(android.content.Intent)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.Context android.content.ComponentName startService(android.content.Intent)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -841,6 +978,18 @@
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -849,6 +998,27 @@
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler) 3">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler, int) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler, int) 4">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context android.content.SharedPreferences getSharedPreferences(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_MULTI_PROCESS}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.content.Context android.content.res.ColorStateList getColorStateList(int)">
     <annotation name="android.support.annotation.Nullable" />
@@ -876,6 +1046,18 @@
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
     <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING, android.content.Context.MODE_NO_LOCALIZED_COLLATORS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING, android.content.Context.MODE_NO_LOCALIZED_COLLATORS}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 3">
     <annotation name="android.support.annotation.Nullable" />
@@ -922,6 +1104,9 @@
     <annotation name="android.support.annotation.CheckResult">
       <val name="suggest" val="&quot;#enforceCallingOrSelfUriPermission(Uri,int,String)&quot;" />
     </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -943,6 +1128,9 @@
   <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int)">
     <annotation name="android.support.annotation.CheckResult">
       <val name="suggest" val="&quot;#enforceCallingUriPermission(Uri,int,String)&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int) 1">
@@ -974,6 +1162,9 @@
     <annotation name="android.support.annotation.CheckResult">
       <val name="suggest" val="&quot;#enforceUriPermission(Uri,int,int,String)&quot;" />
     </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int) 3">
     <annotation name="android.support.annotation.IntDef">
@@ -984,6 +1175,9 @@
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int)">
     <annotation name="android.support.annotation.CheckResult">
       <val name="suggest" val="&quot;#enforceUriPermission(Uri,String,String,int,int,int,String)&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 0">
@@ -1007,6 +1201,12 @@
   <item name="android.content.Context int getColor(int) 0">
     <annotation name="android.support.annotation.ColorRes" />
   </item>
+  <item name="android.content.Context java.io.File getDir(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_APPEND}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.Context java.io.File getExternalCacheDir()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -1016,12 +1216,21 @@
   <item name="android.content.Context java.io.File getExternalFilesDir(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context java.io.FileOutputStream openFileOutput(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_APPEND}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.Context java.lang.CharSequence getText(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
+  <item name="android.content.Context java.lang.Object getSystemService(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.Context java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.STORAGE_STATS_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_AWARE_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.TEXT_CLASSIFICATION_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE, android.content.Context.COMPANION_DEVICE_SERVICE}" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1036,6 +1245,12 @@
   </item>
   <item name="android.content.Context java.lang.String getString(int, java.lang.Object...) 0">
     <annotation name="android.support.annotation.StringRes" />
+  </item>
+  <item name="android.content.Context java.lang.String getSystemServiceName(java.lang.Class&lt;?&gt;)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context java.lang.String getSystemServiceName(java.lang.Class&lt;?&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void enforceCallingOrSelfPermission(java.lang.String, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1097,13 +1312,29 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.Context void removeStickyBroadcast(android.content.Intent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BROADCAST_STICKY&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context void removeStickyBroadcast(android.content.Intent) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void removeStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="allOf" val="{&quot;android.permission.INTERACT_ACROSS_USERS&quot;, &quot;android.permission.BROADCAST_STICKY&quot;}" />
+    </annotation>
   </item>
   <item name="android.content.Context void removeStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.content.Context void revokeUriPermission(android.net.Uri, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context void revokeUriPermission(java.lang.String, android.net.Uri, int) 2">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
       <val name="flag" val="true" />
@@ -1118,8 +1349,18 @@
   <item name="android.content.Context void sendBroadcast(android.content.Intent, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.INTERACT_ACROSS_USERS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.INTERACT_ACROSS_USERS&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
@@ -1152,6 +1393,11 @@
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.INTERACT_ACROSS_USERS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
   </item>
@@ -1167,11 +1413,26 @@
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 7">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendStickyBroadcast(android.content.Intent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BROADCAST_STICKY&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context void sendStickyBroadcast(android.content.Intent) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
   </item>
+  <item name="android.content.Context void sendStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="allOf" val="{&quot;android.permission.INTERACT_ACROSS_USERS&quot;, &quot;android.permission.BROADCAST_STICKY&quot;}" />
+    </annotation>
+  </item>
   <item name="android.content.Context void sendStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.BROADCAST_STICKY&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
@@ -1184,6 +1445,11 @@
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 5">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="allOf" val="{&quot;android.permission.INTERACT_ACROSS_USERS&quot;, &quot;android.permission.BROADCAST_STICKY&quot;}" />
+    </annotation>
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
@@ -1215,16 +1481,315 @@
   <item name="android.content.Context void startActivity(android.content.Intent, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int, android.os.Bundle) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int, android.os.Bundle) 5">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void unbindService(android.content.ServiceConnection) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Intent ACTION_BOOT_COMPLETED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="includeBackground" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.Intent ACTION_CALL">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.CALL_PHONE&quot;" />
     </annotation>
+  </item>
+  <item name="android.content.Intent android.content.ClipData getClipData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.ComponentName getComponent()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.ComponentName resolveActivity(android.content.pm.PackageManager) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent addCategory(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent addFlags(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent addFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION, android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent android.content.Intent cloneFilter()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent getSelector()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent parseUri(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.URI_ALLOW_UNSAFE, android.content.Intent.URI_ANDROID_APP_SCHEME, android.content.Intent.URI_INTENT_SCHEME}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent android.content.Intent putCharSequenceArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.CharSequence&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Parcelable)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Parcelable[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, boolean[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, byte)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, char)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, char[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, double)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, double[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, float)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, float[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, int[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.io.Serializable)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.CharSequence[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.String[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, long)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, long[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, short)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, short[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtras(android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtras(android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtras(android.os.Bundle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putIntegerArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putParcelableArrayListExtra(java.lang.String, java.util.ArrayList&lt;? extends android.os.Parcelable&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent putStringArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent replaceExtras(android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent replaceExtras(android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent replaceExtras(android.os.Bundle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent replaceExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setAction(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setAction(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClass(android.content.Context, java.lang.Class&lt;?&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClass(android.content.Context, java.lang.Class&lt;?&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClass(android.content.Context, java.lang.Class&lt;?&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setClassName(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setComponent(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setComponent(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setData(android.net.Uri)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setData(android.net.Uri) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndNormalize(android.net.Uri)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndNormalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndType(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndType(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndType(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndTypeAndNormalize(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndTypeAndNormalize(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setDataAndTypeAndNormalize(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setFlags(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION, android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent android.content.Intent setPackage(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setPackage(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setType(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setType(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setTypeAndNormalize(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.Intent setTypeAndNormalize(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.content.pm.ActivityInfo resolveActivityInfo(android.content.pm.PackageManager, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent android.content.pm.ActivityInfo resolveActivityInfo(android.content.pm.PackageManager, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent android.graphics.Rect getSourceBounds()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.net.Uri getData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int)">
     <annotation name="android.support.annotation.IntDef">
@@ -1232,11 +1797,83 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.Intent int fillIn(android.content.Intent, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.content.Intent int getFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION, android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent java.lang.String getAction()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String getDataString()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String getPackage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String getScheme()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String getType()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String normalizeMimeType(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String normalizeMimeType(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveType(android.content.ContentResolver)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveType(android.content.ContentResolver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveType(android.content.Context)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveType(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveTypeIfNeeded(android.content.ContentResolver)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent java.lang.String resolveTypeIfNeeded(android.content.ContentResolver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent java.lang.String toUri(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.URI_ALLOW_UNSAFE, android.content.Intent.URI_ANDROID_APP_SCHEME, android.content.Intent.URI_INTENT_SCHEME}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent void removeFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, android.content.Intent.FLAG_FROM_BACKGROUND, android.content.Intent.FLAG_DEBUG_LOG_RESOLUTION, android.content.Intent.FLAG_EXCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES, android.content.Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION, android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION, android.content.Intent.FLAG_ACTIVITY_NO_HISTORY, android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP, android.content.Intent.FLAG_ACTIVITY_NEW_TASK, android.content.Intent.FLAG_ACTIVITY_MULTIPLE_TASK, android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP, android.content.Intent.FLAG_ACTIVITY_FORWARD_RESULT, android.content.Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP, android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS, android.content.Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NEW_DOCUMENT, android.content.Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET, android.content.Intent.FLAG_ACTIVITY_NO_USER_ACTION, android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT, android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION, android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK, android.content.Intent.FLAG_ACTIVITY_TASK_ON_HOME, android.content.Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS, android.content.Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT, android.content.Intent.FLAG_RECEIVER_REGISTERED_ONLY, android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING, android.content.Intent.FLAG_RECEIVER_FOREGROUND, android.content.Intent.FLAG_RECEIVER_NO_ABORT, android.content.Intent.FLAG_RECEIVER_VISIBLE_TO_INSTANT_APPS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Intent void setClipData(android.content.ClipData) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent void setExtrasClassLoader(java.lang.ClassLoader) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent void setSelector(android.content.Intent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Intent void setSourceBounds(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 1">
     <annotation name="android.support.annotation.AnyRes" />
@@ -1246,6 +1883,11 @@
   </item>
   <item name="android.content.RestrictionEntry void setChoiceValues(android.content.Context, int) 1">
     <annotation name="android.support.annotation.ArrayRes" />
+  </item>
+  <item name="android.content.RestrictionsManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.RESTRICTIONS_SERVICE" />
+    </annotation>
   </item>
   <item name="android.content.SharedPreferences java.lang.String getString(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />

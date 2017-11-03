@@ -27,7 +27,6 @@ import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
   @NotNull
@@ -42,14 +41,12 @@ public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
   @NotNull
   public SelectSdkDialogFixture setJdkPath(@NotNull final File path) {
     final JLabel label = robot().finder().find(target(), JLabelMatcher.withText("Select Java JDK:").andShowing());
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         Component textField = label.getLabelFor();
         assertThat(textField).isInstanceOf(JTextField.class);
         ((JTextField)textField).setText(path.getPath());
-      }
-    });
+      });
     return this;
   }
 

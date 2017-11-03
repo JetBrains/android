@@ -21,7 +21,9 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Computable;
 import gnu.trove.TObjectIntHashMap;
 import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -31,10 +33,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Type;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
@@ -173,6 +172,18 @@ public class ResourceClassGenerator {
     }
   }
 
+  /**
+   * Returns the list of {@link AttrResourceValue} attributes declared in the given styleable resource item.
+   */
+  @NotNull
+  private static List<AttrResourceValue> getStyleableAttributes(@NotNull ResourceItem item) {
+    ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
+      (Computable<ResourceValue>)() -> item.getResourceValue(false));
+    assert resourceValue instanceof DeclareStyleableResourceValue;
+    DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
+    return dv.getAllAttributes();
+  }
+
   private void generateStyleable(@NotNull ClassWriter cw, @NotNull TObjectIntHashMap<String> styleableIntCache, String className) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("generateStyleable(%s)", anonymizeClassName(className)));
@@ -194,14 +205,23 @@ public class ResourceClassGenerator {
       if (debug) {
         LOG.debug("  Defined styleable " + fieldName);
       }
-      ResourceValue resourceValue = items.get(0).getResourceValue(false);
-      assert resourceValue instanceof DeclareStyleableResourceValue;
-      DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-      List<AttrResourceValue> attributes = dv.getAllAttributes();
+
+      // Merge all the styleables with the same name
+      List<AttrResourceValue> mergedAttributes = new ArrayList<>();
+      for (ResourceItem item : items) {
+        mergedAttributes.addAll(getStyleableAttributes(item));
+      }
+
       int idx = 0;
-      for (AttrResourceValue value : attributes) {
-        Integer initialValue = idx++;
+      HashSet<String> styleablesEntries = new HashSet<>();
+      for (AttrResourceValue value : mergedAttributes) {
         String styleableEntryName = getResourceName(fieldName, value);
+        // Because we are merging styleables from multiple sources, we could have duplicates
+        if (!styleablesEntries.add(styleableEntryName)) {
+          continue;
+        }
+
+        Integer initialValue = idx++;
         cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, initialValue);
         styleableIntCache.put(styleableEntryName, initialValue);
         if (debug) {
@@ -218,24 +238,38 @@ public class ResourceClassGenerator {
       if (items == null || items.isEmpty()) {
         continue;
       }
-      ResourceValue resourceValue = items.get(0).getResourceValue(false);
-      assert resourceValue instanceof DeclareStyleableResourceValue;
-      DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-      List<AttrResourceValue> attributes = dv.getAllAttributes();
-      if (attributes.isEmpty()) {
-        continue;
-      }
-      Integer[] valuesArray = myAppResources.getDeclaredArrayValues(attributes, styleableName);
-      if (valuesArray == null) {
-        valuesArray = new Integer[attributes.size()];
-      }
-      List<Integer> values = Arrays.asList(valuesArray);
+
+      List<Integer> values = new ArrayList<>();
+      List<AttrResourceValue> mergedAttributes = new ArrayList<>();
       String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
       myStyleableCache.put(fieldName, values);
+      for (ResourceItem item : items) {
+        List<AttrResourceValue> attributes = getStyleableAttributes(item);
+        if (attributes.isEmpty()) {
+          continue;
+        }
+        mergedAttributes.addAll(attributes);
+        Integer[] valuesArray = myAppResources.getDeclaredArrayValues(attributes, styleableName);
+        if (valuesArray == null) {
+          valuesArray = new Integer[attributes.size()];
+        }
+        Collections.addAll(values, valuesArray);
+      }
+
+      HashSet<String> styleableEntries = new HashSet<>();
       int idx = -1;
-      for (AttrResourceValue value : attributes) {
-        if (valuesArray[++idx] == null || !value.isFramework()) {
-          valuesArray[idx] = myAppResources.getResourceId(ResourceType.ATTR, value.getName());
+      for (AttrResourceValue value : mergedAttributes) {
+        idx++;
+        if (values.get(idx) == null || !value.isFramework()) {
+          String name = value.getName();
+          if (!styleableEntries.add(name)) {
+            // This is a duplicate, remove
+            values.remove(idx);
+            idx--;
+          }
+          else {
+            values.set(idx, myAppResources.getResourceId(ResourceType.ATTR, name));
+          }
         }
       }
       generateArrayInitialization(mv, className, fieldName, values);

@@ -69,10 +69,11 @@ are wrapped in an `AndroidDevice` which allows access to properties of an offlin
 The following steps are taken to actually perform a launch:
 
 1. User first selects a particular configuration. This would be an instance of `AndroidRunConfiguration` (which implements `RunProfile`).
-2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`.
+2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`. Note: there is a "Profile" executor that
+   mostly resembles the Run executor, but has additional behavior specific to the profiler.
 3. A `ProgramRunner` is selected based on the above two (configuration + executor). The android plugin defines a `AndroidProgramRunner`,
    which is very simple and mostly just ends up calling the run state. (The infrastructure chooses the first runner that `canRun` the given
-   configuration state and executor.
+   configuration state and executor. Note: the profiler has its own specific runner.
 4. An `ExecutionEnvironment` is created, and the `ProgramRunner.execute()` is called.
      1. This results in a call to `RunProfile.getState()`, which maps to `AndroidRunConfiguration.getState()`:
      2. We do a bunch of checks, then pick a device to deploy to, extract other necessary parameters and return a `RunProfileState`.
@@ -143,25 +144,51 @@ became configurable. Now, each task is represented by a single `LaunchTask` inte
 
 ### Obtaining the list of tasks
 
-The list of launch tasks are obtained through the `LaunchTasksProvider`. Typically, this class would just need the information from the
-run configuration UX to determine the list of tasks requested by the user. However, Instant Run complicates this a little bit, and requires
-examining the build output. `LaunchTasksProviderFactory` adds a level of indirection and allows for first examining the build outputs,
-and then constructing the appropriate `LaunchTasksProvider`.
+The list of launch tasks are obtained through the [LaunchTasksProvider](tasks/LaunchTasksProvider.java). Typically, this class
+would just need the information from the run configuration UX to determine the list of tasks requested by the user. However,
+Instant Run complicates this a little bit, and requires examining the build output. `LaunchTasksProviderFactory` adds a level
+of indirection and allows for first examining the build outputs, and then constructing the appropriate `LaunchTasksProvider`.
 
 ### Connecting the debugger
 
-There is one special task outside of the `LaunchTask` interface, and that is the `ConnectDebuggerTask`. This task is only present when
-using the debug executor, and in such a case, the launch is specific to a single device. When present, this is always the last task
-executed as part of the launch flow. Launching the debugger itself is fairly straightforward: it first waits for the application to start,
-and then launches the appropriate debugger (Java or native). The reason why this task falls outside of the other `LaunchTask`s is that
-when using the debugger, the existing `ProcessHandler` that was connected to the console needs to be switched to point to the new
-`DebugProcessHandler` which actually monitors the debugger instead of the remote process. The existing output on the console also needs
-to be replayed to the new process handler so that the console still has all the output.
+There is one special task outside of the `LaunchTask` interface, and that is the [DebugConnectorTask](tasks/DebugConnectorTask.java).
+This task is only present when using the debug executor, and in such a case, the launch is specific to a single device. When present,
+this is always the last task executed as part of the launch flow. Launching the debugger itself is fairly straightforward: it first
+waits for the application to start, and then launches the appropriate debugger (Java or native). The reason why this task falls
+outside of the other `LaunchTask`s is that when using the debugger, the existing `ProcessHandler` that was connected to the console
+needs to be detached and and the `LaunchStatus` and `ConsolePrinter` switched to point to a new `DebugProcessHandler` which actually 
+monitors the debugger instead of the remote process. The existing output on the console also needs to be replayed to the new process handler
+ so that the console still has all the output.
+
+### Process lifecycle
+
+One of the launch tasks (see `AndroidRunConfigurationBase#getApplicationLaunchTask`) contains the actual launching code: it runs `am start`
+of `am instrument` (for test runs). A `ProcessHandler` is created to handle the lifecycle of this device process. What happens next depends
+on whether we're testing and whether we're debugging (this is specific to the Java debugger):
+
+ * not testing, not debugging: the `ProcessHandler` implementation used is [AndroidProcessHandler](AndroidProcessHandler.java). The
+   `monitorRemoteProcess` argument is true, so we use `adb` listeners to get notified if the process dies or quits. When that happens, the
+   `ProcessHandler` "detaches", so the IDE knows the run has finished. When user clicks the stop button in UI, handler
+    "destroys the process" by running `am force-stop`. See `ExecutionManagerImpl#stopProcess(com.intellij.execution.ui.RunContentDescriptor)`.
+ * testing, not debugging: `monitorRemoteProcess` argument to [AndroidProcessHandler](AndroidProcessHandler.java) is false, so we don't use
+   adb listeners. Instead the test output printed by `am instrument` is parsed by `AndroidTestListener` and when the suite is finished (or
+   fails), the listener calls `LaunchStatus#terminateLaunch` which in turn calls `AndroidProcessHandler#destroyProcess`. Clicking stop
+   button is handled as before, through `am force-stop`.
+ * not testing, debugging: as described in the section above, the original `ProcessHandler` is detached and an intance of 
+   [AndroidRemoteDebugProcessHandler](AndroidRemoteDebugProcessHandler.java) is used instead. This handler does no adb monitoring, instead
+   relying on the IJ machinery to get notified when the JDWP connetion is closed. When this happens, handler notifies its listeners 
+   (including the UI) that the process has detached. When user clicks the stop button in UI, IJ java debugger kills the target VM (see
+   com.sun.jdi.VirtualMachine#exit). `AndroidRemoteDebugProcessHandler#destroyProcess` is also eventually called, but at this stage the 
+   device process is usually dead anyway. This eventually calls the listener in ClientDebuggerLauncher.Java#launchDebugger, which runs
+   `am force-stop`.
+ * testing, debugging: combination of the above. `AndroidRemoteDebugProcessHandler#destroyProcess` gets called by `AndroidTestListener` 
+   after the tests have finished running. Stop button is handled through the debugger protocol.
 
 ## Running tests
  * Execute shell command: `am instrument ...` command. (See `RemoteAndroidTestRunner`)
- * Parse the output from the shell command (`InstrumentationResultParser`), construct appropriate events (`AndroidTestListener`) and pass it on to IJ framework
- * IJ parses the rewritten output from the console (`GeneralToSMTRunnerEventsConvertor`) and updates the test tree UX
+ * Parse the output from the shell command (`InstrumentationResultParser`), construct appropriate events (`AndroidTestListener`) and pass it
+   on to IJ framework.
+ * IJ parses the rewritten output from the console (`GeneralToSMTRunnerEventsConvertor`) and updates the test tree UX.
 
 ## Instant Run
  * Hot swap: push the incremental changes (as a dex file) to the running app, restart activity alone

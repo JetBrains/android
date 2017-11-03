@@ -49,8 +49,9 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   private void assertPagesVisible(@Nullable InstallerData data, boolean isComponentsStepVisible, boolean hasAndroidSdkPath) {
     InstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
-    assertVisible(new SdkComponentsStep(new ComponentCategory("test", "test"), KEY_TRUE, createKey(String.class), mode),
-                  data, isComponentsStepVisible);
+    assertVisible(
+      new SdkComponentsStep(new ComponentCategory("test", "test"), KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()),
+      data, isComponentsStepVisible);
 
     if (data != null) {
       assertEquals(String.valueOf(data.toString()), hasAndroidSdkPath, data.hasValidSdkLocation());

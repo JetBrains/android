@@ -3,14 +3,120 @@
   <item name="android.app.job.JobInfo android.app.job.JobInfo.TriggerContentUri[] getTriggerContentUris()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.job.JobInfo android.content.ClipData getClipData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobInfo android.content.ComponentName getService()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo android.os.Bundle getTransientExtras()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo android.os.PersistableBundle getExtras()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo int getBackoffPolicy()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.BACKOFF_POLICY_LINEAR, android.app.job.JobInfo.BACKOFF_POLICY_EXPONENTIAL}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo int getNetworkType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.NETWORK_TYPE_NONE, android.app.job.JobInfo.NETWORK_TYPE_ANY, android.app.job.JobInfo.NETWORK_TYPE_UNMETERED, android.app.job.JobInfo.NETWORK_TYPE_NOT_ROAMING, android.app.job.JobInfo.NETWORK_TYPE_METERED}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo.Builder Builder(int, android.content.ComponentName) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder addTriggerContentUri(android.app.job.JobInfo.TriggerContentUri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setBackoffCriteria(long, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.BACKOFF_POLICY_LINEAR, android.app.job.JobInfo.BACKOFF_POLICY_EXPONENTIAL}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setClipData(android.content.ClipData, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setExtras(android.os.PersistableBundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setPersisted(boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot;" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setRequiredNetworkType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.NETWORK_TYPE_NONE, android.app.job.JobInfo.NETWORK_TYPE_ANY, android.app.job.JobInfo.NETWORK_TYPE_UNMETERED, android.app.job.JobInfo.NETWORK_TYPE_NOT_ROAMING, android.app.job.JobInfo.NETWORK_TYPE_METERED}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder setTransientExtras(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.job.JobInfo.TriggerContentUri TriggerContentUri(android.net.Uri, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.job.JobInfo.TriggerContentUri TriggerContentUri(android.net.Uri, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.TriggerContentUri.FLAG_NOTIFY_FOR_DESCENDANTS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobInfo.TriggerContentUri int getFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobInfo.TriggerContentUri.FLAG_NOTIFY_FOR_DESCENDANTS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobParameters android.app.job.JobWorkItem dequeueWork()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobParameters android.content.ClipData getClipData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobParameters android.net.Uri[] getTriggeredContentUris()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobParameters android.os.Bundle getTransientExtras()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobParameters android.os.PersistableBundle getExtras()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobParameters java.lang.String[] getTriggeredContentAuthorities()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobParameters void completeWork(android.app.job.JobWorkItem) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobScheduler">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.JOB_SCHEDULER_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.app.job.JobScheduler android.app.job.JobInfo getPendingJob(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobScheduler int enqueue(android.app.job.JobInfo, android.app.job.JobWorkItem)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobScheduler.RESULT_FAILURE, android.app.job.JobScheduler.RESULT_SUCCESS}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobScheduler int enqueue(android.app.job.JobInfo, android.app.job.JobWorkItem) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobScheduler int enqueue(android.app.job.JobInfo, android.app.job.JobWorkItem) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobScheduler int schedule(android.app.job.JobInfo)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.job.JobScheduler.RESULT_FAILURE, android.app.job.JobScheduler.RESULT_SUCCESS}" />
+    </annotation>
+  </item>
+  <item name="android.app.job.JobScheduler int schedule(android.app.job.JobInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.job.JobScheduler java.util.List&lt;android.app.job.JobInfo&gt; getAllPendingJobs()">
     <annotation name="android.support.annotation.NonNull" />

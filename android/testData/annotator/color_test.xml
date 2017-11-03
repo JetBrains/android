@@ -8,4 +8,5 @@
     <View android:background="@color/selector" android:layout_width="100dp" android:layout_height="10dp" />
     <View android:background="@drawable/drawable1" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <View android:background="@drawable/ic_tick" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:background="@android:drawable/ic_lock_lock" android:layout_width="wrap_content" android:layout_height="wrap_content" />
 </LinearLayout>

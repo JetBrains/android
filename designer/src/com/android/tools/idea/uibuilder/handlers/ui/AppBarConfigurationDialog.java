@@ -16,18 +16,25 @@
 package com.android.tools.idea.uibuilder.handlers.ui;
 
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -35,6 +42,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +52,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -127,12 +136,10 @@ public class AppBarConfigurationDialog extends JDialog {
     "<android.support.design.widget.FloatingActionButton\n" +       // 2 = Prefix for auto namespace
     "    %1$s:layout_height=\"wrap_content\"\n" +
     "    %1$s:layout_width=\"wrap_content\"\n" +
-    "    %2$s:layout_anchor=\"@id/appbar\"\n" +
-    "    %2$s:layout_anchorGravity=\"bottom|right|end\"\n" +
     "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image location
-    "    %1$s:layout_marginRight=\"16dp\"\n" +
-    "    %1$s:clickable=\"true\"\n" +
-    "    %2$s:fabSize=\"mini\"/>\n";
+    "    %1$s:layout_gravity=\"bottom|end\"\n" +
+    "    %1$s:layout_margin=\"16dp\"\n" +
+    "    %1$s:clickable=\"true\"/>\n";
 
   private static final String TAG_IMAGE_VIEW =                      // 1 = Prefix for android namespace
     "<ImageView\n" +
@@ -172,6 +179,8 @@ public class AppBarConfigurationDialog extends JDialog {
   private static final int START_HEIGHT = 400;
 
   private final ViewEditor myEditor;
+  private final Disposable myDisposable;
+  private final JBLoadingPanel myLoadingPanel;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -202,8 +211,12 @@ public class AppBarConfigurationDialog extends JDialog {
 
   public AppBarConfigurationDialog(@NotNull ViewEditor editor) {
     myEditor = editor;
+    myDisposable = Disposer.newDisposable();
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
+    myLoadingPanel.add(myContentPane);
+    Disposer.register(editor.getModel(), myDisposable);
     setTitle(DIALOG_TITLE);
-    setContentPane(myContentPane);
+    setContentPane(myLoadingPanel);
     setModal(true);
     getRootPane().setDefaultButton(myButtonOK);
     myBackgroundImage = DEFAULT_BACKGROUND_IMAGE;
@@ -261,6 +274,10 @@ public class AppBarConfigurationDialog extends JDialog {
       }
     });
 
+    // For UI testing
+    myCollapsedPreview.setName("CollapsedPreview");
+    myExpandedPreview.setName("ExpandedPreview");
+
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       @Override
@@ -271,6 +288,13 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   public boolean open(@NotNull final XmlFile file) {
+    Project project = file.getProject();
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
+    boolean syncNeeded = !manager.dependsOn(myEditor.getModel().getModule(), DESIGN_LIB_ARTIFACT);
+    if (syncNeeded && !addDesignLibrary(manager)) {
+      return false;
+    }
+
     myCollapsedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     myExpandedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     pack();
@@ -281,11 +305,12 @@ public class AppBarConfigurationDialog extends JDialog {
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
     myButtonOK.requestFocus();
-    generatePreviews();
+    if (!syncNeeded) {
+      generatePreviews();
+    }
 
     setVisible(true);
     if (myWasAccepted) {
-      Project project = file.getProject();
       WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
@@ -297,6 +322,16 @@ public class AppBarConfigurationDialog extends JDialog {
     return myWasAccepted;
   }
 
+  private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
+    myLoadingPanel.startLoading();
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
+    return manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
+      if (isVisible()) {
+        ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+      }
+    });
+  }
+
   private void onOK() {
     myWasAccepted = true;
     dispose();
@@ -305,6 +340,13 @@ public class AppBarConfigurationDialog extends JDialog {
   private void onCancel() {
     dispose();
   }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    Disposer.dispose(myDisposable);
+  }
+
 
   private void updateControls() {
     myTabCount.setEnabled(myWithTabs.isSelected());
@@ -324,8 +366,14 @@ public class AppBarConfigurationDialog extends JDialog {
     myExpandedPreviewFuture = cancel(myExpandedPreviewFuture);
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
     Application application = ApplicationManager.getApplication();
-    myExpandedPreviewFuture = application.executeOnPooledThread(() -> updateExpandedImage(expandedFile));
-    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> updateCollapsedImage(collapsedFile));
+    myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateExpandedImage(expandedFile);
+    });
+    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateCollapsedImage(collapsedFile);
+    });
   }
 
   @Nullable
@@ -576,6 +624,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (image != null) {
       myExpandedImage = image;
     }
+    myLoadingPanel.stopLoading();
   }
 
   @Nullable
@@ -587,7 +636,7 @@ public class AppBarConfigurationDialog extends JDialog {
         return null;
       }
     }
-    catch (RuntimeInterruptedException ex) {
+    catch (@SuppressWarnings("deprecation") RuntimeInterruptedException ex) {
       // Will happen if several rendering calls are stacked.
       return null;
     }
@@ -601,15 +650,14 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
       task.setFolderType(ResourceFolderType.LAYOUT);
-      //noinspection deprecation
-      result = task.render();
+      result = Futures.getUnchecked(task.render());
       task.dispose();
     }
 

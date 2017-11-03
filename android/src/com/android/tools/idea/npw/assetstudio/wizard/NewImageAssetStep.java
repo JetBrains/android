@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -31,35 +33,37 @@ import java.util.Collections;
  */
 public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
 
-  private final GenerateIconsPanel myGenerateIconsPanel;
+  private final GenerateImageAssetPanel myGenerateImageAssetPanel;
   @NotNull private final AndroidFacet myFacet;
 
   public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getPaths());
+    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
+    AndroidVersion targetSdkVersion = AndroidModuleInfo.getInstance(facet).getTargetSdkVersion();
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(facet, this, model.getPaths(), minSdkVersion, targetSdkVersion);
     myFacet = facet;
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateImagesStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
   }
 
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myGenerateIconsPanel;
+    return myGenerateImageAssetPanel;
   }
 
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return myGenerateIconsPanel.hasErrors().not();
+    return myGenerateImageAssetPanel.hasErrors().not();
   }
 
   @Override
   protected void onProceeding() {
-    getModel().setIconGenerator(myGenerateIconsPanel.getIconGenerator());
+    getModel().setIconGenerator(myGenerateImageAssetPanel.getIconGenerator());
   }
 }

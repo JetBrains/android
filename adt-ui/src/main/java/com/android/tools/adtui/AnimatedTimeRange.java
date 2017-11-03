@@ -17,13 +17,14 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.updater.Updatable;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * Animates a time range assuming the data is represented in microseconds since epoch.
  */
-public class AnimatedTimeRange implements Animatable {
+public class AnimatedTimeRange implements Updatable {
 
   private final Range mRange;
 
@@ -44,7 +45,7 @@ public class AnimatedTimeRange implements Animatable {
   }
 
   @Override
-  public void animate(float frameLength) {
+  public void update(long elapsedNs) {
     long now = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mOffsetUs;
     double min = mRange.getMin();
     double max = mRange.getMax();

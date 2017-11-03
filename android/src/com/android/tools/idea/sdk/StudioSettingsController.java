@@ -21,7 +21,10 @@ import com.android.repository.api.SettingsController;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.net.Proxy;
 
 /**
  * Controller class to get settings values using intellij persistent data mechanism.
@@ -89,6 +92,14 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
 
   public static class PersistentState {
     public boolean myForceHttp;
+  }
+
+  @NotNull
+  @Override
+  public Proxy getProxy() {
+    assert false : "StudioSettingsController does not contain proxy information.\n" +
+                   "Use StudioDownloader or HttpsRequests to download within Studio";
+    return Proxy.NO_PROXY;
   }
 
   private StudioSettingsController() {}

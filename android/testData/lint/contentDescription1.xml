@@ -6,6 +6,6 @@
 <ImageView
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    <warning>android:con<caret>tentDescription=""</warning>/>
+    <warning>android:con<caret>tentDescription="TODO"</warning>/>
 </LinearLayout>
 

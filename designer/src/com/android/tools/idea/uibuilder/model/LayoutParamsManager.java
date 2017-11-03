@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -120,6 +121,13 @@ public class LayoutParamsManager {
         first = false;
       }
       return new MappedField(fieldName.toString(), null);
+    });
+    registerFieldMapper("android.support.design.widget.CoordinatorLayout$LayoutParams", (attributeName) -> {
+      if ("anchor".equals(attributeName)) {
+        return new MappedField("anchorId", AttributeFormat.Integer);
+      }
+
+      return null;
     });
   }
 
@@ -353,13 +361,13 @@ public class LayoutParamsManager {
    * <p>
    * @return whether the method was able to set the attribute or not.
    */
-  public static boolean setAttribute(@NotNull Object layoutParams,
-                                     @NotNull String attributeName,
-                                     @Nullable String value,
-                                     @NotNull NlModel model) {
-    // Try to find the attribute definition and retrieve the defined formats
-    AttributeDefinition attributeDefinition =
-      ResolutionUtils.getAttributeDefinition(model.getModule(), model.getConfiguration(), ATTR_LAYOUT_RESOURCE_PREFIX + attributeName);
+  @VisibleForTesting
+  static boolean setAttribute(@Nullable AttributeDefinition attributeDefinition,
+                              @NotNull Object layoutParams,
+                              @NotNull String attributeName,
+                              @Nullable String value,
+                              @NotNull NlModel model) {
+    // Try to get the types from the attribute definition
     EnumSet<AttributeFormat> inferredTypes =
       attributeDefinition != null ? EnumSet.copyOf(attributeDefinition.getFormats()) : EnumSet.noneOf(AttributeFormat.class);
     if (value != null &&
@@ -385,7 +393,7 @@ public class LayoutParamsManager {
         }
 
         if (resourceValue.getResourceType() == ID) {
-          Integer resolvedId = AppResourceRepository.getAppResources(model.getFacet(), true).getResourceId(ID, resourceValue.getName());
+          Integer resolvedId = AppResourceRepository.getOrCreateInstance(model.getFacet()).getResourceId(ID, resourceValue.getName());
           // TODO: Remove this wrapping/unwrapping
           value = resolvedId.toString();
         }
@@ -463,13 +471,16 @@ public class LayoutParamsManager {
           }
           break;
           case Flag: {
+            if (attributeDefinition == null) {
+              continue;
+            }
+
             OptionalInt flagValue = Splitter.on('|').splitToList(value).stream()
               .map(StringUtil::trim)
-              .mapToInt(flagName -> {
-                Integer intValue = attributeDefinition != null ? attributeDefinition.getValueMapping(flagName) : null;
-                return intValue != null ? intValue : 0;
-              })
-              .reduce((a, b) -> a + b);
+              .map(attributeDefinition::getValueMapping)
+              .filter(Objects::nonNull)
+              .mapToInt(Integer::intValue)
+              .reduce((a, b) -> a | b);
             if (flagValue.isPresent()) {
               fieldSet = setField(layoutParams, mappedField, flagValue.getAsInt());
             }
@@ -486,6 +497,22 @@ public class LayoutParamsManager {
 
       return false;
     }
+  }
+
+  /**
+   * Sets the given attribute in the passed layoutParams instance. This method tries to infer the type to use from the attribute name and
+   * the field type.
+   * <p>
+   *
+   * @return whether the method was able to set the attribute or not.
+   */
+  public static boolean setAttribute(@NotNull Object layoutParams,
+                                     @NotNull String attributeName,
+                                     @Nullable String value,
+                                     @NotNull NlModel model) {
+    AttributeDefinition attributeDefinition =
+      ResolutionUtils.getAttributeDefinition(model.getModule(), model.getConfiguration(), ATTR_LAYOUT_RESOURCE_PREFIX + attributeName);
+    return setAttribute(attributeDefinition, layoutParams, attributeName, value, model);
   }
 
   /**

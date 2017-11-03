@@ -19,11 +19,12 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
-import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,12 +34,17 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import org.gradle.tooling.model.UnsupportedMethodException;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,13 +55,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -70,20 +75,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private AndroidProject myAndroidProject;
+  @NotNull private IdeAndroidProject myAndroidProject;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
-  @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
-  @Nullable private AndroidProject myProxyAndroidProject;
-
   @NotNull private String mySelectedVariantName;
 
   private transient VirtualFile myRootDir;
@@ -93,7 +95,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
-  @NotNull private Map<String, Variant> myVariantsByName = Maps.newHashMap();
+  @NotNull private Map<String, IdeVariant> myVariantsByName = Maps.newHashMap();
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
@@ -112,32 +114,23 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   /**
    * Creates a new {@link AndroidModuleModel}.
    *
-   * @param moduleName     the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath    the root directory of the imported Android-Gradle project.
-   * @param androidProject imported Android-Gradle project.
+   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
+   * @param rootDirPath         the root directory of the imported Android-Gradle project.
+   * @param androidProject      imported Android-Gradle project.
+   * @param selectedVariantName the name of selected variant.
+   * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
    */
   public AndroidModuleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
-                            @NotNull String selectedVariantName) {
+                            @NotNull String selectedVariantName,
+                            @NotNull IdeDependenciesFactory dependenciesFactory) {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = androidProject;
-
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
-    // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myProxyAndroidProjectLatch = new CountDownLatch(1);
-      try {
-        myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
-      } finally {
-        myProxyAndroidProjectLatch.countDown();
-      }
-    });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -161,25 +154,39 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void populateVariantsByName() {
-    for (Variant variant : myAndroidProject.getVariants()) {
-      myVariantsByName.put(variant.getName(), variant);
-    }
+    myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
   }
 
+  /**
+   * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
+   */
+  @Deprecated
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {
     AndroidArtifact mainArtifact = getMainArtifact();
-    return getDependencies(mainArtifact, getModelVersion());
+    return mainArtifact.getDependencies();
   }
 
+  /**
+   * @return Instance of {@link IdeDependencies} from main artifact.
+   */
+  @NotNull
+  public IdeDependencies getSelectedMainCompileLevel2Dependencies() {
+    IdeAndroidArtifact mainArtifact = getMainArtifact();
+    return mainArtifact.getLevel2Dependencies();
+  }
+
+  /**
+   * @return Instance of {@link IdeDependencies} from test artifact, or {@code null} if current module has no test artifact.
+   */
   @Nullable
-  public Dependencies getSelectedAndroidTestCompileDependencies() {
-    AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
+  public IdeDependencies getSelectedAndroidTestCompileDependencies() {
+    IdeAndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
     if (androidTestArtifact == null) {
       // Only variants in the debug build type have an androidTest artifact.
       return null;
     }
-    return getDependencies(androidTestArtifact, getModelVersion());
+    return androidTestArtifact.getLevel2Dependencies();
   }
 
   @NotNull
@@ -193,7 +200,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public AndroidArtifact getMainArtifact() {
+  public IdeAndroidArtifact getMainArtifact() {
     return getSelectedVariant().getMainArtifact();
   }
 
@@ -299,52 +306,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         throw new IllegalArgumentException(msg);
       }
     }
-  }
-
-  @NotNull
-  public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
-    return getTestArtifacts(getSelectedVariant());
-  }
-
-  @NotNull
-  public static Collection<BaseArtifact> getTestArtifacts(@NotNull Variant variant) {
-    Set<BaseArtifact> testArtifacts = Sets.newHashSet();
-    for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    return testArtifacts;
-  }
-
-  @Nullable
-  public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
-    for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public JavaArtifact getUnitTestArtifactInSelectedVariant() {
-    for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
-    String artifactName = artifact.getName();
-    return isTestArtifact(artifactName);
   }
 
   private static boolean isTestArtifact(@Nullable String artifactName) {
@@ -469,7 +430,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
     if (minSdkVersion != null) {
-      return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+      return convertVersion(minSdkVersion, null);
     }
     return null;
   }
@@ -479,7 +440,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
     if (targetSdkVersion != null) {
-      return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+      return convertVersion(targetSdkVersion, null);
     }
     return null;
   }
@@ -565,41 +526,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the imported Android-Gradle project.
    */
   @NotNull
-  public AndroidProject getAndroidProject() {
+  public IdeAndroidProject getAndroidProject() {
     return myAndroidProject;
-  }
-
-  /**
-   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
-   *
-   * @return the proxy object of the imported Android-Gradle project.
-   */
-  @NotNull
-  public AndroidProject waitForAndGetProxyAndroidProject() {
-    waitForProxyAndroidProject();
-    assert myProxyAndroidProject != null;
-    return myProxyAndroidProject;
-  }
-
-  /**
-   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
-   */
-  public void waitForProxyAndroidProject() {
-    if (myProxyAndroidProjectLatch != null) {
-      try {
-        myProxyAndroidProjectLatch.await();
-      }
-      catch (InterruptedException e) {
-        getLogger().error(e);
-        Thread.currentThread().interrupt();
-      }
-    }
   }
 
   @NotNull
@@ -611,8 +539,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the selected build variant.
    */
   @NotNull
-  public Variant getSelectedVariant() {
-    Variant selected = myVariantsByName.get(mySelectedVariantName);
+  public IdeVariant getSelectedVariant() {
+    IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }
@@ -687,15 +615,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
-  }
-
-  public int getProjectType() {
-    try {
-      return getAndroidProject().getProjectType();
-    }
-    catch (UnsupportedMethodException e){
-      return getAndroidProject().isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
-    }
   }
 
   /**
@@ -792,13 +711,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     if (containsSourceFile(defaultConfig, file)) {
       return new SourceFileContainerInfo();
     }
-    for (Variant variant : myAndroidProject.getVariants()) {
-      AndroidArtifact artifact = variant.getMainArtifact();
+    for (IdeVariant variant : myVariantsByName.values()) {
+      IdeAndroidArtifact artifact = variant.getMainArtifact();
       if (containsSourceFile(artifact, file)) {
         return new SourceFileContainerInfo(variant, artifact);
       }
       for (AndroidArtifact extraArtifact : variant.getExtraAndroidArtifacts()) {
-        if (containsSourceFile(extraArtifact, file)) {
+        if (containsSourceFile((IdeAndroidArtifact)extraArtifact, file)) {
           return new SourceFileContainerInfo(variant, extraArtifact);
         }
       }
@@ -838,10 +757,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
-  private static boolean containsSourceFile(@NotNull BaseArtifact artifact, @NotNull File file) {
+  private static boolean containsSourceFile(@NotNull IdeBaseArtifact artifact, @NotNull File file) {
     if (artifact instanceof AndroidArtifact) {
       AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
-      if (containsFile(getGeneratedSourceFolders(androidArtifact), file) ||
+      if (containsFile(androidArtifact.getGeneratedSourceFolders(), file) ||
           containsFile(androidArtifact.getGeneratedResourceFolders(), file)) {
         return true;
       }
@@ -874,6 +793,31 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
+  /**
+   * Returns the {@link IdeAndroidArtifact} that should be used for instrumented testing.
+   *
+   * <p>For test-only modules this is the main artifact.
+   */
+  @Nullable
+  public IdeAndroidArtifact getArtifactForAndroidTest() {
+    return getAndroidProject().getProjectType() == PROJECT_TYPE_TEST ?
+           getSelectedVariant().getMainArtifact() :
+           getSelectedVariant().getAndroidTestArtifact();
+  }
+
+  @Nullable
+  public TestOptions.Execution getTestExecutionStrategy() {
+    IdeAndroidArtifact artifact = getArtifactForAndroidTest();
+    if (artifact != null) {
+      TestOptions testOptions = artifact.getTestOptions();
+      if (testOptions != null) {
+        return testOptions.getExecution();
+      }
+    }
+
+    return null;
+  }
+
   public static class SourceFileContainerInfo {
     @Nullable public final Variant variant;
     @Nullable public final BaseArtifact artifact;
@@ -902,12 +846,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
-    waitForProxyAndroidProject();
-
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(myProxyAndroidProject);
+    out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
   }
 
@@ -915,12 +857,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = (ProjectSystemId)in.readObject();
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myAndroidProject = (AndroidProject)in.readObject();
+    myAndroidProject = (IdeAndroidProject)in.readObject();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    myProxyAndroidProject = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
     myProductFlavorsByName = Maps.newHashMap();
@@ -973,53 +913,23 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
-    Variant variant = getSelectedVariant();
+    IdeVariant variant = getSelectedVariant();
     JpsAndroidModuleProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
 
     // When multi test artifacts are enabled, test tasks are computed dynamically.
-    updateGradleTaskNames(state, mainArtifact, null);
+    updateGradleTaskNames(state, mainArtifact);
   }
 
-  @VisibleForTesting
-  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
-                                    @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable BaseArtifact testArtifact) {
+  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(mainArtifact.getIdeSetupTaskNames());
 
-    if (testArtifact != null) {
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
-      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
-    }
-    else {
-      state.ASSEMBLE_TEST_TASK_NAME = "";
-      state.COMPILE_JAVA_TEST_TASK_NAME = "";
-    }
-  }
-
-  @NotNull
-  public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
-    try {
-      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
-      return artifact.getIdeSetupTaskNames();
-    }
-    catch (NoSuchMethodError e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-    catch (UnsupportedMethodException e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-
-    return Collections.emptySet();
+    state.ASSEMBLE_TEST_TASK_NAME = "";
+    state.COMPILE_JAVA_TEST_TASK_NAME = "";
   }
 
   /**
@@ -1056,8 +966,41 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
-  @Nullable
-  public Long getLastBuildTimestamp(@NotNull Project project) {
-    return PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
+  public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
+    Project project = module.getProject();
+    GlobalSearchScope scope = module.getModuleWithDependenciesScope();
+    VirtualFile sourceFile =
+      ApplicationManager.getApplication().runReadAction((Computable<VirtualFile>)() -> {
+        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
+        if (psiClass == null) {
+          return null;
+        }
+        PsiFile psiFile = psiClass.getContainingFile();
+        if (psiFile == null) {
+          return null;
+        }
+        return psiFile.getVirtualFile();
+      });
+
+    if (sourceFile == null) {
+      return false;
+    }
+
+    // Edited but not yet saved?
+    if (FileDocumentManager.getInstance().isFileModified(sourceFile)) {
+      return true;
+    }
+
+    // Check timestamp
+    long sourceFileModified = sourceFile.getTimeStamp();
+
+    // User modifications on the source file might not always result on a new .class file.
+    // We use the project modification time instead to display the warning more reliably.
+    long lastBuildTimestamp = classFile.getTimeStamp();
+    Long projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
+    if (projectBuildTimestamp != null) {
+      lastBuildTimestamp = projectBuildTimestamp;
+    }
+    return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
   }
 }

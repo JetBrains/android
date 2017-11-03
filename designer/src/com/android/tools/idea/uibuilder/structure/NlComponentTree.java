@@ -16,12 +16,16 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -33,13 +37,16 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -58,6 +65,8 @@ import java.awt.*;
 import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -67,47 +76,68 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDATE_DELAY_MSECS;
-import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
+  private static final Color LINE_COLOR = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(), 10);
 
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final CopyPasteManager myCopyPasteManager;
+  private final NlTreeBadgeHandler myBadgeHandler;
 
   private ScreenView myScreenView;
-  private NlModel myModel;
-  private TreePath myInsertionPath;
-  private InsertionPoint myInsertionPoint;
+  @Nullable private NlModel myModel;
   private boolean mySkipWait;
+  private int myInsertAfterRow = -1;
+  private int myRelativeDepthToInsertionRow = 0;
+  @Nullable private Rectangle myInsertionRowBounds;
+  @Nullable private Rectangle myInsertionReceiverBounds;
 
-  public NlComponentTree(@Nullable DesignSurface designSurface) {
-    this(designSurface, CopyPasteManager.getInstance());
+  public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+    this(project, designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlComponentTree(@Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlComponentTree(@NotNull Project project,
+                  @Nullable NlDesignSurface designSurface,
+                  @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
+    myBadgeHandler = new NlTreeBadgeHandler();
+
     setModel(new NlComponentTreeModel());
-    getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
     setBorder(new EmptyBorder(INSETS));
+    setDesignSurface(designSurface);
+    setName("componentTree");
     setRootVisible(true);
     setShowsRootHandles(false);
     setToggleClickCount(2);
+    setCellRenderer(createCellRenderer());
+
+    getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
-    createCellRenderer();
     addTreeSelectionListener(new StructurePaneSelectionListener());
     new StructureSpeedSearch(this);
+
+
     enableDnD();
-    setDesignSurface(designSurface);
+
     addMouseListener(new StructurePaneMouseListener());
+    addMouseListener(myBadgeHandler.getBadgeMouseAdapter());
+    addMouseMotionListener(myBadgeHandler.getBadgeMouseAdapter());
+
+    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+      List<NlComponent> components = getSelectedComponents();
+      return !components.isEmpty() ? components.get(0).getTagName() : null;
+    });
+    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, this);
   }
 
   private void enableDnD() {
@@ -118,8 +148,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    setScreenView(designSurface != null ? designSurface.getCurrentScreenView() : null);
+  public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
+    setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
+    myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
   private void setScreenView(@Nullable ScreenView screenView) {
@@ -138,6 +169,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       myModel.getSelectionModel().removeListener(this);
     }
     myModel = model;
+    myBadgeHandler.setNlModel(myModel);
     if (myModel != null) {
       myModel.addListener(this);
       myModel.getSelectionModel().addListener(this);
@@ -161,8 +193,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     Disposer.dispose(myUpdateQueue);
   }
 
-  private void createCellRenderer() {
-    ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
+  private ColoredTreeCellRenderer createCellRenderer() {
+    return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
@@ -171,13 +203,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                         boolean leaf,
                                         int row,
                                         boolean hasFocus) {
+        setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
+
         if (value instanceof NlComponent) {
           StructureTreeDecorator.decorate(this, (NlComponent)value);
         }
+        else if (value instanceof String) {
+          StructureTreeDecorator.decorate(this, (String)value);
+        }
       }
     };
-    renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-    setCellRenderer(renderer);
   }
 
   private void invalidateUI() {
@@ -187,8 +222,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----
 
   private void updateHierarchy() {
+    clearInsertionPoint();
     ApplicationManager.getApplication().assertIsDispatchThread();
-    setPaintBusy(true);
     myUpdateQueue.queue(new Update("updateComponentStructure") {
       @Override
       public void run() {
@@ -205,7 +240,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           invalidateUI();
         }
         finally {
-          setPaintBusy(false);
           mySelectionIsUpdating.set(false);
         }
 
@@ -225,7 +259,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
     for (int row = 0; row < rowCount; row++) {
       if (isCollapsed(row)) {
-        NlComponent component = (NlComponent)getPathForRow(row).getLastPathComponent();
+        Object last = getPathForRow(row).getLastPathComponent();
+        if (!(last instanceof NlComponent)) {
+          continue;
+        }
+        NlComponent component = (NlComponent)last;
 
         if (component.getChildCount() != 0) {
           components.add(component);
@@ -298,56 +336,110 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   @Override
-  public void paint(Graphics g) {
-    super.paint(g);
-    if (myInsertionPath != null) {
-      paintInsertionPoint(g);
+  public void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    if (myInsertAfterRow >= 0) {
+      paintInsertionPoint((Graphics2D)g);
+    }
+    myBadgeHandler.paintBadges((Graphics2D)g, this);
+  }
+
+  private void paintInsertionPoint(@NotNull Graphics2D g2D) {
+    if (myInsertionReceiverBounds == null || myInsertionRowBounds == null) {
+      return;
+    }
+    RenderingHints savedHints = g2D.getRenderingHints();
+    Color savedColor = g2D.getColor();
+    try {
+      g2D.setColor(LINE_COLOR);
+      g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+      paintInsertionRectangle(g2D,
+                              getX(), myInsertionReceiverBounds.y,
+                              getWidth(), myInsertionReceiverBounds.height);
+      paintColumnLine(g2D,
+                      myInsertionReceiverBounds.x, myInsertionReceiverBounds.y + myInsertionReceiverBounds.height,
+                      myInsertionRowBounds.y + myInsertionRowBounds.height);
+      paintInsertionLine(g2D,
+                         myInsertionReceiverBounds.x, myInsertionRowBounds.y + myInsertionRowBounds.height,
+                         getWidth());
+    }
+    finally {
+      g2D.setRenderingHints(savedHints);
+      g2D.setColor(savedColor);
     }
   }
 
-  public enum InsertionPoint {
-    INSERT_INTO,
-    INSERT_BEFORE,
-    INSERT_AFTER
+  private static void paintInsertionLine(@NotNull Graphics2D g, int x, int y, int width) {
+    Polygon triangle = new Polygon();
+    int indicatorSize = JBUI.scale(6);
+    triangle.addPoint(x + indicatorSize, y);
+    triangle.addPoint(x, y + indicatorSize / 2);
+    triangle.addPoint(x, y - indicatorSize / 2);
+    Stroke stroke = g.getStroke();
+    g.drawLine(x, y, x + width, y);
+    g.setStroke(stroke);
+    g.drawPolygon(triangle);
+    g.fillPolygon(triangle);
   }
 
-  private void paintInsertionPoint(Graphics g) {
-    if (myInsertionPath != null) {
-      Rectangle pathBounds = getPathBounds(myInsertionPath);
-      if (pathBounds == null) {
-        return;
-      }
-      int y = pathBounds.y;
-      switch (myInsertionPoint) {
-        case INSERT_BEFORE:
-          break;
-        case INSERT_AFTER:
-          y += pathBounds.height;
-          break;
-        case INSERT_INTO:
-          y += pathBounds.height / 2;
-          break;
-      }
-      Rectangle bounds = getBounds();
-      Polygon triangle = new Polygon();
-      triangle.addPoint(bounds.x + 6, y);
-      triangle.addPoint(bounds.x, y + 3);
-      triangle.addPoint(bounds.x, y - 3);
-      g.setColor(UIUtil.getTreeForeground());
-      if (myInsertionPoint != INSERT_INTO) {
-        g.drawLine(bounds.x, y, bounds.x + bounds.width, y);
-      }
-      g.drawPolygon(triangle);
-      g.fillPolygon(triangle);
-    }
+  private static void paintColumnLine(@NotNull Graphics2D g, int x, int y1, int y2) {
+    int columnMargin = JBUI.scale(13);
+    x -= columnMargin;
+    Stroke stroke = g.getStroke();
+    g.setStroke(NlConstants.DASHED_STROKE);
+    g.drawLine(x, y1, x, y2);
+    g.drawLine(x, y2, x + columnMargin, y2);
+    g.setStroke(stroke);
   }
 
-  public void markInsertionPoint(@Nullable TreePath path, @NotNull InsertionPoint insertionPoint) {
-    if (myInsertionPath != path || myInsertionPoint != insertionPoint) {
-      myInsertionPath = path;
-      myInsertionPoint = insertionPoint;
-      repaint();
+  private static void paintInsertionRectangle(@NotNull Graphics2D g, int x, int y, int width, int height) {
+    x += JBUI.scale(1);
+    y += JBUI.scale(1);
+    width -= JBUI.scale(3);
+    height -= JBUI.scale(4);
+    g.drawRect(x, y, width, height);
+  }
+
+  /**
+   * @param row           The row after which the insertion line will be displayed
+   * @param relativeDepth The depth of the parent relative the row
+   * @see NlDropInsertionPicker#findInsertionPointAt(Point, List)
+   */
+  public void markInsertionPoint(int row, int relativeDepth) {
+    if (row == myInsertAfterRow && relativeDepth == myRelativeDepthToInsertionRow) {
+      return;
     }
+
+    if (row < 0) {
+      clearInsertionPoint();
+      return;
+    }
+
+    myInsertAfterRow = row;
+    myRelativeDepthToInsertionRow = relativeDepth;
+    myInsertionRowBounds = getRowBounds(myInsertAfterRow);
+
+    // Find the bounds of the parent if the insertion row is not the receiver row
+    myInsertionReceiverBounds = myInsertionRowBounds;
+    if (myRelativeDepthToInsertionRow < 1) {
+      TreePath receiverPath = getPathForRow(myInsertAfterRow);
+      for (int i = myRelativeDepthToInsertionRow; i < 1 && receiverPath != null; i++) {
+        receiverPath = receiverPath.getParentPath();
+      }
+      if (receiverPath != null) {
+        myInsertionReceiverBounds = getPathBounds(receiverPath);
+      }
+    }
+    repaint();
+  }
+
+  public void clearInsertionPoint() {
+    myInsertionReceiverBounds = null;
+    myInsertionRowBounds = null;
+    myInsertAfterRow = -1;
+    myRelativeDepthToInsertionRow = 0;
+    repaint();
   }
 
   @Override
@@ -356,12 +448,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     super.clearToggledPaths();
   }
 
+  @NotNull
   public List<NlComponent> getSelectedComponents() {
     List<NlComponent> selected = new ArrayList<>();
     TreePath[] paths = getSelectionPaths();
     if (paths != null) {
       for (TreePath path : paths) {
-        selected.add((NlComponent)path.getLastPathComponent());
+        Object last = path.getLastPathComponent();
+        if (last instanceof NlComponent) {
+          selected.add((NlComponent)last);
+        }
       }
     }
     return selected;
@@ -375,7 +471,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Implemented ModelListener ----
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     UIUtil.invokeLaterIfNeeded(this::updateHierarchy);
   }
 
@@ -395,8 +491,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   @Override
-  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
-    setScreenView(screenView);
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+    setScreenView((ScreenView)sceneView);
   }
 
   @Override
@@ -414,7 +510,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private class StructurePaneMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
-      handlePopup(e);
+      if (e.getClickCount() == 2) {
+        handleDoubleClick(e);
+      }
+      else {
+        handlePopup(e);
+      }
     }
 
     @Override
@@ -435,10 +536,27 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            myScreenView.getSurface().getActionManager().showPopup(e, myScreenView, (NlComponent)component);
+            myScreenView.getSurface().getActionManager().showPopup(e, (NlComponent)component);
           }
         }
       }
+    }
+
+    private void handleDoubleClick(@NotNull MouseEvent event) {
+      int x = event.getX();
+      int y = event.getY();
+      TreePath path = getPathForLocation(x, y);
+
+      if (path == null) {
+        return;
+      }
+
+      Object component = path.getLastPathComponent();
+
+      if (!(component instanceof NlComponent)) {
+        return;
+      }
+      myScreenView.getSurface().notifyComponentActivate((NlComponent)component);
     }
   }
 
@@ -449,7 +567,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return;
       }
       try {
-        myModel.getSelectionModel().setSelection(getSelectedComponents());
+        if (myModel != null) {
+          myModel.getSelectionModel().setSelection(getSelectedComponents());
+        }
       }
       finally {
         mySelectionIsUpdating.set(false);
@@ -490,7 +610,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-    return !myModel.getSelectionModel().isEmpty();
+    return myModel != null && !myModel.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -500,7 +620,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    if (myModel.getSelectionModel().isEmpty()) {
+    if (myModel == null || myModel.getSelectionModel().isEmpty()) {
       return;
     }
     myCopyPasteManager.setContents(myModel.getSelectionAsTransferable());
@@ -510,7 +630,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public boolean isCutEnabled(@NotNull DataContext dataContext) {
-    return !myModel.getSelectionModel().isEmpty();
+    return myModel == null || !myModel.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -534,9 +654,32 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
     SelectionModel selectionModel = myScreenView.getSelectionModel();
-    NlModel model = myScreenView.getModel();
-    skipNextUpdateDelay();
-    model.delete(selectionModel.getSelection());
+    if (selectionModel.isEmpty()) {
+      TreePath[] selectedPath = getSelectionModel().getSelectionPaths();
+      if (selectedPath.length != 0) {
+        deleteNonNlComponent(selectedPath);
+      }
+    }
+    else {
+      NlModel model = myScreenView.getModel();
+      skipNextUpdateDelay();
+      model.delete(selectionModel.getSelection());
+    }
+  }
+
+  /**
+   * Handle a selection of non-NlComponent (like barrier/group)
+   *
+   * @param selectedPath
+   */
+  private void deleteNonNlComponent(TreePath[] selectedPath) {
+    TreePath parent = NlTreeUtil.getUniqueParent(selectedPath);
+    if (parent != null) {
+      Object component = parent.getLastPathComponent();
+      if (component instanceof NlComponent) {
+        NlTreeUtil.delegateEvent(DelegatedTreeEvent.Type.DELETE, this, ((NlComponent)component), -1);
+      }
+    }
   }
 
   // ---- Implements PasteProvider ----
@@ -554,19 +697,19 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
     InsertSpecification spec = getInsertSpecification();
-    if (spec == null) {
+    if (spec == null || myModel == null) {
       return;
     }
     Transferable transferable = myCopyPasteManager.getContents();
     if (transferable == null) {
       return;
     }
-    DnDTransferItem item = NlModel.getTransferItem(transferable, true /* allow placeholders */);
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, true /* allow placeholders */);
     if (item == null) {
       return;
     }
     List<NlComponent> components = ApplicationManager.getApplication().runWriteAction(
-      (Computable<List<NlComponent>>)() -> myModel.createComponents(myScreenView, item, InsertType.PASTE));
+      (Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(myModel, myScreenView, item, InsertType.PASTE));
     myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE);
   }
 
@@ -582,13 +725,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Nullable
   private InsertSpecification getInsertSpecification() {
+    if (myModel == null) {
+      return null;
+    }
     int selectionCount = myModel.getSelectionModel().getSelection().size();
     if (selectionCount > 1) {
       return null;
     }
     else if (selectionCount == 1) {
       NlComponent component = myModel.getSelectionModel().getSelection().get(0);
-      if (component.getViewHandler() instanceof ViewGroupHandler) {
+      if (NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler) {
         return new InsertSpecification(component, component.getChild(0));
       }
       else {
@@ -596,12 +742,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return parent != null ? new InsertSpecification(parent, component.getNextSibling()) : null;
       }
     }
-    else{
+    else {
       if (myModel.getComponents().size() != 1) {
         return null;
       }
       NlComponent component = myModel.getComponents().get(0);
-      return component.getViewHandler() instanceof ViewGroupHandler ? new InsertSpecification(component, component.getChild(0)) : null;
+      return NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler
+             ? new InsertSpecification(component, component.getChild(0))
+             : null;
     }
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -28,10 +29,12 @@ import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -47,10 +50,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Contract;
@@ -58,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -76,12 +77,12 @@ import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public final class GuiTests {
 
@@ -133,6 +134,8 @@ public final class GuiTests {
     AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
 
+    FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
+
     // TODO: setUpDefaultGeneralSettings();
   }
 
@@ -142,17 +145,13 @@ public final class GuiTests {
     setGuiTestingMode(true);
 
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
-    setUpDefaultProjectCreationLocationPath();
-
-    setUpSdks();
   }
 
   public static void setUpSdks() {
     File androidSdkPath = TestUtils.getSdk();
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         IdeSdks ideSdks = IdeSdks.getInstance();
         File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath)) {
@@ -167,19 +166,11 @@ public final class GuiTests {
               System.out.println();
             });
         }
-      }
-    });
-
+      });
   }
 
   public static void refreshFiles() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(
-          () -> LocalFileSystem.getInstance().refresh(false /* synchronous */));
-      }
-    });
+    ApplicationManager.getApplication().invokeAndWait(() -> LocalFileSystem.getInstance().refresh(false));
   }
 
   /**
@@ -253,6 +244,8 @@ public final class GuiTests {
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
+    FileUtilRt.delete(getProjectCreationDirPath());
+    refreshFiles();
     RecentProjectsManager.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
   }
 
@@ -360,22 +353,16 @@ public final class GuiTests {
   public static void deleteFile(@Nullable VirtualFile file) {
     // File deletion must happen on UI thread under write lock
     if (file != null) {
-      execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                file.delete(this);
-              }
-              catch (IOException e) {
-                // ignored
-              }
-            }
-          });
+      GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(
+        () -> {
+          try {
+            file.delete(GuiTests.class);
+          }
+          catch (IOException e) {
+            // ignored
+          }
         }
-      });
+      ));
     }
   }
 
@@ -404,16 +391,27 @@ public final class GuiTests {
   }
 
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
+
+    JPopupMenu menu = robot.findActivePopupMenu();
+    if (menu != null) {
+      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+        @Override
+        protected boolean isMatching(@Nonnull JMenuItem component) {
+          return predicate.test(component.getText());
+        }
+      }).click();
+      return;
+    }
+
     // IntelliJ doesn't seem to use a normal JPopupMenu, so this won't work:
     //    JPopupMenu menu = myRobot.findActivePopupMenu();
     // Instead, it uses a JList (technically a JBList), which is placed somewhere
     // under the root pane.
 
     Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
-
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
+    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
@@ -465,6 +463,16 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
+  }
+
+  public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
+    Robot robot = container.robot();
+    new JLabelFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
+  }
+
+  public static void findAndClickLabelWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
+    Robot robot = container.robot();
+    new JLabelFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
   }
 
   /**
@@ -521,12 +529,7 @@ public final class GuiTests {
   public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
                                                          @Nullable Container root,
                                                          @NotNull GenericTypeMatcher<T> matcher) {
-    return waitUntilFound(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
-      @Override
-      protected boolean isMatching(@NotNull T component) {
-        return component.isShowing() && matcher.matches(component);
-      }
-    });
+    return waitUntilFound(robot, root, FluentMatcher.wrap(matcher).andIsShowing());
   }
 
   /**
@@ -535,12 +538,7 @@ public final class GuiTests {
   @NotNull
   public static <T extends Component> T waitUntilShowingAndEnabled(
     @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher) {
-    return waitUntilShowing(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
-      @Override
-      protected boolean isMatching(@NotNull T component) {
-        return component.isEnabled() && matcher.matches(component);
-      }
-    });
+    return waitUntilShowing(robot, root, FluentMatcher.wrap(matcher).andIsEnabled());
   }
 
   /**
@@ -581,17 +579,37 @@ public final class GuiTests {
 
   /**
    * Waits until no components match the given criteria under the given root
+   * Usage of this method is discouraged. Please use the version with default timeout, unless you really need greater values.
+   */
+  public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
+                                                         @NotNull Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher,
+                                                         int seconds) {
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.seconds(seconds).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+  }
+
+  /**
+   * Waits until no components match the given criteria under the given root
    */
   public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
                                                          @NotNull Container root,
                                                          @NotNull GenericTypeMatcher<T> matcher) {
-    String typeName = matcher.supportedType().getSimpleName();
-    Wait.seconds(1).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+    waitUntilGone(robot, root, matcher, 1);
   }
 
   public static void waitForBackgroundTasks(Robot robot) {
-    // A 90-second limit is high, but the first test in the suite may need it.
-    Wait.seconds(90).expecting("background tasks to finish")
+    waitForBackgroundTasks(robot, null);
+  }
+
+  public static void waitForBackgroundTasks(Robot robot, @Nullable Wait wait) {
+    if (wait == null) {
+      // A 90-second default limit is high, but the first test in the suite may need it.
+      wait = Wait.seconds(90);
+    }
+
+    wait
+      .expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
 
@@ -602,13 +620,17 @@ public final class GuiTests {
       });
   }
 
-  /** Pretty-prints the given table fixture */
+  /**
+   * Pretty-prints the given table fixture
+   */
   @NotNull
   public static String tableToString(@NotNull JTableFixture table) {
     return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
   }
 
-  /** Pretty-prints the given table fixture */
+  /**
+   * Pretty-prints the given table fixture
+   */
   @NotNull
   public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
                                      int cellWidth) {
@@ -630,13 +652,17 @@ public final class GuiTests {
     return sb.toString();
   }
 
-  /** Pretty-prints the given list fixture */
+  /**
+   * Pretty-prints the given list fixture
+   */
   @NotNull
   public static String listToString(@NotNull JListFixture list) {
     return listToString(list, 0, Integer.MAX_VALUE, 40);
   }
 
-  /** Pretty-prints the given list fixture */
+  /**
+   * Pretty-prints the given list fixture
+   */
   @NotNull
   public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
     String[] contents = list.contents();

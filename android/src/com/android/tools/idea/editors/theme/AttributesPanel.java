@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.ComboboxSpeedSearch;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -30,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
@@ -57,7 +56,7 @@ public class AttributesPanel {
   private JComboBox myModuleCombo;
   private JBLabel myThemeLabel;
   private JBLabel myModuleLabel;
-  private JLabel myThemeWarning;
+  private HyperlinkLabel myThemeWarning;
 
   public AttributesPanel() {
     myThemeCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
@@ -104,6 +103,13 @@ public class AttributesPanel {
 
     myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 
+    // this disables up and down keys from firing actions.
+    // https://tips4java.wordpress.com/2009/05/17/combo-box-no-action/
+    myThemeCombo.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+    // there is also an option to set a global setting for this, but we probably do not want to do that:
+    // UIManager.getLookAndFeelDefaults().put("ComboBox.noActionOnKeyNavigation", true);
+    SwingUtil.doNotSelectSeparators(myThemeCombo);
+
     // Set combo boxes names to be able to distinguish them in UI tests
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);
@@ -124,6 +130,11 @@ public class AttributesPanel {
     myAttributesScrollPane.getVerticalScrollBar().setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
 
     myThemeWarning.setIcon(AllIcons.General.BalloonWarning);
+    myThemeWarning.setHyperlinkText("Theme is not used anywhere ", "fix", "");
+  }
+
+  public void setSelectActivityForTheme(HyperlinkListener action) {
+    myThemeWarning.addHyperlinkListener(action);
   }
 
   public void setThemeNamePopupMenu(@Nullable JPopupMenu popup) {

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.npw.ModuleTemplate;
+import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureJavaLibraryStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
@@ -51,16 +51,8 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public NewModuleDialogFixture chooseModuleType(String name) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((list, index) -> ((ModuleTemplate)list.getModel().getElementAt(index)).getName());
+    listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleDialogFixture chooseModuleSubtype(@NotNull String name) {
-    // The actual label of the combo box in the UI is "Module Type" but since we already have a `chooseModuleType`
-    // method, we call this `chooseModuleSubtype`.
-    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "ModuleTypesCombo", JComboBox.class)).selectItem(name);
     return this;
   }
 
@@ -105,9 +97,8 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   }
 
   @NotNull
-  public NewModuleDialogFixture chooseClientModule(@NotNull String name) {
-    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "ClientModule", JComboBox.class)).selectItem(name);
-    return this;
+  public ConfigureJavaLibraryStepFixture<NewModuleDialogFixture> getConfigureJavaLibaryStepFixture() {
+    return new ConfigureJavaLibraryStepFixture(this);
   }
 
   @NotNull

@@ -16,16 +16,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.content.Content;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -77,36 +73,5 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     }
 
     return this;
-  }
-
-  @NotNull
-  public BuildVariantsToolWindowFixture selectTestArtifact(@NotNull String testArtifactDescription) {
-    getTestArtifactComboBox().selectItem(testArtifactDescription);
-    if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
-      myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
-    }
-    GuiTests.waitForBackgroundTasks(myRobot);
-    return this;
-  }
-
-  @NotNull
-  private JComboBoxFixture getTestArtifactComboBox() {
-    activate();
-    Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isAtLeast(1);
-
-    Content content = contents[0];
-    JComboBox comboBox = myRobot.finder().findByType(content.getComponent(), JComboBox.class, true);
-    return new JComboBoxFixture(myRobot, comboBox);
-  }
-
-  @Nullable
-  public String getSelectedTestArtifact() {
-    return getTestArtifactComboBox().selectedItem();
-  }
-
-  @NotNull
-  public BuildVariantsToolWindowFixture selectUnitTests() {
-    return this.selectTestArtifact("Unit Tests");
   }
 }

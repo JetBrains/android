@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -174,7 +175,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       selectElement(firstError, new Runnable() {
         @Override
         public void run() {
-          if (shouldShowFirstErrorInEditor()) {
+          if (shouldShowFirstErrorInEditor() && !ApplicationManager.getApplication().isUnitTestMode()) {
             navigateToSource(false);
           }
         }

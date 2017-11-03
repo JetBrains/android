@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStartRequest">
+        <Message>session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStartRequest</clazz>
+        <functionCalled>profiler.proto.EventService/StartMonitoringApp</functionCalled>
+        <message>session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStartResponse</clazz>
+        <functionCalled>profiler.proto.EventService/StartMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetActivityData" Class="class com.android.tools.profiler.proto.EventProfiler$EventDataRequest">
+        <Message>start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
+        <functionCalled>profiler.proto.EventService/GetActivityData</functionCalled>
+        <message>start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetActivityData" Class="class com.android.tools.profiler.proto.EventProfiler$ActivityDataResponse">
+        <Message>data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86400000000000
+    state: CREATED
+  }
+}
+data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86401000000000
+    state: STARTED
+  }
+  state_changes {
+    timestamp: 86402000000000
+    state: PAUSED
+  }
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$ActivityDataResponse</clazz>
+        <functionCalled>profiler.proto.EventService/GetActivityData</functionCalled>
+        <message>data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86400000000000
+    state: CREATED
+  }
+}
+data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86401000000000
+    state: STARTED
+  }
+  state_changes {
+    timestamp: 86402000000000
+    state: PAUSED
+  }
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetSystemData" Class="class com.android.tools.profiler.proto.EventProfiler$EventDataRequest">
+        <Message>start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
+        <functionCalled>profiler.proto.EventService/GetSystemData</functionCalled>
+        <message>start_timestamp: -9223372036854775808
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetSystemData" Class="class com.android.tools.profiler.proto.EventProfiler$SystemDataResponse">
+        <Message>data {
+  action_id: 4321
+  start_timestamp: 86401000000000
+  process_id: 1234
+  event_id: 1
+}
+data {
+  action_id: 4321
+  start_timestamp: 86399000000000
+  end_timestamp: 86400000000000
+  process_id: 1234
+  event_id: 2
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$SystemDataResponse</clazz>
+        <functionCalled>profiler.proto.EventService/GetSystemData</functionCalled>
+        <message>data {
+  action_id: 4321
+  start_timestamp: 86401000000000
+  process_id: 1234
+  event_id: 1
+}
+data {
+  action_id: 4321
+  start_timestamp: 86399000000000
+  end_timestamp: 86400000000000
+  process_id: 1234
+  event_id: 2
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetActivityData" Class="class com.android.tools.profiler.proto.EventProfiler$EventDataRequest">
+        <Message>start_timestamp: 86402000000000
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
+        <functionCalled>profiler.proto.EventService/GetActivityData</functionCalled>
+        <message>start_timestamp: 86402000000000
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetActivityData" Class="class com.android.tools.profiler.proto.EventProfiler$ActivityDataResponse">
+        <Message>data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86400000000000
+    state: CREATED
+  }
+}
+data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86401000000000
+    state: STARTED
+  }
+  state_changes {
+    timestamp: 86402000000000
+    state: PAUSED
+  }
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$ActivityDataResponse</clazz>
+        <functionCalled>profiler.proto.EventService/GetActivityData</functionCalled>
+        <message>data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86400000000000
+    state: CREATED
+  }
+}
+data {
+  name: "ActivityOne"
+  hash: 750574775
+  process_id: 1234
+  state_changes {
+    timestamp: 86401000000000
+    state: STARTED
+  }
+  state_changes {
+    timestamp: 86402000000000
+    state: PAUSED
+  }
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetSystemData" Class="class com.android.tools.profiler.proto.EventProfiler$EventDataRequest">
+        <Message>start_timestamp: 86402000000000
+end_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
+        <functionCalled>profiler.proto.EventService/GetSystemData</functionCalled>
+        <message>start_timestamp: 86402000000000
+end_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/GetSystemData" Class="class com.android.tools.profiler.proto.EventProfiler$SystemDataResponse">
+        <Message>data {
+  action_id: 4321
+  start_timestamp: 86401000000000
+  process_id: 1234
+  event_id: 1
+}
+data {
+  action_id: 4321
+  start_timestamp: 86399000000000
+  end_timestamp: 86400000000000
+  process_id: 1234
+  event_id: 2
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$SystemDataResponse</clazz>
+        <functionCalled>profiler.proto.EventService/GetSystemData</functionCalled>
+        <message>data {
+  action_id: 4321
+  start_timestamp: 86401000000000
+  process_id: 1234
+  event_id: 1
+}
+data {
+  action_id: 4321
+  start_timestamp: 86399000000000
+  end_timestamp: 86400000000000
+  process_id: 1234
+  event_id: 2
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStopRequest">
+        <Message>session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStopRequest</clazz>
+        <functionCalled>profiler.proto.EventService/StopMonitoringApp</functionCalled>
+        <message>session {
+  device_serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EventService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EventProfiler$EventStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.EventProfiler$EventStopResponse</clazz>
+        <functionCalled>profiler.proto.EventService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

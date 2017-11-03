@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleSync {
-  void sync(@NotNull Project project, @NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener);
+  void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener);
 }

@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.ui.wizard;
 
-import com.android.tools.idea.ui.ImageComponent;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.ObservableString;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.adtui.ImageComponent;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ui.IconProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,16 +36,16 @@ import java.awt.*;
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(900, 650);
 
   private final BindingsManager myBindings = new BindingsManager();
 
   private JPanel myRootPanel;
   private JPanel myHeaderPanel;
   private JBLabel myTitleLabel;
-  private JBLabel myProductLabel;
   private ImageComponent myIcon;
   private JPanel myCenterPanel;
-  private JPanel myTitlePanel;
+  private JLabel myStepIcon;
 
   public StudioWizardLayout() {
     Icon icon = AndroidIcons.Wizards.StudioProductIcon;
@@ -59,10 +57,21 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
 
   @NotNull
   @Override
-  public JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel) {
-    myBindings.bind(new TextProperty(myTitleLabel), title);
+  public JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel) {
+    myBindings.bind(new TextProperty(myTitleLabel), titleHeader.title());
+    myBindings.bind(new IconProperty(myStepIcon), titleHeader.stepIcon());
     myCenterPanel.add(innerPanel);
     return myRootPanel;
+  }
+
+  @Override
+  public Dimension getDefaultPreferredSize() {
+    return DEFAULT_MIN_SIZE;
+  }
+
+  @Override
+  public Dimension getDefaultMinSize() {
+    return DEFAULT_MIN_SIZE;
   }
 
   @Override

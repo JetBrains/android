@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
-import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,24 +42,32 @@ public class CheckBoxDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawCheckbox(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
-      super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
-            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32);
-      mScale = scale;
-      mFont = mFont.deriveFont(32 * mScale);
+    DrawCheckbox(@SwingCoordinate int x,
+                 @SwingCoordinate int y,
+                 @SwingCoordinate int width,
+                 @SwingCoordinate int height,
+                 int mode,
+                 int baselineOffset,
+                 float scale,
+                 String text) {
+      super(x, y, width, height, mode, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
+            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32,scale);
     }
 
-    public DrawCheckbox(String s) {
+    @NotNull
+    public static DrawCheckbox createFromString(@NotNull String s) {
       String[] sp = s.split(",");
       int c = 0;
-      x = Integer.parseInt(sp[c++]);
-      y = Integer.parseInt(sp[c++]);
-      width = Integer.parseInt(sp[c++]);
-      height = Integer.parseInt(sp[c++]);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mScale = java.lang.Float.parseFloat(sp[c++]);
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
-      mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int mode = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      float scale = java.lang.Float.parseFloat(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawCheckbox(x, y, width, height, mode, baseLineOffset, scale, text);
     }
 
     @Override
@@ -71,6 +81,8 @@ public class CheckBoxDecorator extends SceneDecorator {
              width +
              "," +
              height +
+             "," +
+             mMode +
              "," +
              myBaseLineOffset +
              "," +
@@ -87,6 +99,8 @@ public class CheckBoxDecorator extends SceneDecorator {
       super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
+        Shape original = g.getClip();
+        g.clipRect(x, y, width, height);
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
@@ -103,6 +117,7 @@ public class CheckBoxDecorator extends SceneDecorator {
         yp[2] = yv;
         g.drawPolyline(xp, yp, 3);
         g.setStroke(stroke);
+        g.setClip(original);
       }
     }
   }
@@ -110,15 +125,16 @@ public class CheckBoxDecorator extends SceneDecorator {
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     super.addContent(list, time, sceneContext, component);
-    Rectangle rect = new Rectangle();
+    @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
     float scale = (float)sceneContext.getScale();
-    list.add(new DrawCheckbox(l, t, w, h, baseLineOffset, scale, text));
+    int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
+    list.add(new DrawCheckbox(l, t, w, h, mode, baseLineOffset, scale, text));
   }
 }

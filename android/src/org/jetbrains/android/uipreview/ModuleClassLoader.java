@@ -1,9 +1,11 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.rendering.RenderClassLoader;
@@ -13,23 +15,14 @@ import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -42,6 +35,8 @@ import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
@@ -83,6 +78,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     super(library.getClassLoader(), library.getApiLevel());
     myLibrary = library;
     myModuleReference = new WeakReference<>(module);
+
+    getLibraryJarFiles(getExternalLibraries(module))
+      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
   }
 
   @NotNull
@@ -96,9 +94,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (!myInsideJarClassLoader) {
         final Module module = myModuleReference.get();
         if (module != null) {
-          int index = name.lastIndexOf('.');
-          if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
-            AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
+          if (isResourceClassName(name)) {
+            AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
             if (appResources != null) {
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
               if (data != null) {
@@ -260,7 +257,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
     VirtualFile classFile = null;
-    if (vOutFolder == null) {
+    if (vOutFolder != null) {
+      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
+    }
+
+    if (classFile == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel()) {
         AndroidModel androidModel = facet.getAndroidModel();
@@ -268,9 +269,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
           classFile = androidModel.getClassJarProvider().findModuleClassFile(name, module);
         }
       }
-    } else {
-      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
     }
+
     if (classFile != null) {
       return loadClassFile(name, classFile);
     }
@@ -293,72 +293,39 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
   public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
-    final Module module = myModuleReference.get();
+    // Don't flag R.java edits; not done by user
+    if (isResourceClassName(fqcn)) {
+      return false;
+    }
+
+    Module module = myModuleReference.get();
     if (module == null) {
       return false;
     }
     VirtualFile classFile = getClassFile(fqcn);
 
     // Make sure the class file is up to date and if not, log an error
-    if (classFile != null) {
-      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        long classFileModified = classFile.getTimeStamp();
-        if (classFileModified > 0L) {
-          VirtualFile virtualFile = ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
-            @Nullable
-            @Override
-            public VirtualFile compute() {
-              Project project = module.getProject();
-              GlobalSearchScope scope = module.getModuleWithDependenciesScope();
-              PsiManager psiManager = PsiManager.getInstance(project);
-              JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(psiManager.getProject());
-              PsiClass source = psiFacade.findClass(fqcn, scope);
-              if (source != null) {
-                PsiFile containingFile = source.getContainingFile();
-                if (containingFile != null) {
-                  return containingFile.getVirtualFile();
-                }
-              }
-              return null;
-            }
-          });
-
-          if (virtualFile != null && !FN_RESOURCE_CLASS.equals(virtualFile.getName())) { // Don't flag R.java edits; not done by user
-            // Edited but not yet saved?
-            boolean modified = FileDocumentManager.getInstance().isFileModified(virtualFile);
-            if (!modified) {
-              // Check timestamp
-              File sourceFile = VfsUtilCore.virtualToIoFile(virtualFile);
-              long sourceFileModified = sourceFile.lastModified();
-
-              AndroidFacet facet = AndroidFacet.getInstance(module);
-              // User modifications on the source file might not always result on a new .class file.
-              // We use the project modification time instead to display the warning more reliably.
-              // Also, some build systems may use a constant last modified timestamp for .class files,
-              // for deterministic builds, so the project modification time is more reliable.
-              long lastBuildTimestamp = classFileModified;
-              if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-                Long projectBuildTimestamp = facet.getAndroidModel().getLastBuildTimestamp(module.getProject());
-                if (projectBuildTimestamp != null) {
-                  lastBuildTimestamp = projectBuildTimestamp;
-                }
-              }
-              if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L) {
-                modified = true;
-              }
-            }
-
-            return modified;
-          }
-        }
-      } finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
+    if (classFile == null) {
+      return false;
     }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null || facet.getAndroidModel() == null) {
+      return false;
+    }
+    // Allow file system access for timestamps.
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      return facet.getAndroidModel().isClassFileOutOfDate(module, fqcn, classFile);
+    } finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
+  }
 
-    return false;
+  // matches foo.bar.R or foo.bar.R$baz
+  private static final Pattern RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$");
+
+  private static boolean isResourceClassName(@NotNull String className) {
+    return RESOURCE_CLASS_NAME.matcher(className).matches();
   }
 
   @Override
@@ -375,12 +342,85 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return super.loadClassFile(fqcn, classFile);
   }
 
+  /**
+   * Returns a {@link Stream<File>} of the referenced libraries for the {@link Module} of this class loader.
+   */
+  @NotNull
+  private static Stream<File> getExternalLibraries(Module module) {
+    if (module == null) {
+      return Stream.empty();
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.requiresAndroidModel()) {
+      AndroidModel model = facet.getAndroidModel();
+      if (model != null) {
+        return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
+      }
+    }
+
+    return AndroidRootUtil.getExternalLibraries(module).stream().map(VfsUtilCore::virtualToIoFile);
+  }
+
+  private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
+    File aarDir = jarFile.getParentFile();
+    if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR)) {
+      if (aarDir.getPath().contains(EXPLODED_AAR)) {
+        if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
+          // Some libraries recently started packaging jars inside a sub libs folder inside jars
+          aarDir = aarDir.getParentFile();
+        }
+        // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
+        if (aarDir.getPath().endsWith(FD_JARS)) {
+          aarDir = aarDir.getParentFile();
+        }
+      }
+      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+      if (appResources != null) {
+        ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
+      }
+
+      return;
+    }
+
+    // Build cache? We need to compute the package name in a slightly different way
+    File parentFile = aarDir.getParentFile();
+    if (parentFile != null) {
+      File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
+      if (manifest.exists()) {
+        AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+        if (appResources != null) {
+          FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
+          if (repository != null) {
+            ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
+            registry.addLibrary(appResources, registry.getAarPackage(parentFile));
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a {@link Stream<File>} of the JAR files for the given external libraries.
+   */
+  @NotNull
+  private static Stream<File> getLibraryJarFiles(@NotNull Stream<File> externalLibraries) {
+    return externalLibraries
+      .filter(vFile -> EXT_JAR.equals(Files.getFileExtension(vFile.getName())))
+      .filter(File::exists);
+  }
+
+  /**
+   * Returns the list of external JAR files referenced by the class loader. This method will also register any resource files in the
+   * referenced AARs that haven't been registered before.
+   */
   @Override
   protected List<URL> getExternalJars() {
     final Module module = myModuleReference.get();
     if (module == null) {
       return Collections.emptyList();
     }
+
     final List<URL> result = new ArrayList<>();
 
     if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
@@ -390,61 +430,18 @@ public final class ModuleClassLoader extends RenderClassLoader {
         result.add(customWidgetsUrl);
       }
     }
-    List<VirtualFile> externalLibraries;
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      AndroidModel androidModel = facet.getAndroidModel();
-      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(module);
-    } else {
-      externalLibraries = AndroidRootUtil.getExternalLibraries(module);
-    }
-    for (VirtualFile libFile : externalLibraries) {
-      if (EXT_JAR.equals(libFile.getExtension())) {
-        final File file = new File(libFile.getPath());
-        if (file.exists()) {
-          try {
-            result.add(SdkUtils.fileToUrl(file));
 
-            File aarDir = file.getParentFile();
-            if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR))) {
-              if (aarDir.getPath().contains(EXPLODED_AAR)) {
-                if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
-                  // Some libraries recently started packaging jars inside a sub libs folder inside jars
-                  aarDir = aarDir.getParentFile();
-                }
-                // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
-                if (aarDir.getPath().endsWith(FD_JARS)) {
-                  aarDir = aarDir.getParentFile();
-                }
-              }
-              AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
-              if (appResources != null) {
-                ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
-              }
-            } else if (aarDir != null) {
-              // Build cache? We need to compute the package name in a slightly different way
-              File parentFile = aarDir.getParentFile();
-              if (parentFile != null) {
-                File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
-                if (manifest.exists()) {
-                  AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
-                  if (appResources != null) {
-                    FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
-                    if (repository != null) {
-                      ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
-                      registry.addLibrary(appResources, registry.getAarPackage(parentFile));
-                    }
-                  }
-                }
-              }
-            }
-          }
-          catch (MalformedURLException e) {
-            LOG.error(e);
-          }
+    getLibraryJarFiles(getExternalLibraries(module))
+      .peek(jarFile -> {
+        try {
+          result.add(SdkUtils.fileToUrl(jarFile));
         }
-      }
-    }
+        catch (MalformedURLException e) {
+          LOG.error(e);
+        }
+      })
+      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
+
     return result;
   }
 
@@ -560,5 +557,5 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
+  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<>();
 }

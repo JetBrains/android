@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.tools.log.LogWrapper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -39,7 +40,7 @@ public class RenderSecurityManagerFactory {
 
     @SuppressWarnings("ConstantConditions")
     RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
-    securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
+    securityManager.setLogger(new LogWrapper(RenderLogger.LOG).alwaysLogAsDebug(true).allowVerbose(false));
     securityManager.setAppTempDir(PathManager.getTempPath());
 
     return securityManager;

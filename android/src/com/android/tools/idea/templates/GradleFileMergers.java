@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 /**
  * Utilities shared between {@link GradleFileSimpleMerger} and {@link GradleFilePsiMerger}.
@@ -27,35 +33,54 @@ public class GradleFileMergers {
    */
   static final String DEPENDENCIES = "dependencies";
 
+  private static final ImmutableList<String> KNOWN_CONFIGURATIONS_IN_ORDER =
+    ImmutableList.of("feature", "api", "implementation", "compile",
+                     "testApi", "testImplementation", "testCompile",
+                     "androidTestApi", "androidTestImplementation", "androidTestCompile", "androidTestUtil");
+
+  private static final ImmutableSet<ImmutableSet<String>> CONFIGURATION_GROUPS = ImmutableSet.of(
+    ImmutableSet.of("feature", "api", "implementation", "compile"),
+    ImmutableSet.of("testApi", "testImplementation", "testCompile"),
+    ImmutableSet.of("androidTestApi", "androidTestImplementation", "androidTestCompile"));
+
   /**
    * Defined an ordering on gradle configuration names.
-   *
-   * <p>The order is:
-   * <ol>
-   *   <li>compile
-   *   <li>testCompile
-   *   <li>androidTestCompile
-   *   <li>everything else, in alphabetical order
-   * </ol>
-   * @return
    */
   static final Ordering<String> CONFIGURATION_ORDERING =
     Ordering
       .natural()
-      .onResultOf((String input) -> {
-        switch (input) {
-          case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
-            return 1;
-          case SdkConstants.GRADLE_TEST_COMPILE_CONFIGURATION:
-            return 2;
-          case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
-            return 3;
-          default:
-            return 4;
-        }
+      .onResultOf((@NotNull String input) -> {
+        int result = KNOWN_CONFIGURATIONS_IN_ORDER.indexOf(input);
+        return result != -1 ? result : KNOWN_CONFIGURATIONS_IN_ORDER.size();
       })
       .compound(Ordering.natural());
 
+  /**
+   * Perform an in-place removal of entries from {@code newDependencies} that are also in {@code existingDependencies}
+   */
+  public static void removeExistingDependencies(@NotNull Map<String, Multimap<String, GradleCoordinate>> newDependencies,
+                                                @NotNull Map<String, Multimap<String, GradleCoordinate>> existingDependencies) {
+    for (String configuration : newDependencies.keySet()) {
+      // If we already have an existing "compile" dependency, the same "implementation" or "api" dependency should not be added
+      for (String possibleConfiguration : getConfigurationGroup(configuration)) {
+        if (existingDependencies.containsKey(possibleConfiguration)) {
+          for (String coordinateId: existingDependencies.get(possibleConfiguration).keySet()) {
+            newDependencies.get(configuration).removeAll(coordinateId);
+          }
+        }
+      }
+    }
+  }
 
   private GradleFileMergers() {}
+
+  private static ImmutableSet<String> getConfigurationGroup(String configuration) {
+    for (ImmutableSet<String> group : CONFIGURATION_GROUPS) {
+      if (group.contains(configuration)) {
+        return group;
+      }
+    }
+
+    return ImmutableSet.of(configuration);
+  }
 }

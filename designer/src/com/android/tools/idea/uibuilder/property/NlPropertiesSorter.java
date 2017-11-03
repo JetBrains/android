@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 

@@ -21,9 +21,9 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
-import com.google.common.base.Splitter;
 import com.intellij.debugger.engine.JVMNameUtil;
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
 import com.intellij.openapi.project.Project;
@@ -38,7 +38,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintUtil;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.CONSTRUCTOR_NAME;
-import static com.android.SdkConstants.SUPPRESS_ALL;
 
 /**
  * Common utilities for handling lint within IntelliJ
@@ -55,11 +53,6 @@ import static com.android.SdkConstants.SUPPRESS_ALL;
 public class LintIdeUtils {
   private LintIdeUtils() {
   }
-
-  @NonNls
-  public static final String SUPPRESS_LINT_FQCN = "android.annotation.SuppressLint";
-  @NonNls
-  public static final String SUPPRESS_WARNINGS_FQCN = "java.lang.SuppressWarnings";
 
   /**
    * Gets the location of the given element
@@ -86,7 +79,7 @@ public class LintIdeUtils {
     TextRange textRange = element.getTextRange();
     Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
     Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
-    return Location.create(file, start, end);
+    return Location.create(file, start, end).withSource(element);
   }
 
   /**
@@ -111,88 +104,6 @@ public class LintIdeUtils {
     return AndroidPsiUtils.getPsiFileSafely(project, file);
   }
 
-  /**
-   * Returns true if the given issue is suppressed at the given element within the given file
-   *
-   * @param element the element to check
-   * @param issue the issue to check
-   * @return true if the given issue is suppressed
-   */
-  public static boolean isSuppressed(@NonNull PsiElement scope, @NonNull Issue issue) {
-    // Search upwards for suppress lint and suppress warnings annotations
-    while (scope != null) {
-      if (scope instanceof PsiModifierListOwner) {
-        PsiModifierList modifierList = ((PsiModifierListOwner) scope).getModifierList();
-        if (modifierList != null) {
-          for (PsiAnnotation annotation : modifierList.getAnnotations()) {
-            String fqcn = annotation.getQualifiedName();
-            if (fqcn != null && (fqcn.equals(SUPPRESS_LINT_FQCN) || fqcn.equals(SUPPRESS_WARNINGS_FQCN))) {
-              PsiAnnotationParameterList parameterList = annotation.getParameterList();
-              for (PsiNameValuePair pair : parameterList.getAttributes()) {
-                PsiAnnotationMemberValue v = pair.getValue();
-                if (v instanceof PsiLiteral) {
-                  PsiLiteral literal = (PsiLiteral)v;
-                  Object value = literal.getValue();
-                  if (value instanceof String) {
-                    if (isSuppressed(issue, (String) value)) {
-                      return true;
-                    }
-                  }
-                } else if (v instanceof PsiArrayInitializerMemberValue) {
-                  PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
-                  for (PsiAnnotationMemberValue mmv : mv.getInitializers()) {
-                    if (mmv instanceof PsiLiteral) {
-                      PsiLiteral literal = (PsiLiteral) mmv;
-                      Object value = literal.getValue();
-                      if (value instanceof String) {
-                        if (isSuppressed(issue, (String) value)) {
-                          return true;
-                        }
-                      }
-                    }
-                  }
-                } else if (v != null) {
-                  // This shouldn't be necessary
-                  String text = v.getText().trim(); // UGH! Find better way to access value!
-                  if (!text.isEmpty() && isSuppressed(issue, text)) {
-                    return true;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      scope = scope.getParent();
-      if (scope instanceof PsiFile) {
-        // otherwise it will keep going into directories!
-        break;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Returns true if the given issue is suppressed by the given suppress string; this
-   * is typically the same as the issue id, but is allowed to not match case sensitively,
-   * and is allowed to be a comma separated list, and can be the string "all"
-   *
-   * @param issue  the issue id to match
-   * @param string the suppress string -- typically the id, or "all", or a comma separated list of ids
-   * @return true if the issue is suppressed by the given string
-   */
-  private static boolean isSuppressed(@NonNull Issue issue, @NonNull String string) {
-    for (String id : Splitter.on(',').trimResults().split(string)) {
-      if (id.equals(issue.getId()) || id.equals(SUPPRESS_ALL)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   /** Returns the internal method name */
   @NonNull
   public static String getInternalMethodName(@NonNull PsiMethod method) {
@@ -203,19 +114,6 @@ public class LintIdeUtils {
       return method.getName();
     }
   }
-
-  @Nullable
-  public static PsiElement getCallName(@NonNull PsiCallExpression expression) {
-    PsiElement firstChild = expression.getFirstChild();
-    if (firstChild != null) {
-      PsiElement lastChild = firstChild.getLastChild();
-      if (lastChild instanceof PsiIdentifier) {
-        return lastChild;
-      }
-    }
-    return null;
-  }
-
 
   /**
    * Computes the internal class name of the given class.
@@ -250,29 +148,6 @@ public class LintIdeUtils {
       sig = ClassContext.getInternalName(sig);
     }
     return sig;
-  }
-
-  /**
-   * Computes the internal class name of the given class type.
-   * For example, for PsiClassType foo.bar.Foo.Bar it returns foo/bar/Foo$Bar.
-   *
-   * @param psiClassType the class type to look up the internal name for
-   * @return the internal class name
-   * @see ClassContext#getInternalName(String)
-   */
-  @Nullable
-  public static String getInternalName(@NonNull PsiClassType psiClassType) {
-    PsiClass resolved = psiClassType.resolve();
-    if (resolved != null) {
-      return getInternalName(resolved);
-    }
-
-    String className = psiClassType.getClassName();
-    if (className != null) {
-      return ClassContext.getInternalName(className);
-    }
-
-    return null;
   }
 
   /**
@@ -375,7 +250,7 @@ public class LintIdeUtils {
     if (facet.requiresAndroidModel()) {
       AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel != null) {
-        List<File> resDirectories = new ArrayList<File>();
+        List<File> resDirectories = new ArrayList<>();
         List<SourceProvider> sourceProviders = androidModel.getActiveSourceProviders();
         for (SourceProvider provider : sourceProviders) {
           for (File file : provider.getResDirectories()) {
@@ -387,6 +262,18 @@ public class LintIdeUtils {
         return resDirectories;
       }
     }
-    return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
+    return new ArrayList<>(facet.getMainSourceProvider().getResDirectories());
+  }
+
+  public static boolean isApiLevelAtLeast(@Nullable PsiFile file, int minApiLevel, boolean defaultValue) {
+    if (file != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(file);
+      if (facet != null && !facet.isDisposed()) {
+        AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
+        return info.getMinSdkVersion().getApiLevel() >= minApiLevel;
+      }
+    }
+
+    return defaultValue;
   }
 }

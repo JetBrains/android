@@ -17,26 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintGradleCompatibleInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleCompatibleInspection() {
     super(AndroidBundle.message("android.lint.inspections.gradle.compatible"), GradleDetector.COMPATIBILITY);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String before = GradleDetector.getOldValue(GradleDetector.COMPATIBILITY, message, RAW);
-    String after = GradleDetector.getNewValue(GradleDetector.COMPATIBILITY, message, RAW);
-    if (before != null && after != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
-    }
-
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

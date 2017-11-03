@@ -16,12 +16,13 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.xml.XmlName;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
@@ -41,7 +42,19 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myProvider = new ViewInspectorProvider(getProject());
+    myProvider = new ViewInspectorProvider();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myProvider = null;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testIsApplicable() {
@@ -55,9 +68,6 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
 
     // Component with no ViewHandler:
     assertThat(myProvider.isApplicable(ImmutableList.of(myUnknown), Collections.emptyMap(), myPropertiesManager)).isFalse();
-
-    // Component with ViewHandler but no inspector properties:
-    assertThat(myProvider.isApplicable(ImmutableList.of(myConstraintLayout), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
     // Component with ViewHandler with inspector properties are applicable:
     assertThat(myProvider.isApplicable(ImmutableList.of(myCheckBox1), Collections.emptyMap(), myPropertiesManager)).isTrue();
@@ -111,7 +121,8 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
 
     // Simulate the addition of appcompat library:
     AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
-    properties.put(ATTR_SRC_COMPAT, new NlPropertyItem(components, ANDROID_URI, srcCompatDefinition));
+    properties.put(ATTR_SRC_COMPAT,
+                   NlPropertyItem.create(new XmlName(ATTR_SRC_COMPAT, AUTO_URI), srcCompatDefinition, components, myPropertiesManager));
 
     // Check that an update will replace the ATTR_SRC with ATTR_SRC_COMPAT
     inspector.updateProperties(components, properties, myPropertiesManager);

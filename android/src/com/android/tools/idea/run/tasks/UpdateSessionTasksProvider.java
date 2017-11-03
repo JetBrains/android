@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -32,16 +33,18 @@ import java.util.List;
 
 public class UpdateSessionTasksProvider implements LaunchTasksProvider {
   private final InstantRunBuildAnalyzer myBuildAnalyzer;
+  private final LaunchOptions myLaunchOptions;
 
-  public UpdateSessionTasksProvider(@NotNull InstantRunBuildAnalyzer buildAnalyzer) {
+  public UpdateSessionTasksProvider(@NotNull InstantRunBuildAnalyzer buildAnalyzer, @NotNull LaunchOptions launchOptions) {
     myBuildAnalyzer = buildAnalyzer;
+    myLaunchOptions = launchOptions;
   }
 
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter)
     throws ExecutionException {
-    List<LaunchTask> tasks = new ArrayList<>(myBuildAnalyzer.getDeployTasks(null));
+    List<LaunchTask> tasks = new ArrayList<>(myBuildAnalyzer.getDeployTasks(myLaunchOptions));
     tasks.add(myBuildAnalyzer.getNotificationTask());
     return ImmutableList.copyOf(tasks);
   }

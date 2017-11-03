@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -31,11 +29,10 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
   @NotNull private final Map<String, PsVariant> myVariantsByName = Maps.newHashMap();
 
   PsVariantCollection(@NotNull PsAndroidModule parent) {
-    Collection<Variant> resolvedVariants = parent.getGradleModel().getAndroidProject().getVariants();
-
-    for (Variant resolvedVariant : resolvedVariants) {
+    parent.getGradleModel().getAndroidProject().forEachVariant(ideVariant ->
+    {
       List<String> productFlavors = Lists.newArrayList();
-      for (String productFlavorName : resolvedVariant.getProductFlavors()) {
+      for (String productFlavorName : ideVariant.getProductFlavors()) {
         PsProductFlavor productFlavor = parent.findProductFlavor(productFlavorName);
         if (productFlavor != null) {
           productFlavors.add(productFlavor.getName());
@@ -44,11 +41,11 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
           // TODO handle case when product flavor is not found.
         }
       }
-      String buildType = resolvedVariant.getBuildType();
+      String buildType = ideVariant.getBuildType();
 
-      PsVariant variant = new PsVariant(parent, resolvedVariant.getName(), buildType, productFlavors, resolvedVariant);
-      myVariantsByName.put(resolvedVariant.getName(), variant);
-    }
+      PsVariant variant = new PsVariant(parent, ideVariant.getName(), buildType, productFlavors, ideVariant);
+      myVariantsByName.put(ideVariant.getName(), variant);
+    });
   }
 
   @Override

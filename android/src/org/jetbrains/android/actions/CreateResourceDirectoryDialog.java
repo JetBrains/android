@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.EnumComboBoxModel;
@@ -30,22 +31,19 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
-import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Dialog to decide where to create a res/ subdirectory (e.g., layout/, values-foo/, etc.)
  * and how to name it (based on chosen configuration)
  */
 public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialogBase {
-  private JComboBox myResourceTypeComboBox;
+  private JComboBox<ResourceFolderType> myResourceTypeComboBox;
   private JPanel myDeviceConfiguratorWrapper;
   private JTextField myDirectoryNameTextField;
   private JPanel myContentPanel;
@@ -55,9 +53,9 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
 
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
   private ElementCreatingValidator myValidator;
-  private ValidatorFactory myValidatorFactory;
-  private PsiDirectory myResDirectory;
-  private DataContext myDataContext;
+  private final ValidatorFactory myValidatorFactory;
+  private final PsiDirectory myResDirectory;
+  private final DataContext myDataContext;
 
   public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable Module module, @Nullable ResourceFolderType resType,
                                        @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
@@ -66,29 +64,23 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     myResDirectory = resDirectory;
     myDataContext = dataContext;
     myValidatorFactory = validatorFactory;
-    myResourceTypeComboBox.setModel(new EnumComboBoxModel<ResourceFolderType>(ResourceFolderType.class));
-    myResourceTypeComboBox.setRenderer(new ListCellRendererWrapper() {
+    myResourceTypeComboBox.setModel(new EnumComboBoxModel<>(ResourceFolderType.class));
+    myResourceTypeComboBox.setRenderer(new ListCellRendererWrapper<ResourceFolderType>() {
       @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof ResourceFolderType) {
-          setText(((ResourceFolderType)value).getName());
-        }
+      public void customize(@NotNull JList list, @NotNull ResourceFolderType folderType, int index, boolean selected, boolean focused) {
+        setText(folderType.getName());
       }
     });
 
     myDeviceConfiguratorPanel = setupDeviceConfigurationPanel(myResourceTypeComboBox, myDirectoryNameTextField, myErrorLabel);
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
-    myResourceTypeComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myDeviceConfiguratorPanel.applyEditors();
-      }
-    });
+    myResourceTypeComboBox.addActionListener(event -> myDeviceConfiguratorPanel.applyEditors());
 
     if (resType != null) {
       myResourceTypeComboBox.setSelectedItem(resType);
       myResourceTypeComboBox.setEnabled(false);
-    } else {
+    }
+    else {
       // Select values by default if not otherwise specified
       myResourceTypeComboBox.setSelectedItem(ResourceFolderType.VALUES);
     }
@@ -97,8 +89,18 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, facet);
 
     myDeviceConfiguratorPanel.updateAll();
-    setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
+    setOKActionEnabled(!myDirectoryNameTextField.getText().isEmpty());
     init();
+  }
+
+  @Nullable
+  @Override
+  protected ValidationInfo doValidate() {
+    if (myDirectoryNameTextField.getText().equals(SdkConstants.FD_RES_LAYOUT)) {
+      return new ValidationInfo("Enter or select a qualifier", myDirectoryNameTextField);
+    }
+
+    return null;
   }
 
   @Override

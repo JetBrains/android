@@ -35,6 +35,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
+import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
@@ -93,13 +94,17 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
   }
 
   private void createAlarmForAutogeneration() {
-    DumbService service = DumbService.getInstance(myProject);
     final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myDisposable);
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
+        if (!myProject.isOpen()) {
+          return; // When project is closing (but not disposed yet), runReadActionInSmartMode throws "Registering post-startup activity"
+        }
+
+        DumbService service = DumbService.getInstance(myProject);
         Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
-        if (facetsToProcess.size() > 0) {
+        if (!facetsToProcess.isEmpty()) {
           generate(facetsToProcess);
         }
         if (!alarm.isDisposed()) {
@@ -115,22 +120,23 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-        if (facet != null && facet.isAutogenerationEnabled()) {
-          final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
+      if (facet != null && ModuleSourceAutogenerating.getInstance(facet) != null) {
+        final Set<AndroidAutogeneratorMode> modes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
 
-          for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-            if (facet.cleanRegeneratingState(mode) || facet.isGeneratedFileRemoved(mode)) {
-              modes.add(mode);
-            }
-          }
-
-          if (modes.size() > 0) {
-            facetsToProcess.put(facet, modes);
+        for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
+          ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
+          if (autogenerating != null && (autogenerating.cleanRegeneratingState(mode) || autogenerating.isGeneratedFileRemoved(mode))) {
+            modes.add(mode);
           }
         }
+
+        if (!modes.isEmpty()) {
+          facetsToProcess.put(facet, modes);
+        }
       }
+    }
     return facetsToProcess;
   }
 

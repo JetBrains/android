@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.explorer;
 
+import com.android.tools.idea.explorer.DeviceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.DeviceExplorerToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.wm.impl.StripeButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-@RunWith(DeviceExplorerTestRunner.class)
+@RunWith(GuiTestRunner.class)
 public class DeviceExplorerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void testToolWindowShows() throws IOException {
-    guiTest.importSimpleApplication();
-    DeviceExplorerToolWindowFixture toolWindow = guiTest.ideFrame().getDeviceExplorerToolWindow();
-    assertNotNull(toolWindow);
-    assertTrue(toolWindow.getContentPanel().isVisible());
+  public void buttonShows() throws IOException {
+    DeviceExplorer.enableFeature(true);
+    guiTest.importSimpleApplication()
+      .robot().finder().find(Matchers.byText(StripeButton.class, "Device File Explorer"));
+    DeviceExplorer.enableFeature(false);
   }
 }

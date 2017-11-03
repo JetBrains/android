@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.databinding;
 
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
 
@@ -33,13 +35,13 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(myAndroidFacet.isDataBindingEnabled());
+    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
     assertTrue(myModules.hasModule("lib"));
     assertTrue(myModules.hasModule("lib2"));
     // app depends on lib depends on lib2
 
     // trigger initialization
-    myAndroidFacet.getModuleResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(getProject());
     String appBindingClassName = "com.android.example.appwithdatabinding.databinding.ActivityMainBinding";
@@ -58,6 +60,5 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myAndroidFacet.getModule().getModuleWithDependenciesScope()));
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myModules.getModule("lib").getModuleWithDependenciesScope()));
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myModules.getModule("lib2").getModuleWithDependenciesScope()));
-
   }
 }

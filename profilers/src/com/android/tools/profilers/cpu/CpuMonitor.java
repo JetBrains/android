@@ -15,36 +15,33 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuMonitor extends ProfilerMonitor {
 
+  private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "%");
+
+  @NotNull private final CpuUsage myThisProcessCpuUsage;
+  @NotNull private final AxisComponentModel myCpuUsageAxis;
+  @NotNull private final Legends myLegends;
+  @NotNull private final Legends myTooltipLegends;
+
   public CpuMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-  }
 
-  @NotNull
-  private CpuUsageDataSeries getCpuUsage(boolean other) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myProfilers.getClient().getCpuClient();
-    return new CpuUsageDataSeries(client, other, myProfilers.getProcessId());
-  }
+    myThisProcessCpuUsage = new CpuUsage(profilers);
 
-  @NotNull
-  public CpuUsageDataSeries getThisProcessCpuUsage() {
-    return getCpuUsage(false);
-  }
+    myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
+    myCpuUsageAxis.setClampToMajorTicks(true);
 
-  @NotNull
-  public CpuUsageDataSeries getOtherProcessesCpuUsage() {
-    return getCpuUsage(true);
-  }
-
-  @NotNull
-  public CpuThreadCountDataSeries getThreadsCount() {
-    return new CpuThreadCountDataSeries(myProfilers.getClient().getCpuClient(), myProfilers.getProcessId());
+    myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
+    myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange(), 0);
   }
 
   @Override
@@ -52,7 +49,60 @@ public class CpuMonitor extends ProfilerMonitor {
     return "CPU";
   }
 
+  @Override
+  public void exit() {
+    myProfilers.getUpdater().unregister(myThisProcessCpuUsage);
+    myProfilers.getUpdater().unregister(myCpuUsageAxis);
+    myProfilers.getUpdater().unregister(myLegends);
+    myProfilers.getUpdater().unregister(myTooltipLegends);
+  }
+
+  @Override
+  public void enter() {
+    myProfilers.getUpdater().register(myThisProcessCpuUsage);
+    myProfilers.getUpdater().register(myCpuUsageAxis);
+    myProfilers.getUpdater().register(myLegends);
+    myProfilers.getUpdater().register(myTooltipLegends);
+  }
+
+  @Override
   public void expand() {
     myProfilers.setStage(new CpuProfilerStage(myProfilers));
+  }
+
+  @NotNull
+  public AxisComponentModel getCpuUsageAxis() {
+    return myCpuUsageAxis;
+  }
+
+  @NotNull
+  public Legends getLegends() {
+    return myLegends;
+  }
+
+  @NotNull
+  public CpuUsage getThisProcessCpuUsage() {
+    return myThisProcessCpuUsage;
+  }
+
+  public Legends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
+  public static class Legends extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myCpuLegend;
+
+    public Legends(@NotNull CpuUsage usage, @NotNull Range range, int updateFrequencyMs) {
+      super(updateFrequencyMs);
+      myCpuLegend = new SeriesLegend(usage.getCpuSeries(), CPU_USAGE_FORMATTER, range);
+      add(myCpuLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getCpuLegend() {
+      return myCpuLegend;
+    }
   }
 }

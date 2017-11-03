@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -30,12 +34,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 
 /**
  * AndroidModuleBuilder integrates the AndroidStudio new project and new module wizards into the IDEA new project and new module wizards.
@@ -75,10 +81,6 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
   @Override
   public String getPresentableName() {
-    // TODO: development code only. Once other plugins are deprecated, just return "Android"
-    if (Boolean.getBoolean("use.npw.modelwizard")) {
-      return "Android (New)";
-    }
     return MODULE_NAME;
   }
 
@@ -116,18 +118,14 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
    * wizard which presents the entire wizard as if it was a single step. This method must be called before any of the methods on the
    * {@link WizardDelegate} interface can be called.
    *
-   * @param context          Provides information about how the wizard was created (i.e. new project or new module)
+   * @param ctx Provides information about how the wizard was created (i.e. new project or new module)
    * @param parentDisposable Controls the lifetime of the wizard
    */
   @Nullable
   @Override
-  public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
-    // TODO: development code only. Once other plugins are deprecated, delete this code
-    if (!Boolean.getBoolean("use.npw.modelwizard")) {
-      return null;
-    }
+  public ModuleWizardStep getCustomOptionsStep(WizardContext ctx, Disposable parentDisposable) {
     if (myWizardAdapter == null) {
-      createWizardAdaptor(context.getWizard(), context.isCreatingNewProject() ? WizardType.PROJECT : WizardType.MODULE);
+      createWizardAdaptor(ctx.getWizard(), ctx.isCreatingNewProject() ? WizardType.PROJECT : WizardType.MODULE, ctx.getProject());
     }
 
     assert myWizardAdapter != null;
@@ -158,20 +156,20 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
     return myWizardAdapter.canProceed();
   }
 
-  private void createWizardAdaptor(@NotNull AbstractWizard hostWizard, @NotNull WizardType type) {
+  private void createWizardAdaptor(@NotNull AbstractWizard hostWizard, @NotNull WizardType type, Project project) {
     Preconditions.checkState(myWizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.");
 
     ModelWizard.Builder builder = new ModelWizard.Builder();
     if (type == WizardType.PROJECT) {
-      NewProjectModel projectModel = new NewProjectModel();
-      builder.addStep(new ConfigureAndroidProjectStep(projectModel));
-      // TODO: more steps once they are complete.
+      builder.addStep(new ConfigureAndroidProjectStep(new NewProjectModel()));
     }
     else {
-      throw new UnsupportedOperationException();
-      // TODO: once new module wizard is complete, register it here.
-      // NewModuleModel moduleModel = new NewModuleModel();
-      // builder.addStep(new ConfigureAndroidModuleStep(moduleModel));
+      ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+      for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
+        moduleDescriptions.addAll(provider.getDescriptions());
+      }
+
+      builder.addStep(new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions));
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());
   }

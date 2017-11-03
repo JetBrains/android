@@ -18,6 +18,7 @@ package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDataSeries;
@@ -140,7 +141,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // Therefore, step the choreographer multiple times to simulate this behavior.
         int extraSteps = 60;
         for (int i = 0; i < extraSteps; i++) {
-          myChoreographer.step();
+          myTimer.step();
         }
       }
     });
@@ -177,7 +178,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
         // Calling step() will animate the time range and, as a result, it will set the max to the current time.
         // That will make the range to occupy the entire screen.
-        myChoreographer.step();
+        myTimer.step();
 
         // Add the max range to the chart. That should occupy the chart entirely.
         long constantLineChartValue = (long) LINE_CHART_RANGE_MAX;
@@ -238,6 +239,8 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private LineChart myLineChart;
 
+    private LineChartModel myLineChartModel;
+
     private Range myYRange;
 
     private RangeImageDiffEntry(String baselineFilename) {
@@ -246,19 +249,21 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLineChart = new LineChart();
+      myLineChartModel = new LineChartModel();
+      myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
       myData = new ArrayList<>();
       myContentPane.add(myLineChart, BorderLayout.CENTER);
-      myComponents.add(myLineChart);
+      myComponents.add(myLineChartModel);
       myYRange = new Range(LINE_CHART_RANGE_MIN, LINE_CHART_RANGE_MAX);
     }
 
     protected void addLine(LineConfig lineConfig, Range xRange) {
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
-      RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Some Series", xRange, myYRange, series);
+      RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Series #" + myData.size(), xRange, myYRange, series);
       myData.add(series);
-      myLineChart.addLine(rangedSeries, lineConfig);
+      myLineChartModel.add(rangedSeries);
+      myLineChart.configure(rangedSeries, lineConfig);
     }
 
     protected void addLine(LineConfig lineConfig) {

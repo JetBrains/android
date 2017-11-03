@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -75,6 +75,6 @@ public class MakeGradleModuleAction extends AndroidStudioGradleAction {
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     Module[] modules = getModulesToBuildFromSelection(project, e.getDataContext());
-    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.NONE);
+    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL);
   }
 }

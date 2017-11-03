@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
@@ -31,19 +31,19 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link ObjectStreamErrorHandler}.
  */
 public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithLocationInMessage() throws Exception {
     registerSyncErrorToSimulate("unexpected end of block data");
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).contains(
       "An unexpected I/O error occurred.\n" +

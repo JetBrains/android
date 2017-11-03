@@ -23,9 +23,9 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -41,7 +41,7 @@ import org.jetbrains.jps.service.JpsServiceManager;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
@@ -74,7 +74,7 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
 
     String nativeToolOutput = syncIssue.getData();
     if (nativeToolOutput != null) {
-      SyncMessages messages = getSyncMessages(module);
+      GradleSyncMessages messages = getSyncMessages(module);
 
       // Parse the native build tool output with the list of existing parsers.
       List<Message> compilerMessages = myBuildOutputParser.parseGradleOutput(nativeToolOutput);

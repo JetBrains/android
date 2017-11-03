@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Strings;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
@@ -31,7 +31,7 @@ import java.util.Arrays;
 import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 
-abstract class PreferenceHandler extends ViewHandler {
+public abstract class PreferenceHandler extends ViewHandler {
   @Language("XML")
   @NotNull
   @Override

@@ -7,7 +7,7 @@
   </item>
   <item name="android.location.GnssMeasurement int getMultipathIndicator()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.location.GnssMeasurement.MULTIPATH_INDICATOR_UNKNOWN, android.location.GnssMeasurement.MULTIPATH_INDICATOR_DETECTED}" />
+      <val name="value" val="{android.location.GnssMeasurement.MULTIPATH_INDICATOR_UNKNOWN, android.location.GnssMeasurement.MULTIPATH_INDICATOR_DETECTED, android.location.GnssMeasurement.MULTIPATH_INDICATOR_NOT_DETECTED}" />
     </annotation>
   </item>
   <item name="android.location.GnssMeasurementsEvent android.location.GnssClock getClock()">
@@ -37,6 +37,11 @@
   <item name="android.location.GnssStatus int getConstellationType(int)">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.location.GnssStatus.CONSTELLATION_UNKNOWN, android.location.GnssStatus.CONSTELLATION_GPS, android.location.GnssStatus.CONSTELLATION_SBAS, android.location.GnssStatus.CONSTELLATION_GLONASS, android.location.GnssStatus.CONSTELLATION_QZSS, android.location.GnssStatus.CONSTELLATION_BEIDOU, android.location.GnssStatus.CONSTELLATION_GALILEO}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.LOCATION_SERVICE" />
     </annotation>
   </item>
   <item name="android.location.LocationManager android.location.GpsStatus getGpsStatus(android.location.GpsStatus)">

@@ -20,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface CreateNewClassDialogValidatorEx extends CreateNewClassDialogValidator, InputValidatorEx {
+  @NotNull String getNameErrorText(@Nullable String inputString);
   @NotNull String getSuperclassErrorText(@Nullable String inputString);
   @NotNull String getInterfacesErrorText(@Nullable String inputString);
+  @NotNull String getNotAnInterfaceErrorText(@Nullable String inputString);
+  @NotNull String getNotAClassErrorText(@Nullable String inputString);
   @NotNull String getPackageErrorText(@Nullable String inputString);
 }

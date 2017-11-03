@@ -17,7 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.*;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.detector.api.Detector;
+import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -33,26 +36,6 @@ import static com.android.tools.idea.lint.LintIdeProject.SUPPORT_CLASS_FILES;
  * of some issues with IDEA specific ones.
  */
 public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
-  private static final Implementation DUMMY_IMPLEMENTATION = new Implementation(Detector.class,
-                                                                                EnumSet.noneOf(Scope.class));
-
-  private static final String CUSTOM_EXPLANATION =
-    "When custom (third-party) lint rules are integrated in the IDE, they are not available as native IDE inspections, " +
-    "so the explanation text (which must be statically registered by a plugin) is not available. As a workaround, run the " +
-    "lint target in Gradle instead; the HTML report will include full explanations.";
-
-  /**
-   * Issue reported by a custom rule (3rd party detector). We need a placeholder issue to reference for inspections, which
-   * have to be registered statically (can't load these on the fly from custom jars the way lint does)
-   */
-  @NonNull
-  public static final Issue CUSTOM_WARNING = Issue.create(
-    "CustomWarning", "Warning from Custom Rule", CUSTOM_EXPLANATION, Category.CORRECTNESS, 5, Severity.WARNING, DUMMY_IMPLEMENTATION);
-
-  @NonNull
-  public static final Issue CUSTOM_ERROR = Issue.create(
-    "CustomError", "Error from Custom Rule", CUSTOM_EXPLANATION, Category.CORRECTNESS, 5, Severity.ERROR, DUMMY_IMPLEMENTATION);
-
   private static List<Issue> ourFilteredIssues;
 
   public LintIdeIssueRegistry() {
@@ -66,45 +49,58 @@ public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
       List<Issue> result = new ArrayList<Issue>(sIssues.size());
       for (Issue issue : sIssues) {
         Implementation implementation = issue.getImplementation();
-        EnumSet<Scope> scope = implementation.getScope();
         Class<? extends Detector> detectorClass = implementation.getDetectorClass();
-        if (detectorClass == ApiDetector.class) {
-          // We're okay to include the class file check here
-          result.add(issue);
-          continue;
-        } else if (detectorClass == GradleDetector.class) {
+        if (detectorClass == GradleDetector.class) {
           issue.setImplementation(LintIdeGradleDetector.IMPLEMENTATION);
         } else if (detectorClass == ViewTypeDetector.class) {
           issue.setImplementation(LintIdeViewTypeDetector.IMPLEMENTATION);
-        } else if (detectorClass == SupportAnnotationDetector.class) {
-          // Handled by the ResourceTypeInspection
+        } else if (!isRelevant(issue)) {
+          // Skip issue: not included inside the IDE
           continue;
-        } else if (scope.contains(Scope.CLASS_FILE) ||
-            scope.contains(Scope.ALL_CLASS_FILES) ||
-            scope.contains(Scope.JAVA_LIBRARIES)) {
-          //noinspection ConstantConditions
-          assert !SUPPORT_CLASS_FILES; // When enabled, adjust this to include class detector based issues
-
-          boolean isOk = false;
-          for (EnumSet<Scope> analysisScope : implementation.getAnalysisScopes()) {
-            if (!analysisScope.contains(Scope.CLASS_FILE) &&
-                !analysisScope.contains(Scope.ALL_CLASS_FILES) &&
-                !analysisScope.contains(Scope.JAVA_LIBRARIES)) {
-              isOk = true;
-              break;
-            }
-          }
-          if (!isOk) {
-            // Skip issue: not included inside the IDE
-            continue;
-          }
         }
         result.add(issue);
       }
+
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourFilteredIssues = result;
     }
-
     return ourFilteredIssues;
+  }
+
+  /** Returns true if the given lint check is relevant in the IDE (typically because the check is duplicated by existing IDE inspections) */
+  public static boolean isRelevant(@NonNull Issue issue) {
+
+    Implementation implementation = issue.getImplementation();
+    EnumSet<Scope> scope = implementation.getScope();
+    Class<? extends Detector> detectorClass = implementation.getDetectorClass();
+    if (scope.contains(Scope.CLASS_FILE) ||
+               scope.contains(Scope.ALL_CLASS_FILES) ||
+               scope.contains(Scope.JAVA_LIBRARIES)) {
+      if (detectorClass == ApiDetector.class) {
+        // We're okay to include the class file check here
+        return true;
+      }
+
+      //noinspection ConstantConditions
+      assert !SUPPORT_CLASS_FILES; // When enabled, adjust this to include class detector based issues
+
+      for (EnumSet<Scope> analysisScope : implementation.getAnalysisScopes()) {
+        if (!analysisScope.contains(Scope.CLASS_FILE) &&
+            !analysisScope.contains(Scope.ALL_CLASS_FILES) &&
+            !analysisScope.contains(Scope.JAVA_LIBRARIES)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Supported more directly by other IntelliJ checks(?)
+    if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
+        issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
+        issue == ManifestDetector.WRONG_PARENT) {           // IDEA checks for this in Java code
+      return false;
+    }
+
+    return true;
   }
 }

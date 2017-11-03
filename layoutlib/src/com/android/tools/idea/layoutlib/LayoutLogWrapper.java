@@ -28,21 +28,21 @@ public class LayoutLogWrapper extends LayoutLog {
   }
 
   @Override
-  public void warning(String tag, String message, Object data) {
+  public void warning(String tag, String message, Object viewCookie, Object data) {
     myLog.warn(message);
   }
 
   @Override
-  public void fidelityWarning(String tag, String message, Throwable throwable, Object data) {
+  public void fidelityWarning(String tag, String message, Throwable throwable, Object viewCookie, Object data) {
     myLog.warn(message);
   }
   @Override
-  public void error(String tag, String message, Object data) {
+  public void error(String tag, String message, Object viewCookie, Object data) {
     myLog.error(message);
   }
 
   @Override
-  public void error(String tag, String message, Throwable throwable, Object data) {
+  public void error(String tag, String message, Throwable throwable, Object viewCookie, Object data) {
     myLog.error(message, throwable);
   }
 }

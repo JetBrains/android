@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.datamodels;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,7 +31,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     // Do a simple instantiation and check that the setters update the right value
 
     VirtualFile myLayout = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
     // We just get a theme that we use as fake source to pass to the ConfiguredItemResourceValue constructor
     ConfiguredThemeEditorStyle fakeTheme = ResolutionUtils.getStyle(configuration, "android:Theme", null);

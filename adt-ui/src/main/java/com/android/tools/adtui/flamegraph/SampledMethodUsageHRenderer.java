@@ -55,9 +55,7 @@ public class SampledMethodUsageHRenderer extends HRenderer<SampledMethodUsage> {
    * Find the best text for the given rectangle constraints.
    */
   @Override
-  protected String generateFittingText(SampledMethodUsage method, Rectangle2D rect,
-                                       FontMetrics fontMetrics) {
-
+  protected String generateFittingText(SampledMethodUsage method, Rectangle2D rect, FontMetrics fontMetrics) {
     if (rect.getWidth() < fontMetrics.stringWidth("...")) {
       return "";
     }
@@ -84,6 +82,12 @@ public class SampledMethodUsageHRenderer extends HRenderer<SampledMethodUsage> {
     // Try toSr...
 
     return "";
+  }
+
+  @Override
+  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
+    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
+    g.drawString(text, rect.x, textPositionY);
   }
 
   private String getShortPackageName(String nameSpace) {

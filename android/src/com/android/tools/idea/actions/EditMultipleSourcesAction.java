@@ -26,11 +26,19 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.components.JBList;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public class EditMultipleSourcesAction extends AnAction {
+  @Nullable private final Runnable myNavigationCallback;
+
   public EditMultipleSourcesAction() {
+    this(null);
+  }
+
+  public EditMultipleSourcesAction(@Nullable Runnable navigationCallback) {
+    myNavigationCallback = navigationCallback;
     Presentation presentation = getTemplatePresentation();
     presentation.setText(ActionsBundle.actionText("EditSource"));
     presentation.setIcon(AllIcons.Actions.EditSource);
@@ -78,21 +86,21 @@ public class EditMultipleSourcesAction extends AnAction {
       list.setCellRenderer(new GotoFileCellRenderer(width));
 
       JBPopup popup =
-        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(new Runnable() {
-          @Override
-          public void run() {
-            Object selectedValue = list.getSelectedValue();
-            PsiClassNavigation navigationWrapper = null;
-            for (Navigatable file : files) {
-              if (selectedValue == ((PsiClassNavigation)file).getPsiFile()) {
-                navigationWrapper = (PsiClassNavigation)file;
-                break;
-              }
+        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(() -> {
+          Object selectedValue = list.getSelectedValue();
+          PsiClassNavigation navigationWrapper = null;
+          for (Navigatable file : files) {
+            if (selectedValue == ((PsiClassNavigation)file).getPsiFile()) {
+              navigationWrapper = (PsiClassNavigation)file;
+              break;
             }
-            assert navigationWrapper != null;
-            if (navigationWrapper.canNavigate()) {
-              navigationWrapper.navigate(true);
+          }
+          assert navigationWrapper != null;
+          if (navigationWrapper.canNavigate()) {
+            if (myNavigationCallback != null) {
+              myNavigationCallback.run();
             }
+            navigationWrapper.navigate(true);
           }
         }).createPopup();
 
@@ -107,6 +115,9 @@ public class EditMultipleSourcesAction extends AnAction {
       assert files[0] instanceof PsiClassNavigation;
       PsiClassNavigation file = (PsiClassNavigation)files[0];
       if (file.canNavigate()) {
+        if (myNavigationCallback != null) {
+          myNavigationCallback.run();
+        }
         file.navigate(true);
       }
     }

@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.ModelField;
 import android.databinding.tool.reflection.ModelMethod;
+import com.android.annotations.NonNull;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
-import com.android.tools.idea.lang.databinding.psi.PsiDbDotExpr;
-import com.android.tools.idea.lang.databinding.psi.PsiDbMethodExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.patterns.PlatformPatterns;
@@ -63,12 +67,19 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         if (references.length == 0) {
           // try to replace parent
           PsiElement grandParent = parent.getParent();
-          if (grandParent instanceof PsiDbDotExpr) {
-            parent = ((PsiDbDotExpr) grandParent).getExpr();
-          } else if (grandParent instanceof PsiDbMethodExpr) {
-            parent = ((PsiDbMethodExpr) grandParent).getExpr();
+          if (grandParent instanceof PsiDbCallExpr) {
+            ((PsiDbCallExpr)grandParent).getRefExpr();
+          }
+
+          if (grandParent instanceof PsiDbRefExpr) {
+            PsiDbExpr ownerExpr = ((PsiDbRefExpr)grandParent).getExpr();
+            if (ownerExpr == null) {
+              autoCompleteVariablesAndUnqualifiedFunctions(getFile(grandParent), result);
+              return;
+            }
+            parent = ownerExpr;
           } else if (grandParent instanceof DbFile) {
-            autoCompleteVariables((DbFile)grandParent, result);
+            autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
             // TODO: add completions for packages and java.lang classes.
             return;
           } else {
@@ -131,7 +142,21 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     });
   }
 
-  private static void autoCompleteVariables(DbFile file, CompletionResultSet result) {
+  @NotNull
+  private DbFile getFile(@NonNull PsiElement element) {
+    while (!(element instanceof DbFile)) {
+      PsiElement parent = element.getParent();
+      if (parent == null) {
+        throw new IllegalArgumentException();
+      }
+      element = parent;
+    }
+    return (DbFile)element;
+  }
+
+  private static void autoCompleteVariablesAndUnqualifiedFunctions(@NonNull DbFile file, @NonNull CompletionResultSet result) {
+    autoCompleteUnqualifiedFunctions(result);
+
     DataBindingInfo dataBindingInfo = DataBindingXmlReferenceContributor.getDataBindingInfo(file);
     if (dataBindingInfo == null) {
       return;
@@ -139,5 +164,10 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     for (PsiDataBindingResourceItem resourceItem : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE)) {
       result.addElement(LookupElementBuilder.create(resourceItem.getXmlTag(), resourceItem.getName()));
     }
+  }
+
+  private static void autoCompleteUnqualifiedFunctions(@NonNull CompletionResultSet result) {
+    final LookupElement item = LookupElementBuilder.create(ExprModel.SAFE_UNBOX_METHOD_NAME);
+    result.addElement(item);
   }
 }

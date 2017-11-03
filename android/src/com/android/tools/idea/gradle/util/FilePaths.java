@@ -15,60 +15,26 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.*;
+import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.intellij.openapi.vfs.StandardFileSystems.*;
 import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
+import static com.intellij.util.PathUtil.getParentPath;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
   private FilePaths() {
-  }
-
-  @Nullable
-  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull ContentEntry[] contentEntries) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (isPathInContentEntry(path, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull Collection<ContentEntry> contentEntries) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (isPathInContentEntry(path, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
-    VirtualFile rootFile = contentEntry.getFile();
-    File rootFilePath;
-    if (rootFile == null) {
-      String s = urlToPath(contentEntry.getUrl());
-      rootFilePath = new File(s);
-    }
-    else {
-      rootFilePath = virtualToIoFile(rootFile);
-    }
-    return isAncestor(rootFilePath, path, false);
   }
 
   /**
@@ -82,24 +48,11 @@ public final class FilePaths {
    */
   @NotNull
   public static String pathToIdeaUrl(@NotNull File path) {
-    return pathToUrl(toSystemIndependentName(path.getPath()));
-  }
-
-  /**
-   * Converts the given path to an URL. It handles both "file" and "jar" file systems.
-   *
-   * @param path the given path.
-   * @return the created URL.
-   */
-  @NotNull
-  public static String pathToUrl(@NotNull String path) {
-    File file = new File(path);
-
-    String name = file.getName();
+    String name = path.getName();
     boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
     String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
-    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
+    String url = constructUrl(protocol, toSystemIndependentName(path.getPath()));
     if (isJarFile) {
       url += JAR_SEPARATOR;
     }
@@ -117,6 +70,53 @@ public final class FilePaths {
     if (index != -1) {
       path = path.substring(0, index);
     }
-    return new File(toSystemDependentName(path));
+    return toSystemDependentPath(path);
   }
+
+  /**
+   * Converts the given {@code String} path to a system-dependent path (as {@link File}.)
+   */
+  @Contract("!null -> !null")
+  @Nullable
+  public static File toSystemDependentPath(@Nullable String path) {
+    return path != null ? new File(toSystemDependentName(path)) : null;
+  }
+
+  @NotNull
+  public static List<String> computeRootPathsForFiles(@NotNull Stream<String> filePaths) {
+    List<String> folderPaths = new ArrayList<>();
+    filePaths.forEach(filePath -> {
+      String parentPath = getParentPath(filePath);
+      folderPaths.add(parentPath);
+    });
+    return mergePaths(folderPaths);
+  }
+
+  /**
+   * If both a parent folder and a subfolder exist in {@code paths}, only keep he parent folder, e.g. if both "/a" and "/a/b/c" exists, keep
+   * "/a" and get rid of "/a/b/c".
+   *
+   * TODO not just merge with parent, but also at some degree, merge the roots that have shallow common parents, e.g.
+   * /a/b/c, /a/b/d -> /a/b
+   */
+  @NotNull
+  public static List<String> mergePaths(@NotNull Collection<String> paths) {
+    if (paths.isEmpty()) {
+      return Collections.emptyList();
+    }
+    NavigableSet<String> sortedPaths = new TreeSet<>(paths);
+
+    List<String> result = new ArrayList<>(paths.size());
+
+    String current = sortedPaths.first();
+    for (String folder : sortedPaths) {
+      if (!folder.startsWith(current)) {
+        result.add(current);
+        current = folder;
+      }
+    }
+    result.add(current);
+    return result;
+  }
+
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
@@ -26,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -40,20 +43,37 @@ import java.awt.event.ActionListener;
  */
 public class StatefulButton extends JPanel {
 
-  private ActionButton myButton;
-  private final String mySuccessMessage;
-  private StatefulButtonMessage myMessage;
-  private AssistActionStateManager myStateManager;
-  private final ActionData myAction;
-  private final Project myProject;
+  @VisibleForTesting
+  @NotNull
+  final ActionButton myButton;
+  @Nullable private final String mySuccessMessage;
+  @Nullable private final AssistActionStateManager myStateManager;
+  @NotNull private final ActionData myAction;
+  @NotNull private final Project myProject;
+  @VisibleForTesting
+  @Nullable
+  StatefulButtonMessage myMessage;
 
+  /**
+   * Creates a button that changes UI based on state.
+   *
+   * @param action       model parsed from xml
+   * @param listener     listens for click and handles action
+   * @param stateManager a button can be associated with a manager that listens for updates and changes button UI. If null, button is
+   *                     always in default state (same as NOT_APPLICABLE)
+   * @param project
+   */
   @SuppressWarnings("deprecation")
-  public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull Project project) {
+  public StatefulButton(@NotNull ActionData action,
+                        @NotNull ActionListener listener,
+                        @Nullable AssistActionStateManager stateManager,
+                        @NotNull Project project) {
     super(new VerticalLayout(5, SwingConstants.LEFT));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
 
     myAction = action;
+    myStateManager = stateManager;
     myProject = project;
 
     // TODO: Don't cache this, restructure messaging to be more centralized with state-dependent templates. For example, allow the bundle
@@ -89,12 +109,6 @@ public class StatefulButton extends JPanel {
     // Initialize to hidden until state management is completed.
     myButton.setVisible(false);
 
-    for (AssistActionStateManager stateManager : AssistActionStateManager.EP_NAME.getExtensions()) {
-      if (stateManager.getId().equals(action.getKey())) {
-        myStateManager = stateManager;
-        break;
-      }
-    }
     if (myStateManager != null) {
       myStateManager.init(project, action);
       myMessage = myStateManager.getStateDisplay(project, action, mySuccessMessage);
@@ -136,38 +150,29 @@ public class StatefulButton extends JPanel {
       return;
     }
 
-    AssistActionStateManager.ActionState state = myStateManager.getState(myProject, myAction);
-    // HACK ALERT: Getting state may have the side effect of updating the underlying state display, re-fetch.
-    // TODO: Refactor button related code and state management such that state can express arbitrary completion details (such as N of M
-    // modules being complete) and allow the button message to be refreshed on state change.
-    remove(myMessage);
-    myMessage = myStateManager.getStateDisplay(myProject, myAction, mySuccessMessage);
-    add(myMessage);
+    AssistActionState state = myStateManager.getState(myProject, myAction);
     revalidate();
     repaint();
 
+
     if (myMessage != null) {
-      switch (state) {
-        case ERROR:
-        case COMPLETE:
-          myButton.setVisible(false);
-          myMessage.setVisible(true);
-          break;
-        // TODO(b/29617676): Show button disabled in a working state.
-        case IN_PROGRESS:
-        case INCOMPLETE:
-          myButton.setVisible(true);
-          myMessage.setVisible(false);
-          break;
-        default:
-          myButton.setVisible(true);
-          myMessage.setVisible(true);
-      }
+      updateUIForState(state);
       return;
     }
+  }
 
-    // If there's no message display, just disable/enable the button. Show in error state since there's no message to explain the issue.
-    myButton.setEnabled(!state.equals(AssistActionStateManager.ActionState.COMPLETE));
+  private void updateUIForState(AssistActionState state) {
+    myButton.setVisible(state.isButtonVisible());
+    myButton.setEnabled(state.isButtonEnabled());
+    myMessage.setVisible(state.isMessageVisible());
+    if (state.isMessageVisible()) {
+      remove(myMessage);
+      myMessage = myStateManager.getStateDisplay(myProject, myAction, mySuccessMessage);
+      if (myMessage == null) {
+        return;
+      }
+      add(myMessage);
+    }
   }
 
   @NotNull

@@ -16,63 +16,114 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public abstract class InstanceObject implements MemoryObject {
-  public enum ValueType {
-    UNKNOWN,
-    BOOLEAN,
-    BYTE,
-    CHAR,
-    SHORT,
-    INT,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    OBJECT,
-    CLASS,
-    STRING // special case for strings
+public interface InstanceObject extends ValueObject {
+  int getHeapId();
+
+  @NotNull
+  default ThreadId getAllocationThreadId() {
+    return ThreadId.INVALID_THREAD_ID;
   }
 
   @NotNull
-  public abstract String getName();
-
-  public int getDepth() {
-    return 0;
-  }
-
-  public int getShallowSize() {
-    return 0;
-  }
-
-  public long getRetainedSize() {
-    return 0;
-  }
+  ClassDb.ClassEntry getClassEntry();
 
   @Nullable
-  public List<FieldObject> getFields() {
+  InstanceObject getClassObject();
+
+  default int getFieldCount() {
+    return 0;
+  }
+
+  @NotNull
+  default List<FieldObject> getFields() {
     return Collections.emptyList();
   }
 
+  // Specialized getter for array access (if and only if this instance represents an array).
   @Nullable
-  public AllocationStack getCallStack() {
+  default ArrayObject getArrayObject() {
     return null;
   }
 
+  default long getAllocTime() {
+    return Long.MIN_VALUE;
+  }
+
+  default long getDeallocTime() {
+    return Long.MAX_VALUE;
+  }
+
+  /**
+   * @return The callstack proto associated with the Instance's allocation event.
+   */
+  @Nullable
+  default AllocationStack getCallStack() {
+    return null;
+  }
+
+  default int getCallStackDepth() {
+    AllocationStack callStack = getCallStack();
+    if (callStack == null) {
+      return 0;
+    }
+
+    switch (callStack.getFrameCase()) {
+      case FULL_STACK:
+        return callStack.getFullStack().getFramesCount();
+      case SMALL_STACK:
+        return callStack.getSmallStack().getFramesCount();
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   * @return The IJ-friendly callstack which can be used to navigate to the user code using the StackTraceView.
+   */
   @NotNull
-  public String getValueLabel() {
-    return "";
+  default List<CodeLocation> getCodeLocations() {
+    AllocationStack callStack = getCallStack();
+    if (callStack != null && callStack.getFrameCase() == AllocationStack.FrameCase.FULL_STACK) {
+      AllocationStack.StackFrameWrapper fullStack = callStack.getFullStack();
+      if (!fullStack.getFramesList().isEmpty()) {
+        List<CodeLocation> stackFrames = fullStack.getFramesList().stream()
+          .map(AllocationStackConverter::getCodeLocation)
+          .collect(Collectors.toList());
+
+        return stackFrames;
+      }
+    }
+
+    return Collections.emptyList();
   }
 
-  public ValueType getValueType() {
-    return ValueType.UNKNOWN;
+  @NotNull
+  default List<ReferenceObject> getReferences() {
+    return Collections.emptyList();
   }
 
-  public boolean getIsArray() {
+  default boolean getIsRoot() {
+    return false;
+  }
+
+  default boolean hasTimeData() {
+    return false;
+  }
+
+  default boolean hasAllocData() {
+    return false;
+  }
+
+  default boolean hasDeallocData() {
     return false;
   }
 }

@@ -17,25 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintGradleDeprecatedInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDeprecatedInspection() {
     super(AndroidBundle.message("android.lint.inspections.gradle.deprecated"), GradleDetector.DEPRECATED);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
-    String before = GradleDetector.getOldValue(GradleDetector.DEPRECATED, message, RAW);
-    String after = GradleDetector.getNewValue(GradleDetector.DEPRECATED, message, RAW);
-    if (before != null && after != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, before, after)};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

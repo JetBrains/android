@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.plugins.PluginManagerConfigurable;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -32,10 +39,27 @@ public class OpenFirebaseAssistantQuickFix implements AndroidLintQuickFix {
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     DataManager.getInstance().getDataContextFromFocus().doWhenDone((Consumer<DataContext>)dataContext -> {
       AnAction openFirebaseAssistant = ActionManager.getInstance().getAction("DeveloperServices.Firebase");
+      if (openFirebaseAssistant == null) {
+        ApplicationManager.getApplication().invokeLater(this::reportFirebaseNotAvailable);
+        return;
+      }
       AnActionEvent openFirebaseAssistantEvent = AnActionEvent.createFromAnAction(openFirebaseAssistant, null, "Android Lint QuickFix",
                                                                                   dataContext);
       openFirebaseAssistant.actionPerformed(openFirebaseAssistantEvent);
     });
+  }
+
+  private void reportFirebaseNotAvailable() {
+    String message = String.format("<html>Firebase Assistant is not available. The Firebase Services plugin " +
+                                   "has to be enabled in the <a href=\"plugins\">Plugins</a> dialog in %1$s.</html>",
+                                   ShowSettingsUtil.getSettingsMenuName());
+    NotificationListener listener = (notification, event) -> {
+      ShowSettingsUtil.getInstance().showSettingsDialog(null, PluginManagerConfigurable.class);
+      notification.expire();
+    };
+    Notification notification =
+      AndroidNotification.BALLOON_GROUP.createNotification(getName(), message, NotificationType.WARNING, listener);
+    notification.notify(null);
   }
 
   @Override

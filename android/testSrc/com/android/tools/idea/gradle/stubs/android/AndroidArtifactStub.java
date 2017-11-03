@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
-import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.NativeLibrary;
-import com.android.builder.model.InstantRun;
+import com.android.builder.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.IdeDependenciesStub;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,21 +29,27 @@ import java.io.File;
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static org.mockito.Mockito.mock;
 
-public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
+public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
-  @NotNull String myApplicationId;
+  @NotNull private final IdeDependenciesStub myIdeLevel2DependenciesStub;
+  @NotNull private String myApplicationId;
 
   private InstantRun myInstantRun;
+  private TestOptions myTestOptions;
 
-  AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
-    super(name, dirName, new DependenciesStub(), buildType, fileStructure);
+  public AndroidArtifactStub(@NotNull String name,
+                             @NotNull String folderName,
+                             @NonNls @NotNull String buildType,
+                             @NotNull FileStructure fileStructure) {
+    super(name, folderName, new DependenciesStub(), buildType, fileStructure);
     myApplicationId = "app." + buildType.toLowerCase();
-    myOutputs = Arrays.<AndroidArtifactOutput>asList(
-      new AndroidArtifactOutputStub(Arrays.<OutputFile>asList(
-        new OutputFileStub(new File(name + "-" + buildType + ".apk")))));
+    AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
+    myOutputs = Collections.singletonList(output);
+    myIdeLevel2DependenciesStub = new IdeDependenciesStub();
   }
 
   @Override
@@ -56,13 +60,13 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
 
   @Override
   public boolean isSigned() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   @Nullable
   public String getSigningConfigName() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
@@ -71,7 +75,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     return myApplicationId;
   }
 
-  public AndroidArtifactStub setApplicationId(String applicationId) {
+  public AndroidArtifactStub setApplicationId(@NotNull String applicationId) {
     myApplicationId = applicationId;
     return this;
   }
@@ -95,7 +99,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   }
 
   @Override
-  @Nullable
+  @NotNull
   public Collection<NativeLibrary> getNativeLibraries() {
     return myNativeLibraries;
   }
@@ -103,18 +107,31 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
+  @NotNull
   public InstantRun getInstantRun() {
-    return myInstantRun;
+    return myInstantRun != null ? myInstantRun : mock(InstantRun.class);
+  }
+
+  @NonNull
+  @Override
+  public Collection<File> getAdditionalRuntimeApks() {
+    return Collections.emptyList();
+  }
+
+  @Nullable
+  @Override
+  public TestOptions getTestOptions() {
+    return myTestOptions != null ? myTestOptions : mock(TestOptions.class);
   }
 
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {
@@ -130,5 +147,16 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   public void addGeneratedResourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedResourceFolders.add(directory);
+  }
+
+  @Override
+  public boolean isTestArtifact() {
+    return true;
+  }
+
+  @Override
+  @NotNull
+  public IdeDependenciesStub getLevel2Dependencies() {
+    return myIdeLevel2DependenciesStub;
   }
 }

@@ -16,15 +16,18 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public class VariantStub implements Variant {
+public class VariantStub implements IdeVariant {
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
 
   @NotNull private final String myName;
@@ -77,11 +80,6 @@ public class VariantStub implements Variant {
     return myInstrumentationTestArtifact;
   }
 
-  @NotNull
-  public JavaArtifactStub getUnitTestArtifact() {
-    return myUnitTestArtifact;
-  }
-
   @Override
   @NotNull
   public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
@@ -115,10 +113,28 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public Collection<TestedTargetVariant> getTestedTargetVariants() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
+  }
+
+  @Nullable
+  @Override
+  public IdeAndroidArtifact getAndroidTestArtifact() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public IdeJavaArtifact getUnitTestArtifact() {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public Collection<IdeBaseArtifact> getTestArtifacts() {
+    return Collections.emptyList();
   }
 }

@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
-import com.android.assetstudiolib.TextRenderUtil;
-import com.android.tools.idea.ui.properties.core.IntProperty;
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -35,11 +38,11 @@ public final class TextAsset extends BaseAsset {
   private static final String PREFERRED_FONT = "Roboto";
   private final StringProperty myText = new StringValueProperty("Aa");
   private final StringProperty myFontFamily = new StringValueProperty();
-  private final IntProperty myFontSize = new IntValueProperty(144); // Large value for crisp icons
+  private final IntProperty myFontSize = new IntValueProperty(144); // Large value for crisp icons.
 
   public TextAsset() {
     List<String> fontFamilies = getAllFontFamilies();
-    assert fontFamilies.size() > 0;
+    assert !fontFamilies.isEmpty();
 
     if (fontFamilies.contains(PREFERRED_FONT)) {
       myFontFamily.set(PREFERRED_FONT);
@@ -54,7 +57,7 @@ public final class TextAsset extends BaseAsset {
    */
   @NotNull
   public static List<String> getAllFontFamilies() {
-    return Lists.newArrayList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+    return ImmutableList.copyOf(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
   }
 
   /**
@@ -74,12 +77,12 @@ public final class TextAsset extends BaseAsset {
     return myFontFamily;
   }
 
-  @NotNull
   @Override
-  protected BufferedImage createAsImage(@NotNull Color color) {
+  @Nullable
+  public ListenableFuture<BufferedImage> toImage() {
     TextRenderUtil.Options options = new TextRenderUtil.Options();
     options.font = Font.decode(myFontFamily + " " + myFontSize.get());
-    options.foregroundColor = color.getRGB();
-    return TextRenderUtil.renderTextImage(myText.get(), 1, options);
+    options.foregroundColor = color().get().getRGB();
+    return Futures.immediateFuture(TextRenderUtil.renderTextImage(myText.get(), 1, options));
   }
 }

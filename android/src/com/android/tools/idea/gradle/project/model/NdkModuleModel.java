@@ -17,34 +17,31 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static java.util.Collections.sort;
 
 public class NdkModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private NativeAndroidProject myAndroidProject;
+  @NotNull private IdeNativeAndroidProject myAndroidProject;
 
   @Nullable private transient GradleVersion myModelVersion;
-  @Nullable private transient CountDownLatch myProxyNativeAndroidProjectLatch;
-  @Nullable private NativeAndroidProject myProxyNativeAndroidProject;
 
   @NotNull private Map<String, NdkVariant> myVariantsByName = new HashMap<>();
   @NotNull private Map<String, NativeToolchain> myToolchainsByName = new HashMap<>();
@@ -70,20 +67,12 @@ public class NdkModuleModel implements ModuleModel {
 
   public NdkModuleModel(@NotNull String moduleName,
                         @NotNull File rootDirPath,
-                        @NotNull NativeAndroidProject androidProject) {
+                        @NotNull IdeNativeAndroidProject androidProject) {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
-
-    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
-    // asynchronously to avoid blocking the project sync operation for reproxying to complete.
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myProxyNativeAndroidProjectLatch = new CountDownLatch(1);
-      myProxyNativeAndroidProject = reproxy(NativeAndroidProject.class, myAndroidProject);
-      myProxyNativeAndroidProjectLatch.countDown();
-    });
 
     populateVariantsByName();
     populateToolchainsByName();
@@ -162,7 +151,7 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   @NotNull
-  public NativeAndroidProject getAndroidProject() {
+  public IdeNativeAndroidProject getAndroidProject() {
     return myAndroidProject;
   }
 
@@ -203,57 +192,20 @@ public class NdkModuleModel implements ModuleModel {
     return mySettingsByName.get(settingsName);
   }
 
-  /**
-   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
-   *
-   * @return the proxy object of the imported Native Android Gradle project.
-   */
-  @NotNull
-  public NativeAndroidProject waitForAndGetProxyAndroidProject() {
-    waitForProxyAndroidProject();
-    assert myProxyNativeAndroidProject != null;
-    return myProxyNativeAndroidProject;
-  }
-
-  /**
-   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
-   */
-  public void waitForProxyAndroidProject() {
-    if (myProxyNativeAndroidProjectLatch != null) {
-      try {
-        myProxyNativeAndroidProjectLatch.await();
-      }
-      catch (InterruptedException e) {
-        Logger.getInstance(NdkModuleModel.class).error(e);
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   private void writeObject(ObjectOutputStream out) throws IOException {
-    waitForProxyAndroidProject();
-
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(myProxyNativeAndroidProject);
+    out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myAndroidProject = (NativeAndroidProject)in.readObject();
+    myAndroidProject = (IdeNativeAndroidProject)in.readObject();
     mySelectedVariantName = (String)in.readObject();
 
     parseAndSetModelVersion();
-
-    myProxyNativeAndroidProject = myAndroidProject;
 
     myVariantsByName = new HashMap<>();
     myToolchainsByName = new HashMap<>();

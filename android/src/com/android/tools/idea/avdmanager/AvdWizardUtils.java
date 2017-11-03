@@ -20,12 +20,14 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
+import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
@@ -35,6 +37,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.log.LogWrapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -55,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.sdklib.internal.avd.AvdManager.*;
 import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
@@ -93,14 +97,17 @@ public class AvdWizardUtils {
   public static final String USE_HOST_GPU_KEY = AvdManager.AVD_INI_GPU_EMULATION;
   public static final String HOST_GPU_MODE_KEY = AvdManager.AVD_INI_GPU_MODE;
 
+  public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+  public static final String COLD_BOOT_ONCE_VALUE = AvdManager.AVD_INI_COLD_BOOT_ONCE;
+  public static final String FEATURE_FAST_BOOT = "FastSnapshotV1"; // Emulator feature support
+
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
 
   public static final String CUSTOM_SKIN_FILE_KEY = AvdManager.AVD_INI_SKIN_PATH;
   public static final String BACKUP_SKIN_FILE_KEY = AvdManager.AVD_INI_BACKUP_SKIN_PATH;
   public static final String DEVICE_FRAME_KEY = "showDeviceFrame";
 
-  public static final String DISPLAY_NAME_KEY = AvdManager.AVD_INI_DISPLAY_NAME;
-  public static final String AVD_INI_AVD_ID = "AvdId";
+  public static final String DISPLAY_NAME_KEY = AVD_INI_DISPLAY_NAME;
   public static final String AVD_ID_KEY = AVD_INI_AVD_ID;
 
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
@@ -122,7 +129,8 @@ public class AvdWizardUtils {
 
   // Tags
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG);
-  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
+                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
@@ -135,6 +143,8 @@ public class AvdWizardUtils {
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
+
+  private static Map<String, String> ourEmuAdvFeatures; // Advanced Emulator features
 
   private static Logger getLog() {
     return Logger.getInstance(AvdWizardUtils.class);
@@ -310,6 +320,38 @@ public class AvdWizardUtils {
   }
 
   /**
+   * Indicates if the Emulator supports the requested advanced feature
+   *
+   * @param theFeature The name of the requested feature
+   * @return true if the feature is "on" in the Emulator
+   */
+
+  public static boolean emulatorSupportsFeature(@NotNull String theFeature, @Nullable AndroidSdkHandler sdkHandler) {
+    if (ourEmuAdvFeatures == null) {
+      if (sdkHandler == null) return false; // 'False' is the safer guess
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+      if (emulatorPackage != null) {
+        File emuAdvFeaturesFile = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_ADVANCED_FEATURES);
+        FileOp fop = sdkHandler.getFileOp();
+        if (fop.exists(emuAdvFeaturesFile)) {
+          ourEmuAdvFeatures = ProjectProperties.parsePropertyFile(new FileOpFileWrapper(emuAdvFeaturesFile, fop, false),
+                                                                  new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+        }
+      }
+    }
+    return ourEmuAdvFeatures != null && "on".equals(ourEmuAdvFeatures.get(theFeature));
+  }
+
+  /**
+   * Indicates if the Emulator supports the Fast Boot feature
+   *
+   * @return true if Fast Boot is supported
+   */
+  public static boolean emulatorSupportsFastBoot(@Nullable AndroidSdkHandler sdkHandler) {
+    return emulatorSupportsFeature(FEATURE_FAST_BOOT, sdkHandler);
+  }
+
+  /**
    * Copies a skin folder from the internal device data folder over to the SDK skin folder, rewriting
    * the webp files to PNG, and rewriting the layout file to reference webp instead.
    *
@@ -404,6 +446,23 @@ public class AvdWizardUtils {
     ModelWizard wizard = wizardBuilder.build();
     StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
     builder.setMinimumSize(AVD_WIZARD_SIZE);
+    builder.setPreferredSize(AVD_WIZARD_SIZE);
     return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
   }
+
+  /**
+   * Creates a {@link ModelWizardDialog} containing all the steps needed to duplicate
+   * an existing AVD
+   */
+  public static ModelWizardDialog createAvdWizardForDuplication(@Nullable Component parent,
+                                                                @Nullable Project project,
+                                                                @NotNull  AvdInfo avdInfo) {
+    AvdOptionsModel avdOptions = new AvdOptionsModel(avdInfo);
+
+    // Set this AVD as a copy
+    avdOptions.setAsCopy();
+
+    return createAvdWizard(parent, project, avdOptions);
+  }
+
 }

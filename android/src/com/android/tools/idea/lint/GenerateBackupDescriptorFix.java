@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -36,6 +37,7 @@ import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -119,7 +121,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     AndroidFacet facet = AndroidFacet.getInstance(startElement);
-    AppResourceRepository appResources = facet == null ? null : facet.getAppResources(true);
+    AppResourceRepository appResources = facet == null ? null : AppResourceRepository.getOrCreateInstance(facet);
     return appResources == null || !appResources.getItemsOfType(ResourceType.XML).contains(myUrl.name);
   }
 
@@ -164,14 +166,14 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 // advantage that it can also resolve complex expressions used as the
                 // getString argument.
                 ResourceUrl resource = ResourceEvaluator.getResource(
-                  new LintIdeJavaParser.LintPsiJavaEvaluator(expression.getProject()),
+                  new DefaultJavaEvaluator(expression.getProject(), null),
                   expressions[0]);
 
                 if (resource == null || resource.framework || resource.type != ResourceType.STRING) {
                   return;
                 }
 
-                List<PsiElement> resources = facet.getLocalResourceManager()
+                List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
                     .findResourcesByFieldName(ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {

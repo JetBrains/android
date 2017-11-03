@@ -47,23 +47,26 @@ public final class FreemarkerUtils {
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Builtin conversion methods
-    paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
-    paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
-    paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
     paramMap.put("activityToLayout", new FmActivityToLayoutMethod());
-    paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
+    paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
     paramMap.put("classToResource", new FmClassNameToResourceMethod());
-    paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
-    paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
-    paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
-    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
-    paramMap.put("extractLetters", new FmExtractLettersMethod());
-    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
-    paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("compareVersions", new FmCompareVersionsMethod());
-    paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
+    paramMap.put("compareVersionsIgnoringQualifiers", new FmCompareVersionsIgnoringQualifiersMethod());
+    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
+    paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
+    paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
+    paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
+    paramMap.put("extractLetters", new FmExtractLettersMethod());
     paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
+    paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
+    paramMap.put("getConfigurationName", new FmGetConfigurationNameMethod(paramMap));
+    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
     paramMap.put("isGradleComponentPluginUsed", new FmIsGradleComponentPluginUsed(paramMap));
+    paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
+    paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
+    paramMap.put("truncate", new FmTruncateStringMethod());
+    paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
+    paramMap.put("escapeKotlinIdentifiers", new FmEscapeKotlinIdentifierMethod());
 
     // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());

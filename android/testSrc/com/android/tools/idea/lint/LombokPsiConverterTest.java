@@ -87,7 +87,11 @@ public class LombokPsiConverterTest extends AndroidTestCase {
       "import java.util.regexp.*;\n" +
       "import static java.util.Arrays.asList;\n" +
       "\n" +
+      "/**\n" +
+      " * Class level javadocs are kept.\n" +
+      " */\n" +
       "public final class R2<K,V> {\n" +
+      "    /** Inline field javadocs are kept. */\n"+
       "    int myField1;\n" +
       "    \n" +
       "    final int myField2 = 42;\n" +
@@ -111,9 +115,15 @@ public class LombokPsiConverterTest extends AndroidTestCase {
       "    @SuppressWarnings({\"foo1\", \"foo2\"})\n" +
       //"    @android.annotation.SuppressLint({\"foo1\",\"foo2\"})\n" +
       //"    @android.annotation.TargetApi(value=5})\n" +
+      "    /**\n" +
+      "     * Method javadocs are kept (after annotations)\n"+
+      "     */\n"+
       "    public void myMethod1(List list) {\n" +
       "    }\n" +
       "    \n" +
+      "    /**\n" +
+      "     * Method javadocs are kept (before annotations)\n"+
+      "     */\n"+
       "    public int myMethod2() {\n" +
       "        return 42;\n" +
       "    }\n" +
@@ -271,7 +281,13 @@ public class LombokPsiConverterTest extends AndroidTestCase {
       "import android.widget.GridLayout;\n" +
       "import dalvik.bytecode.OpcodeInfo;\n" +
       "\n" +
+      "/**\n" +
+      " * Class Javadoc is kept\n" +
+      " */\n" +
       "public class ApiCallTest extends Activity {\n" +
+      "    /**\n" +
+      "     * Method Javadoc\n" +
+      "     */\n" +
       "    @TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)\n" +
       "    public void method(Chronometer chronometer, DOMLocator locator) {\n" +
       "        String s = \"/sdcard/fyfaen\";\n" +
@@ -372,6 +388,38 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   //  PsiFile file = myFixture.addFileToProject("src/test/pkg/R4.java", testClass);
   //  check(file, testClass);
   //}
+
+  public void testJavadocPsiToLombokConversion() {
+    @Language("JAVA")
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "/**\n" +
+      " * Class level Javadoc\n" +
+      " */\n" +
+      "public final class R5 {\n" +
+      "    /**\n" +
+      "     * Method level Javadoc\n" +
+      "     */\n" +
+      "    public void foo() {\n" +
+      "        setTitleColor(android.R.color.black);\n" +
+      "        setTitleColor(R.color.black);\n" +
+      "    }\n" +
+      "    /*\n" +
+      "     * Method level block comment (Non-Javadoc)\n" +
+      "     */\n" +
+      "    public void foo() {\n" +
+      "        /*\n" +
+      "         * Block comment...\n" +
+      "         */\n" +
+      "         // Normal comment \n" +
+      "        setTitleColor(android.R.color.black);\n" +
+      "        setTitleColor(R.color.black);\n" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R5.java", testClass);
+    check(file, testClass);
+  }
 
   public void testPsiToLombokConversion9() {
     @Language("JAVA")
@@ -849,10 +897,10 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     CompilerOptions options = new CompilerOptions();
     options.complianceLevel = options.sourceLevel = options.targetJDK = ClassFileConstants.JDK1_7;
     options.parseLiteralExpressionsAsConstants = true;
+    options.docCommentSupport = true;
     ProblemReporter problemReporter = new ProblemReporter(
       DefaultErrorHandlingPolicies.exitOnFirstError(), options, new DefaultProblemFactory());
     Parser parser = new Parser(problemReporter, options.parseLiteralExpressionsAsConstants);
-    parser.javadocParser.checkDocComment = false;
     EcjTreeConverter converter = new EcjTreeConverter();
     org.eclipse.jdt.internal.compiler.batch.CompilationUnit sourceUnit =
       new org.eclipse.jdt.internal.compiler.batch.CompilationUnit(code.toCharArray(), "unitTest", "UTF-8");

@@ -18,7 +18,6 @@ package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import android.support.constraint.solver.widgets.ConnectionCandidate;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
@@ -131,6 +130,8 @@ public class WidgetInteractionTargets {
                 case CENTER: {
                     mConstraintHandles.add(mCenterAnchor);
                 } break;
+                case NONE:
+                    break;
             }
         }
         for (ConstraintHandle handle : mConstraintHandles) {

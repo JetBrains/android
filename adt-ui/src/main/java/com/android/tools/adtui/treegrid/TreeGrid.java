@@ -15,26 +15,24 @@
  */
 package com.android.tools.adtui.treegrid;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.HideableDecorator;
-import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -51,7 +49,12 @@ public class TreeGrid<T> extends Box {
   private final List<JList<T>> myLists;
   private final List<HideableDecorator> myHideables;
   private final KeyListener myKeyListener;
+  private final FocusListener myFocusListener;
+  private final MouseListener myMouseListener;
+  private final ListSelectionListener myListSelectionListener;
+  private AbstractTreeStructure myModel;
   private boolean myFiltered;
+  private int myLastMidX = -1;
 
   public TreeGrid(final @NotNull AbstractTreeStructure model) {
     this();
@@ -60,10 +63,31 @@ public class TreeGrid<T> extends Box {
 
   public TreeGrid() {
     super(BoxLayout.Y_AXIS);
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new MyFocusTraversalPolicy());
     mySectionToComponent = new IdentityHashMap<>();
     myLists = new ArrayList<>();
     myHideables = new ArrayList<>();
     myKeyListener = new MyKeyListener();
+    myFocusListener = new MyFocusListener();
+    myMouseListener = new MyMouseListener();
+    myListSelectionListener = new MyListSelectionListener();
+    addListSelectionListener(event -> {
+      if (event.getValueIsAdjusting()) {
+        return;
+      }
+      Object source = event.getSource();
+      if (source instanceof JList) {
+        JList sourceList = (JList)source;
+        if (sourceList.getSelectedIndex() > -1) {
+          for (JList<T> list : myLists) {
+            if (list != sourceList) {
+              list.clearSelection();
+            }
+          }
+        }
+      }
+    });
   }
 
   @Override
@@ -86,7 +110,14 @@ public class TreeGrid<T> extends Box {
     setModel(model, true);
   }
 
+  @Nullable
+  public AbstractTreeStructure getModel() {
+    return myModel;
+  }
+
   private void setModel(@NotNull AbstractTreeStructure model, boolean showSectionHeaders) {
+    myModel = model;
+
     // using the AbstractTreeStructure instead of the model as the actual TreeModel when used with IJ components
     // works in a very strange way, each time you expand or contract a node it will add or remove all its children.
     Object root = model.getRootElement();
@@ -98,46 +129,32 @@ public class TreeGrid<T> extends Box {
     removeAll();
     setAutoscrolls(false);
 
-    ListSelectionListener listSelectionListener = e -> {
-      if (e.getValueIsAdjusting()) {
-        return;
-      }
-      ListSelectionModel sourceSelectionModel = (ListSelectionModel)e.getSource();
-      if (!sourceSelectionModel.isSelectionEmpty()) {
-        for (JList<T> aList : myLists) {
-          if (sourceSelectionModel != aList.getSelectionModel()) {
-            aList.clearSelection();
-          }
-        }
-      }
-    };
-
     for (Object section : sections) {
       String name = section.toString();
 
       FilteringListModel<T> listModel = new FilteringListModel<>(new AbstractListModel() {
         @Override
         public int getSize() {
-          return model.getChildElements(section).length;
+          return myModel.getChildElements(section).length;
         }
 
         @Override
         public Object getElementAt(int index) {
-          return model.getChildElements(section)[index];
+          return myModel.getChildElements(section)[index];
         }
       });
       listModel.refilter(); // Needed as otherwise the filtered list does not show any content.
 
-      // JBList does not work with HORIZONTAL_WRAP
-      //noinspection UndesirableClassUsage,unchecked
-      JList<T> list = new JList<>(listModel);
+      //noinspection unchecked
+      JList<T> list = new JBList(listModel);
       list.setAutoscrolls(false);
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       list.setVisibleRowCount(-1);
-      list.getSelectionModel().addListSelectionListener(listSelectionListener);
       list.setName(name); // for tests to find the right list
       list.addKeyListener(myKeyListener);
-      new ListSpeedSearch(list);
+      list.addFocusListener(myFocusListener);
+      list.addMouseListener(myMouseListener);
+      list.addListSelectionListener(myListSelectionListener);
 
       myLists.add(list);
       if (showSectionHeaders) {
@@ -176,19 +193,16 @@ public class TreeGrid<T> extends Box {
 
   @Override
   public void setTransferHandler(@Nullable TransferHandler handler) {
-    if (GraphicsEnvironment.isHeadless()) {
-      return;
-    }
     for (JList<T> list : myLists) {
       list.setTransferHandler(handler);
-      list.setDragEnabled(handler != null);
+      if (!GraphicsEnvironment.isHeadless()) {
+        list.setDragEnabled(handler != null);
+      }
     }
   }
 
   public void addListSelectionListener(@NotNull ListSelectionListener lsl) {
-    for (JList<T> list : myLists) {
-      list.getSelectionModel().addListSelectionListener(lsl);
-    }
+    listenerList.add(ListSelectionListener.class, lsl);
   }
 
   public void setCellRenderer(@NotNull ListCellRenderer<T> cellRenderer) {
@@ -215,8 +229,9 @@ public class TreeGrid<T> extends Box {
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private JList<T> getSelectedList() {
+  public JList<T> getSelectedList() {
     for (JList<T> list : myLists) {
       if (list.getSelectedIndex() > -1) {
         return list;
@@ -259,6 +274,12 @@ public class TreeGrid<T> extends Box {
     return list != null ? list.getSelectedValue() : null;
   }
 
+  @Nullable
+  public T getSelectedVisibleElement() {
+    JList<T> list = getSelectedList();
+    return list != null && list.isVisible() ? list.getSelectedValue() : null;
+  }
+
   public void setSelectedElement(@Nullable T selectedElement) {
     for (JList<T> list : myLists) {
       if (selectedElement == null) {
@@ -292,22 +313,6 @@ public class TreeGrid<T> extends Box {
     }, ModalityState.any());
   }
 
-  @Override
-  @SuppressWarnings("NonSynchronizedMethodOverridesSynchronizedMethod")
-  public void addMouseListener(@NotNull MouseListener l) {
-    for (JList<T> list : myLists) {
-      list.addMouseListener(l);
-    }
-  }
-
-  @Override
-  @SuppressWarnings("NonSynchronizedMethodOverridesSynchronizedMethod")
-  public void removeMouseListener(@NotNull MouseListener l) {
-    for (JList<T> list : myLists) {
-      list.removeMouseListener(l);
-    }
-  }
-
   public void setLayoutOrientation(int mode) {
     for (JList<T> list : myLists) {
       list.setLayoutOrientation(mode);
@@ -331,6 +336,18 @@ public class TreeGrid<T> extends Box {
     if (single != null) {
       setSelectedElement(single);
     }
+  }
+
+  public int getFilterMatchCount() {
+    if (!isFiltered()) {
+      return -1;
+    }
+    int count = 0;
+    for (JList<T> list : myLists) {
+      ListModel<T> model = list.getModel();
+      count += model.getSize();
+    }
+    return count;
   }
 
   @Nullable
@@ -370,220 +387,339 @@ public class TreeGrid<T> extends Box {
     }
   }
 
-  @TestOnly
-  @Nullable
-  JList<T> getSelectedComponent() {
-    return getSelectedList();
-  }
-
-  @TestOnly
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
   @NotNull
   public List<JList<T>> getLists() {
     return myLists;
   }
 
-  private class MyKeyListener extends KeyAdapter {
-    private int myLastMidX = -1;
-
-    @Override
-    public void keyPressed(@NotNull KeyEvent event) {
-      Object source = event.getSource();
-      if (!(source instanceof JList)) {
-        return;
-      }
-      //noinspection unchecked
-      JList<T> list = (JList<T>)source;
-      boolean consumed = false;
-      switch (event.getKeyCode()) {
-        case KeyEvent.VK_DOWN:
-          consumed = handleKeyDown(list);
-          break;
-        case KeyEvent.VK_UP:
-          consumed = handleKeyUp(list);
-          break;
-        case KeyEvent.VK_LEFT:
-          myLastMidX = -1;
-          consumed = handleKeyLeft(list);
-          break;
-        case KeyEvent.VK_RIGHT:
-          myLastMidX = -1;
-          consumed = handleKeyRight(list);
-          break;
-      }
-      if (consumed) {
-        event.consume();
-      }
+  @Override
+  protected void processComponentKeyEvent(@NotNull KeyEvent event) {
+    if (event.getID() != KeyEvent.KEY_PRESSED) {
+      return;
     }
+    Object source = event.getSource();
+    if (!(source instanceof JList)) {
+      return;
+    }
+    //noinspection unchecked
+    JList<T> list = (JList<T>)source;
+    boolean consumed = false;
+    switch (event.getKeyCode()) {
+      case KeyEvent.VK_DOWN:
+        consumed = handleKeyDown(list);
+        break;
+      case KeyEvent.VK_UP:
+        consumed = handleKeyUp(list);
+        break;
+      case KeyEvent.VK_LEFT:
+        myLastMidX = -1;
+        consumed = handleKeyLeft(list);
+        break;
+      case KeyEvent.VK_RIGHT:
+        myLastMidX = -1;
+        consumed = handleKeyRight(list);
+        break;
+    }
+    if (consumed) {
+      event.consume();
+    }
+  }
 
-    private boolean handleKeyDown(@NotNull JList<T> list) {
-      int selectedIndex = list.getSelectedIndex();
-      if (selectedIndex < 0) {
-        return false;
-      }
-      if (myLastMidX < 0) {
-        myLastMidX = midX(list, selectedIndex);
-      }
-      if (!isLastRow(list, selectedIndex)) {
-        int nextLineStart = findNextListStart(list, selectedIndex);
-        int newSelectedItem = findBestMatchFromLeft(list, myLastMidX, nextLineStart);
-        selectNewItem(list, newSelectedItem, list);
-        return true;
-      }
-      else {
-        for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
-          JList<T> nextList = myLists.get(listIndex);
-          int itemCount = nextList.getModel().getSize();
-          if (itemCount > 0 && nextList.isVisible()) {
-            int newSelectedItem = findBestMatchFromLeft(nextList, myLastMidX, 0);
-            selectNewItem(nextList, newSelectedItem, list);
-            return true;
-          }
-        }
-      }
+  private boolean handleKeyDown(@NotNull JList<T> list) {
+    int selectedIndex = list.getSelectedIndex();
+    if (selectedIndex < 0) {
       return false;
     }
-
-    private boolean handleKeyUp(@NotNull JList<T> list) {
-      int selectedIndex = list.getSelectedIndex();
-      if (selectedIndex < 0) {
-        return false;
-      }
-      if (myLastMidX < 0) {
-        myLastMidX = midX(list, selectedIndex);
-      }
-      if (!isFirstRow(list, selectedIndex)) {
-        int prevLineEnd = findPrevListEnd(list, selectedIndex);
-        int newSelectedItem = findBestMatchFromRight(list, myLastMidX, prevLineEnd);
-        selectNewItem(list, newSelectedItem, list);
-        return true;
-      }
-      else {
-        for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
-          JList<T> prevList = myLists.get(listIndex);
-          int itemCount = prevList.getModel().getSize();
-          if (itemCount > 0 && prevList.isVisible()) {
-            int newSelectedItem = findBestMatchFromRight(prevList, myLastMidX, itemCount - 1);
-            selectNewItem(prevList, newSelectedItem, list);
-            return true;
-          }
-        }
-      }
-      return false;
+    if (myLastMidX < 0) {
+      myLastMidX = midX(list, selectedIndex);
     }
-
-    private boolean handleKeyRight(@NotNull JList<T> list) {
-      int selectedIndex = list.getSelectedIndex();
-      if (selectedIndex < 0) {
-        return false;
-      }
-      if (selectedIndex < list.getModel().getSize() - 1) {
-        selectNewItem(list, selectedIndex + 1, list);
-        return true;
-      }
+    if (!isLastRow(list, selectedIndex)) {
+      int nextLineStart = findNextListStart(list, selectedIndex);
+      int newSelectedItem = findBestMatchFromLeft(list, myLastMidX, nextLineStart);
+      selectNewItem(list, newSelectedItem, list);
+      return true;
+    }
+    else {
       for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
         JList<T> nextList = myLists.get(listIndex);
         int itemCount = nextList.getModel().getSize();
         if (itemCount > 0 && nextList.isVisible()) {
-          selectNewItem(nextList, 0, list);
+          int newSelectedItem = findBestMatchFromLeft(nextList, myLastMidX, 0);
+          selectNewItem(nextList, newSelectedItem, list);
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  private boolean handleKeyUp(@NotNull JList<T> list) {
+    int selectedIndex = list.getSelectedIndex();
+    if (selectedIndex < 0) {
       return false;
     }
-
-    private boolean handleKeyLeft(@NotNull JList<T> list) {
-      int selectedIndex = list.getSelectedIndex();
-      if (selectedIndex < 0) {
-        return false;
-      }
-      if (selectedIndex > 0) {
-        selectNewItem(list, selectedIndex - 1, list);
-        return true;
-      }
+    if (myLastMidX < 0) {
+      myLastMidX = midX(list, selectedIndex);
+    }
+    if (!isFirstRow(list, selectedIndex)) {
+      int prevLineEnd = findPrevListEnd(list, selectedIndex);
+      int newSelectedItem = findBestMatchFromRight(list, myLastMidX, prevLineEnd);
+      selectNewItem(list, newSelectedItem, list);
+      return true;
+    }
+    else {
       for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
         JList<T> prevList = myLists.get(listIndex);
         int itemCount = prevList.getModel().getSize();
         if (itemCount > 0 && prevList.isVisible()) {
-          selectNewItem(prevList, itemCount - 1, list);
+          int newSelectedItem = findBestMatchFromRight(prevList, myLastMidX, itemCount - 1);
+          selectNewItem(prevList, newSelectedItem, list);
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  private boolean handleKeyRight(@NotNull JList<T> list) {
+    int selectedIndex = list.getSelectedIndex();
+    if (selectedIndex < 0) {
       return false;
     }
-
-    private int midX(@NotNull JList<T> list, int index) {
-      Rectangle bounds = list.getCellBounds(index, index);
-      return bounds.x + bounds.width / 2;
+    if (selectedIndex < list.getModel().getSize() - 1) {
+      selectNewItem(list, selectedIndex + 1, list);
+      return true;
     }
-
-    private boolean isFirstRow(@NotNull JList<T> list, int index) {
-      Rectangle bounds = list.getCellBounds(index, index);
-      Rectangle firstBounds = list.getCellBounds(0, 0);
-      return verticalOverlap(bounds, firstBounds);
-    }
-
-    private boolean isLastRow(@NotNull JList<T> list, int index) {
-      int last = list.getModel().getSize() - 1;
-      Rectangle bounds = list.getCellBounds(index, index);
-      Rectangle lastBounds = list.getCellBounds(last, last);
-      return verticalOverlap(bounds, lastBounds);
-    }
-
-    private boolean verticalOverlap(@NotNull Rectangle bounds1, @NotNull Rectangle bounds2) {
-      return bounds1.y < bounds2.y + bounds2.height && bounds1.y + bounds1.height > bounds2.y;
-    }
-
-    private int findPrevListEnd(@NotNull JList<T> list, int index) {
-      Rectangle bounds = list.getCellBounds(index, index);
-      int prevIndex = index;
-      Rectangle prevBounds = bounds;
-      while (index > 0 && verticalOverlap(bounds, prevBounds)) {
-        prevIndex--;
-        prevBounds = list.getCellBounds(prevIndex, prevIndex);
+    for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
+      JList<T> nextList = myLists.get(listIndex);
+      int itemCount = nextList.getModel().getSize();
+      if (itemCount > 0 && nextList.isVisible()) {
+        selectNewItem(nextList, 0, list);
+        return true;
       }
-      return prevIndex;
     }
+    return false;
+  }
 
-    private int findNextListStart(@NotNull JList<T> list, int index) {
-      int count = list.getModel().getSize();
-      Rectangle bounds = list.getCellBounds(index, index);
-      int nextIndex = index;
-      Rectangle nextBounds = bounds;
-      while (index < count && verticalOverlap(bounds, nextBounds)) {
-        nextIndex++;
-        nextBounds = list.getCellBounds(nextIndex, nextIndex);
+  private boolean handleKeyLeft(@NotNull JList<T> list) {
+    int selectedIndex = list.getSelectedIndex();
+    if (selectedIndex < 0) {
+      return false;
+    }
+    if (selectedIndex > 0) {
+      selectNewItem(list, selectedIndex - 1, list);
+      return true;
+    }
+    for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
+      JList<T> prevList = myLists.get(listIndex);
+      int itemCount = prevList.getModel().getSize();
+      if (itemCount > 0 && prevList.isVisible()) {
+        selectNewItem(prevList, itemCount - 1, list);
+        return true;
       }
-      return nextIndex;
+    }
+    return false;
+  }
+
+  private int midX(@NotNull JList<T> list, int index) {
+    Rectangle bounds = list.getCellBounds(index, index);
+    return bounds.x + bounds.width / 2;
+  }
+
+  private boolean isFirstRow(@NotNull JList<T> list, int index) {
+    Rectangle bounds = list.getCellBounds(index, index);
+    Rectangle firstBounds = list.getCellBounds(0, 0);
+    return verticalOverlap(bounds, firstBounds);
+  }
+
+  private boolean isLastRow(@NotNull JList<T> list, int index) {
+    int last = list.getModel().getSize() - 1;
+    Rectangle bounds = list.getCellBounds(index, index);
+    Rectangle lastBounds = list.getCellBounds(last, last);
+    return verticalOverlap(bounds, lastBounds);
+  }
+
+  private static boolean verticalOverlap(@NotNull Rectangle bounds1, @NotNull Rectangle bounds2) {
+    return bounds1.y < bounds2.y + bounds2.height && bounds1.y + bounds1.height > bounds2.y;
+  }
+
+  private int findPrevListEnd(@NotNull JList<T> list, int index) {
+    Rectangle bounds = list.getCellBounds(index, index);
+    int prevIndex = index;
+    Rectangle prevBounds = bounds;
+    while (index > 0 && verticalOverlap(bounds, prevBounds)) {
+      prevIndex--;
+      prevBounds = list.getCellBounds(prevIndex, prevIndex);
+    }
+    return prevIndex;
+  }
+
+  private int findNextListStart(@NotNull JList<T> list, int index) {
+    int count = list.getModel().getSize();
+    Rectangle bounds = list.getCellBounds(index, index);
+    int nextIndex = index;
+    Rectangle nextBounds = bounds;
+    while (index < count && verticalOverlap(bounds, nextBounds)) {
+      nextIndex++;
+      nextBounds = list.getCellBounds(nextIndex, nextIndex);
+    }
+    return nextIndex;
+  }
+
+  private int findBestMatchFromLeft(@NotNull JList<T> list, int x, int startIndex) {
+    int bestIndex = startIndex;
+    int count = list.getModel().getSize();
+    Rectangle bounds = list.getCellBounds(startIndex, startIndex);
+    int y = bounds.y + bounds.height / 2;
+    while (bestIndex < count && bounds.y < y && bounds.x + bounds.width < x) {
+      bestIndex++;
+      bounds = list.getCellBounds(bestIndex, bestIndex);
+    }
+    return bestIndex < count ? bestIndex : count - 1;
+  }
+
+  private int findBestMatchFromRight(@NotNull JList<T> list, int x, int startIndex) {
+    int bestIndex = startIndex;
+    Rectangle bounds = list.getCellBounds(bestIndex, bestIndex);
+    int y = bounds.y + bounds.height / 2;
+    while (bestIndex > 0 && bounds.y + bounds.height > y && bounds.x > x) {
+      bestIndex--;
+      bounds = list.getCellBounds(bestIndex, bestIndex);
+    }
+    return bestIndex;
+  }
+
+  private void selectNewItem(@NotNull JList<T> list, int index, @NotNull JList<T> prevList) {
+    prevList.clearSelection();
+    list.setSelectedIndex(index);
+    ensureIndexVisible(list, index);
+    list.requestFocus();
+  }
+
+  /**
+   * Forward all {@link KeyEvent} from the embedded {@link JList} components to the
+   * {@link KeyListener} of {@link TreeGrid}.
+   * We perform our own key handling in {@link #processComponentKeyEvent}.
+   */
+  private class MyKeyListener implements KeyListener {
+
+    @Override
+    public void keyPressed(@NotNull KeyEvent event) {
+      processKeyEvent(event);
     }
 
-    private int findBestMatchFromLeft(@NotNull JList<T> list, int x, int startIndex) {
-      int bestIndex = startIndex;
-      int count = list.getModel().getSize();
-      Rectangle bounds = list.getCellBounds(startIndex, startIndex);
-      int y = bounds.y + bounds.height / 2;
-      while (bestIndex < count && bounds.y < y && bounds.x + bounds.width < x) {
-        bestIndex++;
-        bounds = list.getCellBounds(bestIndex, bestIndex);
+    @Override
+    public void keyTyped(@NotNull KeyEvent event) {
+      processKeyEvent(event);
+    }
+
+    @Override
+    public void keyReleased(@NotNull KeyEvent event) {
+      processKeyEvent(event);
+    }
+  }
+
+  /**
+   * Forward {@link FocusEvent} from the embedded {@link JList} components to the
+   * {@link FocusListener} of {@link TreeGrid}.
+   * Only forward the events where focus is gained/lost from an external component.
+   */
+  private class MyFocusListener implements FocusListener {
+
+    @Override
+    public void focusGained(@NotNull FocusEvent event) {
+      Component opposite = event.getOppositeComponent();
+      if (opposite == null || !SwingUtilities.isDescendingFrom(opposite, TreeGrid.this)) {
+        processFocusEvent(event);
       }
-      return bestIndex < count ? bestIndex : count - 1;
     }
 
-    private int findBestMatchFromRight(@NotNull JList<T> list, int x, int startIndex) {
-      int bestIndex = startIndex;
-      Rectangle bounds = list.getCellBounds(bestIndex, bestIndex);
-      int y = bounds.y + bounds.height / 2;
-      while (bestIndex > 0 && bounds.y + bounds.height > y && bounds.x > x) {
-        bestIndex--;
-        bounds = list.getCellBounds(bestIndex, bestIndex);
+    @Override
+    public void focusLost(@NotNull FocusEvent event) {
+      Component opposite = event.getOppositeComponent();
+      if (opposite == null || !SwingUtilities.isDescendingFrom(opposite, TreeGrid.this)) {
+        processFocusEvent(event);
       }
-      return bestIndex;
+    }
+  }
+
+  /**
+   * Forward all {@link MouseEvent} from the embedded {@link JList} components to the
+   * {@link MouseListener} of {@link TreeGrid}.
+   */
+  private class MyMouseListener implements MouseListener {
+
+    @Override
+    public void mouseClicked(@NotNull MouseEvent event) {
+      processMouseEvent(event);
     }
 
-    private void selectNewItem(@NotNull JList<T> list, int index, @NotNull JList<T> prevList) {
-      prevList.clearSelection();
-      list.setSelectedIndex(index);
-      ensureIndexVisible(list, index);
-      list.requestFocus();
+    @Override
+    public void mousePressed(@NotNull MouseEvent event) {
+      processMouseEvent(event);
+    }
+
+    @Override
+    public void mouseReleased(@NotNull MouseEvent event) {
+      processMouseEvent(event);
+    }
+
+    @Override
+    public void mouseEntered(@NotNull MouseEvent event) {
+      processMouseEvent(event);
+    }
+
+    @Override
+    public void mouseExited(@NotNull MouseEvent event) {
+      processMouseEvent(event);
+    }
+  }
+
+  /**
+   * Forward all {@link ListSelectionEvent} from the embedded {@link JList} components to the
+   * {@link ListSelectionListener} of {@link TreeGrid}.
+   */
+  private class MyListSelectionListener implements ListSelectionListener {
+
+    @Override
+    public void valueChanged(@NotNull ListSelectionEvent event) {
+      for (ListSelectionListener listener : listenerList.getListeners(ListSelectionListener.class)) {
+        listener.valueChanged(event);
+      }
+    }
+  }
+
+  /**
+   * The purpose of this {@link FocusTraversalPolicy} is to treat the lists in the {@link TreeGrid}
+   * as one tab stop. That means the next or previous component is always outside of this container.
+   * And the only focusable component is the currently selected list.
+   */
+  private class MyFocusTraversalPolicy extends FocusTraversalPolicy {
+
+    @Override
+    public Component getComponentAfter(Container aContainer, Component aComponent) {
+      return null;
+    }
+
+    @Override
+    public Component getComponentBefore(Container aContainer, Component aComponent) {
+      return null;
+    }
+
+    @Override
+    public Component getFirstComponent(Container aContainer) {
+      return getSelectedList();
+    }
+
+    @Override
+    public Component getLastComponent(Container aContainer) {
+      return getSelectedList();
+    }
+
+    @Override
+    public Component getDefaultComponent(Container aContainer) {
+      return getSelectedList();
     }
   }
 }

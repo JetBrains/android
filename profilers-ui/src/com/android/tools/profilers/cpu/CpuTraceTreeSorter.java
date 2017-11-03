@@ -16,8 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.adtui.model.RangedTreeModel;
-import com.intellij.codeInspection.ui.OptionAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -29,14 +27,14 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
 
   @NotNull private JTree myTree;
   private DefaultMutableTreeNode myRoot;
-  private TopDownTreeModel myModel;
+  private CpuTreeModel myModel;
   private Comparator<DefaultMutableTreeNode> myComparator;
 
   public CpuTraceTreeSorter(@NotNull JTree tree) {
     myTree = tree;
   }
 
-  public void setModel(TopDownTreeModel model, Comparator<DefaultMutableTreeNode> sorting) {
+  public void setModel(CpuTreeModel model, Comparator<DefaultMutableTreeNode> sorting) {
     myModel = model;
     if (myModel != null) {
       myRoot = (DefaultMutableTreeNode)model.getRoot();
@@ -57,6 +55,7 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
       myModel.reload();
     }
   }
+
   private void sortTree(@NotNull DefaultMutableTreeNode parent) {
     if (parent.isLeaf()) {
       return;

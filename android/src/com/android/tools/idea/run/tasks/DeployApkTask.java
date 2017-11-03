@@ -17,7 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;

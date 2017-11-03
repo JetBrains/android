@@ -16,76 +16,112 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.*;
+import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
-/**
- * A UI representation of a {@link Field}.
- */
-public class HeapDumpFieldObject extends FieldObject {
-  private static final Map<Type, ValueType> ourValueTypeMap = ImmutableMap.<Type, ValueType>builder()
-    .put(Type.BOOLEAN, ValueType.BOOLEAN)
-    .put(Type.BYTE, ValueType.BYTE)
-    .put(Type.CHAR, ValueType.CHAR)
-    .put(Type.SHORT, ValueType.SHORT)
-    .put(Type.INT, ValueType.INT)
-    .put(Type.LONG, ValueType.LONG)
-    .put(Type.FLOAT, ValueType.FLOAT)
-    .put(Type.DOUBLE, ValueType.DOUBLE)
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
+
+final class HeapDumpFieldObject implements FieldObject {
+  private static final Map<Type, ValueType> ourPrimitiveValueTypeMap = ImmutableMap.<Type, ValueObject.ValueType>builder()
+    .put(Type.BOOLEAN, BOOLEAN)
+    .put(Type.BYTE, BYTE)
+    .put(Type.CHAR, CHAR)
+    .put(Type.SHORT, SHORT)
+    .put(Type.INT, INT)
+    .put(Type.LONG, LONG)
+    .put(Type.FLOAT, FLOAT)
+    .put(Type.DOUBLE, DOUBLE)
     .build();
 
-  @NotNull private final ClassInstance.FieldValue myField;
+  @NotNull private final FieldValue myField;
+  @NotNull private final ValueObject.ValueType myValueType;
+  @Nullable private final InstanceObject myInstanceObject;
+  private final int myDepth;
+  private final long myNativeSize;
   private final int myShallowSize;
   private final long myRetainedSize;
-  private final ValueType myValueType;
 
-  public HeapDumpFieldObject(@NotNull ClassInstance.FieldValue field) {
+  private final int myHashCode;
+
+  public HeapDumpFieldObject(@NotNull HeapDumpCaptureObject captureObject, @NotNull Instance parentInstance, @NotNull FieldValue field) {
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
-      if (myField.getValue() == null) {
-        myValueType = ValueType.UNKNOWN; // TODO fix this by using the parent instance's information
+      Instance instance = (Instance)myField.getValue();
+      if (instance == null || myField.getValue() == null) {
+        myValueType = NULL;
+        myInstanceObject = null;
+        myNativeSize = 0;
         myShallowSize = 0;
         myRetainedSize = 0;
+        myDepth = Integer.MAX_VALUE;
       }
       else {
-        Class valueClass = myField.getValue().getClass();
-        Instance instance = (Instance)myField.getValue();
-        if (ClassObj.class.isAssignableFrom(valueClass)) {
-          myValueType = ValueType.CLASS;
+        myInstanceObject = captureObject.findInstanceObject(instance);
+        if (instance instanceof ClassObj) {
+          myValueType = CLASS;
         }
-        else if (ClassInstance.class.isAssignableFrom(valueClass) &&
-                 "java.lang.String".equals(((ClassInstance)myField.getValue()).getClassObj().getClassName())) {
-          myValueType = ValueType.STRING;
+        else if (instance instanceof ArrayInstance) {
+          myValueType = ARRAY;
+        }
+        else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(ClassDb.JAVA_LANG_STRING)) {
+          myValueType = STRING;
         }
         else {
-          myValueType = ValueType.OBJECT;
+          myValueType = OBJECT;
         }
+
+        myNativeSize = instance.getNativeSize();
         myShallowSize = instance.getSize();
         myRetainedSize = instance.getTotalRetainedSize();
+        myDepth = instance.getDistanceToGcRoot();
       }
     }
     else {
-      myValueType = ourValueTypeMap.getOrDefault(type, ValueType.UNKNOWN);
+      myValueType = ourPrimitiveValueTypeMap.getOrDefault(type, NULL);
+      myInstanceObject = null;
+      myNativeSize = 0;
       myShallowSize = type.getSize();
       myRetainedSize = type.getSize();
+      myDepth = parentInstance.getDistanceToGcRoot();
     }
+
+    myHashCode = Arrays.hashCode(new Object[]{myInstanceObject, getFieldName(), getValueType(), myField.getValue()});
+  }
+
+  @Override
+  public int hashCode() {
+    return myHashCode;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpFieldObject)) {
+      return false;
+    }
+
+    HeapDumpFieldObject other = (HeapDumpFieldObject)obj;
+    return other.myInstanceObject == myInstanceObject &&
+           getFieldName().equals(other.getFieldName()) &&
+           getValueType() == other.getValueType() &&
+           (getAsInstance() == other.getAsInstance() || Objects.equals(myField.getValue(), other.myField.getValue()));
   }
 
   @NotNull
   @Override
   public String getName() {
-    if (myField.getValue() == null) {
-      return myField.getField().getName() + "= {null}";
-    }
-    else {
-      return myField.getField().getName() + "=" + myField.getValue().toString();
-    }
+    return getFieldName();
+  }
+
+  @Override
+  public long getNativeSize() {
+    return myNativeSize;
   }
 
   @Override
@@ -100,20 +136,7 @@ public class HeapDumpFieldObject extends FieldObject {
 
   @Override
   public int getDepth() {
-    // TODO fill this in using parent instance's information
-    return 0;
-  }
-
-  @Nullable
-  @Override
-  public List<FieldObject> getFields() {
-    // The field only has children if it is a non-primitive field.
-    if (myField.getField().getType() == Type.OBJECT && myField.getValue() != null) {
-      Instance instance = (Instance)myField.getValue();
-      assert instance != null;
-      return (new HeapDumpInstanceObject(instance)).getFields();
-    }
-    return Collections.emptyList();
+    return myDepth;
   }
 
   @NotNull
@@ -122,19 +145,49 @@ public class HeapDumpFieldObject extends FieldObject {
     return myField.getField().getName();
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public String getValueLabel() {
-    return myField.getValue().toString();
+  public InstanceObject getAsInstance() {
+    return myInstanceObject;
   }
 
+  @Nullable
   @Override
-  public ValueType getValueType() {
+  public Object getValue() {
+    return myInstanceObject != null ? myInstanceObject : myField.getValue();
+  }
+
+  @NotNull
+  @Override
+  public ValueObject.ValueType getValueType() {
     return myValueType;
   }
 
+  @NotNull
   @Override
-  public boolean getIsArray() {
-    return ArrayInstance.class.isAssignableFrom(myField.getValue().getClass());
+  public String getValueText() {
+    if (getValueType().getIsPrimitive()) {
+      return "";
+    }
+    else if (getValueType() == NULL || myField.getValue() == null || myInstanceObject == null) {
+      return "null";
+    }
+    else {
+      return String.format("{%s}", myInstanceObject.getClassEntry().getSimpleClassName());
+    }
+  }
+
+  @NotNull
+  @Override
+  public String getToStringText() {
+    if (getValueType() == NULL || myField.getValue() == null) {
+      return "";
+    }
+    else if (getValueType().getIsPrimitive()) {
+      return myField.getValue().toString();
+    }
+    else {
+      return myInstanceObject == null ? "" : myInstanceObject.getToStringText();
+    }
   }
 }

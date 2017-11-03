@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -52,6 +50,7 @@ public class DependencySet {
   void add(@NotNull LibraryDependency dependency) {
     String originalName = dependency.getName();
     Collection<LibraryDependency> allStored = myLibrariesByName.get(originalName);
+    allStored = allStored == null ? null : ImmutableSet.copyOf(allStored);
     if (allStored == null || allStored.isEmpty()) {
       myLibrariesByName.put(originalName, dependency);
       return;
@@ -85,8 +84,8 @@ public class DependencySet {
   }
 
   /**
-   * Adds all the dependencies in other {@link DependencySet} to this
-   * @param other {@link DependencySet} to be added to this
+   * Adds all the dependencies in other DependencySet to this
+   * @param other DependencySet to be added to this
    */
   public void addAll(DependencySet other) {
     for (LibraryDependency libraryDependency : other.onLibraries()) {
@@ -124,12 +123,12 @@ public class DependencySet {
   }
 
   @NotNull
-  public Collection<LibraryDependency> onLibraries() {
-    return myLibrariesByName.values();
+  public ImmutableCollection<LibraryDependency> onLibraries() {
+    return ImmutableSet.copyOf(myLibrariesByName.values());
   }
 
   @NotNull
-  public Collection<ModuleDependency> onModules() {
-    return myModulesByPath.values();
+  public ImmutableCollection<ModuleDependency> onModules() {
+    return ImmutableSet.copyOf(myModulesByPath.values());
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -32,21 +32,21 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button1")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp"),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
-                                       .withBounds(200, 200, 100, 20)
+                                       .withBounds(400, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/button1")
@@ -60,12 +60,12 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
     myInteraction.mouseRelease(800, 210);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
-                 "    tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"550dp\" />");
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"548dp\"\n" +
+                 "        app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
+                 "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
 
 }

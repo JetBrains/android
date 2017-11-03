@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.*;
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -60,26 +61,22 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   }
 
   private void collectDependencies(@NotNull PsAndroidArtifact artifact) {
-    BaseArtifact resolvedArtifact = artifact.getResolvedModel();
+    IdeBaseArtifact resolvedArtifact = artifact.getResolvedModel();
     if (resolvedArtifact == null) {
       return;
     }
-    AndroidModuleModel gradleModel = artifact.getGradleModel();
-    Dependencies dependencies = GradleUtil.getDependencies(resolvedArtifact, gradleModel.getModelVersion());
+    IdeDependencies dependencies = resolvedArtifact.getLevel2Dependencies();
 
-    for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
-      String gradlePath = androidLibrary.getProject();
+    for (Library androidLibrary : dependencies.getAndroidLibraries()) {
+      addLibrary(androidLibrary, artifact);
+    }
+    for (Library moduleLibrary : dependencies.getModuleDependencies()) {
+      String gradlePath = moduleLibrary.getProjectPath();
       if (gradlePath != null) {
-        String projectVariant = androidLibrary.getProjectVariant();
-        addModule(gradlePath, artifact, projectVariant);
-      }
-      else {
-        // This is an AAR
-        addLibrary(androidLibrary, artifact);
+        addModule(gradlePath, artifact, moduleLibrary.getVariant());
       }
     }
-
-    for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
+    for (Library javaLibrary : dependencies.getJavaLibraries()) {
       addLibrary(javaLibrary, artifact);
     }
   }
@@ -106,7 +103,8 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   private PsAndroidDependency addLibrary(@NotNull Library library, @NotNull PsAndroidArtifact artifact) {
     PsParsedDependencies parsedDependencies = myParent.getParsedDependencies();
 
-    MavenCoordinates coordinates = library.getResolvedCoordinates();
+    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
+    //noinspection ConstantConditions
     if (coordinates != null) {
       PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(coordinates);
 
@@ -118,7 +116,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
           // "tryParse" just in case the build.file has an invalid version.
           GradleVersion parsedVersion = GradleVersion.tryParse(parsedVersionValue);
 
-          GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getVersion());
+          GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getRevision());
           if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
             // Match.
             return addLibrary(library, spec, artifact, matchingParsedDependency);
@@ -145,6 +143,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
                 break;
               }
             }
+            //noinspection StatementWithEmptyBody
             if (potentialDuplicate != null) {
               // TODO match ArtifactDependencyModel#configurationName with potentialDuplicate.getContainers().artifact
             }
@@ -170,44 +169,9 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
                                          @NotNull PsArtifactDependencySpec resolvedSpec,
                                          @NotNull PsAndroidArtifact artifact,
                                          @Nullable ArtifactDependencyModel parsedModel) {
-    if (library instanceof AndroidLibrary) {
-      AndroidLibrary androidLibrary = (AndroidLibrary)library;
-      return addAndroidLibrary(androidLibrary, resolvedSpec, artifact, parsedModel);
-    }
-    else if (library instanceof JavaLibrary) {
-      JavaLibrary javaLibrary = (JavaLibrary)library;
-      return addJavaLibrary(javaLibrary, resolvedSpec, artifact, parsedModel);
-    }
+    PsAndroidDependency dependency = getOrCreateDependency(resolvedSpec, library, artifact, parsedModel);
+    updateDependency(dependency, artifact, parsedModel);
     return null;
-  }
-
-  @NotNull
-  private PsAndroidDependency addAndroidLibrary(@NotNull AndroidLibrary androidLibrary,
-                                                @NotNull PsArtifactDependencySpec resolvedSpec,
-                                                @NotNull PsAndroidArtifact artifact,
-                                                @Nullable ArtifactDependencyModel parsedModel) {
-    PsAndroidDependency dependency = getOrCreateDependency(resolvedSpec, androidLibrary, artifact, parsedModel);
-
-    for (Library library : androidLibrary.getLibraryDependencies()) {
-      addTransitive(library, artifact, dependency);
-    }
-
-    updateDependency(dependency, artifact, parsedModel);
-    return dependency;
-  }
-
-  @NotNull
-  private PsAndroidDependency addJavaLibrary(@NotNull JavaLibrary javaLibrary,
-                                             @NotNull PsArtifactDependencySpec resolvedSpec,
-                                             @NotNull PsAndroidArtifact artifact,
-                                             @Nullable ArtifactDependencyModel parsedModel) {
-    PsAndroidDependency dependency = getOrCreateDependency(resolvedSpec, javaLibrary, artifact, parsedModel);
-
-    for (Library library : javaLibrary.getDependencies()) {
-      addTransitive(library, artifact, dependency);
-    }
-    updateDependency(dependency, artifact, parsedModel);
-    return dependency;
   }
 
   private void addTransitive(@NotNull Library transitiveDependency,
@@ -256,13 +220,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       dependency = new PsLibraryAndroidDependency(myParent, resolvedSpec, artifact, library, parsedModel);
       myLibraryDependenciesBySpec.put(compactNotation, dependency);
 
-      File libraryPath = null;
-      if (library instanceof AndroidLibrary) {
-        libraryPath = ((AndroidLibrary)library).getBundle();
-      }
-      else if (library instanceof JavaLibrary) {
-        libraryPath = ((JavaLibrary)library).getJarFile();
-      }
+      File libraryPath = library.getArtifact();
       List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();
       if (libraryPath != null) {
         pomDependencies = findDependenciesInPomFile(libraryPath);
@@ -283,11 +241,12 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (dependency != null) {
       return dependency;
     }
-    if (isEmpty(spec.version)) {
+    if (isEmpty(spec.getVersion())) {
       List<String> found = Lists.newArrayList();
       for (String specText : myLibraryDependenciesBySpec.keySet()) {
         PsArtifactDependencySpec storedSpec = PsArtifactDependencySpec.create(specText);
-        if (storedSpec != null && Objects.equals(storedSpec.group, spec.group) && Objects.equals(storedSpec.name, spec.name)) {
+        if (storedSpec != null && Objects.equals(storedSpec.getGroup(), spec.getGroup()) && Objects.equals(storedSpec.getName(),
+                                                                                                           spec.getName())) {
           found.add(specText);
         }
       }

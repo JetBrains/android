@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -67,13 +68,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Properties;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
@@ -88,11 +89,16 @@ public class GradleSpecificInitializer implements Runnable {
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
+  // Id for TemplateProjectSettingsGroup
+  @NotNull public static final String  TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
+
   @Override
   public void run() {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
+    // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
+    replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
     checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
@@ -171,7 +177,7 @@ public class GradleSpecificInitializer implements Runnable {
     // Update the Welcome Screen actions
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Eclipse ADT, Gradle, etc.)"));
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
@@ -230,9 +236,7 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       protected void hyperlinkActivated(@NotNull Notification notification,
                                         @NotNull HyperlinkEvent e) {
-        ActionManager actionManager = ActionManager.getInstance();
-        AnAction sdkManagerAction = actionManager.getAction("Android.RunAndroidSdkManager");
-        sdkManagerAction.actionPerformed(null);
+        SdkQuickfixUtils.showAndroidSdkManager();
         notification.expire();
       }
     };
@@ -290,7 +294,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      ideSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
       return;
     }
 
@@ -382,7 +386,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
-      return new File(toSystemDependentName(androidHomeValue));
+      return toSystemDependentPath(androidHomeValue);
     }
 
     String toolsPreferencePath = AndroidLocation.getFolderWithoutWrites();
@@ -393,7 +397,7 @@ public class GradleSpecificInitializer implements Runnable {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
-    return sdkPath == null ? null : new File(toSystemDependentName(sdkPath));
+    return toSystemDependentPath(sdkPath);
   }
 
   /**

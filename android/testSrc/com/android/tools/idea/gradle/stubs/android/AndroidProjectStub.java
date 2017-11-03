@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -25,8 +28,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
-public class AndroidProjectStub implements AndroidProject {
+import static org.mockito.Mockito.mock;
+
+public class AndroidProjectStub implements IdeAndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
@@ -72,6 +78,16 @@ public class AndroidProjectStub implements AndroidProject {
 
   public void setModelVersion(@NotNull String modelVersion) {
     myModelVersion = modelVersion;
+  }
+
+  @Nullable
+  @Override
+  public GradleVersion getParsedModelVersion() {
+    return null;
+  }
+
+  @Override
+  public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
   }
 
   @Override
@@ -175,7 +191,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<ArtifactMetaData> getExtraArtifacts() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Nullable
@@ -186,25 +202,25 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getCompileTarget() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
   @NotNull
   public List<String> getBootClasspath() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<File> getFrameworkSources() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<NativeToolchain> getNativeToolchains() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
@@ -216,13 +232,13 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    throw new UnsupportedOperationException();
+    return mock(AaptOptions.class);
   }
 
   @Override
   @NotNull
   public LintOptions getLintOptions() {
-    throw new UnsupportedOperationException();
+    return mock(LintOptions.class);
   }
 
   @Override
@@ -258,12 +274,17 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getBuildToolsVersion() {
-    throw new UnsupportedOperationException();
+    return "25";
   }
 
   @Override
   public int getPluginGeneration() {
     return myPluginGeneration;
+  }
+
+  @Override
+  public boolean isBaseSplit() {
+    return false;
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 
-public class IdEnumSupport extends EnumSupport {
+public class IdEnumSupport extends AttributeDefinitionEnumSupport {
 
   private final IdAnalyzer myIdAnalyzer;
 
@@ -44,20 +46,25 @@ public class IdEnumSupport extends EnumSupport {
   @NotNull
   @Override
   public List<ValueWithDisplayString> getAllValues() {
-    return myIdAnalyzer.findIds().stream()
-      .map(id -> new ValueWithDisplayString(id, NEW_ID_PREFIX + id))
+    List<ValueWithDisplayString> values = myIdAnalyzer.findIds().stream()
+      .map(id -> new ValueWithDisplayString(isEnumValue(id) ? NEW_ID_PREFIX + id : id, NEW_ID_PREFIX + id))
       .collect(Collectors.toList());
+    addAttributeDefinitionValues(values);
+    return values;
   }
 
   @Override
   @NotNull
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
-    if (value != null && !value.startsWith(NEW_ID_PREFIX) && !value.startsWith(ID_PREFIX)) {
+    if (value != null && !value.startsWith(NEW_ID_PREFIX) && !value.startsWith(ID_PREFIX) && !isEnumValue(value)) {
       value = NEW_ID_PREFIX + value;
     }
     String display = resolvedValue;
     display = StringUtil.trimStart(display, ID_PREFIX);
     display = StringUtil.trimStart(display, NEW_ID_PREFIX);
+    if (isEnumValue(display)) {
+      display = resolvedValue;
+    }
     return new ValueWithDisplayString(display, value, hint);
   }
 }

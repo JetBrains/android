@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintBaseline;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.ui.InspectionResultsView;
@@ -39,7 +40,10 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @org.jetbrains.annotations.Nullable LintFix fixData) {
     if (LintBaseline.isFilteredMessage(message, TextFormat.RAW)) {
       return new AndroidLintQuickFix[]{
         new DefaultLintQuickFix("Temporarily turn off the baseline and re-run the analysis") {
@@ -70,7 +74,7 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
       };
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 
   private static void rerun() {

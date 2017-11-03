@@ -20,7 +20,8 @@ import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.SelectionLayer;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -184,7 +185,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
       selectionLayer.setFixedRatio(state);
       if (state) {
         // Set the aspect ratio of the current selection to the same as the component
-        selectionLayer.setAspectRatio(component.w, component.h);
+        selectionLayer.setAspectRatio(NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component));
         saveSelectionToMockup(selectionLayer.getSelection(), myMockup);
       }
     }

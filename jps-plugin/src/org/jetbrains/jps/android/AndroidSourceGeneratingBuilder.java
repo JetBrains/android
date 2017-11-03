@@ -128,7 +128,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
                                                      DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder)
     throws IOException {
     final Map<JpsModule, MyModuleData> moduleDataMap = computeModuleDatas(chunk.getModules(), context);
-    if (moduleDataMap == null || moduleDataMap.size() == 0) {
+    if (moduleDataMap == null || moduleDataMap.isEmpty()) {
       return ExitCode.ABORT;
     }
 
@@ -194,14 +194,14 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
     boolean didSomething = false;
 
-    if (idlFilesToCompile.size() > 0) {
+    if (!idlFilesToCompile.isEmpty()) {
       if (!runAidlCompiler(context, idlFilesToCompile, moduleDataMap)) {
         success = false;
       }
       didSomething = true;
     }
 
-    if (rsFilesToCompile.size() > 0) {
+    if (!rsFilesToCompile.isEmpty()) {
       if (!runRenderscriptCompiler(context, rsFilesToCompile, moduleDataMap)) {
         success = false;
       }
@@ -467,13 +467,13 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static void logGeneratedSourcesProcessing(AndroidBuildTestingManager manager,
                                                     List<Pair<String, String>> copiedFiles,
                                                     List<String> deletedFiles) {
-    if (copiedFiles.size() == 0 && deletedFiles.size() == 0) {
+    if (copiedFiles.isEmpty() && deletedFiles.isEmpty()) {
       return;
     }
     final StringBuilder message = new StringBuilder(ANDROID_GENERATED_SOURCES_PROCESSOR);
     message.append("\n");
 
-    if (copiedFiles.size() > 0) {
+    if (!copiedFiles.isEmpty()) {
       Collections.sort(copiedFiles, new Comparator<Pair<String, String>>() {
         @Override
         public int compare(Pair<String, String> o1, Pair<String, String> o2) {
@@ -487,7 +487,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
     }
 
-    if (deletedFiles.size() > 0) {
+    if (!deletedFiles.isEmpty()) {
       Collections.sort(deletedFiles);
       message.append("Deleted files\n");
 
@@ -684,7 +684,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static boolean runAidlCompiler(@NotNull final CompileContext context,
                                          @NotNull Map<File, ModuleBuildTarget> files,
                                          @NotNull Map<JpsModule, MyModuleData> moduleDataMap) {
-    if (files.size() > 0) {
+    if (!files.isEmpty()) {
       context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.aidl")));
     }
 
@@ -737,7 +737,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
         addMessages(context, messages, filePath, ANDROID_IDL_COMPILER);
 
-        if (messages.get(AndroidCompilerMessageKind.ERROR).size() > 0) {
+        if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
           success = false;
         }
         else if (outputFile.exists()) {
@@ -757,7 +757,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static boolean runRenderscriptCompiler(@NotNull final CompileContext context,
                                                  @NotNull Map<File, ModuleBuildTarget> files,
                                                  @NotNull Map<JpsModule, MyModuleData> moduleDataMap) {
-    if (files.size() > 0) {
+    if (!files.isEmpty()) {
       context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.renderscript")));
     }
 
@@ -811,7 +811,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
         addMessages(context, messages, filePath, ANDROID_RENDERSCRIPT_COMPILER);
 
-        if (messages.get(AndroidCompilerMessageKind.ERROR).size() > 0) {
+        if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
           success = false;
         }
         else {
@@ -949,7 +949,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
         String rTxtOutDirOsPath = null;
 
-        if (extension.isLibrary() || libRTextFilesAndPackages.size() > 0) {
+        if (extension.isLibrary() || !libRTextFilesAndPackages.isEmpty()) {
           final File rTxtOutDir = new File(outputDirForArtifacts, R_TXT_OUTPUT_DIR_NAME);
 
           if (AndroidJpsUtil.createDirIfNotExist(rTxtOutDir, context, BUILDER_NAME) == null) {
@@ -979,7 +979,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
           AndroidJpsUtil.addMessages(context, messages, ANDROID_APT_COMPILER, module.getName());
 
-          if (messages.get(AndroidCompilerMessageKind.ERROR).size() > 0) {
+          if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
             success = false;
             storage.update(module.getName(), null);
           }
@@ -1279,7 +1279,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
 
       final String packageName = AndroidJpsUtil.parsePackageNameFromManifestFile(manifestFile);
-      if (packageName == null || packageName.length() == 0) {
+      if (packageName == null || packageName.isEmpty()) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, AndroidJpsBundle
           .message("android.jps.errors.package.not.specified", module.getName())));
         success = false;
@@ -1365,7 +1365,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   public static JpsModule findCircularDependencyOnLibraryWithSamePackage(@NotNull JpsAndroidModuleExtension extension,
                                                                          @NotNull Map<JpsModule, String> packageMap) {
     final String aPackage = packageMap.get(extension.getModule());
-    if (aPackage == null || aPackage.length() == 0) {
+    if (aPackage == null || aPackage.isEmpty()) {
       return null;
     }
 
@@ -1398,7 +1398,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
         final String artifactOutputPath = artifact.getOutputFilePath();
 
-        if (artifactOutputPath != null && facets.size() > 0) {
+        if (artifactOutputPath != null && !facets.isEmpty()) {
           final JpsAndroidModuleExtension facet = facets.get(0);
           final String apkPath = AndroidFinalPackageElementBuilder.getApkPath(facet);
 
@@ -1455,7 +1455,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
     boolean success = true;
 
-    if (debugArtifacts.size() > 0 && releaseArtifacts.size() > 0) {
+    if (!debugArtifacts.isEmpty() && !releaseArtifacts.isEmpty()) {
       final String message = "Cannot build debug and release Android artifacts in the same session\n" +
                              "Debug artifacts: " + artifactsToString(debugArtifacts) + "\n" +
                              "Release artifacts: " + artifactsToString(releaseArtifacts);
@@ -1463,7 +1463,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       success = false;
     }
 
-    if (releaseArtifacts.size() > 0 &&
+    if (!releaseArtifacts.isEmpty() &&
         AndroidJpsUtil.getRunConfigurationTypeId(context) != null) {
       final String message = "Cannot build release Android artifacts in the 'build before run' session\n" +
                              "Release artifacts: " + artifactsToString(releaseArtifacts);

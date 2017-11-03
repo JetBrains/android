@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
@@ -48,6 +49,14 @@ public class AndroidSdkDataTest extends AndroidTestCase {
       IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
       ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
+  }
+
+  @Override
+  protected void collectAllowedRoots(List<String> roots) throws IOException {
+    String javaHome = SystemProperties.getJavaHome();
+    if (javaHome.endsWith("jre")) {
+      roots.add(new File(javaHome).getParent());
+    }
   }
 
   public void testSdkDataExposesSdkComponents() throws Exception {

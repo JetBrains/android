@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 public enum NetworkProfilerAspect {
   /**
    * Aspect associated with a single, focused connection. The connection may be {@code null}, which
-   * means that currently no connection is active (perhaps recently deselected).
+   * means that currently no connection is selected (perhaps recently deselected).
    */
-  ACTIVE_CONNECTION
+  SELECTED_CONNECTION,
 }

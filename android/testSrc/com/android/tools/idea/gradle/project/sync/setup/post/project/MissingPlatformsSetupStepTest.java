@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -44,7 +44,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
     super.setUp();
     Project project = getProject();
     mySyncMessages = new MySyncMessages(project);
-    IdeComponents.replaceService(project, SyncMessages.class, mySyncMessages);
+    IdeComponents.replaceService(project, GradleSyncMessages.class, mySyncMessages);
 
     mySetupStep = new MissingPlatformsSetupStep();
   }
@@ -77,7 +77,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
     assertTrue(mySetupStep.invokeOnFailedSync());
   }
 
-  private static class MySyncMessages extends  SyncMessagesStub {
+  private static class MySyncMessages extends GradleSyncMessagesStub {
     private Map<String, Integer> myMessageCountByGroup = new HashMap<>();
 
     public MySyncMessages(@NotNull Project project) {

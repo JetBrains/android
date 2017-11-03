@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -30,7 +32,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.android.SdkConstants.ANDROID_ID_PREFIX;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 
@@ -56,10 +59,11 @@ public class NlIdPropertyItem extends NlPropertyItem {
 
   private Supplier<DialogBuilder> myDialogSupplier;
 
-  protected NlIdPropertyItem(@NotNull List<NlComponent> components,
-                             @NotNull XmlAttributeDescriptor descriptor,
-                             @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
+  protected NlIdPropertyItem(@NotNull XmlName name,
+                             @Nullable AttributeDefinition attributeDefinition,
+                             @NotNull List<NlComponent> components,
+                             @NotNull NlPropertiesManager propertiesManager) {
+    super(name, attributeDefinition, components, propertiesManager);
   }
 
   @Nullable
@@ -92,11 +96,13 @@ public class NlIdPropertyItem extends NlPropertyItem {
     String newId = value != null ? stripIdPrefix(value.toString()) : "";
     String oldId = getValue();
     XmlTag tag = getTag();
+    String newValue = !StringUtil.isEmpty(newId) && !newId.startsWith(ANDROID_ID_PREFIX) ? NEW_ID_PREFIX + newId : newId;
 
     if (ourRefactoringChoice != REFACTOR_NO
         && oldId != null
         && !oldId.isEmpty()
         && !newId.isEmpty()
+        && newValue != null
         && !oldId.equals(newId)
         && tag != null
         && tag.isValid()) {
@@ -109,7 +115,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
         if (valueElement != null && valueElement.isValid()) {
           // Exact replace only, no comment/text occurrence changes since it is non-interactive
           ValueResourceElementWrapper wrapper = new ValueResourceElementWrapper(valueElement);
-          RenameProcessor processor = new RenameProcessor(project, wrapper, NEW_ID_PREFIX + newId, false /*comments*/, false /*text*/);
+          RenameProcessor processor = new RenameProcessor(project, wrapper, newValue, false /*comments*/, false /*text*/);
           processor.setPreviewUsages(false);
           // Do a quick usage search to see if we need to ask about renaming
           UsageInfo[] usages = processor.findUsages();
@@ -163,7 +169,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
       }
     }
 
-    super.setValue(!StringUtil.isEmpty(newId) ? NEW_ID_PREFIX + newId : null);
+    super.setValue(newValue);
   }
 
   @TestOnly

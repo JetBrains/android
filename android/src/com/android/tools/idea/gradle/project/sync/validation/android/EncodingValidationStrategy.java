@@ -18,9 +18,8 @@ package com.android.tools.idea.gradle.project.sync.validation.android;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 
 class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final EncodingProjectManager myEncodings;
@@ -89,9 +88,8 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
       String[] text = {line, "Mismatching encodings can lead to serious bugs."};
 
       SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, INFO, text);
-      message.add(new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info..."));
 
-      SyncMessages.getInstance(project).report(message);
+      GradleSyncMessages.getInstance(project).report(message);
     }
   }
 

@@ -17,7 +17,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

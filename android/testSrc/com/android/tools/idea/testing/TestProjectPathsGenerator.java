@@ -32,13 +32,14 @@ import java.util.List;
 
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**
  * Generates TestProjectPaths.
  */
 public class TestProjectPathsGenerator {
   private static final List<String> TEST_SUB_FOLDERS =
-    Arrays.asList("manifestConflict", "moduleInfo", "runConfig", "signapk", "sync", "testArtifacts", "uibuilder");
+    Arrays.asList("apk", "manifestConflict", "moduleInfo", "navigationEditor", "runConfig", "signapk", "sync", "testArtifacts", "uibuilder");
 
   public static void main(@NotNull String... args) throws IOException {
     TestProjectPathsInfo info = generateTestProjectPathsFile();
@@ -104,20 +105,54 @@ public class TestProjectPathsGenerator {
         File[] subFolders = projectFolder.listFiles();
         createConstants(constants, projectName, subFolders);
       }
+      else if ("navigator".equals(projectName)) {
+        // Navigator is a special case where there isn't a pattern we can use recursively.
+        addNavigatorProjects(constants, projectFolder);
+      }
       else {
         String constantName = toConstantName(projectName);
         if (!prefix.isEmpty()) {
           constantName = toConstantName(prefix) + "_" + constantName;
         }
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("  public static final String ").append(constantName).append(" = \"projects/");
-        if (!prefix.isEmpty()) {
-          buffer.append(prefix).append("/");
-        }
-        buffer.append(projectName).append("\";\n");
-        constants.add(buffer.toString());
+        addConstant(constants, prefix, projectName, constantName);
       }
     }
+  }
+
+  private static void addNavigatorProjects(@NotNull List<String> constants, @NotNull File projectFolder) {
+    String rootFolderName = projectFolder.getName();
+    String navigatorPrefix = toConstantName(rootFolderName);
+
+    for (File subFolder : notNullize(projectFolder.listFiles())) {
+      String subFolderName = subFolder.getName();
+      if (subFolderName.equals("packageview")) {
+        String packageviewPrefix = navigatorPrefix + "_" + toConstantName(subFolderName);
+        // There are subprojects inside.
+        for (File subProjectFolder : notNullize(subFolder.listFiles())) {
+          String projectName = subProjectFolder.getName();
+          String projectPath = rootFolderName + "/" + subFolderName + "/" + projectName;
+          addConstant(constants, "", projectPath, packageviewPrefix + "_" + toConstantName(projectName));
+        }
+      }
+      else {
+        // This is a project
+        String projectPath = rootFolderName + "/" + subFolderName;
+        addConstant(constants, "", projectPath, navigatorPrefix + "_" + toConstantName(subFolderName));
+      }
+    }
+  }
+
+  private static void addConstant(@NotNull List<String> constants,
+                                  @NotNull String prefix,
+                                  @NotNull String projectPath,
+                                  @NotNull String constantName) {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("  public static final String ").append(constantName).append(" = \"projects/");
+    if (!prefix.isEmpty()) {
+      buffer.append(prefix).append("/");
+    }
+    buffer.append(projectPath).append("\";\n");
+    constants.add(buffer.toString());
   }
 
   @NotNull

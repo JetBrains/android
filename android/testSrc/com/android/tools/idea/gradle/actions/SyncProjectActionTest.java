@@ -25,6 +25,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -34,6 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class SyncProjectActionTest extends IdeaTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
+  @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;
 
   private Presentation myPresentation;
@@ -52,19 +55,20 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoPerform() {
     Project project = getProject();
-    BuildVariantView buildVariantView = IdeComponents.replaceServiceWithMock(project, BuildVariantView.class);
+    BuildVariantView buildVariantView = mock(BuildVariantView.class);
+    IdeComponents.replaceService(project, BuildVariantView.class, buildVariantView);
 
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, null);
+    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null);
     verify(buildVariantView).projectImportStarted();
   }
 
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    GradleSyncState syncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
-    when(syncState.isSyncInProgress()).thenReturn(true);
+    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);
 
@@ -73,8 +77,8 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoUpdateWithSyncNotInProgress() {
     Project project = getProject();
-    GradleSyncState syncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
-    when(syncState.isSyncInProgress()).thenReturn(false);
+    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    when(mySyncState.isSyncInProgress()).thenReturn(false);
 
     myAction.doUpdate(myEvent, project);
 

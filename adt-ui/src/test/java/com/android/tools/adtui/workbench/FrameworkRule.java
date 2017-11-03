@@ -21,9 +21,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -32,6 +30,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.testFramework.EdtTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -60,6 +59,7 @@ public class FrameworkRule implements TestRule {
     private final Statement myBase;
     private final PropertiesComponent myPropertiesComponent;
     private final Disposable myDisposable;
+    private final UISettings myUISettings;
 
     @Mock private Application myApplication;
     @Mock private PicoContainer myPicoContainer;
@@ -73,25 +73,24 @@ public class FrameworkRule implements TestRule {
     @Mock private WorkBenchManager myWorkBenchManager;
     @Mock private StartupManager myStartupManager;
     @Mock private DumbService myDumbService;
-    @Mock private FloatingToolWindowManager myFloatingToolWindowManager;
+    @Mock private DetachedToolWindowManager myFloatingToolWindowManager;
     @Mock private FileEditorManager myFileEditorManager;
     @Mock private ToolWindowManager myToolWindowManager;
-    private final UISettings myUISettings;
     @Mock private ActionPopupMenu myActionPopupMenu;
     @Mock private JPopupMenu myPopupMenu;
 
     public FrameworkStatement(@NotNull Statement base) {
       myBase = base;
       myPropertiesComponent = new PropertiesComponentMock();
-      myUISettings = new UISettings();
       myDisposable = Disposer.newDisposable();
+      myUISettings = new UISettings();
     }
 
     @Override
     public void evaluate() throws Throwable {
       before();
       try {
-        myBase.evaluate();
+        EdtTestUtil.runInEdtAndWait(myBase::evaluate);
       }
       finally {
         after();
@@ -105,15 +104,20 @@ public class FrameworkRule implements TestRule {
       when(myApplication.getComponent(ActionManager.class)).thenReturn(myActionManager);
       when(myApplication.getComponent(DataManager.class)).thenReturn(myDataManager);
       when(myApplication.getPicoContainer()).thenReturn(myPicoContainer);
+      when(myApplication.getAnyModalityState()).thenReturn(ModalityState.NON_MODAL);
+      when(myApplication.isDisposed()).thenReturn(false);
+
       when(myPicoContainer.getComponentInstance(UISettings.class.getName())).thenReturn(myUISettings);
       when(myPicoContainer.getComponentInstance(TransactionGuard.class.getName())).thenReturn(myTransactionGuard);
       when(myPicoContainer.getComponentInstance(WorkBenchManager.class.getName())).thenReturn(myWorkBenchManager);
       when(myPicoContainer.getComponentInstance(PropertiesComponent.class.getName())).thenReturn(myPropertiesComponent);
 
       when(myProject.getPicoContainer()).thenReturn(myProjectPicoContainer);
-      when(myProject.getComponent(FloatingToolWindowManager.class)).thenReturn(myFloatingToolWindowManager);
+      when(myProject.getComponent(DetachedToolWindowManager.class)).thenReturn(myFloatingToolWindowManager);
       when(myProject.getComponent(FileEditorManager.class)).thenReturn(myFileEditorManager);
       when(myProject.getComponent(ToolWindowManager.class)).thenReturn(myToolWindowManager);
+      when(myProject.isDisposed()).thenReturn(false);
+
       when(myProjectPicoContainer.getComponentInstance(DumbService.class.getName())).thenReturn(myDumbService);
       when(myProjectPicoContainer.getComponentInstance(StartupManager.class.getName())).thenReturn(myStartupManager);
 
@@ -142,6 +146,7 @@ public class FrameworkRule implements TestRule {
 
     private void after() {
       Disposer.dispose(myDisposable);
+      TestAppManager.tearDown();
     }
   }
 
@@ -152,6 +157,13 @@ public class FrameworkRule implements TestRule {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+    }
+  }
+
+  private static class TestAppManager extends ApplicationManager {
+
+    private static void tearDown() {
+      ourApplication = null;
     }
   }
 }

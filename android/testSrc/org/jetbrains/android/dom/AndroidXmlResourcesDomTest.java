@@ -212,6 +212,11 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testContentUrlHighlighting() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=230194
+    doTestHighlighting();
+  }
+
   public void testCustomXmlFileCompletion2() throws Throwable {
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -230,5 +235,13 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public void testJavaCompletion1() throws Throwable {
     copyFileToProject("javaCompletion.xml");
     doTestJavaCompletion("p1.p2");
+  }
+
+  public void testPathsRootCompletion() throws Throwable {
+    toTestCompletion("paths1.xml", "paths1_after.xml");
+  }
+
+  public void testPathsChildrenCompletion() throws Throwable {
+    toTestCompletion("paths2.xml", "paths2_after.xml");
   }
 }

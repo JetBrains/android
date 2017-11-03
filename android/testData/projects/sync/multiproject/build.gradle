@@ -1,10 +1,6 @@
 buildscript {
   repositories {
-    if (System.getenv("MAVEN_URL") != null) {
-      maven {url System.getenv("MAVEN_URL")}
-    } else {
       maven {url 'prebuilts/tools/common/m2/repository'}
-    }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:0.12.+'

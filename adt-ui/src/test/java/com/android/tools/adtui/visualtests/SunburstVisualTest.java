@@ -16,10 +16,11 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.accessibility.Accessible;
@@ -39,11 +40,14 @@ public class SunburstVisualTest extends VisualTest {
   private SunburstChart mSunburst;
 
   @Override
-  protected List<Animatable> createComponentsList() {
+  protected List<Updatable> createModelList() {
     final DataNode data = new DataNode();
     data.addDataNode(new DataNode(1, 10));
     mSunburst = new SunburstChart(data);
-    return Collections.singletonList(mSunburst);
+    return ImmutableList.of(
+      mSunburst,
+      elapsed -> mSunburst.repaint()
+    );
   }
 
   @Override

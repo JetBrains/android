@@ -17,9 +17,11 @@ package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.base.Splitter;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -28,8 +30,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,6 +43,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
@@ -66,15 +72,17 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final String myName;
   private final PropertiesComponent myPropertiesComponent;
   private final WorkBenchManager myWorkBenchManager;
-  private final FloatingToolWindowManager myFloatingToolWindowManager;
+  private final DetachedToolWindowManager myDetachedToolWindowManager;
   private final FileEditorManager myFileEditorManager;
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
   private final ThreeComponentsSplitter mySplitter;
+  private final MyLoadingPanel myLoadingPanel;
   private final JPanel myMainPanel;
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
+  private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
   private FileEditor myFileEditor;
 
   /**
@@ -98,6 +106,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void init(@NotNull JComponent content,
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions) {
+    myLoadingPanel.stopLoading();
+    myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
     mySplitter.setInnerComponent(content);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
@@ -106,7 +116,16 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setContext(context);
     addToolsToModel();
     myWorkBenchManager.register(this);
-    myFloatingToolWindowManager.register(myFileEditor, this);
+    myDetachedToolWindowManager.register(myFileEditor, this);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
+  }
+
+  public void setLoadingText(@NotNull String loadingText) {
+    myLoadingPanel.setLoadingText(loadingText);
+  }
+
+  public void loadingStopped(@NotNull String message) {
+    myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
   }
 
   /**
@@ -122,18 +141,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * Currently needed for the designer preview pane.
    */
   public void setFileEditor(@Nullable FileEditor fileEditor) {
-    myFloatingToolWindowManager.unregister(myFileEditor);
-    myFloatingToolWindowManager.register(fileEditor, this);
+    myDetachedToolWindowManager.unregister(myFileEditor);
+    myDetachedToolWindowManager.register(fileEditor, this);
     myFileEditor = fileEditor;
     if (fileEditor != null && isCurrentEditor(fileEditor)) {
-      myFloatingToolWindowManager.updateToolWindowsForWorkBench(this);
+      myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
     }
   }
 
   @Override
   public void dispose() {
     myWorkBenchManager.unregister(this);
-    myFloatingToolWindowManager.unregister(myFileEditor);
+    myDetachedToolWindowManager.unregister(myFileEditor);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   // ----------------------------------- Implementation --------------------------------------------------------------- //
@@ -147,7 +167,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myFileEditor = fileEditor;
     myPropertiesComponent = PropertiesComponent.getInstance();
     myWorkBenchManager = WorkBenchManager.getInstance();
-    myFloatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    myDetachedToolWindowManager = DetachedToolWindowManager.getInstance(project);
     myFileEditorManager = FileEditorManager.getInstance(project);
     myToolDefinitions = new ArrayList<>(4);
     myModel = params.myModel;
@@ -161,9 +181,13 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
     myMainPanel.add(layeredPanel, BorderLayout.CENTER);
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
-    add(myMainPanel, JLayeredPane.DEFAULT_LAYER);
+    myLoadingPanel = new MyLoadingPanel(new BorderLayout(), this, 1000);
+    myLoadingPanel.add(myMainPanel);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
+    add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
+    myMainPanel.setVisible(false);
+    myLoadingPanel.startLoading();
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -173,18 +197,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
     return false;
-  }
-
-  @Override
-  public void addNotify() {
-    super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this::autoHide);
-  }
-
-  @Override
-  public void removeNotify() {
-    super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", this::autoHide);
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {
@@ -221,31 +233,49 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @NotNull
-  private String getWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+  private String getUnscaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".UNSCALED.WIDTH";
+  }
+
+  @NotNull
+  private String getScaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
     return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".WIDTH";
   }
 
   private int getSideWidth(@NotNull Layout layout, @NotNull Side side) {
-    return myPropertiesComponent.getInt(getWidthPropertyName(layout, side), -1);
+    int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(layout, side), -1);
+    if (width != -1) {
+      return JBUI.scale(width);
+    }
+    int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(layout, side), -1);
+    if (scaledWidth != -1) {
+      return -1;
+    }
+    myPropertiesComponent.unsetValue(getScaledWidthPropertyName(layout, side));
+    setSideWidth(layout, side, scaledWidth);
+    return scaledWidth;
   }
 
   private void setSideWidth(@NotNull Layout layout, @NotNull Side side, int value) {
-    myPropertiesComponent.setValue(getWidthPropertyName(layout, side), value, ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    myPropertiesComponent.setValue(getUnscaledWidthPropertyName(layout, side), AdtUiUtils.unscale(value), -1);
   }
 
   private int getInitialSideWidth(@NotNull Side side) {
+    int minimalWidth = getMinimumWidth(side);
     int width = getSideWidth(Layout.CURRENT, side);
-    if (width != -1) {
-      return width;
+    if (width == -1) {
+      setSideWidth(Layout.DEFAULT, side, width);
+      setSideWidth(Layout.CURRENT, side, width);
     }
-    Optional<Integer> minimumWidth = myToolDefinitions.stream()
+    return Math.max(width, minimalWidth);
+  }
+
+  private int getMinimumWidth(@NotNull Side side) {
+    Optional<Integer> initialMinimumWidth = myToolDefinitions.stream()
       .filter(tool -> tool.getSide() == side)
       .map(ToolWindowDefinition::getInitialMinimumWidth)
       .max(Comparator.comparing(size -> size));
-    width = minimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
-    setSideWidth(Layout.DEFAULT, side, width);
-    setSideWidth(Layout.CURRENT, side, width);
-    return width;
+    return initialMinimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
   }
 
   @NotNull
@@ -253,9 +283,47 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
+        adjustSplitterForInsufficentSpace();
         updateBothWidths();
       }
     };
+  }
+
+  // TODO: Consider modifying ThreeComponentsSplitter.doLayout since this code will create some resize flickering.
+  private void adjustSplitterForInsufficentSpace() {
+    if (mySplitter.getWidth() <= 0 || !mySplitter.isVisible()) {
+      // No adjustment required
+      return;
+    }
+    JComponent content = mySplitter.getInnerComponent();
+    int actualCenterWidth = mySplitter.getWidth() - (mySplitter.getFirstSize() + mySplitter.getLastSize());
+    int minCenterWidth = Math.max((content != null ? content.getMinimumSize().width : 0), ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    int minLeftWidth = myModel.getVisibleTools(Side.LEFT).isEmpty() ? 0 : getMinimumWidth(Side.LEFT);
+    int minRightWidth = myModel.getVisibleTools(Side.RIGHT).isEmpty() ? 0 : getMinimumWidth(Side.RIGHT);
+    if (mySplitter.getFirstSize() >= minLeftWidth && mySplitter.getLastSize() >= minRightWidth && actualCenterWidth >= minCenterWidth) {
+      // No adjustment required
+      return;
+    }
+    if (mySplitter.getWidth() >= minLeftWidth + minCenterWidth + minRightWidth) {
+      int excess = mySplitter.getWidth() - (minLeftWidth + minCenterWidth + minRightWidth);
+      int leftExcess = Math.max(0, mySplitter.getFirstSize() - minLeftWidth);
+      int rightExcess = Math.max(0, mySplitter.getLastSize() - minRightWidth);
+      if (leftExcess + rightExcess > excess) {
+        double reduction = 1.0 * excess / (leftExcess + rightExcess);
+        mySplitter.setFirstSize(minLeftWidth + (int)(leftExcess * reduction));
+        mySplitter.setLastSize(minRightWidth + (int)(rightExcess * reduction));
+      }
+    }
+    else {
+      int sections = 1 + (minLeftWidth > 0 ? 1 : 0) + (minRightWidth > 0 ? 1 : 0);
+      int sectionWidth = mySplitter.getWidth() / sections;
+      if (minLeftWidth > 0) {
+        mySplitter.setFirstSize(sectionWidth);
+      }
+      if (minRightWidth > 0) {
+        mySplitter.setLastSize(sectionWidth);
+      }
+    }
   }
 
   private void updateBothWidths() {
@@ -269,7 +337,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   private void updateWidth(@NotNull Side side) {
+    int minimalWidth = getMinimumWidth(side);
     int width = side.isLeft() ? mySplitter.getFirstSize() : mySplitter.getLastSize();
+    width = Math.max(minimalWidth, width);
     if (width != 0 && width != getSideWidth(Layout.CURRENT, side)) {
       setSideWidth(Layout.CURRENT, side, width);
     }
@@ -297,7 +367,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
       tool.setToolOrder(placement);
     }
-    tools.sort((t1, t2) -> Integer.compare(t1.getToolOrder(), t2.getToolOrder()));
+    tools.sort(Comparator.comparingInt(AttachedToolWindow::getToolOrder));
   }
 
   private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
@@ -318,7 +388,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void modelChanged(@NotNull SideModel model, @NotNull SideModel.EventType type) {
+  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
         mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));
@@ -327,9 +397,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
         myWorkBenchManager.updateOtherWorkBenches(this);
         break;
 
-      case UPDATE_FLOATING_WINDOW:
+      case UPDATE_DETACHED_WINDOW:
         myWorkBenchManager.updateOtherWorkBenches(this);
-        myFloatingToolWindowManager.updateToolWindowsForWorkBench(this);
+        myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
         break;
 
       case LOCAL_UPDATE:
@@ -358,8 +428,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setTools(tools);
   }
 
-  public List<AttachedToolWindow<T>> getFloatingToolWindows() {
-    return myModel.getFloatingTools();
+  public List<AttachedToolWindow<T>> getDetachedToolWindows() {
+    return myModel.getDetachedTools();
   }
 
   public void storeDefaultLayout() {
@@ -391,7 +461,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   @Override
   public void doLayout() {
-    myMainPanel.setBounds(0, 0, getWidth(), getHeight());
+    myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {
@@ -476,8 +546,105 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private int translate(int pos, int offset, int min, int max) {
       return Math.min(Math.max(pos - offset, min), max);
+    }
+  }
+
+  /**
+   * Drop-in replacement for JBLoadingPanel with ability to display a message when loading
+   * of the widget failed.
+   */
+  private static class MyLoadingPanel extends JPanel {
+    private final JBLoadingPanel myLoadingPanel;
+    private final MyMessagePanel myMessagePanel;
+    private boolean myShowingMessagePanel;
+
+    MyLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent, @SuppressWarnings("SameParameterValue") int startDelayMs) {
+      super(new BorderLayout());
+      myMessagePanel = new MyMessagePanel();
+      myLoadingPanel = new JBLoadingPanel(manager, parent, startDelayMs);
+      super.add(myLoadingPanel);
+    }
+
+    public void startLoading() {
+      resumeLoading();
+      myLoadingPanel.startLoading();
+    }
+
+    public void stopLoading() {
+      resumeLoading();
+      myLoadingPanel.stopLoading();
+    }
+
+    public void setLoadingText(String text) {
+      myLoadingPanel.setLoadingText(text);
+    }
+
+    @Override
+    public Component add(Component comp) {
+      return myLoadingPanel.add(comp);
+    }
+
+    @Override
+    public Component add(Component comp, int index) {
+      return myLoadingPanel.add(comp, index);
+    }
+
+    @Override
+    public void add(Component comp, Object constraints) {
+      myLoadingPanel.add(comp, constraints);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+      return myLoadingPanel.getPreferredSize();
+    }
+
+    /**
+     * Replaces loading animation with the given message.
+     */
+    void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
+      myMessagePanel.setText(message);
+      myMessagePanel.setIcon(icon);
+      if (!myShowingMessagePanel) {
+        super.remove(myLoadingPanel);
+        super.add(myMessagePanel);
+        myShowingMessagePanel = true;
+      }
+    }
+
+    private void resumeLoading() {
+      if (myShowingMessagePanel) {
+        super.remove(myMessagePanel);
+        super.add(myLoadingPanel);
+        myShowingMessagePanel = false;
+      }
+    }
+  }
+
+  private static class MyMessagePanel extends JPanel {
+    private final JLabel myText = new JLabel("", SwingConstants.CENTER);
+
+    MyMessagePanel() {
+      super(new BorderLayout());
+      setOpaque(false);
+
+      // Similar to JBLoadingPanel.customizeStatusText but with a smaller font.
+      Font font = myText.getFont();
+      myText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
+      myText.setForeground(ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150));
+
+      add(myText);
+    }
+
+    public void setText(String text) {
+      myText.setText(text);
+    }
+
+    public void setIcon(Icon icon) {
+      myText.setIcon(icon);
     }
   }
 
