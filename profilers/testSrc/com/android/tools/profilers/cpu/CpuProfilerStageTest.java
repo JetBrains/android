@@ -506,8 +506,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(legends.getCpuLegend().getName()).isEqualTo("App");
     assertThat(legends.getOthersLegend().getName()).isEqualTo("Others");
     assertThat(legends.getThreadsLegend().getName()).isEqualTo("Threads");
-    assertThat(legends.getCpuLegend().getValue()).isEqualTo("10%");
-    assertThat(legends.getOthersLegend().getValue()).isEqualTo("40%");
+    assertThat(legends.getCpuLegend().getValue()).isEqualTo("10 %");
+    assertThat(legends.getOthersLegend().getValue()).isEqualTo("40 %");
     assertThat(legends.getThreadsLegend().getValue()).isEqualTo("1");
   }
 
