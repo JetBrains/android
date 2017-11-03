@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.fd.InstantRunTasksProvider;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -28,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;

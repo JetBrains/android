@@ -9,7 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="util" />
-    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="core-api" />
+    <orderEntry type="library" name="google-analytics-library" level="project" />
   </component>
 </module>

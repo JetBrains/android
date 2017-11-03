@@ -16,18 +16,16 @@
 package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.ir.client.InstantRunArtifact;
-import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
+import com.android.tools.ir.client.InstantRunArtifact;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
-import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

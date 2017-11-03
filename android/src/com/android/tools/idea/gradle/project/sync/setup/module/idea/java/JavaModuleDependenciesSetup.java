@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -45,10 +44,6 @@ class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
     if (library == null) {
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
-    }
-    else {
-      SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
-      registry.markAsUsed(library, binaryPath);
     }
 
     if (newLibrary) {

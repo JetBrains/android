@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,7 +38,7 @@ public interface GradleTaskRunner {
   boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
-  @NotNullstatic DefaultGradleTaskRunner newRunner(@NotNull Project project) {
+  @NotNull static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
     return new DefaultGradleTaskRunner(project);
   }
 
@@ -46,7 +47,7 @@ public interface GradleTaskRunner {
     return new DefaultGradleTaskRunner(project, buildAction);
   }
 
-  class DefaultGradleTaskRunner implementsGradleTaskRunner {@NotNull final Project myProject;
+  class DefaultGradleTaskRunner implements GradleTaskRunner {@NotNull final Project myProject;
     @NotNull final AtomicReference<Object> model = new AtomicReference<>();
 
     @Nullable final BuildAction myBuildAction;

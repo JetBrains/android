@@ -22,7 +22,6 @@
     <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="dom-openapi" />
     <orderEntry type="module" module-name="lang-api" />
-    <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="xml-psi-impl" />
     <orderEntry type="module" module-name="java-psi-impl" />
     <orderEntry type="module" module-name="java-indexing-api" />

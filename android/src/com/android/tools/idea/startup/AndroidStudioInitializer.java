@@ -32,6 +32,7 @@ import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,8 +45,7 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.roots.OrderEnumerationHandler;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,8 @@ import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
 import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -88,7 +89,6 @@ public class AndroidStudioInitializer implements Runnable {
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setupAnalytics();
-    disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -58,7 +57,8 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               @NotNull File[] binaryPaths,
-                              @NotNull File[] documentationPaths) {
+                              @NotNull File[] documentationPaths,
+                              boolean exported) {
 
     // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
     // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
@@ -70,10 +70,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     if (library == null) {
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
-    }
-    else {
-      SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
-      registry.markAsUsed(library, binaryPaths);
     }
 
     if (newLibrary) {
