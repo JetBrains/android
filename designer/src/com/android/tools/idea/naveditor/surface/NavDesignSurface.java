@@ -31,7 +31,6 @@ import com.android.tools.idea.common.surface.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -59,7 +58,6 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
  * {@link DesignSurface} for the navigation editor.
  */
 public class NavDesignSurface extends DesignSurface {
-  private NavView myNavView;
   private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
 
@@ -127,34 +125,10 @@ public class NavDesignSurface extends DesignSurface {
     repaint();
   }
 
-  @Override
-  protected void doCreateSceneViews() {
-    NlModel model = getModel();
-    if (model == null && myNavView == null) {
-      return;
-    }
-    myNavView = null;
-    if (model != null) {
-      myNavView = new NavView(this, model);
-      setLayers(ImmutableList.of(new SceneLayer(this, myNavView, true)));
-
-      getLayeredPane().setPreferredSize(myNavView.getPreferredSize());
-
-      layoutContent();
-    }
-    setShowIssuePanel(false);
-  }
-
   @Nullable
   @Override
   public Dimension getScrolledAreaSize() {
     return getContentSize(null);
-  }
-
-  @Nullable
-  @Override
-  public SceneView getCurrentSceneView() {
-    return myNavView;
   }
 
   @NotNull
@@ -198,12 +172,12 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected int getContentOriginX() {
+  public int getContentOriginX() {
     return 0;
   }
 
   @Override
-  protected int getContentOriginY() {
+  public int getContentOriginY() {
     return 0;
   }
 

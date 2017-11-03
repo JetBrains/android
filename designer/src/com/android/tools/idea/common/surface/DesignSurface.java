@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -102,6 +103,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
+  private final RenderListener myRenderListener = this::modelRendered;
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
@@ -234,13 +236,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getSelectionModel().getTransferable(myModel != null ? myModel.getId() : 0);
   }
 
-  protected final void createSceneViews() {
-    doCreateSceneViews();
-    notifySceneViewChanged();
-  }
-
-  protected abstract void doCreateSceneViews();
-
   @Nullable
   public NlModel getModel() {
     return myModel;
@@ -264,7 +259,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<NlComponent> selectionAfter = Collections.emptyList();
 
     if (mySceneManager != null) {
-      mySceneManager.removeRenderListener(this::modelRendered);
+      mySceneManager.removeRenderListener(myRenderListener);
     }
 
     if (sceneView != null) {
@@ -275,15 +270,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       model.addListener(myModelListener);
       model.getConfiguration().addListener(myConfigurationListener);
       mySceneManager = createSceneManager(model);
-      mySceneManager.addRenderListener(this::modelRendered);
+      mySceneManager.addRenderListener(myRenderListener);
       myScene = mySceneManager.getScene();
     }
     else {
       myScene = null;
       mySceneManager = null;
     }
-
-    createSceneViews();
 
     if (model != null) {
       if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
@@ -301,14 +294,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
       listener.modelChanged(this, model);
     }
-    notifySceneViewChanged();
     zoomToFit();
   }
 
   @Override
   public void dispose() {
-    // This takes care of disposing any existing layers
-    setLayers(ImmutableList.of());
     myInteractionManager.unregisterListeners();
     if (myModel != null) {
       myModel.getConfiguration().removeListener(myConfigurationListener);
@@ -341,13 +331,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The x (swing) coordinate of the origin of this DesignSurface's content.
    */
   @SwingCoordinate
-  protected abstract int getContentOriginX();
+  public abstract int getContentOriginX();
 
   /**
    * The y (swing) coordinate of the origin of this DesignSurface's content.
    */
   @SwingCoordinate
-  protected abstract int getContentOriginY();
+  public abstract int getContentOriginY();
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
@@ -364,7 +354,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Nullable
-  public abstract SceneView getCurrentSceneView();
+  public SceneView getCurrentSceneView() {
+    SceneManager sceneManager = getSceneManager();
+    return sceneManager != null ? sceneManager.getSceneView() : null;
+  }
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
@@ -690,7 +683,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private void notifySceneViewChanged() {
+  public void notifySceneViewChanged() {
+    layoutContent();
     SceneView screenView = getCurrentSceneView();
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
@@ -790,6 +784,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
+  @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     return getCurrentSceneView();
   }
@@ -1281,7 +1276,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Attaches the given {@link Layer}s to the current design surface
    */
-  protected void setLayers(@NotNull ImmutableList<Layer> layers) {
+  public void setLayers(@NotNull ImmutableList<Layer> layers) {
     myLayers.forEach(Disposer::dispose);
     myLayers = ImmutableList.copyOf(layers);
   }
