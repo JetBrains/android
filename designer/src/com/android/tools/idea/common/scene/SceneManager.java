@@ -20,10 +20,13 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +47,9 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface myDesignSurface;
   @NotNull private final Scene myScene;
+  // This will be initialized when constructor calls updateSceneView().
+  @SuppressWarnings("NullableProblems")
+  @NotNull private SceneView mySceneView;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
@@ -52,10 +58,41 @@ abstract public class SceneManager implements Disposable {
     Disposer.register(model, this);
 
     myScene = new Scene(this, myDesignSurface);
+
+    updateSceneView();
+  }
+
+  /**
+   * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
+   */
+  public final void updateSceneView() {
+    mySceneView = doCreateSceneView();
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+    buildSceneLayers(builder);
+    myDesignSurface.setLayers(builder.build());
+    myDesignSurface.notifySceneViewChanged();
+  }
+
+  /**
+   * Create the SceneView.
+   * @return the created SceneView.
+   */
+  @NotNull
+  protected abstract SceneView doCreateSceneView();
+
+  protected void buildSceneLayers(@NotNull ImmutableList.Builder<Layer> builder) {
+    builder.addAll(mySceneView.getLayers());
+  }
+
+  @NotNull
+  public SceneView getSceneView() {
+    return mySceneView;
   }
 
   @Override
   public void dispose() {
+    // This takes care of disposing any existing layers
+    myDesignSurface.setLayers(ImmutableList.of());
     myRenderListeners.clear();
   }
 

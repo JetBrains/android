@@ -24,12 +24,14 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
@@ -78,6 +80,17 @@ public class NavSceneManager extends SceneManager {
   @NotNull
   public NavDesignSurface getDesignSurface() {
     return (NavDesignSurface)super.getDesignSurface();
+  }
+
+  @Override
+  @NotNull
+  protected SceneView doCreateSceneView() {
+    NlModel model = getModel();
+    NavView navView = new NavView(getDesignSurface(), model);
+    getDesignSurface().setLayers(ImmutableList.of(new SceneLayer(getDesignSurface(), navView, true)));
+    getDesignSurface().getLayeredPane().setPreferredSize(navView.getPreferredSize());
+    getDesignSurface().setShowIssuePanel(false);
+    return navView;
   }
 
   @Override

@@ -35,7 +35,6 @@ import com.intellij.openapi.util.Disposer;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -245,12 +244,8 @@ public class InteractionManagerTest extends LayoutTestCase {
         )).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
-
-    ScreenView screenView = new ScreenView(surface, model);
-    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
-    InteractionManager manager = createManager(surface);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
-    return manager;
+    return createManager(surface);
   }
 
   public void testConstraintLayoutCursorHoverComponent() {
@@ -309,12 +304,8 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
-
-    ScreenView screenView = new ScreenView(surface, model);
-    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
-    InteractionManager manager = createManager(surface);
-    screenView.getScene().buildDisplayList(new DisplayList(), 0);
-    return manager;
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
+    return createManager(surface);
   }
 
   private static class FakeImageViewHandler extends ImageViewHandler {
