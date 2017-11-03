@@ -72,7 +72,7 @@ public class GradleModuleSystemTest extends IdeaTestCase {
       fail("addDependencies should have thrown an exception.");
     }
     catch (DependencyManagementException e) {
-      assertThat(e.getErrorCode()).isEqualTo(DependencyManagementException.ErrorCodes.UNSUPPORTED);
+      assertThat(e.getErrorCode()).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT);
     }
   }
 
