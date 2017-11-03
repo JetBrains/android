@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -48,6 +50,10 @@ public class ProjectStructure {
   @NotNull
   private final List<Module> myAppModules = new ArrayList<>();
 
+  @GuardedBy("myLock")
+  @NotNull
+  private final List<Module> myLeafModules = new ArrayList<>();
+
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, ProjectStructure.class);
@@ -59,15 +65,18 @@ public class ProjectStructure {
 
   public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
     AndroidPluginVersionsInProject pluginVersionsInProject = new AndroidPluginVersionsInProject();
+
     List<Module> appModules = new ArrayList<>();
 
-    List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    List<Module> modules = Arrays.asList(moduleManager.getModules());
+    List<Module> leafModules = new ArrayList<>(modules);
 
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
+    JobLauncher jobLauncher = JobLauncher.getInstance();
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           pluginVersionsInProject.add(gradlePath, androidModel);
@@ -75,11 +84,31 @@ public class ProjectStructure {
             appModules.add(module);
           }
         }
+        else {
+          JavaFacet javaFacet = JavaFacet.getInstance(module);
+          if (javaFacet != null && !javaFacet.getConfiguration().BUILDABLE) {
+            // Remove module not "buildable" from "leaf" modules.
+            leafModules.remove(module);
+          }
+          return true;
+        }
+        ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+        leafModules.removeAll(Arrays.asList(rootManager.getDependencies()));
+      }
+      else {
+        // Remove non-Gradle modules from "leaf" modules.
+        leafModules.remove(module);
       }
       return true;
     });
+
     synchronized (myLock) {
       myPluginVersionsInProject.copy(pluginVersionsInProject);
+
+      // "Leaf" modules include app modules and the non-app modules that no other modules depend on.
+      myLeafModules.clear();
+      myLeafModules.addAll(leafModules);
+
       myAppModules.clear();
       myAppModules.addAll(appModules);
     }
@@ -103,6 +132,16 @@ public class ProjectStructure {
   public ImmutableList<Module> getAppModules() {
     synchronized (myLock) {
       return ImmutableList.copyOf(myAppModules);
+    }
+  }
+
+  /**
+   * @return the project's app modules and the modules that no other modules depend on.
+   */
+  @NotNull
+  public ImmutableList<Module> getLeafModules() {
+    synchronized (myLock) {
+      return ImmutableList.copyOf(myLeafModules);
     }
   }
 
