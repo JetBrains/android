@@ -32,6 +32,8 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,6 +44,7 @@ public class DefaultGradleConsoleView extends GradleConsoleView {
 
   @NotNull private final Project myProject;
   @NotNull private final ConsoleViewImpl myConsoleView;
+  @Nullable private Content myConsoleContent;
 
   private JPanel myConsolePanel;
 
@@ -62,14 +65,15 @@ public class DefaultGradleConsoleView extends GradleConsoleView {
     DefaultActionGroup group = new DefaultActionGroup();
     layoutUi.getOptions().setLeftToolbar(group, ActionPlaces.UNKNOWN);
 
-    Content console = layoutUi.createContent(GradleConsoleToolWindowFactory.ID, myConsoleView.getComponent(), "", null, null);
+    myConsoleContent = layoutUi.createContent(GradleConsoleToolWindowFactory.ID, myConsoleView.getComponent(), "", null, null);
+    myConsoleContent.setCloseable(false);
     AnAction[] consoleActions = myConsoleView.createConsoleActions();
     for (AnAction action : consoleActions) {
       if (!shouldIgnoreAction(action)) {
         group.add(action);
       }
     }
-    layoutUi.addContent(console, 0, PlaceInGrid.right, false);
+    layoutUi.addContent(myConsoleContent, 0, PlaceInGrid.right, false);
 
     myConsolePanel.add(layoutComponent, BorderLayout.CENTER);
 
@@ -107,5 +111,14 @@ public class DefaultGradleConsoleView extends GradleConsoleView {
 
   @Override
   public void dispose() {
+  }
+
+  /**
+   * Return {@code Content} used for Gradle Console when {@link DefaultGradleConsoleView#createToolWindowContent(com.intellij.openapi.wm.ToolWindow)} was last called. It will be null if it has never been called.
+   */
+  @TestOnly
+  @Nullable
+  Content getConsoleContent() {
+    return myConsoleContent;
   }
 }
