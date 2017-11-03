@@ -33,10 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -330,7 +327,7 @@ class CpuCaptureView {
 
     chart.setHTree(node);
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart);
+    TreeChartNavigationHandler handler = new TreeChartNavigationHandler(chart, navigator);
     chart.addMouseListener(handler);
     stageView.getIdeComponents().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     CpuChartTooltipView.install(chart, stageView);
@@ -582,13 +579,19 @@ class CpuCaptureView {
     @NotNull private final HTreeChart<MethodModel> myChart;
     private Point myLastPopupPoint;
 
-    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart) {
+    TreeChartNavigationHandler(@NotNull HTreeChart<MethodModel> chart, @NotNull CodeNavigator navigator) {
       myChart = chart;
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      handlePopup(e);
+      new DoubleClickListener() {
+        @Override
+        protected boolean onDoubleClick(MouseEvent event) {
+          setLastPopupPoint(event);
+          CodeLocation codeLocation = getCodeLocation();
+          if (codeLocation != null && navigator.isNavigatable(codeLocation)) {
+            navigator.navigate(codeLocation);
+          }
+          return false;
+        }
+      }.installOn(chart);
     }
 
     @Override
@@ -603,8 +606,12 @@ class CpuCaptureView {
 
     private void handlePopup(MouseEvent e) {
       if (e.isPopupTrigger()) {
-        myLastPopupPoint = e.getPoint();
+        setLastPopupPoint(e);
       }
+    }
+
+    private void setLastPopupPoint(MouseEvent e) {
+      myLastPopupPoint = e.getPoint();
     }
 
     @Nullable

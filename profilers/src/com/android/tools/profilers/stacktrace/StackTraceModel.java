@@ -32,8 +32,6 @@ import static com.android.tools.profilers.stacktrace.ThreadId.INVALID_THREAD_ID;
  * intention to navigate to that line of code.
  */
 public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
-  private final CodeNavigator myCodeNavigator;
-
   public enum Aspect {
     STACK_FRAMES,
     SELECTED_LOCATION,
@@ -48,6 +46,9 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
   private static final int INVALID_INDEX = -1;
 
   @NotNull
+  private final CodeNavigator myCodeNavigator;
+
+  @NotNull
   private ThreadId myThreadId;
 
   @NotNull
@@ -59,7 +60,7 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
    * Initiate this model with an associated {@link CodeNavigator}. The navigator will be triggered
    * each time {@link #setSelectedIndex(int)} is called corresponding to a stack trace line.
    */
-  public StackTraceModel(CodeNavigator codeNavigator) {
+  public StackTraceModel(@NotNull CodeNavigator codeNavigator) {
     myCodeNavigator = codeNavigator;
     myStackFrames = Collections.emptyList();
     myThreadId = INVALID_THREAD_ID;
@@ -76,6 +77,11 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
 
   public void clearStackFrames() {
     updateStackFrames(INVALID_THREAD_ID, Collections.emptyList());
+  }
+
+  @NotNull
+  public CodeNavigator getCodeNavigator() {
+    return myCodeNavigator;
   }
 
   private void updateStackFrames(@NotNull ThreadId threadId, @NotNull List<CodeLocation> stackFrames) {

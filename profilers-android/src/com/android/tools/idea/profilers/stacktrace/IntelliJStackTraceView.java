@@ -16,12 +16,10 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profilers.stacktrace.ThreadId;
+import com.android.tools.profilers.stacktrace.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -38,6 +36,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -115,12 +114,25 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         }
       }
     });
+
     new DoubleClickListener() {
       @Override
       protected boolean onDoubleClick(MouseEvent event) {
         return navigationHandler.get();
       }
     }.installOn(myListView);
+
+    myListView.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (SwingUtilities.isRightMouseButton(e)) {
+          int row = myListView.locationToIndex(e.getPoint());
+          if (row != -1) {
+            myListView.setSelectedIndex(row);
+          }
+        }
+      }
+    });
 
     myModel.addDependency(this).
       onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> {
@@ -151,6 +163,17 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
             "View has " + myListView.getItemsCount() + " elements while aspect is changing to index " + index);
         }
       });
+  }
+
+  @Override
+  public void installNavigationContextMenu(@NotNull IdeProfilerComponents components) {
+    components.installNavigationContextMenu(myListView, myModel.getCodeNavigator(), () -> {
+      int index = myListView.getSelectedIndex();
+      if (index >= 0 && index < myListView.getItemsCount()) {
+        return myModel.getCodeLocations().get(index);
+      }
+      return null;
+    });
   }
 
   @NotNull

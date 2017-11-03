@@ -28,8 +28,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -136,6 +134,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
                                                            @Nullable Collection<String> variants) {
     return new AutoCompleteTextField() {
       final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
+
       @NotNull
       @Override
       public JComponent getComponent() {
@@ -143,7 +142,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       }
 
       @Override
-      public void addOnDocumentChange(@NotNull Runnable callback) {}
+      public void addOnDocumentChange(@NotNull Runnable callback) {
+      }
 
       @NotNull
       @Override
@@ -155,6 +155,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
+
+    private JPanel myComponent = new JPanel();
 
     public StackTraceViewStub(@NotNull StackTraceModel model) {
       myModel = model;
@@ -169,7 +171,11 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @NotNull
     @Override
     public JComponent getComponent() {
-      return new JPanel();
+      return myComponent;
+    }
+
+    @Override
+    public void installNavigationContextMenu(@NotNull IdeProfilerComponents components) {
     }
   }
 }
