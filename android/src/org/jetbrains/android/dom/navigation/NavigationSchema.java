@@ -17,7 +17,10 @@ package org.jetbrains.android.dom.navigation;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.TAG_DEEPLINK;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
 /**
@@ -46,7 +50,6 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  */
 public class NavigationSchema implements Disposable {
   public static final String TAG_ACTION = "action";
-  public static final String TAG_DEEPLINK = "deeplink";
   public static final String TAG_ARGUMENT = "argument";
   public static final String ATTR_DESTINATION = "destination";
 

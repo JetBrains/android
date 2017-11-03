@@ -39,6 +39,8 @@ import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
 
+const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
+
 abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     private val propertyType: Class<PropertyType>, val icon: Icon)
   : InspectorProvider<NavPropertiesManager> {
@@ -109,11 +111,16 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
       val list = JBList<NlProperty>(myDisplayProperties)
+      list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
       list.cellRenderer = object : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(list: JList<*>, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
           super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
           text = (value as NlProperty?)?.name
+          // TODO: truncate to actual width of the frame
+          if (text.length > 25) {
+            text = text.substring(0, 22) + "..."
+          }
           icon = if (isSelected) provider.whiteIcon else provider.icon
           return this
         }
