@@ -24,8 +24,8 @@ import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 
 class NavDeeplinksPropertyTest : NavigationTestCase() {
   private lateinit var model: SyncNlModel
-  val uri1 = "http://www.example.com"
-  val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
+  private val uri1 = "http://www.example.com"
+  private val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
 
   override fun setUp() {
     super.setUp()

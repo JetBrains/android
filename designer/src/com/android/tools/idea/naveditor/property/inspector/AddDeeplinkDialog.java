@@ -22,13 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
-import static com.android.SdkConstants.ATTR_URI;
-import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.*;
 
 public class AddDeeplinkDialog extends DialogWrapper {
   private JTextField myUriField;

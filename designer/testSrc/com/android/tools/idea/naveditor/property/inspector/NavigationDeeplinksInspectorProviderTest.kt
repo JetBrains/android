@@ -31,8 +31,8 @@ import java.awt.Component
 import java.awt.Container
 
 class NavigationDeeplinksInspectorProviderTest : NavigationTestCase() {
-  val uri1 = "http://www.example.com"
-  val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
+  private val uri1 = "http://www.example.com"
+  private val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
 
   fun testIsApplicable() {
     val provider = NavigationDeeplinkInspectorProvider()
@@ -59,7 +59,6 @@ class NavigationDeeplinksInspectorProviderTest : NavigationTestCase() {
     val model = model("nav.xml",
         NavModelBuilderUtil.rootComponent("root").unboundedChildren(
             NavModelBuilderUtil.fragmentComponent("f1")
-                .withLayoutAttribute("activty_main")
                 .unboundedChildren(
                     NavModelBuilderUtil.deepLinkComponent(uri1),
                     NavModelBuilderUtil.deepLinkComponent(uri2)),

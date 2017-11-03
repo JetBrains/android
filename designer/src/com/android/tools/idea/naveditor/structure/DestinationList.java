@@ -22,6 +22,7 @@ import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
@@ -120,7 +121,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
             new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
                                    myDesignSurface.getModel().getFile()) {
               @Override
-              protected void run(@NotNull Result result) throws Throwable {
+              protected void run(@NotNull Result result) {
                 myDesignSurface.getModel().delete(toDelete);
               }
             }.execute();
@@ -218,7 +219,10 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       };
       myList.addMouseListener(myMouseListener);
       myModel.addListener(myModelListener);
-      myResourceResolver = toolContext.getConfiguration().getResourceResolver();
+
+      Configuration configuration = toolContext.getConfiguration();
+      assert configuration != null;
+      myResourceResolver = configuration.getResourceResolver();
 
       ColorSet colorSet = SceneContext.get(toolContext.getCurrentSceneView()).getColorSet();
       myList.setBackground(colorSet.getSubduedBackground());
@@ -241,6 +245,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
     else {
       myBackPanel.setVisible(true);
       NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
+      // TODO: We are actually occasionally NPE-ing below, I think, though it should be impossible. Investigation is needed.
       myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent, myResourceResolver));
     }
   }

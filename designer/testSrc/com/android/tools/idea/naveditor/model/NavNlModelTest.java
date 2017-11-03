@@ -30,7 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class NavNlModelTest extends NavigationTestCase {
 
-  public void testAddChild() throws Exception {
+  public void testAddChild() {
     NlTreeDumper treeDumper = new NlTreeDumper();
     ModelBuilder modelBuilder = model("nav.xml",
                                       rootComponent("root").unboundedChildren(

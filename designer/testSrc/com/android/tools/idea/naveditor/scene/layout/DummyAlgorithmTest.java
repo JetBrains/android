@@ -21,7 +21,8 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
-import static com.android.tools.idea.naveditor.NavModelBuilderUtil.*;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.fragmentComponent;
+import static com.android.tools.idea.naveditor.NavModelBuilderUtil.rootComponent;
 
 /**
  * Tests for {@link DummyAlgorithm}

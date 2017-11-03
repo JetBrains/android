@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.smartPointers.Identikit;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ResourceUtil;
@@ -62,7 +61,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
   private NavDesignSurface mySurface;
   private AddMenuWrapper myMenu;
 
-  private Map<NavigationSchema.DestinationType, Pair<String, PsiClass>> myItemsByType = new HashMap<>();
+  private final Map<NavigationSchema.DestinationType, Pair<String, PsiClass>> myItemsByType = new HashMap<>();
 
   @Override
   public void setUp() throws Exception {
@@ -297,6 +296,7 @@ public class AddMenuWrapperTest extends NavigationTestCase {
 
     menu.createDestination();
 
+    @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<NlComponent>> consumerArg = ArgumentCaptor.forClass(Consumer.class);
     Mockito.verify(menu)
       .addElement(eq(mySurface), eq("include"), isNull(), isNull(), consumerArg.capture());

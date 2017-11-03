@@ -80,7 +80,7 @@ val NlComponent.destinationType
 class NavComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
 
-  val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
+  private val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
     val resources = component.model.configuration.resourceResolver ?: return null
     val value = resources.findResValue(component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH), false) ?: return null
     val vFile = VfsUtil.findFileByIoFile(File(value.value), true) ?: return null
