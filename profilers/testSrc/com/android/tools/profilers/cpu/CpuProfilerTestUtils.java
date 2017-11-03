@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
+  private static final int ANY_PID = 1;
 
   private CpuProfilerTestUtils() {}
 
@@ -70,6 +71,6 @@ public class CpuProfilerTestUtils {
   public static CpuCapture getCapture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType)
     throws IOException, ExecutionException, InterruptedException {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
+    return parser.parse(FakeCpuService.FAKE_TRACE_ID, ANY_PID, traceBytes, profilerType).get();
   }
 }

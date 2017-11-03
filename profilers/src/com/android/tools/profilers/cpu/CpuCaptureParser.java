@@ -83,18 +83,18 @@ public class CpuCaptureParser {
    * the trace id as key. Finally, returns the {@link CompletableFuture<CpuCapture>} created.
    */
   @Nullable
-  public CompletableFuture<CpuCapture> parse(int traceId, @NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
+  public CompletableFuture<CpuCapture> parse(int traceId, int pid, @NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
         // Trace size is supported. Start parsing normally and create the future object corresponding to the capture.
-        myCaptures.put(traceId, createCaptureFuture(traceData, profilerType));
+        myCaptures.put(traceId, createCaptureFuture(traceData, profilerType, pid));
       }
       else {
         Runnable yesCallback = () -> {
           getLogger().warn(String.format("Parsing long (%d bytes) trace file.", traceData.size()));
           // User decided to proceed with capture. Start parsing and create the future object corresponding to the capture.
-          myCaptures.put(traceId, createCaptureFuture(traceData, profilerType));
+          myCaptures.put(traceId, createCaptureFuture(traceData, profilerType, pid));
         };
 
         Runnable noCallback = () -> {
@@ -111,11 +111,11 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  private CompletableFuture<CpuCapture> createCaptureFuture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType) {
-    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(traceBytes, profilerType), myServices.getPoolExecutor());
+  private CompletableFuture<CpuCapture> createCaptureFuture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType, int pid) {
+    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(traceBytes, profilerType, pid), myServices.getPoolExecutor());
   }
 
-  private static CpuCapture traceBytesToCapture(@NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
+  private static CpuCapture traceBytesToCapture(@NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType, int pid) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
@@ -134,7 +134,7 @@ public class CpuCaptureParser {
         isCaptureDualClock = false;
       }
       else if (profilerType == CpuProfiler.CpuProfilerType.ATRACE) {
-        parser = new AtraceParser();
+        parser = new AtraceParser(pid);
         isCaptureDualClock = false;
       }
       else {

@@ -15,12 +15,17 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
+import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.android.tools.profilers.cpu.TraceParser;
 import trebuchet.model.Model;
+import trebuchet.model.ProcessModel;
+import trebuchet.model.ThreadModel;
+import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
 
@@ -37,12 +42,19 @@ public class AtraceParser implements TraceParser {
 
   // Trebuchet is our parser for atrace (systrace) raw data. trebuchet.Model is what Trebuchet uses to represent captured data."
   private Model myModel;
+  private HashMap<CpuThreadInfo, CaptureNode> myCaptureTreeNodes = new HashMap<>();
+  private int myProcessId;
+
+  public AtraceParser(int processId) {
+    myProcessId = processId;
+  }
 
   @Override
   public void parse(File file) throws IOException {
     AtraceDecompressor reader = new AtraceDecompressor(file);
     ImportTask task = new ImportTask(new PrintlnImportFeedback());
     myModel = task.importBuffer(reader);
+    myCaptureTreeNodes = buildCaptureTreeNodes();
   }
 
   /**
@@ -56,20 +68,61 @@ public class AtraceParser implements TraceParser {
 
   @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
-    // TODO: Implement, for now we return a top level node that the UI expects.
-    // Without this the UI crashes or is left in a bad state. Currently this feature is hidden behind a flag.
-    CpuThreadInfo cti = new CpuThreadInfo(0, "main");
-    CaptureNode cn = new CaptureNode();
-    cn.setMethodModel(new MethodModel("main", "fake", "fake::main", "::"));
+    return myCaptureTreeNodes;
+  }
+
+  private HashMap<CpuThreadInfo, CaptureNode> buildCaptureTreeNodes() {
+    ProcessModel selectedProcess = null;
+
+    // TODO: Remove when getProcesses returns a Hashset.
+    for (ProcessModel process : myModel.getProcesses()) {
+      if (process.getId() == myProcessId) {
+        selectedProcess = process;
+        break;
+      }
+    }
+
     HashMap<CpuThreadInfo, CaptureNode> captureTreeNodes = new HashMap<>();
-    captureTreeNodes.put(cti, cn);
+    if (selectedProcess != null) {
+      Range range = getRange();
+      for (ThreadModel thread : selectedProcess.getThreads()) {
+        if (thread.getHasContent()) {
+          CpuThreadInfo threadInfo = new CpuThreadInfo(thread.getId(), thread.getName());
+          CaptureNode root = new CaptureNode();
+          root.setMethodModel(new MethodModel("root", "root", "", "::"));
+          root.setStartGlobal((long)range.getMin());
+          root.setEndGlobal((long)range.getMax());
+          captureTreeNodes.put(threadInfo, root);
+          for (SliceGroup slice : thread.getSlices()) {
+            CaptureNode node = populateCaptureNode(slice, 0);
+            root.addChild(node);
+          }
+        }
+      }
+    }
     return captureTreeNodes;
+  }
+
+  private CaptureNode populateCaptureNode(SliceGroup slice, int depth) {
+    CaptureNode node = new CaptureNode();
+    node.setMethodModel(new MethodModel(slice.getName(), slice.getName(), "", "::"));
+    node.setStartGlobal(convertToUserTimeUs(slice.getStartTime()));
+    node.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
+    node.setDepth(depth);
+    for (SliceGroup child : slice.getChildren()) {
+      node.addChild(populateCaptureNode(child, depth + 1));
+    }
+    return node;
   }
 
   @Override
   public Range getRange() {
-    double startTimestampUs = secondsToUs(myModel.getParentTimestamp());
-    double endTimestampUs = secondsToUs((myModel.getEndTimestamp() - myModel.getBeginTimestamp()) + myModel.getParentTimestamp());
+    double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
+    double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     return new Range(startTimestampUs, endTimestampUs);
+  }
+
+  private long convertToUserTimeUs(double offsetTime) {
+    return (long)secondsToUs( (offsetTime - myModel.getBeginTimestamp()) + myModel.getParentTimestamp());
   }
 }
