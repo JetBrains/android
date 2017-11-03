@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.intellij.psi.xml.XmlTag;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MockNlComponent extends NlComponent {
   private MockNlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
@@ -28,6 +30,8 @@ public class MockNlComponent extends NlComponent {
   }
 
   public static NlComponent create(@NotNull XmlTag tag) {
-    return new MockNlComponent(mock(NlModel.class), tag);
+    NlModel mockModel = mock(NlModel.class);
+    when(mockModel.getFacet()).thenReturn(AndroidFacet.getInstance(tag));
+    return new MockNlComponent(mockModel, tag);
   }
 }

@@ -21,12 +21,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -35,45 +32,60 @@ import java.util.concurrent.TimeUnit;
  * {@link Type} passed into the constructor).
  *
  * It is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
- *
- * TODO: This class needs tests.
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECEIVED("Received"),
-    BYTES_SENT("Sent");
+    BYTES_RECEIVED("Receiving", "Received") {
+      @Override
+      long getBytes(@NotNull NetworkProfiler.SpeedData data) {
+        return data.getReceived();
+      }
+    },
+    BYTES_SENT("Sending", "Sent") {
+      @Override
+      long getBytes(@NotNull NetworkProfiler.SpeedData data) {
+        return data.getSent();
+      }
+    };
 
     private final String myLabel;
+    private final String myTooltipLabel;
 
-    Type(String label) {
+    Type(String label, String tooltipLabel) {
       myLabel = label;
+      myTooltipLabel = tooltipLabel;
     }
 
     @NotNull
-    public String getLabel() {
-      return myLabel;
+    public String getLabel(boolean tooltip) {
+      return tooltip ? myTooltipLabel : myLabel;
     }
+
+    abstract long getBytes(@NotNull NetworkProfiler.SpeedData data);
   }
 
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
   private final Type myType;
 
-  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Type type) {
+  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session, Type type) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
     myType = type;
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
 
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
@@ -81,17 +93,8 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       long xTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       NetworkProfiler.SpeedData speedData = data.getSpeedData();
-      switch (myType) {
-        case BYTES_RECEIVED:
-          seriesData.add(new SeriesData<>(xTimestamp, speedData.getReceived()));
-          break;
-        case BYTES_SENT:
-          seriesData.add(new SeriesData<>(xTimestamp, speedData.getSent()));
-          break;
-        default:
-          throw new IllegalStateException("Unexpected network traffic data series type: " + myType);
-      }
+      seriesData.add(new SeriesData<>(xTimestamp, myType.getBytes(speedData)));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

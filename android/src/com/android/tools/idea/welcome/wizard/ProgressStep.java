@@ -34,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Wizard step with progress bar and "more details" button.
@@ -51,10 +49,6 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   private ProgressIndicator myProgressIndicator;
   private double myFraction = 0;
 
-  public ProgressStep(@NotNull Disposable parent) {
-    this(parent, "Downloading Components");
-  }
-
   public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
     super(name);
     setComponent(myRoot);
@@ -63,24 +57,14 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myConsoleEditor = ConsoleViewUtil.setupConsoleEditor((Project)null, false, false);
     myConsoleEditor.getSettings().setUseSoftWraps(true);
     myConsoleEditor.reinitSettings();
-    Disposer.register(parent, new Disposable() {
-      @Override
-      public void dispose() {
-        EditorFactory.getInstance().releaseEditor(myConsoleEditor);
-      }
-    });
+    Disposer.register(parent, () -> EditorFactory.getInstance().releaseEditor(myConsoleEditor));
     myHighlighter = new ConsoleHighlighter();
     myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));
     myConsoleEditor.setHighlighter(myHighlighter);
     JComponent editorComponent = myConsoleEditor.getComponent();
     myConsole.add(editorComponent, BorderLayout.CENTER);
     editorComponent.setVisible(false);
-    myShowDetailsButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        showConsole();
-      }
-    });
+    myShowDetailsButton.addActionListener(e -> showConsole());
   }
 
   @Override
@@ -91,12 +75,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        execute();
-      }
-    });
+    ApplicationManager.getApplication().invokeLater(this::execute);
   }
 
   protected abstract void execute();
@@ -154,14 +133,11 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    * Displays console widget if one was not visible already
    */
   public void showConsole() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        JComponent editorComponent = myConsoleEditor.getComponent();
-        if (!editorComponent.isVisible()) {
-          myShowDetailsButton.getParent().remove(myShowDetailsButton);
-          editorComponent.setVisible(true);
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      JComponent editorComponent = myConsoleEditor.getComponent();
+      if (!editorComponent.isVisible()) {
+        myShowDetailsButton.getParent().remove(myShowDetailsButton);
+        editorComponent.setVisible(true);
       }
     });
   }
@@ -180,14 +156,10 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myProgressBar.setValue((int)(1000 * fraction));
   }
 
-  public void advance(double progress) {
-    getProgressIndicator().setFraction(myFraction + progress);
-  }
-
   /**
    * Progress indicator that scales task to only use a portion of the parent indicator.
    */
-  public static class ProgressPortionReporter extends DelegatingProgressIndicator {
+  private static class ProgressPortionReporter extends DelegatingProgressIndicator {
     private final double myStart;
     private final double myPortion;
 
@@ -225,12 +197,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
 
     @Override
     public void setText(final String text) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myLabel.setText(text);
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> myLabel.setText(text));
     }
 
     @Override
@@ -241,35 +208,22 @@ public abstract class ProgressStep extends FirstRunWizardStep {
 
     @Override
     public void stop() {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myLabel.setText(null);
-          myProgressBar.setVisible(false);
-          showConsole();
-        }
+      ApplicationManager.getApplication().invokeLater(() -> {
+        myLabel.setText(null);
+        myProgressBar.setVisible(false);
+        showConsole();
       }, ModalityState.stateForComponent(myProgressBar));
       super.stop();
     }
 
     @Override
     public void setIndeterminate(final boolean indeterminate) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setIndeterminate(indeterminate);
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> myProgressBar.setIndeterminate(indeterminate));
     }
 
     @Override
     public void setFraction(final double fraction) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          ProgressStep.this.setFraction(fraction);
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> ProgressStep.this.setFraction(fraction));
     }
   }
 }

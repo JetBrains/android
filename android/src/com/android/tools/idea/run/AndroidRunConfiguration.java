@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
+import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -56,6 +57,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,7 +66,7 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
-public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
+public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -121,11 +123,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
-      return new GradleApkProvider(facet, applicationIdProvider, false);
+      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, false);
     }
-    AndroidApkFacet androidApkFacet = AndroidApkFacet.getInstance(facet.getModule());
-    if (androidApkFacet != null) {
-      return new FileSystemApkProvider(androidApkFacet.getModule(), new File(androidApkFacet.getConfiguration().APK_PATH));
+    ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
+    if (apkFacet != null) {
+      return new FileSystemApkProvider(apkFacet.getModule(), new File(apkFacet.getConfiguration().APK_PATH));
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, ARTIFACT_NAME);
   }
@@ -135,7 +137,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidRunConfiguration> editor =
-      new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
+      new AndroidRunConfigurationEditor<>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
     editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
     return editor;
   }
@@ -285,5 +287,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     for (LaunchOptionState state : myLaunchOptionStates.values()) {
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
+  }
+
+  @Nullable
+  @Override
+  public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
+    // Defer to the executor for the icon, since this RunConfiguration class doesn't provide its own icon.
+    if (executor instanceof ExecutorIconProvider) {
+      return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
+    }
+    return null;
   }
 }

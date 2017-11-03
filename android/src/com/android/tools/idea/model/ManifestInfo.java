@@ -57,9 +57,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -82,7 +84,7 @@ final class ManifestInfo {
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
-    ManifestMerger2.MergeType mergeType = facet.isAppProject() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
+    ManifestMerger2.MergeType mergeType = facet.isAppProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getAndroidModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
@@ -173,7 +175,12 @@ final class ManifestInfo {
         else {
           vFile = VfsUtil.findFileByIoFile(file, false);
         }
-        assert vFile != null : file;
+        if (vFile == null ) {
+          // Gracefully handle case where file doesn't exist; this can happen for example
+          // when a Gradle sync is needed after version control etc (see issue 65541477)
+          //noinspection ZeroLengthArrayAllocation
+          return new ByteArrayInputStream("<manifest/>".getBytes(StandardCharsets.UTF_8));
+        }
 
         // We do not want to do this check if we have no library manifests.
         // findModuleForFile does not work for other build systems (e.g. bazel)
@@ -245,6 +252,8 @@ final class ManifestInfo {
 
   // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
   @Nullable
+  @Deprecated
+  // TODO replace with IdeBaseConfig#getVersionNameSuffix
   private static String getVersionNameSuffix(@NotNull BaseConfig config) {
     try {
       return config.getVersionNameSuffix();
@@ -335,7 +344,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
 
       List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (myFacet.isAppProject()) {
+      if (myFacet.isAppProject() || myFacet.getProjectType() == PROJECT_TYPE_FEATURE) {
         libraryManifests = getLibManifests(myFacet);
         trackChanges(lastModifiedMap, libraryManifests);
       }

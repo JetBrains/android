@@ -1,0 +1,32 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.google.android.instantapps.samples.multiatom.feature1">
+
+  <application android:allowBackup="true"
+               android:label="@string/app_name"
+               android:theme="@style/AppTheme"
+               android:supportsRtl="true">
+    <activity android:name="com.google.android.instantapps.samples.multiatom.feature1.Feature1Activity"
+              android:label="@string/feature1_activity_name"
+              android:theme="@style/AppTheme">
+
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <intent-filter android:order="1">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+
+        <data
+            android:host="multiatom.samples.androidinstantapps.com"
+            android:scheme="https"
+            android:pathPrefix="/feature1"/>
+        <data
+            android:host="multiatom.samples.androidinstantapps.com"
+            android:scheme="http"
+            android:pathPrefix="/feature1"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

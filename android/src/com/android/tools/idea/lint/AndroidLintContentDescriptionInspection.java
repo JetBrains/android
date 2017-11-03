@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AccessibilityDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION;
 
 public class AndroidLintContentDescriptionInspection extends AndroidLintInspectionBase {
   public AndroidLintContentDescriptionInspection() {
     super(AndroidBundle.message("android.lint.inspections.content.description"), AccessibilityDetector.ISSUE);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.content.description"),
-                               ATTR_CONTENT_DESCRIPTION, null)
-    };
   }
 }

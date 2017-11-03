@@ -22,7 +22,6 @@ import com.android.tools.idea.actions.CreateFileFromTemplateDialog;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
@@ -104,11 +103,6 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   public void setSuperclass(@NotNull String superclass) {
     EditorTextFieldFixture.findByLabel(robot(), target(), "Superclass:").replaceText(superclass);
-  }
-
-  @NotNull
-  public JCheckBoxFixture findCheckBox(@NotNull String name) {
-    return new JCheckBoxFixture(robot(), name);
   }
 
   public enum Kind {

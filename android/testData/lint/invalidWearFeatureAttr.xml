@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="test.pkg">
+  <uses-feature android:name="android.hardware.type.watch" <error descr="`android:required=\"false\"` is not supported for this feature">android:required="fa<caret>lse"</error> />
+</manifest>

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.ptable.*;
+import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -23,65 +25,80 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
-public class NlPropertyRenderers {
-  private static NlDefaultRenderer ourDefaultRenderer;
-  private static NlBooleanRenderer ourBooleanRenderer;
-  private static NlFlagRenderer ourFlagRenderer;
-  private static NlFlagItemRenderer ourFlagItemRenderer;
+public class NlPropertyRenderers implements PTableCellRendererProvider {
+  private static NlPropertyRenderers ourInstance = new NlPropertyRenderers();
+
+  private final NlTableNameRenderer myTableNameRenderer;
+  private final NlBooleanRenderer myBooleanRenderer;
+  private final NlFlagRenderer myFlagRenderer;
+  private final NlFlagItemRenderer myFlagItemRenderer;
+  private final NlDefaultRenderer myDefaultRenderer;
+  private final TableCellRenderer myGroupRenderer;
+
+  public static NlPropertyRenderers getInstance() {
+    if (ourInstance == null) {
+      ourInstance = new NlPropertyRenderers();
+    }
+    return ourInstance;
+  }
+
+  private NlPropertyRenderers() {
+    myTableNameRenderer = new NlTableNameRenderer();
+    myBooleanRenderer = new NlBooleanRenderer();
+    myFlagRenderer = new NlFlagRenderer();
+    myFlagItemRenderer = new NlFlagItemRenderer();
+    myDefaultRenderer = new NlDefaultRenderer();
+    myGroupRenderer = createGroupTableCellRenderer();
+  }
 
   @NotNull
-  public static TableCellRenderer get(@NotNull NlProperty p) {
-    AttributeDefinition definition = p.getDefinition();
+  @Override
+  public PNameRenderer getNameCellRenderer(@NotNull PTableItem item) {
+    return myTableNameRenderer;
+  }
+
+  @NotNull
+  @Override
+  public TableCellRenderer getValueCellRenderer(@NotNull PTableItem item) {
+    if (item instanceof PTableGroupItem) {
+      return myGroupRenderer;
+    }
+    if (item instanceof NlProperty) {
+      return get((NlProperty)item);
+    }
+    throw new IllegalArgumentException("Unrecognized table item " + item);
+  }
+
+  @NotNull
+  public NlAttributeRenderer get(@NotNull NlProperty property) {
+    if (property instanceof NlFlagPropertyItemValue) {
+      return myFlagItemRenderer;
+    }
+    AttributeDefinition definition = property.getDefinition();
     if (definition == null) {
-      return getDefaultRenderer();
+      return myDefaultRenderer;
     }
 
     Set<AttributeFormat> formats = definition.getFormats();
     if (formats.size() == 1 && formats.contains(AttributeFormat.Boolean)) {
-      NlBooleanRenderer renderer = getBooleanRenderer();
-      if (renderer.canRender(p, formats)) {
-        return renderer;
+      if (myBooleanRenderer.canRender(property, formats)) {
+        return myBooleanRenderer;
       }
     }
     if (formats.contains(AttributeFormat.Flag)) {
-      NlFlagRenderer renderer = getFlagRenderer();
-      if (renderer.canRender(p, formats)) {
-        return renderer;
+      if (myFlagRenderer.canRender(property, formats)) {
+        return myFlagRenderer;
       }
     }
-
-    return getDefaultRenderer();
+    return myDefaultRenderer;
   }
 
-  @NotNull
-  public static NlFlagRenderer getFlagRenderer() {
-    if (ourFlagRenderer == null) {
-      ourFlagRenderer = new NlFlagRenderer();
-    }
-    return ourFlagRenderer;
-  }
-
-  @NotNull
-  public static NlFlagItemRenderer getFlagItemRenderer() {
-    if (ourFlagItemRenderer == null) {
-      ourFlagItemRenderer = new NlFlagItemRenderer();
-    }
-    return ourFlagItemRenderer;
-  }
-
-  @NotNull
-  private static NlBooleanRenderer getBooleanRenderer() {
-    if (ourBooleanRenderer == null) {
-      ourBooleanRenderer = new NlBooleanRenderer();
-    }
-    return ourBooleanRenderer;
-  }
-
-  @NotNull
-  private static NlDefaultRenderer getDefaultRenderer() {
-    if (ourDefaultRenderer == null) {
-      ourDefaultRenderer = new NlDefaultRenderer();
-    }
-    return ourDefaultRenderer;
+  private static TableCellRenderer createGroupTableCellRenderer() {
+    return new PTableCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                           boolean selected, boolean hasFocus, int row, int column) {
+      }
+    };
   }
 }

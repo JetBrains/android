@@ -19,16 +19,20 @@ import com.android.SdkConstants;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.MultiResourceRepository;
+import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -36,11 +40,11 @@ import org.mockito.Mockito;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
+  private MultiResourceRepository myParent;
   private StringResourceData data;
 
   @Override
@@ -53,19 +57,22 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   private void setUpData() {
-    Collection<VirtualFile> resourceDirectories = Collections.singletonList(resourceDirectory);
-
     ClassField field = Mockito.mock(ClassField.class);
+
     Mockito.when(field.getType()).thenReturn("string");
     Mockito.when(field.getName()).thenReturn("dynamic_key1");
     Mockito.when(field.getValue()).thenReturn("L\\'Étranger");
 
-    Map<String, ClassField> values = Collections.singletonMap("dynamic_key1", field);
-    LocalResourceRepository otherDelegate = DynamicResourceValueRepository.createForTest(myFacet, values);
-    Disposer.register(myFacet, otherDelegate);
-    Collection<LocalResourceRepository> otherDelegates = Collections.singletonList(otherDelegate);
+    DynamicResourceValueRepository dynamicResourceValueRepository =
+      DynamicResourceValueRepository.createForTest(myFacet, null, Collections.singletonMap("dynamic_key1", field));
 
-    data = StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories, otherDelegates));
+    Disposer.register(myFacet, dynamicResourceValueRepository);
+
+    myParent = ModuleResourceRepository.createForTest(myFacet,
+                                                      Collections.singletonList(resourceDirectory), null,
+                                                      dynamicResourceValueRepository);
+
+    data = new StringResourceRepository(myParent).getData(myFacet);
   }
 
   public void testSummarizeLocales() {
@@ -86,47 +93,54 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testParser() {
-    Object actual = data.getLocales().stream()
+    Object actual = data.getLocaleSet().stream()
       .map(Locale::toLocaleId)
       .collect(Collectors.toSet());
 
     assertEquals(ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"), actual);
 
-    assertNotNull(data.getStringResource("key1").getDefaultValueAsResourceItem());
+    assertNotNull(data.getStringResource(newStringResourceKey("key1")).getDefaultValueAsResourceItem());
 
-    assertFalse(data.getStringResource("key5").isTranslatable());
+    assertFalse(data.getStringResource(newStringResourceKey("key5")).isTranslatable());
 
-    assertNull(data.getStringResource("key1").getTranslationAsResourceItem(Locale.create("hi")));
-    assertEquals("Key 2 hi", data.getStringResource("key2").getTranslationAsString(Locale.create("hi")));
+    assertNull(data.getStringResource(newStringResourceKey("key1")).getTranslationAsResourceItem(Locale.create("hi")));
+    assertEquals("Key 2 hi", data.getStringResource(newStringResourceKey("key2")).getTranslationAsString(Locale.create("hi")));
   }
 
   public void testResourceToStringPsi() {
     Locale locale = Locale.create("fr");
 
-    assertEquals("L'Étranger", data.getStringResource("key8").getTranslationAsString(locale));
-    assertEquals("<![CDATA[L'Étranger]]>", data.getStringResource("key9").getTranslationAsString(locale));
-    assertEquals("<xliff:g>L'Étranger</xliff:g>", data.getStringResource("key10").getTranslationAsString(locale));
+    assertEquals("L'Étranger", data.getStringResource(newStringResourceKey("key8")).getTranslationAsString(locale));
+    assertEquals("<![CDATA[L'Étranger]]>", data.getStringResource(newStringResourceKey("key9")).getTranslationAsString(locale));
+    assertEquals("<xliff:g>L'Étranger</xliff:g>", data.getStringResource(newStringResourceKey("key10")).getTranslationAsString(locale));
   }
 
   public void testResourceToStringDynamic() {
-    assertEquals("L'Étranger", data.getStringResource("dynamic_key1").getDefaultValueAsString());
+    assertEquals("L'Étranger", data.getStringResource(new StringResourceKey("dynamic_key1", null)).getDefaultValueAsString());
   }
 
   public void testValidation() {
-    assertEquals("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)", data.validateKey("key1"));
-    assertNull(data.validateKey("key2"));
-    assertNull(data.validateKey("key3"));
-    assertEquals("Key 'key4' missing default value", data.validateKey("key4"));
-    assertNull(data.validateKey("key5"));
-    assertEquals("Key 'key6' is marked as non translatable, but is translated in locale French (fr)", data.validateKey("key6"));
+    assertEquals("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)",
+                 data.validateKey(newStringResourceKey("key1")));
 
-    assertEquals("Key 'key1' is missing Hindi (hi) translation", data.validateTranslation("key1", Locale.create("hi")));
-    assertNull(data.validateTranslation("key2", Locale.create("hi")));
-    assertEquals("Key 'key6' is marked as untranslatable and should not be translated to French (fr)",
-                 data.validateTranslation("key6", Locale.create("fr")));
+    assertNull(data.validateKey(newStringResourceKey("key2")));
+    assertNull(data.validateKey(newStringResourceKey("key3")));
+    assertEquals("Key 'key4' missing default value", data.validateKey(newStringResourceKey("key4")));
+    assertNull(data.validateKey(newStringResourceKey("key5")));
 
-    assertNull(data.validateTranslation("key1", null));
-    assertEquals("Key 'key4' is missing the default value", data.validateTranslation("key4", null));
+    assertEquals("Key 'key6' is marked as non translatable, but is translated in locale French (fr)",
+                 data.validateKey(newStringResourceKey("key6")));
+
+    assertEquals("Key \"key1\" is missing its Hindi (hi) translation",
+                 data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi")));
+
+    assertNull(data.getStringResource(newStringResourceKey("key2")).validateTranslation(Locale.create("hi")));
+
+    assertEquals("Key \"key6\" is untranslatable and should not be translated to French (fr)",
+                 data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr")));
+
+    assertNull(data.getStringResource(newStringResourceKey("key1")).validateDefaultValue());
+    assertEquals("Key \"key4\" is missing its default value", data.getStringResource(newStringResourceKey("key4")).validateDefaultValue());
   }
 
   public void testGetMissingTranslations() {
@@ -139,108 +153,155 @@ public class StringResourceDataTest extends AndroidTestCase {
       Locale.create("hi"));
     // @formatter:on
 
-    assertEquals(expected, data.getMissingTranslations("key7"));
+    assertEquals(expected, data.getMissingTranslations(newStringResourceKey("key7")));
   }
 
   public void testIsTranslationMissing() {
-    assertTrue(data.getStringResource("key7").isTranslationMissing(Locale.create("fr")));
+    assertTrue(data.getStringResource(newStringResourceKey("key7")).isTranslationMissing(Locale.create("fr")));
   }
 
   public void testRegionQualifier() {
     Locale en_rGB = Locale.create("en-rGB");
-    assertTrue(data.getStringResource("key4").isTranslationMissing(en_rGB));
-    assertFalse(data.getStringResource("key3").isTranslationMissing(en_rGB));
-    assertFalse(data.getStringResource("key8").isTranslationMissing(en_rGB));
+    assertTrue(data.getStringResource(newStringResourceKey("key4")).isTranslationMissing(en_rGB));
+    assertFalse(data.getStringResource(newStringResourceKey("key3")).isTranslationMissing(en_rGB));
+    assertFalse(data.getStringResource(newStringResourceKey("key8")).isTranslationMissing(en_rGB));
   }
 
   public void testEditingDoNotTranslate() {
     VirtualFile stringsFile = resourceDirectory.findFileByRelativePath("values/strings.xml");
     assertNotNull(stringsFile);
 
-    assertTrue(data.getStringResource("key1").isTranslatable());
+    assertTrue(data.getStringResource(newStringResourceKey("key1")).isTranslatable());
     XmlTag tag = getNthXmlTag(stringsFile, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    data.setTranslatable("key1", false);
+    data.setTranslatable(newStringResourceKey("key1"), false);
 
-    assertFalse(data.getStringResource("key1").isTranslatable());
+    assertFalse(data.getStringResource(newStringResourceKey("key1")).isTranslatable());
     tag = getNthXmlTag(stringsFile, 0);
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    assertFalse(data.getStringResource("key5").isTranslatable());
+    assertFalse(data.getStringResource(newStringResourceKey("key5")).isTranslatable());
     tag = getNthXmlTag(stringsFile, 3);
     assertEquals("key5", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    data.setTranslatable("key5", true);
+    data.setTranslatable(newStringResourceKey("key5"), true);
 
-    assertTrue(data.getStringResource("key5").isTranslatable());
+    assertTrue(data.getStringResource(newStringResourceKey("key5")).isTranslatable());
     tag = getNthXmlTag(stringsFile, 3);
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
   }
 
   public void testEditingCdata() {
-    final Locale locale = Locale.create("en-rIN");
-    final String key = "key1";
+    String expected = "<![CDATA[\n" +
+                      "        <b>Google I/O 2014</b><br>\n" +
+                      "        Version %s<br><br>\n" +
+                      "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
+                      "  ]]>";
 
-    String currentData = data.getStringResource(key).getTranslationAsString(locale);
-    assertEquals("<![CDATA[\n" +
-                 "        <b>Google I/O 2014</b><br>\n" +
-                 "        Version %s<br><br>\n" +
-                 "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
-                 "  ]]>", currentData);
-    assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
+    StringResource resource = data.getStringResource(newStringResourceKey("key1"));
+    Locale locale = Locale.create("en-rIN");
 
-    final String expected = "<![CDATA[\n" +
-                            "        <b>Google I/O 2014</b><br>\n" +
-                            "        Version %1$s<br><br>\n" +
-                            "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
-                            "  ]]>";
-    assertEquals(expected, data.getStringResource(key).getTranslationAsString(locale));
+    assertEquals(expected, resource.getTranslationAsString(locale));
+
+    expected = "<![CDATA[\n" +
+               "        <b>Google I/O 2014</b><br>\n" +
+               "        Version %1$s<br><br>\n" +
+               "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
+               "  ]]>";
+
+    assertTrue(resource.putTranslation(locale, expected));
+    assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 0);
+
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
   }
 
   public void testEditingXliff() {
-    String key = "key3";
+    StringResource resource = data.getStringResource(newStringResourceKey("key3"));
     Locale locale = Locale.create("en-rIN");
-    String currentData = data.getStringResource(key).getTranslationAsString(locale);
 
-    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
-    assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
+    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", resource.getTranslationAsString(locale));
 
     String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
-    assertEquals(expected, data.getStringResource(key).getTranslationAsString(locale));
+
+    assertTrue(resource.putTranslation(locale, expected));
+    assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 2);
+
     assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
-    assertEquals(expected, tag.getValue().getText().trim());
+    assertEquals(expected, tag.getValue().getText());
   }
 
   public void testAddingTranslation() {
-    final Locale locale = Locale.create("en");
-    final String key = "key4";
-    assertNull(data.getStringResource(key).getTranslationAsResourceItem(locale));
+    StringResource resource = data.getStringResource(newStringResourceKey("key4"));
+    Locale locale = Locale.create("en");
 
-    assertTrue(data.setTranslation(key, locale, "Hello"));
+    assertNull(resource.getTranslationAsResourceItem(locale));
+    assertTrue(resource.putTranslation(locale, "Hello"));
+    assertEquals("Hello", resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 4);
+
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
+  }
 
-    assertEquals("Hello", data.getStringResource(key).getTranslationAsString(locale));
+  public void testResourceChange() {
+    // the resource change notification system is fundamentally broken as it only sends a notification
+    // of a change if we have called PsiResourceItem.getResourceValue for that resource first
+    // the very first time it will send the notification because the initialisation makes it think there is a change
+    StringResource resource = data.getStringResource(newStringResourceKey("key1"));
+    assertEquals("Key 1 default", resource.getDefaultValueAsString());
+
+    Ref<Boolean> changeEventHappened = new Ref<>(false);
+
+    ResourceChangeListener listener = reason -> {
+      changeEventHappened.set(true);
+      // simulate reloading the data on resource changed event
+      data = new StringResourceRepository(myParent).getData(myFacet);
+    };
+
+    ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).addListener(listener, myFacet, null, null);
+
+    try {
+      // the first time we test this it always works because the initialisation has caused the generation of the
+      // resource to change from the initial value, to the value after we have added the listener.
+      changeEventHappened.set(false);
+      resource.setDefaultValue("new text");
+      UIUtil.dispatchAllInvocationEvents();
+
+      assertTrue(changeEventHappened.get());
+
+      // and now we test that subsequent changes are also correctly causing a change event
+      changeEventHappened.set(false);
+      resource.setDefaultValue("new text again");
+      UIUtil.dispatchAllInvocationEvents();
+
+      assertTrue(changeEventHappened.get());
+    }
+    finally {
+      ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).removeListener(listener, myFacet, null, null);
+    }
+  }
+
+  @NotNull
+  private StringResourceKey newStringResourceKey(@NotNull String name) {
+    return new StringResourceKey(name, resourceDirectory);
   }
 
   private XmlTag getNthXmlTag(@NotNull VirtualFile file, int index) {

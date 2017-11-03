@@ -16,7 +16,7 @@
 
 /**
  * Support for XML format of Lint configuration file (lint.xml), as described on
- * <a href="https://sites.google.com/a/android.com/tools/tips/lint/suppressing-lint-warnings">
+ * <a href="https://developer.android.com/studio/write/lint.html#config">
  * Suppressing Lint Warnings</a> page
  */
 package org.jetbrains.android.dom.lint;

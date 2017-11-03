@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -29,36 +32,47 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.swing.*;
-import javax.swing.table.TableModel;
+import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class NlPropertiesPanelTest extends PropertyTestCase {
   @Mock
   private RowFilter.Entry<? extends PTableModel, Integer> myEntry;
-  private Disposable myDisposable;
+  private InspectorPanel myInspector;
   private NlPropertiesPanel myPanel;
-  private PTable myTable;
+  private MyTable myTable;
+  private PTableModel myModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    myDisposable = Disposer.newDisposable();
-    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable);
-    myTable = myPanel.getTable();
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    myModel = new PTableModel();
+    myTable = new MyTable(myModel);
+    myInspector = spy(new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JPanel()));
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      Disposer.dispose(myDisposable);
+      myTable.removeEditor();
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myEntry = null;
+      myInspector = null;
+      myPanel = null;
+      myTable = null;
+      myModel = null;
     }
     finally {
       super.tearDown();
@@ -106,6 +120,103 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     assertThat(myTable.getSelectedItem()).isSameAs(elevation);
     myPanel.setFilter("");
     assertThat(myTable.getSelectedItem()).isSameAs(elevation);
+  }
+
+  public void testEnterIsIgnoredIfNoFilter() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    assertThat(myPanel.getTable().isEditing()).isFalse();
+    assertThat(event.isConsumed()).isFalse();
+  }
+
+  public void testEnterIsIgnoredIfFilterIsNotUnique() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setFilter("el");
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    assertThat(myPanel.getTable().isEditing()).isFalse();
+    assertThat(myPanel.getTable().getRowCount()).isGreaterThan(1);
+    assertThat(event.isConsumed()).isFalse();
+  }
+
+  public void testEnterCausesStartEditingInTable() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setFilter("eleva");
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    assertThat(myPanel.getTable().isEditing()).isTrue();
+    assertThat(myPanel.getTable().getRowCount()).isEqualTo(1);
+    assertThat(myPanel.getTable().getValueAt(0, 1)).isSameAs(elevation);
+    assertThat(event.isConsumed()).isTrue();
+  }
+
+  public void testEnterCausesStartEditingOfClosedFlagsInTable() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    myTable.resetRequestFocusCount();
+
+    myPanel.setFilter("textSt");
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    assertThat(myTable.getRequestFocusCount()).isEqualTo(1);
+    assertThat(myPanel.getTable().isEditing()).isFalse();
+    assertThat(myPanel.getTable().getRowCount()).isEqualTo(4);  // textStyle group with 3 values
+    assertThat(myPanel.getTable().getValueAt(0, 1)).isSameAs(textStyle);
+    assertThat(myPanel.getTable().getSelectedRow()).isEqualTo(0);
+    assertThat(event.isConsumed()).isTrue();
+  }
+
+  public void testEnterCausesStartEditingOfOpenFlagsInTable() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    int textStyleRow = findRowOf(ANDROID_URI, ATTR_TEXT_STYLE);
+    myModel.expand(textStyleRow);
+    myTable.resetRequestFocusCount();
+
+    myPanel.setFilter("textSt");
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    assertThat(myTable.getRequestFocusCount()).isEqualTo(1);
+    assertThat(myPanel.getTable().isEditing()).isFalse();
+    assertThat(myPanel.getTable().getRowCount()).isEqualTo(4);  // textStyle group with 3 values
+    assertThat(myPanel.getTable().getValueAt(0, 1)).isSameAs(textStyle);
+    assertThat(myPanel.getTable().getSelectedRow()).isEqualTo(0);
+    assertThat(event.isConsumed()).isTrue();
+  }
+
+  public void testEnterCausesStartEditingInInspector() {
+    List<NlComponent> components = Collections.singletonList(myButton);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setFilter("eleva");
+    KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    myPanel.getFilterKeyListener().keyPressed(event);
+
+    verify(myInspector).setFilter(eq("eleva"));
+    verify(myInspector).enterInFilter(eq(event));
+    assertThat(myPanel.getTable().isEditing()).isFalse();
   }
 
   public void testFilterSimpleMatch() {
@@ -182,14 +293,73 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     assertFalse(filter.include(myEntry));
   }
 
+  public void testDefaultMode() {
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+  }
+
+  public void testInitialModeIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
+    Disposer.dispose(myPanel);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
+  }
+
+  public void testInitialModeFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+  }
+
+  public void testInitialModeIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isNull();
+    myPanel.setAllPropertiesPanelVisible(true);
+    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isEqualTo(PropertiesViewMode.TABLE.name());
+  }
+
+  public void testActivatePreferredEditor() {
+    boolean[] called = new boolean[1];
+    List<NlComponent> components = Collections.singletonList(myTextView);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setRestoreToolWindow(() -> called[0] = true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+
+    myPanel.activatePreferredEditor(ATTR_TEXT, false);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+    assertThat(called[0]).isTrue();
+    verify(myInspector).activatePreferredEditor(ATTR_TEXT, false);
+  }
+
   private int findRowOf(@NotNull String namespace, @NotNull String name) {
-    TableModel model = myTable.getModel();
-    for (int row = 0; row < model.getRowCount(); row++) {
-      PTableItem item = (PTableItem)model.getValueAt(row, 0);
+    for (int row = 0; row < myModel.getRowCount(); row++) {
+      PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
       if (item != null && name.equals(item.getName()) && namespace.equals(item.getNamespace())) {
         return row;
       }
     }
     return -1;
+  }
+
+  private static class MyTable extends PTable {
+    private int myRequestFocusCount;
+
+    public MyTable(@NotNull PTableModel model) {
+      super(model);
+    }
+
+    @Override
+    public void requestFocus() {
+      super.requestFocus();
+      myRequestFocusCount++;
+    }
+
+    private void resetRequestFocusCount() {
+      myRequestFocusCount = 0;
+    }
+
+    private int getRequestFocusCount() {
+      return myRequestFocusCount;
+    }
   }
 }

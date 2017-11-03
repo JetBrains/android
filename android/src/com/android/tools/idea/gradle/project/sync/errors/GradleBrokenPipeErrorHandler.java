@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +29,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Broken pipe")) {
       updateUsageTracker();
@@ -42,12 +41,10 @@ public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(
-      new OpenUrlHyperlink("https://sites.google.com/a/android.com/tools/knownissues?pli=1#TOC-Gradle-Sync-Failed:-Broken-Pipe",
+      new OpenUrlHyperlink("https://developer.android.com/r/studio-ui/known-issues.html",
                            "More info (including workarounds)"));
     return hyperlinks;
   }

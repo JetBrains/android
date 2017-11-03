@@ -15,6 +15,7 @@ import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidBundle;
@@ -47,7 +48,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
       return false;
     }
     final MyStyleData data = getStyleData(tags[0]);
-    return data != null && data.getStyle().getItems().size() > 0;
+    return data != null && !data.getStyle().getItems().isEmpty();
   }
 
   @Override
@@ -101,7 +102,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
       AndroidRefactoringUtil.computeAttributeMap(style, new ProjectBasedErrorReporter(tag.getProject()),
                                                  AndroidBundle.message("android.find.style.applications.title"));
 
-    if (attrMap == null || attrMap.size() == 0) {
+    if (attrMap == null || attrMap.isEmpty()) {
       return null;
     }
     final AndroidFacet facet = styleData.getFacet();
@@ -122,7 +123,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
   }
 
   private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet) {
-    final ResourceManager resourceManager = facet.getResourceManager(styleRef.getStylePackage());
+    final ResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(styleRef.getStylePackage());
     
     if (resourceManager == null) {
       return null;
@@ -145,7 +146,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     final XmlAttributeValue styleNameAttrValue = styleNameDomAttr.getXmlAttributeValue();
 
     if (styleName == null ||
-        styleName.length() == 0 ||
+        styleName.isEmpty() ||
         styleNameAttrValue == null) {
       return null;
     }

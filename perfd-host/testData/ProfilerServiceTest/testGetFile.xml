@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetDevices" Class="class com.android.tools.profiler.proto.Profiler$GetDevicesResponse">
+        <Message>device {
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetDevicesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetDevices</functionCalled>
+        <message>device {
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
+        <Message>session {
+  device_serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>session {
+  device_serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesResponse">
+        <Message>process {
+  name: "INITIAL"
+  pid: 1234
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$GetProcessesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetProcesses</functionCalled>
+        <message>process {
+  name: "INITIAL"
+  pid: 1234
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusRequest">
+        <Message>process_id: 1234
+session {
+  device_serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message>process_id: 1234
+session {
+  device_serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesRequest">
+        <Message>id: "0123456789"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message>id: "0123456789"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesResponse">
+        <Message>contents: "FILE_1"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message>contents: "FILE_1"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesRequest">
+        <Message>id: "9876543210"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message>id: "9876543210"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesResponse">
+        <Message>contents: "FILE_2"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message>contents: "FILE_2"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesRequest">
+        <Message>id: "0000000000"
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message>id: "0000000000"
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetBytes" Class="class com.android.tools.profiler.proto.Profiler$BytesResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$BytesResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetBytes</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

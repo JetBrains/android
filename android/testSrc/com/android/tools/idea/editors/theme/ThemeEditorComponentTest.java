@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -24,7 +25,7 @@ import org.jetbrains.android.AndroidTestCase;
 public class ThemeEditorComponentTest extends AndroidTestCase {
   public void testGetGoodContrastPreviewBackground() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_background.xml", "res/values/styles.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assertNotNull(resourceResolver);
 

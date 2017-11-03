@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public class TextViewCreator extends ViewWithBackgroundCreator {
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
-   * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */

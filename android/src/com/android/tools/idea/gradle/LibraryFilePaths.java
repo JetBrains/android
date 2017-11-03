@@ -37,6 +37,11 @@ public class LibraryFilePaths {
   }
 
   @Nullable
+  public File findJavadocJarPath(@NotNull File libraryPath) {
+    return findArtifactFilePathInRepository(libraryPath, "-javadoc.jar", true);
+  }
+
+  @Nullable
   public File findPomPathForLibrary(@NotNull File libraryPath) {
     return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }

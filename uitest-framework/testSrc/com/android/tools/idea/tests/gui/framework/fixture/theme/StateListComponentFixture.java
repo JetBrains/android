@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +33,10 @@ public class StateListComponentFixture extends JComponentFixture<StateListCompon
     super(StateListComponentFixture.class, robot, target);
     myResourceComponent = new ResourceComponentFixture(robot, robot.finder().findByType(target, ResourceComponent.class));
 
-    SwatchComponent swatch =
-      robot().finder().find(target(), new GenericTypeMatcher<SwatchComponent>(SwatchComponent.class) {
+    ResourceSwatchComponent swatch =
+      robot().finder().find(target(), new GenericTypeMatcher<ResourceSwatchComponent>(ResourceSwatchComponent.class) {
         @Override
-        protected boolean isMatching(@NotNull SwatchComponent component) {
+        protected boolean isMatching(@NotNull ResourceSwatchComponent component) {
           return !(component.getParent() instanceof ResourceComponent);
         }
       });

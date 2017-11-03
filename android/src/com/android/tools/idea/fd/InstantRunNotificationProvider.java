@@ -33,13 +33,13 @@ import java.util.Set;
 public class InstantRunNotificationProvider {
   private static final Set<BuildCause> ourCausesThatDontNeedNotifications = ImmutableSet.of(
     BuildCause.FIRST_INSTALLATION_TO_DEVICE,
+    BuildCause.NO_DEVICE,
     BuildCause.APP_NOT_INSTALLED,
     BuildCause.USER_REQUESTED_COLDSWAP,
     BuildCause.USER_CHOSE_TO_COLDSWAP
   );
 
   private static final Map<BuildCause, String> ourFullBuildNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
-    .put(BuildCause.USER_REQUESTED_CLEAN_BUILD, AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"))
     .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.fullbuild.mismatching.timestamps"))
     .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.ir.disabled.api.less.than.21"))
     .put(BuildCause.MANIFEST_RESOURCE_CHANGED, AndroidBundle.message("instant.run.notification.fullbuild.manifestresourcechanged"))
@@ -50,7 +50,7 @@ public class InstantRunNotificationProvider {
   private final DeployType myDeployType;
   private final String myVerifierStatus;
 
-  public InstantRunNotificationProvider(@NotNull BuildSelection buildSelection,
+  public InstantRunNotificationProvider(@Nullable BuildSelection buildSelection,
                                         @NotNull DeployType deployType,
                                         @NotNull String verifierStatus) {
     myBuildSelection = buildSelection;
@@ -60,6 +60,10 @@ public class InstantRunNotificationProvider {
 
   @Nullable
   public String getNotificationText() {
+    if (myBuildSelection == null) {
+      return null;
+    }
+
     BuildCause buildCause = myBuildSelection.why;
 
     if (ourCausesThatDontNeedNotifications.contains(buildCause)) {
@@ -84,12 +88,13 @@ public class InstantRunNotificationProvider {
         // when there are no changes, we don't want to display a notification if it was a cold swap build
         // see b.android.com/232931
         return buildCause.getBuildMode() == BuildMode.COLD ? null : AndroidBundle.message("instant.run.notification.nochanges");
+      case RESTART:
+        return AndroidBundle.message("instant.run.notification.coldswap");
       case HOTSWAP:
         return AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText());
       case WARMSWAP:
         return AndroidBundle.message("instant.run.notification.warmswap");
-      case SPLITAPK:
-      case DEX: {
+      case SPLITAPK: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
         if (buildCause.getBuildMode() == BuildMode.HOT) {
           // we requested a hot swap build, but we got cold swap artifacts

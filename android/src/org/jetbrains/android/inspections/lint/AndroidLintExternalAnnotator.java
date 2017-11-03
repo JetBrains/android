@@ -1,6 +1,5 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
@@ -10,8 +9,10 @@ import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
+import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -25,6 +26,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -36,7 +38,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
@@ -46,6 +51,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +59,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -94,8 +100,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     final FileType fileType = file.getFileType();
 
     if (fileType == StdFileTypes.XML) {
-      if (facet == null || facet.getLocalResourceManager().getFileResourceFolderType(file) == null &&
-          !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
+      if (facet == null || ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file) == null &&
+                           !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
     }
@@ -115,23 +121,28 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         PsiProjectListener.getInstance(project);
       }
     }
-    else if (fileType != StdFileTypes.JAVA && fileType != StdFileTypes.PROPERTIES) {
+    else if (fileType != StdFileTypes.JAVA
+             && !isKotlin(fileType)
+             && fileType != StdFileTypes.PROPERTIES) {
       return null;
     }
 
-    final List<Issue> issues = getIssuesFromInspections(file.getProject(), file);
-    if (issues.size() == 0) {
+    final Set<Issue> issues = getIssuesFromInspections(file.getProject(), file);
+    if (issues.isEmpty()) {
       return null;
     }
     return new State(module, vFile, file.getText(), issues);
+  }
+
+  public static boolean isKotlin(FileType fileType) {
+    // KotlinFileType.getName() is "Kotlin"; we don't have compile-time dependency on the Kotlin plugin and it's not in StdFileTypes
+    return fileType.getName().equals("Kotlin");
   }
 
   @Override
   public State doAnnotate(final State state) {
     final LintIdeClient client = LintIdeClient.forEditor(state);
     try {
-      final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
-
       EnumSet<Scope> scope;
       VirtualFile mainFile = state.getMainFile();
       final FileType fileType = mainFile.getFileType();
@@ -142,7 +153,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         } else {
           scope = Scope.RESOURCE_FILE_SCOPE;
         }
-      } else if (fileType == StdFileTypes.JAVA) {
+      } else if (fileType == StdFileTypes.JAVA || isKotlin(fileType)) {
         scope = Scope.JAVA_FILE_SCOPE;
       } else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
         scope = EnumSet.of(Scope.PROGUARD_FILE);
@@ -160,13 +171,17 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       if (project.isDisposed()) {
         return state;
       }
+      if (DumbService.isDumb(project)) {
+        return state; // Lint cannot run in dumb mode.
+      }
 
       List<VirtualFile> files = Collections.singletonList(mainFile);
       LintRequest request = new LintIdeRequest(client, project, files,
                                                Collections.singletonList(state.getModule()), true /* incremental */);
       request.setScope(scope);
 
-      lint.analyze(request);
+      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
+      lint.analyze();
     }
     finally {
       Disposer.dispose(client);
@@ -175,16 +190,16 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   }
 
   @NotNull
-  static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
-    final List<Issue> result = new ArrayList<>();
+  static Set<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
     final IssueRegistry fullRegistry = new LintIdeIssueRegistry();
 
-    for (Issue issue : fullRegistry.getIssues()) {
+    final List<Issue> issueList = fullRegistry.getIssues();
+    final Set<Issue> result = Sets.newHashSetWithExpectedSize(issueList.size() + 10);
+    for (Issue issue : issueList) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
       if (inspectionShortName == null) {
         continue;
       }
-
       final HighlightDisplayKey key = HighlightDisplayKey.find(inspectionShortName);
       if (key == null) {
         continue;
@@ -214,18 +229,20 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
     final Project project = file.getProject();
     if (DumbService.isDumb(project)) return;
+    AndroidLintQuickFixProvider[] fixProviders = AndroidLintQuickFixProvider.EP_NAME.getExtensions();
 
     for (ProblemData problemData : state.getProblems()) {
       final Issue issue = problemData.getIssue();
       final String message = problemData.getMessage();
       final TextRange range = problemData.getTextRange();
+      final LintFix quickfixData = problemData.getQuickfixData();
 
       if (range.getStartOffset() == range.getEndOffset()) {
         continue;
       }
 
       final Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
-        AndroidLintUtil.getHighlighLevelAndInspection(project, issue, file);
+        AndroidLintUtil.getHighlightLevelAndInspection(project, issue, file);
       if (pair == null) {
         continue;
       }
@@ -249,7 +266,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
 
-            for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message)) {
+
+            AndroidLintQuickFix[] fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue);
+            for (AndroidLintQuickFix fix : fixes) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
                 annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
               }
@@ -260,17 +279,11 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
 
             String id = key.getID();
-            if (LintIdeIssueRegistry.CUSTOM_ERROR == issue
-                || LintIdeIssueRegistry.CUSTOM_WARNING == issue) {
-              Issue original = LintIdeClient.findCustomIssue(message);
-              if (original != null) {
-                id = original.getId();
-              }
-            }
-
             annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
-            annotation.registerFix(new MyDisableInspectionFix(key));
-            annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+            if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
+              annotation.registerFix(new MyDisableInspectionFix(key));
+              annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+            }
 
             if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED) {
               annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);

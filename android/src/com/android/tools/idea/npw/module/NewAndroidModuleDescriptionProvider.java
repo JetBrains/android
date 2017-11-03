@@ -82,6 +82,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         return AndroidIcons.ModuleTemplates.Tv;
       case WEAR:
         return AndroidIcons.ModuleTemplates.Wear;
+      case THINGS:
+        return AndroidIcons.ModuleTemplates.Things;
       default:
         throw new IllegalArgumentException(enumValue.name());
     }
@@ -96,8 +98,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     private final String myName;
     private final String myDescription;
 
-    AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary, Icon icon,
-                                      String name, String description) {
+    AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary,
+                                      Icon icon, String name, String description) {
       this.myTemplateFile = templateFile;
       this.myFormFactor = formFactor;
       this.myMinSdkLevel = minSdkLevel;
@@ -124,6 +126,11 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       return myIsLibrary;
     }
 
+    @Override
+    public boolean isInstantApp() {
+      return false;
+    }
+
     @Nullable
     @Override
     public Icon getIcon() {
@@ -142,10 +149,15 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       return myDescription;
     }
 
+    @Override
+    public String toString() {
+      return getName();
+    }
+
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, myName);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), false, myName);
     }
   }
 }

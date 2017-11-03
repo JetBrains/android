@@ -24,10 +24,12 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -140,9 +142,9 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     if (height == 0) {
       height = 300;
     }
-    Icon icon = myDialog.createIcon(height, JBUI.scale(8), false, path,
-                                    item.getResourceValue(), item.getType());
-    myImageLabel.setIcon(icon);
+    ListenableFuture<Icon> futureIcon = myDialog.createIcon(height, JBUI.scale(8), false, path,
+                                                            item.getResourceValue(), item.getType());
+    myImageLabel.setIcon(new AsyncIcon(futureIcon, EmptyIcon.create(height), myImageLabel::repaint));
   }
 
   private void updateTypeLabel(@NotNull ResourceChooserItem item) {
@@ -166,7 +168,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     Configuration configuration = myDialog.getConfiguration();
     ResourceRepository frameworkResources = configuration.getFrameworkResources();
     if (frameworkResources != null) {
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(myDialog.geFacet(), true);
+      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myDialog.getFacet());
       ResourceItemResolver resolver = new ResourceItemResolver(configuration.getFullConfig(), frameworkResources, appResources, null);
       List<ResourceValue> lookupChain = Lists.newArrayList();
       lookupChain.add(resourceValue);

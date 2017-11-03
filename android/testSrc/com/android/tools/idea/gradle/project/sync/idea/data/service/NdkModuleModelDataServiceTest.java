@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -30,7 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -39,26 +39,27 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class NdkModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
+  @Mock private NdkModuleCleanupStep myCleanupStep;
+  @Mock private GradleSyncState mySyncState;
 
   private IdeModifiableModelsProvider myModelsProvider;
-  private NdkModuleModelDataService myDataService;
+  private NdkModuleModelDataService myService;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
-    myDataService = new NdkModuleModelDataService(myModuleSetup);
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myService = new NdkModuleModelDataService(myModuleSetup, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    assertSame(NDK_MODEL, myDataService.getTargetDataKey());
+    assertSame(NDK_MODEL, myService.getTargetDataKey());
   }
 
   public void testImportData() {
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
     String appModuleName = "app";
     Module appModule = createModule(appModuleName);
 
@@ -68,21 +69,23 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     DataNode<NdkModuleModel> dataNode = new DataNode<>(NDK_MODEL, model, null);
     Collection<DataNode<NdkModuleModel>> dataNodes = Collections.singleton(dataNode);
 
-    myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
+    myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
+    verify(mySyncState).isSyncSkipped();
+    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
   }
 
-  // See: https://code.google.com/p/android/issues/detail?id=229806
   public void testOnModelsNotFound() {
-    createAndAddNdkFacet(myModule);
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myService.onModelsNotFound(modelsProvider);
+    verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
+  }
 
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+  public void testImportDataWithoutModels() {
+    Module appModule = createModule("app");
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    myDataService.onModelsNotFound(myModelsProvider);
-
-    ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
-
-    assertNull(NdkFacet.getInstance(myModule));
+    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
+    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
   }
 }

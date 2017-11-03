@@ -24,6 +24,7 @@ import org.w3c.dom.Document;
 
 import java.util.Map;
 
+import static com.android.tools.idea.templates.ParameterValueResolver.resolve;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -164,10 +165,24 @@ public final class ParameterValueResolverTest {
   }
 
   @Test
+  public void testDuplicatedUnique() throws CircularParameterDependencyException {
+    TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
+    ParameterValueResolver.Deduplicator deduplicator = (parameter, value) -> value + "New";
+
+    // "p2" doesn't have a suggestion field, so it will not be a candidate for de-duplication
+    Map<Parameter, Object> defaultValuesMap1 = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of(), deduplicator);
+    assertEquals("Hello", defaultValuesMap1.get(getParameterObject(template, "p2")));
+
+    // Making "p2" unique, will now force it to de-duplicate (even if it doesn't have a suggest value)
+    getParameterObject(template, "p2").constraints.add(Parameter.Constraint.UNIQUE);
+    Map<Parameter, Object> defaultValuesMap2 = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of(), deduplicator);
+    assertEquals("HelloNew", defaultValuesMap2.get(getParameterObject(template, "p2")));
+  }
+
+  @Test
   public void testSimpleValuesResolution() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
-    Map<Parameter, Object> defaultValuesMap =
-      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
+    Map<Parameter, Object> defaultValuesMap = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of());
     assertEquals(Boolean.FALSE, defaultValuesMap.get(getParameterObject(template, "p1")));
     assertEquals("Hello", defaultValuesMap.get(getParameterObject(template, "p2")));
     assertEquals("", defaultValuesMap.get(getParameterObject(template, "p3")));
@@ -176,8 +191,7 @@ public final class ParameterValueResolverTest {
   @Test
   public void testComputedValuesResolution() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
-    Map<Parameter, Object> defaultValuesMap =
-      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
+    Map<Parameter, Object> defaultValuesMap = resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of());
     assertEquals("Hello, World", defaultValuesMap.get(getParameterObject(template, "p4")));
     assertEquals("Hello, World!", defaultValuesMap.get(getParameterObject(template, "p5")));
     assertEquals(Boolean.TRUE, defaultValuesMap.get(getParameterObject(template, "p6")));
@@ -189,8 +203,7 @@ public final class ParameterValueResolverTest {
     Map<Parameter, Object> values = Maps.newHashMap();
     values.put(getParameterObject(template, "p2"), "Goodbye");
 
-    Map<Parameter, Object> defaultValuesMap =
-      ParameterValueResolver.resolve(template.getParameters(), values, ImmutableMap.<String, Object>of());
+    Map<Parameter, Object> defaultValuesMap = resolve(template.getParameters(), values, ImmutableMap.of());
     assertEquals("Goodbye, World", defaultValuesMap.get(getParameterObject(template, "p4")));
     assertEquals("Goodbye, World!", defaultValuesMap.get(getParameterObject(template, "p5")));
   }
@@ -202,8 +215,7 @@ public final class ParameterValueResolverTest {
     values.put(getParameterObject(template, "p2"), "Goodbye");
     values.put(getParameterObject(template, "p4"), "Value");
 
-    Map<Parameter, Object> parameterValues =
-      ParameterValueResolver.resolve(template.getParameters(), values, ImmutableMap.<String, Object>of());
+    Map<Parameter, Object> parameterValues = resolve(template.getParameters(), values, ImmutableMap.of());
     assertEquals("Value!", parameterValues.get(getParameterObject(template, "p5")));
   }
 
@@ -212,7 +224,7 @@ public final class ParameterValueResolverTest {
     TemplateMetadata template = parseTemplateMetadata(PARAMETER_LOOP);
 
     try {
-      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
+      resolve(template.getParameters(), ImmutableMap.of(), ImmutableMap.of());
       fail("No exception was thrown");
     }
     catch (CircularParameterDependencyException e) {
@@ -228,8 +240,7 @@ public final class ParameterValueResolverTest {
     assert p1 != null;
 
     String expectedValue = "test";
-    Map<Parameter, Object> values = ParameterValueResolver
-      .resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(p1, expectedValue), ImmutableMap.<String, Object>of());
+    Map<Parameter, Object> values = resolve(template.getParameters(), ImmutableMap.of(p1, expectedValue), ImmutableMap.of());
     assertEquals(expectedValue, values.get(p1));
     assertEquals("p2", values.get(template.getParameter("p2")));
   }

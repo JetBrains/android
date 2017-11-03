@@ -21,8 +21,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -34,7 +34,10 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
@@ -55,7 +58,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
@@ -70,7 +73,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
@@ -97,7 +100,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
@@ -120,7 +123,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("Theme.MyOtherTheme");
@@ -179,7 +182,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
   public void testIsPublic() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
 
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
@@ -198,7 +201,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
   }
 
   private void checkSetValue(VirtualFile file, ItemResourceValue item, String... answerFolders) {
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
@@ -301,7 +304,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
   }
 
   private void checkSetParent(VirtualFile file, String newParent, String... answerFolders) {
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
@@ -375,7 +378,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
     VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(file);
 
     ThemeResolver resolver = new ThemeResolver(configuration);
@@ -411,7 +414,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "res/values-v19/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = resolver.getTheme("ATheme.Red");
@@ -444,7 +447,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "additionalModules/moduleA/res/values-v19/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = resolver.getTheme("AppTheme");
@@ -460,7 +463,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "additionalModules/moduleA/res/values/styles.xml");
 
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = resolver.getTheme("AppTheme");
@@ -481,7 +484,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "additionalModules/moduleB/res/values-v19/styles.xml");
     VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml",
                                                           "additionalModules/moduleA/res/values/styles.xml");
-    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = resolver.getTheme("AppTheme");

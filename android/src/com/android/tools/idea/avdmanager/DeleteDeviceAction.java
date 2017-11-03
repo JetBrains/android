@@ -40,7 +40,7 @@ public class DeleteDeviceAction extends DeviceUiAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     Device device = myProvider.getDevice();
-    int result = Messages.showYesNoDialog((Project)null, "Do you really want to delete Device " + device.getDisplayName() + "?",
+    int result = Messages.showYesNoDialog(myProvider.getProject(), "Do you really want to delete Device " + device.getDisplayName() + "?",
                                           "Confirm Deletion", AllIcons.General.QuestionDialog);
     if (result == Messages.YES) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().deleteDevice(device);

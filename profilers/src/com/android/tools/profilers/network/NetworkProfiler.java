@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profiler.proto.Profiler;
@@ -34,14 +35,18 @@ public class NetworkProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Profiler.Process process) {
+  public void startProfiling(Common.Session session, Profiler.Process process) {
     myProfilers.getClient().getNetworkClient().startMonitoringApp(
-      NetworkStartRequest.newBuilder().setAppId(process.getPid()).build());
+      NetworkStartRequest.newBuilder()
+        .setProcessId(process.getPid())
+        .setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Profiler.Process process) {
     myProfilers.getClient().getNetworkClient().stopMonitoringApp(
-      NetworkStopRequest.newBuilder().setAppId(process.getPid()).build());
+      NetworkStopRequest.newBuilder()
+        .setProcessId(process.getPid())
+        .setSession(session).build());
   }
 }

@@ -21,6 +21,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.rt.execution.testFrameworks.ProcessBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,6 +43,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     super.addParameters(info, commandLine);
     commandLine.addParameters("-no-window");
+    commandLine.addParameters("-gpu");
+    commandLine.addParameters("swiftshader");
   }
 
   @NotNull
@@ -50,11 +53,23 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
   }
 
-  public void stopRunningAvd() {
-    String command = getAdbBinary().getPath() + " emu kill";
+  public boolean deleteAvdByDisplayName(@NotNull String avdName) {
+    // We need to delete the AVD ID. We get it by converting spaces to underscores.
+    return super.deleteAvd(avdName.replace(' ', '_'));
+  }
+
+  public void killEmulatorProcesses() {
     try {
-      Process p = Runtime.getRuntime().exec(command);
-      p.waitFor();
+      // Kill emulator crash report dialogs left behind
+      if (ProcessBuilder.isWindows) {
+        // On windows killing qemu-system-i386.exe also kills emulator64-crash-service.exe (sub process)
+        Runtime.getRuntime().exec("taskkill /F /IM qemu*").waitFor();
+      }
+      else {
+        // Note that pgrep matches up to 15 characters.
+        Runtime.getRuntime().exec("pkill -9 qemu").waitFor();
+        Runtime.getRuntime().exec("pkill -9 emulator64-cra").waitFor();
+      }
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }

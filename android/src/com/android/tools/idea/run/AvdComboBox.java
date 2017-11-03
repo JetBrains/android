@@ -19,8 +19,8 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -48,6 +48,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+
 public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   private final boolean myAddEmptyElement;
   private final boolean myShowNotLaunchedOnly;
@@ -60,21 +62,18 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     myAddEmptyElement = addEmptyElement;
     myShowNotLaunchedOnly = showNotLaunchedOnly;
 
-    addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final AndroidPlatform platform = findAndroidPlatform();
-        AvdComboBox avdComboBox = AvdComboBox.this;
-        if (platform == null) {
-          Messages.showErrorDialog(avdComboBox, "Cannot find any configured Android SDK");
-          return;
-        }
-        RunAndroidAvdManagerAction action = new RunAndroidAvdManagerAction();
-        action.openAvdManager(myProject);
-        AvdInfo selected = action.getSelected();
-        if (selected != null) {
-          getComboBox().setSelectedItem(IdDisplay.create(selected.getName(), ""));
-        }
+    addActionListener(e -> {
+      final AndroidPlatform platform = findAndroidPlatform();
+      AvdComboBox avdComboBox = AvdComboBox.this;
+      if (platform == null) {
+        Messages.showErrorDialog(avdComboBox, "Cannot find any configured Android SDK");
+        return;
+      }
+      RunAndroidAvdManagerAction action = new RunAndroidAvdManagerAction();
+      action.openAvdManager(myProject);
+      AvdInfo selected = action.getSelected();
+      if (selected != null) {
+        getComboBox().setSelectedItem(IdDisplay.create(selected.getName(), ""));
       }
     });
 
@@ -94,12 +93,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
       return;
     }
     myAlarm.cancelAllRequests();
-    myAlarm.addRequest(new Runnable() {
-      @Override
-      public void run() {
-        startUpdatingAvds(modalityState);
-      }
-    }, 500, modalityState);
+    myAlarm.addRequest(() -> startUpdatingAvds(modalityState), 500, modalityState);
   }
 
   @Override
@@ -118,25 +112,25 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     final IdDisplay[] newAvds;
 
     if (facet != null) {
-      final Set<String> filteringSet = new HashSet<String>();
+      final Set<String> filteringSet = new HashSet<>();
       if (myShowNotLaunchedOnly) {
         final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(facet.getModule().getProject());
         if (debugBridge != null) {
           for (IDevice device : debugBridge.getDevices()) {
             final String avdName = device.getAvdName();
-            if (avdName != null && avdName.length() > 0) {
+            if (avdName != null && !avdName.isEmpty()) {
               filteringSet.add(avdName);
             }
           }
         }
       }
 
-      final List<IdDisplay> newAvdList = new ArrayList<IdDisplay>();
+      final List<IdDisplay> newAvdList = new ArrayList<>();
       if (myAddEmptyElement) {
         newAvdList.add(IdDisplay.create("", ""));
       }
-      for (AvdInfo avd : facet.getAllAvds()) {
-        String displayName = avd.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
+      for (AvdInfo avd : ModuleAvds.getInstance(facet).getAllAvds()) {
+        String displayName = avd.getProperties().get(AVD_INI_DISPLAY_NAME);
         final String avdName = displayName == null || displayName.isEmpty() ? avd.getName() : displayName;
         if (!filteringSet.contains(avdName)) {
           newAvdList.add(IdDisplay.create(avd.getName(), avdName));

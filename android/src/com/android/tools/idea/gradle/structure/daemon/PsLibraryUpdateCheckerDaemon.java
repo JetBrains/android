@@ -182,10 +182,10 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
             if (dependency instanceof PsLibraryDependency) {
               PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
               PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
-              if (spec != null && isNotEmpty(spec.version)) {
-                GradleVersion version = GradleVersion.tryParse(spec.version);
+              if (spec != null && isNotEmpty(spec.getVersion())) {
+                GradleVersion version = GradleVersion.tryParse(spec.getVersion());
                 if (version != null) {
-                  ids.add(new LibraryUpdateId(spec.name, spec.group));
+                  ids.add(new LibraryUpdateId(spec.getName(), spec.getGroup()));
                 }
               }
             }
@@ -193,7 +193,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
         }
       });
 
-      if (repositories.size() > 0 && ids.size() > 0) {
+      if (!repositories.isEmpty() && !ids.isEmpty()) {
         search(repositories, ids);
       }
     }

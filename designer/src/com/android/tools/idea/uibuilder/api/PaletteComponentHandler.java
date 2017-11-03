@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.XmlBuilder;
-import com.intellij.openapi.util.IconLoader;
+import com.android.xml.XmlBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -80,6 +81,11 @@ public abstract class PaletteComponentHandler {
     return loadBuiltinLargeIcon(tagName);
   }
 
+  @NotNull
+  public String getGradleCoordinateId(@NotNull NlComponent component) {
+    return getGradleCoordinateId(component.getTagName());
+  }
+
   /**
    * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
    * this component belongs to. The palette will use this information to provide a download
@@ -136,19 +142,14 @@ public abstract class PaletteComponentHandler {
 
   @NotNull
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
-    String path = "AndroidIcons.Views." + getSimpleTagName(tagName);
-    Icon icon = IconLoader.findIcon(path, getClass());
+    Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
     return icon != null ? icon : AndroidIcons.Views.Unknown;
   }
 
   @NotNull
   protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
-    String path = "AndroidIcons.Views." + getSimpleTagName(tagName) + "Large";
-    Icon icon = IconLoader.findIcon(path, getClass());
-    if (icon != null) {
-      return icon;
-    }
-    return AndroidIcons.Views.UnknownLarge;
+    Icon icon = AndroidDomElementDescriptorProvider.getLargeIconForViewTag(getSimpleTagName(tagName));
+    return icon != null ? icon : AndroidIcons.Views.UnknownLarge;
   }
 
   @NotNull

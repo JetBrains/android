@@ -26,9 +26,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Locates the appropriate licenses to display from the Studio installation. This includes:
@@ -88,8 +88,8 @@ public class LicensesLocator {
 
   @NotNull
   private List<Path> getIdeWideThirdPartyLibLicenses() {
-    try {
-      return Files.list(myIdeHome.resolve("license")).collect(Collectors.toList());
+    try (Stream<Path> stream = Files.list(myIdeHome.resolve("license"))) {
+      return stream.sorted().collect(Collectors.toList());
     }
     catch (IOException e) {
       Logger.getInstance(LicensesLocator.class).error(e);
@@ -101,10 +101,8 @@ public class LicensesLocator {
   private List<Path> getThirdPartyLibrariesForPlugin(@NonNull String plugin) {
     Path pluginLicenseFolder = Paths.get(myIdeHome.toString(), "plugins", plugin, "lib", "licenses");
     if (Files.isDirectory(pluginLicenseFolder)) {
-      try {
-        List<Path> paths = Files.list(pluginLicenseFolder).collect(Collectors.toList());
-        paths.sort(Comparator.naturalOrder());
-        return paths;
+      try (Stream<Path> stream = Files.list(pluginLicenseFolder)) {
+        return stream.sorted().collect(Collectors.toList());
       }
       catch (IOException e) {
         Logger.getInstance(LicensesLocator.class).warn(e);

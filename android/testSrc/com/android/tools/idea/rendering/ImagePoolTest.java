@@ -93,23 +93,58 @@ public class ImagePoolTest {
     assertEquals(image1.myBuffer, internalPtr);
     assertFalse(secondImageFreed.get());
     // The image is being reused. Check that it's a clean image
-    ImageDiffUtil.assertImageSimilar("clean", new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB), image1.myBuffer, 0.0);
+    ImageDiffUtil
+      .assertImageSimilar("clean", new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB), image1.myBuffer.getSubimage(0, 0, 50, 50), 0.0);
 
-    // Save the pointer to the internal image2 buffer
-    internalPtr = image2.myBuffer;
     //noinspection UnusedAssignment
     image2 = null;
     gc();
     countDown2.await(3, TimeUnit.SECONDS);
-    // We will get images from different size, and type, none of them should return the pooled image
-    assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null).myBuffer);
-    assertNotEquals(internalPtr, myPool.create(51, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
-    assertNotEquals(internalPtr, myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+
+    ImagePool.ImageImpl tmpImage = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null);
+    assertEquals(50, tmpImage.getWidth());
+    assertEquals(50, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB_PRE, tmpImage.myBuffer.getType());
+
+    tmpImage = myPool.create(51, 50, BufferedImage.TYPE_INT_ARGB, null);
+    assertEquals(51, tmpImage.getWidth());
+    assertEquals(50, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
+
+    tmpImage =  myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null);
+    assertEquals(50, tmpImage.getWidth());
+    assertEquals(51, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
+
+    tmpImage = null;
+    gc();
+  }
+
+  @Test
+  public void testManualFree() throws InterruptedException {
+    ImagePool.ImageImpl image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    BufferedImage internalPtr = image.myBuffer;
+
+    assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    image.dispose();
     assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    boolean threw = false;
+    try {
+      image.getCopy();
+    }
+    catch (AssertionError ignore) {
+      threw = true;
+    }
+    assertTrue("Expected assertion error trying to use an already disposed image", threw);
+
+    //noinspection UnusedAssignment
+    image = null;
+    gc();
   }
 
   @Test
   public void testDefaultPooling() throws InterruptedException {
+    // Small images won't be pooled
     CountDownLatch countDown = new CountDownLatch(1);
     ImagePool.ImageImpl image1 = myPool.create(10, 10, BufferedImage.TYPE_INT_ARGB, (b) -> countDown.countDown());
 
@@ -135,6 +170,18 @@ public class ImagePoolTest {
     copy = image.getCopy();
     assertNotEquals(copy, image.myBuffer);
     ImageDiffUtil.assertImageSimilar("pooledimage", original, copy, 0.0);
+
+    copy = image.getCopy(0, 0, 25, 50);
+    assertNotEquals(copy, image.myBuffer);
+    assertEquals(25, copy.getWidth());
+    assertEquals(50, copy.getHeight());
+    ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(0, 0, 25, 50), copy, 0.0);
+
+    try {
+      copy = image.getCopy(0, 0, 25, 150);
+      fail("IndexOutOfBoundsException expected for height out of bounds");
+    } catch (IndexOutOfBoundsException e) {
+    }
   }
 
   @Test
@@ -152,5 +199,60 @@ public class ImagePoolTest {
     // Using the null image shouldn't affect the destination
     image.drawImageTo(buffer);
     ImageDiffUtil.assertImageSimilar("sample", original, buffer, 0.0);
+  }
+
+  @Test
+  public void testPaint() throws IOException {
+    BufferedImage sample = getSampleImage();
+    ImagePool.Image image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+    });
+    boolean threw = false;
+    try {
+      ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+    }
+    catch (AssertionError ignored) {
+      threw = true;
+    }
+    assertTrue("Images must be different", threw);
+
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+      g.setColor(Color.BLUE);
+      g.fillRect(25, 0, 25, 50);
+    });
+    ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+    image.paint((g) -> {
+      // This is a valid way to make modifications into the image and shouldn't break anything
+      image.drawImageTo(g, 0, 0, image.getWidth(), image.getHeight());
+    });
+    ImageDiffUtil.assertImageSimilar("sample", sample, image.getCopy(), 0.0);
+  }
+
+  @Test
+  public void testPaintWithOffset() throws IOException {
+    BufferedImage sample = getSampleImage();
+    ImagePool.Image image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
+    image.paint((g) -> {
+      g.setColor(Color.RED);
+      g.fillRect(0, 0, 25, 50);
+      g.setColor(Color.BLUE);
+      g.fillRect(25, 0, 25, 50);
+    });
+
+    BufferedImage sampleImagePlusOffset = new BufferedImage(sample.getWidth() * 2, sample.getHeight() * 2, sample.getType());
+    Graphics g = sampleImagePlusOffset.getGraphics();
+    g.drawImage(sample, sample.getWidth(), sample.getHeight(), sample.getWidth() * 2, sample.getHeight() * 2, 0, 0, sample.getWidth(),
+                sample.getHeight(), null);
+    g.dispose();
+
+    BufferedImage testImagePlusOffset = new BufferedImage(sample.getWidth() * 2, sample.getHeight() * 2, sample.getType());
+
+    g = testImagePlusOffset.getGraphics();
+    image.drawImageTo(g, sample.getWidth(), sample.getHeight(), image.getWidth(), image.getHeight());
+    ImageDiffUtil.assertImageSimilar("offsetSample", sampleImagePlusOffset, testImagePlusOffset, 0.0);
   }
 }

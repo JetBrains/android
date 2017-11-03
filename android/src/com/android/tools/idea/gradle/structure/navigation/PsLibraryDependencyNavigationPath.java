@@ -44,7 +44,7 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
       spec = dependency.getResolvedSpec();
     }
     myNavigationText = dependency.toText(FOR_NAVIGATION);
-    myDependency = spec.name + GRADLE_PATH_SEPARATOR + spec.version;
+    myDependency = spec.getName() + GRADLE_PATH_SEPARATOR + spec.getVersion();
   }
 
   @Override

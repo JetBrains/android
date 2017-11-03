@@ -8,14 +8,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="module" module-name="wizard-model" exported="" />
     <orderEntry type="module" module-name="observable" />
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="util" />
     <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="observable-ui" />
   </component>
 </module>

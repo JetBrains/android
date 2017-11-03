@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
-import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,20 +38,41 @@ public class SwitchDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawSwitch(int x, int y, int width, int height, int baseLineOffset, String string) {
-      super(x, y, width, height, baseLineOffset, string);
+    DrawSwitch(int x, int y, int width, int height, int mode, int baseLineOffset, String string) {
+      super(x, y, width, height, mode, baseLineOffset, string);
     }
 
-    public DrawSwitch(String string) {
-      String[] sp = string.split(",");
-      int c = super.parse(sp, 0);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mSingleLine = Boolean.parseBoolean(sp[c++]);
-      mToUpperCase = Boolean.parseBoolean(sp[c++]);
-      mAlignmentX = Integer.parseInt(sp[c++]);
-      mAlignmentY = Integer.parseInt(sp[c++]);
-      mText = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
-      super.parse(sp, 0);
+    DrawSwitch(int x,
+               int y,
+               int width,
+               int height,
+               int mode,
+               int baseLineOffset,
+               boolean singleLine,
+               boolean toUpperCase,
+               int alignmentX,
+               int alignmentY,
+               String string) {
+      super(x, y, width, height, mode, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, DEFAULT_FONT_SIZE, DEFAULT_SCALE);
+    }
+
+    @NotNull
+    public static DrawSwitch createFromString(@NotNull String s) {
+      String[] sp = s.split(",");
+      int c = 0;
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int mode = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      boolean singleLine = Boolean.parseBoolean(sp[c++]);
+      boolean toUpperCase = Boolean.parseBoolean(sp[c++]);
+      int alignmentX = Integer.parseInt(sp[c++]);
+      int alignmentY = Integer.parseInt(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawSwitch(x, y, width, height, mode, baseLineOffset,  text);
     }
 
     @Override
@@ -91,6 +112,7 @@ public class SwitchDecorator extends SceneDecorator {
     if (text == null) {
       text = "";
     }
-    list.add(new DrawSwitch(l, t, w, h, baseLineOffset, text));
+    int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
+    list.add(new DrawSwitch(l, t, w, h, mode, baseLineOffset, text));
   }
 }

@@ -27,6 +27,8 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -46,6 +48,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import javax.swing.*;
@@ -105,7 +108,8 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    return true;
+    FileType type = file.getFileType();
+    return type == StdFileTypes.JAVA || type == StdFileTypes.XML || type == GroovyFileType.GROOVY_FILE_TYPE;
   }
 
   @Override
@@ -267,7 +271,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
         }
       }
       else {
-        final int curlyBraceIndex = annotationText.lastIndexOf("}");
+        final int curlyBraceIndex = annotationText.lastIndexOf('}');
         if (curlyBraceIndex > 0) {
           final String oldSuppressWarning = annotationText.substring(0, curlyBraceIndex);
           if (oldSuppressWarning.contains(currentSuppressedId)) return null;

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -82,7 +83,7 @@ public class SceneDisplayListTest4 extends SceneTest {
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
 
-    assertEquals(21, disp.getCommands().size());
+    assertEquals(23, disp.getCommands().size());
     disp.clear();
   }
 }

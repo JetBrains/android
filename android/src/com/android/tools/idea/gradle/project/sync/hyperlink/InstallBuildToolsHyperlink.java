@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink.setBuildToolsVersion;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
@@ -63,7 +65,8 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
         setBuildToolsVersion(project, myBuildFile, myVersion, true);
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+        // TODO Change for plugin changed trigger if created
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
       }
     }
   }

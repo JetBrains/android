@@ -19,16 +19,13 @@ import com.android.tools.adtui.model.DefaultDurationData;
 
 public final class GcDurationData extends DefaultDurationData {
 
-  private final int myCount;
-
   // TODO with JVMTI in the future this will contain proper start/end time + objects reclaimed information.
-  public GcDurationData(long duration, int count) {
+  public GcDurationData(long duration) {
     super(duration);
-    myCount = count;
   }
 
   @Override
   public String toString() {
-    return String.format("GC Count: %d", myCount);
+    return String.format("GC Event");
   }
 }

@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.NotificationIconGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.resources.Density;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Class that wraps the complex, nested {@code Map<String, Map<String, BufferedImage>>} returned
@@ -49,26 +46,7 @@ import java.util.regex.Pattern;
  * easier to interact with the different icon layouts.
  */
 public final class CategoryIconMap {
-  private static final Filter ACCEPT_ALL = new Filter() {
-    @Override
-    public boolean accept(@NotNull String category) {
-      return true;
-    }
-  };
-
-  private static final Map<Density, Pattern> DENSITY_PATTERNS;
-
-  static {
-    // Create regex patterns that search an icon path and find a valid density
-    // Paths look like: /mipmap-hdpi/, /drawable-xxdpi/, /drawable-xxxdpi-v9/
-    // Therefore, we search for the density value surrounded by symbols (especially to distinguish
-    // xdpi, xxdpi, and xxxdpi)
-    ImmutableMap.Builder<Density, Pattern> builder = ImmutableMap.builder();
-    for (Density density : Density.values()) {
-      builder.put(density, Pattern.compile(String.format(".*[^a-z]%s[^a-z].*", density.getResourceValue()), Pattern.CASE_INSENSITIVE));
-    }
-    DENSITY_PATTERNS = builder.build();
-  }
+  private static final Filter ACCEPT_ALL = category -> true;
 
   @NotNull private final Map<String, Map<String, BufferedImage>> myCategoryMap;
 
@@ -82,19 +60,7 @@ public final class CategoryIconMap {
    */
   @Nullable
   public static Density pathToDensity(@NotNull String iconPath) {
-
-    iconPath = FileUtil.toSystemIndependentName(iconPath);
-    // Strip off the filename, in case the user names their icon "xxxhdpi" etc.
-    // but leave the trailing slash, as it's used in the regex pattern
-    iconPath = iconPath.substring(0, iconPath.lastIndexOf('/') + 1);
-
-    for (Density density : Density.values()) {
-      if (DENSITY_PATTERNS.get(density).matcher(iconPath).matches()) {
-        return density;
-      }
-    }
-
-    return null;
+    return GraphicGenerator.pathToDensity(iconPath);
   }
 
   /**

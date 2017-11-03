@@ -16,12 +16,11 @@
 
 package com.android.tools.idea.ddms.screenrecord;
 
-import com.android.ddmlib.CollectingOutputReceiver;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ScreenRecorderOptions;
+import com.android.ddmlib.*;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -40,12 +39,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ScreenRecorderAction {
   private static final String TITLE = "Screen Recorder";
+  private static final String MEDIA_UNSUPPORTED_ERROR = "-1010";
   @NonNls private static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
 
   private static VirtualFile ourLastSavedFolder;
@@ -69,15 +70,21 @@ public class ScreenRecorderAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
-        }
-        catch (Exception e) {
-          showError(myProject, "Unexpected error while launching screen recorder", e);
-          latch.countDown();
+    boolean showTouchEnabled = isShowTouchEnabled(myDevice);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (options.showTouches != showTouchEnabled) {
+        setShowTouch(myDevice, options.showTouches);
+      }
+      try {
+        myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
+      }
+      catch (Exception e) {
+        showError(myProject, "Unexpected error while launching screen recorder", e);
+        latch.countDown();
+      }
+      finally {
+        if (options.showTouches != showTouchEnabled) {
+          setShowTouch(myDevice, showTouchEnabled);
         }
       }
     });
@@ -85,6 +92,29 @@ public class ScreenRecorderAction {
     Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, myDevice, latch, receiver);
     screenRecorderShellTask.setCancelText("Stop Recording");
     screenRecorderShellTask.queue();
+  }
+
+  private void setShowTouch(@NotNull IDevice device, boolean isEnabled) {
+    int value = isEnabled ? 1 : 0;
+    try {
+      device.executeShellCommand("settings put system show_touches " + value, new NullOutputReceiver());
+    }
+    catch (AdbCommandRejectedException|ShellCommandUnresponsiveException|IOException|TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to set show taps to " + isEnabled, e);
+    }
+  }
+
+  private boolean isShowTouchEnabled(@NotNull IDevice device) {
+    CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+    try {
+      device.executeShellCommand("settings get system show_touches", receiver);
+      String output = receiver.getOutput();
+      return output.equals("1");
+    }
+    catch (AdbCommandRejectedException|ShellCommandUnresponsiveException|IOException|TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to retrieve setting", e);
+    }
+    return false;
   }
 
   private static class ScreenRecorderTask extends Task.Modal {
@@ -140,6 +170,11 @@ public class ScreenRecorderAction {
     }
 
     private void pullRecording() {
+      // If the receiver failed to record due to unsupported screen resolution
+      if (myReceiver.getOutput().contains(MEDIA_UNSUPPORTED_ERROR)) {
+        Messages.showErrorDialog(myReceiver.getOutput(), "Screen Recorder Error");
+        return;
+      }
       FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", "mp4");
       FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
       VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : VfsUtil.getUserHomeDir();
@@ -175,6 +210,7 @@ public class ScreenRecorderAction {
     public void run(@NotNull ProgressIndicator indicator) {
       try {
         myDevice.pullFile(REMOTE_PATH, myLocalPath);
+        myDevice.removeRemotePackage(REMOTE_PATH);
       }
       catch (Exception e) {
         showError(myProject, "Unexpected error while copying video recording from device", e);
@@ -214,16 +250,13 @@ public class ScreenRecorderAction {
   }
 
   private static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        String msg = message;
-        if (throwable != null) {
-          msg += throwable.getLocalizedMessage() != null ? ": " + throwable.getLocalizedMessage() : "";
-        }
-
-        Messages.showErrorDialog(project, msg, TITLE);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      String msg = message;
+      if (throwable != null) {
+        msg += throwable.getLocalizedMessage() != null ? ": " + throwable.getLocalizedMessage() : "";
       }
+
+      Messages.showErrorDialog(project, msg, TITLE);
     });
   }
 }

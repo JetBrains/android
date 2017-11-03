@@ -17,25 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintNewerVersionAvailableInspection extends AndroidLintInspectionBase {
   public AndroidLintNewerVersionAvailableInspection() {
     super(AndroidBundle.message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String obsolete = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
-    String available = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
-    if (obsolete != null && available != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Update to " + available, obsolete, available)};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

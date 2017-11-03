@@ -17,7 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;

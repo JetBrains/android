@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +54,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   public void init(@NotNull Module module, @NotNull String baseDirectoryPath) {
     final String s = AndroidRootUtil.getPathRelativeToModuleDir(module, baseDirectoryPath);
-    if (s == null || s.length() == 0) {
+    if (s == null || s.isEmpty()) {
       return;
     }
     myProperties.GEN_FOLDER_RELATIVE_PATH_APT = '/' + s + myProperties.GEN_FOLDER_RELATIVE_PATH_APT;
@@ -111,25 +110,11 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public void writeExternal(Element element) throws WriteExternalException {
   }
 
-  @NotNull
-  public List<AndroidNativeLibData> getAdditionalNativeLibraries() {
-    final List<AndroidNativeLibData> libDatas = new ArrayList<AndroidNativeLibData>();
-    for (JpsAndroidModuleProperties.AndroidNativeLibDataEntry nativeLib : myProperties.myNativeLibs) {
-      if (nativeLib.myArchitecture != null && nativeLib.myUrl != null && nativeLib.myTargetFileName != null) {
-        libDatas.add(new AndroidNativeLibData(nativeLib.myArchitecture, JpsPathUtil.urlToPath(nativeLib.myUrl),
-                                              nativeLib.myTargetFileName));
-      }
-    }
-    return libDatas;
-  }
-
   public void setAdditionalNativeLibraries(@NotNull List<AndroidNativeLibData> additionalNativeLibraries) {
-    myProperties.myNativeLibs = new ArrayList<JpsAndroidModuleProperties.
-      AndroidNativeLibDataEntry>(additionalNativeLibraries.size());
+    myProperties.myNativeLibs = new ArrayList<>(additionalNativeLibraries.size());
 
     for (AndroidNativeLibData lib : additionalNativeLibraries) {
-      final JpsAndroidModuleProperties.AndroidNativeLibDataEntry data =
-        new JpsAndroidModuleProperties.AndroidNativeLibDataEntry();
+      JpsAndroidModuleProperties.AndroidNativeLibDataEntry data = new JpsAndroidModuleProperties.AndroidNativeLibDataEntry();
       data.myArchitecture = lib.getArchitecture();
       data.myUrl = VfsUtilCore.pathToUrl(lib.getPath());
       data.myTargetFileName = lib.getTargetFileName();

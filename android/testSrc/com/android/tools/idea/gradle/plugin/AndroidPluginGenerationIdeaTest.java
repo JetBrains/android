@@ -33,22 +33,20 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AndroidPluginGenerationIdea}.
  */
 public class AndroidPluginGenerationIdeaTest extends IdeaTestCase {
-  private EmbeddedDistributionPaths myOriginalEmbeddedDistributionPaths;
+  private IdeComponents myIdeComponents;
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myOriginalEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myEmbeddedDistributionPaths = IdeComponents.replaceServiceWithMock(EmbeddedDistributionPaths.class);
+    myIdeComponents = new IdeComponents(myProject);
+    myEmbeddedDistributionPaths = myIdeComponents.mockService(EmbeddedDistributionPaths.class);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalEmbeddedDistributionPaths != null) {
-        IdeComponents.replaceService(EmbeddedDistributionPaths.class, myOriginalEmbeddedDistributionPaths);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();

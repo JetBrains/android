@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.resources.Density;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.idea.common.editor.ActionsToolbar;
+import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.startup.DelayedInitialization;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -41,6 +44,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -50,11 +54,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
-import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
+
+  public static final String PREVIEW_DESIGN_SURFACE = "NlPreviewFormDesignSurface";
+
   private final NlPreviewManager myManager;
-  private final DesignSurface mySurface;
+  private final Project myProject;
+  private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
@@ -63,13 +70,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private RenderResult myRenderResult;
   private XmlFile myFile;
   private boolean isActive = true;
-  private final NlActionsToolbar myActionsToolbar;
+  private ActionsToolbar myActionsToolbar;
+  private JComponent myContentPanel;
+  private final AnimationToolbar myAnimationToolbar;
 
-  /**
-   * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
-   * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
-   */
-  private XmlFile myInactiveFile;
+  private NlModel myModel;
+
   /**
    * Contains the file that is currently being loaded (it might take a while to get a preview rendered).
    * Once the file is loaded, myPendingFile will be null.
@@ -77,49 +83,46 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
-  private DesignSurface.ScreenMode myScreenMode;
+  private NlDesignSurface.ScreenMode myScreenMode;
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
-    Project project = myManager.getProject();
-    mySurface = new DesignSurface(project, true);
+    myProject = myManager.getProject();
+    mySurface = new NlDesignSurface(myProject, true, this);
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
-    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
-    mySurface.addListener(new DesignSurfaceListener() {
-      @Override
-      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-        assert surface == mySurface; // We're maintaining the listener per surface
-        // Allow only one component
-        NlComponent component = newSelection.size() == 1 ? newSelection.get(0) : null;
-        selectComponent(component);
-      }
-
-      @Override
-      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
-      }
-
-      @Override
-      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-      }
-
-      @Override
-      public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-        return false;
-      }
-    });
+    mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
+    if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) {
+      myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
+        ScreenView screenView = mySurface.getCurrentSceneView();
+        NlModel model = screenView != null ? screenView.getModel() : null;
+        if (model != null) {
+          screenView.getSceneManager().setElapsedFrameTimeMs(timeMs);
+          screenView.getSceneManager().requestRender();
+        }
+      }, 16);
+    }
+    else {
+      myAnimationToolbar = null;
+    }
 
-    myActionsToolbar = new NlActionsToolbar(mySurface);
-    JPanel contentPanel = new JPanel(new BorderLayout());
-    contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
-    contentPanel.add(mySurface, BorderLayout.CENTER);
+    myWorkBench = new WorkBench<>(myProject, "Preview", null);
+    myWorkBench.setLoadingText("Waiting for build to finish...");
 
-    myWorkBench = new WorkBench<>(project, "Preview", null);
-    myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
-      new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+    Disposer.register(this, myWorkBench);
+  }
+
+  private void createContentPanel() {
+    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel.add(mySurface, BorderLayout.CENTER);
+
+    if (myAnimationToolbar != null) {
+      myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
+    }
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -139,37 +142,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  private void selectComponent(@Nullable NlComponent component) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
-      return;
-    }
-
-    if (myEditor != null && component != null && component.getTag().isValid() && myUseInteractiveSelector && !myIgnoreListener) {
-      int offset = component.getTag().getTextOffset();
-      if (offset != -1) {
-        Editor editor = myEditor.getEditor();
-        myIgnoreListener = true;
-        try {
-          screenView.getSelectionModel().setSelection(Collections.singletonList(component));
-          editor.getCaretModel().moveToOffset(offset);
-          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-        }
-        finally {
-          myIgnoreListener = false;
-        }
-      }
-    }
-  }
-
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
-      ScreenView screenView = mySurface.getCurrentScreenView();
+      ScreenView screenView = mySurface.getCurrentSceneView();
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
-          List<NlComponent> views = screenView.getModel().findByOffset(offset);
-          if (views == null || views.isEmpty()) {
+          ImmutableList<NlComponent> views = screenView.getModel().findByOffset(offset);
+          if (views.isEmpty()) {
             views = screenView.getModel().getComponents();
           }
           try {
@@ -196,12 +176,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
+  @SuppressWarnings("unused") // Used by Kotlin plugin
+  @Nullable
+  public JComponent getToolbarComponent() {
+    return myActionsToolbar.getToolbarComponent();
+  }
+
   @Nullable
   public XmlFile getFile() {
-    if (myFile == null && myPendingFile != null) {
-      return myPendingFile.file;
-    }
-
     return myFile;
   }
 
@@ -213,7 +195,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
   @Override
   public void dispose() {
     deactivate();
-    myInactiveFile = null;
+    disposeActionsToolbar();
+
+    if (myModel != null) {
+      Disposer.dispose(myModel);
+      myModel = null;
+    }
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -229,13 +216,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.requestRender(); // on file switches, render as soon as possible; the delay is for edits
-    }
-
-    @Override
-    public void modelChanged(@NotNull NlModel model) {
-      // This won't be called in the dispatch thread so, to avoid a 10ms delay in requestRender
-      model.render();
+      ScreenView view = mySurface.getCurrentSceneView();
+      if (view != null) {
+        view.getSceneManager().requestRender();
+      }
     }
 
     @Override
@@ -264,58 +248,99 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  public boolean setFile(@Nullable PsiFile file) {
-    if (!isActive) {
-      // The form is not active so we just save the file to show once activate() is called
-      myInactiveFile = (XmlFile)file;
-
-      if (file != null) {
-        return false;
-      }
+  public void setFile(@Nullable PsiFile file) {
+    if (myAnimationToolbar != null) {
+      myAnimationToolbar.stop();
     }
+
+    XmlFile xmlFile = myManager.getBoundXmlFile(file);
+    if (xmlFile == myFile) {
+      return;
+    }
+    myFile = xmlFile;
 
     if (myPendingFile != null) {
-      if (file == myPendingFile.file) {
-        return false;
-      }
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
-      mySurface.setModel(null);
-    }
-    else if (file == myFile) {
-      return false;
+      // TODO: find another way to decide that the progress indicator should be shown, so that the design surface model can be non-null
+      // mySurface.setModel(null);
     }
 
-    AndroidFacet facet = file instanceof XmlFile ? AndroidFacet.getInstance(file) : null;
-    if (facet == null || file.getVirtualFile() == null) {
+    if (myContentPanel == null && Projects.isBuildWithGradle(myProject)) {  // First time: Make sure we have compiled the project at least once...
+      DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
+    }
+    else {
+      initNeleModel();
+    }
+  }
+
+  private void initPreviewForm() {
+    UIUtil.invokeLaterIfNeeded(this::initPreviewFormOnEventDispatchThread);
+  }
+
+  // Build was either cancelled or there was an error
+  private void buildError() {
+    myWorkBench.loadingStopped("Preview is unavailable until a successful build");
+  }
+
+  private void initPreviewFormOnEventDispatchThread() {
+    if (Disposer.isDisposed(this)) {
+      return;
+    }
+    if (myContentPanel == null) {
+      createContentPanel();
+      myWorkBench.init(myContentPanel, mySurface,
+                       Collections.singletonList(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+    }
+    initNeleModel();
+  }
+
+  private void initNeleModel() {
+    XmlFile xmlFile = myFile;
+    AndroidFacet facet = xmlFile != null ? AndroidFacet.getInstance(xmlFile) : null;
+    if (!isActive || facet == null || xmlFile.getVirtualFile() == null) {
       myPendingFile = null;
-      myFile = null;
       setActiveModel(null);
     }
     else {
-      XmlFile xmlFile = (XmlFile)file;
-      NlModel model = NlModel.create(mySurface, null, facet, xmlFile.getVirtualFile());
-      myPendingFile = new Pending(xmlFile, model);
+      if (myModel != null) {
+        Disposer.dispose(myModel);
+      }
+      myModel = NlModel.create(mySurface, null, facet, xmlFile);
+
+      mySurface.setModel(myModel);
+      myPendingFile = new Pending(xmlFile, myModel);
+
+      // Set the default density to XXXHDPI for adaptive icon preview
+      if (myModel.getType() == NlLayoutType.ADAPTIVE_ICON) {
+        Device device = myModel.getConfiguration().getDevice();
+        if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
+          NlModelHelperKt.overrideConfigurationDensity(myModel, Density.XXXHIGH);
+        }
+      }
     }
-    return true;
   }
 
   public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
-    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
-      currentScreenView.getModel().deactivate();
-      Disposer.dispose(currentScreenView.getModel());
+      NlModel oldModel = currentScreenView.getModel();
+      if (model != oldModel) {
+        oldModel.deactivate(this);
+        Disposer.dispose(oldModel);
+      }
     }
 
     if (model == null) {
       setEditor(null);
+      disposeActionsToolbar();
+
       myWorkBench.setToolContext(null);
     }
     else {
       myFile = model.getFile();
-      mySurface.setModel(model);
-      if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
+      if (!mySurface.isCanvasResizing()) {
         // If we are resizing, keep the zoom level constant
         // only if the zoom was previously set to FIT
         mySurface.zoomToFit();
@@ -323,21 +348,39 @@ public class NlPreviewForm implements Disposable, CaretListener {
       else {
         mySurface.updateScrolledAreaSize();
       }
-      setEditor(myManager.getActiveLayoutXmlEditor());
-      model.activate();
+      setEditor(myManager.getActiveLayoutXmlEditor(myFile));
+      model.activate(this);
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);
+
+      disposeActionsToolbar();
+
+      myActionsToolbar = new ActionsToolbar(mySurface);
       myActionsToolbar.setModel(model);
+
+      myContentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
+
       if (!model.getType().isSupportedByDesigner()) {
         myScreenMode = mySurface.getScreenMode();
-        mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+        mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
         myWorkBench.setMinimizePanelsVisible(false);
       }
-      else if (myScreenMode != null && mySurface.getScreenMode() == DesignSurface.ScreenMode.SCREEN_ONLY) {
+      else if (myScreenMode != null && mySurface.getScreenMode() == NlDesignSurface.ScreenMode.SCREEN_ONLY) {
         mySurface.setScreenMode(myScreenMode, false);
         myWorkBench.setMinimizePanelsVisible(true);
       }
     }
+  }
+
+  private void disposeActionsToolbar() {
+    if (myActionsToolbar == null) {
+      return;
+    }
+
+    myContentPanel.remove(myActionsToolbar.getToolbarComponent());
+
+    Disposer.dispose(myActionsToolbar);
+    myActionsToolbar = null;
   }
 
   @Nullable
@@ -350,7 +393,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public NlDesignSurface getSurface() {
     return mySurface;
   }
 
@@ -365,6 +408,16 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
+  @Override
+  public void caretAdded(CaretEvent e) {
+
+  }
+
+  @Override
+  public void caretRemoved(CaretEvent e) {
+
+  }
+
   /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */
@@ -374,10 +427,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     isActive = true;
-    if (myFile == null && myPendingFile == null) {
-      setFile(myInactiveFile);
+    if (myContentPanel != null) {
+      initNeleModel();
     }
-    myInactiveFile = null;
+    mySurface.activate();
   }
 
   /**
@@ -389,14 +442,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       return;
     }
 
-    if (myFile != null) {
-      myInactiveFile = myFile;
-    }
-    else {
-      // The file might still be rendering
-      myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
-    }
-    setFile(null);
+    mySurface.deactivate();
     isActive = false;
+    if (myContentPanel != null) {
+      initNeleModel();
+    }
   }
 }

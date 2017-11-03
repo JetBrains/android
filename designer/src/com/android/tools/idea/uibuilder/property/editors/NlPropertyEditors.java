@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableCellEditor;
+import com.android.tools.adtui.ptable.PTableCellEditorProvider;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.components.ProjectComponent;
@@ -54,7 +54,10 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
 
   @NotNull
   @Override
-  public PTableCellEditor getCellEditor(@NotNull PTableItem item) {
+  public PTableCellEditor getCellEditor(@NotNull PTableItem item, int column) {
+    if (!(item instanceof NlProperty)) {
+      return NlNoEditor.getInstance();
+    }
     switch (getEditorType((NlProperty)item)) {
       case BOOLEAN:
         return getBooleanEditor();
@@ -68,6 +71,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
     }
   }
 
+  @NotNull
   public NlComponentEditor create(@NotNull NlProperty property) {
     switch (getEditorType(property)) {
       case BOOLEAN:

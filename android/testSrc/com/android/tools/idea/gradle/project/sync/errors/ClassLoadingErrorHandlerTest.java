@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub.NotificationUpdate;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub.replaceSyncMessagesService;
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.NotificationUpdate;
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -36,7 +36,7 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
 
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {

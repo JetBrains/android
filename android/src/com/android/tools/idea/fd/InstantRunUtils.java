@@ -21,8 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class InstantRunUtils {
   private static final Key<Boolean> IR_ENABLED = Key.create("android.instant.run.enabled.for.run.config");
-  private static final Key<Boolean> RERUN = Key.create("android.instant.run.rerun");
-  private static final Key<Boolean> CLEAN_RERUN = Key.create("android.instant.run.clean.rerun");
   private static final Key<Boolean> INVOKED_VIA_HOTSWAP_ACTION = Key.create("android.instant.run.invoke.update");
 
   public static void setInstantRunEnabled(@NotNull ExecutionEnvironment env, boolean en) {
@@ -31,22 +29,6 @@ public class InstantRunUtils {
 
   public static boolean isInstantRunEnabled(@NotNull ExecutionEnvironment env) {
     return Boolean.TRUE.equals(env.getCopyableUserData(IR_ENABLED));
-  }
-
-  public static void setReRun(@NotNull ExecutionEnvironment env, boolean en) {
-    env.putCopyableUserData(RERUN, en);
-  }
-
-  public static boolean isReRun(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(RERUN));
-  }
-
-  public static void setCleanReRun(@NotNull ExecutionEnvironment env, boolean en) {
-    env.putCopyableUserData(CLEAN_RERUN, en);
-  }
-
-  public static boolean isCleanReRun(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(CLEAN_RERUN));
   }
 
   // Set that this launch was invoked via the hotswap action

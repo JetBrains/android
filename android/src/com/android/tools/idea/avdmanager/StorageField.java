@@ -16,19 +16,18 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Storage;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EnumComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
-import java.awt.event.*;
-import java.text.DecimalFormat;
 
 import static com.android.sdklib.devices.Storage.Unit;
 
@@ -45,7 +44,7 @@ public class StorageField extends JPanel {
 
   private Unit myCurrentUnit = DEFAULT_UNIT;
 
-  private ObjectProperty<Storage> myStorage = new ObjectValueProperty<Storage>(new Storage(0, DEFAULT_UNIT));
+  private final ObjectProperty<Storage> myStorage = new ObjectValueProperty<>(new Storage(0, DEFAULT_UNIT));
   public ObjectProperty<Storage> storage() {
     return myStorage;
   }
@@ -58,6 +57,8 @@ public class StorageField extends JPanel {
     super();
     setLayout(new BorderLayout(3, 0));
 
+    updateStorageField();
+
     add(myValueField, BorderLayout.CENTER);
     add(myUnitsCombo, BorderLayout.EAST);
 
@@ -65,51 +66,48 @@ public class StorageField extends JPanel {
 
     myUnitsCombo.setRenderer(new ColoredListCellRenderer<Unit>() {
       @Override
-      protected void customizeCellRenderer(JList list, Unit value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Unit value, int index, boolean selected, boolean hasFocus) {
         append(value.getDisplayValue());
       }
     });
 
-    myUnitsCombo.addActionListener(new ActionListener() {
+    myValueField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      public void actionPerformed(ActionEvent e) {
-        myCurrentUnit = (Unit)myUnitsCombo.getSelectedItem();
-        String value = new DecimalFormat("0.####").format(myStorage.get().getPreciseSizeAsUnit(myCurrentUnit));
-        myValueField.setText(value);
+      protected void textChanged(DocumentEvent e) {
+        // updateStorage might set myValueField as a side effect, which will cause this document
+        // to throw an exception. Side-step that problem by invoking the call to happen later.
+        ApplicationManager.getApplication().invokeLater(() -> updateStorage());
       }
     });
 
-    myValueField.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        updateStorage();
-      }
-    });
+    myUnitsCombo.addActionListener(e -> updateStorageField());
+    myStorage.addListener(sender -> updateStorageField());
+  }
 
-    storage().addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        String value = new DecimalFormat("0.####").format(myStorage.get().getPreciseSizeAsUnit(myCurrentUnit));
-        myValueField.setText(value);
-      }
-    });
+  private void updateStorageField() {
+    myCurrentUnit = (Unit)myUnitsCombo.getSelectedItem();
+    String newText = Long.toString(myStorage.get().getSizeAsUnit(myCurrentUnit));
+    String oldText = myValueField.getText();
+    if (!newText.equals(oldText)) {
+      // This puts the cursor at the end. Don't call it unless it's necessary.
+      myValueField.setText(newText);
+    }
   }
 
   private void updateStorage() {
     String text = myValueField.getText();
-    Storage storage;
-
-    if (text != null) {
+    if (text == null || text.isEmpty()) {
+      myStorage.set(new Storage(0, myCurrentUnit));
+    }
+    else {
       try {
-        Double valueAsUnits = Double.parseDouble(text);
-        storage = new Storage(valueAsUnits.longValue(), myCurrentUnit);
+        long newValue = Long.parseLong(text);
+        myStorage.set(new Storage(newValue, myCurrentUnit));
       }
       catch (NumberFormatException ex) {
-        storage = new Storage(0, DEFAULT_UNIT);
-        myValueField.setText("0");
-        myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
+        long oldValue = myStorage.get().getSizeAsUnit(myCurrentUnit);
+        myValueField.setText(Long.toString(oldValue));
       }
-      myStorage.set(storage);
     }
   }
 

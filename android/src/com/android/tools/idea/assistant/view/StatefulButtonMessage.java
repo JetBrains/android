@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.assistant.AssistActionStateManager.ActionState;
-import com.intellij.icons.AllIcons;
+
+import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.assistant.AssistActionState;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
@@ -27,32 +29,19 @@ import java.awt.*;
  * other elements such as an edit link and potentially support progress indication.
  */
 public class StatefulButtonMessage extends JPanel {
-  public ActionState myState;
+  @VisibleForTesting
+  @NonNull
+  final JBLabel myMessageDisplay;
 
-  public StatefulButtonMessage(String message, ActionState state) {
+  public StatefulButtonMessage(@NonNull String message, @NonNull AssistActionState state) {
     super(new FlowLayout(FlowLayout.LEFT, 0, 0));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
 
-    JBLabel messageDisplay = new JBLabel(message);
-    messageDisplay.setOpaque(false);
-    // TODO(b/29617676): Add a treatment for IN_PROGRESS.
-    switch (state) {
-      case PARTIALLY_COMPLETE:
-      case COMPLETE:
-        messageDisplay.setIcon(AllIcons.RunConfigurations.TestPassed);
-        messageDisplay.setForeground(UIUtils.getSuccessColor());
-        break;
-      case ERROR:
-        messageDisplay.setIcon(AllIcons.RunConfigurations.TestFailed);
-        messageDisplay.setForeground(UIUtils.getFailureColor());
-        break;
-      case NOT_APPLICABLE:
-      default:
-        messageDisplay.setIcon(null);
-        messageDisplay.setForeground(new JBLabel("").getForeground());
-    }
-
-    add(messageDisplay);
+    myMessageDisplay = new JBLabel(message);
+    myMessageDisplay.setOpaque(false);
+    myMessageDisplay.setIcon(state.getIcon());
+    myMessageDisplay.setForeground(state.getForeground());
+    add(myMessageDisplay);
   }
 }

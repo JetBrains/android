@@ -70,7 +70,7 @@ public abstract class NewKeyForm {
   private boolean findNonEmptyCertificateField() {
     for (Component component : myCertificatePanel.getComponents()) {
       if (component instanceof JTextField) {
-        if (((JTextField)component).getText().trim().length() > 0) {
+        if (!((JTextField)component).getText().trim().isEmpty()) {
           return true;
         }
       }
@@ -79,7 +79,7 @@ public abstract class NewKeyForm {
   }
 
   public void createKey() throws CommitStepException {
-    if (getKeyAlias().length() == 0) {
+    if (getKeyAlias().isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.key.alias.error"));
     }
     AndroidUtils.checkNewPassword(myKeyPasswordField, myConfirmKeyPasswordField);
@@ -114,7 +114,7 @@ public abstract class NewKeyForm {
   private static void buildDName(StringBuilder builder, String prefix, JTextField textField) {
     if (textField != null) {
       String value = textField.getText().trim();
-      if (value.length() > 0) {
+      if (!value.isEmpty()) {
         if (builder.length() > 0) {
           builder.append(",");
         }

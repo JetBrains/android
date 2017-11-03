@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -76,6 +77,18 @@ public class EmbeddedDistributionPaths {
     return repoPaths;
   }
 
+  @NotNull
+  public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    if (file.exists()) {
+      return file;
+    }
+
+    // Development build
+    String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
+    return new File(PathManager.getHomePath() + relativePath);
+  }
+
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
     File distributionPath = getDefaultRootDirPath();
@@ -111,7 +124,7 @@ public class EmbeddedDistributionPaths {
     return rootDirPath.isDirectory() ? rootDirPath : null;
   }
 
-  @Nullable
+  @NotNull
   public File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
 
@@ -119,13 +132,6 @@ public class EmbeddedDistributionPaths {
     if (jdkRootPath.isDirectory()) {
       // Release build.
       return getSystemSpecificJdkPath(jdkRootPath);
-    }
-
-    // If AndroidStudio runs from IntelliJ IDEA sources
-    if (System.getProperty("android.test.embedded.jdk") != null) {
-      File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
-      assert jdkDir.exists();
-      return jdkDir;
     }
 
     // Development build.
@@ -144,16 +150,15 @@ public class EmbeddedDistributionPaths {
     return getSystemSpecificJdkPath(jdkRootPath);
   }
 
-  @Nullable
+  @NotNull
   private static File getSystemSpecificJdkPath(File jdkRootPath) {
     if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
-    if (jdkRootPath.isDirectory()) {
-      return jdkRootPath;
-    } else {
-      return null;
+    if (!jdkRootPath.isDirectory()) {
+      throw new Error(String.format("Incomplete or corrupted installation - \"%s\" directory does not exist", jdkRootPath.toString()));
     }
+    return jdkRootPath;
   }
 
   @NotNull

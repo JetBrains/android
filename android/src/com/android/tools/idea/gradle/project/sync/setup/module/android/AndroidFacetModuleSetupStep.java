@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -43,12 +43,6 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   private static final String SEPARATOR = "/";
 
   @Override
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacets(facetModel, AndroidFacet.ID);
-  }
-
-  @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                @NotNull AndroidModuleModel androidModel,
@@ -59,12 +53,6 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
       facet = createAndAddFacet(module, ideModelsProvider);
     }
     configureFacet(facet, androidModel);
-  }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Android Facet setup";
   }
 
   @NotNull
@@ -80,7 +68,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
-    facetProperties.PROJECT_TYPE = androidModel.getProjectType();
+    facetProperties.PROJECT_TYPE = androidModel.getAndroidProject().getProjectType();
 
     File modulePath = androidModel.getRootDirPath();
     SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
@@ -117,5 +105,10 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
       return SEPARATOR + toSystemIndependentName(relativePath);
     }
     return "";
+  }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
   }
 }

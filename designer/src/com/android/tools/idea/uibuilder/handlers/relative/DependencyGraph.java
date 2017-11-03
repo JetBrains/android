@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.lint.detector.api.LintUtils;
 
 import java.util.*;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.VALUE_TRUE;
 
 /**
  * Data structure about relative layout relationships which makes it possible to:
@@ -45,37 +45,13 @@ public class DependencyGraph {
    */
   private static final String DEPENDENCY_FORMAT = "%1$s %2$s %3$s"; //$NON-NLS-1$
 
-  /** Cache for {@link DependencyGraph} */
-  private static final Map<NlComponent, DependencyGraph> ourCache = ContainerUtil.createWeakMap();
-
   private final Map<NlComponent, ViewData> myNodeToView = new HashMap<NlComponent, ViewData>();
   private final long myModelVersion;
 
   /**
-   * Returns the {@link DependencyGraph} for the given relative layout widget
-   *
-   * @param layout the relative layout
-   * @return a {@link DependencyGraph} for the layout
-   */
-  @NotNull
-  public static DependencyGraph get(@NotNull NlComponent layout) {
-    DependencyGraph dependencyGraph = ourCache.get(layout);
-    if (dependencyGraph != null) {
-      if (dependencyGraph.myModelVersion == layout.getModel().getModificationCount()) {
-        return dependencyGraph;
-      }
-    }
-
-    dependencyGraph = new DependencyGraph(layout);
-    ourCache.put(layout, dependencyGraph);
-
-    return dependencyGraph;
-  }
-
-  /**
    * Constructs a new {@link DependencyGraph} for the given relative layout
    */
-  private DependencyGraph(NlComponent layout) {
+  public DependencyGraph(NlComponent layout) {
     myModelVersion = layout.getModel().getModificationCount();
 
     // Parent view:
@@ -185,11 +161,6 @@ public class DependencyGraph {
     return dependents;
   }
 
-  @VisibleForTesting
-  static void clearCacheAfterTests() {
-    ourCache.clear();
-  }
-
   private void findBackwards(ViewData view, Set<ViewData> visiting, List<ViewData> reachable, boolean vertical, ViewData start) {
     visiting.add(view);
     reachable.add(view);
@@ -272,6 +243,14 @@ public class DependencyGraph {
     visiting.remove(view);
 
     return null;
+  }
+
+  /**
+   * @param layout Layout for which this {@link DependencyGraph} instance was created.
+   * @return True is the model has changed since creation of the {@link DependencyGraph}.
+   */
+  public boolean isStale(NlComponent layout) {
+    return myModelVersion != layout.getModel().getModificationCount();
   }
 
   /**

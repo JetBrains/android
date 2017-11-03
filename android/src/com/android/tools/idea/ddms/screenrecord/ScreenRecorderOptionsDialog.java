@@ -38,11 +38,13 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   private static int ourBitRateMbps = DEFAULT_BITRATE_MBPS;
   private static int ourWidth;
   private static int ourHeight;
+  private static boolean ourShowTouches;
 
   private JPanel myPanel;
   private JTextField myBitRateTextField;
   private JTextField myWidthTextField;
   private JTextField myHeightTextField;
+  private JCheckBox myShowTouchCheckBox;
 
   public ScreenRecorderOptionsDialog(@NotNull Project project) {
     super(project, true);
@@ -58,6 +60,8 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     if (ourBitRateMbps > 0) {
       myBitRateTextField.setText(Integer.toString(ourBitRateMbps));
     }
+
+    myShowTouchCheckBox.setSelected(ourShowTouches);
 
     setTitle("Screen Recorder Options");
     init();
@@ -140,6 +144,7 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     ourBitRateMbps = getIntegerValue(myBitRateTextField);
     ourHeight = getIntegerValue(myHeightTextField);
     ourWidth = getIntegerValue(myWidthTextField);
+    ourShowTouches = myShowTouchCheckBox.isSelected();
     super.doOKAction();
   }
 
@@ -159,6 +164,6 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   }
 
   public ScreenRecorderOptions getOptions() {
-    return new ScreenRecorderOptions.Builder().setBitRate(ourBitRateMbps).setSize(ourWidth, ourHeight).build();
+    return new ScreenRecorderOptions.Builder().setBitRate(ourBitRateMbps).setSize(ourWidth, ourHeight).setShowTouches(ourShowTouches).build();
   }
 }

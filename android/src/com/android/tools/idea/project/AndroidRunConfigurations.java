@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -23,20 +22,20 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class AndroidRunConfigurations {
   @NotNull
@@ -55,13 +54,10 @@ public class AndroidRunConfigurations {
         return;
       }
     }
-    addRunConfiguration(facet, null, TargetSelectionMode.SHOW_DIALOG, null);
+    addRunConfiguration(facet, TargetSelectionMode.SHOW_DIALOG);
   }
 
-  public void addRunConfiguration(@NotNull AndroidFacet facet,
-                                  @Nullable String activityClass,
-                                  @Nullable TargetSelectionMode targetSelectionMode,
-                                  @Nullable String preferredAvdName) {
+  public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
     Module module = facet.getModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
     AndroidRunConfigurationType runConfigurationType = AndroidRunConfigurationType.getInstance();
@@ -69,11 +65,8 @@ public class AndroidRunConfigurations {
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 
-    if (activityClass != null) {
-      configuration.setLaunchActivity(activityClass);
-    }
-    else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      configuration.setLaunchUrl(getDefaultRunConfigurationUrl(facet));
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
     else if (isWatchFaceApp(facet)) {
       // In case of a watch face app, there is only a service and no default activity that can be launched
@@ -88,18 +81,7 @@ public class AndroidRunConfigurations {
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    if (preferredAvdName != null) {
-      configuration.PREFERRED_AVD = preferredAvdName;
-    }
     runManager.addConfiguration(settings, false);
-    runManager.setSelectedConfiguration(settings);
-  }
-
-  @NotNull
-  private static String getDefaultRunConfigurationUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "<<ERROR - NO URL SET>>";
-    assert facet.getProjectType() == PROJECT_TYPE_INSTANTAPP;
-    String foundUrl = new InstantAppUrlFinder(MergedManifest.get(facet)).getDefaultUrl();
-    return isEmpty(foundUrl) ? defaultUrl : foundUrl;
+    ApplicationManager.getApplication().runReadAction(() -> runManager.setSelectedConfiguration(settings));
   }
 }

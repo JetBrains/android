@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
@@ -36,7 +40,7 @@ public class DrawResize extends DrawRegion {
     myMode = Integer.parseInt(sp[c++]);
   }
 
-  public DrawResize(int x, int y, int width, int height, int mode) {
+  public DrawResize(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, int mode) {
     super(x, y, width, height);
     myMode = mode;
   }
@@ -54,7 +58,13 @@ public class DrawResize extends DrawRegion {
     return super.serialize() + "," + myMode;
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right, float bottom, int mode) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right,
+                         @AndroidDpCoordinate float bottom,
+                         int mode) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);

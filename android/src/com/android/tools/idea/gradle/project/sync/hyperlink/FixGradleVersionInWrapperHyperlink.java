@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
@@ -30,6 +31,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
@@ -87,7 +89,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
   }
 
   @VisibleForTesting

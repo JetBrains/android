@@ -20,28 +20,25 @@ import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.editor.Caret;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
@@ -49,10 +46,13 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -66,6 +66,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,7 +75,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
@@ -89,7 +89,7 @@ import static org.junit.Assert.*;
 public class EditorFixture {
 
   /**
-   * Performs simulation of user events on <code>{@link #target}</code>
+   * Performs simulation of user events on <code>target</code>
    */
   final Robot robot;
   private final IdeFrameFixture myFrame;
@@ -175,11 +175,7 @@ public class EditorFixture {
    * @param text the text to type at the current editor position
    */
   public EditorFixture enterText(@NotNull final String text) {
-    Component component = getFocusedEditor();
-    if (component != null) {
-      robot.enterText(text);
-    }
-
+    robot.enterText(text, getFocusedEditor());
     return this;
   }
 
@@ -212,13 +208,14 @@ public class EditorFixture {
   /**
    * Given a {@code regex} with one capturing group, selects the subsequence captured in the first match found in the selected text editor.
    *
-   * @throws IllegalStateException if there is no currently selected text editor or no match is found
+   * @throws IllegalStateException    if there is no currently selected text editor or no match is found
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
   @NotNull
   public EditorFixture select(String regex) {
     Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
     checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
+    // noinspection ResultOfMethodCallIgnored
     matcher.find();
     int start = matcher.start(1);
     int end = matcher.end(1);
@@ -253,16 +250,29 @@ public class EditorFixture {
    * Closes the current editor
    */
   public EditorFixture close() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         VirtualFile currentFile = getCurrentFile();
         if (currentFile != null) {
           FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
           manager.closeFile(currentFile);
         }
-      }
-    });
+      });
+    return this;
+  }
+
+  /**
+   * Closes the specified file.
+   */
+  public EditorFixture closeFile(@NotNull String relativePath) {
+    GuiTask.execute(
+      () -> {
+        VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+        if (file != null) {
+          FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+          manager.closeFile(file);
+        }
+      });
     return this;
   }
 
@@ -274,34 +284,27 @@ public class EditorFixture {
    */
   public EditorFixture selectEditorTab(@NotNull final Tab tab) {
     String tabName = tab.myTabName;
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    Wait.seconds(5).expecting(String.format("find editor tab '%s'", tabName == null ? "<default>" : tabName)).until(
+      () -> GuiQuery.getNonNull(() -> {
         VirtualFile currentFile = getCurrentFile();
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getAllEditors(currentFile);
-        FileEditor target = null;
-        for (FileEditor editor : editors) {
+        for (FileEditor editor : manager.getAllEditors(currentFile)) {
           if (tabName == null || tabName.equals(editor.getName())) {
-            target = editor;
-            break;
+            // Have to use reflection
+            //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
+            method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(editor);
+            return true;
           }
         }
-        if (target != null) {
-          // Have to use reflection
-          //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
-          method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(target);
-          return;
-        }
-        List<String> tabNames = Lists.newArrayList();
-        for (FileEditor editor : editors) {
-          tabNames.add(editor.getName());
-        }
-        fail("Could not find editor tab \"" + (tabName != null ? tabName : "<default>") + "\": Available tabs = " + tabNames);
-      }
-    });
+        return false;
+      }));
     return this;
+  }
+
+  @NotNull
+  public EditorFixture open(@NotNull Path relativePath, @NotNull Tab tab) {
+    return open(relativePath.toString().replace('\\', '/'), tab);
   }
 
   /**
@@ -309,12 +312,11 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param file the file to open
-   * @param tab which tab to open initially, if there are multiple editors
+   * @param tab  which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         // TODO: Use UI to navigate to the file instead
         Project project = myFrame.getProject();
         FileEditorManager manager = FileEditorManager.getInstance(project);
@@ -324,17 +326,18 @@ public class EditorFixture {
         else {
           manager.openFile(file, true);
         }
-      }
-    });
+      });
 
     selectEditorTab(tab);
 
-    Wait.seconds(5).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    Wait.seconds(10).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }
 
       FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
+      assert fileEditor != null;
+
       JComponent editorComponent = fileEditor.getComponent();
       if (editorComponent instanceof JBLoadingPanel) {
         return !((JBLoadingPanel)editorComponent).isLoading();
@@ -342,9 +345,19 @@ public class EditorFixture {
       return true;
     });
 
-    myFrame.requestFocusIfLost();
-    robot.waitForIdle();
-
+    Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
+    if (editor == null) {
+      myFrame.requestFocusIfLost();
+    }
+    else {
+      Wait.seconds(10).expecting("the editor to have the focus").until(() -> {
+        // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
+        // keep asking until it is.
+        JComponent target = editor.getContentComponent();
+        robot.focus(target);
+        return target.hasFocus();
+      });
+    }
     return this;
   }
 
@@ -352,8 +365,8 @@ public class EditorFixture {
    * Opens up a different file. This will run through the "Open File..." dialog to
    * find and select the given file.
    *
-   * @param file the project-relative path (with /, not File.separator, as the path separator)
-   * @param tab which tab to open initially, if there are multiple editors
+   * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
+   * @param tab          which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
@@ -361,11 +374,16 @@ public class EditorFixture {
     return open(file, tab);
   }
 
+  @NotNull
+  public EditorFixture open(@NotNull Path relativePath) {
+    return open(relativePath, Tab.DEFAULT);
+  }
+
   /**
    * Like {@link #open(String, com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab)} but
    * always uses the default tab
    *
-   * @param file the project-relative path (with /, not File.separator, as the path separator)
+   * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
    */
   public EditorFixture open(@NotNull final String relativePath) {
     return open(relativePath, Tab.DEFAULT);
@@ -376,27 +394,46 @@ public class EditorFixture {
     AnAction anAction = ActionManager.getInstance().getAction(editorAction.id);
     assertTrue(editorAction.id + " is not enabled", anAction.getTemplatePresentation().isEnabled());
 
+    Component component = getFocusedEditor();
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut shortcut = keymap.getShortcuts(editorAction.id)[0];
-    if (shortcut instanceof KeyboardShortcut) {
-      KeyboardShortcut cs = (KeyboardShortcut)shortcut;
+    Shortcut[] shortcuts = keymap.getShortcuts(editorAction.id);
+    if (shortcuts.length > 0 && shortcuts[0] instanceof KeyboardShortcut) {
+      KeyboardShortcut cs = (KeyboardShortcut)shortcuts[0];
       KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
-      Component component = getFocusedEditor();
-      if (component != null) {
-        ComponentDriver driver = new ComponentDriver(robot);
-        driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
-        KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
-        if (secondKeyStroke != null) {
-          driver.pressAndReleaseKey(component, secondKeyStroke.getKeyCode(), new int[]{secondKeyStroke.getModifiers()});
-        }
-      } else {
-        fail("Editor not focused for action");
+      ComponentDriver<Component> driver = new ComponentDriver<>(robot);
+      driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
+      KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
+      if (secondKeyStroke != null) {
+        driver.pressAndReleaseKey(component, secondKeyStroke.getKeyCode(), new int[]{secondKeyStroke.getModifiers()});
       }
     }
     else {
-      fail("Unsupported shortcut type " + shortcut.getClass().getName());
+      GuiTask.execute(() -> {
+        DataContext context = DataManager.getInstance().getDataContext(component);
+        AnActionEvent event = AnActionEvent.createFromAnAction(anAction, null, "menu", context);
+        anAction.actionPerformed(event);
+      });
     }
     return this;
+  }
+
+  @Nullable
+  public TextEditorFixture getVisibleTextEditor(@NotNull String relativePath) {
+    return GuiQuery.get(
+      () -> {
+        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getAllEditors();
+        for (FileEditor editor : editors) {
+          if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
+            TextEditor textEditor = (TextEditor)editor;
+            Document document = textEditor.getEditor().getDocument();
+            PsiFile psiFile = PsiDocumentManager.getInstance(myFrame.getProject()).getPsiFile(document);
+            if (psiFile != null && psiFile.getName().endsWith(relativePath)) {
+              return new TextEditorFixture(robot, textEditor);
+            }
+          }
+        }
+        return null;
+      });
   }
 
   @NotNull
@@ -444,7 +481,6 @@ public class EditorFixture {
   public EditorFixture waitUntilErrorAnalysisFinishes() {
     FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
-    robot.waitForIdle();
     return this;
   }
 
@@ -478,7 +514,20 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix) {
-    waitForQuickfix();
+    return invokeQuickfixAction(labelPrefix, true);
+  }
+
+  /**
+   * Waits for the quickfix bulb to appear before invoking the show intentions action,
+   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   *
+   * @param labelPrefix the prefix of the action description to be shown
+   */
+  @NotNull
+  public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix, boolean waitForBulbIcon) {
+    if (waitForBulbIcon) {
+      waitForQuickfix();
+    }
     invokeAction(EditorAction.SHOW_INTENTION_ACTIONS);
     JBList popup = waitForPopup(robot);
     clickPopupMenuItem(labelPrefix, popup, robot);
@@ -505,7 +554,7 @@ public class EditorFixture {
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
-        return new NlEditorFixture(myFrame.robot(), myFrame, (NlEditor)selected);
+        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
       });
   }
 
@@ -515,7 +564,7 @@ public class EditorFixture {
    *
    * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
    * @return a layout preview fixture, or null if the current file is not a layout file or the
-   *     wrong tab is showing
+   * wrong tab is showing
    */
   @NotNull
   public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
@@ -523,16 +572,24 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    boolean visible = GuiQuery.getNonNull(
-      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
-    if (!visible) {
+    if (!isPreviewShowing()) {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
     Wait.seconds(1).expecting("Preview window to be visible")
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
-    return new NlPreviewFixture(myFrame.getProject(), myFrame, myFrame.robot());
+    return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
+  }
+
+  public boolean isPreviewShowing() {
+    return GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+  }
+
+  public int getPreviewUpdateCount() {
+    return GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getUpdateCount());
   }
 
   /**
@@ -547,7 +604,7 @@ public class EditorFixture {
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof StringResourceEditor, "not a %s: %s", StringResourceEditor.class.getSimpleName(), selected);
-        return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
+        return new TranslationsEditorFixture(robot);
       });
   }
 
@@ -606,6 +663,11 @@ public class EditorFixture {
     return new ThemePreviewFixture(robot, myFrame.getProject());
   }
 
+  @NotNull
+  public String getSelectedTab() {
+    return robot.finder().find(Matchers.byType(JBTabsImpl.class)).getSelectedInfo().getText();
+  }
+
   /**
    * Switch to an open tab
    */
@@ -629,19 +691,20 @@ public class EditorFixture {
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {
-    SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
-    FORMAT("ReformatCode"),
-    SAVE("SaveAll"),
-    UNDO("$Undo"),
     BACK_SPACE("EditorBackSpace"),
     COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
     DELETE_LINE("EditorDeleteLine"),
-    GOTO_DECLARATION("GotoDeclaration"),
-    RUN_FROM_CONTEXT("RunClass"),
-    ESCAPE("EditorEscape"),
     DOWN("EditorDown"),
-    TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
+    ESCAPE("EditorEscape"),
+    GOTO_DECLARATION("GotoDeclaration"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
+    SAVE("SaveAll"),
+    SELECT_ALL("$SelectAll"),
+    SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
+    SPLIT_HORIZONTALLY("SplitHorizontally"),
+    SPLIT_VERTICALLY("SplitVertically"),
+    TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
+    UNDO("$Undo"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
@@ -674,5 +737,10 @@ public class EditorFixture {
   public ApkViewerFixture getApkViewer(String name) {
     switchToTab(name);
     return ApkViewerFixture.find(getIdeFrame());
+  }
+
+  @NotNull
+  public LibraryEditorFixture getLibrarySymbolsFixture() {
+    return LibraryEditorFixture.find(getIdeFrame());
   }
 }

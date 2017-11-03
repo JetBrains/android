@@ -15,31 +15,35 @@
  */
 package com.android.tools.idea.tests.gui.framework.matcher;
 
+import com.android.tools.adtui.TextAccessors;
 import com.intellij.BundleBase;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 /** Utility methods for {@link org.fest.swing.core.ComponentMatcher matchers}. */
 public final class Matchers {
   private Matchers() {}
 
   @NotNull
-  public static <T extends AbstractButton> GenericTypeMatcher<T> byText(Class<T> abstractButtonType, @NotNull String text) {
-    return new GenericTypeMatcher<T>(abstractButtonType) {
+  public static <T extends JComponent> FluentMatcher<T> byText(Class<T> componentType, @NotNull String text) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         // Appearance of MNEMONIC can be platform-dependent, so be careful modifying this.
-        return text.equals(component.getText().replaceAll(Character.toString(BundleBase.MNEMONIC), ""));
+        String componentText = TextAccessors.getTextAccessor(component).getText();
+        componentText = componentText == null ? "" : componentText.replaceAll(Character.toString(BundleBase.MNEMONIC), "");
+        return text.equals(componentText);
       }
     };
   }
 
   @NotNull
-  public static <T extends Dialog> GenericTypeMatcher<T> byTitle(Class<T> dialogType, @NotNull String title) {
-    return new GenericTypeMatcher<T>(dialogType) {
+  public static <T extends Dialog> FluentMatcher<T> byTitle(Class<T> dialogType, @NotNull String title) {
+    return new FluentMatcher<T>(dialogType) {
       @Override
       protected boolean isMatching(@NotNull T dialog) {
         return title.equals(dialog.getTitle());
@@ -48,8 +52,8 @@ public final class Matchers {
   }
 
   @NotNull
-  public static <T extends Component> GenericTypeMatcher<T> byType(Class<T> componentType) {
-    return new GenericTypeMatcher<T>(componentType) {
+  public static <T extends Component> FluentMatcher<T> byType(Class<T> componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return true;
@@ -58,11 +62,31 @@ public final class Matchers {
   }
 
   @NotNull
-  public static <T extends Component> GenericTypeMatcher<T> byName(Class<T> componentType, @NotNull String name) {
-    return new GenericTypeMatcher<T>(componentType) {
+  public static <T extends Component> FluentMatcher<T> byName(Class<T> componentType, @NotNull String name) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return name.equals(component.getName());
+      }
+    };
+  }
+
+  @NotNull
+  public static <T extends JLabel> FluentMatcher<T> byIcon(Class<T> componentType, @Nullable Icon icon) {
+    return new FluentMatcher<T>(componentType) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return Objects.equals(icon, component.getIcon());
+      }
+    };
+  }
+
+  @NotNull
+  public static <T extends JComponent> FluentMatcher<T> byTooltip(Class<T> componentType, @NotNull String tooltip) {
+    return new FluentMatcher<T>(componentType) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return tooltip.equals(component.getToolTipText());
       }
     };
   }

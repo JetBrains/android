@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler.SetUseDeprecatedNdkHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
@@ -31,24 +31,24 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link NdkIntegrationDeprecatedErrorHandler}.
  */
 public class NdkIntegrationDeprecatedErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleError() throws Exception {
     registerSyncErrorToSimulate("Error: NDK integration is deprecated in the current plugin.  Consider trying the new " +
                                 "experimental plugin.  For details, see " +
-                                "http://tools.android.com/tech-docs/new-build-system/gradle-experimental.  " +
+                                "https://developer.android.com/studio/build/experimental-plugin.html  " +
                                 "Set \"android.useDeprecatedNdk=true\" in gradle.properties to continue using the current " +
                                 "NDK integration.");
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).isEqualTo("NDK integration is deprecated in the current plugin.");
 

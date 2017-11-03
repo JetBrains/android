@@ -21,13 +21,13 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.io.BufferingFileWrapper;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -38,7 +38,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,7 +202,7 @@ public class ConfigurationMatcher {
   @NotNull
   public List<Locale> getPrioritizedLocales() {
     List<Locale> projectLocales = myManager.getLocales();
-    List<Locale> locales = new ArrayList<Locale>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
+    List<Locale> locales = new ArrayList<>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
     Locale current = myManager.getLocale();
     locales.add(current);
     for (Locale locale : projectLocales) {
@@ -312,11 +311,11 @@ public class ConfigurationMatcher {
     FolderConfiguration currentConfig = myConfiguration.getFullConfig();
 
     // list of compatible device/state/locale
-    List<ConfigMatch> anyMatches = new ArrayList<ConfigMatch>();
+    List<ConfigMatch> anyMatches = new ArrayList<>();
 
     // list of actual best match (ie the file is a best match for the
     // device/state)
-    List<ConfigMatch> bestMatches = new ArrayList<ConfigMatch>();
+    List<ConfigMatch> bestMatches = new ArrayList<>();
 
     // get a locale that matches the host locale roughly (may not be exact match on the region.)
     int localeHostMatch = getLocaleMatch();
@@ -324,7 +323,7 @@ public class ConfigurationMatcher {
     // build a list of combinations of non standard qualifiers to add to each device's
     // qualifier set when testing for a match.
     // These qualifiers are: locale, night-mode, car dock.
-    List<ConfigBundle> configBundles = new ArrayList<ConfigBundle>(200);
+    List<ConfigBundle> configBundles = new ArrayList<>(200);
 
     // If the edited file has locales, then we have to select a matching locale from
     // the list.
@@ -392,7 +391,7 @@ public class ConfigurationMatcher {
       }
     }
 
-    if (bestMatches.size() == 0) {
+    if (bestMatches.isEmpty()) {
       if (favorCurrentConfig) {
         // quick check
         if (!editedConfig.isMatchFor(currentConfig)) {
@@ -404,7 +403,7 @@ public class ConfigurationMatcher {
                                "Displaying it with '%3$s'.",
                                editedConfig.toDisplayString(), myConfiguration.getFile(), currentConfig.toDisplayString()));
       }
-      else if (anyMatches.size() > 0) {
+      else if (!anyMatches.isEmpty()) {
         // select the best device anyway.
         ConfigMatch match = selectConfigMatch(anyMatches);
 
@@ -450,7 +449,7 @@ public class ConfigurationMatcher {
   }
 
   private static void addDockModeToBundles(List<ConfigBundle> addConfig) {
-    ArrayList<ConfigBundle> list = new ArrayList<ConfigBundle>();
+    ArrayList<ConfigBundle> list = new ArrayList<>();
 
     // loop on each item and for each, add all variations of the dock modes
     for (ConfigBundle bundle : addConfig) {
@@ -468,7 +467,7 @@ public class ConfigurationMatcher {
   }
 
   private static void addNightModeToBundles(List<ConfigBundle> addConfig) {
-    ArrayList<ConfigBundle> list = new ArrayList<ConfigBundle>();
+    ArrayList<ConfigBundle> list = new ArrayList<>();
 
     // loop on each item and for each, add all variations of the night modes
     for (ConfigBundle bundle : addConfig) {
@@ -619,7 +618,7 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+        LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
         if (resources != null) {
           ResourceFolderType folderType = ResourceHelper.getFolderType(file);
           if (folderType != null) {

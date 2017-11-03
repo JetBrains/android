@@ -17,8 +17,8 @@ package com.android.tools.idea.structure.services;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.intellij.ide.BrowserUtil;

@@ -142,7 +142,7 @@ public class InstalledApkCache implements Disposable {
         lastUpdateTime = line;
       }
       if (line.startsWith("User ") && line.contains("installed=true")) {
-        int endIndex = line.indexOf(":");
+        int endIndex = line.indexOf(':');
         try {
           users.add(Integer.parseInt(line.substring("User ".length(), endIndex)));
         } catch (NumberFormatException e) {

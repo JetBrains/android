@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -31,19 +33,20 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final NdkModuleSetup myModuleSetup;
+  @NotNull private final NdkModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new NdkModuleSetup());
+    this(new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()), new NdkModuleCleanupStep());
   }
 
   @VisibleForTesting
-  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup) {
+  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup, @NotNull NdkModuleCleanupStep cleanupStep) {
     myModuleSetup = moduleSetup;
+    myCleanupStep = cleanupStep;
   }
 
   @Override
@@ -57,18 +60,21 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, NdkModuleModel> modelsByName) {
+    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
+
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+      if (ndkModuleModel != null) {
+        myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
+      }
+      else {
+        onModelNotFound(module, modelsProvider);
+      }
     }
   }
 
   @Override
-  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    // See https://code.google.com/p/android/issues/detail?id=229806
-    for (Module module : modelsProvider.getModules()) {
-      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-      removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
-    }
+  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }

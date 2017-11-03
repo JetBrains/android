@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -45,7 +47,8 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
 
-    mySyncState = new GradleSyncState(project, GradleProjectInfo.getInstance(project), GradleFiles.getInstance(project), messageBus);
+    mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
+                                      GradleFiles.getInstance(project), messageBus);
   }
 
   public void testInvalidateLastSync() throws Exception {
@@ -61,6 +64,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(libAndroidFacet);
     assertNotNull(libAndroidFacet.getAndroidModel());
 
+    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
     mySyncState.invalidateLastSync("Error");
     assertTrue(mySyncState.lastSyncFailed());
 

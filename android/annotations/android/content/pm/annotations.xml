@@ -1,11 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.content.pm.ActivityInfo colorMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.ActivityInfo screenOrientation">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_NOSENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED}" />
     </annotation>
   </item>
+  <item name="android.content.pm.ActivityInfo softInputMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.ApplicationInfo category">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ApplicationInfo.CATEGORY_UNDEFINED, android.content.pm.ApplicationInfo.CATEGORY_GAME, android.content.pm.ApplicationInfo.CATEGORY_AUDIO, android.content.pm.ApplicationInfo.CATEGORY_VIDEO, android.content.pm.ApplicationInfo.CATEGORY_IMAGE, android.content.pm.ApplicationInfo.CATEGORY_SOCIAL, android.content.pm.ApplicationInfo.CATEGORY_NEWS, android.content.pm.ApplicationInfo.CATEGORY_MAPS, android.content.pm.ApplicationInfo.CATEGORY_PRODUCTIVITY}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.ApplicationInfo java.lang.CharSequence getCategoryTitle(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ApplicationInfo.CATEGORY_UNDEFINED, android.content.pm.ApplicationInfo.CATEGORY_GAME, android.content.pm.ApplicationInfo.CATEGORY_AUDIO, android.content.pm.ApplicationInfo.CATEGORY_VIDEO, android.content.pm.ApplicationInfo.CATEGORY_IMAGE, android.content.pm.ApplicationInfo.CATEGORY_SOCIAL, android.content.pm.ApplicationInfo.CATEGORY_NEWS, android.content.pm.ApplicationInfo.CATEGORY_MAPS, android.content.pm.ApplicationInfo.CATEGORY_PRODUCTIVITY}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.ChangedPackages ChangedPackages(int, java.util.List&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ChangedPackages java.util.List&lt;java.lang.String&gt; getPackageNames()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.LAUNCHER_APPS_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.LauncherApps android.content.IntentSender getShortcutConfigActivityIntent(android.content.pm.LauncherActivityInfo)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps android.content.IntentSender getShortcutConfigActivityIntent(android.content.pm.LauncherActivityInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.LauncherApps android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int, android.os.UserHandle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.LauncherApps android.graphics.drawable.Drawable getShortcutIconDrawable(android.content.pm.ShortcutInfo, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.LauncherActivityInfo&gt; getShortcutConfigActivityList(java.lang.String, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.LauncherActivityInfo&gt; getShortcutConfigActivityList(java.lang.String, android.os.UserHandle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.ShortcutInfo&gt; getShortcuts(android.content.pm.LauncherApps.ShortcutQuery, android.os.UserHandle)">
@@ -59,6 +115,23 @@
   <item name="android.content.pm.LauncherApps.Callback void onShortcutsChanged(java.lang.String, java.util.List&lt;android.content.pm.ShortcutInfo&gt;, android.os.UserHandle) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.LauncherApps.PinItemRequest android.appwidget.AppWidgetProviderInfo getAppWidgetProviderInfo(android.content.Context)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.PinItemRequest android.content.pm.ShortcutInfo getShortcutInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.PinItemRequest android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.PinItemRequest boolean accept(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.PinItemRequest int getRequestType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.LauncherApps.PinItemRequest.REQUEST_TYPE_SHORTCUT}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setActivity(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -96,6 +169,17 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageInstaller void registerSessionCallback(android.content.pm.PackageInstaller.SessionCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.DELETE_PACKAGES&quot;, &quot;android.permission.REQUEST_DELETE_PACKAGES&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageInstaller void uninstall(java.lang.String, android.content.IntentSender) 0">
@@ -143,6 +227,11 @@
   <item name="android.content.pm.PackageInstaller.SessionInfo android.graphics.Bitmap getAppIcon()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.pm.PackageInstaller.SessionInfo int getInstallReason()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.INSTALL_REASON_UNKNOWN, android.content.pm.PackageManager.INSTALL_REASON_POLICY, android.content.pm.PackageManager.INSTALL_REASON_DEVICE_RESTORE, android.content.pm.PackageManager.INSTALL_REASON_DEVICE_SETUP, android.content.pm.PackageManager.INSTALL_REASON_USER}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageInstaller.SessionInfo java.lang.CharSequence getAppLabel()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -161,11 +250,28 @@
   <item name="android.content.pm.PackageInstaller.SessionParams void setAppPackageName(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.pm.PackageInstaller.SessionParams void setInstallReason(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.INSTALL_REASON_UNKNOWN, android.content.pm.PackageManager.INSTALL_REASON_POLICY, android.content.pm.PackageManager.INSTALL_REASON_DEVICE_RESTORE, android.content.pm.PackageManager.INSTALL_REASON_DEVICE_SETUP, android.content.pm.PackageManager.INSTALL_REASON_USER}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageInstaller.SessionParams void setOriginatingUri(android.net.Uri) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.pm.PackageInstaller.SessionParams void setReferrerUri(android.net.Uri) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.Intent getLaunchIntentForPackage(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.Intent getLaunchIntentForPackage(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.Intent getLeanbackLaunchIntentForPackage(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.Intent getLeanbackLaunchIntentForPackage(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ActivityInfo getActivityInfo(android.content.ComponentName, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -181,8 +287,16 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager android.content.pm.ChangedPackages getChangedPackages(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager android.content.pm.ChangedPackages getChangedPackages(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.InstrumentationInfo getInstrumentationInfo(android.content.ComponentName, int) 1">
@@ -192,6 +306,12 @@
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageArchiveInfo(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageInfo(android.content.pm.VersionedPackage, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
@@ -263,14 +383,36 @@
   <item name="android.content.pm.PackageManager boolean isPermissionRevokedByPolicy(java.lang.String, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.PackageManager byte[] getInstantAppCookie()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.PackageManager int checkPermission(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.CheckResult" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageManager int checkSignatures(int, int)">
     <annotation name="android.support.annotation.CheckResult" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.SIGNATURE_MATCH, android.content.pm.PackageManager.SIGNATURE_NEITHER_SIGNED, android.content.pm.PackageManager.SIGNATURE_FIRST_NOT_SIGNED, android.content.pm.PackageManager.SIGNATURE_SECOND_NOT_SIGNED, android.content.pm.PackageManager.SIGNATURE_NO_MATCH, android.content.pm.PackageManager.SIGNATURE_UNKNOWN_PACKAGE}" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageManager int checkSignatures(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.CheckResult" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.SIGNATURE_MATCH, android.content.pm.PackageManager.SIGNATURE_NEITHER_SIGNED, android.content.pm.PackageManager.SIGNATURE_FIRST_NOT_SIGNED, android.content.pm.PackageManager.SIGNATURE_SECOND_NOT_SIGNED, android.content.pm.PackageManager.SIGNATURE_NO_MATCH, android.content.pm.PackageManager.SIGNATURE_UNKNOWN_PACKAGE}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager int getApplicationEnabledSetting(java.lang.String)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager int getComponentEnabledSetting(android.content.ComponentName)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageManager int getPackageUid(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -282,6 +424,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager int getPreferredActivities(java.util.List&lt;android.content.IntentFilter&gt;, java.util.List&lt;android.content.ComponentName&gt;, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager int[] getPackageGids(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager int[] getPackageGids(java.lang.String, int) 1">
@@ -301,7 +446,7 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ApplicationInfo&gt; getInstalledApplications(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -359,6 +504,12 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentActivityOptions(android.content.ComponentName, android.content.Intent[], android.content.Intent, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentActivityOptions(android.content.ComponentName, android.content.Intent[], android.content.Intent, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentActivityOptions(android.content.ComponentName, android.content.Intent[], android.content.Intent, int) 3">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
@@ -376,6 +527,64 @@
       <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.SharedLibraryInfo&gt; getSharedLibraries(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.SharedLibraryInfo&gt; getSharedLibraries(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void setApplicationCategoryHint(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager void setApplicationCategoryHint(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ApplicationInfo.CATEGORY_UNDEFINED, android.content.pm.ApplicationInfo.CATEGORY_GAME, android.content.pm.ApplicationInfo.CATEGORY_AUDIO, android.content.pm.ApplicationInfo.CATEGORY_VIDEO, android.content.pm.ApplicationInfo.CATEGORY_IMAGE, android.content.pm.ApplicationInfo.CATEGORY_SOCIAL, android.content.pm.ApplicationInfo.CATEGORY_NEWS, android.content.pm.ApplicationInfo.CATEGORY_MAPS, android.content.pm.ApplicationInfo.CATEGORY_PRODUCTIVITY}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void setApplicationEnabledSetting(java.lang.String, int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void setApplicationEnabledSetting(java.lang.String, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.DONT_KILL_APP}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void setComponentEnabledSetting(android.content.ComponentName, int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void setComponentEnabledSetting(android.content.ComponentName, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.DONT_KILL_APP}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager void updateInstantAppCookie(byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.SharedLibraryInfo android.content.pm.VersionedPackage getDeclaringPackage()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.SharedLibraryInfo int getType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.SharedLibraryInfo.TYPE_BUILTIN, android.content.pm.SharedLibraryInfo.TYPE_DYNAMIC, android.content.pm.SharedLibraryInfo.TYPE_STATIC}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.SharedLibraryInfo int getVersion()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.SharedLibraryInfo java.util.List&lt;android.content.pm.VersionedPackage&gt; getDependentPackages()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ShortcutInfo android.content.ComponentName getActivity()">
     <annotation name="android.support.annotation.Nullable" />
@@ -461,10 +670,27 @@
   <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setShortLabel(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.ShortcutManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.SHORTCUT_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.ShortcutManager android.content.Intent createShortcutResultIntent(android.content.pm.ShortcutInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.ShortcutManager boolean addDynamicShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.ShortcutManager boolean requestPinShortcut(android.content.pm.ShortcutInfo, android.content.IntentSender) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager boolean requestPinShortcut(android.content.pm.ShortcutInfo, android.content.IntentSender) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.ShortcutManager boolean setDynamicShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager boolean updateShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ShortcutManager java.util.List&lt;android.content.pm.ShortcutInfo&gt; getDynamicShortcuts()">
@@ -486,6 +712,22 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ShortcutManager void removeDynamicShortcuts(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.VersionedPackage VersionedPackage(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.VersionedPackage VersionedPackage(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.VersionedPackage int getVersionCode()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.VersionedPackage java.lang.String getPackageName()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>

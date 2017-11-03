@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
-import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawTextRegion;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,38 +33,43 @@ import java.awt.*;
  */
 public class ButtonDecorator extends SceneDecorator {
   public static class DrawButton extends DrawTextRegion {
-    String myString;
-    float mScale;
 
-    @Override
-    public int getLevel() {
-      return COMPONENT_LEVEL;
+    public static int androidToSwingFontSize(float fontSize) {
+      return Math.round((fontSize * 2f + 4.5f) / 2.41f);
     }
 
-    DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, String string) {
-      super(x, y, width, height, baseLineOffset, string);
+    DrawButton(@SwingCoordinate int x,
+               @SwingCoordinate int y,
+               @SwingCoordinate int width,
+               @SwingCoordinate int height,
+               int mode,
+               int baseLineOffset,
+               float scale,
+               int fontSize,
+               String string) {
+      super(x, y, width, height, mode, baseLineOffset, string, true, true,
+            TEXT_ALIGNMENT_CENTER, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
       mHorizontalPadding = (int)(4 * scale);
       mVerticalPadding = (int)(8 * scale);
       mHorizontalMargin = (int)(8 * scale);
       mVerticalMargin = (int)(12 * scale);
-      mScale = scale;
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
-      mToUpperCase = true;
-      mAlignmentX = TEXT_ALIGNMENT_CENTER;
-      mAlignmentY = TEXT_ALIGNMENT_CENTER;
     }
 
-    public DrawButton(String s) {
+    @NotNull
+    public static DrawButton createFromString(@NotNull String s) {
       String[] sp = s.split(",");
       int c = 0;
-      x = Integer.parseInt(sp[c++]);
-      y = Integer.parseInt(sp[c++]);
-      width = Integer.parseInt(sp[c++]);
-      height = Integer.parseInt(sp[c++]);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mScale = java.lang.Float.parseFloat(sp[c++]);
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
-      mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int mode = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      float scale = java.lang.Float.parseFloat(sp[c++]);
+      int fontSize = java.lang.Integer.parseInt(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawButton(x, y, width, height, mode, baseLineOffset, scale, fontSize, text);
     }
 
     @Override
@@ -78,9 +84,13 @@ public class ButtonDecorator extends SceneDecorator {
              "," +
              height +
              "," +
+             mMode +
+             "," +
              myBaseLineOffset +
              "," +
              mScale +
+             "," +
+             mFontSize +
              ",\"" +
              mText +
              "\"";
@@ -88,33 +98,38 @@ public class ButtonDecorator extends SceneDecorator {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
         int round = sceneContext.getSwingDimension(5);
         Stroke stroke = g.getStroke();
-        int strokeWidth = sceneContext.getSwingDimension(3);
+        int strokeWidth = sceneContext.getSwingDimension(2);
         g.setStroke(new BasicStroke(strokeWidth));
+        g.setColor(colorSet.getButtonBackground());
+        g.fillRect(x + mHorizontalMargin, y + mVerticalMargin,
+                   width - mHorizontalMargin * 2 + 1, height - mVerticalMargin * 2 + 1);
         g.setColor(colorSet.getFakeUI());
-        g.drawRoundRect(x + mHorizontalMargin, y + mVerticalMargin, width - mHorizontalMargin * 2, height - mVerticalMargin * 2, round,
-                        round);
+        g.drawRoundRect(x + mHorizontalMargin, y + mVerticalMargin,
+                   width - mHorizontalMargin * 2, height - mVerticalMargin * 2,2,2);
         g.setStroke(stroke);
       }
+      super.paint(g, sceneContext);
     }
   }
 
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     super.addContent(list, time, sceneContext, component);
-    Rectangle rect = new Rectangle();
+    @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
+    int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
     float scale = (float)sceneContext.getScale();
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
-    list.add(new DrawButton(l, t, w, h, baseLineOffset, scale, text));
+    int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
+    list.add(new DrawButton(l, t, w, h, mode, baseLineOffset, scale, fontSize, text));
   }
 }

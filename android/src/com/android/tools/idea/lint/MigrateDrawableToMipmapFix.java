@@ -16,7 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -71,7 +71,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    ProjectResourceRepository projectResources = facet.getProjectResources(true);
+    ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(facet);
     List<ResourceItem> resourceItems = projectResources.getResourceItem(myUrl.type, myUrl.name);
     if (resourceItems != null) {
       for (ResourceItem item : resourceItems) {
@@ -169,7 +169,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
             // Convert @drawable/foo references to @mipmap/foo
             XmlAttributeValue value = (XmlAttributeValue)reference;
             XmlAttribute attribute = (XmlAttribute)value.getParent();
-            attribute.setValue(ResourceUrl.create(ResourceType.MIPMAP, myUrl.name, false, false).toString());
+            attribute.setValue(ResourceUrl.create(ResourceType.MIPMAP, myUrl.name, false).toString());
           } else if (reference instanceof PsiReferenceExpression) {
             // Convert R.drawable.foo references to R.mipmap.foo
             PsiReferenceExpression inner = (PsiReferenceExpression)reference;

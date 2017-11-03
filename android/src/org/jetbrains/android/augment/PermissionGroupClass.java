@@ -27,11 +27,11 @@ class PermissionGroupClass extends ManifestInnerClass {
     for (PermissionGroup permissionGroup : manifest.getPermissionGroups()) {
       final String name = permissionGroup.getName().getValue();
 
-      if (name != null && name.length() > 0) {
+      if (name != null && !name.isEmpty()) {
         final int lastDotIndex = name.lastIndexOf('.');
         final String lastId = name.substring(lastDotIndex + 1);
 
-        if (lastId.length() > 0) {
+        if (!lastId.isEmpty()) {
           result.add(Pair.create(AndroidResourceUtil.getFieldNameByResourceName(lastId), name));
         }
       }

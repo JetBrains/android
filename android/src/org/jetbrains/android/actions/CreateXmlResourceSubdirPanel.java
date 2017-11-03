@@ -158,7 +158,7 @@ public class CreateXmlResourceSubdirPanel {
   public void updateDirectories(boolean updateFileCombo, VirtualFile resourceDir) {
     List<VirtualFile> directories = Collections.emptyList();
     if (resourceDir != null) {
-      directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, new VirtualFile[]{resourceDir});
+      directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
     Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));

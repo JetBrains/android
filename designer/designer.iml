@@ -12,24 +12,26 @@
     <orderEntry type="module" module-name="core-api" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="module" module-name="xml-psi-api" />
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="module" module-name="pixelprobe" />
     <orderEntry type="module" module-name="images" />
     <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="dom-openapi" />
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="xml-psi-impl" />
     <orderEntry type="module" module-name="java-psi-impl" />
     <orderEntry type="module" module-name="java-indexing-api" />
-    <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="analytics-protos" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="wizard" />
-    <orderEntry type="library" name="google-analytics-library" level="project" />
-    <orderEntry type="library" name="sherpa-solver" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="jsr305" level="project" />
+    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="artwork" />
   </component>
 </module>

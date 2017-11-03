@@ -109,7 +109,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
     @Override
     protected void doOKAction() {
       String extension = myFile.getExtension();
-      final String newName = myInput.getText().trim() + (extension != null && extension.length() > 0 ? "." + extension : "");
+      final String newName = myInput.getText().trim() + (extension != null && !extension.isEmpty() ? "." + extension : "");
       String commandName = String.format("Rename %1$s to %2$s", myFile.getName(), newName);
       try {
         new WriteCommandAction(myProject, commandName) {

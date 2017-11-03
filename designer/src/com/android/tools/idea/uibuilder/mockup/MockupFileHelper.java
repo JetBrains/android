@@ -16,14 +16,12 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
 import com.android.tools.pixelprobe.decoder.Decoder;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -72,6 +70,7 @@ public class MockupFileHelper {
     return image;
   }
 
+  @NotNull
   public static FileChooserDescriptor getFileChooserDescriptor() {
     return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
       .withFileFilter(file -> VALID_EXTENSION.contains(file.getExtension()))
@@ -89,20 +88,15 @@ public class MockupFileHelper {
     if (component == null) {
       return;
     }
-    final NlModel model = component.getModel();
-    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup Crop", model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        if (mockup.isFullScreen()) {
-          component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
-        }
-        else {
-          final String cropping = getPositionString(mockup);
-          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP, cropping);
-        }
+
+    NlWriteCommandAction.run(component, "Edit Mockup Crop", () -> {
+      if (mockup.isFullScreen()) {
+        component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
       }
-    };
-    action.execute();
+      else {
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP, getPositionString(mockup));
+      }
+    });
   }
 
   /**

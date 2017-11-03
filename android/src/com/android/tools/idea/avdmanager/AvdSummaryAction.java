@@ -89,7 +89,7 @@ public class AvdSummaryAction extends AvdUiAction {
       copy.remove(AvdManager.AVD_INI_SDCARD_PATH);
       copy.remove(AvdManager.AVD_INI_IMAGES_2);
 
-      if (copy.size() > 0) {
+      if (!copy.isEmpty()) {
         for (Map.Entry<String, String> entry : copy.entrySet()) {
           htmlBuilder.addHtml("<br>").add(entry.getKey()).add(": ").add(entry.getValue());
         }
@@ -97,7 +97,7 @@ public class AvdSummaryAction extends AvdUiAction {
     }
     htmlBuilder.closeHtmlBody();
     String[] options = {"Copy to Clipboard and Close", "Close"};
-    int i = Messages.showDialog((Project)null, htmlBuilder.getHtml(), "Details for " + info.getName(),
+    int i = Messages.showDialog(getProject(), htmlBuilder.getHtml(), "Details for " + info.getName(),
                                 options, 0, AllIcons.General.InformationDialog);
     if (i == 0) {
       CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(htmlBuilder.getHtml(), true)));

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -32,32 +33,32 @@ public class SceneDisplayListSortedTest extends SceneTest {
     return model("constraint.xml",
                  component(CONSTRAINT_LAYOUT)
                    .id("@+id/root")
-                   .withBounds(0, 0, 1000, 1000)
+                   .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
                    .height("1000dp")
                    .withAttribute("android:padding", "20dp")
                    .children(
                      component(LINEAR_LAYOUT)
                        .id("@+id/linear")
-                       .withBounds(10, 10, 990, 20)
+                       .withBounds(20, 20, 1980, 40)
                        .width("980dp")
                        .height("20dp")
                        .children(
                          component(TEXT_VIEW)
                            .id("@+id/button1")
-                           .withBounds(10, 10, 990, 20)
+                           .withBounds(20, 20, 1980, 40)
                            .width("100dp")
                            .height("20dp")
                        ),
                      component(LINEAR_LAYOUT)
                        .id("@+id/linear2")
-                       .withBounds(10, 100, 990, 20)
+                       .withBounds(20, 200, 1980, 40)
                        .width("980dp")
                        .height("20dp")
                        .children(
                          component(TEXT_VIEW)
                            .id("@+id/button2")
-                           .withBounds(10, 100, 990, 20)
+                           .withBounds(20, 200, 1980, 40)
                            .width("100dp")
                            .height("20dp")
                        )
@@ -65,21 +66,21 @@ public class SceneDisplayListSortedTest extends SceneTest {
   }
 
   public void testBasicScene() {
-    String simpleList = "DrawComponentFrame,0,0,1000,1000,1\n" +
+    String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,10,10,990,20,1\n" +
-                        "DrawComponentFrame,10,10,990,20,1\n" +
+                        "DrawLinearLayout,10,10,990,20,1,false\n" +
+                        "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "Clip,10,10,990,20\n" +
-                        "DrawComponentBackground,10,10,990,20,1\n" +
-                        "DrawTextRegion,10,10,990,20,0,false,false,5,5,\"\"\n" +
-                        "DrawComponentFrame,10,10,990,20,1\n" +
+                        "DrawComponentBackground,10,10,990,20,1,false\n" +
+                        "DrawTextRegion,10,10,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "UNClip\n" +
-                        "DrawComponentBackground,10,100,990,20,1\n" +
-                        "DrawComponentFrame,10,100,990,20,1\n" +
+                        "DrawLinearLayout,10,100,990,20,1,false\n" +
+                        "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "Clip,10,100,990,20\n" +
-                        "DrawComponentBackground,10,100,990,20,1\n" +
-                        "DrawTextRegion,10,100,990,20,0,false,false,5,5,\"\"\n" +
-                        "DrawComponentFrame,10,100,990,20,1\n" +
+                        "DrawComponentBackground,10,100,990,20,1,false\n" +
+                        "DrawTextRegion,10,100,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "UNClip\n" +
                         "UNClip\n";
 
@@ -87,29 +88,30 @@ public class SceneDisplayListSortedTest extends SceneTest {
     DisplayList disp = DisplayList.getDisplayList(simpleList);
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     //noinspection UndesirableClassUsage
-    BufferedImage img = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage img = new BufferedImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
     assertEquals(17, disp.getCommands().size());
     String result = disp.generateSortedDisplayList(SceneContext.get());
-    String sorted = "DrawComponentFrame,0,0,1000,1000,1\n" +
+    String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
-                    "DrawComponentBackground,10,10,990,20,1\n" +
-                    "DrawComponentFrame,10,10,990,20,1\n" +
+                    "DrawLinearLayout,10,10,990,20,1,false\n" +
+                    "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "Clip,10,10,990,20\n" +
-                    "DrawComponentBackground,10,10,990,20,1\n" +
-                    "DrawComponentFrame,10,10,990,20,1\n" +
-                    "DrawTextRegion,10,10,990,20,0,false,false,5,5,\"\"\n" +
+                    "DrawComponentBackground,10,10,990,20,1,false\n" +
+                    "DrawTextRegion,10,10,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                    "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "UNClip\n" +
                     "\n" +
-                    "DrawComponentBackground,10,100,990,20,1\n" +
-                    "DrawComponentFrame,10,100,990,20,1\n" +
+                    "DrawLinearLayout,10,100,990,20,1,false\n" +
+                    "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "Clip,10,100,990,20\n" +
-                    "DrawComponentBackground,10,100,990,20,1\n" +
-                    "DrawComponentFrame,10,100,990,20,1\n" +
-                    "DrawTextRegion,10,100,990,20,0,false,false,5,5,\"\"\n" +
+                    "DrawComponentBackground,10,100,990,20,1,false\n" +
+                    "DrawTextRegion,10,100,990,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                    "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "UNClip\n" +
                     "\n" +
-                    "UNClip\n\n";
+                    "UNClip\n" +
+                    "\n";
     assertEquals(sorted, result);
     disp.clear();
   }

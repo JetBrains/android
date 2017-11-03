@@ -1,8 +1,8 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -36,9 +37,9 @@ public class MockupInspectorProvider implements InspectorProvider {
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
     //noinspection ConstantConditions
-    return Mockup.ENABLE_FEATURE && properties.keySet().containsAll(MOCKUP_PROPERTIES)
-                  && !components.isEmpty()
-                  && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
+    return StudioFlags.NELE_MOCKUP_EDITOR.get() && properties.keySet().containsAll(MOCKUP_PROPERTIES)
+           && !components.isEmpty()
+           && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
   }
 
   @NotNull
@@ -65,15 +66,13 @@ public class MockupInspectorProvider implements InspectorProvider {
 
     public static final String TITLE = "View Mockup";
     private final NlReferenceEditor myOpacityEditor;
-    private final FileChooserActionListener myFileChooserListener;
     private NlProperty myMockupPath;
     private NlProperty myOpacityProperty;
     private TextFieldWithBrowseButton myFileChooser;
 
     public MockupInspectorComponent(@NotNull Project project) {
       myOpacityEditor = NlReferenceEditor.createForInspector(project, DEFAULT_LISTENER);
-      myFileChooserListener = new FileChooserActionListener();
-      myFileChooser = createFileChooser(myFileChooserListener);
+      myFileChooser = createFileChooserButton();
     }
 
     @Override
@@ -98,13 +97,30 @@ public class MockupInspectorProvider implements InspectorProvider {
       inspector.addComponent(ATTR_MOCKUP_OPACITY, null, myOpacityEditor.getComponent());
     }
 
-    private static TextFieldWithBrowseButton createFileChooser(@NotNull FileChooserActionListener listener) {
-      TextFieldWithBrowseButton fileChooser;
-      fileChooser = new TextFieldWithBrowseButton();
-      fileChooser.setEditable(false);
-      fileChooser.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-      fileChooser.addActionListener(listener);
-      return fileChooser;
+    private TextFieldWithBrowseButton createFileChooserButton() {
+      TextFieldWithBrowseButton button;
+      button = new TextFieldWithBrowseButton();
+      button.setEditable(false);
+      button.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+      button.addActionListener(event -> {
+        NlComponent component = getSelectionComponent();
+        if (component == null) {
+          return;
+        }
+        MockUpFileChooser.INSTANCE.chooseMockUpFile(component, (path) -> {
+          button.setText(path);
+          myMockupPath.setValue(path);
+        });
+      });
+      return button;
+    }
+
+    @Nullable
+    private NlComponent getSelectionComponent() {
+      if (myMockupPath == null || myMockupPath.getComponents().isEmpty()) {
+        return null;
+      }
+      return myMockupPath.getComponents().get(0);
     }
 
     @Override
@@ -113,7 +129,6 @@ public class MockupInspectorProvider implements InspectorProvider {
         myFileChooser.setText(myMockupPath.getValue());
       }
       myOpacityEditor.setProperty(myOpacityProperty);
-      myFileChooserListener.setFilePathProperty(myMockupPath);
     }
 
     @Override

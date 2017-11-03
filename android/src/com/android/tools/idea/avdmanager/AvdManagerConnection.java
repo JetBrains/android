@@ -36,9 +36,9 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -58,16 +58,17 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
@@ -79,6 +80,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.android.SdkConstants.ANDROID_HOME_ENV;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -98,6 +101,7 @@ public class AvdManagerConnection {
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
+  protected static Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("26.1.0");
 
   private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2 = {
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
@@ -113,7 +117,7 @@ public class AvdManagerConnection {
   };
 
   private AvdManager myAvdManager;
-  private static Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<>();
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
 
@@ -167,7 +171,7 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG, myFileOp);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
@@ -358,6 +362,7 @@ public class AvdManagerConnection {
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
     if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
+      myAvdManager.logRunningAvdInfo(info, SDK_LOG);
       String baseFolder;
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
@@ -449,7 +454,7 @@ public class AvdManagerConnection {
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@NotNull AvdInfo info, GeneralCommandLine commandLine) {
+  protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
     String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
@@ -461,7 +466,111 @@ public class AvdManagerConnection {
       commandLine.addParameters("-netspeed", netSpeed);
     }
 
+    // Control fast boot
+    if (AvdWizardUtils.emulatorSupportsFastBoot(mySdkHandler)) {
+      if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+        // Do not fast boot and do not store a snapshot on exit
+        commandLine.addParameter("-no-snapstorage");
+      }
+      else if (AvdWizardUtils.COLD_BOOT_ONCE_VALUE.equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+        // No fast boot now, but do store a snapshot on exit for next time
+        commandLine.addParameter("-no-snapshot-load");
+      }
+      // We could use "-snapstorage" for the "no" case, but don't bother. It is the default.
+    }
+
+    writeParameterFile(commandLine);
+
     commandLine.addParameters("-avd", info.getName());
+  }
+
+  /**
+   * Indicates if the Emulator's version is at least {@code desired}
+   * @return true if the Emulator version is the desired version or higher
+   */
+  @VisibleForTesting
+  public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
+    if (mySdkHandler == null) return false; // Don't know, so guess
+    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
+    if (sdkPackage == null) {
+      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, log);
+    }
+    if (sdkPackage == null) {
+      return false;
+    }
+    return (sdkPackage.getVersion().compareTo(desired) >= 0);
+  }
+
+  /**
+   * Write HTTP Proxy information to a temporary file.
+   * Put the file's name on the command line.
+   */
+  protected void writeParameterFile(@NotNull GeneralCommandLine commandLine) {
+    if (!emulatorVersionIsAtLeast(EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS)) {
+      // Older versions of the emulator don't accept this information.
+      return;
+    }
+    HttpConfigurable httpInstance = HttpConfigurable.getInstance();
+    if (httpInstance == null) {
+      return; // No proxy info to send
+    }
+
+    // Extract the proxy information
+    List<String> proxyParameters = new ArrayList<String>();
+
+    List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
+    for (Pair<String, String> kv : myPropList) {
+      switch (kv.getFirst()) {
+        case "http.proxyHost":
+        case "http.proxyPort":
+        case "https.proxyHost":
+        case "https.proxyPort":
+        case "proxy.authentication.username":
+        case "proxy.authentication.password":
+          proxyParameters.add(kv.getFirst() + "=" + kv.getSecond() + "\n");
+          break;
+        default:
+          break; // Don't care about anything else
+      }
+    }
+
+    if (proxyParameters.isEmpty()) {
+      return; // No values to send
+    }
+
+    File emuTempFile = null;
+    try {
+      // Create a temporary file in /temp under $ANDROID_HOME.
+      String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+      if (androidHomeValue == null) {
+        // Fall back to the user's home directory
+        androidHomeValue = System.getProperty("user.home");
+      }
+      File tempDir = new File(androidHomeValue + "/temp");
+      tempDir.mkdirs(); // Create if necessary
+      if (!tempDir.exists()) {
+        return; // Give up
+      }
+      emuTempFile = File.createTempFile("emu", ".tmp", tempDir);
+      emuTempFile.deleteOnExit(); // File disappears when Studio exits
+      emuTempFile.setReadable(false, false); // Non-owner cannot read
+      emuTempFile.setReadable(true, true); // Owner can read
+
+      BufferedWriter tempFileWriter = new BufferedWriter(new FileWriter(emuTempFile));
+
+      for (String proxyLine : proxyParameters) {
+        tempFileWriter.write(proxyLine);
+      }
+      tempFileWriter.close();
+      // Put the name of this file on the emulator's command line
+      commandLine.addParameters("-studio-params", emuTempFile.getAbsolutePath());
+    } catch (IOException ex) {
+      // Try to remove the temporary file
+      if (emuTempFile != null) {
+        emuTempFile.delete(); // Ignore the return value
+      }
+    }
   }
 
   /**
@@ -574,7 +683,8 @@ public class AvdManagerConnection {
                                    @Nullable String sdCard,
                                    @Nullable File skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
-                                   boolean createSnapshot) {
+                                   boolean createSnapshot,
+                                   boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
     }
@@ -609,7 +719,7 @@ public class AvdManagerConnection {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
                              ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
-    if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
+    if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
         return null;
@@ -624,9 +734,10 @@ public class AvdManagerConnection {
                                   sdCard,
                                   hardwareProperties,
                                   device.getBootProps(),
+                                  device.hasPlayStore(),
                                   createSnapshot,
                                   false,
-                                  currentInfo != null,
+                                  removePrevious,
                                   SDK_LOG);
   }
 
@@ -714,18 +825,21 @@ public class AvdManagerConnection {
   }
 
   public boolean wipeUserData(@NotNull AvdInfo avdInfo) {
-    if (initIfNecessary()) {
-      File userdataImage = new File(avdInfo.getDataFolderPath(), "userdata-qemu.img");
-      if (userdataImage.isFile()) {
-        return userdataImage.delete();
-      }
-      return true;
+    if (!initIfNecessary()) {
+      return false;
     }
-    return false;
+    // Delete the current user data file
+    File userdataImage = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_QEMU_IMG);
+    if (myFileOp.exists(userdataImage)) {
+      if (!myFileOp.delete(userdataImage)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
-    String displayName = avdInfo.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
+    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
     if (displayName == null) {
       displayName = avdInfo.getName().replaceAll("[_-]+", " ");
     }

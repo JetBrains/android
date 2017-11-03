@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +29,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   @Nullable
   @Override
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String message = rootCause.getMessage();
     if (isNotEmpty(message) && getFirstLineMessage(message).startsWith("Failed to find CMake.")) {
       updateUsageTracker();
@@ -41,9 +40,7 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     return Collections.singletonList(new InstallCMakeHyperlink());
   }
 }

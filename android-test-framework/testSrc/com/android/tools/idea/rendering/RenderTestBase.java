@@ -17,9 +17,11 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -54,6 +56,24 @@ public abstract class RenderTestBase extends AndroidTestCase {
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    RenderService.shutdownRenderExecutor(5);
+    RenderService.initializeRenderExecutor();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderLogger.resetFidelityErrorsFilters();
+      waitForRenderTaskDisposeToFinish();
+    } finally {
+      super.tearDown();
+    }
+  }
+
   protected RenderTask createRenderTask(VirtualFile file) throws Exception {
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
     return createRenderTask(file, configuration);
@@ -62,7 +82,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
   protected Configuration getConfiguration(VirtualFile file, String deviceId) {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
     Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
@@ -81,7 +101,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    RenderService renderService = RenderService.get(facet);
+    RenderService renderService = RenderService.getInstance(facet);
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
@@ -90,12 +110,12 @@ public abstract class RenderTestBase extends AndroidTestCase {
 
   protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    return createRenderTask(file, configuration, RenderService.get(facet).createLogger());
+    return createRenderTask(file, configuration, RenderService.getInstance(facet).createLogger());
   }
 
     protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
     // Next try a render
-    RenderResult result = task.render();
+    RenderResult result = Futures.getUnchecked(task.render());
     RenderResult render = renderOnSeparateThread(task);
     assertNotNull(render);
 
@@ -126,7 +146,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     Thread thread = new Thread("render test") {
       @Override
       public void run() {
-        holder.set(task.render());
+        holder.set(Futures.getUnchecked(task.render()));
       }
     };
     thread.start();
@@ -175,12 +195,20 @@ public abstract class RenderTestBase extends AndroidTestCase {
     }
   }
 
-  @NotNull
-  public static File getTempDir() {
-    if (System.getProperty("os.name").equals("Mac OS X")) {
-      return new File("/tmp"); //$NON-NLS-1$
-    }
+  /**
+   * Waits for any RenderTask dispose threads to finish
+   */
+  public static void waitForRenderTaskDisposeToFinish() {
+    Thread.getAllStackTraces().keySet().stream()
+      .filter(t -> t.getName().startsWith("RenderTask dispose"))
+      .forEach(t -> {
+        try {
+          t.join(10 * 1000); // 10s
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      });
 
-    return new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
   }
 }

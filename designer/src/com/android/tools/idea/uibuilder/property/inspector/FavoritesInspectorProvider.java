@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -109,23 +109,25 @@ public class FavoritesInspectorProvider implements InspectorProvider {
                                  @NotNull NlPropertiesManager propertiesManager) {
       myEditorMap.clear();
       for (String propertyName : myStarredPropertyNames) {
+        NlProperty property = findProperty(propertyName, properties);
         NlComponentEditor editor = myEditorMap.get(propertyName);
-        if (editor != null) {
-          editor.refresh();
+        if (property == null) {
+          if (editor != null) {
+            myEditorMap.remove(propertyName);
+          }
         }
         else {
-          editor = createEditor(propertyName, properties, propertiesManager);
-          if (editor != null) {
+          if (editor == null) {
+            editor = propertiesManager.getPropertyEditors().create(property);
             myEditorMap.put(propertyName, editor);
           }
+          editor.setProperty(property);
         }
       }
     }
 
     @Nullable
-    private static NlComponentEditor createEditor(@NotNull String propertyName,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+    private static NlProperty findProperty(@NotNull String propertyName, @NotNull Map<String, NlProperty> properties) {
       boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
       propertyName = removePropertyPrefix(propertyName);
       NlProperty property = properties.get(propertyName);
@@ -135,9 +137,7 @@ public class FavoritesInspectorProvider implements InspectorProvider {
       if (designPropertyRequired) {
         property = property.getDesignTimeProperty();
       }
-      NlComponentEditor editor = propertiesManager.getPropertyEditors().create(property);
-      editor.setProperty(property);
-      return editor;
+      return property;
     }
 
     @Override
@@ -152,13 +152,11 @@ public class FavoritesInspectorProvider implements InspectorProvider {
         NlComponentEditor editor = myEditorMap.get(propertyName);
         if (editor != null) {
           NlProperty property = editor.getProperty();
-          if (property != null) {
-            JLabel label = inspector.addComponent(property.getName(), property.getTooltipText(), editor.getComponent());
-            if (TOOLS_URI.equals(property.getNamespace())) {
-              label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-            }
-            editor.setLabel(label);
+          JLabel label = inspector.addComponent(property.getName(), property.getTooltipText(), editor.getComponent());
+          if (TOOLS_URI.equals(property.getNamespace())) {
+            label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
           }
+          editor.setLabel(label);
         }
       }
     }

@@ -30,7 +30,7 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@Ignore("fails; replace with headless integration test; see ag/2070451")
 @RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 
@@ -42,7 +42,6 @@ public class GradleIncreaseLanguageLevelTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForJava() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -53,7 +52,6 @@ public class GradleIncreaseLanguageLevelTest {
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForAndroid() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
@@ -51,7 +52,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
     PsiClass activityClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, scope);
     if (activityClass == null) return null;
 
-    PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = AndroidPsiUtils.getPsiParentOfType(element, PsiClass.class, false);
     while (elementClass != null) {
       if (elementClass.isInheritor(activityClass, true)) {
         return elementClass;

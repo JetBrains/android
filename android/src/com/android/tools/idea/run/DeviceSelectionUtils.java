@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -59,7 +58,7 @@ public class DeviceSelectionUtils {
                                                         @NotNull final DeviceCount deviceCount) {
     final Collection<IDevice> compatibleDevices = getAllCompatibleDevices(deviceFilter);
 
-    if (compatibleDevices.size() == 0) {
+    if (compatibleDevices.isEmpty()) {
       return ImmutableList.of();
     }
     else if (compatibleDevices.size() == 1) {
@@ -73,7 +72,7 @@ public class DeviceSelectionUtils {
         public void run() {
           devicesRef.set(chooseDevicesManually(facet, deviceFilter, deviceCount));
         }
-      }, ModalityState.defaultModalityState());
+      });
       // Return the selected devices, or null if the user cancelled.
       return devicesRef.get().length > 0 ? ImmutableList.copyOf(devicesRef.get()) : null;
     }

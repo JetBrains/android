@@ -18,6 +18,7 @@ package com.android.tools.swing.layoutlib;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +45,7 @@ import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar
 public class AndroidPreviewPanelTest extends AndroidTestCase {
   public void testSimpleRender() throws ParserConfigurationException, IOException, SAXException, InterruptedException {
     VirtualFile layout = myFixture.copyFileToProject("themeEditor/theme_preview_layout.xml", "res/layout/theme_preview_layout.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(layout);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
     AtomicBoolean executorCalled = new AtomicBoolean(false);
     ExecutorService threadPool = Executors.newFixedThreadPool(1);
     Executor executor = (r) -> {

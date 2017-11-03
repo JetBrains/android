@@ -60,6 +60,26 @@ public class RetryingInstallerTest {
   }
 
   @Test
+  public void notifyUserIfDeviceDisconnectedDuringInstall() {
+    // on an install request, return a failure on first install and a success on the 2nd install
+    when (myInstaller.installApp(myDevice, myLaunchStatus))
+      .thenReturn(new InstallResult(InstallResult.FailureCode.DEVICE_NOT_FOUND, null, null));
+
+    when (myDevice.getName())
+      .thenReturn("Test Device");
+
+    // perform the installation
+    assertThat(myRetryingInstaller.install()).isFalse();
+
+    // verify that we got only 1 install requests (there is no retry for this error)
+    verify(myInstaller, times(1)).installApp(myDevice, myLaunchStatus);
+
+    // verify that we prompted the user
+    verify(myPrompter).showErrorMessage(AndroidBundle.message(
+      "deployment.failed.reason.devicedisconnected", myDevice.getName()));
+  }
+
+  @Test
   public void promptUserOnIncompatibleUpdate() {
     // on an install request, return a failure on first install and a success on the 2nd install
     when (myInstaller.installApp(myDevice, myLaunchStatus))

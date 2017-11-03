@@ -12,6 +12,5 @@
         android:text="Outer Layout"/>
 
     <include layout="@layout/inner" />
-    <include layout="@layout/inner" />
 
 </LinearLayout>

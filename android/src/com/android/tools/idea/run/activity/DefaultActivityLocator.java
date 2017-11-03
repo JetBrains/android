@@ -165,10 +165,22 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
-    return allActivities
+    List<ActivityWrapper> launchableActivities = allActivities
       .stream()
       .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
       .collect(Collectors.toList());
+
+    if (launchableActivities.isEmpty()) {
+      Logger logger = Logger.getInstance(DefaultActivityLocator.class);
+      logger.warn("No launchable activities found, total # of activities: " + allActivities.size());
+      allActivities
+        .forEach(wrapper -> logger.warn(String.format("activity: %1$s, isEnabled: %2$s, containsLauncherIntent: %3$s",
+                                                      wrapper.getQualifiedName(),
+                                                      wrapper.isEnabled(),
+                                                      ActivityLocatorUtils.containsLauncherIntent(wrapper))));
+    }
+
+    return launchableActivities;
   }
 
   private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {

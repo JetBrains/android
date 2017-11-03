@@ -93,7 +93,7 @@ public class AndroidAppPropertiesEditor {
   private void updatePackageNameField() {
     final String appName = myApplicationNameField.getText().trim();
 
-    if (appName.length() > 0) {
+    if (!appName.isEmpty()) {
       myPackageNameField.setText(getDefaultPackageNameByModuleName(appName));
     }
   }
@@ -149,7 +149,7 @@ public class AndroidAppPropertiesEditor {
 
   @NotNull
   static String doValidatePackageName(boolean library, @NotNull String candidate, @Nullable ModulesProvider modulesProvider) {
-    if (candidate.length() == 0) {
+    if (candidate.isEmpty()) {
       return AndroidBundle.message("specify.package.name.error");
     }
     if (!AndroidUtils.isValidAndroidPackageName(candidate)) {
@@ -190,12 +190,12 @@ public class AndroidAppPropertiesEditor {
 
   public void validate(boolean library) throws ConfigurationException {
     String message = validatePackageName(library);
-    if (message.length() > 0) {
+    if (!message.isEmpty()) {
       throw new ConfigurationException(message);
     }
     if (!library) {
       message = validateActivityName();
-      if (message.length() > 0) {
+      if (!message.isEmpty()) {
         throw new ConfigurationException(message);
       }
     }

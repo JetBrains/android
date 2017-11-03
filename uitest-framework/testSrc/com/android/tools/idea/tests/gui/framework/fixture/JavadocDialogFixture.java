@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JCheckBoxFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,20 +36,17 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
 
   private final IdeFrameFixture myIdeFrameFixture;
   private final JDialog myDialog;
-  private final Robot myRobot;
 
   private JavadocDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
     myIdeFrameFixture = ideFrameFixture;
     myDialog = dialog;
-    myRobot = ideFrameFixture.robot();
   }
 
   @NotNull
   public JavadocDialogFixture enterOutputDirectory(@NotNull String path) {
     JTextField textField =
-      GuiTests.waitUntilFound(myRobot, myDialog, Matchers.byType(TextFieldWithBrowseButton.class)).getTextField();
-    myRobot.focusAndWaitForFocusGain(textField);
-    myRobot.enterText(path);
+      GuiTests.waitUntilFound(robot(), myDialog, Matchers.byType(TextFieldWithBrowseButton.class)).getTextField();
+    new JTextComponentFixture(robot(), textField).enterText(path);
     return this;
   }
 
@@ -75,6 +73,6 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   @Override
   public Robot robot() {
-    return myRobot;
+    return myIdeFrameFixture.robot();
   }
 }

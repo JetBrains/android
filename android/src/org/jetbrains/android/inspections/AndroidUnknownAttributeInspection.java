@@ -33,6 +33,7 @@ import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -83,13 +84,14 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   }
 
   static boolean isMyFile(@NotNull AndroidFacet facet, XmlFile file) {
-    ResourceFolderType resourceType = facet.getLocalResourceManager().getFileResourceFolderType(file);
+    ResourceFolderType resourceType = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
         ourSupportedResourceTypes = EnumSet.noneOf(ResourceFolderType.class);
         for (DomFileDescription description : DomFileDescription.EP_NAME.getExtensions()) {
           if (description instanceof AndroidResourceDomFileDescription) {
-            ourSupportedResourceTypes.add(((AndroidResourceDomFileDescription)description).getResourceType());
+            //noinspection unchecked
+            ourSupportedResourceTypes.addAll(((AndroidResourceDomFileDescription)description).getResourceTypes());
           }
         }
       }
@@ -109,7 +111,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
-    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
+    final List<ProblemDescriptor> myResult = new ArrayList<>();
 
     private MyVisitor(InspectionManager inspectionManager, boolean onTheFly) {
       myInspectionManager = inspectionManager;

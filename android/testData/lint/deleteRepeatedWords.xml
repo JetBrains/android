@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="test">
+     <warning>repeated
+     repea<caret>ted</warning>
+      word</string>
+</resources>

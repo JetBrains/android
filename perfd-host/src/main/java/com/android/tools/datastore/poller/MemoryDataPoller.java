@@ -15,303 +15,204 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.LegacyAllocationTrackingService;
-import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.MemoryStatsTable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.VmStatsSample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.application.ApplicationManager;
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.RunnableFuture;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status.SUCCESS;
-
-public class MemoryDataPoller extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough, PollRunner.PollingCallback {
-  private final LegacyAllocationTrackingService myLegacyAllocationTrackingService;
-
+public class MemoryDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
-  private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
-
-  //TODO: Pull this into a storage container that can read/write this to disk
-  //TODO: Rename MemoryData to MemoryProfilerData for consistency
-  //TODO: Do these needs to be synchronized?
-  protected final List<MemorySample> myMemoryData = new ArrayList<>();
-  protected final List<VmStatsSample> myStatsData = new ArrayList<>();
-  protected final List<HeapDumpSample> myHeapData = new ArrayList<>();
-  protected final List<AllocationEvent> myAllocationEvents = new ArrayList<>();
-  protected final List<AllocationsInfo> myAllocationsInfos = new ArrayList<>();
-  protected final Map<String, AllocatedClass> myAllocatedClasses = new HashMap<>();
-  protected final Map<ByteString, AllocationStack> myAllocationStacks = new HashMap<>();
-
-  private final Object myUpdatingDataLock = new Object();
-  private final Object myUpdatingAllocationsLock = new Object();
-
-  private HeapDumpSample myPendingHeapDumpSample = null;
+  private AllocationsInfo myPendingAllocationSample = null;
+  private HeapDumpInfo myPendingHeapDumpSample = null;
+  private final MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
+  private final MemoryStatsTable myMemoryStatsTable;
 
   private int myProcessId = -1;
+  private final Common.Session mySession;
+  private final Consumer<Runnable> myFetchExecutor;
 
-  public MemoryDataPoller(@NotNull DataStoreService dataStoreService) {
-    myLegacyAllocationTrackingService = new LegacyAllocationTrackingService(dataStoreService::getLegacyAllocationTracker);
+  public MemoryDataPoller(int processId,
+                          Common.Session session,
+                          MemoryStatsTable statsTable,
+                          MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
+                          Consumer<Runnable> fetchExecutor) {
+    super(POLLING_DELAY_NS);
+    myProcessId = processId;
+    mySession = session;
+    myMemoryStatsTable = statsTable;
+    myPollingService = pollingService;
+    myFetchExecutor = fetchExecutor;
   }
 
   @Override
-  public RunnableFuture<Void> getRunner() {
-    return new PollRunner(this, PollRunner.POLLING_DELAY_NS);
-  }
-
-  @Override
-  public ServerServiceDefinition getService() {
-    return bindService();
-  }
-
-  @Override
-  public void connectService(ManagedChannel channel) {
-    myPollingService = MemoryServiceGrpc.newBlockingStub(channel);
-  }
-
-  @Override
-  public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    synchronized (myUpdatingDataLock) {
-      myMemoryData.clear();
-      myStatsData.clear();
-      myHeapData.clear();
+  public void stop() {
+    if (myPendingHeapDumpSample != null) {
+      myMemoryStatsTable.insertOrReplaceHeapInfo(
+        myProcessId, mySession, myPendingHeapDumpSample.toBuilder().setEndTime(myPendingHeapDumpSample.getStartTime() + 1).build());
+      myMemoryStatsTable.insertHeapDumpData(
+        myProcessId, mySession, myPendingHeapDumpSample.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY);
+      myPendingHeapDumpSample = null;
     }
-    myProcessId = request.getAppId();
-    observer.onNext(myPollingService.startMonitoringApp(request));
-    observer.onCompleted();
-  }
 
-  @Override
-  public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
-    myProcessId = -1;
-    observer.onNext(myPollingService.stopMonitoringApp(request));
-    observer.onCompleted();
-  }
-
-  @Override
-  public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    responseObserver.onNext(myPollingService.triggerHeapDump(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHeapDump(HeapDumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-    synchronized (myUpdatingDataLock) {
-      int index = Collections
-        .binarySearch(myHeapData, new HeapDumpSample(request.getDumpId()), (o1, o2) -> o1.myInfo.getDumpId() - o2.myInfo.getDumpId());
-      if (index < 0) {
-        responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-      }
-      else {
-        HeapDumpSample dump = myHeapData.get(index);
-        if (dump.isError) {
-          responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-        }
-        else {
-          ByteString data = dump.myData;
-          if (data == null) {
-            responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
-          }
-          else {
-            responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-            responseBuilder.setData(data);
-          }
-        }
-      }
+    // O+ live allocation tracking sample is always ongoing for the during of the app, so we don't mark its end time here.
+    if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
+      myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, myPendingAllocationSample.toBuilder()
+        .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(
+          AllocationsInfo.Status.FAILURE_UNKNOWN).build());
     }
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
 
-  @Override
-  public void listHeapDumpInfos(ListDumpInfosRequest request,
-                                StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
-    HeapDumpSample key = new HeapDumpSample(HeapDumpInfo.newBuilder().setEndTime(request.getStartTime()).build());
-    int index =
-      Collections.binarySearch(myHeapData, key, (left, right) -> compareTimes(left.myInfo.getEndTime(), right.myInfo.getEndTime()));
-    index = index < 0 ? -(index + 1) : index;
-    ListHeapDumpInfosResponse.Builder responseBuilder = ListHeapDumpInfosResponse.newBuilder();
-    for (int i = index; i < myHeapData.size(); i++) {
-      HeapDumpSample sample = myHeapData.get(i);
-      assert sample.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION || request.getStartTime() <= sample.myInfo.getEndTime();
-      if (sample.myInfo.getStartTime() <= request.getEndTime()) {
-        responseBuilder.addInfos(sample.myInfo);
-      }
-    }
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void trackAllocations(TrackAllocationsRequest request,
-                               StreamObserver<TrackAllocationsResponse> responseObserver) {
-    synchronized (myUpdatingAllocationsLock) {
-      TrackAllocationsResponse response = myPollingService
-        .trackAllocations(TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(request.getEnabled()).build());
-      if (response.getStatus() == SUCCESS) {
-        myLegacyAllocationTrackingService
-          .trackAllocations(myProcessId, response.getTimestamp(), request.getEnabled(), (classes, stacks, allocations) -> {
-            synchronized (myUpdatingDataLock) {
-              classes.forEach(allocatedClass -> myAllocatedClasses.putIfAbsent(allocatedClass.getClassName(), allocatedClass));
-              stacks.forEach(allocationStack -> myAllocationStacks.putIfAbsent(allocationStack.getStackId(), allocationStack));
-              allocations.forEach(myAllocationEvents::add);
-            }
-          });
-      }
-      responseObserver.onNext(response);
-      responseObserver.onCompleted();
-    }
-  }
-
-  @Override
-  public void listAllocationContexts(AllocationContextsRequest request,
-                                     StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse.Builder responseBuilder = AllocationContextsResponse.newBuilder();
-    myAllocationStacks.values().forEach(responseBuilder::addAllocationStacks);
-    myAllocatedClasses.values().forEach(responseBuilder::addAllocatedClasses);
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
-    MemoryData.Builder response = MemoryData.newBuilder();
-    long startTime = request.getStartTime();
-    long endTime = request.getEndTime();
-
-    //TODO: Optimize so we do not need to loop over all the data every request, ideally binary search to start time and loop till end.
-    synchronized (myUpdatingDataLock) {
-      myMemoryData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime).forEach(response::addMemSamples);
-      myStatsData.stream().filter(obj -> obj.getTimestamp() > startTime && obj.getTimestamp() <= endTime)
-        .forEach(response::addVmStatsSamples);
-      myHeapData.stream().filter(obj -> (obj.myInfo.getStartTime() > startTime && obj.myInfo.getStartTime() <= endTime) ||
-                                        (obj.myInfo.getEndTime() > startTime && obj.myInfo.getEndTime() <= endTime))
-        .forEach(obj -> response.addHeapDumpInfos(obj.myInfo));
-      myAllocationsInfos.stream().filter(info -> (info.getStartTime() > startTime && info.getStartTime() <= endTime) ||
-                                                 (info.getEndTime() > startTime && info.getEndTime() <= endTime))
-        .forEach(response::addAllocationsInfo);
-      myAllocationEvents.stream().filter(event -> event.getTimestamp() > startTime && event.getTimestamp() <= endTime)
-        .forEach(response::addAllocationEvents);
-    }
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
+    super.stop();
   }
 
   @Override
   public void poll() {
+    if (myProcessId == -1) {
+      return;
+    }
+
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
       .setStartTime(myDataRequestStartTimestampNs)
       .setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getData(dataRequestBuilder.build());
 
-    synchronized (myUpdatingDataLock) {
-      myMemoryData.addAll(response.getMemSamplesList());
-      myStatsData.addAll(response.getVmStatsSamplesList());
-      myAllocationEvents.addAll(response.getAllocationEventsList());
+    // TODO: A UI request may come in while mid way through the poll, this can cause us to have partial data
+    // returned to the UI. This can be solved using transactions in the DB when this class is moved fully over.
+    myMemoryStatsTable.insertMemory(myProcessId, mySession, response.getMemSamplesList());
+    myMemoryStatsTable.insertAllocStats(myProcessId, mySession, response.getAllocStatsSamplesList());
+    myMemoryStatsTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
 
-      if (response.getAllocationsInfoCount() > 0) {
-        int startAppendIndex = 0;
-        int lastEntryIndex = myAllocationsInfos.size() - 1;
-        if (lastEntryIndex >= 0 && myAllocationsInfos.get(lastEntryIndex).getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-          AllocationsInfo lastOriginalEntry = myAllocationsInfos.get(lastEntryIndex);
-          AllocationsInfo firstIncomingEntry = response.getAllocationsInfo(0);
-          assert response.getAllocationsInfo(0).getStartTime() == lastOriginalEntry.getStartTime();
-          myAllocationsInfos.set(lastEntryIndex, firstIncomingEntry);
-          startAppendIndex = 1;
+    List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
+    for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
+      if (myPendingAllocationSample != null) {
+        assert i == 0;
+        AllocationsInfo info = response.getAllocationsInfo(i);
+        assert myPendingAllocationSample.getStartTime() == info.getStartTime();
+        // Deduping - ignoring identical ongoing tracking samples.
+        if (info.getEndTime() == Long.MAX_VALUE) {
+          break;
         }
-        for (int i = startAppendIndex; i < response.getAllocationsInfoCount(); i++) {
-          myAllocationsInfos.add(response.getAllocationsInfo(i));
-        }
+
+        myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
+        allocDumpsToFetch.add(info);
+        myPendingAllocationSample = null;
       }
-
-      List<HeapDumpSample> dumpsToFetch = new ArrayList<>();
-      for (int i = 0; i < response.getHeapDumpInfosCount(); i++) {
-        if (myPendingHeapDumpSample != null) {
-          assert i == 0;
-          HeapDumpInfo info = response.getHeapDumpInfos(i);
-          assert myPendingHeapDumpSample.myInfo.getDumpId() == info.getDumpId();
-          assert info.getEndTime() != DurationData.UNSPECIFIED_DURATION;
-          myPendingHeapDumpSample.myInfo = myPendingHeapDumpSample.myInfo.toBuilder().setEndTime(info.getEndTime()).build();
-          dumpsToFetch.add(myPendingHeapDumpSample);
-          myPendingHeapDumpSample = null;
+      else {
+        AllocationsInfo info = response.getAllocationsInfo(i);
+        myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
+        if (info.getEndTime() == Long.MAX_VALUE) {
+          // Note - there should be at most one unfinished allocation tracking info at a time. e.g. the final info from the response.
+          assert i == response.getAllocationsInfoCount() - 1;
+          myPendingAllocationSample = info;
         }
         else {
-          HeapDumpInfo info = response.getHeapDumpInfos(i);
-          HeapDumpSample sample = new HeapDumpSample(info);
-          myHeapData.add(sample);
-
-          if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-            // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
-            assert i == response.getHeapDumpInfosCount() - 1;
-            myPendingHeapDumpSample = sample;
-          }
-          else {
-            dumpsToFetch.add(sample);
-          }
+          allocDumpsToFetch.add(info);
         }
       }
+    }
 
-      if (!dumpsToFetch.isEmpty()) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-          for (HeapDumpSample sample : dumpsToFetch) {
-            DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
-              HeapDumpDataRequest.newBuilder().setAppId(myProcessId).setDumpId(sample.myInfo.getDumpId()).build());
-            synchronized (myUpdatingDataLock) {
-              if (dumpDataResponse.getStatus() == DumpDataResponse.Status.SUCCESS) {
-                sample.myData = dumpDataResponse.getData();
-              }
-              else {
-                sample.isError = true;
-              }
-            }
-          }
-        });
+    List<HeapDumpInfo> heapDumpsToFetch = new ArrayList<>();
+    for (int i = 0; i < response.getHeapDumpInfosCount(); i++) {
+      if (myPendingHeapDumpSample != null) {
+        assert i == 0;
+        HeapDumpInfo info = response.getHeapDumpInfos(i);
+        assert myPendingHeapDumpSample.getStartTime() == info.getStartTime();
+        if (info.getEndTime() == Long.MAX_VALUE) {
+          // Deduping - ignoring identical ongoing heap dump samples.
+          break;
+        }
+        myMemoryStatsTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
+        heapDumpsToFetch.add(info);
+        myPendingHeapDumpSample = null;
+      }
+      else {
+        HeapDumpInfo info = response.getHeapDumpInfos(i);
+        myMemoryStatsTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
+        if (info.getEndTime() == Long.MAX_VALUE) {
+          // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
+          assert i == response.getHeapDumpInfosCount() - 1;
+          myPendingHeapDumpSample = info;
+        }
+        else {
+          heapDumpsToFetch.add(info);
+        }
       }
     }
+
+    // O+ allocation tracking fetches data continuously and does not go through the following code path - hence we filter out those samples.
+    fetchLegacyAllocData(allocDumpsToFetch.stream().filter(AllocationsInfo::getLegacy).collect(Collectors.toList()));
+    fetchHeapDumpData(heapDumpsToFetch);
+
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
       myDataRequestStartTimestampNs = response.getEndTimestamp();
     }
   }
 
-  private static int compareTimes(long left, long right) {
-    if (left == DurationData.UNSPECIFIED_DURATION) {
-      return 1;
+  private void fetchLegacyAllocData(@NotNull List<AllocationsInfo> dumpsToFetch) {
+    if (dumpsToFetch.isEmpty()) {
+      return;
     }
-    else if (right == DurationData.UNSPECIFIED_DURATION) {
-      return -1;
-    }
-    else {
-      long diff = left - right;
-      return diff == 0 ? 0 : (diff < 0 ? -1 : 1); // diff >> 63 sign extends value into a mask, the bit-or deals with 0+ case
-    }
+
+    Runnable query = () -> {
+      HashSet<Integer> classesToFetch = new HashSet<>();
+      HashSet<Integer> stacksToFetch = new HashSet<>();
+      HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
+      for (AllocationsInfo sample : dumpsToFetch) {
+        LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
+          LegacyAllocationEventsRequest.newBuilder().setProcessId(myProcessId).setStartTime(sample.getStartTime())
+            .setEndTime(sample.getEndTime())
+            .build());
+        eventsToSave.put(sample.getStartTime(), allocEventsResponse);
+
+        allocEventsResponse.getEventsList().forEach(event -> {
+          classesToFetch.add(event.getClassId());
+          stacksToFetch.add(event.getStackId());
+        });
+
+        // Also save out raw dump
+        DumpDataResponse allocDumpResponse = myPollingService.getLegacyAllocationDump(
+          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+        myMemoryStatsTable
+          .updateLegacyAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
+      }
+
+      // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
+      // in the tables.
+      LegacyAllocationContextsRequest contextRequest =
+        LegacyAllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).addAllClassIds(classesToFetch)
+          .addAllStackIds(stacksToFetch).build();
+      AllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
+      myMemoryStatsTable.insertLegacyAllocationContext(myProcessId, mySession, contextsResponse.getAllocatedClassesList(),
+                                                       contextsResponse.getAllocationStacksList());
+      eventsToSave
+        .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(myProcessId, mySession, startTime, response));
+    };
+    myFetchExecutor.accept(query);
   }
 
-  private static class HeapDumpSample {
-    @NotNull public HeapDumpInfo myInfo;
-    @Nullable public volatile ByteString myData = null;
-    public volatile boolean isError = false;
-
-    private HeapDumpSample(@NotNull HeapDumpInfo info) {
-      myInfo = info;
+  private void fetchHeapDumpData(@NotNull List<HeapDumpInfo> dumpsToFetch) {
+    if (dumpsToFetch.isEmpty()) {
+      return;
     }
 
-    public HeapDumpSample(int id) {
-      myInfo = HeapDumpInfo.newBuilder().setDumpId(id).build();
-    }
+    Runnable query = () -> {
+      for (HeapDumpInfo sample : dumpsToFetch) {
+        DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
+          DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
+        myMemoryStatsTable
+          .insertHeapDumpData(myProcessId, mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
+      }
+    };
+    myFetchExecutor.accept(query);
   }
 }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub;
-import com.android.tools.idea.gradle.project.AndroidGradleNotificationStub.NotificationMessage;
+import com.android.tools.idea.project.AndroidNotificationStub;
+import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
   @Mock private IdeSdks myIdeSdks;
 
-  private AndroidGradleNotificationStub myNotification;
+  private AndroidNotificationStub myNotification;
   private SdkToolsVersionSetupStep mySetupStep;
 
   @Override
@@ -46,7 +46,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    myNotification = AndroidGradleNotificationStub.replaceSyncMessagesService(getProject());
+    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
     mySetupStep = new SdkToolsVersionSetupStep(myIdeSdks);
   }
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.GuidelineCycleTarget;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -34,14 +34,14 @@ public class SceneGuidelineTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(450, 490, 100, 20)
+                                       .withBounds(900, 980, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
@@ -50,7 +50,7 @@ public class SceneGuidelineTest extends SceneTest {
                                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
                                      ,component(CONSTRAINT_LAYOUT_GUIDELINE)
                                      .id("@id/guideline")
-                                     .withBounds(100, 0, 100, 1000)
+                                     .withBounds(200, 0, 200, 2000)
                                      .width("wrap_content")
                                      .height("wrap_content")
                                        .withAttribute("android:orientation", "vertical")
@@ -64,28 +64,28 @@ public class SceneGuidelineTest extends SceneTest {
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_end=\"900dp\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_end=\"900dp\" />");
     myInteraction.mouseDown("guideline", GuidelineCycleTarget.class, 0);
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_percent=\"0.1\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_percent=\"0.1\" />");
     myInteraction.mouseDown("guideline", GuidelineCycleTarget.class, 0);
     myInteraction.mouseRelease("guideline", GuidelineCycleTarget.class, 0);
     myScreen.get("@id/guideline")
       .expectXml("<android.support.constraint.Guideline\n" +
-                 "    android:id=\"@id/guideline\"\n" +
-                 "    android:layout_width=\"wrap_content\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "      app:layout_constraintGuide_begin=\"100dp\" />");
+                 "        android:id=\"@id/guideline\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:orientation=\"vertical\"\n" +
+                 "        app:layout_constraintGuide_begin=\"100dp\" />");
   }
 }

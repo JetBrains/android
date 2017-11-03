@@ -23,7 +23,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -37,7 +36,10 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
@@ -51,8 +53,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ModuleResourceRepository.getModuleResources(myFacet, true), ModuleResourceRepository.getModuleResources(myFacet, true));
-    assertSame(ModuleResourceRepository.getModuleResources(myFacet, true), ModuleResourceRepository.getModuleResources(myModule, true));
+    assertSame(ModuleResourceRepository.getOrCreateInstance(myFacet), ModuleResourceRepository.getOrCreateInstance(myFacet));
+    assertSame(ModuleResourceRepository.getOrCreateInstance(myFacet), ModuleResourceRepository.getOrCreateInstance(myModule));
   }
 
   public void testSingleResourceFolder() {
@@ -133,12 +135,12 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Finally ensure that we can switch roots repeatedly (had some earlier bugs related to root unregistration)
     resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Arrays.asList(res1));
+    resources.updateRoots(Collections.singletonList(res1));
     resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Arrays.asList(res1));
+    resources.updateRoots(Collections.singletonList(res1));
     resources.updateRoots(Arrays.asList(res1, res3, res2));
-    resources.updateRoots(Arrays.asList(res2));
-    resources.updateRoots(Arrays.asList(res1));
+    resources.updateRoots(Collections.singletonList(res2));
+    resources.updateRoots(Collections.singletonList(res1));
     resources.updateRoots(Arrays.asList(res1, res2, res3));
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
 
@@ -146,13 +148,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> ids = resources.getResourceItem(ResourceType.ID, "my_id");
     assertNotNull(ids);
     assertSize(2, ids);
-    Collections.sort(ids, new Comparator<ResourceItem>() {
-      @SuppressWarnings("ConstantConditions")
-      @Override
-      public int compare(ResourceItem item1, ResourceItem item2) {
-        return item1.getSource().getFile().getName().compareTo(item2.getSource().getFile().getName());
-      }
-    });
+    Collections.sort(ids, (item1, item2) -> item1.getSource().getFile().getName().compareTo(item2.getSource().getFile().getName()));
     //noinspection ConstantConditions
     assertEquals("layout_ids1.xml", ids.get(0).getSource().getFile().getName());
     //noinspection ConstantConditions
@@ -270,13 +266,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiValues3);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("Very Different App Name");
-        document.insertString(offset, "Not ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("Very Different App Name");
+      document.insertString(offset, "Not ");
+      documentManager.commitDocument(document);
     });
     // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
     assertTrue(resources.isScanPending(psiValues3));
@@ -288,12 +281,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> list = resources.getResourceItem(ResourceType.STRING, "app_name");
     assertNotNull(list);
     assertSize(2, list);
-    appName = ContainerUtil.find(list, new Condition<ResourceItem>() {
-      @Override
-      public boolean value(ResourceItem resourceItem) {
-        return resourceItem.getQualifiers().isEmpty();
-      }
-    });
+    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getQualifiers().isEmpty());
     assertNotNull(appName);
     assertItemIsInDir(res3, appName);
     ResourceValue appNameResourceValue = appName.getResourceValue(false);
@@ -302,13 +290,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Try renaming the item name.
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("app_name");
-        document.insertString(offset, "r");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("app_name");
+      document.insertString(offset, "r");
+      documentManager.commitDocument(document);
     });
     assertTrue(resources.getModificationCount() > generation);
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "rapp_name"));
@@ -341,13 +326,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Check that editing an overridden attribute does not count as a change
     final Document document2 = documentManager.getDocument(psiValues1);
     assertNotNull(document2);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document2.getText().indexOf("Animations Demo");
-        document2.insertString(offset, "Cool ");
-        documentManager.commitDocument(document2);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document2.getText().indexOf("Animations Demo");
+      document2.insertString(offset, "Cool ");
+      documentManager.commitDocument(document2);
     });
     // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
     assertTrue(resources.isScanPending(psiValues1));
@@ -359,13 +341,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     generation = resources.getModificationCount();
     // Observe after the rescan, so that an edit causes a generation bump.
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document2.getText().indexOf("Layout Changes");
-        document2.insertString(offset, "New ");
-        documentManager.commitDocument(document2);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document2.getText().indexOf("Layout Changes");
+      document2.insertString(offset, "New ");
+      documentManager.commitDocument(document2);
     });
     assertTrue(resources.getModificationCount() > generation);
     assertStringIs(resources, "title_layout_changes", "New Layout Changes", false);
@@ -396,12 +375,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Now delete the values file and check again.
     final PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
     assertNotNull(psiValues3);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiValues3.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, psiValues3::delete);
     assertHasExactResourceTypes(resources, typesWithoutRes3);
   }
 
@@ -505,17 +479,17 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   static void assertHasExactResourceTypes(LocalResourceRepository resources, EnumSet<ResourceType> types) {
     for (ResourceType type : ResourceType.values()) {
       if (types.contains(type)) {
-        assertTrue(resources.hasResourcesOfType(type));
+        assertTrue(type.getName(), resources.hasResourcesOfType(type));
       }
       else {
-        assertFalse(resources.hasResourcesOfType(type));
+        assertFalse(type.getName(), resources.hasResourcesOfType(type));
       }
     }
   }
 
   public void testAllowEmpty() {
     assertTrue(LintUtils.assertionsEnabled()); // this test should be run with assertions enabled!
-    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.<VirtualFile>emptyList());
+    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList());
     assertNotNull(repository);
     repository.getModificationCount();
     assertEmpty(repository.getItemsOfType(ResourceType.ID));

@@ -116,7 +116,7 @@ class LayoutDataBindingInfo implements DataBindingInfo {
             removed.add(item);
           }
         }
-        changed |= removed.size() > 0;
+        changed |= !removed.isEmpty();
         for (PsiDataBindingResourceItem item : removed) {
           entry.getValue().remove(item);
         }

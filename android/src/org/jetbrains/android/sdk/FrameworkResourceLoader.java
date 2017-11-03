@@ -23,11 +23,11 @@ import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.log.LogWrapper;
+import com.android.tools.io.BufferingFolderWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.BufferingFolderWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +43,7 @@ public class FrameworkResourceLoader {
 
   @Nullable
   public static FrameworkResources load(@NotNull IAndroidTarget myTarget, boolean withLocale) throws IOException {
-    final ILogger logger = new LogWrapper(LOG);
+    final ILogger logger = new LogWrapper(LOG).alwaysLogAsDebug(true).allowVerbose(false);
     final File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
     if (!resFolder.isDirectory()) {
       LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));

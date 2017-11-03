@@ -31,7 +31,6 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
@@ -65,7 +64,6 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   private int mySelectedHeapId;
 
   @NotNull private ListIndex myListIndex;
-  @NotNull private TreeIndex myTreeIndex;
   @NotNull private DisplayMode myDisplayMode;
 
   public ClassesTreeView(@NotNull Project project,
@@ -106,10 +104,11 @@ public final class ClassesTreeView implements DataProvider, Disposable {
               boolean isTreeMode = myDisplayMode == DisplayMode.TREE;
               myTree.setShowsRootHandles(isTreeMode);
               if (isTreeMode) {
-                myTreeIndex.buildTree(mySelectedHeapId);
+                myRoot.removeAllChildren();
+                myRoot.buildTree();
               }
               else {
-                myListIndex.buildList(myRoot);
+                myListIndex.buildList();
               }
 
               restoreViewState(selectionModel);
@@ -128,9 +127,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
     });
 
     myListIndex = new ListIndex();
-    myTreeIndex = new TreeIndex();
     selectionModel.addListener(myListIndex); // Add list index first, since that always updates; and tree index depends on it.
-    selectionModel.addListener(myTreeIndex);
 
     selectionModel.addListener(new SelectionModel.SelectionListener() {
       @Override
@@ -139,10 +136,11 @@ public final class ClassesTreeView implements DataProvider, Disposable {
 
         assert myListIndex.myHeapId == mySelectedHeapId;
         if (myDisplayMode == DisplayMode.LIST) {
-          myListIndex.buildList(myRoot);
+          myListIndex.buildList();
         }
         else if (myDisplayMode == DisplayMode.TREE) {
-          myTreeIndex.buildTree(mySelectedHeapId);
+          myRoot.removeAllChildren();
+          myRoot.buildTree();
         }
 
         restoreViewState(selectionModel);
@@ -212,7 +210,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
               ClassObj clazz = ((HeapClassObjNode)value).getClassObj();
               String name = clazz.getClassName();
               String pkg = null;
-              int i = name.lastIndexOf(".");
+              int i = name.lastIndexOf('.');
               if (i != -1) {
                 pkg = name.substring(0, i);
                 name = name.substring(i + 1);
@@ -390,9 +388,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   }
 
   public void requestFocus() {
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-      IdeFocusManager.getGlobalInstance().requestFocus(myTree, true);
-    });
+    myTree.requestFocus();
   }
 
   private void installTreeSpeedSearch() {
@@ -426,6 +422,15 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         sortTree((HeapPackageNode)child);
       }
     }
+  }
+
+  private static int compareNames(@NotNull HeapNode a, @NotNull HeapNode b) {
+    int comparisonResult = a.getSimpleName()
+      .compareToIgnoreCase(b.getSimpleName());
+    if (comparisonResult == 0) {
+      return a.getFullName().compareToIgnoreCase(b.getFullName());
+    }
+    return comparisonResult;
   }
 
   private void restoreViewState(@NotNull final SelectionModel selectionModel) {
@@ -524,7 +529,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
       ClassObj classObj = ((HeapClassObjNode)node).getClassObj();
       String className = classObj.getClassName();
 
-      int arrayIndex = className.indexOf("[");
+      int arrayIndex = className.indexOf('[');
       if (arrayIndex >= 0) {
         className = className.substring(0, arrayIndex);
       }
@@ -538,16 +543,61 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   @Override
   public void dispose() {
     myListIndex.clear();
-    myTreeIndex.clear();
   }
 
-  private static int compareNames(@NotNull HeapNode a, @NotNull HeapNode b) {
-    int comparisonResult = a.getSimpleName()
-      .compareToIgnoreCase(b.getSimpleName());
-    if (comparisonResult == 0) {
-      return a.getFullName().compareToIgnoreCase(b.getFullName());
+  private class ListIndex implements SelectionModel.SelectionListener {
+    ArrayList<HeapClassObjNode> myClasses = new ArrayList<>();
+    private int myHeapId = -1;
+
+    @Override
+    public void onHeapChanged(@NotNull Heap heap) {
+      if (myHeapId != heap.getId()) {
+        myHeapId = heap.getId();
+        myClasses.clear();
+        myRoot.clear();
+
+        // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+        final HashSet<ClassObj> entriesSet = new HashSet<>(heap.getClasses().size() + heap.getInstancesCount());
+        for (ClassObj classObj : heap.getClasses()) {
+          entriesSet.add(classObj);
+        }
+        heap.forEachInstance(instance -> {
+          entriesSet.add(instance.getClassObj());
+          return true;
+        });
+
+        for (ClassObj classObj : entriesSet) {
+          myClasses.add(new HeapClassObjNode(classObj, myHeapId));
+        }
+
+        for (HeapClassObjNode heapClassObjNode : myClasses) {
+          myRoot.classifyClassObj(heapClassObjNode);
+        }
+
+        myRoot.update(mySelectedHeapId);
+      }
     }
-    return comparisonResult;
+
+    @Override
+    public void onClassObjChanged(@Nullable ClassObj classObj) {
+
+    }
+
+    @Override
+    public void onInstanceChanged(@Nullable Instance instance) {
+
+    }
+
+    private void buildList() {
+      myRoot.removeAllChildren();
+      for (HeapClassObjNode heapClassObjNode : myClasses) {
+        myRoot.add(heapClassObjNode);
+      }
+    }
+
+    private void clear() {
+      myClasses.clear();
+    }
   }
 
   private enum DisplayMode {
@@ -564,97 +614,6 @@ public final class ClassesTreeView implements DataProvider, Disposable {
     @Override
     public String toString() {
       return myName;
-    }
-  }
-
-  private static class ListIndex implements SelectionModel.SelectionListener {
-    ArrayList<HeapClassObjNode> myClasses = new ArrayList<>();
-    private int myHeapId = -1;
-
-    @Override
-    public void onHeapChanged(@NotNull Heap heap) {
-      if (myHeapId != heap.getId()) {
-        myHeapId = heap.getId();
-        myClasses.clear();
-
-        // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
-        final HashSet<ClassObj> entriesSet = new HashSet<>(heap.getClasses().size() + heap.getInstancesCount());
-        for (ClassObj classObj : heap.getClasses()) {
-          entriesSet.add(classObj);
-        }
-        heap.forEachInstance(instance -> {
-          entriesSet.add(instance.getClassObj());
-          return true;
-        });
-
-        for (ClassObj classObj : entriesSet) {
-          myClasses.add(new HeapClassObjNode(classObj, myHeapId));
-        }
-      }
-    }
-
-    @Override
-    public void onClassObjChanged(@Nullable ClassObj classObj) {
-
-    }
-
-    @Override
-    public void onInstanceChanged(@Nullable Instance instance) {
-
-    }
-
-    private void buildList(@NotNull HeapNode root) {
-      root.removeAllChildren();
-      for (HeapClassObjNode heapClassObjNode : myClasses) {
-        heapClassObjNode.removeFromParent();
-        root.add(heapClassObjNode);
-      }
-    }
-
-    private void clear() {
-      myClasses.clear();
-    }
-  }
-
-  private class TreeIndex implements SelectionModel.SelectionListener {
-    private int myHeapId = -1;
-
-    @Override
-    public void onHeapChanged(@NotNull Heap heap) {
-      // TODO save the expansion state
-      if (myDisplayMode == DisplayMode.TREE) {
-        assert myListIndex.myHeapId == heap.getId();
-        buildTree(heap.getId());
-      }
-    }
-
-    @Override
-    public void onClassObjChanged(@Nullable ClassObj classObj) {
-
-    }
-
-    @Override
-    public void onInstanceChanged(@Nullable Instance instance) {
-
-    }
-
-    private void buildTree(int heapId) {
-      if (myHeapId != heapId) {
-        myHeapId = heapId;
-        myRoot.clear();
-
-        for (HeapClassObjNode heapClassObjNode : myListIndex.myClasses) {
-          myRoot.classifyClassObj(heapClassObjNode);
-        }
-
-        myRoot.update(mySelectedHeapId);
-      }
-
-      myRoot.buildTree();
-    }
-
-    private void clear() {
-      myRoot.clear();
     }
   }
 }

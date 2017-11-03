@@ -71,44 +71,62 @@ public class PsAndroidArtifactTest {
   public void getPossibleConfigurationNamesWithMainArtifact() {
     PsAndroidArtifact artifact = new PsAndroidArtifact(myVariant, ARTIFACT_MAIN, null);
     List<String> configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("compile", "debugCompile");
+    assertThat(configurationNames).containsExactly("compile", "debugCompile",
+                                                   "api", "debugApi",
+                                                   "implementation", "debugImplementation");
 
     myProductFlavors.add(myFlavor1);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile");
+    assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile",
+                                                   "api", "debugApi", "flavor1Api",
+                                                   "implementation", "debugImplementation", "flavor1Implementation");
 
     myProductFlavors.add(myFlavor2);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile", "flavor2Compile");
+    assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile", "flavor2Compile",
+                                                   "api", "debugApi", "flavor1Api", "flavor2Api",
+                                                   "implementation", "debugImplementation", "flavor1Implementation", "flavor2Implementation");
   }
 
   @Test
   public void getPossibleConfigurationNamesWitTestArtifact() {
     PsAndroidArtifact artifact = new PsAndroidArtifact(myVariant, ARTIFACT_UNIT_TEST, null);
     List<String> configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile");
+    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile",
+                                                   "testApi", "testDebugApi",
+                                                   "testImplementation", "testDebugImplementation");
 
     myProductFlavors.add(myFlavor1);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile");
+    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile",
+                                                   "testApi", "testDebugApi", "testFlavor1Api",
+                                                   "testImplementation", "testDebugImplementation", "testFlavor1Implementation");
 
     myProductFlavors.add(myFlavor2);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile", "testFlavor2Compile");
+    assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile", "testFlavor2Compile",
+                                                   "testApi", "testDebugApi", "testFlavor1Api", "testFlavor2Api",
+                                                   "testImplementation", "testDebugImplementation", "testFlavor1Implementation", "testFlavor2Implementation");
   }
 
   @Test
   public void getPossibleConfigurationNamesWitAndroidTestArtifact() {
     PsAndroidArtifact artifact = new PsAndroidArtifact(myVariant, ARTIFACT_ANDROID_TEST, null);
     List<String> configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("androidTestCompile");
+    assertThat(configurationNames).containsExactly("androidTestCompile",
+                                                   "androidTestApi",
+                                                   "androidTestImplementation");
 
     myProductFlavors.add(myFlavor1);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile");
+    assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile",
+                                                   "androidTestApi", "androidTestFlavor1Api",
+                                                   "androidTestImplementation", "androidTestFlavor1Implementation");
 
     myProductFlavors.add(myFlavor2);
     configurationNames = artifact.getPossibleConfigurationNames();
-    assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile", "androidTestFlavor2Compile");
+    assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile", "androidTestFlavor2Compile",
+                                                   "androidTestApi", "androidTestFlavor1Api", "androidTestFlavor2Api",
+                                                   "androidTestImplementation", "androidTestFlavor1Implementation", "androidTestFlavor2Implementation");
   }
 }

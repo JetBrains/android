@@ -26,28 +26,32 @@ import java.util.*;
 /**
  * @author yole
  */
-public class AttributeDefinition {
-  private final String myName;
-  private final List<String> myParentStyleables = ContainerUtil.newSmartList();
-  private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
-  private LinkedList<String> myValues = null;
-  private final Map<String, String> myStyleable2DocValue = new HashMap<>();
-  private HashMap<String, String> myValueDoc = null;
+public class AttributeDefinition implements Cloneable {
+  private String myName;
+  private final List<String> myParentStyleables;
+  private final Set<AttributeFormat> myFormats;
+  private LinkedList<String> myValues;
+  private final Map<String, String> myStyleable2DocValue;
+  private HashMap<String, String> myValueDoc;
   /** Mapping of flag/enum names to their int value */
-  private HashMap<String, Integer> myValueMappings = null;
+  private HashMap<String, Integer> myValueMappings;
   private String myGlobalDocValue;
   private String myAttrGroup;
+  private final String myLibraryName;
 
   public AttributeDefinition(@NotNull String name) {
-    this(name, null, Collections.emptySet());
+    this(name, null, null, Collections.emptySet());
   }
 
-  public AttributeDefinition(@NotNull String name, @Nullable String parentStyleableName, @NotNull Collection<AttributeFormat> formats) {
+  public AttributeDefinition(@NotNull String name,
+                             @Nullable String libraryName,
+                             @Nullable String parentStyleableName,
+                             @NotNull Collection<AttributeFormat> formats) {
     myName = name;
-    if (parentStyleableName != null && !myParentStyleables.contains(parentStyleableName)) {
-      myParentStyleables.add(parentStyleableName);
-    }
-    myFormats.addAll(formats);
+    myLibraryName = libraryName;
+    myParentStyleables = parentStyleableName == null ? ContainerUtil.newSmartList() : ContainerUtil.newSmartList(parentStyleableName);
+    myFormats = formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
+    myStyleable2DocValue = new HashMap<>();
   }
 
   public void addValue(@NotNull String name) {
@@ -77,6 +81,11 @@ public class AttributeDefinition {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  public String getLibraryName() {
+    return myLibraryName;
   }
 
   @NotNull
@@ -153,5 +162,23 @@ public class AttributeDefinition {
   public boolean isValueDeprecated(@NotNull String value) {
     final String doc = getValueDoc(value);
     return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
+  }
+
+  /**
+   * Returns a shallow copy of this attribute definition under a different name.
+   *
+   * @param name the name to give the new attribute definition
+   * @return the new attribute definition
+   */
+  @NotNull
+  public AttributeDefinition cloneWithName(@NotNull String name) {
+    try {
+      AttributeDefinition copy = (AttributeDefinition)super.clone();
+      copy.myName = name;
+      return copy;
+    }
+    catch (CloneNotSupportedException e) {
+      throw new AssertionError();
+    }
   }
 }

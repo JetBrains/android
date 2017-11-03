@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,11 +94,20 @@ public abstract class SyncErrorHandler {
 
   @NotNull
   protected static String getFirstLineMessage(@NotNull String text) {
-    return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).get(0);
+    List<String> lines = getMessageLines(text);
+    if (lines.isEmpty()) {
+      return "";
+    }
+    return lines.get(0);
+  }
+
+  @NotNull
+  protected static List<String> getMessageLines(@NotNull String text) {
+    return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
   }
 
   @Nullable
-  protected Pair<String, Integer> getErrorLocation(@NotNull String msg) {
+  public static Pair<String, Integer> getErrorLocation(@NotNull String msg) {
     Matcher matcher = ERROR_LOCATION_IN_FILE_PATTERN.matcher(msg);
     if (matcher.matches()) {
       String filePath = matcher.group(1);

@@ -17,9 +17,9 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
-import com.android.tools.fd.client.InstantRunArtifact;
-import com.android.tools.fd.client.InstantRunArtifactType;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.ir.client.InstantRunArtifact;
+import com.android.tools.ir.client.InstantRunArtifactType;
+import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.DeployType;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
@@ -36,15 +36,25 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SplitApkDeployTask implements LaunchTask {
 
+  private static final Pattern DEVICE_NOT_FOUND_ERROR = Pattern.compile("device '.*' not found");
+
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
+  private final boolean myDontKill;
 
   public SplitApkDeployTask(Project project, InstantRunContext context) {
+    this(project, context, false);
+  }
+
+  public SplitApkDeployTask(Project project, InstantRunContext context, boolean dontKill) {
     myProject = project;
     myInstantRunContext = context;
+    myDontKill = dontKill;
   }
 
   @NotNull
@@ -63,15 +73,19 @@ public class SplitApkDeployTask implements LaunchTask {
     InstantRunBuildInfo buildInfo = myInstantRunContext.getInstantRunBuildInfo();
     assert buildInfo != null;
 
-    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
-
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
+    installOptions.add("-t");
 
     if (buildInfo.isPatchBuild()) {
       installOptions.add("-p"); // partial install
       installOptions.add(myInstantRunContext.getApplicationId());
     }
 
+    if (myDontKill) {
+      installOptions.add("--dont-kill");
+    }
+
+    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
     for (InstantRunArtifact artifact : artifacts) {
       if (artifact.type == InstantRunArtifactType.SPLIT_MAIN || artifact.type == InstantRunArtifactType.SPLIT) {
@@ -118,7 +132,12 @@ public class SplitApkDeployTask implements LaunchTask {
         return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
       }
       catch (InstallException e) {
-        return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, e.getMessage(), null);
+        InstallResult.FailureCode failureCode = InstallResult.FailureCode.UNTYPED_ERROR;
+        // This can happen if the device gets disconnected during installation
+        if (e.getMessage() != null && DEVICE_NOT_FOUND_ERROR.matcher(e.getMessage()).matches()) {
+          failureCode = InstallResult.FailureCode.DEVICE_NOT_FOUND;
+        }
+        return new InstallResult(failureCode, e.getMessage(), null);
       }
     }
 

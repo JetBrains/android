@@ -19,15 +19,14 @@ package com.android.tools.idea.npw.template;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
 import com.android.tools.idea.templates.StringEvaluator;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Locale;
 
 /**
  * Step for supporting a template.xml's {@code <icon>} tag if one exists (which tells the template
@@ -40,17 +39,16 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
 
   private final ListenerManager myListeners = new ListenerManager();
 
-  public GenerateIconsStep(@NotNull RenderTemplateModel model) {
+  public GenerateIconsStep(@NotNull RenderTemplateModel model, int minSdkVersion) {
     super(model, "Generate Icons");
 
     AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
     assert iconType != null; // It's an error to create <icon> tags w/o types
-    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), iconType);
+    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), minSdkVersion, iconType);
 
     myListeners.receiveAndFire(model.getSourceSet(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 
-    myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel,
-                                              "Convert a source asset into " + iconType.getDisplayName().toLowerCase(Locale.getDefault()));
+    myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel);
   }
 
   @NotNull
@@ -87,5 +85,4 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
   public void dispose() {
     myListeners.releaseAll();
   }
-
 }

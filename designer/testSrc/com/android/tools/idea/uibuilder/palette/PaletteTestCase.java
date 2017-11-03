@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -156,7 +157,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   @Language("XML")
-  private static final String DISCRETE_SEEKBAR_XML =
+  private static final String DISCRETE_SEEK_BAR_XML =
     "<SeekBar\n" +
     "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
@@ -166,7 +167,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   @Language("XML")
-  private static final String DISCRETE_SEEKBAR_PREVIEW_XML =
+  private static final String DISCRETE_SEEK_BAR_PREVIEW_XML =
     "<SeekBar\n" +
     "  android:id=\"@+id/DiscreteSeekBar\"\n" +
     "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
@@ -177,8 +178,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
-    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBar, DISCRETE_SEEKBAR_XML, DISCRETE_SEEKBAR_PREVIEW_XML,
-              DISCRETE_SEEKBAR_XML, IN_PLATFORM, 1.0);
+    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete, DISCRETE_SEEK_BAR_XML,
+              DISCRETE_SEEK_BAR_PREVIEW_XML,
+              DISCRETE_SEEK_BAR_XML, IN_PLATFORM, 1.0);
     NlComponent component = createMockComponent("SeekBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
     checkComponent(component, "SeekBar", AndroidIcons.Views.SeekBar);
@@ -241,6 +243,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM);
   }
 
+  public void assertFlexboxLayout(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, FLEXBOX_LAYOUT, FLEXBOX_LAYOUT_LIB_ARTIFACT);
+  }
+
   public void assertFrameLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM);
   }
@@ -271,7 +277,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout, VERTICAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
-    when(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
+    when(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
     checkComponent(component, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout);
   }
 
@@ -403,6 +409,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertSearchView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, "SearchView", IN_PLATFORM);
+  }
+
+  public void assertViewPager(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, "android.support.v4.view.ViewPager", SUPPORT_LIB_ARTIFACT);
   }
 
   @Language("XML")
@@ -550,8 +560,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:src=\"@android:drawable/ic_input_add\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
-    "  android:clickable=\"true\"\n" +
-    "  app:fabSize=\"mini\" />\n";
+    "  android:clickable=\"true\" />\n";
 
   @Language("XML")
   private static final String FLOATING_ACTION_BUTTON_PREVIEW_XML =
@@ -591,7 +600,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "<android.support.design.widget.TextInputLayout\n" +
     "  android:layout_width=\"match_parent\"\n" +
     "  android:layout_height=\"wrap_content\">\n" +
-    "  <EditText\n" +
+    "  <android.support.design.widget.TextInputEditText\n" +
     "    android:layout_width=\"match_parent\"\n" +
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:hint=\"hint\" />\n" +
@@ -723,7 +732,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   private static NlComponent createMockComponent(@NotNull String tag) {
-    NlComponent component = mock(NlComponent.class);
+    NlComponent component = LayoutTestUtilities.createMockComponent();
     when(component.getTagName()).thenReturn(tag);
     when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
     return component;

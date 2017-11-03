@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -23,24 +24,28 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.validation.validators.FalseValidator;
-import com.android.tools.idea.ui.validation.validators.TrueValidator;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.adtui.validation.validators.TrueValidator;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +63,10 @@ import java.util.function.Function;
  * accepting the packages and an InstallTask installing the packages in the background. No model is needed since no data
  * is recorded.
  */
-public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
+public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   private final BoolProperty myInstallFailed = new BoolValueProperty();
   private final BoolProperty myInstallationFinished = new BoolValueProperty();
+  private final ListenerManager myListeners = new ListenerManager();
 
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
@@ -80,13 +86,25 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private final RepoManager myRepoManager;
   private com.android.repository.api.ProgressIndicator myLogger;
   private static final Object LOGGER_LOCK = new Object();
-  private final BackgroundAction myBackgroundAction = new BackgroundAction();
+  private BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
+  private InstallerFactory myFactory;
+  private boolean myThrottleProgress;
 
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
                                      @NotNull AndroidSdkHandler sdkHandler,
                                      boolean backgroundable) {
+    this(installRequests, uninstallRequests, sdkHandler, backgroundable, StudioSdkInstallerUtil.createInstallerFactory(sdkHandler), false);
+  }
+
+  @VisibleForTesting
+  public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
+                                     @NotNull Collection<LocalPackage> uninstallRequests,
+                                     @NotNull AndroidSdkHandler sdkHandler,
+                                     boolean backgroundable,
+                                     @NotNull InstallerFactory factory,
+                                     boolean throttleProgress) {
     super("Component Installer");
     myInstallRequests = installRequests;
     myUninstallRequests = uninstallRequests;
@@ -95,6 +113,8 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
     myBackgroundable = backgroundable;
     mySdkHandler = sdkHandler;
+    myFactory = factory;
+    myThrottleProgress = throttleProgress;
   }
 
   @Override
@@ -112,6 +132,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
 
     myBackgroundAction.setWizard(wizard);
+
+    // Note: Calling updateNavigationProperties while myInstallationFinished is updated causes ConcurrentModificationException
+    myListeners.listen(myInstallationFinished, v -> ApplicationManager.getApplication().invokeLater(wizard::updateNavigationProperties));
   }
 
   @Override
@@ -119,6 +142,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     mySdkManagerOutput.setText("");
     myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
 
+    myInstallationFinished.set(false);
     startSdkInstall();
   }
 
@@ -129,7 +153,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   @Override
   public boolean canGoBack() {
-    return false;
+    return myInstallationFinished.get();
   }
 
   @NotNull
@@ -146,6 +170,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   @Override
   public void dispose() {
+    myListeners.releaseAll();
     synchronized (LOGGER_LOCK) {
       // If we're backgrounded, don't cancel when the window closes; allow the operation to continue.
       if (myLogger != null && !myBackgroundAction.isBackgrounded()) {
@@ -157,11 +182,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private void startSdkInstall() {
     CustomLogger customLogger = new CustomLogger();
     synchronized (LOGGER_LOCK) {
-      myLogger = new ThrottledProgressWrapper(customLogger);
+      myLogger = myThrottleProgress ? new ThrottledProgressWrapper(customLogger) : customLogger;
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      UIUtil.invokeLaterIfNeeded(() -> {
+      GuiUtils.invokeLaterIfNeeded(() -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
@@ -172,19 +197,21 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
         else {
           myProgressDetailLabel.setText("Done");
           checkForUpgrades(myInstallRequests);
+          myInstallRequests.clear();
+          myUninstallRequests.clear();
         }
         myInstallationFinished.set(true);
-      });
+      }, ModalityState.any());
       return null;
     };
 
-    InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(mySdkHandler);
-
-    InstallTask task = new InstallTask(factory, mySdkHandler, StudioSettingsController.getInstance(), myLogger);
+    InstallTask task = new InstallTask(myFactory, mySdkHandler, StudioSettingsController.getInstance(), myLogger);
     task.setInstallRequests(myInstallRequests);
     task.setUninstallRequests(myUninstallRequests);
     task.setCompleteCallback(completeCallback);
     task.setPrepareCompleteCallback(() -> myBackgroundAction.setEnabled(false));
+    myBackgroundAction.setTask(task);
+
     ProgressIndicator indicator;
     boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
     if (hasOpenProjects) {
@@ -228,12 +255,13 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     }
   }
 
-
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
 
     private ProgressIndicator myIndicator;
     private boolean myCancelled;
     private Logger myLogger = Logger.getInstance(getClass());
+    // Maintain separately since JProgressBar has low resolution
+    private double myFraction = 0;
 
     @Override
     public void setText(@Nullable final String s) {
@@ -281,6 +309,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setFraction(final double v) {
+      myFraction = v;
       UIUtil.invokeLaterIfNeeded(() -> {
         myProgressBar.setIndeterminate(false);
         myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
@@ -292,14 +321,18 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public double getFraction() {
-      return myProgressBar.getPercentComplete();
+      return myFraction;
     }
 
     @Override
-    public void setSecondaryText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(s));
+    public void setSecondaryText(@Nullable String s) {
+      if (s != null && s.length() > 80) {
+        s = s.substring(s.length() - 80, s.length());
+      }
+      String label = s;
+      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(label));
       if (myIndicator != null) {
-        myIndicator.setText2(s);
+        myIndicator.setText2(label);
       }
     }
 
@@ -331,6 +364,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     public void logInfo(@NotNull String s) {
       appendText(s);
       myLogger.info(s);
+    }
+
+    @Override
+    public void logVerbose(@NotNull String s) {
     }
 
     private void appendText(@NotNull final String s) {
@@ -366,9 +403,14 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private static class BackgroundAction extends AbstractAction {
     private boolean myIsBackgrounded = false;
     private ModelWizard.Facade myWizard;
+    private InstallTask myTask;
 
     public BackgroundAction() {
       super("Background");
+    }
+
+    public void setTask(InstallTask task) {
+      myTask = task;
     }
 
     public void setWizard(@NotNull ModelWizard.Facade wizard) {
@@ -378,6 +420,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     @Override
     public void actionPerformed(ActionEvent e) {
       myIsBackgrounded = true;
+      myTask.foregroundIndicatorClosed();
       myWizard.cancel();
     }
 

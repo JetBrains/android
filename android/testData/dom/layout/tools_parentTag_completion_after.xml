@@ -1,0 +1,3 @@
+<merge xmlns:tools="http://schemas.android.com/tools"
+       tools:parentTag="android.widget.LinearLayout">
+</merge>

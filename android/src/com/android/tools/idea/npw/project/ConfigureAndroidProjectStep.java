@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.adtui.LabelWithEditLink;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -40,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collection;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -55,10 +59,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   private JTextField myAppName;
   private JPanel myPanel;
   private JTextField myCompanyDomain;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
   private JCheckBox myCppSupportCheck;
+  private JCheckBox myKotlinSupportCheck;
 
-  public ConfigureAndroidProjectStep(NewProjectModel model) {
+  public ConfigureAndroidProjectStep(@NotNull NewProjectModel model) {
     super(model, "Create Android Project");
 
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -79,6 +84,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
     myBindings.bindTwoWay(new TextProperty(myCompanyDomain), model.companyDomain());
     myBindings.bindTwoWay(new SelectedProperty(myCppSupportCheck), model.enableCppSupport());
+
+    myKotlinSupportCheck.setVisible(StudioFlags.NPW_KOTLIN.get());
+    myBindings.bindTwoWay(new SelectedProperty(myKotlinSupportCheck), model.enableKotlinSupport());
 
     myProjectLocation.addActionListener(event -> {
       String finalPath = browseForFile(locationText.get());
@@ -101,12 +109,17 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     Expression<File> locationFile = model.projectLocation().transform(File::new);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
-    myValidatorPanel.registerValidator(model.packageName(), value -> {
-      return Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value));
-    });
+    myValidatorPanel.registerValidator(model.packageName(),
+                                       value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure your new project");
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+  }
+
+  @NotNull
+  @Override
+  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+    return Lists.newArrayList(new ConfigureFormFactorStep(getModel()), new ConfigureCppSupportStep(getModel()));
   }
 
   @Override
@@ -119,6 +132,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myAppName;
   }
 
   @NotNull

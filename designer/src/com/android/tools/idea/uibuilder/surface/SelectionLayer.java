@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -44,10 +48,10 @@ public class SelectionLayer extends Layer {
       if (parentHandlingSelection(component)) {
         continue;
       }
-      int x = Coordinates.getSwingX(myScreenView, component.x);
-      int y = Coordinates.getSwingY(myScreenView, component.y);
-      int w = Coordinates.getSwingDimension(myScreenView, component.w);
-      int h = Coordinates.getSwingDimension(myScreenView, component.h);
+      int x = Coordinates.getSwingX(myScreenView, NlComponentHelperKt.getX(component));
+      int y = Coordinates.getSwingY(myScreenView, NlComponentHelperKt.getY(component));
+      int w = Coordinates.getSwingDimension(myScreenView, NlComponentHelperKt.getW(component));
+      int h = Coordinates.getSwingDimension(myScreenView, NlComponentHelperKt.getH(component));
       NlGraphics.drawRect(NlDrawingStyle.SELECTION, gc, x, y, w + 1, h + 1);
 
       SelectionHandles handles = model.getHandles(component);
@@ -64,7 +68,7 @@ public class SelectionLayer extends Layer {
    * Utility function that checks if the component is a child of a view group that
    * handles painting
    *
-   * @param component          the component we are looking at
+   * @param component the component we are looking at
    * @return true if the parent container handles painting
    */
   private static boolean parentHandlingSelection(@NotNull NlComponent component) {
@@ -74,13 +78,13 @@ public class SelectionLayer extends Layer {
       return false;
     }
 
-    ViewInfo view = parent.viewInfo;
+    ViewInfo view = NlComponentHelperKt.getViewInfo(parent);
 
     if (view == null) {
       return false;
     }
 
-    ViewHandler handler = parent.getViewHandler();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(parent);
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {

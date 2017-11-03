@@ -23,6 +23,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 
 public class ItemTransferable implements Transferable {
   public static final DataFlavor DESIGNER_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Designer Item");
+  public static final DataFlavor NAV_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Nav Editor Item");
 
   private final DnDTransferItem myItem;
 

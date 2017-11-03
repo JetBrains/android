@@ -16,34 +16,31 @@
 
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.assetstudiolib.ActionBarIconGenerator;
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
+import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidActionBarIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidLauncherIconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.ui.properties.expressions.optional.AsOptionalExpression;
-import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
-import com.android.tools.idea.ui.properties.swing.*;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
+import com.android.tools.idea.observable.expressions.string.FormatExpression;
+import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -62,7 +59,7 @@ import java.util.Map;
  * See also {@link GenerateIconsPanel} which owns a couple of these panels, one for each
  * {@link AndroidIconType}.
  */
-public final class ConfigureIconPanel extends JPanel implements Disposable {
+public final class ConfigureIconPanel extends JPanel implements Disposable, ConfigureIconView {
 
   /**
    * Source material icons are provided in a vector graphics format, but their default resolution
@@ -172,11 +169,11 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
    * presented to the user in a pulldown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidIconType iconType) {
+  public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidIconType iconType, int minSdkVersion) {
     super(new BorderLayout());
 
     myIconType = iconType;
-    myIconGenerator = AndroidIconType.createIconGenerator(iconType);
+    myIconGenerator = createIconGenerator(iconType, minSdkVersion);
 
     DefaultComboBoxModel themesModel = new DefaultComboBoxModel(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
@@ -195,7 +192,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     myShapeComboBox.setSelectedItem(GraphicGenerator.Shape.SQUARE);
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-    myScrollPane.setBorder(JBUI.Borders.empty());
+    myScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
 
     myOutputName = new TextProperty(myOutputNameTextField);
 
@@ -239,6 +236,20 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       Disposer.register(this, assetComponent);
     }
     add(myRootPanel);
+  }
+
+  @NotNull
+  private static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
+    switch (iconType) {
+      case LAUNCHER:
+        return new AndroidLauncherIconGenerator(minSdkVersion);
+      case ACTIONBAR:
+        return new AndroidActionBarIconGenerator(minSdkVersion);
+      case NOTIFICATION:
+        return new AndroidNotificationIconGenerator(minSdkVersion);
+    }
+
+    throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);
   }
 
   private void initializeListenersAndBindings() {
@@ -350,19 +361,28 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   /**
    * Return an icon generator which will create Android icons using the panel's current settings.
    */
+  @Override
   @NotNull
   public AndroidIconGenerator getIconGenerator() {
     return myIconGenerator;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getRootComponent() {
+    return this;
   }
 
   /**
    * Add a listener which will be triggered whenever the asset represented by this panel is
    * modified in any way.
    */
+  @Override
   public void addAssetListener(@NotNull ActionListener listener) {
     myAssetListeners.add(listener);
   }
 
+  @Override
   @NotNull
   public StringProperty outputName() {
     return myOutputName;
@@ -410,5 +430,6 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
     myAssetListeners.clear();
+    myIconGenerator.dispose();
   }
 }

@@ -1,0 +1,416 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* SQLite grammar adapted from http://www.sqlite.org/docsrc/doc/trunk/art/syntax/all-bnf.html
+ * This should correspond directly to diagrams in the "SQL Syntax" part of SQLite documentation,
+ * e.g. https://sqlite.org/lang_select.html. See also all diagrams here: http://www.sqlite.org/syntaxdiagrams.html
+ *
+ * Unfortunately the grammar linked above skips the most basic definitions, like string-literal,
+ * table-name or digit, so we need to fill in these gaps ourselves.
+ *
+ * The grammar for expressions (`expr`) also needed to be reworked, see below.
+ *
+ * This file is used by Grammar-Kit to generate the lexer, parser, node types and PSI classes for Room SQL.
+ */
+
+{
+  parserClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Room"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.roomSql.psi"
+  psiImplPackage="com.android.tools.idea.lang.roomSql.psi.impl"
+  psiImplUtilClass="com.android.tools.idea.lang.roomSql.psi.PsiImplUtil"
+
+  elementTypeHolderClass="com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes"
+  elementTypeClass="com.android.tools.idea.lang.roomSql.psi.RoomAstNodeType"
+  tokenTypeClass="com.android.tools.idea.lang.roomSql.psi.RoomTokenType"
+
+  classHeader='generatedFilesHeader.txt'
+
+  tokens=[
+    // In the flex file we manually insert %caseless, in the preview only upper case keywords work.
+
+    NUMERIC_LITERAL='regexp:(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)'
+
+    // Manually tweaked in the flex file to handle literals without the closing character.
+    SINGLE_QUOTE_STRING_LITERAL="regexp:X?'(''|[^'])*'"
+    DOUBLE_QUOTE_STRING_LITERAL="regexp:X?\"(\"\"|[^\"])*\""
+    BRACKET_LITERAL="regexp:\[[^\]]*\]"
+    BACKTICK_LITERAL="regexp:`(``|[^`])*`"
+
+    // Some approximation of what's actually allowed. This doesn't seem to be defined anywhere.
+    IDENTIFIER='regexp:([:letter:]|_)([:letter:]|[:digit:]|_)*'
+    PARAMETER_NAME='regexp::\w+' // Simple regexp for Live Preview, this is tweaked in the flex file.
+    COMMENT='regexp:/\*.*\*/' // Simple regexp for Live Preview, this is tweaked in the flex file.
+    LINE_COMMENT='regexp:--[^r\n]*'
+
+    AMP='&'
+    BAR='|'
+    COMMA=','
+    CONCAT='||'
+    DIV='/'
+    DOT='.'
+    EQ='='
+    EQEQ='=='
+    GT='>'
+    GTE='>='
+    LPAREN='('
+    LT='<'
+    LTE='<='
+    MINUS='-'
+    MOD='%'
+    NOT_EQ='!='
+    PLUS='+'
+    RPAREN=')'
+    SEMICOLON=';'
+    SHL='<<'
+    SHR='>>'
+    STAR='*'
+    TILDE='~'
+    UNEQ='<>'
+
+    // Grammar-Kit's live preview emulates PsiBuilder's behavior of ignoring whitespace, by
+    // looking for a token type that matches a space and is not used otherwise. Here's one:
+    WHITE_SPACE_FOR_LIVE_PREVIEW='regexp:\s+'
+  ]
+
+  extends(".*_expr")=expr
+}
+
+sql_stmt_list ::= ( sql_stmt )? ( ';' ( sql_stmt )? )*
+
+sql_stmt ::=
+  ( EXPLAIN ( QUERY PLAN )? )?
+  ( alter_table_stmt
+  | analyze_stmt
+  | attach_stmt
+  | begin_stmt
+  | commit_stmt
+  | create_index_stmt
+  | create_table_stmt
+  | create_trigger_stmt
+  | create_view_stmt
+  | create_virtual_table_stmt
+  | delete_stmt
+  | delete_stmt_limited
+  | detach_stmt
+  | drop_index_stmt
+  | drop_table_stmt
+  | drop_trigger_stmt
+  | drop_view_stmt
+  | insert_stmt
+  | pragma_stmt
+  | reindex_stmt
+  | release_stmt
+  | rollback_stmt
+  | savepoint_stmt
+  | select_stmt
+  | update_stmt
+  | update_stmt_limited
+  | vacuum_stmt
+  )
+
+alter_table_stmt ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO table_name | ADD ( COLUMN )? column_def )
+
+table_name ::= name {
+  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
+  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
+  generateTokenAccessors=false
+  methods=[getReference]
+}
+
+database_name ::= name
+
+analyze_stmt ::= ANALYZE ( database_name | table_or_index_name | database_name '.' table_or_index_name )?
+
+table_or_index_name ::= name
+
+attach_stmt ::= ATTACH ( DATABASE )? expr AS database_name
+
+begin_stmt ::= BEGIN ( DEFERRED | IMMEDIATE | EXCLUSIVE )? ( TRANSACTION )?
+
+commit_stmt ::= ( COMMIT | END ) ( TRANSACTION )?
+
+rollback_stmt ::= ROLLBACK ( TRANSACTION )? ( TO ( SAVEPOINT )? savepoint_name )?
+
+savepoint_name ::= name
+
+savepoint_stmt ::= SAVEPOINT savepoint_name
+
+release_stmt ::= RELEASE ( SAVEPOINT )? savepoint_name
+
+create_index_stmt ::=
+  CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )?
+  ( database_name '.' )? index_name ON table_name '(' indexed_column ( ',' indexed_column )* ')'
+  ( WHERE expr )?
+
+index_name ::= name
+
+indexed_column ::= column_name ( COLLATE collation_name )? ( ASC | DESC )?
+
+column_name ::= name {
+  implements="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
+  mixin="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
+  generateTokenAccessors=false
+  methods=[getReference]
+}
+
+collation_name ::= name
+
+create_table_stmt ::=
+  CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
+  ( database_name '.' )? table_name
+  ( '(' column_def ( ',' column_def )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS select_stmt )
+
+column_def ::= column_name ( type_name )? ( column_constraint )*
+
+type_name ::= name ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
+
+column_constraint ::=
+  ( CONSTRAINT  name )?
+  ( PRIMARY KEY ( ASC | DESC )? conflict_clause ( AUTOINCREMENT )?
+  | NOT NULL conflict_clause
+  | UNIQUE conflict_clause
+  | CHECK '(' expr ')'
+  | DEFAULT ( signed_number | literal_value | '(' expr ')' )
+  | COLLATE collation_name | foreign_key_clause )
+
+signed_number ::= ( '+' | '-' )? NUMERIC_LITERAL
+
+table_constraint ::=
+  ( CONSTRAINT  name )?
+  ( ( PRIMARY KEY | UNIQUE ) '(' indexed_column ( ',' indexed_column )* ')' conflict_clause
+  | CHECK '(' expr ')'
+  | FOREIGN KEY '(' column_name ( ',' column_name )* ')' foreign_key_clause )
+
+foreign_key_clause ::=
+  REFERENCES foreign_table ( '(' column_name ( ',' column_name )* ')' )?
+  ( ( ON ( DELETE | UPDATE ) ( SET NULL | SET DEFAULT | CASCADE | RESTRICT | NO ACTION ) | MATCH  name ) )?
+  ( ( NOT )? DEFERRABLE ( INITIALLY DEFERRED | INITIALLY IMMEDIATE )? )?
+
+foreign_table ::= name
+
+conflict_clause ::= ( ON CONFLICT ( ROLLBACK | ABORT | FAIL | IGNORE | REPLACE ) )?
+
+create_trigger_stmt ::=
+  CREATE ( TEMP | TEMPORARY )? TRIGGER ( IF NOT EXISTS )?
+  ( database_name '.' )? trigger_name ( BEFORE | AFTER | INSTEAD OF )?
+  ( DELETE | INSERT | UPDATE ( OF column_name ( ',' column_name )* )? ) ON table_name
+  ( FOR EACH ROW )? ( WHEN expr )?
+  BEGIN ( update_stmt | insert_stmt | delete_stmt | select_stmt ) ';' END
+
+trigger_name ::= name
+
+create_view_stmt ::=
+  CREATE ( TEMP | TEMPORARY )? VIEW ( IF NOT EXISTS )?
+  ( database_name '.' )? view_name AS select_stmt
+
+view_name ::= name
+
+create_virtual_table_stmt ::=
+  CREATE VIRTUAL TABLE ( IF NOT EXISTS )?
+  ( database_name '.' )? table_name
+  USING module_name ( '(' module_argument ( ',' module_argument )* ')' )?
+
+module_name ::= name
+module_argument ::= name
+
+with_clause ::= WITH ( RECURSIVE )? cte_table_name AS '(' select_stmt ')' ( ',' cte_table_name AS '(' select_stmt ')' )*
+
+cte_table_name ::= table_name ( '(' column_name ( ',' column_name )* ')' )?
+
+common_table_expression ::= table_name ( '(' column_name ( ',' column_name )* ')' )? AS '(' select_stmt ')'
+
+delete_stmt ::= ( with_clause )? DELETE FROM qualified_table_name
+( WHERE expr )?
+
+delete_stmt_limited ::=
+  ( with_clause )? DELETE FROM qualified_table_name
+  ( WHERE expr )?
+  ( ( ORDER BY ordering_term ( ',' ordering_term )* )?
+  LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+
+detach_stmt ::= DETACH ( DATABASE )? database_name
+
+drop_index_stmt ::= DROP INDEX ( IF EXISTS )? ( database_name '.' )? index_name
+
+drop_table_stmt ::= DROP TABLE ( IF EXISTS )? ( database_name '.' )? table_name
+
+drop_trigger_stmt ::= DROP TRIGGER ( IF EXISTS )? ( database_name '.' )? trigger_name
+
+drop_view_stmt ::= DROP VIEW ( IF EXISTS )? ( database_name '.' )? view_name
+
+// Below is the original, left-recursive grammar for expressions, as pictured on the diagram: http://www.sqlite.org/syntaxdiagrams.html#expr
+//
+// It needed to be changed to a form that Grammar-Kit accepts (due to left recursion), see this link for details:
+// https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
+//
+// Operator precedence taken from http://www.sqlite.org/lang_expr.html
+//
+//expr ::=
+//  literal_value
+//  | bind_parameter
+//  | ( ( database_name '.' )? table_name '.' )? column_name
+//  | unary_operator expr
+//  | expr binary_operator expr
+//  | function_name '(' ( ( DISTINCT )? expr ( ',' expr )* | '*' )? ')'
+//  | '(' expr ')'
+//  | CAST '(' expr AS type_name ')'
+//  | expr COLLATE collation_name
+//  | expr ( NOT )? ( LIKE | GLOB | REGEXP | MATCH ) expr ( ESCAPE expr )?
+//  | expr ( ISNULL | NOTNULL | NOT NULL )
+//  | expr IS ( NOT )? expr
+//  | expr ( NOT )? BETWEEN expr AND expr
+//  | expr ( NOT )? IN ( '(' ( select_stmt | expr ( ',' expr )* )? ')' | ( database_name '.' )? table_name )
+//  | ( ( NOT )? EXISTS )? '(' select_stmt ')'
+//  | CASE ( expr )? WHEN expr THEN expr ( ELSE expr )? END
+//  | raise_function
+
+expr ::=
+  raise_function_expr
+  | case_expr
+  | exists_expr
+  | in_expr
+  | isnull_expr
+  | like_expr
+  | cast_expr
+  | paren_expr
+  | function_call_expr
+  | or_expr
+  | and_expr
+  | equivalence_group
+  | comparison_expr
+  | bit_expr
+  | add_expr
+  | mul_expr
+  | concat_expr
+  | unary_expr
+  | collate_expr // "The COLLATE operator has a higher precedence (binds more tightly) than any binary operator and any unary prefix operator..."
+  | column_ref_expr
+  | literal_expr
+
+// "The precedence of the BETWEEN operator is the same as the precedence as operators == and != and LIKE and groups left to right."
+private equivalence_group ::= equivalence_expr | between_expr
+
+and_expr ::= expr AND expr
+or_expr ::= expr OR expr
+equivalence_expr ::= expr ( '==' | '=' | '!=' | '<>' | IS NOT? | IN | LIKE | GLOB | MATCH | REGEXP) expr
+comparison_expr ::= expr ( '<' | '<=' | '>' | '>=' ) expr
+bit_expr ::= expr ( '<<' | '>>' | '&' | '|' ) expr
+add_expr ::= expr ( '+' | '-' ) expr
+mul_expr ::= expr ( '*' | '/' | '%' ) expr
+concat_expr ::= expr '||' expr
+unary_expr ::= ('-' | '+' | '~' | NOT) expr
+literal_expr ::= literal_value | bind_parameter
+paren_expr ::= '(' expr ')'
+collate_expr ::= expr COLLATE collation_name
+between_expr ::= expr NOT? BETWEEN expr AND expr
+cast_expr ::= CAST '(' expr AS type_name ')'
+case_expr ::= CASE expr? ( WHEN expr THEN expr )+ ( ELSE expr )? END
+like_expr ::= expr NOT? ( LIKE | GLOB | REGEXP | MATCH ) expr ( ESCAPE expr )?
+isnull_expr ::= expr ( ISNULL | NOTNULL | NOT NULL )
+in_expr ::=  expr ( NOT )? IN ( '(' ( select_stmt | expr ( ',' expr )* )? ')' | ( database_name '.' )? table_name )
+exists_expr ::= ( ( NOT )? EXISTS )? '(' select_stmt ')'
+function_call_expr ::= function_name '(' ( ( DISTINCT )? expr ( ',' expr )* | '*' )? ')'
+
+column_ref_expr ::=
+  database_name '.' table_name '.' column_name
+  | table_name '.' column_name
+  | column_name
+
+function_name ::= name
+
+bind_parameter ::= PARAMETER_NAME
+
+raise_function_expr ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) ',' error_message ) ')'
+
+error_message ::= string_literal // TODO: check
+
+literal_value ::=
+  NUMERIC_LITERAL
+  | string_literal // X marks a blob literal
+  | NULL
+  | CURRENT_TIME
+  | CURRENT_DATE
+  | CURRENT_TIMESTAMP
+
+insert_stmt ::=
+  ( with_clause )? ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
+  ( database_name '.' )? table_name ( '(' column_name ( ',' column_name )* ')' )?
+  ( VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* | select_stmt | DEFAULT VALUES )
+
+pragma_stmt ::= PRAGMA ( database_name '.' )? pragma_name ( '=' pragma_value | '(' pragma_value ')' )?
+
+pragma_name ::= name // TODO: check
+
+pragma_value ::= signed_number | name | string_literal // TODO: check
+
+reindex_stmt ::= REINDEX ( collation_name | ( database_name '.' )? ( table_name | index_name ) )?
+
+select_stmt ::=
+  ( WITH ( RECURSIVE )? common_table_expression ( ',' common_table_expression )* )?
+  ( SELECT ( DISTINCT | ALL )? result_column ( ',' result_column )*
+      ( FROM ( join_clause | table_or_subquery ( ',' table_or_subquery )* ) )?
+      ( WHERE expr )?
+      ( GROUP BY expr ( ',' expr )* ( HAVING expr )? )?
+    | VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* )
+  ( compound_operator ( SELECT ( DISTINCT | ALL )? result_column ( ',' result_column )*
+    ( FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
+    ( WHERE expr )?
+    ( GROUP BY expr ( ',' expr )* ( HAVING expr )? )? | VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )* ) )*
+  ( ORDER BY ordering_term ( ',' ordering_term )* )?
+  ( LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+
+join_clause ::= table_or_subquery ( join_operator table_or_subquery join_constraint? )+
+
+table_or_subquery ::=
+  ( database_name '.' )? table_name ( ( AS )? table_alias )? ( INDEXED BY index_name | NOT INDEXED )?
+  | '(' ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) ')'
+  | '(' select_stmt ')' ( ( AS )? table_alias )?
+
+table_alias ::= name
+
+result_column ::=
+  '*'
+  | table_name '.' '*'
+  | expr ( ( AS )? column_alias )?
+
+column_alias ::= name
+
+join_operator ::= ',' | ( NATURAL )? ( LEFT ( OUTER )? | INNER | CROSS )? JOIN
+
+join_constraint ::= ON expr | USING '(' column_name ( ',' column_name )* ')'
+
+ordering_term ::= expr ( COLLATE collation_name )? ( ASC | DESC )?
+
+compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
+
+update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? qualified_table_name
+SET column_name '=' expr ( ',' column_name '=' expr )* ( WHERE expr )?
+
+update_stmt_limited ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? qualified_table_name
+SET column_name '=' expr ( ',' column_name '=' expr )* ( WHERE expr )?
+( ( ORDER BY ordering_term ( ',' ordering_term )* )?
+LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+
+qualified_table_name ::= ( database_name '.' )? table_name ( INDEXED BY index_name | NOT INDEXED )?
+
+vacuum_stmt ::= VACUUM
+
+private name ::= IDENTIFIER | BRACKET_LITERAL | BACKTICK_LITERAL | string_literal
+private string_literal ::= SINGLE_QUOTE_STRING_LITERAL | DOUBLE_QUOTE_STRING_LITERAL

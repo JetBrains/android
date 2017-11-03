@@ -21,6 +21,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.event.KeyListener;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +38,10 @@ public interface ToolContent<T> extends Disposable {
   void setToolContext(@Nullable T toolContext);
 
   /**
-   * @return the visual component for this tool window.
+   * Used to get the root component for this rool window.
+   * The root component may not used to interact by default. For example, it is just a decoration.
+   * To get the default interactive component, use {@link #getFocusedComponent()} instead.
+   * @return the root of component for this tool window.
    */
   @NotNull
   JComponent getComponent();
@@ -45,32 +50,61 @@ public interface ToolContent<T> extends Disposable {
    * Request the component that should receive focus initially.
    */
   @NotNull
-  JComponent getFocusedComponent();
+  default JComponent getFocusedComponent() {
+    return getComponent();
+  }
 
   /**
    * @return the actions to be added to the top of the gear dropdown.
    */
   @NotNull
-  List<AnAction> getGearActions();
+  default List<AnAction> getGearActions() {
+    return Collections.emptyList();
+  }
 
   /**
    * @return the actions to be added to the left of the gear dropdown.
    */
   @NotNull
-  List<AnAction> getAdditionalActions();
+  default List<AnAction> getAdditionalActions() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * The tool window system will register a callback for restoring a hidden tool window.
+   * TODO: Replace this callback with a callback for all 3 actions: restore, autoHide, startFiltering
+   */
+  default void setRestoreToolWindow(@NotNull Runnable runnable) {}
 
   /**
    * The tool window system will register a callback for closing a tool window in auto hide mode.
    */
-  void registerCloseAutoHideWindow(@NotNull Runnable runnable);
+  default void setCloseAutoHideWindow(@NotNull Runnable runnable) {}
 
   /**
    * Returns true if filtering is supported.
    */
-  boolean supportsFiltering();
+  default boolean supportsFiltering() {
+    return false;
+  }
 
   /**
    * Set a new filter for the content being shown.
    */
-  void setFilter(@NotNull String filter);
+  default void setFilter(@NotNull String filter) {}
+
+  /**
+   * Optionally a content window can listen to the key events going to the search filter control.
+   */
+  @Nullable
+  default KeyListener getFilterKeyListener() {
+    return null;
+  }
+
+  /**
+   * The tool window system will register a listener for starting filtering.
+   * A content window choose to use this listener to initiate filtering with an initial character.
+   * The search control will take focus and start filtering with the specified character.
+   */
+  default void setStartFiltering(@NotNull StartFilteringListener listener) {}
 }

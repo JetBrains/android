@@ -15,63 +15,43 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceNotificationManager.Reason;
-import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.MultiResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
-import com.intellij.ui.*;
-import com.intellij.ui.components.JBList;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
-import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.IntSupplier;
-import java.util.stream.Stream;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
@@ -79,15 +59,17 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private StringResourceTable myTable;
-  JTextComponent myKeyTextField;
+  private JTextComponent myKeyTextField;
   @VisibleForTesting TextFieldWithBrowseButton myDefaultValueTextField;
-  TextFieldWithBrowseButton myTranslationTextField;
+  private TextFieldWithBrowseButton myTranslationTextField;
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
-  private LocalResourceRepository myResourceRepository;
-  private long myModificationCount;
-  private ResourceChangeListener myResourceChangeListener;
+  private StringResourceRepository myResourceRepository;
+
+  private GoToDeclarationAction myGoToAction;
+  private DeleteStringAction myDeleteAction;
+  private RemoveKeysAction myRemoveKeysAction;
 
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
@@ -106,10 +88,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     initTable();
-    myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(StringResourceTableModel.KEY_COLUMN));
-
-    addResourceChangeListener();
-
     Disposer.register(parentDisposable, this);
 
     myLoadingPanel.setLoadingText("Loading string resource data");
@@ -120,90 +98,99 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
   }
 
+  public void removeSelectedKeys() {
+    myRemoveKeysAction.actionPerformed(null);
+  }
+
+  void addDocumentListener(@NotNull DocumentListener listener) {
+    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().getDocument().addDocumentListener(listener);
+    myDefaultValueTextField.getTextField().getDocument().addDocumentListener(listener);
+    myTranslationTextField.getTextField().getDocument().addDocumentListener(listener);
+  }
+
+  void addFocusListener(@NotNull FocusListener listener) {
+    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().addFocusListener(listener);
+    myDefaultValueTextField.getTextField().addFocusListener(listener);
+    myTranslationTextField.getTextField().addFocusListener(listener);
+  }
+
   private void createUIComponents() {
-    myTable = new StringResourceTable();
+    createTable();
+    createTablePopupMenu();
+
+    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
 
     createDefaultValueTextField();
     createTranslationTextField();
   }
 
+  private void createTable() {
+    myTable = new StringResourceTable();
+
+    myRemoveKeysAction = new RemoveKeysAction(this);
+    myDeleteAction = new DeleteStringAction(this);
+    myGoToAction = new GoToDeclarationAction(this);
+
+    ActionMap actionMap = myTable.getActionMap();
+    actionMap.put("delete", myDeleteAction);
+  }
+
+  private void createTablePopupMenu() {
+    JPopupMenu menu = new JPopupMenu();
+    JMenuItem goTo = menu.add(myGoToAction);
+    JMenuItem delete = menu.add(myDeleteAction);
+
+    myTable.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(@NotNull MouseEvent e) {
+        openPopup(e);
+      }
+
+      @Override
+      public void mouseReleased(@NotNull MouseEvent e) {
+        openPopup(e);
+      }
+
+      private void openPopup(@NotNull MouseEvent e) {
+        if (!e.isPopupTrigger()) {
+          return;
+        }
+        myGoToAction.update(goTo, e);
+        myDeleteAction.update(delete, e);
+        if (goTo.isVisible() || delete.isVisible()) {
+          menu.show(myTable, e.getX(), e.getY());
+        }
+      }
+    });
+  }
+
   private void createDefaultValueTextField() {
-    myDefaultValueTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+    JTextField textField = new TranslationsEditorTextField(myTable, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
+    myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-    myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
-
-    FocusListener listener = new SetTableValueAtFocusListener(StringResourceTableModel.DEFAULT_VALUE_COLUMN);
-    myDefaultValueTextField.getTextField().addFocusListener(listener);
   }
 
   private void createTranslationTextField() {
-    myTranslationTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedColumnModelIndex);
+    new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
+    myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-    myTranslationTextField.addActionListener(new ShowMultilineActionListener());
-    myTranslationTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
   }
 
-  private static final class TranslationsEditorTextField extends JBTextField {
-    private TranslationsEditorTextField() {
-      super(10);
-    }
-
-    @Override
-    public void paste() {
-      super.paste();
-      setFont(FontUtil.getFontAbleToDisplay(getText(), getFont()));
-    }
+  @NotNull
+  public AndroidFacet getFacet() {
+    return myFacet;
   }
 
-  private final class SetTableValueAtFocusListener implements FocusListener {
-    private final IntSupplier myColumnSupplier;
-
-    private int mySelectedRowCount;
-    private int mySelectedColumnCount;
-    private int myRow;
-    private int myColumn;
-
-    private SetTableValueAtFocusListener(int column) {
-      myColumnSupplier = () -> column;
-    }
-
-    private SetTableValueAtFocusListener(@NotNull IntSupplier columnSupplier) {
-      myColumnSupplier = columnSupplier;
-    }
-
-    @Override
-    public void focusGained(@NotNull FocusEvent event) {
-      mySelectedRowCount = myTable.getSelectedRowCount();
-      mySelectedColumnCount = myTable.getSelectedColumnCount();
-      myRow = myTable.getSelectedRowModelIndex();
-      myColumn = myColumnSupplier.getAsInt();
-    }
-
-    @Override
-    public void focusLost(@NotNull FocusEvent event) {
-      if (mySelectedRowCount != 1 || mySelectedColumnCount != 1) {
-        return;
-      }
-
-      JTextComponent component = (JTextComponent)event.getComponent();
-
-      if (!component.isEditable()) {
-        return;
-      }
-
-      myTable.getModel().setValueAt(component.getText(), myRow, myColumn);
-      myTable.refilter();
-    }
-  }
-
+  // TODO Delete this method
   @Override
   public void dispose() {
-    ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).removeListener(myResourceChangeListener, myFacet, null, null);
   }
 
-  public void reloadData() {
+  void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
@@ -214,158 +201,19 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private ActionToolbar createToolbar() {
     DefaultActionGroup group = new DefaultActionGroup();
-    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidStringResourceView", group, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
 
-    final AnAction addKeyAction = new AnAction("Add Key", "", AllIcons.ToolbarDecorator.Add) {
-      @Override
-      public void update(AnActionEvent e) {
-        e.getPresentation().setEnabled(myTable.getData() != null);
-      }
+    JComponent toolbarComponent = toolbar.getComponent();
+    toolbarComponent.setName("toolbar");
 
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        StringResourceData data = myTable.getData();
-        assert data != null;
-
-        NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet, ImmutableSet.copyOf(data.getKeys()));
-        if (dialog.showAndGet()) {
-          StringsWriteUtils.createItem(myFacet, dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
-        }
-      }
-    };
-
-    group.add(addKeyAction);
-    group.add(new RemoveKeysAction());
-    group.add(new AddLocaleAction(toolbar.getComponent()));
-    group.add(newShowOnlyKeysNeedingTranslationsAction());
+    group.add(new AddKeyAction(this));
+    group.add(myRemoveKeysAction);
+    group.add(new AddLocaleAction(this));
+    group.add(new FilterKeysAction(myTable));
+    group.add(new FilterLocalesAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
-  }
-
-  private final class RemoveKeysAction extends AnAction {
-    private RemoveKeysAction() {
-      super("Remove Keys", "", AllIcons.ToolbarDecorator.Remove);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      event.getPresentation().setEnabled(myTable.getSelectedRowCount() != 0);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent event) {
-      Project project = event.getProject();
-      assert project != null;
-
-      PsiElement[] elements = Arrays.stream(myTable.getSelectedRowModelIndices())
-        .mapToObj(index -> ((StringResourceTableModel)myTable.getModel()).getStringResourceAt(index).getKey())
-        .flatMap(this::getResourceItemStream)
-        .map(item -> LocalResourceRepository.getItemTag(project, item))
-        .toArray(PsiElement[]::new);
-
-      SafeDeleteHandler.invoke(project, elements, LangDataKeys.MODULE.getData(event.getDataContext()), true, null);
-    }
-
-    @NotNull
-    private Stream<ResourceItem> getResourceItemStream(@NotNull String key) {
-      Collection<ResourceItem> items = myResourceRepository.getResourceItem(ResourceType.STRING, key);
-      return items == null ? Stream.empty() : items.stream();
-    }
-  }
-
-  private final class AddLocaleAction extends AnAction {
-    private final JComponent myComponent;
-
-    private AddLocaleAction(@NotNull JComponent component) {
-      super("Add Locale", "", AndroidIcons.Globe);
-      myComponent = component;
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      StringResourceData data = myTable.getData();
-      event.getPresentation().setEnabled(data != null && !data.getResources().isEmpty());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      StringResourceData data = myTable.getData();
-      assert data != null;
-
-      List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
-      missingLocales.removeAll(data.getLocales());
-      Collections.sort(missingLocales, Locale.LANGUAGE_NAME_COMPARATOR);
-
-      final JBList list = new JBList(missingLocales);
-      list.setFixedCellHeight(20);
-      list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
-        @Override
-        protected void customizeCellRenderer(@NotNull JList list, Locale value, int index, boolean selected, boolean hasFocus) {
-          append(LocaleMenuAction.getLocaleLabel(value, false));
-          setIcon(value.getFlagImage());
-        }
-      });
-      new ListSpeedSearch(list) {
-        @Override
-        protected String getElementText(Object element) {
-          if (element instanceof Locale) {
-            return LocaleMenuAction.getLocaleLabel((Locale)element, false);
-          }
-          return super.getElementText(element);
-        }
-      };
-
-      showPopupUnderneathOf(list);
-    }
-
-    private void showPopupUnderneathOf(@NotNull JList list) {
-      Runnable runnable = () -> {
-        // TODO Ask the user to pick a source set instead of defaulting to the primary resource directory
-        VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
-        assert primaryResourceDir != null;
-
-        StringResourceData data = myTable.getData();
-        assert data != null;
-
-        // Pick a value to add to this locale
-        String key = "app_name";
-        StringResource resource = data.containsKey(key) ? data.getStringResource(key) : data.getResources().iterator().next();
-        String string = resource.getDefaultValueAsString();
-
-        StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), resource.getKey(), string, true);
-      };
-
-      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-        .setItemChoosenCallback(runnable)
-        .createPopup();
-
-      popup.showUnderneathOf(myComponent);
-    }
-  }
-
-  private AnAction newShowOnlyKeysNeedingTranslationsAction() {
-    return new CheckboxAction("Show only keys _needing translations") {
-      @Override
-      public boolean isSelected(AnActionEvent event) {
-        return myTable.getRowSorter() != null;
-      }
-
-      @Override
-      public void setSelected(AnActionEvent event, boolean showingOnlyKeysNeedingTranslations) {
-        myTable.setShowingOnlyKeysNeedingTranslations(showingOnlyKeysNeedingTranslations);
-      }
-
-      @Override
-      public void update(AnActionEvent event) {
-        event.getPresentation().setEnabled(myTable.getData() != null);
-        super.update(event);
-      }
-    };
-  }
-
-  public boolean dataIsCurrent() {
-    return myResourceRepository != null && myModificationCount >= myResourceRepository.getModificationCount();
   }
 
   private void initTable() {
@@ -373,16 +221,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(listener);
     myTable.getSelectionModel().addListSelectionListener(listener);
-  }
 
-  private void addResourceChangeListener() {
-    myResourceChangeListener = reasons -> {
-      if (reasons.contains(Reason.RESOURCE_EDIT)) {
-        reloadData();
-      }
-    };
-
-    ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).addListener(myResourceChangeListener, myFacet, null, null);
+    myTable.getTableHeader().addMouseListener(new RemoveLocaleMouseListener(this));
   }
 
   @NotNull
@@ -397,6 +237,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   StringResourceTable getTable() {
     return myTable;
+  }
+
+  @NotNull
+  StringResourceRepository getRepository() {
+    return myResourceRepository;
   }
 
   @Override
@@ -423,7 +268,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     // Application ID
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(myFacet);
     String appId = moduleInfo.getPackage();
     if (appId != null) {
       sb.append("&appId=");
@@ -444,9 +289,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private class ParseTask extends Task.Backgroundable {
-    private final AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<>(null);
-    private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<>(null);
-
     public ParseTask(String description) {
       super(myFacet.getModule().getProject(), description, false);
     }
@@ -454,33 +296,21 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      LocalResourceRepository moduleResources = myFacet.getModuleResources(true);
-      myResourceRepositoryRef.set(moduleResources);
-      myResourceDataRef.set(StringResourceParser.parse(myFacet, moduleResources));
+      ModuleResourceRepository.getOrCreateInstance(myFacet);
     }
 
     @Override
     public void onSuccess() {
-      parse(myResourceRepositoryRef.get(), myResourceDataRef.get());
+      myResourceRepository = new StringResourceRepository((MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet));
+      myTable.setModel(new StringResourceTableModel(myResourceRepository.getData(myFacet)));
+
+      myLoadingPanel.stopLoading();
     }
 
     @Override
     public void onCancel() {
       myLoadingPanel.stopLoading();
     }
-  }
-
-  @VisibleForTesting
-  void parse(@NotNull LocalResourceRepository resourceRepository) {
-    parse(resourceRepository, StringResourceParser.parse(myFacet, resourceRepository));
-  }
-
-  private void parse(@NotNull LocalResourceRepository resourceRepository, @NotNull StringResourceData data) {
-    myResourceRepository = resourceRepository;
-    myModificationCount = resourceRepository.getModificationCount();
-
-    myTable.setModel(new StringResourceTableModel(data));
-    myLoadingPanel.stopLoading();
   }
 
   private class CellSelectionListener implements ListSelectionListener {
@@ -499,16 +329,20 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         return;
       }
 
-      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+      myKeyTextField.setEnabled(true);
+      myDefaultValueTextField.setEnabled(true);
+      myTranslationTextField.setEnabled(true);
+      StringResourceTableModel model = myTable.getModel();
 
       int row = myTable.getSelectedRowModelIndex();
       int column = myTable.getSelectedColumnModelIndex();
       Object locale = model.getLocale(column);
 
-      setTextAndEditable(myKeyTextField, model.getKey(row), false); // TODO: keys are not editable, we want them to be refactor operations
+      // TODO: Keys are not editable; we want them to be refactor operations
+      setTextAndEditable(myKeyTextField, model.getKey(row).getName(), false);
 
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
-      boolean defaultValueEditable = !StringUtil.containsChar(defaultValue, '\n'); // don't allow editing multiline chars in a text field
+      boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
       setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
       myDefaultValueTextField.getButton().setEnabled(true);
 
@@ -516,22 +350,34 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       String translation = "";
       if (locale != null) {
         translation = (String)model.getValueAt(row, column);
-        translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
+        translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
       }
       setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
       myTranslationTextField.getButton().setEnabled(locale != null);
     }
+  }
 
-    private void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
-      component.setText(text);
-      component.setCaretPosition(0);
-      component.setEditable(editable);
-      // If a text component is not editable when it gains focus and becomes editable while still focused,
-      // the caret does not appear, so we need to set the caret visibility manually
-      component.getCaret().setVisible(editable && component.hasFocus());
+  /**
+   * Check if the provided value can be edited inline or has to be edited using the multiline text field.
+   *
+   * A Value can be edited inline if it contains no "\n" character.
+   *
+   * @param value The value to check
+   * @return true is the value can be edited inline, false if it has to be edited with the multiline text field
+   */
+  private static boolean isValueEditableInline(@NotNull String value) {
+    return !StringUtil.containsChar(value, '\n');
+  }
 
-      component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
-    }
+  private static void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
+    component.setText(text);
+    component.setCaretPosition(0);
+    component.setEditable(editable);
+    // If a text component is not editable when it gains focus and becomes editable while still focused,
+    // the caret does not appear, so we need to set the caret visibility manually
+    component.getCaret().setVisible(editable && component.hasFocus());
+
+    component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
   }
 
   private class ShowMultilineActionListener implements ActionListener {
@@ -544,21 +390,23 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       int row = myTable.getSelectedRowModelIndex();
       int column = myTable.getSelectedColumnModelIndex();
 
-      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+      StringResourceTableModel model = myTable.getModel();
       String value = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
       Locale locale = model.getLocale(column);
       String translation = locale == null ? null : (String)model.getValueAt(row, column);
 
-      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row), value, locale, translation);
+      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row).getName(), value, locale, translation);
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+          setTextAndEditable(myDefaultValueTextField.getTextField(), d.getDefaultValue(), isValueEditableInline(d.getDefaultValue()));
           myTable.refilter();
         }
 
         if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
           model.setValueAt(d.getTranslation(), row, column);
+          setTextAndEditable(myTranslationTextField.getTextField(), d.getTranslation(), isValueEditableInline(d.getTranslation()));
           myTable.refilter();
         }
       }

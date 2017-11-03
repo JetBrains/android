@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -81,7 +81,7 @@ public class IdInspectorProvider implements InspectorProvider {
     private final NlReferenceEditor myIdEditor;
     private final NlEnumEditor myWidthEditor;
     private final NlEnumEditor myHeightEditor;
-    private final WidgetConstraintPanel myConstraintWidget;
+    private final WidgetConstraintPanel myConstraintWidgetPanel;
 
     private NlProperty myIdAttr;
     private NlProperty myLayoutWidth;
@@ -91,7 +91,7 @@ public class IdInspectorProvider implements InspectorProvider {
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
       myWidthEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
-      myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
+      myConstraintWidgetPanel = new WidgetConstraintPanel(ImmutableList.of());
     }
 
     @Override
@@ -101,7 +101,7 @@ public class IdInspectorProvider implements InspectorProvider {
       myIdAttr = properties.get(ATTR_ID);
       myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
       myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);
-      myConstraintWidget.updateComponents(components);
+      myConstraintWidgetPanel.updateComponents(components);
     }
 
     @Override
@@ -112,8 +112,8 @@ public class IdInspectorProvider implements InspectorProvider {
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       myIdEditor.setLabel(inspector.addComponent("ID", null, myIdEditor.getComponent()));
-      if (myConstraintWidget.isApplicable()) {
-        inspector.addPanel(myConstraintWidget);
+      if (myConstraintWidgetPanel.isApplicable()) {
+        inspector.addPanel(myConstraintWidgetPanel);
       }
       myWidthEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_WIDTH, null, myWidthEditor.getComponent()));
       myHeightEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_HEIGHT, null, myHeightEditor.getComponent()));
@@ -138,7 +138,7 @@ public class IdInspectorProvider implements InspectorProvider {
         setToolTip(myHeightEditor, myLayoutHeight);
       }
       if (myIdAttr != null && !myIdAttr.getComponents().isEmpty()) {
-        myConstraintWidget.setProperty(myIdAttr);
+        myConstraintWidgetPanel.setProperty(myIdAttr);
       }
     }
 
@@ -150,7 +150,7 @@ public class IdInspectorProvider implements InspectorProvider {
 
     @TestOnly
     public WidgetConstraintPanel getConstraintPanel() {
-      return myConstraintWidget;
+      return myConstraintWidgetPanel;
     }
 
     private static void setToolTip(@NotNull NlComponentEditor editor, @NotNull NlProperty property) {

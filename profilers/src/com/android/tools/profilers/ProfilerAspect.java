@@ -26,4 +26,6 @@ public enum ProfilerAspect {
   DEVICES,
   // The profiler desired mode has changed
   MODE,
+  // The agent attach state has changed
+  AGENT,
 }

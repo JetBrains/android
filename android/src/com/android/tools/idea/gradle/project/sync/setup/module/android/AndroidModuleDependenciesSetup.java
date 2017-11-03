@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
+import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -46,8 +47,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull String libraryName,
                               @NotNull DependencyScope scope,
-                              @NotNull File artifactPath) {
-    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[] {artifactPath}, EMPTY_FILE_ARRAY);
+                              @NotNull File artifactPath,
+                              boolean exported) {
+    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, EMPTY_FILE_ARRAY, exported);
   }
 
   void setUpLibraryDependency(@NotNull Module module,
@@ -68,6 +70,10 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     if (library == null) {
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
+    }
+    else {
+      SyncLibraryRegistry registry = SyncLibraryRegistry.getInstance(module.getProject());
+      registry.markAsUsed(library, binaryPaths);
     }
 
     if (newLibrary) {
@@ -113,6 +119,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       }
     }
 
-    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider);
+    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, exported);
   }
 }

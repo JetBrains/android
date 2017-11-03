@@ -25,6 +25,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +37,8 @@ public class StyleItemConverter extends WrappingConverter {
                                                               String localName,
                                                               @NotNull AndroidFacet facet,
                                                               @NotNull GenericDomValue element) {
-    ResourceManager manager = facet.getResourceManager("android".equals(nsPrefix)
-                                                       ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE
-                                                       : null, element.getXmlElement());
+    String resourcePackage = "android".equals(nsPrefix) ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE : null;
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resourcePackage, element.getXmlElement());
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.android.tools.idea.ui.ImageComponent;
-import com.android.tools.idea.ui.wizard.StudioWizardLayout;
+import com.android.tools.adtui.ImageComponent;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

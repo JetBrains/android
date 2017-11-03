@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
@@ -36,21 +37,21 @@ public class SceneSelectionTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp"),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
-                                       .withBounds(100, 500, 5, 5)
+                                       .withBounds(200, 1000, 10, 10)
                                        .width("5dp")
                                        .height("5dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
@@ -80,7 +81,8 @@ public class SceneSelectionTest extends SceneTest {
     myInteraction.mouseDown(0, 0);
     myInteraction.mouseRelease(10, 10);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(0, componentList.size());
+    assertEquals(1, componentList.size()); // will select root
+    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 210);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
@@ -89,7 +91,8 @@ public class SceneSelectionTest extends SceneTest {
     myInteraction.mouseDown(0, 0);
     myInteraction.mouseRelease(10, 10);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(0, componentList.size());
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 510);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
@@ -118,5 +121,14 @@ public class SceneSelectionTest extends SceneTest {
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
+  }
+
+  public void testFindComponent() {
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 201));
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button2").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 501));
+    assertEquals(myScene.getSceneComponent(myScreen.findById("@id/root").getComponent()),
+                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 101));
   }
 }

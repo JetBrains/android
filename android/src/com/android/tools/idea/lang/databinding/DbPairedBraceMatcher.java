@@ -55,7 +55,7 @@ public class DbPairedBraceMatcher extends PairedBraceMatcherAdapter {
         if (parent instanceof PsiDbCastExpr || parent instanceof PsiDbParenExpr) {
           return openingBraceOffset;
         }
-        if (parent instanceof PsiDbMethodExpr) {
+        if (parent instanceof PsiDbCallExpr) {
           return parent.getTextRange().getStartOffset();
         }
         if (parent instanceof PsiDbResourceParameters) {

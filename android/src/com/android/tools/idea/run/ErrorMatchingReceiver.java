@@ -45,7 +45,7 @@ public class ErrorMatchingReceiver extends AndroidOutputReceiver {
 
   @Override
   protected void processNewLine(@NotNull String line) {
-    if (line.length() > 0) {
+    if (!line.isEmpty()) {
       Matcher failureMatcher = FAILURE.matcher(line);
       if (failureMatcher.matches()) {
         failureMessage = failureMatcher.group(1);

@@ -15,23 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,11 +34,15 @@ import java.util.*;
 public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTreeNode {
   @Nullable protected MemoryObjectTreeNode<T> myParent;
 
-  @Nullable private Comparator<MemoryObjectTreeNode<T>> myComparator = null;
+  @NotNull protected List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
 
-  @NotNull private List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
+  @Nullable protected Comparator<MemoryObjectTreeNode<T>> myComparator = null;
 
   @NotNull private final T myAdapter;
+
+  private boolean myChildrenChanged;
+
+  private boolean myComparatorChanged;
 
   public MemoryObjectTreeNode(@NotNull T adapter) {
     myAdapter = adapter;
@@ -76,18 +67,25 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @Override
   public int getIndex(TreeNode treeNode) {
     assert treeNode instanceof MemoryObjectTreeNode;
+    ensureOrder();
     return myChildren.indexOf(treeNode);
   }
 
   @Override
   public boolean isLeaf() {
-    return myChildren.size() == 0;
+    return myChildren.isEmpty();
   }
 
   @Override
   public Enumeration children() {
     ensureOrder();
     return Collections.enumeration(myChildren);
+  }
+
+  @NotNull
+  public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
+    ensureOrder();
+    return ContainerUtil.immutableList(myChildren);
   }
 
   @Override
@@ -97,34 +95,54 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
 
   public void add(@NotNull MemoryObjectTreeNode child) {
     insert(child, myChildren.size());
+    myChildrenChanged = true;
   }
 
   @Override
   public void insert(MutableTreeNode newChild, int childIndex) {
     assert newChild instanceof MemoryObjectTreeNode;
     MemoryObjectTreeNode child = (MemoryObjectTreeNode)newChild;
-    if (child.myParent != null) {
+    if (child.myParent != null && child.myParent != this) {
       child.myParent.remove(child);
     }
-    child.myParent = this;
+    child.setParent(this);
     myChildren.add(childIndex, child);
+    myChildrenChanged = true;
+  }
+
+  @Override
+  public void setParent(@Nullable MutableTreeNode newParent) {
+    assert newParent == null || newParent instanceof MemoryObjectTreeNode;
+    myParent = (MemoryObjectTreeNode<T>)newParent;
   }
 
   @Override
   public void remove(int childIndex) {
     MemoryObjectTreeNode child = myChildren.get(childIndex);
-    child.myParent = null;
     myChildren.remove(childIndex);
+    child.setParent(null);
+    myChildrenChanged = true;
   }
 
   @Override
   public void remove(MutableTreeNode node) {
     assert node instanceof MemoryObjectTreeNode;
-    myChildren.remove(node);
+    remove(myChildren.indexOf(node));
+    myChildrenChanged = true;
+  }
+
+  @Override
+  public void removeFromParent() {
+    if (myParent != null) {
+      myParent.remove(this);
+      myParent = null;
+    }
   }
 
   public void removeAll() {
+    myChildren.forEach(child -> child.myParent = null);
     myChildren.clear();
+    myChildrenChanged = true;
   }
 
   @Override
@@ -137,32 +155,60 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     return myAdapter;
   }
 
-  @Override
-  public void removeFromParent() {
-    if (myParent != null) {
-      myParent.remove(this);
-    }
-  }
-
-  @Override
-  public void setParent(@Nullable MutableTreeNode newParent) {
-    removeFromParent();
-    if (newParent instanceof MemoryObjectTreeNode) {
-      myParent = (MemoryObjectTreeNode<T>)newParent;
-    }
-  }
-
   public void sort(@NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
+    // Note - this can only be called on the root node.
     assert myParent == null;
-    myComparator = comparator;
-    ensureOrder();
+    if (myComparator != comparator) {
+      myComparator = comparator;
+      myComparatorChanged = true;
+      ensureOrder();
+    }
   }
 
-  private void ensureOrder() {
-    if ((myParent != null && myParent.myComparator != myComparator)
-        || myParent == null && myComparator != null) {
-      myComparator = myParent != null ? myParent.myComparator : myComparator;
-      Collections.sort(myChildren, myComparator);
+  @Nullable
+  public Comparator<MemoryObjectTreeNode<T>> getComparator() {
+    return myComparator;
+  }
+
+  @NotNull
+  public List<MemoryObjectTreeNode<T>> getPathToRoot() {
+    List<MemoryObjectTreeNode<T>> path = new ArrayList<>();
+    MemoryObjectTreeNode<T> currentNode = this;
+    MemoryObjectTreeNode<T> cycleDetector = this;
+    while (currentNode != null) {
+      for (int i = 0; i < 2 && cycleDetector != null; i++) {
+        assert cycleDetector.myParent != currentNode;
+        cycleDetector = cycleDetector.myParent;
+      }
+
+      path.add(currentNode);
+      currentNode = currentNode.myParent;
     }
+    Collections.reverse(path);
+    return path;
+  }
+
+  protected void ensureOrder() {
+    if (orderNeedsUpdating()) {
+      myComparator = myParent != null ? myParent.myComparator : myComparator;
+      if (myComparator != null) {
+        myChildren.sort(myComparator);
+      }
+
+      myComparatorChanged = false;
+      myChildrenChanged = false;
+    }
+  }
+
+  @VisibleForTesting
+  boolean orderNeedsUpdating() {
+    return (myParent != null && myParent.myComparator != myComparator) || myComparatorChanged || myChildrenChanged;
+  }
+
+  /**
+   * Optimization - a callback mechanism to notify the node it has been selected in the tree. This allows us to modify the node's content
+   * on the fly, such as adding additional nodes which helps to avoid populating too many nodes at once.
+   */
+  public void select() {
   }
 }

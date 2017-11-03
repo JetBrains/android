@@ -20,7 +20,6 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
@@ -60,8 +59,7 @@ public class AttachedToolWindowTest {
   private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock
   private SideModel<String> myModel;
-  @Mock
-  private DumbService myDumbService;
+
   private ActionManager myActionManager;
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
@@ -183,7 +181,7 @@ public class AttachedToolWindowTest {
     assertThat(myToolWindow.isFloating()).isTrue();
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue();
     assertThat(myToolWindow.getContent()).isNull();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
   @Test
@@ -205,6 +203,16 @@ public class AttachedToolWindowTest {
     assert panel != null;
     panel.closeAutoHideWindow();
     assertThat(myToolWindow.isMinimized()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
+  }
+
+  @Test
+  public void testRestore() {
+    myToolWindow.setMinimized(true);
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assert panel != null;
+    panel.restore();
+    assertThat(myToolWindow.isMinimized()).isFalse();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
   }
 
@@ -370,12 +378,25 @@ public class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
 
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
+  }
+
+  @Test
+  public void testToggleAttachedModeFromButtonRightClick() {
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "None");
+    assertThat(action).isNotNull();
+    action.actionPerformed(createActionEvent(action));
+
+    assertThat(myToolWindow.isDetached()).isTrue();
+    assertThat(myToolWindow.isFloating()).isFalse();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
   @Test
@@ -480,12 +501,14 @@ public class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
 
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
   }
 
   @Test
@@ -512,8 +535,7 @@ public class AttachedToolWindowTest {
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
     assertThat(searchField.isVisible()).isFalse();
 
-    ActionButton button = findButtonByName(myToolWindow.getComponent(), "Search");
-    assertThat(button).isNotNull();
+    ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "Search");
     button.click();
 
     assertThat(header.isVisible()).isFalse();
@@ -526,12 +548,80 @@ public class AttachedToolWindowTest {
   }
 
   @Test
+  public void testSearchTextChangesAreSentToContent() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("el");
+
+    assertThat(panel.getFilter()).isEqualTo("el");
+  }
+
+  @Test
+  public void testAcceptedSearchesAreStoredInHistory() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("ele");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("eleva");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("vi");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("visible");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("con");
+    fireEnterKey(searchField.getTextEditor());
+    searchField.setText("contex");
+    fireEnterKey(searchField.getTextEditor());
+
+    assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.TEXT_SEARCH_HISTORY"))
+      .isEqualTo("contex\nvisible\neleva");
+  }
+
+  @Test
+  public void startSearching() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assert panel != null;
+    panel.startFiltering('b');
+
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    assertThat(searchField.isVisible()).isTrue();
+    assertThat(searchField.getText()).isEqualTo("b");
+  }
+
+  @Test
+  public void testEscapeClosesSearchFieldIfTextIsEmpty() {
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("");
+    fireKey(searchField.getTextEditor(), KeyEvent.VK_ESCAPE);
+    assertThat(searchField.isVisible()).isFalse();
+  }
+
+  @Test
   public void testContentIsDisposed() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
     Disposer.dispose(myToolWindow);
     myToolWindow = null;
     assertThat(panel.isDisposed()).isTrue();
+  }
+
+  @Test
+  public void testDefaultValueDoesNotOverrideActualValue() {
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, false);
+    myToolWindow.setProperty(PropertyType.SPLIT, true);
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, false);
+    assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isTrue();
+
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, true);
+    myToolWindow.setProperty(PropertyType.SPLIT, false);
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, true);
+    assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isFalse();
   }
 
   private static void fireMouseDragged(@NotNull JComponent component, @NotNull MouseEvent event) {
@@ -549,6 +639,23 @@ public class AttachedToolWindowTest {
   private static void fireMouseClicked(@NotNull JComponent component, @NotNull MouseEvent event) {
     for (MouseListener listener : component.getMouseListeners()) {
       listener.mouseClicked(event);
+    }
+  }
+
+  private static void fireEnterKey(@NotNull JComponent component) {
+    fireKey(component, KeyEvent.VK_ENTER);
+  }
+
+  private static void fireKey(@NotNull JComponent component, int keyCode) {
+    KeyEvent event = new KeyEvent(component, 0, 0, 0, keyCode, '\0');
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyPressed(event);
+    }
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyTyped(event);
+    }
+    for (KeyListener listener : component.getKeyListeners()) {
+      listener.keyReleased(event);
     }
   }
 
@@ -604,8 +711,7 @@ public class AttachedToolWindowTest {
   }
 
   private DefaultActionGroup getPopupMenuFromGearButtonInHeader() {
-    ActionButton button = findButtonByName(myToolWindow.getComponent(), "Gear");
-    assertThat(button).isNotNull();
+    ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
     button.click();
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
@@ -613,6 +719,14 @@ public class AttachedToolWindowTest {
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 
+  @NotNull
+  private static ActionButton findRequiredButtonByName(@NotNull Container container, @NotNull String name) {
+    ActionButton button = findButtonByName(container, name);
+    assertThat(button).isNotNull();
+    return button;
+  }
+
+  @Nullable
   private static ActionButton findButtonByName(@NotNull Container container, @NotNull String name) {
     for (Component component : container.getComponents()) {
       if (component instanceof ActionButton) {

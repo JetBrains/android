@@ -16,52 +16,22 @@
 package com.android.tools.idea.exportSignedPackage;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import junit.framework.TestCase;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.util.DistributionLocator;
-import org.gradle.util.GradleVersion;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class ExportSignedPackageTest extends TestCase {
-  @NonNls private static final String BASE_PATH = "testData/projects/signapk/";
+import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_MULTIFLAVOR;
+import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_NO_FLAVORS;
 
-  /**
-   * Returns the {@link com.android.builder.model.AndroidProject} given the gradle project root.
-   * Note that this works only single module projects (only one build.gradle)
-   */
-  @Nullable
-  private static AndroidProject getAndroidProject(String projectPath) {
-    File androidPlugin = new File(AndroidTestBase.getAndroidPluginHome());
-    File projectDir = new File(androidPlugin, BASE_PATH + projectPath);
-    GradleConnector connector = GradleConnector.newConnector();
-    connector.forProjectDirectory(projectDir);
-    connector.useDistribution(new DistributionLocator().getDistributionFor(GradleVersion.version("2.2.1")));
-
-    AndroidProject model = null;
-    ProjectConnection connection = connector.connect();
-    try {
-      model = connection.getModel(AndroidProject.class);
-    } finally {
-      connection.close();
-    }
-
-    return model;
-  }
-
-  // ignored: http://b.android.com/226579
-  public void ignore_testNoFlavors() {
-    AndroidProject androidProject = getAndroidProject("no_flavors");
+public class ExportSignedPackageTest extends AndroidGradleTestCase {
+  public void testNoFlavors() throws Exception {
+    loadProject(SIGNAPK_NO_FLAVORS);
+    AndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // debug and release
@@ -72,9 +42,9 @@ public class ExportSignedPackageTest extends TestCase {
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
 
-  // ignored: http://b.android.com/226579
-  public void ignore_testFlavors() {
-    AndroidProject androidProject = getAndroidProject("multiflavor");
+  public void testFlavors() throws Exception {
+    loadProject(SIGNAPK_MULTIFLAVOR);
+    AndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8

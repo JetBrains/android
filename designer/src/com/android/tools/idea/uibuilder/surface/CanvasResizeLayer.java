@@ -1,6 +1,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.surface.Layer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -11,11 +12,11 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
  */
 public class CanvasResizeLayer extends Layer {
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
   private final ScreenView myScreenView;
   private boolean myIsHovering;
 
-  public CanvasResizeLayer(@NotNull DesignSurface designSurface, @NotNull ScreenView screenView) {
+  public CanvasResizeLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView) {
     myDesignSurface = designSurface;
     myScreenView = screenView;
   }
@@ -24,17 +25,20 @@ public class CanvasResizeLayer extends Layer {
    * Sets the state of this layer according to the mouse hovering at point (x, y).
    * Returns whether that required any modification to the state of the layer.
    */
-  public boolean changeHovering(@SwingCoordinate int x, @SwingCoordinate int y) {
+  @Override
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean oldHovering = myIsHovering;
     Dimension size = myScreenView.getSize();
     Rectangle resizeZone = new Rectangle(myScreenView.getX() + size.width, myScreenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
     myIsHovering = resizeZone.contains(x, y);
-    return myIsHovering != oldHovering;
+    if (myIsHovering != oldHovering) {
+      myDesignSurface.repaint();
+    }
   }
 
   @Override
   public void paint(@NotNull Graphics2D g2d) {
-    if (myDesignSurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || myScreenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+    if (myDesignSurface.getScreenMode() != NlDesignSurface.ScreenMode.BOTH || myScreenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
       Dimension size = myScreenView.getSize();
       int x = myScreenView.getX();
       int y = myScreenView.getY();
@@ -47,4 +51,6 @@ public class CanvasResizeLayer extends Layer {
       graphics.dispose();
     }
   }
+
+
 }

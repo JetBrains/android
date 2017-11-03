@@ -17,15 +17,18 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.command.WriteCommandAction;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,23 +64,22 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .viewObject(viewObject)
       .children(button1, button2);
 
-    NlModel model = model("grid_layout.xml", layout)
+    SyncNlModel model = model("grid_layout.xml", layout)
       .build();
     // @formatter:on
 
-    ViewEditor editor = Mockito.mock(ViewEditor.class);
-    Mockito.when(editor.getModel()).thenReturn(model);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    scene.buildDisplayList(new DisplayList(), 0);
 
     List<NlComponent> components = Collections.emptyList();
-    handler = new GridDragHandler(editor, new ViewGroupHandler(), model.getComponents().get(0), components, DragType.CREATE);
+    ScreenView screen = new ScreenFixture(model).getScreen();
+    handler = new GridDragHandler(editor(screen), new ViewGroupHandler(), scene.getRoot(), components, DragType.CREATE);
   }
 
   public void testCommitCellHasChild() {
-    handler.start(630, 210, 0);
+    handler.start(315, 105, 0);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-      handler.commit(630, 210, 0, InsertType.MOVE_INTO);
-    });
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(630, 210, 0, InsertType.MOVE_INTO));
 
     NlComponent[][] children = handler.getInfo().getChildren();
     NlComponent child = children[handler.getStartRow()][handler.getStartColumn()];
@@ -87,8 +89,8 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   }
 
   public void testCommit() {
-    handler.start(630, 210, 0);
-    handler.update(470, 210, 0);
+    handler.start(315, 105, 0);
+    handler.update(235, 105, 0);
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       handler.commit(470, 210, 0, InsertType.MOVE_INTO);

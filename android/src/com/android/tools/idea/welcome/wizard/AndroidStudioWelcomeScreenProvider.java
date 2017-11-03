@@ -15,17 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,16 +35,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Shows a wizard first time Android Studio is launched
  */
 public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenProvider {
-  public static final String SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run";
-
-  private static boolean ourWasShown = false; // Do not show wizard multiple times in one session even if it was canceled
+  private static final String SYSTEM_PROPERTY_DISABLE_WIZARD = "disable.android.first.run";
+  private static boolean ourWasShown; // Do not show wizard multiple times in one session even if it was canceled
 
   /**
    * Analyzes system state and decides if and how the wizard should be invoked.
@@ -85,10 +76,6 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
       }
     }
     return false;
-  }
-
-  private static boolean isWizardDisabled() {
-    return AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
   }
 
   @NotNull
@@ -145,7 +132,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
   }
 
-  @Nullable
+  @NotNull
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
     checkInternetConnection();
@@ -156,29 +143,10 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     return new FirstRunWizardHost(wizardMode);
   }
 
-  @NotNull
-  private static Map<String, RemotePackage> fetchPackages() {
-    ConnectionState connectionState = checkInternetConnection();
-    switch (connectionState) {
-      case OK:
-        break;
-      case NO_CONNECTION:
-        return ImmutableMap.of();
-      default:
-        throw new IllegalArgumentException(connectionState.name());
-    }
-
-    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
-    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
-    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
-                          StudioSettingsController.getInstance());
-
-    return mgr.getPackages().getRemotePackages();
-  }
-
   @Override
   public boolean isAvailable() {
-    return !ourWasShown && !isWizardDisabled() && getWizardMode() != null;
+    boolean isWizardDisabled = AndroidPlugin.isGuiTestingMode() || Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD);
+    return !ourWasShown && !isWizardDisabled && getWizardMode() != null;
   }
 
   private enum ConnectionState {

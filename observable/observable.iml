@@ -8,14 +8,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="annotations-java8" />
-    <orderEntry type="module" module-name="util" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="annotations" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
   </component>
 </module>

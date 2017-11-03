@@ -16,32 +16,35 @@
 
 package com.android.tools.adtui;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.HierarchyListener;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * An auxiliary object that synchronizes a group of {@link Animatable} via a simple update loop
+ * An auxiliary object that synchronizes a group of {@link Updatable} via a simple update loop
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
+ *
+ * Deprecated. Please use {@link Updater} instead.
  */
-public class Choreographer implements ActionListener {
+@Deprecated
+public class Choreographer implements StopwatchTimer.TickHandler {
 
-  private static final int DEFAULT_FPS = 60;
-  private static final float NANOSECONDS_IN_SECOND = 1000000000.0f;
-  private static final float DEFAULT_FRAME_LENGTH = 1.0f / DEFAULT_FPS;
+  public static final float DEFAULT_LERP_FRACTION = 0.99f;
+  public static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
 
-  private final List<Animatable> mComponents;
-  private List<Animatable> mToRegister;
-  private List<Animatable> mToUnregister;
-  private final Timer mTimer;
-  private boolean mUpdate;
-  private long mFrameTime;
+  private final List<LegacyAnimatedComponent> mComponents;
+  private List<LegacyAnimatedComponent> mToRegister;
+  private List<LegacyAnimatedComponent> mToUnregister;
+  private final StopwatchTimer mTimer;
   private boolean mReset;
 
   /**
@@ -56,45 +59,60 @@ public class Choreographer implements ActionListener {
 
   /**
    * @param fps    The frame rate that this Choreographer should run at.
-   * @param parent The parent component that contains all {@link AnimatedComponent} registered
+   * @param parent The parent component that contains all {@link LegacyAnimatedComponent} registered
    *               with the Choreographer.
    */
   public Choreographer(int fps, @NotNull JComponent parent) {
+    this(new FpsTimer(fps), parent);
+  }
+
+  public Choreographer(@NotNull JComponent parent) {
+    this(new FpsTimer(), parent);
+  }
+
+  @VisibleForTesting
+  public Choreographer(@NotNull StopwatchTimer timer, @NotNull JComponent parent) {
     mParentContainer = parent;
     mComponents = new LinkedList<>();
     mToRegister = new LinkedList<>();
     mToUnregister = new LinkedList<>();
-    mUpdate = true;
     mUpdating = false;
-    mTimer = new Timer(1000 / fps, this);
-    if (fps >= 0) {
-      mTimer.start();
-    }
+    mTimer = timer;
+    mTimer.setHandler(this);
+    mTimer.start();
   }
 
-  public Choreographer(@NotNull JComponent parent) {
-    this(DEFAULT_FPS, parent);
+  @VisibleForTesting
+  public Choreographer(@NotNull StopwatchTimer timer) {
+    this(timer, new JPanel());
   }
 
-  public void register(Animatable animatable) {
+  @VisibleForTesting
+  public StopwatchTimer getTimer() {
+    return mTimer;
+  }
+
+  public void register(LegacyAnimatedComponent updatable) {
     if (mUpdating) {
-      mToRegister.add(animatable);
-    } else {
-      mComponents.add(animatable);
+      mToRegister.add(updatable);
+    }
+    else {
+      mComponents.add(updatable);
     }
   }
 
-  public void register(@NotNull List<Animatable> animatables) {
-    for (Animatable animatable : animatables) {
-      register(animatable);
+  public void register(@NotNull List<LegacyAnimatedComponent> updatables) {
+    for (LegacyAnimatedComponent updatable : updatables) {
+      register(updatable);
     }
   }
 
-  public void unregister(@NotNull Animatable animatable) {
+  public void unregister(@NotNull LegacyAnimatedComponent updatable) {
     if (mUpdating) {
-      mToUnregister.add(animatable);
-    } else {
-      mComponents.remove(animatable);
+      mToUnregister.add(updatable);
+    }
+    else {
+      mComponents.remove(updatable);
     }
   }
 
@@ -105,15 +123,8 @@ public class Choreographer implements ActionListener {
   }
 
   @Override
-  public void actionPerformed(ActionEvent actionEvent) {
-    long now = System.nanoTime();
-    float frame = (now - mFrameTime) / NANOSECONDS_IN_SECOND;
-    mFrameTime = now;
-
-    if (!mUpdate) {
-      return;
-    }
-    step(frame);
+  public void onTick(long elapsed) {
+    step(elapsed);
   }
 
   /**
@@ -122,7 +133,7 @@ public class Choreographer implements ActionListener {
    * all the legacy AnimatedComponents in Studio has been replaced by the new UI.
    */
   @Deprecated
-  public static void animate(final AnimatedComponent component) {
+  public static void animate(final LegacyAnimatedComponent component) {
     final Choreographer choreographer = new Choreographer(30, component);
     choreographer.register(component);
     HierarchyListener listener = event -> {
@@ -137,27 +148,19 @@ public class Choreographer implements ActionListener {
     component.addHierarchyListener(listener);
   }
 
-  public void setUpdate(boolean update) {
-    mUpdate = update;
-  }
-
-  public void step() {
-    step(DEFAULT_FRAME_LENGTH);
-  }
-
   public void reset() {
     mReset = true;
   }
 
-  private void step(float frameLength) {
+  private void step(long frameLength) {
     mUpdating = true;
     if (mReset) {
-      mComponents.forEach(Animatable::reset);
+      mComponents.forEach(Updatable::reset);
       mReset = false;
     }
 
-    mComponents.forEach(component -> component.animate(frameLength));
-    mComponents.forEach(Animatable::postAnimate);
+    mComponents.forEach(component -> component.update(frameLength));
+    mComponents.forEach(Updatable::postUpdate);
     mUpdating = false;
 
     mToUnregister.forEach(this::unregister);

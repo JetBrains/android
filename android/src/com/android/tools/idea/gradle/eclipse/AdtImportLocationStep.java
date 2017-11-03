@@ -131,7 +131,7 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
     // The following code is based on similar code in com.intellij.ide.util.newProjectWizard.ProjectNameStep
 
     String projectFileDirectory = getProjectFileDirectory();
-    if (projectFileDirectory.length() == 0) {
+    if (projectFileDirectory.isEmpty()) {
       throw new ConfigurationException(String.format("Enter %1$s file location", context.getPresentationName()));
     }
 

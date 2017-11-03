@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.editors.theme.preview;
 
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
@@ -59,10 +61,10 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
 
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new OrientationMenuAction(myPreviewPanel));
+    group.add(new OrientationMenuAction(myPreviewPanel, null));
     group.add(new DeviceMenuAction(myPreviewPanel));
-    group.add(new TargetMenuAction(myPreviewPanel, true, false));
-    group.add(new LocaleMenuAction(myPreviewPanel, false));
+    group.add(new TargetMenuAction(myPreviewPanel, true));
+    group.add(new LocaleMenuAction(myPreviewPanel));
 
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
@@ -70,7 +72,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
 
     myToolbar = new JPanel(null);
     myToolbar.setLayout(new BoxLayout(myToolbar, BoxLayout.X_AXIS));
-    myToolbar.setBorder(JBUI.Borders.empty(7, 14, 7, 14));
+    myToolbar.setBorder(JBUI.Borders.empty(7, 14, 7, 7));
 
     final JPanel previewPanel = new JPanel(new BorderLayout());
     previewPanel.add(myPreviewPanel, BorderLayout.CENTER);
@@ -100,6 +102,17 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
       }
     });
     myToolbar.add(myTextField);
+
+    DefaultActionGroup rightActionGroup = new DefaultActionGroup();
+    rightActionGroup.add(new BrowserHelpAction("Theme Editor", "https://developer.android.com/r/studio-ui/theme-editor.html"));
+    ActionToolbar rightToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, rightActionGroup, true);
+    rightToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    JComponent rightToolbarComponent = rightToolbar.getComponent();
+    rightToolbarComponent.setBorder(null);
+    rightToolbarComponent.setBackground(null);
+    rightToolbarComponent.setOpaque(false);
+    rightToolbarComponent.setMaximumSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+    myToolbar.add(rightToolbarComponent);
 
     add(myPreviewPanel, BorderLayout.CENTER);
     add(myToolbar, BorderLayout.NORTH);

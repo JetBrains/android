@@ -15,21 +15,31 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.event.EventAction;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 /**
  * Interface to define how events should be rendered in the event timeline.
  */
-public interface SimpleEventRenderer {
+public interface SimpleEventRenderer<E> {
 
   /**
    * Primary draw function for events. This function will get called only when an event is supposed to have something drawn.
-   * @param parent The parent element to draw to.
-   * @param g2d The graphics object used to draw elements.
+   *
+   * @param parent    The parent element to draw to.
+   * @param g2d       The graphics object used to draw elements.
    * @param transform The coordinates on the screen where the event starts
-   * @param length The length of the event if the event has a unit of time associated with its rendering.
+   * @param length    The length of the event if the event has a unit of time associated with its rendering.
+   * @param data      The EventAction data used to trigger this draw event. This data can contain some addtional information
+   *                  used by the renderers such as the string passed via keyboard event. If this argument is null the renderer
+   *                  is expected to ignore the additional data or is not expected to use it.
    */
-  //TODO: Update interface to accommodate text.
-  void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length);
+  void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, @Nullable EventAction<E> data);
+
+  default void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
+    draw(parent, g2d, transform, length, null);
+  }
 }

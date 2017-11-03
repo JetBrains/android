@@ -20,26 +20,26 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -58,7 +58,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
 
@@ -67,25 +66,18 @@ public class GuiTestRule implements TestRule {
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
-  private File myProjectPath;
   private IdeFrameFixture myIdeFrameFixture;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
-  private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
-    .around(new BlockReloading())
-    .around(myRobotTestRule)
-    .around(myLeakCheck)
-    .around(new IdeHandling())
-    .around(new TestPerformance())
-    .around(new ScreenshotOnFailure())
-    .around(new Timeout(5, TimeUnit.MINUTES));
+
+  private Timeout myTimeout = new Timeout(5, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
     if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
       Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
-      if (parentWindow instanceof Dialog) {
+      if (parentWindow instanceof Dialog && ((Dialog)parentWindow).isModal()) {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
           System.out.println("Focus Listener: Request focus!");
@@ -103,7 +95,15 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return myRuleChain.apply(base, description);
+    return RuleChain.emptyRuleChain()
+      .around(new BlockReloading())
+      .around(myRobotTestRule)
+      .around(myLeakCheck)
+      .around(new IdeHandling())
+      .around(new TestPerformance())
+      .around(new ScreenshotOnFailure())
+      .around(myTimeout)
+      .apply(base, description);
   }
 
   private class IdeHandling implements TestRule {
@@ -126,7 +126,11 @@ public class GuiTestRule implements TestRule {
             errors.add(e);
           } finally {
             try {
+              boolean hasTestPassed = errors.isEmpty();
               errors.addAll(tearDown());  // shouldn't throw, but called inside a try-finally for defense in depth
+              if (hasTestPassed && !errors.isEmpty()) { // If we get a problem during tearDown, take a snapshot.
+                new ScreenshotOnFailure().failed(errors.get(0), description);
+              }
             } finally {
               //noinspection ThrowFromFinallyBlock; assertEmpty is intended to throw here
               MultipleFailureException.assertEmpty(errors);
@@ -166,14 +170,11 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void tearDownProject() {
-    if (myProjectPath != null) {
-      if (ideFrame().target().isShowing()) {
-        ideFrame().closeProject();
-      }
-      FileUtilRt.delete(myProjectPath);
-      GuiTests.refreshFiles();
+  protected void tearDownProject() {
+    if (!robot().finder().findAll(Matchers.byType(IdeFrameImpl.class).andIsShowing()).isEmpty()) {
+      ideFrame().closeProject();
     }
+    myIdeFrameFixture = null;
   }
 
   private ImmutableList<Throwable> tearDown() {
@@ -232,27 +233,13 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
-  }
-
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
-    throws IOException {
-    return importProject(projectDirName, gradleVersion).waitForGradleProjectSyncToFinish();
+    return importProject(projectDirName).waitForGradleProjectSyncToFinish();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
-  }
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
+    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
 
-  private IdeFrameFixture importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
-    setUpProject(projectDirName, gradleVersion);
-    VirtualFile toSelect = VfsUtil.findFileByIoFile(myProjectPath, true);
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
     return ideFrame();
   }
 
@@ -271,40 +258,28 @@ public class GuiTestRule implements TestRule {
    * </ul>
    *
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
-   * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
-   *                                   version of Gradle.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  private void setUpProject(@NotNull String projectDirName,
-                            @Nullable String gradleVersion) throws IOException {
-    copyProjectBeforeOpening(projectDirName);
+  private File setUpProject(@NotNull String projectDirName) throws IOException {
+    File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    File gradlePropertiesFilePath = new File(myProjectPath, SdkConstants.FN_GRADLE_PROPERTIES);
-    if (gradlePropertiesFilePath.isFile()) {
-      FileUtilRt.delete(gradlePropertiesFilePath);
-    }
-
-    if (gradleVersion == null) {
-      createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    }
-    else {
-      createGradleWrapper(myProjectPath, gradleVersion);
-    }
-
-    updateGradleVersions(myProjectPath);
-    updateLocalProperties(myProjectPath);
-    cleanUpProjectForImport(myProjectPath);
+    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
+    updateGradleVersions(projectPath);
+    updateLocalProperties(projectPath);
+    cleanUpProjectForImport(projectPath);
+    return projectPath;
   }
 
-  public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+  public File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    setProjectPath(getTestProjectDirPath(projectDirName));
-    if (myProjectPath.isDirectory()) {
-      FileUtilRt.delete(myProjectPath);
+    File projectPath = getTestProjectDirPath(projectDirName);
+    if (projectPath.isDirectory()) {
+      FileUtilRt.delete(projectPath);
     }
-    FileUtil.copyDir(masterProjectPath, myProjectPath);
-    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, myProjectPath.getPath()));
+    FileUtil.copyDir(masterProjectPath, projectPath);
+    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
+    return projectPath;
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
@@ -318,7 +293,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTestCase.updateGradleVersions(projectPath);
+    AndroidGradleTests.updateGradleVersions(projectPath);
   }
 
   @NotNull
@@ -375,15 +350,14 @@ public class GuiTestRule implements TestRule {
     return myRobotTestRule.getRobot();
   }
 
-  public void setProjectPath(@NotNull File projectPath) {
-    myProjectPath = projectPath;
-    myIdeFrameFixture = null;
+  @NotNull
+  public File getProjectPath() {
+    return ideFrame().getProjectPath();
   }
 
   @NotNull
-  public File getProjectPath() {
-    checkState(myProjectPath != null, "No project path set. Was a project imported?");
-    return myProjectPath;
+  public WelcomeFrameFixture welcomeFrame() {
+    return WelcomeFrameFixture.find(robot());
   }
 
   @NotNull
@@ -392,9 +366,14 @@ public class GuiTestRule implements TestRule {
       // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
-      myIdeFrameFixture = IdeFrameFixture.find(robot(), getProjectPath(), null);
+      myIdeFrameFixture = IdeFrameFixture.find(robot());
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;
+  }
+
+  public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
+    myTimeout = new Timeout(timeout, timeUnits);
+    return this;
   }
 }

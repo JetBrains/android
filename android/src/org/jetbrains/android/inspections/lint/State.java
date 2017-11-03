@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
 * @author Eugene.Kudelevsky
@@ -17,14 +18,14 @@ public class State {
 
   private final String myMainFileContent;
   private final List<ProblemData> myProblems = new ArrayList<ProblemData>();
-  private final List<Issue> myIssues;
+  private final Set<Issue> myIssues;
 
   private volatile boolean myDirty;
 
   State(@NotNull Module module,
         @NotNull VirtualFile mainFile,
         @NotNull String mainFileContent,
-        @NotNull List<Issue> issues) {
+        @NotNull Set<Issue> issues) {
     myModule = module;
     myMainFile = mainFile;
     myMainFileContent = mainFileContent;
@@ -60,7 +61,7 @@ public class State {
   }
 
   @NotNull
-  public List<Issue> getIssues() {
+  public Set<Issue> getIssues() {
     return myIssues;
   }
 }

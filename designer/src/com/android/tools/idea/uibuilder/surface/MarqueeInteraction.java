@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A {@link MarqueeInteraction} is an interaction for swiping out a selection rectangle.
@@ -38,7 +42,7 @@ public class MarqueeInteraction extends Interaction {
   private MarqueeLayer myOverlay;
 
   /** The surface associated with this interaction. */
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
 
   /** A copy of the initial selection, when we're toggling the marquee. */
   private final Collection<NlComponent> myInitialSelection;
@@ -50,11 +54,11 @@ public class MarqueeInteraction extends Interaction {
    * @param toggle If true, toggle the membership of contained elements
    *            instead of adding it.
    */
-  public MarqueeInteraction(@NotNull ScreenView surface, boolean toggle) {
-    myScreenView = surface;
+  public MarqueeInteraction(@NotNull SceneView surface, boolean toggle) {
+    mySceneView = surface;
 
     if (toggle) {
-      myInitialSelection = myScreenView.getSelectionModel().getSelection();
+      myInitialSelection = mySceneView.getSelectionModel().getSelection();
     } else {
       myInitialSelection = Collections.emptySet();
     }
@@ -74,27 +78,14 @@ public class MarqueeInteraction extends Interaction {
     myOverlay.updateSize(xp, yp, w, h);
 
     // Convert to Android coordinates and compute selection overlaps
-    int ax = Coordinates.getAndroidX(myScreenView, xp);
-    int ay = Coordinates.getAndroidY(myScreenView, yp);
-    int aw = Coordinates.getAndroidDimension(myScreenView, w);
-    int ah = Coordinates.getAndroidDimension(myScreenView, h);
-    Collection<NlComponent> within = myScreenView.getModel().findWithin(ax, ay, aw, ah);
-    List<NlComponent> selection = Lists.newArrayList();
-    if (!myInitialSelection.isEmpty()) {
-      // Copy; we're not allowed to touch the passed in collection
-      Set<NlComponent> result = new HashSet<NlComponent>(myInitialSelection);
-      for (NlComponent component : selection) {
-        if (myInitialSelection.contains(component)) {
-          result.remove(component);
-        } else {
-          result.add(component);
-        }
-      }
-      within = result;
-    }
-
-    myScreenView.getSelectionModel().setSelection(within);
-    myScreenView.getSurface().repaint();
+    int ax = Coordinates.getAndroidXDip(mySceneView, xp);
+    int ay = Coordinates.getAndroidYDip(mySceneView, yp);
+    int aw = Coordinates.getAndroidDimensionDip(mySceneView, w);
+    int ah = Coordinates.getAndroidDimensionDip(mySceneView, h);
+    Collection<SceneComponent> within = mySceneView.getScene().findWithin(ax, ay, aw, ah);
+    List<NlComponent> result = within.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
+    mySceneView.getSelectionModel().setSelection(result);
+    mySceneView.getSurface().repaint();
   }
 
   @Override

@@ -15,28 +15,34 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
+import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
+import com.android.tools.idea.observable.expressions.string.FormatExpression;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SliderValueProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
-import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.adapters.StringToIntAdapterProperty;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.expressions.optional.AsOptionalExpression;
-import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
-import com.android.tools.idea.ui.properties.swing.EnabledProperty;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -50,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,19 +72,22 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private static final String ICON_PREFIX = "ic_";
   private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
 
-  private final AndroidVectorIconGenerator myIconGenerator = new AndroidVectorIconGenerator();
+  private final AndroidVectorIconGenerator myIconGenerator;
   private final ObjectProperty<VectorAsset> myActiveAsset;
   private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
 
   private final BoolProperty isValidAsset = new BoolValueProperty();
   private final VectorPreviewUpdater myPreviewUpdater = new VectorPreviewUpdater();
+  private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
   private final BindingsManager myGeneralBindings = new BindingsManager();
   private final BindingsManager myActiveAssetBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
   @NotNull private final AndroidFacet myFacet;
 
-  private JPanel myRootPanel;
+  private final ValidatorPanel myValidatorPanel;
+
+  private JPanel myPanel;
   private VectorImageComponent myImagePreview;
   private JLabel myImageFileLabel;
   private JTextField myOutputNameField;
@@ -110,10 +120,15 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     super(model, "Configure Vector Asset");
     myFacet = facet;
 
+    int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
+    myIconGenerator = new AndroidVectorIconGenerator(minSdkVersion);
+
     // Start with the icon radio button selected, because icons are easy to browse and play around
     // with right away.
     myMaterialIconRadioButton.setSelected(true);
     myActiveAsset = new ObjectValueProperty<>(myIconButton.getAsset());
+
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
   }
 
   @NotNull
@@ -189,6 +204,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           }
         }
       });
+
+      myValidatorPanel.registerValidator(name, value -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(value)));
+      myValidatorPanel.registerTest(isValidAsset, "The specified asset could not be parsed. Please choose another asset.");
+
       myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
       myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), width);
@@ -207,13 +226,13 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return isValidAsset;
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
@@ -226,6 +245,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myGeneralBindings.releaseAll();
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
+    myIconGenerator.dispose();
   }
 
   private void saveAssetPath() {
@@ -294,16 +314,23 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @Override
         protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+          try {
+            myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+          } catch (Throwable t) {
+            Logger.getInstance(getClass()).error(t);
+            myParseResult = new VectorAsset.ParseResult("Internal error parsing " + myActiveAsset.get().path().get().getName());
+          }
           return null;
         }
 
         @Override
         protected void done() {
           assert myParseResult != null;
+          // it IS possible to have invalid asset, but no error, in fact that is the initial state before a file is chosen.
           isValidAsset.set(myParseResult.isValid());
           if (myParseResult.isValid()) {
-            myImagePreview.setIcon(new ImageIcon(myParseResult.getImage()));
+            BufferedImage image = myParseResult.getImage();
+            myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
             myOriginalSize.setValue(new Dimension(myParseResult.getOriginalWidth(), myParseResult.getOriginalHeight()));
           }
           else {
@@ -311,19 +338,16 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             myOriginalSize.clear();
           }
 
-          myErrorPanel.setVisible(!myParseResult.getErrors().isEmpty());
-          myErrorsTextArea.setText(myParseResult.getErrors());
-          ApplicationManager.getApplication().invokeLater(() -> {
-            myErrorsScrollPane.getVerticalScrollBar().setValue(0);
-          }, ModalityState.any());
+          String error = myParseResult.getErrors();
+          myErrorPanel.setVisible(!error.isEmpty());
+          myErrorsTextArea.setText(error);
+          ApplicationManager.getApplication().invokeLater(() -> myErrorsScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
 
           myCurrentWorker = null;
           if (myEnqueuedWorker != null) {
             myCurrentWorker = myEnqueuedWorker;
             myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(() -> {
-              myCurrentWorker.execute();
-            }, ModalityState.any());
+            ApplicationManager.getApplication().invokeLater(() -> myCurrentWorker.execute(), ModalityState.any());
           }
         }
       };

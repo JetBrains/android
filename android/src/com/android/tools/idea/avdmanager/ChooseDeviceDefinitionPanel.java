@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.swing.util.FormScalingUtil;
+import com.android.tools.adtui.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;

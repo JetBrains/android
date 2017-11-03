@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
@@ -67,7 +66,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    */
   @NotNull
   public String getStyleResourceUrl() {
-    return ResourceUrl.create(myStyleResourceValue).toString();
+    return myStyleResourceValue.getResourceUrl().toString();
   }
 
   /**

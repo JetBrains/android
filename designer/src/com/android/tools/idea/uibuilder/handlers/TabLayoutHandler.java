@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +53,9 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                           @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Insert a couple of TabItems:
-      NlComponent tab1 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab2 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab3 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
 
       tab1.setAndroidAttribute(ATTR_TEXT, "Left");
       tab2.setAndroidAttribute(ATTR_TEXT, "Center");
@@ -67,11 +72,21 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent layout,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (newChild.getAndroidAttribute(ATTR_TEXT) == null) {
       newChild.setAndroidAttribute(ATTR_TEXT, "Tab" + (layout.getChildren().size() + 1));
     }
+  }
+
+  @Nullable
+  @Override
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
+    return new GenericLinearDragHandler(editor, layout, components, type, this, false);
   }
 }

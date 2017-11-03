@@ -40,7 +40,7 @@ public abstract class AbstractDeviceAction extends AnAction {
   }
 
   protected boolean isEnabled() {
-    return myDeviceContext.getSelectedDevice() != null;
+    return myDeviceContext.getSelectedDevice() != null && myDeviceContext.getSelectedDevice().isOnline();
   }
 
   @Override

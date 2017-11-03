@@ -19,11 +19,13 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.SearchField;
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.*;
@@ -34,16 +36,17 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNameValidator;
-import com.android.tools.idea.ui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
-import com.android.tools.swing.ui.SwatchComponent;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -52,7 +55,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -61,6 +63,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -117,7 +120,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
-  public static final String APP_NAMESPACE_LABEL = "Project";
+  private static final String APP_NAMESPACE_LABEL = "Project";
   private static final int GRID_ICON_SIZE = JBUI.scale(50);
   private static final int GRID_CHECK_SIZE = JBUI.scale(8);
   private static final int GRID_CELL_SIZE = JBUI.scale(120);
@@ -127,9 +130,12 @@ public class ChooseResourceDialog extends DialogWrapper {
   static final int TABLE_CELL_HEIGHT = JBUI.scale(30);
   private static final JBColor LIST_DIVIDER_COLOR = new JBColor(Gray._245, Gray._80);
   private static final JBInsets LIST_PADDING = JBUI.insets(7, 6);
-  public static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
-  static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
-                                                                                       SimpleTextAttributes.STYLE_SEARCH_MATCH);
+  private static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
+  private static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
+                                                                                               SimpleTextAttributes.STYLE_SEARCH_MATCH);
+  private static final Action[] EMPTY_ACTIONS = new Action[0];
+  private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;
@@ -160,19 +166,22 @@ public class ChooseResourceDialog extends DialogWrapper {
   private boolean myIsBackgroundColor;
   private final SearchField mySearchField;
   private final boolean myHideLeftSideActions;
-  private boolean myAllowCreateResource = true;
   private String myResultResourceName;
   private boolean myUseGlobalUndo;
   private RenderTask myRenderTask;
   private final MultiMap<ResourceType, String> myThemAttributes;
 
-  /** Creates a builder for a new resource chooser dialog */
+  /**
+   * Creates a builder for a new resource chooser dialog
+   */
   @NotNull
   public static Builder builder() {
     return new Builder();
   }
 
-  /** Builder class for constructing a resource chooser */
+  /**
+   * Builder class for constructing a resource chooser
+   */
   public static class Builder {
     private Module myModule;
     private Configuration myConfiguration;
@@ -184,6 +193,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private ResourceNameVisibility myResourceNameVisibility = ResourceNameVisibility.SHOW;
     private String myResourceNameSuggestion;
     private boolean myHideLeftSideActions;
+    @Nullable private ResourceType myDefaultType;
 
     public Builder() {
     }
@@ -238,8 +248,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       return this;
     }
 
-    public Builder setHideLeftSideActions(boolean hideLeftSideActions) {
-      myHideLeftSideActions = hideLeftSideActions;
+    public Builder setHideLeftSideActions() {
+      myHideLeftSideActions = true;
       return this;
     }
 
@@ -255,7 +265,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       if (configuration == null) {
         if (myFile != null && myFile.getVirtualFile() != null) {
-          ConfigurationManager configurationManager = facet.getConfigurationManager();
+          ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
           configuration = configurationManager.getConfiguration(myFile.getVirtualFile());
         }
 
@@ -264,8 +274,14 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
       }
 
-      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myCurrentValue, myIsFrameworkValue,
+      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myDefaultType, myCurrentValue, myIsFrameworkValue,
                                       myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions);
+    }
+
+    @NotNull
+    public Builder setDefaultType(@Nullable ResourceType defaultType) {
+      myDefaultType = defaultType;
+      return this;
     }
   }
 
@@ -277,6 +293,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                @NotNull Configuration configuration,
                                @Nullable XmlTag tag,
                                @NotNull EnumSet<ResourceType> types,
+                               @Nullable ResourceType defaultType,
                                @Nullable String value,
                                boolean isFrameworkValue,
                                @NotNull ResourceNameVisibility resourceNameVisibility,
@@ -292,18 +309,16 @@ public class ChooseResourceDialog extends DialogWrapper {
     myResourceNameVisibility = resourceNameVisibility;
 
     // Treat mipmaps as a type of drawable
-    types = types.clone();
-    if (types.contains(ResourceType.MIPMAP)) {
-      types.add(ResourceType.DRAWABLE);
-      types.remove(ResourceType.MIPMAP);
+    myTypes = types.clone();
+    if (myTypes.contains(ResourceType.MIPMAP)) {
+      myTypes.add(ResourceType.DRAWABLE);
+      myTypes.remove(ResourceType.MIPMAP);
     }
 
     // You can specify a color in place of a drawable
-    if (types.contains(ResourceType.DRAWABLE) || types.contains(ResourceType.MIPMAP) && !types.contains(ResourceType.COLOR)) {
-      types.add(ResourceType.COLOR);
+    if (myTypes.contains(ResourceType.DRAWABLE) || types.contains(ResourceType.MIPMAP) && !types.contains(ResourceType.COLOR)) {
+      myTypes.add(ResourceType.COLOR);
     }
-
-    myTypes = types;
 
     myHideLeftSideActions = hideLeftSideActions;
     myResourceNameSuggestion = resourceNameSuggestion;
@@ -319,12 +334,13 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     myViewOption = createViewOptions();
-    myTabbedPane = initializeTabbedPane();
+    myTabbedPane = initializeTabbedPane(defaultType);
     if (myTabbedPane == null) {
       myAltPane = new JPanel(new BorderLayout());
       myAltPane.setPreferredSize(PANEL_PREFERRED_SIZE);
-      myAltPane.setBorder(JBUI.Borders.emptyLeft(12));
-    } else {
+      myAltPane.setBorder(IdeBorderFactory.createEmptyBorder(0, JBUI.scale(12), 0, 0));
+    }
+    else {
       myAltPane = null;
     }
 
@@ -349,7 +365,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  public AndroidFacet geFacet() {
+  public AndroidFacet getFacet() {
     return myFacet;
   }
 
@@ -437,14 +453,17 @@ public class ChooseResourceDialog extends DialogWrapper {
     ToggleAction listView = createListViewAction();
     ToggleAction gridView = createGridViewAction();
     DefaultActionGroup group = new DefaultActionGroup(listView, gridView);
-    JComponent component = ActionManager.getInstance().createActionToolbar("ChooseResourceDialog", group, true).getComponent();
+    JComponent component = ActionManager.getInstance().createActionToolbar("ResourceViewOptionToolbar", group, true).getComponent();
     component.setBorder(null);
     component.setMaximumSize(new Dimension(JBUI.scale(100), component.getMaximumSize().height));
     return component;
   }
 
+  /**
+   * @param defaultType The type corresponding to the tab to select by default
+   */
   @Nullable
-  private JTabbedPane initializeTabbedPane() {
+  private JTabbedPane initializeTabbedPane(@Nullable ResourceType defaultType) {
     if (myTypes.size() <= 1) {
       return null;
     }
@@ -456,17 +475,25 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     List<ResourceType> sorted = Lists.newArrayList(myTypes);
     // Sort drawables above colors
-    Collections.sort(sorted, (t1, t2) -> typeRank(t1) - typeRank(t2));
+    sorted.sort(Comparator.comparingInt(ChooseResourceDialog::typeRank));
 
+    int defaultTypesIndex = 0;
+    int currentTypeIndex = 0;
     for (ResourceType type : sorted) {
       // only show color state lists if we are not showing drawables
       JPanel container = new JPanel(new BorderLayout());
       container.setPreferredSize(PANEL_PREFERRED_SIZE);
       container.putClientProperty(ResourceType.class, type);
       pane.addTab(type.getDisplayName(), container);
+      if (type.equals(defaultType)) {
+        defaultTypesIndex = currentTypeIndex;
+      }
+      currentTypeIndex++;
     }
 
+    pane.setSelectedIndex(defaultTypesIndex);
     pane.addChangeListener(e -> handleTabChange());
+
     return pane;
   }
 
@@ -494,16 +521,18 @@ public class ChooseResourceDialog extends DialogWrapper {
       JPanel selectedComponent = (JPanel)myTabbedPane.getSelectedComponent();
       ResourceType type = (ResourceType)selectedComponent.getClientProperty(ResourceType.class);
       return getPanel(myTabbedPane, type);
-    } else {
+    }
+    else {
       // Just one type
       return getPanel(null, myTypes.iterator().next());
     }
   }
 
-  private Map<ResourceType,ResourcePanel> myTypeToPanels = Maps.newEnumMap(ResourceType.class);
+  private final Map<ResourceType, ResourcePanel> myTypeToPanels = Maps.newEnumMap(ResourceType.class);
 
-  private ResourcePanel getPanel(@Nullable JTabbedPane tabbedPane, @NotNull ResourceType type) {
+  private ResourcePanel getPanel(@Nullable JTabbedPane tabbedPane, @NotNull ResourceType resourceType) {
     // All ResourceType requests for MIPMAP should be converted into a drawable instead
+    ResourceType type = resourceType;
     if (type == ResourceType.MIPMAP) { // mipmaps are treated as drawables
       type = ResourceType.DRAWABLE;
     }
@@ -535,31 +564,31 @@ public class ChooseResourceDialog extends DialogWrapper {
   @NotNull
   private ToggleAction createGridViewAction() {
     return new ToggleAction(null, "grid", AndroidIcons.Views.GridView) {
-        @Override
-        public boolean isSelected(AnActionEvent e) {
-          return myGridMode;
-        }
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return myGridMode;
+      }
 
-        @Override
-        public void setSelected(AnActionEvent e, boolean state) {
-          setGridMode(state);
-        }
-      };
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(state);
+      }
+    };
   }
 
   @NotNull
   private ToggleAction createListViewAction() {
     return new ToggleAction(null, "list", AndroidIcons.Views.ListView) {
-        @Override
-        public boolean isSelected(AnActionEvent e) {
-          return !myGridMode;
-        }
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return !myGridMode;
+      }
 
-        @Override
-        public void setSelected(AnActionEvent e, boolean state) {
-          setGridMode(!state);
-        }
-      };
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(!state);
+      }
+    };
   }
 
   @NotNull
@@ -682,6 +711,11 @@ public class ChooseResourceDialog extends DialogWrapper {
           return true;
         }
       }
+
+      // If the search ends with a space, use the exact text value
+      if (text.endsWith(" ")) {
+        return StringUtil.equalsIgnoreCase(item.getName(), text.trim()); // Text needs to be trimmed to match the item name
+      }
       return StringUtil.containsIgnoreCase(item.getName(), text);
     };
 
@@ -712,7 +746,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     myColorPicker.pickARGB();
 
     myColorPickerPanel = new ResourceEditorTab(myModule, "Color", myColorPicker, resourceNameVisibility,
-                                               false, ResourceFolderType.VALUES, true, ResourceType.COLOR) {
+                                               ResourceFolderType.VALUES, true, ResourceType.COLOR) {
       @NotNull
       @Override
       public String doSave() {
@@ -777,7 +811,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     myStateListPicker = new StateListPicker(stateList, myModule, configuration);
     myStateListPickerPanel = new ResourceEditorTab(myModule, "Statelist", myStateListPicker, ResourceNameVisibility.FORCE,
-                                                   true, stateListFolderType, false, stateListType) {
+                                                   stateListFolderType, false, stateListType) {
       @Override
       @Nullable
       public ValidationInfo doValidate() {
@@ -1031,16 +1065,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   // actions (by overriding createLeftSideActions() with the below method body) such that they're not listed redundantly.
   @NotNull
   protected Action[] getCreateActions() {
-    return myAllowCreateResource && !myHideLeftSideActions ? new Action[]{createNewResourceAction()} : new Action[0];
-  }
-
-  public ChooseResourceDialog setAllowCreateResource(boolean allowCreateResource) {
-    myAllowCreateResource = allowCreateResource;
-    return this;
-  }
-
-  public boolean getAllowCreateResource() {
-    return myAllowCreateResource;
+    return !myHideLeftSideActions ? new Action[]{createNewResourceAction()} : EMPTY_ACTIONS;
   }
 
   /**
@@ -1087,44 +1112,40 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
   }
 
-  public void setUseGlobalUndo(boolean useGlobalUndo) {
-    myUseGlobalUndo = useGlobalUndo;
+  public void setUseGlobalUndo() {
+    myUseGlobalUndo = true;
   }
 
   @Nullable
-  Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize) {
-    Icon icon = item.getIcon();
-    if (icon != null && (size == icon.getIconWidth())) {
-      return icon;
+  private Icon getIcon(@NotNull ResourceChooserItem item, int size, int checkerboardSize, @Nullable Runnable onLoadComplete) {
+    Icon cachedIcon = item.getIcon(size);
+    if (cachedIcon != null) {
+      return cachedIcon;
     }
 
     switch (item.getType()) {
       case COLOR:
       case DRAWABLE:
       case MIPMAP:
-        icon = createIcon(size, checkerboardSize, true, item.getPath(), item.getResourceValue(), item.getType());
-        if (icon == null) {
-          //noinspection UndesirableClassUsage
-          icon = new ImageIcon(new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB));
-        }
-        break;
+        AsyncIcon futureIcon =
+          new AsyncIcon(createIcon(size, checkerboardSize, true, item.getPath(), item.getResourceValue(), item.getType()),
+                        EmptyIcon.create(size), onLoadComplete);
+        item.setIcon(futureIcon);
+
+        return futureIcon;
       default:
-        icon = null;
     }
 
-    // Cache for next time
-    item.setIcon(icon);
-
-    return icon;
+    return null;
   }
 
-  @Nullable
-  Icon createIcon(int size,
-                  int checkerboardSize,
-                  boolean interpolate,
-                  @Nullable String path,
-                  @NotNull ResourceValue resourceValue,
-                  @NotNull ResourceType type) {
+  @NotNull
+  ListenableFuture<Icon> createIcon(int size,
+                                    int checkerboardSize,
+                                    boolean interpolate,
+                                    @Nullable String path,
+                                    @NotNull ResourceValue resourceValue,
+                                    @NotNull ResourceType type) {
     if (path != null && IconDetector.isDrawableFile(path)
         && !path.endsWith(DOT_XML)) {
       // WebP images for unknown reasons don't load via ImageIcon(path)
@@ -1132,13 +1153,14 @@ public class ChooseResourceDialog extends DialogWrapper {
         try {
           BufferedImage image = ImageIO.read(new File(path));
           if (image != null) {
-            return new ResourceChooserIcon(size, image, checkerboardSize, interpolate);
+            return Futures.immediateFuture(new ResourceChooserImageIcon(size, image, checkerboardSize, interpolate));
           }
-        } catch (IOException ignore) {
+        }
+        catch (IOException ignore) {
         }
       }
 
-      return new ResourceChooserIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate);
+      return Futures.immediateFuture(new ResourceChooserImageIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate));
     }
     else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
       // TODO: Attempt to guess size for XML drawables since at least for vectors, we have attributes
@@ -1150,27 +1172,40 @@ public class ChooseResourceDialog extends DialogWrapper {
       int height = size;
 
       RenderTask renderTask = getRenderTask();
-      renderTask.setOverrideRenderSize(width, height);
-      renderTask.setMaxRenderSize(width, height);
-      BufferedImage image = renderTask.renderDrawable(resourceValue);
-      if (image != null) {
-        return new ResourceChooserIcon(size, image, checkerboardSize, interpolate);
-      }
+      renderTask.setOverrideRenderSize(width, height)
+        .setMaxRenderSize(width, height);
+      return Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserImageIcon>)drawable -> {
+        if (drawable != null) {
+          return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);
+        }
+
+        return null;
+      });
       // TODO maybe have a different icon for state list drawable
     }
     else if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(getResourceResolver(), resourceValue, myModule.getProject());
-      if (color != null) { // maybe null for invalid color
-        return new ColorIcon(size, color);
+      List<Color> colors = ResourceHelper.resolveMultipleColors(getResourceResolver(), resourceValue, myModule.getProject());
+      if (colors.size() == 1) {
+        return Futures.immediateFuture(new ResourceChooserColorIcon(size, colors.get(0), checkerboardSize));
       }
-      // TODO maybe have a different icon when the resource points to more then 1 color
+      if (colors.size() > 1) {
+        ResourceChooserColorIcon[] colorIcons = new ResourceChooserColorIcon[colors.size()];
+        for (int i = 0; i < colors.size(); i++) {
+          int sectionSize = size / colors.size();
+          if (i == colors.size() - 1) {
+            sectionSize = size - sectionSize * (colors.size() - 1);
+          }
+          colorIcons[i] = new ResourceChooserColorIcon(sectionSize, size, colors.get(i), checkerboardSize);
+        }
+        return Futures.immediateFuture(new RowIcon(colorIcons));
+      }
     }
 
-    return null;
+    return Futures.immediateFuture(null);
   }
 
   @NotNull
-  private SwatchComponent.SwatchIcon getSwatchIcon(@Nullable String name) {
+  private ResourceSwatchComponent.SwatchIcon getSwatchIcon(@Nullable String name) {
     return StateListPicker.getSwatchIcon(name, getResourceResolver(), getRenderTask());
   }
 
@@ -1193,6 +1228,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   /**
    * Saves any value that can be saved into the values.xml file and does not require its own file.
+   *
    * @param value of the resource being edited to be saved
    * @return the value that is returned by the resource chooser.
    */
@@ -1206,7 +1242,8 @@ public class ChooseResourceDialog extends DialogWrapper {
     final VirtualFile resDir = locationSettings.getResourceDirectory();
     if (resDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myModule.getName()));
-    } else {
+    }
+    else {
       if (!AndroidResourceUtil.changeValueResource(project, resDir, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
         // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
         // Trying to create the resource instead.
@@ -1218,7 +1255,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private static EnumSet<ResourceType> getAllowedTypes(@NotNull ResourceType type) {
-    switch(type) {
+    switch (type) {
       case COLOR:
         return GraphicalResourceRendererEditor.COLORS_ONLY;
       case DRAWABLE:
@@ -1270,18 +1307,18 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (!themeItems.isEmpty()) {
         groups.add(themeItems);
       }
-      myGroups = groups.toArray(new ResourceChooserGroup[0]);
+      myGroups = groups.toArray(EMPTY_RESOURCE_CHOOSER_GROUPS);
 
       myComponent = new JBSplitter(false, 0.5f);
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
 
       JComponent firstComponent = createListPanel();
-      firstComponent.setPreferredSize(JBUI.size(200,600));
+      firstComponent.setPreferredSize(JBUI.size(200, 600));
 
       myComponent.setFirstComponent(firstComponent);
 
       myPreviewPanel = new JPanel(new CardLayout());
-      myPreviewPanel.setPreferredSize(JBUI.size(400,600));
+      myPreviewPanel.setPreferredSize(JBUI.size(400, 600));
       myComponent.setSecondComponent(myPreviewPanel);
 
       showPreview(null);
@@ -1298,6 +1335,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           || myType == ResourceType.ID) {
         AbstractTreeStructure treeContentProvider = new ResourceTreeContentProvider(myGroups);
         TreeGrid<ResourceChooserItem> list = new TreeGrid<>(treeContentProvider);
+        new TreeGridSpeedSearch<>(list);
         list.addListSelectionListener(e -> {
           showPreview(getSelectedItem());
           notifyResourcePickerListeners(getValueForLivePreview());
@@ -1305,7 +1343,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         component = myList = list;
         // setup default list look and feel
         configureList(myGridMode);
-      } else {
+      }
+      else {
         // Table view (strings, dimensions, etc
         final AbstractTableModel model = new ResourceTableContentProvider(myGroups);
 
@@ -1345,7 +1384,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                int column) {
             boolean isHeader = false;
             if (value instanceof ResourceChooserItem) {
-              ResourceChooserItem item = (ResourceChooserItem) value;
+              ResourceChooserItem item = (ResourceChooserItem)value;
               String string = item.getName();
               String filter = mySearchField.getText();
               if (!filter.isEmpty()) {
@@ -1354,13 +1393,16 @@ public class ChooseResourceDialog extends DialogWrapper {
                   append(string.substring(0, match));
                   append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
                   append(string.substring(match + filter.length()));
-                } else {
+                }
+                else {
                   append(string);
                 }
-              } else {
+              }
+              else {
                 append(string);
               }
-            } else {
+            }
+            else {
               isHeader = true;
               append(value.toString());
             }
@@ -1380,6 +1422,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           }
         });
         columnModel.getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+          @SuppressWarnings("AssignmentToMethodParameter") // for value
           @Override
           public Component getTableCellRendererComponent(JTable table,
                                                          Object value,
@@ -1390,7 +1433,8 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (value instanceof ResourceChooserItem) {
               value = ((ResourceChooserItem)value).getDefaultValue();
               setBackground(table.getBackground());
-            } else {
+            }
+            else {
               // Header node
               setBackground(UIUtil.getLabelBackground());
               value = "";
@@ -1436,10 +1480,12 @@ public class ChooseResourceDialog extends DialogWrapper {
     boolean isFiltered() {
       if (myList != null) {
         return myList.isFiltered();
-      } else if (myTable != null) {
+      }
+      else if (myTable != null) {
         // Not tracking this yet; err on the side of caution
         return true;
-      } else {
+      }
+      else {
         return false;
       }
     }
@@ -1451,7 +1497,8 @@ public class ChooseResourceDialog extends DialogWrapper {
           // Select the only single item after filtering, if any
           myList.selectIfUnique();
         }
-      } else if (myTable != null) {
+      }
+      else if (myTable != null) {
         //noinspection unchecked
         ((FilteringTableModel<ResourceChooserItem>)myTable.getModel()).setFilter(condition);
         if (condition != null) {
@@ -1462,7 +1509,8 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (value instanceof ResourceChooserItem) {
               if (single == null) {
                 single = (ResourceChooserItem)value;
-              } else {
+              }
+              else {
                 single = null;
                 break;
               }
@@ -1478,9 +1526,10 @@ public class ChooseResourceDialog extends DialogWrapper {
     void selectFirst() {
       if (myList != null) {
         myList.selectFirst();
-      } else if (myTable != null) {
+      }
+      else if (myTable != null) {
         List<ResourceChooserItem> first = myGroups[0].getItems();
-        if (first.size() > 0) {
+        if (!first.isEmpty()) {
           setSelectedItem(first.get(0));
           myTable.requestFocus();
         }
@@ -1501,7 +1550,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (myTablePanel == null) {
         myTablePanel = new ResourceTablePanel(ChooseResourceDialog.this);
         myPreviewPanel.add(myTablePanel.getPanel(), TABLE);
-      } else {
+      }
+      else {
         // Without this, selecting different tables (e.g. keep arrow down pressed) causes the splitter
         // to keep recomputing the allocations based on the preferred sizes of the children instead
         // of sticking with the current proportion
@@ -1549,7 +1599,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             notifyResourcePickerListeners(myReferenceComponent.getValueText());
           }
         });
-        myReferenceComponent.addTextDocumentListener(new DocumentListener() {
+        myReferenceComponent.addTextDocumentListener(new com.intellij.openapi.editor.event.DocumentAdapter() {
           @Override
           public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent e) {
             // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
@@ -1568,7 +1618,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         referenceComponentPanel.add(myReferenceComponent);
         referenceComponentPanel.add(Box.createVerticalGlue());
         myReferencePanel = new ResourceEditorTab(myModule, "Reference", referenceComponentPanel, ResourceNameVisibility.FORCE,
-                                                 false, ResourceFolderType.VALUES, true, myType) {
+                                                 ResourceFolderType.VALUES, true, myType) {
           @Override
           @Nullable
           public ValidationInfo doValidate() {
@@ -1614,9 +1664,9 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     private void updateReferenceSwatchIcon() {
-      SwatchComponent.SwatchIcon icon = getSwatchIcon(myReferenceComponent.getValueText());
-      if (icon instanceof SwatchComponent.ColorIcon) {
-        SwatchComponent.ColorIcon colorIcon = (SwatchComponent.ColorIcon)icon;
+      ResourceSwatchComponent.SwatchIcon icon = getSwatchIcon(myReferenceComponent.getValueText());
+      if (icon instanceof ResourceSwatchComponent.ColorIcon) {
+        ResourceSwatchComponent.ColorIcon colorIcon = (ResourceSwatchComponent.ColorIcon)icon;
         myReferenceComponent.setWarning(
           ColorUtils.getContrastWarningMessage(myContrastColorsWithDescription, colorIcon.getColor(), myIsBackgroundColor));
       }
@@ -1662,7 +1712,9 @@ public class ChooseResourceDialog extends DialogWrapper {
       return myType;
     }
 
-    /** Determines if the given item is something we can edit (vs just select) */
+    /**
+     * Determines if the given item is something we can edit (vs just select)
+     */
     private boolean allowEditing(@Nullable ResourceChooserItem item) {
       if (item == null) {
         return false;
@@ -1680,7 +1732,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       // Checking for is-framework isn't enough: we don't let you edit resources
       // from libraries (such as appcompat) either
-      ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
+      ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myModule);
       assert repository != null;
       if (!repository.hasResourceItem(item.getType(), item.getName())) {
         return false;
@@ -1701,7 +1753,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           return true;
-        } else {
+        }
+        else {
           return false;
         }
       }
@@ -1726,7 +1779,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       if (allowEditor) {
         if ((myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE || myType == ResourceType.MIPMAP) && element != null) {
-          ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
+          ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myModule);
           assert repository != null;
           boolean inProject = repository.hasResourceItem(element.getType(), element.getName());
           if (inProject) {
@@ -1852,7 +1905,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         // if name is hidden, then we allow any value
         if (editor.getResourceNameVisibility() == ResourceNameVisibility.FORCE ||
             (editor.getResourceNameVisibility() == ResourceNameVisibility.SHOW && !myEditorPanel.getResourceName().isEmpty())) {
-          ResourceNameValidator validator = editor.getValidator();
+          IdeResourceNameValidator validator = editor.getValidator();
           String enteredName = myEditorPanel.getResourceName();
           if (validator.doesResourceExist(enteredName)) {
             ResourceType type = getSelectedPanel().getType();
@@ -1913,7 +1966,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @Nullable
     private ResourceItem setupVariants() {
       List<ResourceItem> resources =
-        AppResourceRepository.getAppResources(myFacet, true).getResourceItem(myType, myEditorPanel.getResourceName());
+        AppResourceRepository.getOrCreateInstance(myFacet).getResourceItem(myType, myEditorPanel.getResourceName());
       assert resources != null;
       ResourceItem defaultValue = getConfiguration().getFullConfig().findMatchingConfigurable(resources);
       if (defaultValue == null && !resources.isEmpty()) {
@@ -1938,164 +1991,177 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
       if (gridView && supportsGridMode()) {
-        // Using a DefaultListCellRenderer instead of a SimpleColoredComponent here because we want
-        // to use HTML labels in order to handle line breaking with <nobr> and <br> tags
-        ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
-          {
-            setHorizontalTextPosition(SwingConstants.CENTER);
-            setVerticalTextPosition(SwingConstants.BOTTOM);
-            setHorizontalAlignment(SwingConstants.CENTER);
-          }
-
-          private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
-          private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
-
-          @Override
-          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            DefaultListCellRenderer component =
-              (DefaultListCellRenderer)super.getListCellRendererComponent(list, value, index, isSelected, false);
-
-            final Border border = component.getBorder();
-            component.setBorder(new AbstractBorder() {
-              @Override
-              public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                border.paintBorder(c, g, x, y, width, height);
-              }
-            });
-
-            // TODO show deprecated resources with a strikeout
-            ResourceChooserItem rItem = (ResourceChooserItem) value;
-            setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE));
-            String name = rItem.getName();
-
-            String filter = mySearchField.getText();
-            int match = -1;
-            if (!filter.isEmpty()) {
-              match = StringUtil.indexOfIgnoreCase(name, filter, 0);
-            }
-
-            int breakPoint = -1;
-            if (name.length() > CHARS_PER_CELL) {
-              breakPoint = name.indexOf('_', CHARS_PER_CELL / 2);
-              if (breakPoint == -1 || breakPoint >= CHARS_PER_CELL || name.length() - breakPoint >= CHARS_PER_CELL) {
-                breakPoint = CHARS_PER_CELL;
-              }
-              else {
-                breakPoint++;
-              }
-            }
-
-            if (match != -1 || breakPoint != -1) {
-              HtmlBuilder builder = new HtmlBuilder();
-              builder.openHtmlBody();
-              builder.beginNoBr();
-              if (match == -1) {
-                // Just a breakpoint:
-                builder.add(name, 0, breakPoint);
-                builder.newline();
-                builder.add(name, breakPoint, name.length());
-              } else if (breakPoint == -1) {
-                // Just a match
-                builder.add(name, 0, match);
-                builder.beginColor(JBColor.BLUE);
-                builder.beginBold();
-                builder.add(name, match, match+filter.length());
-                builder.endBold();
-                builder.endColor();
-                builder.add(name, match+filter.length(), name.length());
-              } else {
-                // Both:
-                if (breakPoint < match) {
-                  builder.add(name, 0, breakPoint);
-                  builder.newline();
-                  builder.add(name, breakPoint, match);
-                } else {
-                  builder.add(name, 0, match);
-                }
-                builder.beginColor(JBColor.BLUE);
-                builder.beginBold();
-                builder.add(name, match, match+filter.length());
-                builder.endBold();
-                builder.endColor();
-                // We don't show a breakpoint inside the matched region, we'll
-                // put it right after if that's where it appeared
-                if (breakPoint >= match && breakPoint < match + filter.length()) {
-                  builder.newline();
-                  builder.add(name, match+filter.length(), name.length());
-                } else if (match < breakPoint) {
-                  builder.add(name, match + filter.length(), breakPoint);
-                  builder.newline();
-                  builder.add(name, breakPoint, name.length());
-                }
-              }
-              builder.endNoBr();
-              builder.closeHtmlBody();
-              component.setText(builder.getHtml());
-            }
-            return component;
-          }
-        };
-        myList.setFixedCellWidth(GRID_CELL_SIZE);
-        myList.setFixedCellHeight(GRID_CELL_SIZE);
-        //noinspection unchecked
-        myList.setCellRenderer(gridRenderer);
-        myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        configureGridList(myList);
       }
       else {
-        ColoredListCellRenderer<ResourceChooserItem> listRenderer = new ColoredListCellRenderer<ResourceChooserItem>() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, ResourceChooserItem value, int index, boolean selected,
-                                               boolean hasFocus) {
-            if (!hasFocus) {
-              setBorder(new AbstractBorder() {
-                @Override
-                public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                  Color oldColor = g.getColor();
-                  g.setColor(LIST_DIVIDER_COLOR);
-                  int thickness = 1;
-                  g.fillRect(x, y + height - thickness, width, thickness);
-                  g.setColor(oldColor);
-                }
-              });
-            } else {
-              // Delegate, but mess with insets!
-              final Border border = getBorder();
-              setBorder(new AbstractBorder() {
-                @Override
-                public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                  border.paintBorder(c, g, x, y, width, height);
-                }
-              });
-            }
-            setIpad(LIST_PADDING);
+        configureVerticalList(myList);
+      }
+    }
 
-            // TODO: show deprecated resources with a strikeout
-            // TODO: show private resources in a different way (and offer copy to project)
-            setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE));
-
-            String string = value.toString();
-            String filter = mySearchField.getText();
-            if (!filter.isEmpty()) {
-              int match = StringUtil.indexOfIgnoreCase(string, filter, 0);
-              if (match != -1) {
-                append(string.substring(0, match));
-                append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
-                append(string.substring(match + filter.length()));
-              } else {
-                append(string);
+    private void configureVerticalList(@NotNull TreeGrid<ResourceChooserItem> list) {
+      ColoredListCellRenderer<ResourceChooserItem> listRenderer = new ColoredListCellRenderer<ResourceChooserItem>() {
+        @Override
+        protected void customizeCellRenderer(@NotNull JList list, ResourceChooserItem value, int index, boolean selected,
+                                             boolean hasFocus) {
+          if (!hasFocus) {
+            setBorder(new AbstractBorder() {
+              @Override
+              public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Color oldColor = g.getColor();
+                g.setColor(LIST_DIVIDER_COLOR);
+                int thickness = 1;
+                g.fillRect(x, y + height - thickness, width, thickness);
+                g.setColor(oldColor);
               }
-            } else {
+            });
+          }
+          setIpad(LIST_PADDING);
+
+          // TODO: show deprecated resources with a strikeout
+          // TODO: show private resources in a different way (and offer copy to project)
+          setIcon(ChooseResourceDialog.this.getIcon(value, LIST_ICON_SIZE, LIST_CHECK_SIZE, list::repaint));
+
+          String string = value.toString();
+          String filter = mySearchField.getText();
+          if (!filter.isEmpty()) {
+            int match = StringUtil.indexOfIgnoreCase(string, filter, 0);
+            if (match != -1) {
+              append(string.substring(0, match));
+              append(string.substring(match, match + filter.length()), SEARCH_MATCH_ATTRIBUTES);
+              append(string.substring(match + filter.length()));
+            }
+            else {
               append(string);
             }
           }
-        };
-        // we use ANY fixed value here, as the width will stretch anyway, but we don't want the list to have to calculate it.
-        myList.setFixedCellWidth(10);
-        myList.setFixedCellHeight(LIST_CELL_HEIGHT);
-        //noinspection unchecked
-        myList.setCellRenderer(listRenderer);
-        myList.setLayoutOrientation(JList.VERTICAL);
-      }
+          else {
+            append(string);
+          }
+        }
+      };
+      // we use ANY fixed value here, as the width will stretch anyway, but we don't want the list to have to calculate it.
+      list.setFixedCellWidth(10);
+      list.setFixedCellHeight(LIST_CELL_HEIGHT);
+      //noinspection unchecked
+      list.setCellRenderer(listRenderer);
+      list.setLayoutOrientation(JList.VERTICAL);
+    }
+
+    private void configureGridList(@NotNull TreeGrid<ResourceChooserItem> list) {
+      // Using a DefaultListCellRenderer instead of a SimpleColoredComponent here because we want
+      // to use HTML labels in order to handle line breaking with <nobr> and <br> tags
+      ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
+        {
+          setHorizontalTextPosition(SwingConstants.CENTER);
+          setVerticalTextPosition(SwingConstants.BOTTOM);
+          setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
+        private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+          super.getListCellRendererComponent(list, value, index, isSelected, false);
+
+          if (!SystemInfo.isMac) {
+            // Bug 63478794
+            // On Linux and Windows, the backgrounds is paint on the whole row
+            // and covers everything on left of the icon.
+            // The workaround is to set the a transparent background and draw just a border instead
+            // The list used is probably not the correct one and we need to find the correct grid view to use
+            setBackground(UIUtil.TRANSPARENT_COLOR);
+            if (isSelected) {
+              setBorder(GRID_SELECTION_BORDER);
+              setForeground(JBColor.foreground());
+            }
+          }
+
+          // TODO show deprecated resources with a strikeout
+          ResourceChooserItem rItem = (ResourceChooserItem)value;
+          setIcon(ChooseResourceDialog.this.getIcon(rItem, GRID_ICON_SIZE, GRID_CHECK_SIZE, list::repaint));
+          highlightSearchResult(rItem);
+          return this;
+        }
+
+        private void highlightSearchResult(@NotNull ResourceChooserItem rItem) {
+          String name = rItem.getName();
+
+          String filter = mySearchField.getText();
+          int match = -1;
+          if (!filter.isEmpty()) {
+            match = StringUtil.indexOfIgnoreCase(name, filter, 0);
+          }
+
+          int breakPoint = -1;
+          if (name.length() > CHARS_PER_CELL) {
+            breakPoint = name.indexOf('_', CHARS_PER_CELL / 2);
+            if (breakPoint == -1 || breakPoint >= CHARS_PER_CELL || name.length() - breakPoint >= CHARS_PER_CELL) {
+              breakPoint = CHARS_PER_CELL;
+            }
+            else {
+              breakPoint++;
+            }
+          }
+
+          if (match != -1 || breakPoint != -1) {
+            HtmlBuilder builder = new HtmlBuilder();
+            builder.openHtmlBody();
+            builder.beginNoBr();
+            if (match == -1) {
+              // Just a breakpoint:
+              builder.add(name, 0, breakPoint);
+              builder.newline();
+              builder.add(name, breakPoint, name.length());
+            }
+            else if (breakPoint == -1) {
+              // Just a match
+              builder.add(name, 0, match);
+              builder.beginColor(JBColor.BLUE);
+              builder.beginBold();
+              builder.add(name, match, match + filter.length());
+              builder.endBold();
+              builder.endColor();
+              builder.add(name, match + filter.length(), name.length());
+            }
+            else {
+              // Both:
+              if (breakPoint < match) {
+                builder.add(name, 0, breakPoint);
+                builder.newline();
+                builder.add(name, breakPoint, match);
+              }
+              else {
+                builder.add(name, 0, match);
+              }
+              builder.beginColor(JBColor.BLUE);
+              builder.beginBold();
+              builder.add(name, match, match + filter.length());
+              builder.endBold();
+              builder.endColor();
+              // We don't show a breakpoint inside the matched region, we'll
+              // put it right after if that's where it appeared
+              if (breakPoint >= match && breakPoint < match + filter.length()) {
+                builder.newline();
+                builder.add(name, match + filter.length(), name.length());
+              }
+              else if (match < breakPoint) {
+                builder.add(name, match + filter.length(), breakPoint);
+                builder.newline();
+                builder.add(name, breakPoint, name.length());
+              }
+            }
+            builder.endNoBr();
+            builder.closeHtmlBody();
+            setText(builder.getHtml());
+          }
+        }
+      };
+      list.setFixedCellWidth(GRID_CELL_SIZE);
+      list.setFixedCellHeight(GRID_CELL_SIZE);
+      //noinspection unchecked
+      list.setCellRenderer(gridRenderer);
+      list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     }
 
     private void showNewResource(@NotNull ResourceEditorTab tab) {
@@ -2116,7 +2182,9 @@ public class ChooseResourceDialog extends DialogWrapper {
       for (ResourceChooserGroup group : myGroups) {
         for (ResourceChooserItem item : group.getItems()) {
           if (isAttr) {
-            if (item.isAttr() && ((ItemResourceValue)value).isFrameworkAttr() == item.isFramework() && value.getName().equals(item.getName())) {
+            if (item.isAttr() &&
+                ((ItemResourceValue)value).isFrameworkAttr() == item.isFramework() &&
+                value.getName().equals(item.getName())) {
               setSelectedItem(item);
               return true;
             }
@@ -2142,7 +2210,8 @@ public class ChooseResourceDialog extends DialogWrapper {
     public ResourceChooserItem getSelectedItem() {
       if (myList != null) {
         return myList.getSelectedElement();
-      } else if (myTable != null) {
+      }
+      else if (myTable != null) {
         int index = myTable.getSelectionModel().getLeadSelectionIndex();
         if (index != -1) {
           Object selected = myTable.getValueAt(index, 0);
@@ -2157,7 +2226,8 @@ public class ChooseResourceDialog extends DialogWrapper {
     public void setSelectedItem(@Nullable ResourceChooserItem item) {
       if (myList != null) {
         myList.setSelectedElement(item);
-      } else if (myTable != null) {
+      }
+      else if (myTable != null) {
         TableModel model = myTable.getModel();
         for (int row = 0, rowCount = model.getRowCount(); row < rowCount; row++) {
           Object object = model.getValueAt(row, 0);
@@ -2217,15 +2287,15 @@ public class ChooseResourceDialog extends DialogWrapper {
             AnActionEvent.createFromInputEvent(e, ChooseResourceDialog.class.getSimpleName(), new Presentation(), context);
           anAction.actionPerformed(actionEvent);
           return;
-        } else {
+        }
+        else {
           group.add(anAction);
         }
       }
 
       // Post menu
       JBPopupFactory factory = JBPopupFactory.getInstance();
-      ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, null,
-                                                       10);
+      ListPopup popup = factory.createActionGroupPopup(null, group, context, true, null, 10);
       popup.showUnderneathOf(source);
     }
 

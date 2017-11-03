@@ -24,8 +24,8 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
@@ -61,9 +61,24 @@ public class LintIdeJavaParser extends JavaParser {
   private final JavaEvaluator myJavaEvaluator;
   private AccessToken myLock;
 
-  public LintIdeJavaParser(LintClient client, Project project) {
+  public LintIdeJavaParser(LintClient client, Project project, com.android.tools.lint.detector.api.Project lintProject) {
     myClient = client;
-    myJavaEvaluator = new LintPsiJavaEvaluator(project);
+    myJavaEvaluator = new DefaultJavaEvaluator(project, lintProject) {
+      @NonNull
+      @Override
+      public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner element, boolean inHierarchy) {
+        //return AnnotationUtil.getAllAnnotations(element, inHierarchy, null, true);
+        if (inHierarchy) {
+          return CachedValuesManager.getCachedValue(element,
+                                                    () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                      element, true, null), PsiModificationTracker.MODIFICATION_COUNT));
+        } else {
+          return CachedValuesManager.getCachedValue(element,
+                                                    () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                      element, false, null), PsiModificationTracker.MODIFICATION_COUNT));
+        }
+      }
+    };
   }
 
   @Override
@@ -156,7 +171,7 @@ public class LintIdeJavaParser extends JavaParser {
   public Location getLocation(@NonNull JavaContext context, @NonNull PsiElement element) {
     // We don't need line numbers, so override super to avoid computing source file contents
     TextRange range = element.getTextRange();
-    return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset());
+    return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset()).withSource(element);
   }
 
   @Nullable
@@ -171,7 +186,7 @@ public class LintIdeJavaParser extends JavaParser {
     LintJavaPosition start = new LintJavaPosition(containingFile, startOffset);
     LintJavaPosition end = new LintJavaPosition(containingFile, endOffset);
     File file = context.file;
-    if (containingFile != null && containingFile != context.getJavaFile()) {
+    if (containingFile != null && !containingFile.equals(context.getPsiFile())) {
       // Reporting an error in a different file.
       if (context.getDriver().getScope().size() == 1) {
         // Don't bother with this error if it's in a different file during single-file analysis
@@ -234,13 +249,13 @@ public class LintIdeJavaParser extends JavaParser {
     // We don't need source contents for locations in the IDE
     int start = Math.max(0, from.getTextRange().getStartOffset() + fromDelta);
     int end = to.getTextRange().getEndOffset() + toDelta;
-    return createLocation(context, from.getContainingFile(), start, end);
+    return createLocation(context, from.getContainingFile(), start, end).withSource(from);
   }
 
   @Nullable
   @Override
   public PsiElement findElementAt(@NonNull JavaContext context, int offset) {
-    PsiJavaFile file = context.getJavaFile();
+    PsiFile file = context.getPsiFile();
     return file != null ? file.findElementAt(offset) : null;
   }
 
@@ -562,127 +577,6 @@ public class LintIdeJavaParser extends JavaParser {
     return false;
   }
 
-  public static class LintPsiJavaEvaluator extends JavaEvaluator {
-    private final Project myProject;
-
-    public LintPsiJavaEvaluator(Project project) {
-      myProject = project;
-    }
-
-    @Override
-    public boolean extendsClass(@Nullable PsiClass cls, @NonNull String className, boolean strict) {
-      // TODO: This checks interfaces too. Let's find a cheaper method which only checks direct super classes!
-      return InheritanceUtil.isInheritor(cls, strict, className);
-    }
-
-    @Override
-    public boolean implementsInterface(@NonNull PsiClass cls, @NonNull String interfaceName, boolean strict) {
-      // TODO: This checks superclasses too. Let's find a cheaper method which only checks interfaces.
-      return false;
-    }
-
-    @Override
-    public boolean inheritsFrom(@NonNull PsiClass cls, @NonNull String className, boolean strict) {
-      return InheritanceUtil.isInheritor(cls, strict, className);
-    }
-
-    @Nullable
-    @Override
-    public PsiClass findClass(@NonNull String qualifiedName) {
-      return JavaPsiFacade.getInstance(myProject).findClass(qualifiedName, GlobalSearchScope.allScope(myProject));
-    }
-
-    @Nullable
-    @Override
-    public PsiClassType getClassType(@Nullable PsiClass cls) {
-      return cls != null ? JavaPsiFacade.getElementFactory(myProject).createType(cls) : null;
-    }
-
-    @NonNull
-    @Override
-    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner owner, boolean inHierarchy) {
-      return AnnotationUtil.getAllAnnotations(owner, inHierarchy, null, true);
-    }
-
-    @Nullable
-    @Override
-    public PsiAnnotation findAnnotationInHierarchy(@NonNull PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
-      return AnnotationUtil.findAnnotationInHierarchy(listOwner, Sets.newHashSet(annotationNames));
-    }
-
-    @Nullable
-    @Override
-    public PsiAnnotation findAnnotation(@Nullable PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
-      return AnnotationUtil.findAnnotation(listOwner, false, annotationNames);
-    }
-
-    @Override
-    public boolean areSignaturesEqual(@NotNull PsiMethod method1, @NotNull PsiMethod method2) {
-      return MethodSignatureUtil.areSignaturesEqual(method1, method2);
-    }
-
-    @Nullable
-    @Override
-    public String findJarPath(@NonNull PsiElement element) {
-      PsiFile containingFile = element.getContainingFile();
-      if (containingFile instanceof PsiCompiledFile) {
-        ///This code is roughly similar to the following:
-        //      VirtualFile jarVirtualFile = PsiUtil.getJarFile(containingFile);
-        //      if (jarVirtualFile != null) {
-        //        return jarVirtualFile.getPath();
-        //      }
-        // However, the above methods will do some extra string manipulation and
-        // VirtualFile lookup which we don't actually need (we're just after the
-        // raw URL suffix)
-        VirtualFile file = containingFile.getVirtualFile();
-        if (file != null && file.getFileSystem().getProtocol().equals("jar")) {
-          String path = file.getPath();
-          final int separatorIndex = path.indexOf("!/");
-          if (separatorIndex >= 0) {
-            return path.substring(0, separatorIndex);
-          }
-        }
-      }
-
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public PsiPackage getPackage(@NonNull PsiElement node) {
-      PsiFile containingFile = node.getContainingFile();
-      if (containingFile != null) {
-        PsiDirectory dir = containingFile.getParent();
-        if (dir != null) {
-          return JavaDirectoryService.getInstance().getPackage(dir);
-        }
-      }
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public String getInternalName(@NonNull PsiClass psiClass) {
-      String internalName = LintIdeUtils.getInternalName(psiClass);
-      if (internalName != null) {
-        return internalName;
-      }
-      return super.getInternalName(psiClass);
-    }
-
-    @Nullable
-    @Override
-    public String getInternalName(@NonNull PsiClassType psiClassType) {
-      return super.getInternalName(psiClassType);
-    }
-
-    @Nullable
-    @Override
-    public String getInternalDescription(@NonNull PsiMethod method, boolean includeName, boolean includeReturn) {
-      return LintIdeUtils.getInternalDescription(method, includeName, includeReturn);
-    }
-  }
-
   /* Handle for creating positions cheaply and returning full fledged locations later */
   private class LocationHandle implements Location.Handle {
     private final File myFile;
@@ -702,7 +596,7 @@ public class LintIdeJavaParser extends JavaParser {
         myClient.log(Severity.WARNING, null, "No position data found for node %1$s", myNode);
         return Location.create(myFile);
       }
-      return Location.create(myFile, null /*contents*/, pos.getStart(), pos.getEnd());
+      return Location.create(myFile, null /*contents*/, pos.getStart(), pos.getEnd()).withSource(myNode);
     }
 
     @Override

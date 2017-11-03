@@ -27,11 +27,15 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.reference.SoftReference;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +45,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
@@ -57,6 +62,17 @@ public class AndroidSdkData {
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
   private AndroidSdkHandler mySdkHandler;
+
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull AndroidFacet facet) {
+    return ModuleSdkDataHolder.getInstance(facet).getSdkData();
+  }
+
+  @NotNull
+  public static AndroidSdkHandler getSdkHolder(@NotNull AndroidFacet facet) {
+    return ModuleSdkDataHolder.getInstance(facet).getSdkHandler();
+  }
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
@@ -93,7 +109,7 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    File file = new File(toSystemDependentName(sdkPath));
+    File file = toSystemDependentPath(sdkPath);
     return getSdkData(file);
   }
 
@@ -126,10 +142,7 @@ public class AndroidSdkData {
     String locationPath = location.getPath();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
-    myDeviceManager = DeviceManager.createInstance(location,
-                                                   mySdkHandler.getAndroidFolder(),
-                                                   new MessageBuildingSdkLog(),
-                                                   FileOpUtils.create());
+    myDeviceManager = DeviceManager.createInstance(mySdkHandler, new MessageBuildingSdkLog());
   }
 
   @NotNull
@@ -147,7 +160,9 @@ public class AndroidSdkData {
     return getLocation().getPath();
   }
 
-  /** @link Use {#getLatestBuildTool(boolean)} */
+  /**
+   * @link Use {#getLatestBuildTool(boolean)}
+   */
   @Deprecated
   @Nullable
   public BuildToolInfo getLatestBuildTool() {
@@ -186,18 +201,6 @@ public class AndroidSdkData {
       result.addAll(targets);
     }
     return result.toArray(new IAndroidTarget[result.size()]);
-  }
-
-  // be careful! target name is NOT unique
-
-  @Nullable
-  public IAndroidTarget findTargetByName(@NotNull String name) {
-    for (IAndroidTarget target : getTargets()) {
-      if (target.getName().equals(name)) {
-        return target;
-      }
-    }
-    return null;
   }
 
   @Nullable
@@ -253,5 +256,56 @@ public class AndroidSdkData {
   @NotNull
   public AndroidSdkHandler getSdkHandler() {
     return mySdkHandler;
+  }
+
+  private static class ModuleSdkDataHolder implements Disposable {
+    private static final Key<ModuleSdkDataHolder> KEY = Key.create(ModuleSdkDataHolder.class.getName());
+
+    private AndroidFacet myFacet;
+
+    @NotNull private final AndroidSdkHandler mySdkHandler;
+
+    @Nullable private final AndroidSdkData mySdkData;
+
+    @NotNull
+    static ModuleSdkDataHolder getInstance(@NotNull AndroidFacet facet) {
+      ModuleSdkDataHolder sdkDataHolder = facet.getUserData(KEY);
+      if (sdkDataHolder == null) {
+        sdkDataHolder = new ModuleSdkDataHolder(facet);
+        facet.putUserData(KEY, sdkDataHolder);
+      }
+      return sdkDataHolder;
+    }
+
+    ModuleSdkDataHolder(@NotNull AndroidFacet facet) {
+      myFacet = facet;
+      Disposer.register(facet, this);
+
+      AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+      if (platform != null) {
+        mySdkData = platform.getSdkData();
+        mySdkHandler = mySdkData.getSdkHandler();
+      }
+      else {
+        mySdkData = null;
+        mySdkHandler = AndroidSdkHandler.getInstance(null);
+      }
+    }
+
+    @Nullable
+    AndroidSdkData getSdkData() {
+      return mySdkData;
+    }
+
+    @NotNull
+    AndroidSdkHandler getSdkHandler() {
+      return mySdkHandler;
+    }
+
+    @Override
+    public void dispose() {
+      myFacet.putUserData(KEY, null);
+      myFacet = null;
+    }
   }
 }

@@ -15,26 +15,35 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -50,16 +59,25 @@ public final class CreateClassAction extends AnAction {
   public void actionPerformed(AnActionEvent event) {
     DataContext context = event.getDataContext();
     IdeView view = LangDataKeys.IDE_VIEW.getData(context);
+
     if (view == null) {
       return;
     }
 
+    Module module = LangDataKeys.MODULE.getData(context);
+
+    if (module == null) {
+      return;
+    }
+
     Project project = CommonDataKeys.PROJECT.getData(context);
+
     if (project == null) {
       return;
     }
 
-    final PsiDirectory directory = view.getOrChooseDirectory();
+    PsiDirectory directory = getDestinationDirectory(view, module);
+
     if (directory == null) {
       return;
     }
@@ -71,14 +89,18 @@ public final class CreateClassAction extends AnAction {
         @Override
         public PsiClass createFile(@NotNull String name, @NotNull Map<String, String> creationOptions, @NotNull String templateName) {
           String enteredPackageName = creationOptions.get(FileTemplate.ATTRIBUTE_PACKAGE_NAME);
-          PsiDirectory packageSubdirectory = createPackageSubdirectory(directory, enteredPackageName);
+          PsiDirectory packageSubdirectory = ApplicationManager.getApplication()
+            .runWriteAction((Computable<PsiDirectory>)() -> createPackageSubdirectory(directory, enteredPackageName));
           return checkOrCreate(name, packageSubdirectory, templateName, creationOptions);
         }
 
         @Override
         @NotNull
         public String getActionName(@NotNull String name, @NotNull String templateName) {
-          String packageDirectoryQualifiedName = myJavaDirectoryService.getPackage(directory).getQualifiedName();
+          PsiQualifiedNamedElement p = myJavaDirectoryService.getPackage(directory);
+          assert p != null;
+
+          String packageDirectoryQualifiedName = p.getQualifiedName();
           return IdeBundle.message("progress.creating.class", StringUtil.getQualifiedName(packageDirectoryQualifiedName, name));
         }
       });
@@ -94,6 +116,36 @@ public final class CreateClassAction extends AnAction {
     }
   }
 
+  @Nullable
+  @VisibleForTesting
+  static PsiDirectory getDestinationDirectory(@NotNull IdeView ide, @NotNull Module module) {
+    PsiDirectory[] directories = ide.getDirectories();
+
+    if (directories.length == 1) {
+      return directories[0];
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+
+    if (facet == null) {
+      return ide.getOrChooseDirectory();
+    }
+
+    Collection<File> files = facet.getMainSourceProvider().getJavaDirectories();
+
+    if (files.size() != 1) {
+      return ide.getOrChooseDirectory();
+    }
+
+    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(files.iterator().next());
+
+    if (file == null) {
+      return ide.getOrChooseDirectory();
+    }
+
+    return PsiManager.getInstance(module.getProject()).findDirectory(file);
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     boolean enabled = isAvailable(e.getDataContext());
@@ -102,7 +154,7 @@ public final class CreateClassAction extends AnAction {
     presentation.setEnabled(enabled);
   }
 
-  private boolean isAvailable(@NotNull DataContext dataContext) {
+  private static boolean isAvailable(@NotNull DataContext dataContext) {
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
     if (project == null || view == null || view.getDirectories().length == 0) {
@@ -171,6 +223,8 @@ public final class CreateClassAction extends AnAction {
 
 
     PsiPackage baseName = JavaDirectoryService.getInstance().getPackage(directory);
+    assert baseName != null;
+
     PsiDirectory dir = directory;
 
     if (!packageName.startsWith(baseName.getQualifiedName())) {
@@ -180,6 +234,7 @@ public final class CreateClassAction extends AnAction {
         if (packageName.equals(baseName.getQualifiedName())) {
           // We've stepped back in baseName and discovered packageName is an ancestor.
           // (E.g. baseName started as com.example.widget.io and packageName is com.example.widget).
+          assert dir != null;
           return dir;
         }
         else if (packageName.startsWith(baseName.getQualifiedName())) {
@@ -190,6 +245,9 @@ public final class CreateClassAction extends AnAction {
         else {
           // We still haven't found the common ancestor, so go up one level in the tree.
           baseName = baseName.getParentPackage();
+          assert baseName != null;
+
+          assert dir != null;
           dir = dir.getParentDirectory();
         }
       }
@@ -199,15 +257,21 @@ public final class CreateClassAction extends AnAction {
     String newPackageName = baseName.getQualifiedName().isEmpty() ? packageName
                                                                   : packageName.substring(baseName.getQualifiedName().length() + 1);
     for (String component : Splitter.on('.').split(newPackageName)) {
+      assert dir != null;
       PsiDirectory d = dir.findSubdirectory(component);
+
       dir = d == null ? dir.createSubdirectory(component) : d;
     }
 
+    assert dir != null;
     return dir;
   }
 
   private static void showOverridesDialog(@NotNull AnActionEvent event) {
-    Editor editor = FileEditorManager.getInstance(event.getProject()).getSelectedTextEditor();
+    Project project = event.getProject();
+    assert project != null;
+
+    Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
     if (editor instanceof EditorEx) {
       EditorEx editorEx = (EditorEx)editor;
       AnActionEvent newEvent =
@@ -221,7 +285,7 @@ public final class CreateClassAction extends AnAction {
   private PsiClass checkOrCreate(String newName, PsiDirectory directory, String templateName, Map<String, String> creationOptions)
     throws IncorrectOperationException {
     PsiDirectory dir = directory;
-    StringUtil.trimEnd(newName, ".java");
+    newName = StringUtil.trimEnd(newName, ".java");
 
     if (newName.contains(".")) {
       List<String> names = Splitter.on(".").splitToList(newName);

@@ -48,4 +48,9 @@ abstract class ImageDiffEntry {
   public final String getBaselineFilename() {
     return myBaselineFilename;
   }
+
+  @Override
+  public String toString() {
+    return myBaselineFilename;
+  }
 }

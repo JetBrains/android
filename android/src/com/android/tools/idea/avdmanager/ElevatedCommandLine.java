@@ -38,15 +38,22 @@ import java.util.List;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
- * elevated privileges on Windows.<br/>
+ * elevated privileges on Windows.<br>
  * This is useful for installation commands which require administrator privileges
  * on Windows version 7 and above.
  */
 public class ElevatedCommandLine extends GeneralCommandLine {
   private static final int INFINITE = -1;
+  private String myTempFilePrefix;
 
   public ElevatedCommandLine(@NotNull String... command) {
     super(command);
+    myTempFilePrefix = "temp";
+  }
+
+  public ElevatedCommandLine withTempFilePrefix(@NotNull String tempFilePrefix) {
+    myTempFilePrefix = tempFilePrefix;
+    return this;
   }
 
   @Override
@@ -72,76 +79,90 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     String exeName = new File(getExePath()).getName();
     File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
     String exePath = new File(getExePath()).getParent();
-    File logFile = FileUtil.createTempFile("haxm_install_log", ".txt");
     FileUtil.writeToFile(wrapper, String.format(
       "@echo off\n" +
       "setlocal enableextensions\n\n" +
       "cd /d \"%1$s\"\n\n" +
-      "%2$s -log %3$s %%*", exePath, exeName, logFile));
+      "%2$s %%*", exePath, exeName));
     setExePath(wrapper.getPath());
 
     // Setup capturing of stdout and stderr in files.
     // ShellExecuteEx does not allow for the capture from code.
-    final File outFile = FileUtil.createTempFile("haxm_out", ".txt", true);
-    final File errFile = FileUtil.createTempFile("haxm_err", ".txt", true);
+    File outFile = FileUtil.createTempFile(myTempFilePrefix + "_out", ".txt", true);
+    File errFile = FileUtil.createTempFile(myTempFilePrefix + "_err", ".txt", true);
     addParameters(">", outFile.getPath(), "2>", errFile.getPath());
 
-    final ShellExecuteInfo info = new ShellExecuteInfo(this);
+    ShellExecuteInfo info = new ShellExecuteInfo(this);
     BOOL returnValue = Shell32Ex.INSTANCE.ShellExecuteEx(info);
-    final int errorCode = returnValue.booleanValue() ? 0 : Kernel32.INSTANCE.GetLastError();
+    int errorCode = returnValue.booleanValue() ? 0 : Kernel32.INSTANCE.GetLastError();
 
     // Return a fake Process which will wait for the created process to finish
     // and wrap stdout and stderr into their respective {@link InputStream}.
-    return new Process() {
-      private HANDLE myProcess = info.hProcess;
-      private IntByReference myExitCode = new IntByReference(errorCode);
+    return new ProcessWrapper(info.hProcess, errorCode, outFile, errFile);
+  }
 
-      @Override
-      public OutputStream getOutputStream() {
-        throw new RuntimeException("Unexpected behaviour");
+  /**
+   * A fake Process which will wait for the created process to finish
+   * and wrap stdout and stderr into their respective {@link InputStream}.
+   */
+  private static class ProcessWrapper extends Process {
+    private HANDLE myProcess;
+    private final IntByReference myExitCode;
+    private final File myOutFile;
+    private final File myErrFile;
+
+    private ProcessWrapper(@NotNull HANDLE hProcess, int errorCode, @NotNull File outFile, @NotNull File errFile) {
+      myProcess = hProcess;
+      myExitCode = new IntByReference(errorCode);
+      myOutFile = outFile;
+      myErrFile = errFile;
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+      throw new RuntimeException("Unexpected behaviour");
+    }
+
+    @Override
+    public InputStream getInputStream() {
+      return toInputStream(myOutFile);
+    }
+
+    @Override
+    public InputStream getErrorStream() {
+      return toInputStream(myErrFile);
+    }
+
+    @Override
+    public int waitFor() {
+      if (myProcess != null) {
+        Kernel32.INSTANCE.WaitForSingleObject(myProcess, INFINITE);
+        Kernel32.INSTANCE.GetExitCodeProcess(myProcess, myExitCode);
+        Kernel32.INSTANCE.CloseHandle(myProcess);
+        myProcess = null;
       }
+      return myExitCode.getValue();
+    }
 
-      @Override
-      public InputStream getInputStream() {
-        return toInputStream(outFile);
-      }
+    @Override
+    public int exitValue() {
+      return waitFor();
+    }
 
-      @Override
-      public InputStream getErrorStream() {
-        return toInputStream(errFile);
-      }
+    @Override
+    public void destroy() {
+      waitFor();
+    }
 
-      @Override
-      public int waitFor() {
-        if (myProcess != null) {
-          Kernel32.INSTANCE.WaitForSingleObject(myProcess, INFINITE);
-          Kernel32.INSTANCE.GetExitCodeProcess(myProcess, myExitCode);
-          Kernel32.INSTANCE.CloseHandle(myProcess);
-          myProcess = null;
-        }
-        return myExitCode.getValue();
-      }
-
-      @Override
-      public int exitValue() {
-        return waitFor();
-      }
-
-      @Override
-      public void destroy() {
+    private InputStream toInputStream(@NotNull File file) {
+      try {
         waitFor();
+        return new FileInputStream(file);
       }
-
-      private InputStream toInputStream(@NotNull File file) {
-        try {
-          waitFor();
-          return new FileInputStream(file);
-        }
-        catch (FileNotFoundException e) {
-          throw new RuntimeException(e);
-        }
+      catch (FileNotFoundException e) {
+        throw new RuntimeException(e);
       }
-    };
+    }
   }
 
   // Gory details of the structure passed to ShellExecuteEx.

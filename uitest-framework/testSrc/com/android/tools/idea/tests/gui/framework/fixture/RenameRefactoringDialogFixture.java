@@ -22,14 +22,11 @@ import com.intellij.refactoring.ui.ConflictsDialog;
 import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
@@ -41,18 +38,8 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
 
   @NotNull
   public RenameRefactoringDialogFixture setNewName(@NotNull final String newName) {
-    final EditorTextField field = robot().finder().findByType(target(), EditorTextField.class);
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-          IdeFocusManager.getGlobalInstance().requestFocus(field, true);
-        });
-      }
-    });
-    robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot().enterText(newName);
-    Wait.seconds(1).expecting("EditorTextField to show new name").until(() -> newName.equals(field.getText()));
+    // Typing in EditorTextField is very unreliable, set text directly
+    GuiTask.execute(() -> robot().finder().findByType(target(), EditorTextField.class).setText(newName));
     return this;
   }
 

@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -60,7 +60,7 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
     when(myIdeSdks.getJdk()).thenReturn(jdk);
     when(myJdks.isApplicableJdk(jdk, JDK_1_7)).thenReturn(false);
 
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     mySetupStep.setUpInAndroidStudio(appModule, androidModel);
 

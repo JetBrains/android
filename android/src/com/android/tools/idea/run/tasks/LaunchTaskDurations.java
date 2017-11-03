@@ -21,5 +21,5 @@ public class LaunchTaskDurations {
   public static final int CONNECT_DEBUGGER = 10;
   public static final int DEPLOY_HOTSWAP = 8;
   public static final int DEPLOY_APK = 20;
-  public static final int DEPLOY_IAPK = 20;
+  public static final int DEPLOY_INSTANT_APP = 20;
 }

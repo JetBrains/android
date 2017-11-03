@@ -26,7 +26,6 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
@@ -47,8 +47,8 @@ import static org.junit.Assert.*;
 @RunWith(GuiTestRunner.class)
 public class ThemeEditorTableTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   @Test
   public void testParentValueCell() throws IOException {
@@ -189,7 +189,7 @@ public class ThemeEditorTableTest {
     FontFixture cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireNotBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/primary_text_material_dark", themeEditorTable.valueAt(cell));
+    assertEquals("@android:color/text_color_primary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)stateListCell.editor());
@@ -203,14 +203,15 @@ public class ThemeEditorTableTest {
 
     final StateListComponentFixture state0 = states.get(0);
     assertEquals("Not enabled", state0.getStateName());
-    assertEquals("@android:color/primary_text_default_material_dark", state0.getValue());
+    assertEquals("?android:attr/colorForeground", state0.getValue());
     assertTrue(state0.isAlphaVisible());
-    assertEquals("@android:dimen/disabled_alpha_material_dark", state0.getAlphaValue());
+    assertEquals("?android:attr/disabledAlpha", state0.getAlphaValue());
 
     final StateListComponentFixture state1 = states.get(1);
     assertEquals("Default", state1.getStateName());
-    assertEquals("@android:color/primary_text_default_material_dark", state1.getValue());
-    assertFalse(state1.isAlphaVisible());
+    assertEquals("?android:attr/colorForeground", state1.getValue());
+    assertTrue(state1.isAlphaVisible());
+    assertEquals("?android:attr/primaryContentAlpha", state1.getAlphaValue());
 
     state0.getValueComponent().getSwatchButton().click();
     ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -219,11 +220,13 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
+    secondDialog.clickNewResource().menuItemWithPath("New color Value...").click();
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
+    secondDialog.getNameTextField().enterText("myColor");
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state0.getValue()));
+    Wait.seconds(1).expecting("component update").until(() -> "@color/myColor".equals(state0.getValue()));
 
-    state0.getAlphaComponent().getSwatchButton().click();
+    state1.getAlphaComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
@@ -232,18 +235,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getResourceNameTable().cell("android:disabledAlpha").click();
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state0.getAlphaValue()));
-
-    state1.getValueComponent().getSwatchButton().click();
-    secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog component) {
-        return !component.equals(dialog.target());
-      }
-    });
-    secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
-    secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state1.getValue()));
+    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state1.getAlphaValue()));
 
     dialog.requireNoError();
 
@@ -253,59 +245,7 @@ public class ThemeEditorTableTest {
     cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@color/primary_text_material_dark", themeEditorTable.valueAt(cell));
-  }
-
-  /**
-   * Test the text completion for attribute values
-   */
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
-  @Test
-  public void testResourceCompletion() throws IOException {
-    guiTest.importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-    final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-
-    final TableCell cell = row(3).column(0);
-
-    FontFixture cellFont = themeEditorTable.fontAt(cell);
-    cellFont.requireNotBold();
-    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
-
-    JTableCellFixture tableCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)tableCell.editor());
-    tableCell.startEditing();
-    EditorTextFieldFixture textComponent = resourceComponent.getTextField();
-    textComponent.requireText("@android:color/background_holo_light");
-    textComponent.enterText("invalid");
-    tableCell.stopEditing();
-    Wait.seconds(1).expecting("warning icon to be loaded").until(() -> themeEditorTable.hasWarningIconAt(cell));
-
-    tableCell.startEditing();
-    textComponent = resourceComponent.getTextField();
-    String prefix = "@android:color/back";
-    textComponent.replaceText(prefix);
-
-    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
-    String[] suggestions = completionPopup.contents();
-    assertThat(suggestions).isNotEmpty();
-    for (String suggestion : suggestions) {
-      assertThat(suggestion).startsWith(prefix);
-    }
-
-    prefix = "@color/back";
-    textComponent.replaceText(prefix);
-    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
-    suggestions = completionPopup.contents();
-    assertThat(suggestions).isNotEmpty();
-    for (String suggestion : suggestions) {
-      assertThat(suggestion).startsWith(prefix);
-    }
-
-    completionPopup.item(0).doubleClick();
-    tableCell.stopEditing();
-    assertEquals(suggestions[0], themeEditorTable.valueAt(cell));
+    assertEquals("@color/text_color_primary", themeEditorTable.valueAt(cell));
   }
 
   /**

@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.BaseConfigurable;
@@ -72,6 +73,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
@@ -149,16 +151,19 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
-    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", true, project);
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      if (packages.getRemotePackages().get(FD_NDK) != null) {
-        layout.show(myNdkDownloadPanel, "link");
-      }
-      else {
-        myNdkDownloadPanel.setVisible(false);
-      }
-    };
-    Runnable onError = () -> myNdkDownloadPanel.setVisible(false);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (packages.getRemotePackages().get(FD_NDK) != null) {
+          layout.show(myNdkDownloadPanel, "link");
+        }
+        else {
+          myNdkDownloadPanel.setVisible(false);
+        }
+      }, ModalityState.any());
+    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
+      () -> myNdkDownloadPanel.setVisible(false),
+      ModalityState.any());
     repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
                      new StudioDownloader(), StudioSettingsController.getInstance(), false);
 
@@ -537,13 +542,13 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getSdkLocation() {
     String sdkLocation = mySdkLocationTextField.getText();
-    return new File(toSystemDependentName(sdkLocation));
+    return toSystemDependentPath(sdkLocation);
   }
 
   @NotNull
   private File getNdkLocation() {
     String ndkLocation = myNdkLocationTextField.getText();
-    return new File(toSystemDependentName(ndkLocation));
+    return toSystemDependentPath(ndkLocation);
   }
 
   @Override
@@ -670,13 +675,13 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getUserSelectedJdkLocation() {
     String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
-    return new File(toSystemDependentName(jdkLocation));
+    return toSystemDependentPath(jdkLocation);
   }
 
   @NotNull
   private File getJdkLocation() {
     String jdkLocation = myJdkLocationTextField.getText();
-    return new File(toSystemDependentName(jdkLocation));
+    return toSystemDependentPath(jdkLocation);
   }
 
   private boolean useEmbeddedJdk() {

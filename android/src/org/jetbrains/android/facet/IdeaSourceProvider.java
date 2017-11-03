@@ -436,8 +436,7 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getAssetsDirectories() {
       VirtualFile dir = getAssetsDir(myFacet);
-      assert dir != null;
-      return Collections.singleton(dir);
+      return dir == null ? Collections.emptySet() : Collections.singleton(dir);
     }
 
     @Override
@@ -729,12 +728,18 @@ public abstract class IdeaSourceProvider {
     return sourceProviderList;
   }
 
-  /** Returns true if the given candidate file is a manifest file in the given module */
-  public static boolean isManifestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile candidate) {
-    if (candidate == null) {
-      return false;
+  public static boolean isTestFile(@NotNull AndroidFacet facet, @NotNull VirtualFile candidate) {
+    for (IdeaSourceProvider sourceProvider : getCurrentTestSourceProviders(facet)) {
+      if (sourceProvider.containsFile(candidate)) {
+        return true;
+      }
     }
 
+    return false;
+  }
+
+  /** Returns true if the given candidate file is a manifest file in the given module */
+  public static boolean isManifestFile(@NotNull AndroidFacet facet, @NotNull VirtualFile candidate) {
     if (facet.requiresAndroidModel()) {
       for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
         if (candidate.equals(provider.getManifestFile())) {

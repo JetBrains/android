@@ -23,7 +23,6 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
@@ -110,7 +109,8 @@ public class RenderErrorContributor {
   @SuppressWarnings("unused") protected static final int MEDIUM_PRIORITY = 10;
   @SuppressWarnings("unused") protected static final int LOW_PRIORITY = 10;
 
-  protected static final Logger LOG = Logger.getInstance(RenderErrorPanel.class);
+  protected static final Logger LOG = Logger.getInstance(RenderErrorContributor.class);
+  private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final List<RenderErrorModel.Issue> myIssues = new ArrayList<>();
   private final HtmlLinkManager myLinkManager;
@@ -389,7 +389,7 @@ public class RenderErrorContributor {
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
       // See whether we should offer match_parent instead of fill_parent
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       final String fill = moduleInfo == null
                           || moduleInfo.getBuildSdkVersion() == null
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
@@ -402,7 +402,7 @@ public class RenderErrorContributor {
           assert missingWidth || missingHeight;
 
           String id = tag.getAttributeValue(ATTR_ID);
-          if (id == null || id.length() == 0) {
+          if (id == null || id.isEmpty()) {
             id = '<' + tag.getName() + '>';
           }
           else {
@@ -431,56 +431,24 @@ public class RenderErrorContributor {
     }
   }
 
-  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull final RenderTask renderTask) {
-    List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
-    if (fidelityWarnings == null || fidelityWarnings.isEmpty()) {
+  private static void addHtmlForIssue164378(@NotNull Throwable throwable,
+                                            Module module,
+                                            HtmlLinkManager linkManager,
+                                            HtmlBuilder builder,
+                                            boolean addShowExceptionLink) {
+    builder.add("Rendering failed with a known bug. ");
+    if (module == null) {
+      // Unlikely, but just in case.
+      builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
       return;
     }
-
-    HtmlBuilder builder = new HtmlBuilder();
-    builder.add("The graphics preview in the layout editor may not be accurate:").newline();
-    builder.beginList();
-    int count = 0;
-    for (final RenderProblem warning : fidelityWarnings) {
-      builder.listItem();
-      warning.appendHtml(builder.getStringBuilder());
-      final Object clientData = warning.getClientData();
-      if (clientData != null) {
-        builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
-          RenderLogger.ignoreFidelityWarning(clientData);
-          EditorDesignSurface surface = renderTask.getDesignSurface();
-          if (surface != null) {
-            surface.requestRender();
-          }
-        }));
-      }
-      builder.newline();
-      count++;
-      // Only display the first 3 render fidelity issues
-      if (count == 3) {
-        @SuppressWarnings("ConstantConditions")
-        int remaining = fidelityWarnings.size() - count;
-        if (remaining > 0) {
-          builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
-          break;
-        }
-      }
+    builder.addLink("Please try a ", "rebuild", ".", linkManager.createBuildProjectUrl());
+    builder.newline().newline();
+    if (!addShowExceptionLink) {
+      return;
     }
-    builder.endList();
-    builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
-      RenderLogger.ignoreAllFidelityWarnings();
-      EditorDesignSurface surface = renderTask.getDesignSurface();
-      if (surface != null) {
-        surface.requestRender();
-      }
-    }));
-    builder.newline();
-
-    addIssue()
-      .setSeverity(HighlightSeverity.WARNING)
-      .setSummary("Layout fidelity warning")
-      .setHtmlContent(builder)
-      .build();
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
+    builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
   }
 
   @VisibleForTesting
@@ -721,7 +689,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        RenderErrorPanel.showNotification("Stack trace copied to clipboard");
+        HtmlLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
@@ -768,7 +736,7 @@ public class RenderErrorContributor {
 
           EditorDesignSurface surface = task != null ? task.getDesignSurface() : null;
           if (surface != null) {
-            surface.requestRender(true);
+            surface.forceUserRequestedRefresh();
           }
         })).add(")");
 
@@ -930,7 +898,7 @@ public class RenderErrorContributor {
     String match = compareWithPackage ? actual : actualBase;
     int maxDistance = actualBase.length() >= 4 ? 2 : 1;
 
-    if (views.size() > 0) {
+    if (!views.isEmpty()) {
       for (String suggested : views) {
         String suggestedBase = suggested.substring(suggested.lastIndexOf('.') + 1);
         String matchWith = compareWithPackage ? suggested : suggestedBase;
@@ -988,9 +956,61 @@ public class RenderErrorContributor {
     return false;
   }
 
+  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull final RenderTask renderTask) {
+    List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
+    if (fidelityWarnings.isEmpty()) {
+      return;
+    }
+
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.add("The graphics preview in the layout editor may not be accurate:").newline();
+    builder.beginList();
+    int count = 0;
+    for (final RenderProblem warning : fidelityWarnings) {
+      builder.listItem();
+      warning.appendHtml(builder.getStringBuilder());
+      final Object clientData = warning.getClientData();
+      if (clientData != null) {
+        builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
+          RenderLogger.ignoreFidelityWarning(clientData);
+          EditorDesignSurface surface = renderTask.getDesignSurface();
+          if (surface != null) {
+            surface.forceUserRequestedRefresh();
+          }
+        }));
+      }
+      builder.newline();
+      count++;
+      // Only display the first 3 render fidelity issues
+      if (count == 3) {
+        @SuppressWarnings("ConstantConditions")
+        int remaining = fidelityWarnings.size() - count;
+        if (remaining > 0) {
+          builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
+          break;
+        }
+      }
+    }
+    builder.endList();
+    builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
+      RenderLogger.ignoreAllFidelityWarnings();
+      EditorDesignSurface surface = renderTask.getDesignSurface();
+      if (surface != null) {
+        surface.forceUserRequestedRefresh();
+      }
+    }));
+    builder.newline();
+
+    addIssue()
+      .setSeverity(HighlightSeverity.WEAK_WARNING)
+      .setSummary("Layout fidelity warning")
+      .setHtmlContent(builder)
+      .build();
+  }
+
   private void reportMissingClasses(@NotNull RenderLogger logger) {
     Set<String> missingClasses = logger.getMissingClasses();
-    if (missingClasses == null || missingClasses.isEmpty()) {
+    if (missingClasses.isEmpty()) {
       return;
     }
 
@@ -1058,6 +1078,12 @@ public class RenderErrorContributor {
                         myLinkManager.createAddDependencyUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
         builder.add(", ");
       }
+      if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
+        builder.newline().addNbsps(3);
+        builder.addLink("Add flexbox layout library dependency to the project",
+                        myLinkManager.createAddDependencyUrl(FLEXBOX_LAYOUT_LIB_ARTIFACT));
+        builder.add(", ");
+      }
 
       builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
@@ -1097,7 +1123,7 @@ public class RenderErrorContributor {
 
   private void reportBrokenClasses(@NotNull RenderLogger logger) {
     Map<String, Throwable> brokenClasses = logger.getBrokenClasses();
-    if (brokenClasses == null || brokenClasses.isEmpty()) {
+    if (brokenClasses.isEmpty()) {
       return;
     }
 
@@ -1106,19 +1132,26 @@ public class RenderErrorContributor {
 
     for (Throwable throwable : brokenClasses.values()) {
       if (RenderLogger.isIssue164378(throwable)) {
-        RenderLogger.addHtmlForIssue164378(throwable, module, myLinkManager, builder, false);
+        addHtmlForIssue164378(throwable, module, myLinkManager, builder, false);
         break;
       }
     }
 
     builder.add("The following classes could not be instantiated:");
 
+    boolean listContainsElements = false;
     Throwable firstThrowable = null;
     builder.beginList();
     for (Map.Entry<String, Throwable> entry : brokenClasses.entrySet()) {
       String className = entry.getKey();
       Throwable throwable = entry.getValue();
 
+      if (throwable != null && throwable.getMessage() != null && throwable.getMessage().startsWith(APP_COMPAT_REQUIRED_MSG)) {
+        // This is already handled by #reportAppCompatRequired
+        continue;
+      }
+
+      listContainsElements = true;
       builder.listItem()
         .add(className)
         .add(" (")
@@ -1136,6 +1169,11 @@ public class RenderErrorContributor {
         firstThrowable = throwable;
       }
     }
+
+    if (!listContainsElements) {
+      return;
+    }
+
     builder.endList()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE.",
@@ -1162,7 +1200,7 @@ public class RenderErrorContributor {
 
   private void reportInstantiationProblems(@NotNull final RenderLogger logger) {
     Map<String, Throwable> classesWithIncorrectFormat = logger.getClassesWithIncorrectFormat();
-    if (classesWithIncorrectFormat == null || classesWithIncorrectFormat.isEmpty()) {
+    if (classesWithIncorrectFormat.isEmpty()) {
       return;
     }
 
@@ -1347,13 +1385,13 @@ public class RenderErrorContributor {
   private void reportAppCompatRequired(@NotNull RenderLogger logger) {
     Map<String, Throwable> brokenClasses = logger.getBrokenClasses();
 
-    if (brokenClasses == null || brokenClasses.isEmpty()) {
+    if (brokenClasses.isEmpty()) {
       return;
     }
 
     brokenClasses.values().stream()
       .filter(Objects::nonNull)
-      .filter(t -> t.getMessage() != null && t.getMessage().startsWith("You need to use a Theme.AppCompat"))
+      .filter(t -> t.getMessage() != null && t.getMessage().startsWith(APP_COMPAT_REQUIRED_MSG))
       .findAny()
       .ifPresent(t -> addIssue()
         .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY + 1) // Reported above broken classes
@@ -1408,7 +1446,7 @@ public class RenderErrorContributor {
     @Override
     public void run() {
       final JpsJavaCompilerOptions settings = JavacConfiguration.getOptions(myProject, JavacConfiguration.class);
-      if (settings.ADDITIONAL_OPTIONS_STRING.length() > 0) {
+      if (!settings.ADDITIONAL_OPTIONS_STRING.isEmpty()) {
         settings.ADDITIONAL_OPTIONS_STRING += ' ';
       }
       settings.ADDITIONAL_OPTIONS_STRING += "-target 1.6";
@@ -1439,7 +1477,7 @@ public class RenderErrorContributor {
         }
       }
 
-      final String moduleToSelect = myProblemModules.size() > 0
+      final String moduleToSelect = !myProblemModules.isEmpty()
                                     ? myProblemModules.iterator().next().getName()
                                     : null;
       if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.NAME)) {

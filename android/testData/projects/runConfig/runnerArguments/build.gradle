@@ -11,7 +11,7 @@ android {
   buildToolsVersion "23.0.2"
 
   defaultConfig {
-    applicationId "com.android.simpleapplication"
+    applicationId "com.android.runnerarguments"
     minSdkVersion 19
     targetSdkVersion 23
     testInstrumentationRunnerArguments size:"medium", foo:"bar"

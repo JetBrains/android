@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
-import com.android.tools.idea.ui.properties.BatchInvoker;
-import com.android.tools.idea.ui.properties.TestInvokeStrategy;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.observable.BatchInvoker;
+import com.android.tools.idea.observable.TestInvokeStrategy;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.WizardModel;

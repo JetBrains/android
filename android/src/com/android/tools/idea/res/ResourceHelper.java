@@ -22,7 +22,7 @@ import com.android.ide.common.res2.DataFile;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -37,6 +37,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -135,6 +136,37 @@ public class ResourceHelper {
   }
 
   /**
+   * Is this a resource that is defined in a file named by the resource plus the extension?
+   * <p/>
+   * Some resource types can be defined <b>both</b> as a separate XML file as well as
+   * defined within a value XML file along with other properties. This method will
+   * return true for these resource types as well. In other words, a ResourceType can
+   * return true for both {@link #isValueBasedResourceType} and
+   * {@link #isFileBasedResourceType}.
+   *
+   * @param type the resource type to check
+   * @return true if the given resource type is stored in a file named by the resource
+   */
+  public static boolean isFileBasedResourceType(@NotNull ResourceType type) {
+    if (type == ResourceType.ID) {
+      // The folder types for ID is not only VALUES but also
+      // LAYOUT and MENU. However, unlike resources, they are only defined
+      // inline there so for the purposes of isFileBasedResourceType
+      // (where the intent is to figure out files that are uniquely identified
+      // by a resource's name) this method should return false anyway.
+      return false;
+    }
+
+    for (ResourceFolderType folderType : FolderTypeRelationship.getRelatedFolders(type)) {
+      if (folderType != ResourceFolderType.VALUES) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Returns the resource name of the given file.
    * <p>
    * For example, {@code getResourceName(</res/layout-land/foo.xml, false) = "foo"}.
@@ -165,57 +197,6 @@ public class ResourceHelper {
     // getResourceName(file.getVirtualFile());
     // since file.getVirtualFile can return null
     return LintUtils.getBaseName(file.getName());
-  }
-
-  /**
-   * Returns the resource URL of the given file. The file <b>must</b> be a valid resource
-   * file, meaning that it is in a proper resource folder, and it <b>must</b> be a
-   * file-based resource (e.g. layout, drawable, menu, etc) -- not a values file.
-   * <p>
-   * For example, {@code getResourceUrl(</res/layout-land/foo.xml, false) = "@layout/foo"}.
-   *
-   * @param file the file to compute a resource url for
-   * @return the resource url
-   */
-  @NotNull
-  public static String getResourceUrl(@NotNull VirtualFile file) {
-    ResourceFolderType type = ResourceFolderType.getFolderType(file.getParent().getName());
-    assert type != null && type != ResourceFolderType.VALUES;
-    return PREFIX_RESOURCE_REF + type.getName() + '/' + getResourceName(file);
-  }
-
-  /**
-   * Is this a resource that is defined in a file named by the resource plus the XML
-   * extension?
-   * <p/>
-   * Some resource types can be defined <b>both</b> as a separate XML file as well as
-   * defined within a value XML file along with other properties. This method will
-   * return true for these resource types as well. In other words, a ResourceType can
-   * return true for both {@link #isValueBasedResourceType} and
-   * {@link #isFileBasedResourceType}.
-   *
-   * @param type the resource type to check
-   * @return true if the given resource type is stored in a file named by the resource
-   */
-  public static boolean isFileBasedResourceType(@NotNull ResourceType type) {
-    List<ResourceFolderType> folderTypes = FolderTypeRelationship.getRelatedFolders(type);
-    for (ResourceFolderType folderType : folderTypes) {
-      if (folderType != ResourceFolderType.VALUES) {
-
-        if (type == ResourceType.ID) {
-          // The folder types for ID is not only VALUES but also
-          // LAYOUT and MENU. However, unlike resources, they are only defined
-          // inline there so for the purposes of isFileBasedResourceType
-          // (where the intent is to figure out files that are uniquely identified
-          // by a resource's name) this method should return false anyway.
-          return false;
-        }
-
-        return true;
-      }
-    }
-
-    return false;
   }
 
   @Nullable
@@ -558,11 +539,44 @@ public class ResourceHelper {
     return finalValue.getValue();
   }
 
+  /**
+   * When annotating Java files, we need to find an associated layout file to pick the resource
+   * resolver from (e.g. to for example have a theme association which will drive how colors are
+   * resolved). This picks one of the open layout files, and if not found, the first layout
+   * file found in the resources (if any).
+   * */
+  @Nullable
+  public static VirtualFile pickAnyLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
+    VirtualFile[] openFiles = FileEditorManager.getInstance(module.getProject()).getOpenFiles();
+    for (VirtualFile file : openFiles) {
+      if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
+          file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
+        return file;
+      }
+    }
+
+    // Pick among actual files in the project
+    for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
+      for (VirtualFile folder : resourceDir.getChildren()) {
+        if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
+          for (VirtualFile file : folder.getChildren()) {
+            if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
+                file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
+              return file;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   private static final class UnitEntry {
-    String name;
-    int type;
-    int unit;
-    float scale;
+    private final String name;
+    private final int type;
+    private final int unit;
+    private final float scale;
 
     UnitEntry(String name, int type, int unit, float scale) {
       this.name = name;
@@ -736,7 +750,7 @@ public class ResourceHelper {
         return false;
       }
 
-      if (end.length() > 0 && end.charAt(0) != ' ') {
+      if (!end.isEmpty() && end.charAt(0) != ' ') {
         // Might be a unit...
         if (parseUnit(end, outValue, sFloatOut)) {
           computeTypedValue(outValue, f, sFloatOut[0]);
@@ -748,7 +762,7 @@ public class ResourceHelper {
       // make sure it's only spaces at the end.
       end = end.trim();
 
-      if (end.length() == 0) {
+      if (end.isEmpty()) {
         if (outValue != null) {
           if (!requireUnit) {
             outValue.type = TypedValue.TYPE_FLOAT;
@@ -1143,7 +1157,7 @@ public class ResourceHelper {
       types.add(ResourceType.COLOR);
     }
 
-    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     ResourceVisibilityLookup lookup = repository.getResourceVisibility(facet);
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
     FrameworkResources frameworkResources = null;
@@ -1172,6 +1186,27 @@ public class ResourceHelper {
     }
 
     return resources;
+  }
+
+  /**
+   * Return all the IDs in a XML file.
+   */
+  public static Set<String> findIdsInFile(@NotNull PsiFile file) {
+    Set<String> ids = new HashSet<>();
+    file.accept(new PsiRecursiveElementVisitor() {
+      @Override
+      public void visitElement(@NotNull PsiElement element) {
+        super.visitElement(element);
+        if (element instanceof XmlTag) {
+          XmlTag tag = (XmlTag)element;
+          String id = LintUtils.stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI));
+          if (!id.isEmpty()) {
+            ids.add(id);
+          }
+        }
+      }
+    });
+    return ids;
   }
 
   /**

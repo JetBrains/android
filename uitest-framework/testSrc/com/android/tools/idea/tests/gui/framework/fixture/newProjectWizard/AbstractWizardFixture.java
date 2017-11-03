@@ -16,22 +16,17 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JLabelFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Base class for fixtures which control wizards that extend {@link DynamicWizard}
@@ -75,26 +70,8 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
     return myself();
   }
 
-  @NotNull
-  public JTextComponentFixture findTextField(@NotNull final String labelText) {
-    return new JTextComponentFixture(robot(), robot().finder().findByLabel(labelText, JTextComponent.class));
-  }
-
-  @NotNull
-  public JButtonFixture findWizardButton(@NotNull final String text) {
-    JButton button = robot().finder().find(target(), Matchers.byText(JButton.class, text));
-    return new JButtonFixture(robot(), button);
-  }
-
-  @NotNull
-  public JLabelFixture findLabel(@NotNull final String text) {
-    JLabel label = waitUntilFound(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel label) {
-        return text.equals(label.getText().replaceAll("(?i)<.?html>", ""));
-      }
-    });
-
-    return new JLabelFixture(robot(), label);
+  public S assertStepIcon(Icon expectedIcon) {
+    assertThat(robot().finder().findByName("right_icon", JLabel.class).getIcon()).isEqualTo(expectedIcon);
+    return myself();
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.VectorDrawableCompatDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -24,6 +25,7 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.RenameAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
@@ -34,13 +36,16 @@ public class AndroidLintVectorDrawableCompatInspection extends AndroidLintInspec
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
     XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
     if (attribute != null && ATTR_SRC.equals(attribute.getLocalName())) {
       return new AndroidLintQuickFix[]{new RenameAttributeQuickFix(AUTO_URI, ATTR_SRC_COMPAT)};
     }
     else {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
+      return super.getQuickFixes(startElement, endElement, message, fixData);
     }
   }
 }

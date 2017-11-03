@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
@@ -52,6 +54,7 @@ public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    // TODO use another trigger?
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
   }
 }

@@ -145,8 +145,8 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       myNotification.expire();
     }
 
-    if (changes.size() > 0 || toAskChanges.size() > 0) {
-      if (toAskChanges.size() > 0) {
+    if (!changes.isEmpty() || !toAskChanges.isEmpty()) {
+      if (!toAskChanges.isEmpty()) {
         askUserIfUpdatePropertyFile(myProject, toAskFacets, new Processor<MyResult>() {
           @Override
           public boolean process(MyResult result) {
@@ -181,7 +181,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         });
       }
 
-      if (changes.size() > 0 && ReadonlyStatusHandler.ensureFilesWritable(
+      if (!changes.isEmpty() && ReadonlyStatusHandler.ensureFilesWritable(
         myProject, files.toArray(new VirtualFile[files.size()]))) {
         CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
           @Override
@@ -241,7 +241,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
       facet.putUserData(ANDROID_PROPERTIES_STATE_KEY, newState);
     }
-    return changes.size() > 0 ? Pair.create(projectPropertiesVFile, changes) : null;
+    return !changes.isEmpty() ? Pair.create(projectPropertiesVFile, changes) : null;
   }
 
   private static void updateDependenciesInPropertyFile(@NotNull final PropertiesFile projectProperties,

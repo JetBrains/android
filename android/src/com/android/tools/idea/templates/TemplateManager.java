@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -54,7 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -90,6 +89,9 @@ public class TemplateManager {
    * Cache for {@link #getTemplateMetadata(File)}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
+
+  /** Lock protecting access to {@link #myCategoryTable} */
+  private final Object CATEGORY_TABLE_LOCK = new Object();
 
   /** Table mapping (Category, Template Name) -> Template File */
   private Table<String, String, File> myCategoryTable;
@@ -400,10 +402,14 @@ public class TemplateManager {
    */
   @NotNull
   public List<File> getTemplatesInCategory(@NotNull String category) {
-    if (getCategoryTable().containsRow(category)) {
-      return Lists.newArrayList(getCategoryTable().row(category).values());
-    } else {
-      return Lists.newArrayList();
+    synchronized (CATEGORY_TABLE_LOCK) {
+      Table<String, String, File> table = getCategoryTable();
+      if (table.containsRow(category)) {
+        return Lists.newArrayList(table.row(category).values());
+      }
+      else {
+        return Lists.newArrayList();
+      }
     }
   }
 
@@ -421,25 +427,27 @@ public class TemplateManager {
     }
     myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
-    for (final String category : getCategoryTable(true, project).rowKeySet()) {
-      if (EXCLUDED_CATEGORIES.contains(category)) {
-        continue;
-      }
-      // Create the menu group item
-      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
-        @Override
-        public void update(AnActionEvent e) {
-          updateAction(e, category, getChildrenCount() > 0);
+    synchronized (CATEGORY_TABLE_LOCK) {
+      for (final String category : getCategoryTable(true, project).rowKeySet()) {
+        if (EXCLUDED_CATEGORIES.contains(category)) {
+          continue;
         }
-      };
-      categoryGroup.setPopup(true);
-      fillCategory(categoryGroup, category, am);
-      myTopGroup.add(categoryGroup);
-      setPresentation(category, categoryGroup);
+        // Create the menu group item
+        NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
+          @Override
+          public void update(AnActionEvent e) {
+            updateAction(e, category, getChildrenCount() > 0, false);
+          }
+        };
+        categoryGroup.setPopup(true);
+        fillCategory(categoryGroup, category, am);
+        myTopGroup.add(categoryGroup);
+        setPresentation(category, categoryGroup);
+      }
     }
   }
 
-  private static void updateAction(AnActionEvent event, String text, boolean visible) {
+  private static void updateAction(AnActionEvent event, String text, boolean visible, boolean disableIfNotReady) {
     IdeView view = LangDataKeys.IDE_VIEW.getData(event.getDataContext());
     final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
@@ -447,62 +455,52 @@ public class TemplateManager {
     boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
+    presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
     Map<String, File> categoryRow = myCategoryTable.row(category);
     if (CATEGORY_ACTIVITY.equals(category)) {
       AnAction galleryAction = new AnAction() {
         @Override
         public void update(AnActionEvent e) {
-          updateAction(e, "Gallery...", true);
+          updateAction(e, "Gallery...", true, true);
         }
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-          // TODO: before submitting this code, change this to only use the new wizard
-          if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
-            DataContext dataContext = e.getDataContext();
-            Module module = LangDataKeys.MODULE.getData(dataContext);
-            assert module != null;
+          DataContext dataContext = e.getDataContext();
+          Module module = LangDataKeys.MODULE.getData(dataContext);
+          assert module != null;
 
-            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-            assert targetFile != null;
+          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+          assert targetFile != null;
 
-            VirtualFile targetDirectory = targetFile;
-            if (!targetDirectory.isDirectory()) {
-              targetDirectory = targetFile.getParent();
-              assert targetDirectory != null;
-            }
-
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            assert facet != null && facet.getAndroidModel() != null;
-
-            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE);
-            List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-            assert (sourceSets.size() > 0);
-
-            String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
-            Project project = facet.getModule().getProject();
-
-            // TODO: Missing logic to select the default template
-            RenderTemplateModel renderModel = new RenderTemplateModel(
-              project, templateList.get(0), initialPackageSuggestion, sourceSets.get(0), AndroidBundle.message("android.wizard.activity.add"));
-
-            NewModuleModel moduleModel = new NewModuleModel(project);
-            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(moduleModel, renderModel, facet, templateList, targetDirectory);
-            ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
-
-            new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          VirtualFile targetDirectory = targetFile;
+          if (!targetDirectory.isDirectory()) {
+            targetDirectory = targetFile.getParent();
+            assert targetDirectory != null;
           }
-          else {
-            DataContext dataContext = e.getDataContext();
-            final Module module = LangDataKeys.MODULE.getData(dataContext);
-            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-            NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, null);
-            wizard.init();
-            wizard.show();
-          }
+
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          assert facet != null && facet.getAndroidModel() != null;
+
+          List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+          assert (!sourceSets.isEmpty());
+
+          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+          Project project = facet.getModule().getProject();
+
+          RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
+            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
+
+          NewModuleModel moduleModel = new NewModuleModel(project);
+          ChooseActivityTypeStep chooseActivityTypeStep =
+            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
+          ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
+
+          new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
         }
       };
       categoryGroup.add(galleryAction);
@@ -519,6 +517,7 @@ public class TemplateManager {
       am.unregisterAction(actionId);
       am.registerAction(actionId, templateAction);
       categoryGroup.add(templateAction);
+
     }
   }
 
@@ -528,12 +527,14 @@ public class TemplateManager {
     presentation.setText(category);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable() {
     return getCategoryTable(false, null);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
-    if (myCategoryTable== null || forceReload) {
+    if (myCategoryTable == null || forceReload) {
       if (myTemplateMap != null) {
         myTemplateMap.clear();
       }
@@ -562,6 +563,7 @@ public class TemplateManager {
     return myCategoryTable;
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private void addTemplateToTable(@NotNull File newTemplate) {
     TemplateMetadata newMetadata = getTemplateMetadata(newTemplate);
     if (newMetadata != null) {
@@ -655,7 +657,9 @@ public class TemplateManager {
 
   @Nullable
   public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
-    return getCategoryTable().get(category, templateName);
+    synchronized (CATEGORY_TABLE_LOCK) {
+      return getCategoryTable().get(category, templateName);
+    }
   }
 
   /**

@@ -40,6 +40,7 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -105,9 +106,12 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
-      mySyncState.syncEnded();
+      if (!mySyncState.lastSyncFailedOrHasIssues()) {
+        mySyncState.syncEnded();
+      }
 
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
+      // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }
@@ -153,15 +157,12 @@ public class AndroidPluginVersionUpdater {
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
       try {
-        runWriteCommandAction(myProject, new ThrowableComputable<Void, RuntimeException>() {
-          @Override
-          public Void compute() {
-            for (GradleBuildModel buildModel : modelsToUpdate) {
-              buildModel.applyChanges();
-            }
-            result.pluginVersionUpdated();
-            return null;
+        runWriteCommandAction(myProject, (ThrowableComputable<Void, RuntimeException>)() -> {
+          for (GradleBuildModel buildModel : modelsToUpdate) {
+            buildModel.applyChanges();
           }
+          result.pluginVersionUpdated();
+          return null;
         });
       }
       catch (Throwable e) {
@@ -200,7 +201,8 @@ public class AndroidPluginVersionUpdater {
     private boolean myPluginVersionUpdated;
     private boolean myGradleVersionUpdated;
 
-    UpdateResult() {
+    @VisibleForTesting
+    public UpdateResult() {
     }
 
     @Nullable

@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -39,12 +40,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
                                     AndroidDebugBridge.IClientChangeListener, Disposable {
+  private static final Logger LOG = Logger.getInstance(DevicePanel.class);
+
   private JPanel myPanel;
 
   private final DeviceContext myDeviceContext;
@@ -62,6 +66,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       return getApplicationName();
     }
   };
+  @NotNull private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
@@ -75,7 +80,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
-
   }
 
   private void initializeDeviceCombo() {
@@ -92,7 +96,14 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       }
     });
 
-    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices"));
+    boolean showSerial = false;
+    if (myBridge != null) {
+      showSerial = DeviceRenderer
+        .shouldShowSerialNumbers(Arrays.asList(myBridge.getDevices()));
+    }
+
+    myDeviceRenderer = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", showSerial);
+    myDeviceCombo.setRenderer(myDeviceRenderer);
     Dimension size = myDeviceCombo.getMinimumSize();
     myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
   }
@@ -129,7 +140,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable
   private String getApplicationName() {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {
         String pkg = moduleInfo.getPackage();
         if (pkg != null) {
@@ -157,64 +168,41 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myBridge = bridge;
-          updateDeviceCombo();
-        }
-      });
-    });
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
+        myBridge = bridge;
+        updateDeviceCombo();
+      }));
   }
 
   @Override
-  public void deviceConnected(final IDevice device) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
+  public void deviceConnected(@NotNull final IDevice device) {
+    LOG.info("Device connected: " + device.getName());
+    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+  }
+
+  @Override
+  public void deviceDisconnected(@NotNull final IDevice device) {
+    LOG.info("Device disconnected: " + device.getName());
+    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+  }
+
+  @Override
+  public void deviceChanged(@NotNull final IDevice device, final int changeMask) {
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+        updateClientCombo();
+      }
+      else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
         updateDeviceCombo();
       }
+      myDeviceContext.fireDeviceChanged(device, changeMask);
     });
   }
 
   @Override
-  public void deviceDisconnected(final IDevice device) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        updateDeviceCombo();
-      }
-    });
-  }
-
-  @Override
-  public void deviceChanged(final IDevice device, final int changeMask) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-          updateClientCombo();
-        }
-        else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-          updateDeviceCombo();
-        }
-        if (device != null) {
-          myDeviceContext.fireDeviceChanged(device, changeMask);
-        }
-      }
-    });
-  }
-
-  @Override
-  public void clientChanged(Client client, int changeMask) {
+  public void clientChanged(@NotNull Client client, int changeMask) {
     if ((changeMask & Client.CHANGE_NAME) != 0) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          updateClientCombo();
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(this::updateClientCombo);
     }
   }
 
@@ -226,7 +214,12 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myDeviceCombo.removeAllItems();
     boolean shouldAddSelected = true;
     if (myBridge != null) {
-      for (IDevice device : myBridge.getDevices()) {
+      IDevice[] devices = myBridge.getDevices();
+
+      // determine if there are duplicate devices, if so, show serial number
+      myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
+
+      for (IDevice device : devices) {
         myDeviceCombo.addItem(device);
         // If we reattach an actual device into Studio, "device" will be the connected IDevice and "selected" will be the disconnected one.
         boolean isSelectedReattached =

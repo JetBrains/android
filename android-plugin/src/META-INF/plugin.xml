@@ -1,13 +1,14 @@
-<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
-    Supports the development of Android applications with IntelliJ IDEA.
+    Supports development of Android applications with IntelliJ IDEA and Android Studio.
   </description>
-  <version>10.2.3</version>
-  <vendor>JetBrains</vendor>
+  <version>10.3.0</version>
+  <vendor>JetBrains &amp; Google</vendor>
 
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

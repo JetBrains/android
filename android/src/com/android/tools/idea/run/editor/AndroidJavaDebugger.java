@@ -17,8 +17,10 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.AndroidTestOrchestratorJavaDebuggerTask;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
@@ -47,6 +49,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR;
 
 public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
@@ -98,7 +103,14 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull AndroidDebuggerState state,
                                                    @NotNull String runConfigTypeId,
                                                    boolean monitorRemoteProcess) {
-    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    if (androidModuleModel != null && ANDROID_TEST_ORCHESTRATOR.equals(androidModuleModel.getTestExecutionStrategy())) {
+      return new AndroidTestOrchestratorJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
+    }
+    else {
+      return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
+                                         facet.getProjectType() == PROJECT_TYPE_INSTANTAPP);
+    }
   }
 
   @Override

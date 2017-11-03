@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategy.BuildToolsVersionReader;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -79,7 +79,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
 
   @NotNull
   private static AndroidModuleModel mockAndroidModel(@Nullable String modelVersion, int apiVersion) {
-    AndroidProject androidProject = mock(AndroidProject.class);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getModelVersion()).thenReturn(modelVersion);
     when(androidProject.getApiVersion()).thenReturn(apiVersion);
 
@@ -90,7 +90,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssues() {
     Project project = getProject();
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     myStrategy.getModules().add("app");
     myStrategy.fixAndReportFoundIssues();
@@ -105,7 +105,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssuesWithNoIssues() {
     Project project = getProject();
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     myStrategy.getModules().clear();
     myStrategy.fixAndReportFoundIssues();

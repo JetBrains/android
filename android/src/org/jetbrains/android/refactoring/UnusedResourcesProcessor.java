@@ -17,13 +17,17 @@ package org.jetbrains.android.refactoring;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
-import com.android.tools.lint.detector.api.TextFormat;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
@@ -49,9 +53,6 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,10 +64,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyConstantExpressionEvaluator;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.SdkConstants.ATTR_ID;
 
@@ -201,7 +199,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                             List<ProblemData> problems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
                             if (problems != null) {
                               for (ProblemData problem : problems) {
-                                String unusedResource = UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW);
+                                String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
                                 if (unusedResource != null &&
                                     unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
                                   elements.add(applicationStatement);
@@ -281,12 +279,14 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   @NotNull
   private Map<Issue, Map<File, List<ProblemData>>> computeUnusedMap() {
     Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
-    List<Issue> issues = Lists.newArrayListWithExpectedSize(2);
 
-    issues.add(UnusedResourceDetector.ISSUE);
+    Set<Issue> issues;
     if (myIncludeIds) {
-      issues.add(UnusedResourceDetector.ISSUE_IDS);
+      issues = ImmutableSet.of(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS);
+    } else {
+      issues = ImmutableSet.of(UnusedResourceDetector.ISSUE);
     }
+
     AnalysisScope scope = new AnalysisScope(myProject);
 
     boolean unusedWasEnabled = UnusedResourceDetector.ISSUE.isEnabledByDefault();
@@ -298,8 +298,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       LintIdeClient client = LintIdeClient.forBatch(myProject, map, scope, issues);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
-      lint.analyze(request);
+      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
+      lint.analyze();
     }
     finally {
       UnusedResourceDetector.ISSUE.setEnabledByDefault(unusedWasEnabled);
@@ -313,7 +313,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     if (myFilter != null) {
       List<ProblemData> problems = fileListMap.get(file);
       for (ProblemData problem : problems) {
-        if (myFilter.equals(UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW))) {
+        String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
+        if (myFilter.equals(unusedResource)) {
           return true;
         }
       }
@@ -323,7 +324,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   private boolean matchesFilter(@NotNull ProblemData problem) {
-    return myFilter == null || myFilter.equals(UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW));
+    return myFilter == null || myFilter.equals(LintFix.getData(problem.getQuickfixData(), String.class));
   }
 
   @SuppressWarnings("SpellCheckingInspection")

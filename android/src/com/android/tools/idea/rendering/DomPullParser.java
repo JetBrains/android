@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.XmlUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
@@ -74,7 +74,7 @@ public class DomPullParser extends LayoutPullParser {
 
   @Nullable
   protected Element getCurrentElement() {
-    if (myNodeStack.size() > 0) {
+    if (!myNodeStack.isEmpty()) {
       return myNodeStack.get(myNodeStack.size() - 1);
     }
 
@@ -309,10 +309,10 @@ public class DomPullParser extends LayoutPullParser {
     // get the current node, and look for text or children (children first)
     Element node = getCurrentElement();
     assert node != null;  // Should only be called when START_TAG
-    List<Element> children = LintUtils.getChildren(node);
-    if (children.size() > 0) {
+    Element first = XmlUtils.getFirstSubTag(node);
+    if (first != null) {
       // move to the new child, and don't change the state.
-      push(children.get(0));
+      push(first);
 
       // in case the current state is CURRENT_DOC, we set the proper state.
       myParsingState = START_TAG;

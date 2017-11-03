@@ -24,6 +24,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.PositionXmlParser;
 import com.google.common.base.Joiner;
+import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -42,8 +43,11 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,8 +62,23 @@ public class ManifestUtils {
   private ManifestUtils() {
   }
 
+  @Nullable/*activity does not exist in any project manifests*/
+  public static SourceFilePosition getSourceFilePosition(@NotNull Module module, @NotNull String activityName) {
+    // we need to look in the merged manifest for the activity as we may be using placeholders for the name
+    MergedManifest mergedManifest = MergedManifest.get(module);
+    Element item = mergedManifest.findActivity(activityName);
+    if (item == null) {
+      return null;
+    }
+    List<? extends Actions.Record> records = getRecords(mergedManifest, item);
+    if (records.isEmpty()) {
+      return null;
+    }
+    return getActionLocation(module, records.get(0));
+  }
+
   @NotNull
-  static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
+  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
     Actions actions = manifest.getActions();
     if (actions != null) {
       if (item instanceof Element) {
@@ -113,6 +132,41 @@ public class ManifestUtils {
       }
     }
     return key;
+  }
+
+  @Nullable
+  public static Node getSourceNode(@NotNull Module module, @NotNull Actions.Record record) {
+    SourceFilePosition sourceFilePosition = record.getActionLocation();
+    SourceFile sourceFile = sourceFilePosition.getFile();
+    File file = sourceFile.getSourceFile();
+    SourcePosition sourcePosition = sourceFilePosition.getPosition();
+    if (file != null && !SourcePosition.UNKNOWN.equals(sourcePosition)) {
+      VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
+      assert vFile != null;
+      Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
+      if (fileModule != null && !fileModule.equals(module)) { // redirect to library merged manifest?
+        MergedManifest manifest = MergedManifest.get(fileModule);
+        Document document = manifest.getDocument();
+        assert document != null;
+        Element root = document.getDocumentElement();
+        assert root != null;
+        int startLine = sourcePosition.getStartLine();
+        int startColumn = sourcePosition.getStartColumn();
+        return PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+      } else {
+        int startLine = sourcePosition.getStartLine();
+        int startColumn = sourcePosition.getStartColumn();
+        try {
+          byte[] bytes = Files.toByteArray(file);
+          Document document = PositionXmlParser.parse(bytes);
+          return PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+        }
+        catch (IOException | SAXException | ParserConfigurationException ignore) {
+        }
+      }
+    }
+
+    return null;
   }
 
   @NotNull

@@ -20,8 +20,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel.SourceFileContainerInfo;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,7 +45,6 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
-import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
@@ -102,7 +102,8 @@ public class ProjectSubset {
     if (selectedModules != null) {
       setSelection(selectedModules);
       if (!Arrays.equals(getSelection(), selection)) {
-        populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
+        IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+        task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
       }
     }
   }
@@ -142,7 +143,7 @@ public class ProjectSubset {
 
           int doneCount = 0;
           for (DataNode<ModuleData> moduleNode : moduleInfos) {
-            indicator.setFraction(++doneCount / moduleInfos.size());
+            indicator.setFraction(++doneCount / (double)moduleInfos.size());
             ModuleData module = moduleNode.getData();
 
             String name = module.getExternalName();
@@ -166,7 +167,7 @@ public class ProjectSubset {
             // Nothing found.
             invokeLaterIfNeeded(() -> {
               String text = String.format("Unable to find a module containing the file '%1$s' in a source directory.", file.getName());
-              AndroidGradleNotification notification = AndroidGradleNotification.getInstance(ProjectSubset.this.myProject);
+              AndroidNotification notification = AndroidNotification.getInstance(ProjectSubset.this.myProject);
               notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, ERROR);
             });
           }
@@ -251,11 +252,12 @@ public class ProjectSubset {
     }
 
     invokeLaterIfNeeded(() -> {
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+      AndroidNotification notification = AndroidNotification.getInstance(myProject);
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
+    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+    task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
   }
 
   /**
@@ -307,7 +309,9 @@ public class ProjectSubset {
 
           finalSelection.addAll(selectedModules);
           setSelection(finalSelection);
-          populate(myProject, projectInfo, finalSelection, DEFAULT_REQUEST);
+
+          IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+          task.populateProject(projectInfo, finalSelection, DEFAULT_REQUEST);
         }
       }
     });
@@ -333,7 +337,7 @@ public class ProjectSubset {
 
           int doneCount = 0;
           for (DataNode<ModuleData> moduleInfo : moduleInfos) {
-            indicator.setFraction(++doneCount / moduleInfos.size());
+            indicator.setFraction(++doneCount / (double)moduleInfos.size());
 
             String name = getNameOf(moduleInfo);
             if (selection.contains(name)) {
@@ -352,7 +356,8 @@ public class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, projectInfo, selectedModules, DEFAULT_REQUEST);
+            IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(project);
+            task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
           }
         }
       }.queue();

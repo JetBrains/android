@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -42,7 +42,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class BuildToolsTooLowReporterTest extends IdeaTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
-  private SyncMessagesStub mySyncMessages;
+  private GradleSyncMessagesStub mySyncMessages;
   private BuildToolsTooLowReporter myIssueReporter;
 
   @Override
@@ -50,7 +50,7 @@ public class BuildToolsTooLowReporterTest extends IdeaTestCase {
     super.setUp();
 
     initMocks(this);
-    mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myIssueReporter = new BuildToolsTooLowReporter(myErrorHandler);
   }
 

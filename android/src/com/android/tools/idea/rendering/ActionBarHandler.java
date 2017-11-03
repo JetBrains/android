@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -90,7 +90,7 @@ public class ActionBarHandler extends ActionBarCallback {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourShowMenu = showMenu;
       if (surface != null && repaint) {
-        surface.requestRender();
+        surface.forceUserRequestedRefresh();
       }
       return true;
     }

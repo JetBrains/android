@@ -2,6 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.checks.UselessViewDetector;
 import com.android.tools.lint.detector.api.Issue;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -31,7 +32,7 @@ public class RemoveUselessViewQuickFix implements AndroidLintQuickFix {
     }
 
     if (myIssue.getId().equals(UselessViewDetector.USELESS_LEAF.getId())) {
-      tag.delete();
+      WriteCommandAction.runWriteCommandAction(tag.getProject(), tag::delete);
     }
     else {
       assert false;

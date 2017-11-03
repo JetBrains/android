@@ -136,7 +136,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     }
     return connection
       .createOrUpdateAvd(null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath,
-                         settings, false);
+                         settings, false, true);
   }
 
   private static Map<String, String> getAvdSettings(@NotNull String internalName, @NotNull Device device) {

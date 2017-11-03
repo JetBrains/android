@@ -71,30 +71,27 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
   public void filterPrivateResources(@NotNull CompletionParameters parameters,
                                      @NotNull final CompletionResultSet resultSet,
                                      AndroidFacet facet) {
-    final ResourceVisibilityLookup lookup = AppResourceRepository.getAppResources(facet, true).getResourceVisibility(facet);
+    final ResourceVisibilityLookup lookup = AppResourceRepository.getOrCreateInstance(facet).getResourceVisibility(facet);
     if (lookup.isEmpty()) {
       return;
     }
-    resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-      @Override
-      public void consume(CompletionResult result) {
-        final Object obj = result.getLookupElement().getObject();
+    resultSet.runRemainingContributors(parameters, result -> {
+      final Object obj = result.getLookupElement().getObject();
 
-        if (obj instanceof PsiField) {
-          PsiField field = (PsiField)obj;
-          PsiClass containingClass = field.getContainingClass();
-          if (containingClass != null) {
-            PsiClass rClass = containingClass.getContainingClass();
-            if (rClass != null && rClass.getName().equals(R_CLASS)) {
-              ResourceType type = ResourceType.getEnum(containingClass.getName());
-              if (type != null && lookup.isPrivate(type, field.getName())) {
-                return;
-              }
+      if (obj instanceof PsiField) {
+        PsiField field = (PsiField)obj;
+        PsiClass containingClass = field.getContainingClass();
+        if (containingClass != null) {
+          PsiClass rClass = containingClass.getContainingClass();
+          if (rClass != null && rClass.getName().equals(R_CLASS)) {
+            ResourceType type = ResourceType.getEnum(containingClass.getName());
+            if (type != null && lookup.isPrivate(type, field.getName())) {
+              return;
             }
           }
         }
-        resultSet.passResult(result);
       }
+      resultSet.passResult(result);
     });
   }
 

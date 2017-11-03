@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +39,11 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
@@ -66,23 +68,25 @@ public class ConflictSet {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
-      if (currentAndroidModel == null || currentAndroidModel.getProjectType() == PROJECT_TYPE_APP ) {
+      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP ) {
         continue;
       }
-      String gradlePath = GradleUtil.getGradlePath(module);
+      String gradlePath = getGradlePath(module);
       if (gradlePath == null) {
         continue;
       }
 
       String selectedVariant = currentAndroidModel.getSelectedVariant().getName();
 
-      for (Module dependent : ModuleUtilCore.getAllDependentModules(module)) {
+      List<Module> dependentModules =
+        ApplicationManager.getApplication().runReadAction((Computable<List<Module>>)() -> getAllDependentModules(module));
+      for (Module dependent : dependentModules) {
         AndroidModuleModel dependentAndroidModel = AndroidModuleModel.get(dependent);
         if (dependentAndroidModel == null) {
           continue;
         }
         String expectedVariant = getExpectedVariant(dependentAndroidModel, gradlePath);
-        if (StringUtil.isEmpty(expectedVariant)) {
+        if (isEmpty(expectedVariant)) {
           continue;
         }
         addConflict(structureConflicts, module, selectedVariant, dependent, expectedVariant);
@@ -109,22 +113,17 @@ public class ConflictSet {
                                   @NotNull Module affected,
                                   @NotNull String expectedVariant) {
     String causeName = source.getName();
-    Conflict conflict = allConflicts.get(causeName);
-    if (conflict == null) {
-      conflict = new Conflict(source, selectedVariant);
-      allConflicts.put(causeName, conflict);
-    }
+    Conflict conflict = allConflicts.computeIfAbsent(causeName, k -> new Conflict(source, selectedVariant));
     conflict.addAffectedModule(affected, expectedVariant);
   }
 
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
-    List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant(), dependentAndroidModel);
-    for (AndroidLibrary dependency : dependencies) {
-      if (!dependencyGradlePath.equals(dependency.getProject())) {
-        continue;
+    List<Library> dependencies = getModuleDependencies(dependentAndroidModel.getSelectedVariant());
+    for (Library dependency : dependencies) {
+      if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+        return dependency.getVariant();
       }
-      return dependency.getProjectVariant();
     }
     return null;
   }
@@ -158,7 +157,7 @@ public class ConflictSet {
    * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
    */
   public void showSelectionConflicts() {
-    SyncMessages messages = SyncMessages.getInstance(myProject);
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
     String groupName = VARIANT_SELECTION_CONFLICTS;
     messages.removeMessages(groupName);
 
@@ -193,6 +192,10 @@ public class ConflictSet {
       messages.report(msg);
     }
 
-    BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!myProject.isDisposed()) {
+        BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts);
+      }
+    });
   }
 }

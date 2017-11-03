@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.Library;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
@@ -119,7 +119,7 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   @Override
   @NotNull
   public String getName() {
-    return myResolvedSpec.name;
+    return myResolvedSpec.getName();
   }
 
   @Override
@@ -147,9 +147,9 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
 
   @Override
   public boolean hasPromotedVersion() {
-    if (myResolvedSpec.version != null && myDeclaredSpec != null && myDeclaredSpec.version != null) {
-      GradleVersion declaredVersion = GradleVersion.tryParse(myDeclaredSpec.version);
-      return declaredVersion != null && declaredVersion.compareTo(myResolvedSpec.version) < 0;
+    if (myResolvedSpec.getVersion() != null && myDeclaredSpec != null && myDeclaredSpec.getVersion() != null) {
+      GradleVersion declaredVersion = GradleVersion.tryParse(myDeclaredSpec.getVersion());
+      return declaredVersion != null && declaredVersion.compareTo(myResolvedSpec.getVersion()) < 0;
     }
     return false;
   }

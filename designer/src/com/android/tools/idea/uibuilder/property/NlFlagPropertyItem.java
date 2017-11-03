@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.renderer.NlFlagRenderer;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -42,15 +45,16 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private String myLastValue;
   private String myLastFormattedValue;
   private Set<String> myLastValues;
+  private int myMaskValue;
   private boolean myExpanded;
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
 
-  protected NlFlagPropertyItem(@NotNull List<NlComponent> components,
-                               @NotNull XmlAttributeDescriptor descriptor,
-                               @Nullable String namespace,
-                               @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, namespace, attributeDefinition);
+  protected NlFlagPropertyItem(@NotNull XmlName name,
+                               @Nullable AttributeDefinition attributeDefinition,
+                               @NotNull List<NlComponent> components,
+                               @NotNull NlPropertiesManager propertiesManager) {
+    super(name, attributeDefinition, components, propertiesManager);
     assert attributeDefinition != null;
   }
 
@@ -70,10 +74,20 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       assert myDefinition != null;
       myItems = Lists.newArrayListWithCapacity(myDefinition.getValues().length);
       for (String value : myDefinition.getValues()) {
-        myItems.add(new NlFlagPropertyItemValue(value, this));
+        myItems.add(new NlFlagPropertyItemValue(value, lookupMaskValue(value), this));
       }
     }
     return myItems;
+  }
+
+  private int lookupMaskValue(@NotNull String value) {
+    assert myDefinition != null;
+    Integer mappedValue = myDefinition.getValueMapping(value);
+    if (mappedValue != null) {
+      return mappedValue;
+    }
+    int index = ArrayUtil.indexOf(myDefinition.getValues(), value);
+    return index < 0 ? 0 : 1 << index;
   }
 
   @NotNull
@@ -119,9 +133,16 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   @Override
-  public void setValue(Object value) {
-    invalidateCachedValues();
-    super.setValue(value);
+  public void setValue(@Nullable Object value) {
+    String strValue = value == null ? null : value.toString();
+    if (StringUtil.isEmpty(strValue)) {
+      strValue = null;
+    }
+    setValueIgnoreDefaultValue(strValue, this::invalidateCachedValues);
+  }
+
+  public int getMaskValue() {
+    return myMaskValue;
   }
 
   public String getFormattedValue() {
@@ -151,11 +172,21 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       values = Sets.newHashSet(valueList);
       formattedValue = "[" + Joiner.on(", ").join(valueList) + "]";
     }
+    String resolvedValue = resolveValue(rawValue);
+    int maskValue = 0;
+    if (resolvedValue != null) {
+      Collection<String> maskValues =
+        resolvedValue.equals(rawValue) ? values : VALUE_SPLITTER.splitToList(StringUtil.notNullize(resolvedValue));
+      for (String value : maskValues) {
+        maskValue |= lookupMaskValue(value);
+      }
+    }
 
     myLastValues = values;
     myLastValue = rawValue;
     myLastFormattedValue = formattedValue;
     myLastRead = getModel().getModificationCount();
+    myMaskValue = maskValue;
   }
 
   public boolean isItemSet(@NotNull NlFlagPropertyItemValue item) {
@@ -164,15 +195,6 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   public boolean isItemSet(@NotNull String itemName) {
     return getValues().contains(itemName);
-  }
-
-  public boolean isAnyItemSet(@NotNull String... itemNames) {
-    for (String itemName : itemNames) {
-      if (getValues().contains(itemName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public void setItem(@NotNull NlFlagPropertyItemValue changedItem, boolean on) {
@@ -198,8 +220,8 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   @Override
-  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
-    NlFlagRenderer renderer = NlPropertyRenderers.getFlagRenderer();
+  public void mousePressed(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    NlAttributeRenderer renderer = NlPropertyRenderers.getInstance().get(this);
     renderer.mousePressed(event, rectRightColumn);
   }
 }

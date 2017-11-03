@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.profiles;
 
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -51,8 +50,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -65,7 +62,8 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
 
 public class ProjectProfileSelectionDialog extends DialogWrapper {
   private static final SimpleTextAttributes UNRESOLVED_ATTRIBUTES =
@@ -171,7 +169,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     Map<String, Module> modulesByGradlePath = Maps.newHashMap();
 
     for (Module module : modules) {
-      String gradlePath = GradleUtil.getGradlePath(module);
+      String gradlePath = getGradlePath(module);
 
       if (StringUtil.isEmpty(gradlePath)) {
         // The top-level module representing the project usually does not have a Gradle path.
@@ -192,28 +190,28 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
       Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
-      for (Variant variant : androidModel.getAndroidProject().getVariants()) {
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant, androidModel)) {
-          gradlePath = library.getProject();
-          if (gradlePath == null) {
+      androidModel.getAndroidProject().forEachVariant(variant -> {
+        for (Library library : getModuleDependencies(variant)) {
+          String libraryPath = library.getProjectPath();
+          if (libraryPath == null) {
             continue;
           }
-          Module dependency = modulesByGradlePath.get(gradlePath);
+          Module dependency = modulesByGradlePath.get(libraryPath);
           if (dependency == null) {
-            dependency = GradleUtil.findModuleByGradlePath(myProject, gradlePath);
+            dependency = GradleUtil.findModuleByGradlePath(myProject, libraryPath);
           }
           if (dependency == null) {
             continue;
           }
 
           Conflict conflict = getConflict(dependency);
-          modulesByGradlePath.put(gradlePath, dependency);
+          modulesByGradlePath.put(libraryPath, dependency);
 
           DependencyTreeElement dependencyElement =
-            new DependencyTreeElement(dependency, gradlePath, library.getProjectVariant(), conflict);
+            new DependencyTreeElement(dependency, libraryPath, library.getVariant(), conflict);
           dependenciesByVariant.put(variant.getName(), dependencyElement);
         }
-      }
+      });
 
       List<String> variantNames = Lists.newArrayList(dependenciesByVariant.keySet());
       Collections.sort(variantNames);
@@ -339,14 +337,11 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
     createConflictsTable();
 
-    myConflictsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        showConflictDetail();
+    myConflictsTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
       }
+      showConflictDetail();
     });
     Splitter splitter = new Splitter(true, .25f);
     splitter.setHonorComponentsMinimumSize(true);
@@ -390,12 +385,9 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   }
 
   private void createConflictsTable() {
-    ConflictsTableModel tableModel = new ConflictsTableModel(myConflicts, new Function<List<ConflictTableRow>, Void>() {
-      @Override
-      public Void fun(List<ConflictTableRow> rows) {
-        filterProjectStructure(rows);
-        return null;
-      }
+    ConflictsTableModel tableModel = new ConflictsTableModel(myConflicts, rows -> {
+      filterProjectStructure(rows);
+      return null;
     });
     myConflictsTable = new ConflictsTable(tableModel);
     if (!tableModel.myRows.isEmpty()) {

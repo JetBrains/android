@@ -15,39 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.Set;
 
 public class NlFlagRenderer extends NlAttributeRenderer {
-  private final JBLabel myLabel;
-
-  public NlFlagRenderer() {
-    myLabel = new JBLabel();
-    JPanel panel = getContentPanel();
-    panel.add(myLabel, BorderLayout.CENTER);
-  }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table,
-                                     @NotNull NlProperty p,
-                                     boolean selected,
-                                     boolean hasFocus,
-                                     int row,
-                                     int col) {
-    assert p instanceof NlFlagPropertyItem;
-    NlFlagPropertyItem property = (NlFlagPropertyItem)p;
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item,
+                                       boolean selected, boolean hasFocus, int row, int col) {
+    if (!(item instanceof NlFlagPropertyItem)) {
+      return;
+    }
+
+    NlFlagPropertyItem property = (NlFlagPropertyItem)item;
 
     if (col != 1) {
       return;
     }
-    myLabel.setText(property.getFormattedValue());
+    append(property.getFormattedValue());
   }
 
   @Override

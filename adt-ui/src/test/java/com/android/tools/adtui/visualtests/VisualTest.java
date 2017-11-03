@@ -16,10 +16,10 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ public abstract class VisualTest {
    */
   private JBPanel mPanel;
 
-  private Choreographer mChoreographer;
+  private Updater myUpdater;
 
   /**
    * Thread to be used to update components data. If set, it is going to be interrupted in {@code
@@ -54,17 +54,17 @@ public abstract class VisualTest {
     return mPanel;
   }
 
-  protected final Choreographer getChoreographer() {
-    return mChoreographer;
+  protected final Updater getUpdater() {
+    return myUpdater;
   }
 
   /**
    * The {@code Animatable} components should be created in this method.
    *
    * @return An ordered {@code List} containing the Animatables which should be added to the
-   * {@link Choreographer} of this {@link VisualTest}.
+   * {@link Updater} of this {@link VisualTest}.
    */
-  protected abstract List<Animatable> createComponentsList();
+  protected abstract List<Updatable> createModelList();
 
   /**
    * @return the components that needs to render debug information.
@@ -73,12 +73,12 @@ public abstract class VisualTest {
     return Collections.emptyList();
   }
 
-  protected final void addToChoreographer(@NotNull Animatable animatable) {
-    mChoreographer.register(animatable);
+  protected final void addToUpdater(@NotNull Updatable updatable) {
+    myUpdater.register(updatable);
   }
 
-  protected final void addToChoreographer(@NotNull List<Animatable> animatables) {
-    mChoreographer.register(animatables);
+  protected final void addToUpdater(@NotNull List<Updatable> updatables) {
+    myUpdater.register(updatables);
   }
 
   /**
@@ -89,8 +89,8 @@ public abstract class VisualTest {
 
   protected void initialize() {
     mPanel = new JBPanel();
-    mChoreographer = new Choreographer(mPanel);
-    mChoreographer.register(createComponentsList());
+    myUpdater = new Updater(new FpsTimer());
+    myUpdater.register(createModelList());
     populateUi(mPanel);
   }
 

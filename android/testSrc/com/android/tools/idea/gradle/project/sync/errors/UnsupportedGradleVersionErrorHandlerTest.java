@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
@@ -32,12 +32,12 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestCase {
 
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleError() throws Exception {
@@ -47,7 +47,7 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Gradle version 2.2 is required." + "\n\n" +
@@ -70,7 +70,7 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).contains("Minimum supported Gradle version is 3.3. Current version is 2.14.1." + "\n\n" +

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -29,7 +30,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
-import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -49,7 +49,10 @@ public class FastGradleSync {
       try {
         DataNode<ProjectData> projectDataNode = myProjectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
         assert projectDataNode != null;
-        invokeAndWaitIfNeeded((ThrowableRunnable)() -> populate(project, projectDataNode, null, false));
+        invokeAndWaitIfNeeded((ThrowableRunnable)() -> {
+          IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(project);
+          task.populateProject(projectDataNode);
+        });
         callback.setDone();
       }
       catch (Throwable e) {

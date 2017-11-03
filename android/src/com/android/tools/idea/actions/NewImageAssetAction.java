@@ -33,7 +33,6 @@ import java.net.URL;
  * assets. See also {@link BaseAsset}.
  */
 public class NewImageAssetAction extends AndroidAssetStudioAction {
-
   public NewImageAssetAction() {
     super("Image Asset", "Open Asset Studio to create an image asset");
   }
@@ -43,14 +42,19 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
-
     return wizardBuilder.build();
   }
 
   @NotNull
   @Override
-  protected Dimension getWizardSize() {
-    return JBUI.size(800, 750);
+  protected Dimension getWizardMinimumSize() {
+    return JBUI.size(800, 600);
+  }
+
+  @NotNull
+  @Override
+  protected Dimension getWizardPreferredSize() {
+    return JBUI.size(1020, 680);
   }
 
   @Nullable

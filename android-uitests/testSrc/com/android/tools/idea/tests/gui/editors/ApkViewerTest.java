@@ -20,7 +20,15 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ApkViewerFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
+import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,9 +42,11 @@ public class ApkViewerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  private static final String APK_NAME = "app-debug.apk";
+
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581576
+   * <p>TT ID: be75b1ab-005d-43f8-97c2-b84efded54ac
    * <pre>
    *   Verifies APK Viewer gets launched when analyzing apk
    *   Test Steps
@@ -51,14 +61,76 @@ public class ApkViewerTest {
   @Test
   public void launchApkViewer() throws Exception {
     List<String> apkEntries = guiTest.importSimpleApplication()
-      .invokeMenuPath("Build", "Build APK")
+      .invokeMenuPath("Build", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
       .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
       .clickOK()
       .getEditor()
-      .getApkViewer("app-debug.apk")
+      .getApkViewer(APK_NAME)
       .getApkEntries();
     assertThat(apkEntries).contains("AndroidManifest.xml");
     assertThat(apkEntries).contains("classes.dex");
+  }
+
+  /***
+   * To verify that the file handle to apk is released by the APK analyzer after analyzing and
+   * closing the apk.
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TT ID: 3a70500c-038c-4211-99c1-0d9579574cd1
+   * <pre>
+   *   Test Steps
+   *   1. Import a project.
+   *   2. Build APK.
+   *   3. Double click an apk to open Apk Analyzer in AS project view.
+   *   4. Click around (classes.dex, resources.asrc, etc).
+   *   5. Close tab.
+   *   6. Try to delete the file (either via AS or Windows Explorer).
+   *   Verification
+   *   1. Should be able to delete the file successfully.
+   * </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testFileHandleRelease() throws Exception {
+    final String SIMPLE_APP = "SimpleApplication";
+    final String APP = "app";
+    final String BUILD = "build";
+    final String OUTPUTS = "outputs";
+    final String APK = "apk";
+    final String DEBUG = "debug";
+    final String APK_FILE_PATH = String.format("%s/%s/%s/%s/%s/%s",
+                                               APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME);
+
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+
+    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+      .getProjectView();
+
+    PaneFixture paneFixture = projectView.selectPane(ProjectViewPane.ID, "Project");
+    paneFixture.expand();
+    paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
+
+    EditorFixture editor = ideFrame.getEditor();
+    editor.open(APK_FILE_PATH);
+    ApkViewerFixture apkViewer = editor.getApkViewer(APK_NAME);
+    apkViewer.clickApkEntry("resources.arsc");
+    apkViewer.clickApkEntry("AndroidManifest.xml");
+    editor.close();
+
+    paneFixture
+      .clickPath(MouseButton.RIGHT_BUTTON, SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME)
+      .invokeMenuPath("Delete...");
+    DeleteDialogFixture.find(ideFrame.robot(), "Delete")
+      .safe(false)
+      .clickOk()
+      .waitUntilNotShowing();
+
+    // After deletion, check the apk file doesn't exist any more by trying to open it.
+    try {
+      editor.open(APK_FILE_PATH);
+      throw new IllegalStateException();
+    } catch (junit.framework.AssertionFailedError e) {
+    }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -64,6 +65,17 @@ public class Quantity implements Comparable<Quantity> {
       default:
         return quantity.myValue + SdkConstants.UNIT_DP;
     }
+  }
+
+  public static String addUnit(@NotNull ResourceType type, @NotNull String value) {
+    if (type != ResourceType.DIMEN) {
+      return value;
+    }
+    Quantity quantity = parse(value);
+    if (quantity == null || !quantity.myUnit.isEmpty()) {
+      return value;
+    }
+    return quantity.myValue + SdkConstants.UNIT_DP;
   }
 
   private Quantity(int value, @NotNull String unit) {

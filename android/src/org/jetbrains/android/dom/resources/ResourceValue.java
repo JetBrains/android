@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.SAMPLE_PREFIX;
 
 /**
  * @author yole
@@ -107,9 +108,10 @@ public class ResourceValue {
 
   @Nullable
   public static ResourceValue reference(String value, boolean withPrefix) {
+
     ResourceValue result = new ResourceValue();
     if (withPrefix) {
-      assert value.length() > 0;
+      assert !value.isEmpty();
       result.myPrefix = value.charAt(0);
     }
     final int startIndex = withPrefix ? 1 : 0;
@@ -133,10 +135,16 @@ public class ResourceValue {
       }
 
       String suffix = value.substring(pos + 1);
+      if (ResourceType.SAMPLE_DATA.getName().equals(resType)) {
+        // For sample data, we can just take the suffix as the rest of the resource name
+        result.myResourceName = value.substring(pos + 1);
+        return result;
+      }
+
       colonIndex = suffix.indexOf(':');
       if (colonIndex > 0) {
         String aPackage = suffix.substring(0, colonIndex);
-        if (result.myNamespace == null || result.myNamespace.length() == 0 || aPackage.equals(result.myNamespace)) {
+        if (result.myNamespace == null || result.myNamespace.isEmpty() || aPackage.equals(result.myNamespace)) {
           result.myNamespace = aPackage;
           result.myResourceName = suffix.substring(colonIndex + 1);
         } else {
@@ -200,6 +208,11 @@ public class ResourceValue {
       }
     }
 
+    if (ResourceType.getEnum(myResourceType) == ResourceType.SAMPLE_DATA) {
+      // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
+      return true;
+    }
+
     return AndroidUtils.isIdentifier(myResourceName)
            // Value resources are allowed to contain . and : in the names
            || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
@@ -251,6 +264,11 @@ public class ResourceValue {
 
       if (!Character.isJavaIdentifierStart(name.charAt(0))) {
         return "The resource name must begin with a character";
+      }
+
+      if (ResourceType.SAMPLE_DATA == ResourceType.getEnum(myResourceType)) {
+        // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
+        return null;
       }
       for (int i = 1, n = name.length(); i < n; i++) {
         char c = name.charAt(i);

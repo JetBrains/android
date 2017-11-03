@@ -16,10 +16,12 @@
 
 package org.jetbrains.android.dom;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -29,17 +31,16 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
+import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
@@ -59,8 +61,8 @@ public class AndroidDomUtil {
 
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  // TODO: Make SPECIAL_RESOURCE_TYPES into an immutable map
-  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(40);
+  // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
+  private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -77,7 +79,8 @@ public class AndroidDomUtil {
     // example, attrs_manifest.xml tells us that the android:icon attribute can be a reference, but not
     // that it's a reference to a drawable.
     addSpecialResourceType(ResourceType.STRING, ATTR_LABEL, "description", ATTR_TITLE);
-    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON);
+    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON, ATTR_SRC);
+    addSpecialResourceType(ResourceType.COLOR, ATTR_SRC);
     addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
     addSpecialResourceType(ResourceType.ANIM, "animation");
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
@@ -89,6 +92,10 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
+    addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
+
+    // Nav editor
+    addSpecialResourceType(ResourceType.ID, NavigationSchema.ATTR_DESTINATION);
   }
 
   private AndroidDomUtil() {
@@ -149,10 +156,7 @@ public class AndroidDomUtil {
         resourceTypes.add(type);
       }
     }
-    ResourceType specialResourceType = getSpecialResourceType(attr.getName());
-    if (specialResourceType != null) {
-      resourceTypes.add(specialResourceType);
-    }
+    resourceTypes.addAll(getSpecialResourceTypes(attr.getName()));
     if (containsReference) {
       if (resourceTypes.contains(ResourceType.COLOR)) {
         resourceTypes.add(ResourceType.DRAWABLE);
@@ -160,11 +164,11 @@ public class AndroidDomUtil {
       if (resourceTypes.contains(ResourceType.DRAWABLE)) {
         resourceTypes.add(ResourceType.MIPMAP);
       }
-      if (resourceTypes.size() == 0) {
+      if (resourceTypes.isEmpty()) {
         resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
       }
     }
-    if (resourceTypes.size() > 0) {
+    if (!resourceTypes.isEmpty()) {
       final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
       converter.setAllowLiterals(containsNotReference);
       return converter;
@@ -178,7 +182,7 @@ public class AndroidDomUtil {
       return null;
     }
 
-    if (!SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (!NS_RESOURCES.equals(attrName.getNamespaceKey())) {
       return null;
     }
 
@@ -229,11 +233,11 @@ public class AndroidDomUtil {
         containsUnsupportedFormats = true;
       }
     }
-    ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
+    ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
       resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);
@@ -248,12 +252,12 @@ public class AndroidDomUtil {
 
   /** A "special" resource type is just additional information we've manually added about an attribute
    * name that augments what attrs.xml and attrs_manifest.xml tell us about the attributes */
-  @Nullable
-  public static ResourceType getSpecialResourceType(String attrName) {
-    ResourceType type = SPECIAL_RESOURCE_TYPES.get(attrName);
-    if (type != null) return type;
-    if (attrName.endsWith("Animation")) return ResourceType.ANIM;
-    return null;
+  @NotNull
+  public static Collection<ResourceType> getSpecialResourceTypes(String attrName) {
+    Collection<ResourceType> type = SPECIAL_RESOURCE_TYPES.get(attrName);
+    if (!type.isEmpty()) return type;
+    if (attrName.endsWith("Animation")) return ImmutableList.of(ResourceType.ANIM);
+    return ImmutableList.of();
   }
 
   // for special cases
@@ -309,14 +313,27 @@ public class AndroidDomUtil {
       }
     }
 
-    ResourceManager manager = facet.getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
+    AttributeDefinition definition = null;
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
-        return attrDefs.getAttrDefByName(localName);
+        definition = attrDefs.getAttrDefByName(localName);
       }
     }
-    return null;
+
+    if (definition == null) {
+      Module module = facet.getModule();
+      DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+      if (dataBindingComponent != null) {
+        Set<String> bindingAttributes = dataBindingComponent.getBindingAdapterAttributes(module).collect(Collectors.toSet());
+        if (bindingAttributes.contains(attribute.getName())) {
+          definition = new AttributeDefinition(localName);
+        }
+      }
+    }
+
+    return definition;
   }
 
   @NotNull

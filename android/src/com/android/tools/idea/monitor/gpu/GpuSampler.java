@@ -20,16 +20,13 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.GfxinfoHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.*;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GpuSampler extends DeviceSampler {
-  private final GfxinfoHandler[] myGfxinfoHandlers = new GfxinfoHandler[]{new JHandler(), new LHandler(), new MHandler()};
+  private final GfxinfoHandler[] myGfxinfoHandlers = new GfxinfoHandler[]{new JHandler(), new LHandler(), new MHandler(), new NHandler()};
   private volatile GfxinfoHandler myCurrentGfxinfoHandler;
   private volatile int myApiLevel = JHandler.MIN_API_LEVEL;
 

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 
@@ -32,6 +31,9 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   /** Horizontal gap between editor control and {@link BrowsePanel} */
   protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfo.isMac ? 0 : 2;
 
+  /** Horizontal spacing between label and editor in inspector */
+  protected static final int HORIZONTAL_SPACING = 4;
+
   /** Vertical spacing between editors in inspector */
   protected static final int VERTICAL_SPACING = 2;
 
@@ -40,6 +42,9 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   /** Vertical padding inside the edit control */
   protected static final int VERTICAL_PADDING = 2;
+
+  /** Vertical padding inside the edit control with small font */
+  protected static final int VERTICAL_PADDING_FOR_SMALL_FONT = 3;
 
   private final NlEditingListener myListener;
 
@@ -71,10 +76,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   @Override
   public void refresh() {
-    NlProperty property = getProperty();
-    if (property != null) {
-      setProperty(property);
-    }
+    setProperty(getProperty());
   }
 
   @Override
@@ -108,14 +110,15 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
     refresh();
   }
 
-  protected void displayResourcePicker() {
-    NlProperty property = getProperty();
-    if (property == null) {
-      return;
-    }
-    ChooseResourceDialog dialog = BrowsePanel.showResourceChooser(property);
-    if (dialog.showAndGet()) {
-      stopEditing(dialog.getResourceName());
+  @TestOnly
+  public NlEditingListener getEditingListener() {
+    return myListener;
+  }
+
+  protected void showBrowseDialog() {
+    String newValue = BrowsePanel.showBrowseDialog(getProperty());
+    if (newValue != null) {
+      stopEditing(newValue);
     }
     else {
       cancelEditing();

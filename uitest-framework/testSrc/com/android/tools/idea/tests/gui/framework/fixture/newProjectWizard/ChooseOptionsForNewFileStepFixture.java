@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
@@ -28,14 +29,32 @@ public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture enterActivityName(@NotNull String name) {
-    JTextField textField = robot().finder().findByLabel(target(), "Activity Name:", JTextField.class, true);
+    JTextField textField = robot().finder().findByLabel(target(), "Activity Name", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
   public String getLayoutName() {
-    final JTextField textField = robot().finder().findByLabel("Layout Name:", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Layout Name", JTextField.class, true);
+    return GuiQuery.getNonNull(textField::getText);
+  }
+
+  @NotNull
+  public String getInstantAppsHost() {
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Host", JTextField.class, true);
+    return GuiQuery.getNonNull(textField::getText);
+  }
+
+  @NotNull
+  public String getInstantAppsRouteType() {
+    final JComboBox comboBox = robot().finder().findByLabel("Instant App URL Route Type", JComboBox.class, true);
+    return ((ApiComboBoxItem)GuiQuery.getNonNull(comboBox::getSelectedItem)).getLabel();
+  }
+
+  @NotNull
+  public String getInstantAppsRoute() {
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Route", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 }

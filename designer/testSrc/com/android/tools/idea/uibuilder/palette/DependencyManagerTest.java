@@ -16,18 +16,15 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.LeakHunter;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentCaptor;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -36,13 +33,11 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class DependencyManagerTest extends AndroidTestCase {
-  private GradleDependencyManager myGradleDependencyManager;
-  private GradleDependencyManager myOldGradleDependencyManager;
   private JComponent myPanel;
   private Disposable myDisposable;
   private Palette myPalette;
@@ -51,13 +46,13 @@ public class DependencyManagerTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myGradleDependencyManager = mock(GradleDependencyManager.class);
-    myOldGradleDependencyManager = registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
+    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
+    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     myPanel = mock(JComponent.class);
     myDisposable = mock(Disposable.class);
-    myPalette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPalette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     //noinspection ConstantConditions
-    when(myGradleDependencyManager.findMissingDependencies(any(Module.class), any()))
+    when(gradleDependencyManager.findMissingDependencies(any(Module.class), any()))
       .thenReturn(createDependencies(DESIGN_LIB_ARTIFACT, RECYCLER_VIEW_LIB_ARTIFACT, CARD_VIEW_LIB_ARTIFACT))
       .thenReturn(createDependencies(RECYCLER_VIEW_LIB_ARTIFACT))
       .thenThrow(new RuntimeException("Unexpected call to findDependencies"));
@@ -68,8 +63,13 @@ public class DependencyManagerTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      registerProjectComponent(GradleDependencyManager.class, myOldGradleDependencyManager);
       Disposer.dispose(myDisposable);
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // tests through IJ)
+      myPalette = null;
+      myPanel = null;
+      myManager = null;
+      myDisposable = null;
     }
     finally {
       super.tearDown();
@@ -101,7 +101,7 @@ public class DependencyManagerTest extends AndroidTestCase {
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, CARD_VIEW))).isTrue();
 
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
 
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON))).isFalse();
     assertThat(myManager.needsLibraryLoad(PaletteTestCase.findItem(myPalette, RECYCLER_VIEW))).isTrue();
@@ -111,20 +111,17 @@ public class DependencyManagerTest extends AndroidTestCase {
   }
 
   public void testDisposeStopsGradleSynchronizations() {
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
     Disposer.dispose(myDisposable);
-    GradleSyncState.getInstance(getProject()).syncEnded();
+    simulateGradleSync();
     // Expect: No exceptions from myGradleDependencyManager mock
   }
 
-  public void testEnsureLibraryIsIncluded() {
-    myManager.ensureLibraryIsIncluded(PaletteTestCase.findItem(myPalette, FLOATING_ACTION_BUTTON));
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Iterable<GradleCoordinate>> captor = ArgumentCaptor.forClass((Class)Iterable.class);
-    verify(myGradleDependencyManager).ensureLibraryIsIncluded(eq(myModule), captor.capture(), eq(null));
-    List<GradleCoordinate> imported = Lists.newArrayList(captor.getValue());
-    assertThat(imported.size()).isEqualTo(1);
-    assertThat(imported.get(0).getId()).isEqualTo(DESIGN_LIB_ARTIFACT);
+  private void simulateGradleSync() {
+    // syncStarted should be called before syncEnded.
+    GradleSyncState syncState = GradleSyncState.getInstance(getProject());
+    syncState.syncStarted(false, TRIGGER_PROJECT_MODIFIED);
+    syncState.syncEnded();
   }
 
   @NotNull

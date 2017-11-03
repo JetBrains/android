@@ -11,7 +11,9 @@
     <orderEntry type="module" module-name="annotations" />
     <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

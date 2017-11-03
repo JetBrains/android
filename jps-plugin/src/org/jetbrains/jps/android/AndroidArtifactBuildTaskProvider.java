@@ -98,11 +98,11 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                   ? JpsPathUtil.urlToPath(myProps.getKeyStoreUrl())
                                   : "";
       final String keyStorePassword = myProps.getKeyStorePassword();
-      final String plainKeyStorePassword = keyStorePassword != null && keyStorePassword.length() > 0
+      final String plainKeyStorePassword = keyStorePassword != null && !keyStorePassword.isEmpty()
                                            ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
 
       final String keyPassword = myProps.getKeyPassword();
-      final String plainKeyPassword = keyPassword != null && keyPassword.length() > 0
+      final String plainKeyPassword = keyPassword != null && !keyPassword.isEmpty()
                                       ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =

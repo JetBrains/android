@@ -18,8 +18,6 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
-import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -34,7 +32,6 @@ import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,13 +44,9 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +55,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
@@ -93,8 +87,8 @@ public class AndroidStudioInitializer implements Runnable {
     setUpMakeActions();
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
-    setUpExperimentalFeatures();
     setupAnalytics();
+    disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
@@ -122,33 +116,13 @@ public class AndroidStudioInitializer implements Runnable {
     UsageTracker.getInstance().setVersion(application.getStrictVersion());
   }
 
-  private static void setUpExperimentalFeatures() {
-    if (System.getProperty(ProfilerState.ENABLE_EXPERIMENTAL_PROFILING) != null) {
-      ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-        @Override
-        public void projectOpened(final Project project) {
-          StartupManager.getInstance(project).runWhenProjectIsInitialized(
-            () -> {
-              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-              ToolWindow toolWindow =
-                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
-              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
-              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
-              toolWindow.show(null);
-            }
-          );
-        }
-      });
-    }
-  }
-
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = new File(toSystemDependentName(studioHome));
+    File studioHomePath = toSystemDependentPath(studioHome);
     if (!studioHomePath.isDirectory()) {
       LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;
@@ -255,6 +229,7 @@ public class AndroidStudioInitializer implements Runnable {
 
         LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
+
     });
   }
 

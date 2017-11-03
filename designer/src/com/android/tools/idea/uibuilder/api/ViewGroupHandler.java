@@ -16,27 +16,33 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.xml.XmlBuilder;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.dnd.DropTargetDropEvent;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Handler for views that are layout managers.
  */
 @SuppressWarnings("UnusedParameters")
-public class ViewGroupHandler extends ViewHandler {
-
+public class ViewGroupHandler extends ViewHandler implements TargetProvider {
   @Override
   @NotNull
   @Language("XML")
@@ -78,11 +84,11 @@ public class ViewGroupHandler extends ViewHandler {
    * @param x the x coordinate of the drag in the Android coordinate system
    * @param y the y coordinate of the drag in the Android coordinate system
    */
-  public boolean acceptsChild(@NotNull NlComponent parent,
+  public boolean acceptsChild(@NotNull SceneComponent parent,
                               @NotNull NlComponent newChild,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
-    return acceptsChild(parent, newChild);
+    return acceptsChild(parent.getNlComponent(), newChild);
   }
 
   /**
@@ -97,8 +103,7 @@ public class ViewGroupHandler extends ViewHandler {
    * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
    * designer.
    */
-  @SuppressWarnings("SameReturnValue")
-  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
     return false;
   }
 
@@ -125,7 +130,7 @@ public class ViewGroupHandler extends ViewHandler {
    */
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
+                                       @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return null;
@@ -148,7 +153,6 @@ public class ViewGroupHandler extends ViewHandler {
     return null;
   }
 
-
   @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return null;
@@ -161,29 +165,17 @@ public class ViewGroupHandler extends ViewHandler {
    * parameter can be used to handle new creation versus moves versus copy/paste
    * operations differently.
    *
+   * @param editor     the associated IDE editor
    * @param layout     the layout being inserted into (which may not yet contain the
    *                   newly created node in its child list)
    * @param newChild   the newly created component
    * @param insertType whether this node was created as part of a newly created view, or
    *                   as a copy, or as a move, etc.
    */
-  public void onChildInserted(@NotNull NlComponent layout,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
-  }
-
-  /**
-   * Allows a ViewGroupHandler to update the mouse cursor
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x,
-                              @AndroidCoordinate int y) {
-    return false;
   }
 
   @Override
@@ -217,11 +209,17 @@ public class ViewGroupHandler extends ViewHandler {
   /**
    * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
    *
-   * @param component the component we'll add targets on
-   * @param isParent  is it the parent viewgroup component
+   * @param sceneComponent The component we'll add the targets on
+   * @param isParent       is it the parent view group component
+   * @return The list of created target to add the the component. This list can be empty.
    */
-  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
-    // do nothing
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+    return new ArrayList<>();
+  }
+
+  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
   }
 
   /**
@@ -229,7 +227,47 @@ public class ViewGroupHandler extends ViewHandler {
    *
    * @param component
    */
-  public void clearAttributes(SceneComponent component) {
+  public void clearAttributes(@NotNull NlComponent component) {
     // do nothing
+  }
+
+  /**
+   * Returns a component provider instance
+   *
+   * @return the component provider
+   */
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    return null;
+  }
+
+  /**
+   * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
+   */
+  public void performDrop(@NotNull NlModel model,
+                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlComponent receiver,
+                          @NotNull List<NlComponent> dragged,
+                          @Nullable NlComponent before,
+                          @NotNull InsertType type) {
+    // do nothing
+  }
+
+  /**
+   * Returns the number of children displayed in the component tree for this component
+   * @param component the component tree element we are checking
+   * @return number of children displayed in the component tree
+   */
+  public int getComponentTreeChildCount(@NotNull Object component) {
+    return ((NlComponent) component).getChildCount();
+  }
+
+  /**
+   * Returns the child at position i in the given component
+   * @param component
+   * @param i
+   * @return
+   */
+  public Object getComponentTreeChild(@NotNull Object component, int i) {
+    return ((NlComponent)component).getChild(i);
   }
 }

@@ -27,7 +27,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -57,6 +58,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  */
 public final class AvdOptionsModel extends WizardModel {
   final static int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
+  final static int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
   private final AvdInfo myAvdInfo;
 
   /**
@@ -85,17 +87,19 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(MAX_NUMBER_OF_CORES);
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(RECOMMENDED_NUMBER_OF_CORES);
   private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
   private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(new Storage(100, Storage.Unit.MiB));
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
+  private BoolProperty myColdBoot = new BoolValueProperty(false);
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
   private BoolProperty myIsInEditMode = new BoolValueProperty();
+  private BoolProperty myRemovePreviousAvd = new BoolValueProperty(true); // Assume 'rename', not 'duplicate'
 
   private OptionalProperty<File> myBackupSkinFile = new OptionalValueProperty<>();
   private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<>();
@@ -106,6 +110,13 @@ public final class AvdOptionsModel extends WizardModel {
 
   private AvdDeviceData myAvdDeviceData;
   private AvdInfo myCreatedAvd;
+
+  public void setAsCopy() {
+    // Copying this AVD. Adjust its name and don't
+    // remove the original version.
+    myAvdDisplayName.set("Copy_of_" + myAvdDisplayName.get());
+    myRemovePreviousAvd.set(false);
+  }
 
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
@@ -206,7 +217,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (avdInfo != null) {
       return avdInfo.getName();
     }
-    String candidateBase = hardwareProperties.get(AvdManager.AVD_INI_DISPLAY_NAME);
+    String candidateBase = hardwareProperties.get(AVD_INI_DISPLAY_NAME);
     if (candidateBase == null || candidateBase.isEmpty()) {
       String deviceName = device.getDisplayName().replace(' ', '_');
       String manufacturer = device.getManufacturer().replace(' ', '_');
@@ -308,6 +319,11 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   public BoolProperty useHostGpu() {
     return myUseHostGpu;
+  }
+
+  @NotNull
+  public BoolProperty useColdBoot() {
+    return myColdBoot;
   }
 
   @NotNull
@@ -425,6 +441,7 @@ public final class AvdOptionsModel extends WizardModel {
     myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY)));
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
+    myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
 
     ScreenOrientation screenOrientation = null;
     String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
@@ -567,6 +584,7 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.USE_HOST_GPU_KEY, myUseHostGpu.get());
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
+    map.put(AvdWizardUtils.USE_COLD_BOOT, myColdBoot.get());
 
     if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
@@ -645,8 +663,8 @@ public final class AvdOptionsModel extends WizardModel {
       }
       hasSdCard = storage != null && storage.getSize() > 0;
     }
-    else if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
-      sdCard = existingSdLocation.get();
+    else if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+      sdCard = myExternalSdCardLocation.get();
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
     }
@@ -738,7 +756,8 @@ public final class AvdOptionsModel extends WizardModel {
 
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     myCreatedAvd = connection.createOrUpdateAvd(
-      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCard, skinFile, hardwareProperties, false);
+      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
+      isCircular, sdCard, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
     if (myCreatedAvd == null) {
       ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
         (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());

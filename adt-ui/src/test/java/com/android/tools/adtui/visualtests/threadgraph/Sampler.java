@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui.visualtests.threadgraph;
 
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.chart.hchart.Method;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class Sampler implements Runnable {
 
   volatile boolean running;
 
-  private HashMap<String, HNode<Method>> forest;
+  private HashMap<String, DefaultHNode<Method>> forest;
 
   private final static long SAMPLING_RESOLUTION = TimeUnit.MILLISECONDS.toMillis(1);
 
@@ -85,9 +85,9 @@ public class Sampler implements Runnable {
       }
 
       // Retrieve the ongoing tree associate with this thread.
-      HNode<Method> tree = forest.get(sampledThread.getName());
+      DefaultHNode<Method> tree = forest.get(sampledThread.getName());
       if (tree == null) {
-        tree = new HNode();
+        tree = new DefaultHNode();
         tree.setStart(getLastMidTime());
         Method rootMethod = new Method();
         rootMethod.setName("rootMethod");
@@ -98,13 +98,13 @@ public class Sampler implements Runnable {
 
       // Compare last captured stack with current stack. Stop as soon as they diverge.
       int depth = elements.length - 1;
-      HNode<Method> previousNode = tree;
-      HNode<Method> currentNode = previousNode.getLastChild();
+      DefaultHNode<Method> previousNode = tree;
+      DefaultHNode<Method> currentNode = (DefaultHNode<Method>)previousNode.getLastChild();
       while (currentNode != null && depth >= 0 && isSameMethod(currentNode,
                                                                elements[depth])) {
         depth--;
         previousNode = currentNode;
-        currentNode = currentNode.getLastChild();
+        currentNode = (DefaultHNode<Method>)currentNode.getLastChild();
       }
 
       // We found the point where the stacks diverge. We need to:
@@ -112,10 +112,10 @@ public class Sampler implements Runnable {
       // 2. Insert all new calls which are currently ongoing.
 
       //1. Mark all previous calls as ended.
-      HNode endedCall = currentNode;
+      DefaultHNode endedCall = currentNode;
       while (endedCall != null) {
         endedCall.setEnd(getLastMidTime());
-        endedCall = endedCall.getLastChild();
+        endedCall = (DefaultHNode)endedCall.getLastChild();
       }
 
       //2. Those are new calls on the stack: Add them to the tree.
@@ -127,11 +127,11 @@ public class Sampler implements Runnable {
         m.setNamespace(trace.getClassName());
         m.setName(trace.getMethodName());
 
-        HNode<Method> newNode = new HNode<>();
+        DefaultHNode<Method> newNode = new DefaultHNode<>();
         newNode.setStart(getLastMidTime());
         newNode.setData(m);
         newNode.setDepth(elements.length - depth - 1);
-        previousNode.addHNode(newNode);
+        previousNode.addChild(newNode);
 
         previousNode = newNode;
         depth--;
@@ -145,7 +145,7 @@ public class Sampler implements Runnable {
     return t;
   }
 
-  private boolean isSameMethod(HNode<Method> currentNode, StackTraceElement element) {
+  private boolean isSameMethod(DefaultHNode<Method> currentNode, StackTraceElement element) {
     return currentNode.getData().getName().equals(element.getMethodName()) &&
            currentNode.getData().getNameSpace().equals(element.getClassName());
   }
@@ -153,16 +153,16 @@ public class Sampler implements Runnable {
   private void endOngoingCalls() {
     lastSampleTime = currSampleTime;
     currSampleTime = currentTimeMicroSec();
-    for (HNode n : forest.values()) {
-      HNode cursor = n;
+    for (DefaultHNode n : forest.values()) {
+      DefaultHNode cursor = n;
       while (cursor != null) {
         cursor.setEnd(getLastMidTime());
-        cursor = cursor.getLastChild();
+        cursor = (DefaultHNode)cursor.getLastChild();
       }
     }
   }
 
-  public HashMap<String, HNode<Method>> getData() {
+  public HashMap<String, DefaultHNode<Method>> getData() {
     return forest;
   }
 }

@@ -31,7 +31,6 @@ import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class DeviceArtDescriptorTest extends TestCase {
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();

@@ -27,7 +27,7 @@ public class DuplicateAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), getProject(), getAvdInfo());
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizardForDuplication(myAvdInfoProvider.getComponent(), getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
       refreshAvds();
     }

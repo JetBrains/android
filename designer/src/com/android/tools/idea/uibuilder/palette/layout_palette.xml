@@ -15,7 +15,6 @@
   -->
 <palette>
   <group name="Widgets">
-    <item tag="TextView"/>
     <item tag="Button"/>
     <item tag="ToggleButton"/>
     <item tag="CheckBox"/>
@@ -73,6 +72,7 @@
   </group>
 
   <group name="Text">
+    <item tag="TextView"/>
     <item tag="EditText" title="Plain Text">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -366,6 +366,10 @@
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout"/>
     <item tag="GridLayout"/>
+    <!--
+    TODO: Uncomment this once flag for Flexbox is enabled
+    <item tag="com.google.android.flexbox.FlexboxLayout"/>
+    -->
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
@@ -409,6 +413,7 @@
     <item tag="TabHost"/>
     <item tag="WebView"/>
     <item tag="SearchView"/>
+    <item tag="android.support.v4.view.ViewPager"/>
   </group>
   <group name="Images">
     <item tag="ImageButton"/>

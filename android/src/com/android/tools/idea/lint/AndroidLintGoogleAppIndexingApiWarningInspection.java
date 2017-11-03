@@ -16,50 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AppIndexingApiDetector;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.xml.XmlAttribute;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_HOST;
-import static com.android.SdkConstants.ATTR_SCHEME;
 
 public class AndroidLintGoogleAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
   public AndroidLintGoogleAppIndexingApiWarningInspection() {
     super(AndroidBundle.message("android.lint.inspections.google.app.indexing.api.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING_API);
-  }
-
-  @NotNull
-  static AndroidLintQuickFix[] getAppIndexingQuickFix(PsiElement startElement, String message) {
-    AppIndexingApiDetector.IssueType type = AppIndexingApiDetector.IssueType.parse(message);
-    switch (type) {
-      case SCHEME_MISSING:
-      case URL_MISSING:
-        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set scheme", ATTR_SCHEME, "http")};
-      case HOST_MISSING:
-        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set host", ATTR_HOST, null)};
-      case MISSING_SLASH:
-        PsiElement parent = startElement.getParent();
-        if (parent instanceof XmlAttribute) {
-          XmlAttribute attr = (XmlAttribute)parent;
-          String path = attr.getValue();
-          if (path != null) {
-            return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with /" + path, path, "/" + path)};
-          }
-        }
-        break;
-      default:
-        break;
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return getAppIndexingQuickFix(startElement, message);
   }
 }

@@ -40,7 +40,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 public class SubmitFeedback extends DumbAwareAction {
-  private static final NotificationGroup FLR_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("instant.run.flight.recorder");
+  private static final NotificationGroup FLR_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Instant Run Issue Submission");
 
   public SubmitFeedback() {
     super("Report Instant Run Issue...");
@@ -116,8 +116,14 @@ public class SubmitFeedback extends DumbAwareAction {
               return;
             }
             catch (CompletionException e) {
-              FLR_NOTIFICATION_GROUP.createNotification("Unexpected error while submitting instant run logs: " + e.getMessage(),
-                                                        NotificationType.ERROR);
+              String msg = "<html>Unexpected error while submitting instant run logs<br>" +
+                           "Please file a bug at <a href=\"bug\">b.android.com</a> and include your idea.log file</html>";
+              FLR_NOTIFICATION_GROUP
+                .createNotification("", msg, NotificationType.ERROR, (notification, event) -> {
+                  openBrowserToInstantRunBug(
+                    "Error uploading Instant Run Logs: " + e.toString());
+                })
+                .notify(project);
               Logger.getInstance(SubmitFeedback.class).info(e);
               return;
             }
@@ -126,19 +132,23 @@ public class SubmitFeedback extends DumbAwareAction {
                                            reportId);
             FLR_NOTIFICATION_GROUP
               .createNotification("", message, NotificationType.INFORMATION, (notification, event) -> {
-                Escaper escaper = UrlEscapers.urlFormParameterEscaper();
                 String comment = String.format("Build: %1$s\nInstant Run Report: %2$s",
                                                ApplicationInfo.getInstance().getFullVersion(),
                                                reportId);
-                String url = String.format("https://code.google.com/p/android/issues/entry?template=%1$s&comment=%2$s&status=New",
-                                           escaper.escape("Android Studio Instant Run Bug"),
-                                           escaper.escape(comment));
-                BrowserUtil.browse(url);
+                openBrowserToInstantRunBug(comment);
               })
               .notify(project);
           }
         }
       }.queue();
     }
+  }
+
+  private static void openBrowserToInstantRunBug(@NotNull String comment) {
+    Escaper escaper = UrlEscapers.urlFormParameterEscaper();
+    String url = String.format("https://code.google.com/p/android/issues/entry?template=%1$s&comment=%2$s&status=New",
+                               escaper.escape("Android Studio Instant Run Bug"),
+                               escaper.escape(comment));
+    BrowserUtil.browse(url);
   }
 }

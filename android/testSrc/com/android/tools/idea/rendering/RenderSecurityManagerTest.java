@@ -19,7 +19,6 @@ import com.android.ide.common.res2.RecordingLogger;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestBase;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -716,37 +715,6 @@ public class RenderSecurityManagerTest {
         // pass
         assertEquals("java.lang.NoSuchFieldException: sCredential", e.toString());
       }
-    }
-    finally {
-      manager.dispose(credential);
-    }
-  }
-
-  /**
-   * FIXME b.android.com/204441
-   *
-   * Java 8 broke {@link SecurityManager#checkMemberAccess(Class, int)} by deprecating it and not calling it. As a result, it is possible to
-   * access sCredential via reflection on Java 8 and above. The alternative to {@code checkMemberAccess} is
-   * {@link SecurityManager#checkPermission(Permission)}, which doesn't allow selectively allowing reflection.
-   */
-  @Ignore
-  @Test
-  public void testMemberAccess() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null);
-    Object credential = new Object();
-    manager.setActive(true, credential);
-    // Try looking up the secret (with getDeclaredField instead of getField)
-    try {
-      Field field = RenderSecurityManager.class.getDeclaredField("sCredential");
-      field.setAccessible(true);
-      Object secret = field.get(null);
-      manager.dispose(secret);
-      fail("Shouldn't be able to find our way to the credential");
-    }
-    catch (Exception e) {
-      // pass
-      assertEquals("Reflection access not allowed during rendering " + "(com.android.ide.common.rendering.RenderSecurityManager)",
-                   e.toString());
     }
     finally {
       manager.dispose(credential);

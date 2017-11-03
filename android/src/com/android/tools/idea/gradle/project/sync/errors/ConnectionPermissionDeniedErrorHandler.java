@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler {
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (rootCause instanceof SocketException && isNotEmpty(text) && text.contains("Permission denied: connect")) {
       updateUsageTracker(CONNECTION_DENIED);
@@ -44,9 +43,7 @@ public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler
 
   @Override
   @NotNull
-  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
-                                                              @NotNull Project project,
-                                                              @NotNull String text) {
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     NotificationHyperlink quickFix =
       new OpenUrlHyperlink("https://developer.android.com/studio/troubleshoot.html#project-sync", "More details (and potential fix)");

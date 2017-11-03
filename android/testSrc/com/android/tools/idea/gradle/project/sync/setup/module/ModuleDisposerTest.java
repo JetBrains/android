@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -29,18 +32,18 @@ import org.mockito.Mock;
 import java.io.File;
 import java.util.Collections;
 
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ModuleDisposer}.
  */
 public class ModuleDisposerTest extends IdeaTestCase {
+  @Mock private IdeInfo myIdeInfo;
   @Mock private DisposedModules myDisposedModules;
+  @Mock private GradleSyncState mySyncState;
 
   private ModuleDisposer myModuleDisposer;
 
@@ -57,7 +60,9 @@ public class ModuleDisposerTest extends IdeaTestCase {
       }
     });
 
-    myModuleDisposer = new ModuleDisposer();
+    IdeComponents.replaceService(myProject, GradleSyncState.class, mySyncState);
+
+    myModuleDisposer = new ModuleDisposer(myIdeInfo);
   }
 
   @Override
@@ -70,15 +75,15 @@ public class ModuleDisposerTest extends IdeaTestCase {
     }
   }
 
-  public void testDisposeModulesAndMarkImlFilesForDeletion() {
+  public void testDisposeModules() {
     // This module should be disposed.
     Module libModule = createModule("lib");
-    File libImlFilePath = new File(toSystemDependentName(libModule.getModuleFilePath()));
+    File libImlFilePath = toSystemDependentPath(libModule.getModuleFilePath());
 
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    myModuleDisposer.disposeModulesAndMarkImlFilesForDeletion(Collections.singletonList(libModule), project, modelsProvider);
+    myModuleDisposer.disposeModules(Collections.singletonList(libModule), project, modelsProvider);
 
     // Apply changes
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -88,16 +93,60 @@ public class ModuleDisposerTest extends IdeaTestCase {
     verify(myDisposedModules, times(1)).markImlFilesForDeletion(Collections.singletonList(libImlFilePath));
   }
 
-  public void testDisposeModulesAndMarkImlFilesForDeletionWithNoModules() {
+  public void testDisposeModulesWithNoModules() {
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    myModuleDisposer.disposeModulesAndMarkImlFilesForDeletion(Collections.emptyList(), project, modelsProvider);
+    myModuleDisposer.disposeModules(Collections.emptyList(), project, modelsProvider);
 
     // Apply changes
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     //noinspection unchecked
     verify(myDisposedModules, never()).markImlFilesForDeletion(anyList());
+  }
+
+  public void testDisposeModulesWithAndroidStudioAndSyncSuccessful() {
+    simulateIdeIsAndroidStudio();
+    simulateSyncSuccessful();
+
+    assertTrue(myModuleDisposer.canDisposeModules(getProject()));
+  }
+
+  public void testDisposeModulesWithNotAndroidStudioAndSyncSuccessful() {
+    simulateIdeIsNotAndroidStudio();
+    simulateSyncSuccessful();
+
+    assertFalse(myModuleDisposer.canDisposeModules(getProject()));
+  }
+
+  private void simulateSyncSuccessful() {
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+  }
+
+  public void testDisposeModulesWithAndroidStudioAndFailedSync() {
+    simulateIdeIsAndroidStudio();
+    simulateFailedSync();
+
+    assertFalse(myModuleDisposer.canDisposeModules(getProject()));
+  }
+
+  private void simulateIdeIsAndroidStudio() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+  }
+
+  public void testDisposeModulesWithNotAndroidStudioAndFailedSync() {
+    simulateIdeIsNotAndroidStudio();
+    simulateFailedSync();
+
+    assertFalse(myModuleDisposer.canDisposeModules(getProject()));
+  }
+
+  private void simulateIdeIsNotAndroidStudio() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(false);
+  }
+
+  private void simulateFailedSync() {
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
   }
 }

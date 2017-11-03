@@ -36,12 +36,13 @@ public class ModuleTypeComparator implements Comparator<Module> {
 
   @VisibleForTesting
   static int compareModules(@NotNull Module m1, @NotNull Module m2, @Nullable AndroidModuleModel gm1, @Nullable AndroidModuleModel gm2) {
-    if ((gm1 == null && gm2 == null) || (gm1 != null && gm2 != null && gm1.getProjectType() == gm2.getProjectType())) {
+    if ((gm1 == null && gm2 == null) ||
+        (gm1 != null && gm2 != null && gm1.getAndroidProject().getProjectType() == gm2.getAndroidProject().getProjectType())) {
       return Collator.getInstance().compare(m1.getName(), m2.getName());
     }
     if (gm1 != null) {
       if (gm2 != null) {
-        return gm1.getProjectType() - gm2.getProjectType();
+        return gm1.getAndroidProject().getProjectType() - gm2.getAndroidProject().getProjectType();
       }
       return -1;
     }

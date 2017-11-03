@@ -20,7 +20,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +30,6 @@ import java.net.URL;
  * Convenience class for building a {@link ModelWizard} styled for Android Studio.
  */
 public final class StudioWizardDialogBuilder {
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(800, 650);
 
   /**
    * The minimum (and initial) size of a dialog should be no bigger than the user's screen (or,
@@ -42,13 +40,21 @@ public final class StudioWizardDialogBuilder {
    */
   private static final float SCREEN_PERCENT = 0.8f;
 
+  /**
+   * Temporary toggle as we migrate wizards to a new design
+   *
+   * TODO: remove this once migration to the new design is complete
+   */
+  private boolean myUseNewUx = false;
+
   @NotNull ModelWizard myWizard;
   @NotNull String myTitle;
   @Nullable Component myParent;
   @Nullable Project myProject;
   @Nullable URL myHelpUrl;
   @NotNull DialogWrapper.IdeModalityType myModalityType = DialogWrapper.IdeModalityType.IDE;
-  @NotNull Dimension myMinimumSize = DEFAULT_MIN_SIZE;
+  @Nullable Dimension myMinimumSize;
+  @Nullable Dimension myPreferredSize;
   @NotNull ModelWizardDialog.CancellationPolicy myCancellationPolicy = ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL;
 
   public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title) {
@@ -116,6 +122,20 @@ public final class StudioWizardDialogBuilder {
   }
 
   /**
+   * Override the preferred size of this dialog.
+   *
+   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
+   * with {@code Nullable} APIs.
+   */
+  @NotNull
+  public StudioWizardDialogBuilder setPreferredSize(@Nullable Dimension preferredSize) {
+    if (preferredSize != null) {
+      myPreferredSize = preferredSize;
+    }
+    return this;
+  }
+
+  /**
    * Set a help link that the dialog's help button should browse to.
    *
    * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
@@ -144,9 +164,28 @@ public final class StudioWizardDialogBuilder {
     return this;
   }
 
+  /**
+   * Whether or not to use the new Ux design for this wizard
+   *
+   * TODO: remove this once migration to the new design is complete
+   */
+  @NotNull
+  public StudioWizardDialogBuilder setUseNewUx(boolean useNewUx) {
+    myUseNewUx = useNewUx;
+    return this;
+  }
+
   @NotNull
   public ModelWizardDialog build() {
-    StudioWizardLayout customLayout = new StudioWizardLayout();
+    ModelWizardDialog.CustomLayout customLayout = myUseNewUx ? new StudioWizardLayout() : new com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout();
+
+    if (myMinimumSize == null) {
+      myMinimumSize = customLayout.getDefaultMinSize();
+    }
+    if (myPreferredSize == null) {
+      myPreferredSize = customLayout.getDefaultPreferredSize();
+    }
+
     ModelWizardDialog dialog;
     if (myParent != null) {
       dialog = new ModelWizardDialog(myWizard, myTitle, myParent, customLayout, myHelpUrl, myCancellationPolicy);
@@ -155,11 +194,15 @@ public final class StudioWizardDialogBuilder {
       dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType, myCancellationPolicy);
     }
 
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension clampedSize = new Dimension(Math.min(myMinimumSize.width, (int)(screenSize.width * SCREEN_PERCENT)),
-                                          Math.min(myMinimumSize.height, (int)(screenSize.height * SCREEN_PERCENT)));
-
-    dialog.setSize(clampedSize.width, clampedSize.height);
+    dialog.getContentPanel().setMinimumSize(getClampedSize(myMinimumSize));
+    dialog.getContentPanel().setPreferredSize(getClampedSize(myPreferredSize));
     return dialog;
+  }
+
+  @NotNull
+  private static Dimension getClampedSize(Dimension size) {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    return new Dimension(Math.min(size.width, (int)(screenSize.width * SCREEN_PERCENT)),
+                         Math.min(size.height, (int)(screenSize.height * SCREEN_PERCENT)));
   }
 }

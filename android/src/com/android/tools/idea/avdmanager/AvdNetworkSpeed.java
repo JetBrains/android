@@ -24,7 +24,8 @@ import java.util.Locale;
  * A list of supported Network standards, which, if set, dictate maximum emulator network speeds.
  */
 public enum AvdNetworkSpeed {
-  FULL("Full"),  // Emulator won't restrict network speed (~4G)
+  FULL("Full"),  // Emulator won't restrict network speed
+  LTE("LTE"), // Long Term Evolution (4G)
   HSDPA("HSDPA"), // High-Speed Downlink Packet Access (3.5G)
   UMTS("UMTS"), // Universal Mobile Telecommunications System (3G)
   EDGE("EDGE"), // Enhanced Data Rates for GSM Evolution (Pre-3G)

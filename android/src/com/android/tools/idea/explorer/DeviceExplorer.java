@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.intellij.util.SystemProperties;
+
 public class DeviceExplorer {
   private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   private static boolean myEnabled;
 
   public static boolean isFeatureEnabled() {
-    return myEnabled || System.getProperty(DEVICE_EXPLORER_ENABLED) != null;
+    return myEnabled || SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true);
   }
 
   public static void enableFeature(boolean enabled) {

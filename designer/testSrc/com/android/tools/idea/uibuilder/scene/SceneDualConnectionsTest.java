@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -33,22 +33,22 @@ public class SceneDualConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\" />");
   }
 
   public void testDeleteTop() {
@@ -57,22 +57,22 @@ public class SceneDualConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\" />");
     myInteraction.mouseDown("button", AnchorTarget.Type.BOTTOM);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
   }
 
   public void testDeleteRight() {
@@ -81,22 +81,22 @@ public class SceneDualConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    app:layout_constraintBottom_toBottomOf=\"parent\"/>");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteX=\"450dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"450dp\" />");
   }
 
   public void testDeleteBottom() {
@@ -105,22 +105,22 @@ public class SceneDualConnectionsTest extends SceneTest {
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
-                 "    android:id=\"@id/button\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
-                 "      tools:layout_editor_absoluteY=\"490dp\" />");
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"490dp\" />");
   }
 
   @Override
@@ -129,14 +129,14 @@ public class SceneDualConnectionsTest extends SceneTest {
     return model("constraint.xml",
                  component(CONSTRAINT_LAYOUT)
                    .id("@id/root")
-                   .withBounds(0, 0, 1000, 1000)
+                   .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
                    .height("1000dp")
                    .withAttribute("android:padding", "20dp")
                    .children(
                      component(TEXT_VIEW)
                        .id("@id/button")
-                       .withBounds(450, 490, 100, 20)
+                       .withBounds(900, 980, 200, 40)
                        .width("100dp")
                        .height("20dp")
                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")

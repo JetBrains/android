@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -140,6 +141,11 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("tools_targetapi.xml", "HONEYCOMB", "HONEYCOMB_MR1", "HONEYCOMB_MR2");
   }
 
+  // test @tools:sample datasources completion
+  public void testToolsSampleCompletion() throws Throwable {
+    doTestCompletionVariantsContains("tools_sample_completion.xml", "@tools:sample/full_names", "@tools:sample/lorem");
+  }
+
   // "-1" is not a valid tools:targetApi value
   public void testTargetApiErrorMessage1() throws Throwable {
     doTestHighlighting("tools_targetapi_error1.xml");
@@ -161,8 +167,16 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                           "tools_designtime_completion_background_after.xml");
   }
 
+  public void testToolsUseHandlerAttribute() throws Throwable {
+    doTestCompletionVariants("tools_use_handler_completion.xml", "android.view.TextureView",
+                             "android.widget.AutoCompleteTextView",
+                             "android.widget.CheckedTextView",
+                             "android.widget.MultiAutoCompleteTextView",
+                             "android.widget.TextView");
+  }
+
   // Code completion in views inside a <layout> tag need to pick up default layout params
-  public void testDataBindingLayoutPAramCompletion() throws Throwable {
+  public void testDataBindingLayoutParamCompletion() throws Throwable {
     // Regression test for https://code.google.com/p/android/issues/detail?id=212690
     toTestFirstCompletion("data_binding_completion.xml",
                           "data_binding_completion_after.xml");
@@ -222,6 +236,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testDataBindingHighlighting() throws Throwable {
+    ModuleDataBinding.enable(myFacet);
     copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
     doTestHighlighting("binding1.xml");
   }
@@ -232,6 +247,11 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testDataBindingCompletion2() throws Throwable {
     toTestCompletion("binding3.xml", "binding3_after.xml");
+  }
+
+  public void testDataBindingCompletion3() throws Throwable {
+    toTestCompletion("binding4.xml", "binding4_after.xml");
+    //doTestCompletionVariants("binding4.xml", "safeUnbox", "superCool");
   }
 
   public void testCustomTagCompletion() throws Throwable {
@@ -346,7 +366,9 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "context", "contextClickable", "text", "textAlignment", "textColor", "textDirection", "textSize");
+    doTestCompletionVariants("can1.xml",
+                             "context", "contextClickable", "text", "textAlignment", "textColor", "textDirection", "textSize",
+                             "tooltipText");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
@@ -357,8 +379,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.type("text");
 
     UsefulTestCase.assertSameElements(myFixture.getLookupElementStrings(),
-                                      "android:contextClickable", "android:textAlignment", "android:textDirection", "text", "textColor",
-                                      "textSize");
+                                      "android:contextClickable", "android:textAlignment", "android:textDirection",
+                                      "android:tooltipText", "text", "textColor", "textSize");
   }
 
   public void testCustomAttributeNameCompletion3() throws Throwable {
@@ -383,6 +405,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.copyFileToProject(myTestFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
     toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml");
     toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml");
+    toTestCompletion("tools_parentTag_completion.xml", "tools_parentTag_completion_after.xml");
   }
 
   public void testCustomAttributeValueCompletion() throws Throwable {
@@ -426,7 +449,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testResourceCompletion() throws Throwable {
     doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1");
-    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen", "@id/idd1",
+    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen",
                                      "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1");
   }
 
@@ -452,6 +475,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("av12.xml", "@android:", "@anim/anim1", "@anim/anim2");
   }
 
+  public void testLocalResourceCompletion6() throws Throwable {
+    doTestCompletionVariants("av14.xml", "@android:", "@color/color0", "@color/color1", "@color/color2", "@drawable/cdrawable", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
+  }
+
   public void testForceLocalResourceCompletion() throws Throwable {
     // No system colors are suggested as completion.
     doTestCompletionVariants("av13.xml", "@color/color0", "@color/color1", "@color/color2");
@@ -468,6 +495,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testLayoutAttributeValuesCompletion() throws Throwable {
     doTestCompletionVariants("av10.xml", "fill_parent", "match_parent", "wrap_content", "@android:", "@dimen/myDimen");
     doTestCompletionVariants("av11.xml", "center", "center_horizontal", "center_vertical");
+    doTestCompletionVariants("av15.xml", "horizontal", "vertical");
   }
 
   public void testFloatAttributeValuesCompletion() throws Throwable {
@@ -610,13 +638,17 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testIdCompletion1() throws Throwable {
-    doTestCompletionVariants("idcompl1.xml", "@android:", "@+id/", "@id/idd1", "@id/idd2");
+    doTestCompletionVariants("idcompl1.xml", "@android:", "@+id/");
   }
 
   public void testIdCompletion2() throws Throwable {
     doTestCompletionVariantsContains("idcompl2.xml",
                                      "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
                                      "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText");
+  }
+
+  public void testNestedScrollView() throws Throwable {
+    toTestCompletion("nestedScrollView.xml", "nestedScrollView_after.xml");
   }
 
   public void testNewIdCompletion1() throws Throwable {
@@ -752,6 +784,18 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     PlatformTestUtil.startPerformanceTest("android custom attrs highlighting", 800, () -> myFixture.doHighlighting()).attempts(2).usesAllCPUCores().assertTiming();
   }
 
+  public void testSupportGridLayoutCompletion() throws Throwable {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml");
+    doTestCompletionVariants(getTestName(true) + ".xml", "rowCount", "rowOrderPreserved");
+  }
+
+  public void testSupportGridLayoutCompletion2() throws Throwable {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml");
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
+  }
+
   public void testViewClassReference() throws Throwable {
     VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/vcr.xml", getPathToCopy("vcr.xml"));
     myFixture.configureFromExistingVirtualFile(file);
@@ -830,7 +874,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testOnClickHighlighting6() throws Throwable {
+  // See http://b.android.com/230153
+  public void ignore_testOnClickHighlighting6() throws Throwable {
     // Like testOnClickHighlighting5, but instead of having the activity be found
     // due to a setContentView call, it's declared explicitly with a tools:context
     // attribute instead
@@ -867,7 +912,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testRelativeIdsCompletion() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml", "@+id/", "@android:", "@id/idd1", "@id/idd2");
+    doTestCompletionVariants(getTestName(false) + ".xml", "@+id/", "@android:", "@id/btn1", "@id/btn2");
   }
 
   public void testCreateResourceFromUsage() throws Throwable {
@@ -1033,7 +1078,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.complete(CompletionType.BASIC);
     List<String> variants = myFixture.getLookupElementStrings();
 
-    assertTrue(variants.size() > 0);
+    assertTrue(!variants.isEmpty());
     assertFalse(containElementStartingWith(variants, prefix));
   }
 
@@ -1200,6 +1245,81 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     // Regression test for issue http://b.android.com/195485
     // Don't highlight data binding attributes as unknown
     doTestHighlighting();
+  }
+
+  public void testToolsCompletion() throws Throwable {
+    // Regression test for
+    //   https://code.google.com/p/android/issues/detail?id=229486
+    // Don't offer tools: completion for the mockup editor yet.
+    // Also tests that the current expected set of tools attributes are offered.
+    doTestCompletionVariants("toolsCompletion.xml",
+                             "tools:listfooter",
+                             "tools:listheader",
+                             "tools:listitem",
+                             "tools:targetApi");
+  }
+
+  public void testIncludeCompletion() throws Throwable {
+    // <include> tag should support auto-completion of android:layout_XXX attributes.
+    // The actual supported attributes depend on the type of parent.
+    // (e.g. <include> tag in RelativeLayout support android:layout_alignXXX attributes
+    //  and <include> tag in AbsoluteLayout support android:layout_x/y attributes.
+
+    // Check all attributes here
+    doTestCompletionVariants("include_in_linear_layout.xml",
+                             "android:id",
+                             "android:layout_gravity",
+                             "android:layout_height",
+                             "android:layout_margin",
+                             "android:layout_marginBottom",
+                             "android:layout_marginEnd",
+                             "android:layout_marginHorizontal",
+                             "android:layout_marginLeft",
+                             "android:layout_marginRight",
+                             "android:layout_marginStart",
+                             "android:layout_marginTop",
+                             "android:layout_marginVertical",
+                             "android:layout_weight",
+                             "android:layout_width",
+                             "android:visibility");
+
+    // The duplicated attributes have been tested, only test the specified attributes for the remaining test cases.
+
+    doTestCompletionVariantsContains("include_in_relative_layout.xml",
+                                     "android:layout_above",
+                                     "android:layout_alignBaseline",
+                                     "android:layout_alignBottom",
+                                     "android:layout_alignEnd",
+                                     "android:layout_alignLeft",
+                                     "android:layout_alignParentBottom",
+                                     "android:layout_alignParentEnd",
+                                     "android:layout_alignParentLeft",
+                                     "android:layout_alignParentRight",
+                                     "android:layout_alignParentStart",
+                                     "android:layout_alignParentTop",
+                                     "android:layout_alignRight",
+                                     "android:layout_alignStart",
+                                     "android:layout_alignTop",
+                                     "android:layout_alignWithParentIfMissing",
+                                     "android:layout_centerHorizontal",
+                                     "android:layout_centerInParent",
+                                     "android:layout_centerVertical",
+                                     "android:layout_toEndOf",
+                                     "android:layout_toLeftOf",
+                                     "android:layout_toRightOf",
+                                     "android:layout_toStartOf");
+
+    doTestCompletionVariantsContains("include_in_absolute_layout.xml",
+                                     "android:layout_x",
+                                     "android:layout_y");
+
+    doTestCompletionVariantsContains("include_in_frame_layout.xml",
+                                     "android:layout_gravity");
+
+    // <include> tag should also support auto-completion of layout_XXX attributes with cusomized domain name.
+    // For example, app:layout_constraintXXX attributes should be supported when it is in the ConstraintLayout.
+
+    // TODO: Improve the test framework and test the cusomized domain case.
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

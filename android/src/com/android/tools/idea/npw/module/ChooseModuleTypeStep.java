@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -38,8 +37,8 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+import static java.util.stream.Collectors.toMap;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -125,26 +124,18 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
 
   @Override
   protected void onProceeding() {
-    Map<String, Object> templateValues = getModel().getTemplateValues();
-    templateValues.clear();
+    getModel().getTemplateValues().clear();
 
     // This wizard includes a step for each module, but we only visit the selected one. First, we hide all steps (in case we visited a
     // different module before and hit back), and then we activate the step we care about.
     ModuleGalleryEntry selectedEntry = myFormFactorGallery.getSelectedElement();
-    myModuleDescriptionToStepMap.forEach((galleryEntry, step) -> {
-      boolean shouldShow = (galleryEntry == selectedEntry);
-      step.setShouldShow(shouldShow);
-
-      if (galleryEntry instanceof ModuleTemplateGalleryEntry) {
-        FormFactor formFactor = ((ModuleTemplateGalleryEntry) galleryEntry).getFormFactor();
-        templateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, shouldShow);
-      }
-    });
+    myModuleDescriptionToStepMap.forEach((galleryEntry, step) -> step.setShouldShow(galleryEntry == selectedEntry));
 
     ModuleTemplateGalleryEntry templateEntry
       = (selectedEntry instanceof ModuleTemplateGalleryEntry) ? (ModuleTemplateGalleryEntry) selectedEntry : null;
 
     getModel().isLibrary().set(templateEntry == null ? false : templateEntry.isLibrary());
+    getModel().instantApp().set(templateEntry == null ? false : templateEntry.isInstantApp());
     getModel().templateFile().setNullableValue(templateEntry == null ? null : templateEntry.getTemplateFile());
   }
 
@@ -154,29 +145,29 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
     return myFormFactorGallery;
   }
 
+  @VisibleForTesting
   @NotNull
-  private static List<ModuleGalleryEntry> sortModuleEntries(@NotNull List<ModuleGalleryEntry> moduleTypesProviders) {
-    List<ModuleGalleryEntry> res = new ArrayList<>(moduleTypesProviders);
+  static List<ModuleGalleryEntry> sortModuleEntries(@NotNull List<ModuleGalleryEntry> moduleTypesProviders) {
+    // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
+    String[] orderedNames = {
+      "Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module", "Android TV Module",
+      "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
+      "Google Cloud Module",
+    };
+    Map<String, ModuleGalleryEntry> entryMap = moduleTypesProviders.stream().collect(toMap(ModuleGalleryEntry::getName, c -> c));
 
-    Collections.sort(res, (t1, t2) -> {
-      FormFactor f1 = (t1 instanceof ModuleTemplateGalleryEntry) ? ((ModuleTemplateGalleryEntry)t1).getFormFactor() : null;
-      FormFactor f2 = (t2 instanceof ModuleTemplateGalleryEntry) ? ((ModuleTemplateGalleryEntry)t2).getFormFactor() : null;
-
-      if (f1 != null && f2 != null) {
-        return f1.compareTo(f2);
+    List<ModuleGalleryEntry> result = new ArrayList<>();
+    for (String name : orderedNames) {
+      ModuleGalleryEntry entry = entryMap.remove(name);
+      if (entry != null) {
+        result.add(entry);
       }
+    }
 
-      if (f1 != null) {
-        return -1;
-      }
+    List<ModuleGalleryEntry> secondHalf = new ArrayList<>(entryMap.values());
+    Collections.sort(secondHalf, Comparator.comparing(ModuleGalleryEntry::getName));
 
-      if (f2 != null) {
-        return 1;
-      }
-
-      return StringUtil.naturalCompare(t1.getName(), t2.getName());
-    });
-
-    return res;
+    result.addAll(secondHalf);
+    return result;
   }
 }

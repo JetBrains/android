@@ -44,7 +44,7 @@ class ChooseModuleStep extends ExportSignedPackageWizardStep {
 
   protected ChooseModuleStep(ExportSignedPackageWizard wizard, List<AndroidFacet> facets) {
     myWizard = wizard;
-    assert facets.size() > 0;
+    assert !facets.isEmpty();
 
     AndroidFacet selection = facets.get(0);
     String module = PropertiesComponent.getInstance(wizard.getProject()).getValue(MODULE_PROPERTY);

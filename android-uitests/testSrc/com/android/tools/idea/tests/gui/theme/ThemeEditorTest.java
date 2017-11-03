@@ -19,20 +19,23 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ActivityChooserFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -42,6 +45,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class ThemeEditorTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
@@ -92,20 +96,33 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/71")
   @Test
-  public void testConfigurationToolbar() throws IOException {
+  public void testSetThemeOnActivity() throws IOException {
+    // Test that we can open the simple application and the theme editor opens correctly
     guiTest.importSimpleApplication();
+
+    IdeFrameFixture projectFrame = guiTest.ideFrame();
+    EditorFixture editor = projectFrame.getEditor().open("app/src/main/AndroidManifest.xml");
+    String addedText = "        <activity\n" +
+                       "            android:name=\".MyActivity\"\n" +
+                       "            android:label=\"@string/app_name\"\n" +
+                       "            android:theme=\"@style/MyNewTheme\">\n";
+    assertThat(editor.getCurrentFileContents()).doesNotContain(addedText);
+
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    // create a new theme
+    themeEditor.getThemesComboBox().selectItem("Create New Theme");
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());
+    newStyleDialog.getNewNameTextField().setText("MyNewTheme");
+    newStyleDialog.clickOk();
+    // make this the theme for the default activity
+    HyperlinkLabelFixture label = themeEditor.getThemeWarningLabel();
+    assertThat(label.getText()).isEqualTo("Theme is not used anywhere fix");
+    label.clickLink("fix");
 
-    JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
-    guiTest.robot().click(apiButton);
-    clickPopupMenuItem("API 21", "21", apiButton, guiTest.robot());
+    ActivityChooserFixture.find(guiTest.robot()).clickOk();
 
-    JButton deviceButton = themeEditor.findToolbarButton("The virtual device to render the layout with");
-    guiTest.robot().click(deviceButton);
-    clickPopupMenuItem("Nexus 6P", "Nexus 6P", deviceButton, guiTest.robot());
-
-    themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
+    editor.open("app/src/main/AndroidManifest.xml");
+    assertThat(editor.getCurrentFileContents()).contains(addedText);
   }
 }

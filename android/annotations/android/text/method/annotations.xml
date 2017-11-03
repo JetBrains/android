@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.text.method.DateKeyListener DateKeyListener(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DateKeyListener android.text.method.DateKeyListener getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DateKeyListener android.text.method.DateKeyListener getInstance(java.util.Locale)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DateKeyListener android.text.method.DateKeyListener getInstance(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DateKeyListener char[] getAcceptedChars()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DateTimeKeyListener DateTimeKeyListener(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DateTimeKeyListener android.text.method.DateTimeKeyListener getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DateTimeKeyListener android.text.method.DateTimeKeyListener getInstance(java.util.Locale)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DateTimeKeyListener android.text.method.DateTimeKeyListener getInstance(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DateTimeKeyListener char[] getAcceptedChars()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener DigitsKeyListener(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener DigitsKeyListener(java.util.Locale, boolean, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(boolean, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.util.Locale)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.util.Locale, boolean, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.DigitsKeyListener android.text.method.DigitsKeyListener getInstance(java.util.Locale, boolean, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.NumberKeyListener char[] getAcceptedChars()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.TimeKeyListener TimeKeyListener(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.TimeKeyListener android.text.method.TimeKeyListener getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.TimeKeyListener android.text.method.TimeKeyListener getInstance(java.util.Locale)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.method.TimeKeyListener android.text.method.TimeKeyListener getInstance(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.method.TimeKeyListener char[] getAcceptedChars()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

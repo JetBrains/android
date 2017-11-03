@@ -19,9 +19,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
-import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
+import com.android.tools.log.LogWrapper;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
-  private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
+  private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
   private static Map<File, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private DeviceManager ourDeviceManager;
@@ -231,7 +231,7 @@ public class DeviceManagerConnection {
   }
 
   public static void writeDevicesToFile(@NotNull List<Device> devices, @NotNull File file) {
-    if (devices.size() > 0) {
+    if (!devices.isEmpty()) {
       FileOutputStream stream = null;
       try {
         stream = new FileOutputStream(file);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.ModuleManager;
@@ -42,6 +43,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
       statusBar.setInfo(" ");
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleBuildInvoker.TestCompileType.NONE);
+    GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), TestCompileType.ALL);
   }
 }

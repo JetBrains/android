@@ -21,14 +21,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
 import com.android.tools.idea.actions.CreateNewClassDialogValidatorExImpl;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +72,6 @@ public class CreateNewClassDialogGuiTest {
   private static final String FINAL_DECLARATION = "public final %s TestThing {";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
   private EditorFixture myEditor;
 
   @Before
@@ -379,7 +375,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_NEW_NAME);
     dialog.clickCancel();
   }
 
@@ -392,7 +388,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_SUPERCLASS);
     dialog.clickCancel();
   }
 
@@ -405,7 +401,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_INTERFACE);
     dialog.clickCancel();
   }
 
@@ -454,35 +450,25 @@ public class CreateNewClassDialogGuiTest {
   // Interfaces vs. classes.
   @Test
   public void implementAClass() throws IOException {
+    String objectClass = "java.lang.Object";
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
-    dialog.setInterface("java.lang.Object");
+    dialog.setInterface(objectClass);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.NOT_A_VALID_INTERFACE + objectClass);
     dialog.clickCancel();
   }
 
   @Test
   public void extendAnInterface() throws IOException {
+    String runnableInterface = "java.lang.Runnable";
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
-    dialog.setSuperclass("java.lang.Runnable");
+    dialog.setSuperclass(runnableInterface);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.NOT_A_VALID_CLASS + runnableInterface);
     dialog.clickCancel();
-  }
-
-  // Overrides dialog tests.
-  @Ignore("Causes next test method to fail with error: File already exists.")
-  @Test
-  public void showOverridesDialog() throws IOException {
-    CreateFileFromTemplateDialogFixture newFileDialog = invokeNewFileDialog();
-    newFileDialog.setName(THING_NAME);
-    JCheckBoxFixture overridesCheckBox = newFileDialog.findCheckBox("overrides_check_box");
-    overridesCheckBox.setSelected(true);
-    newFileDialog.clickOk();
-    JavaOverrideImplementMemberChooserFixture.find(guiTest.robot()).clickCancel();
   }
 }

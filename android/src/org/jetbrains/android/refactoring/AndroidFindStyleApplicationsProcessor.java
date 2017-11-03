@@ -43,6 +43,8 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -199,7 +201,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
-      ResourceFolderType.LAYOUT, resDirs.toArray(new VirtualFile[resDirs.size()]));
+      ResourceFolderType.LAYOUT, resDirs);
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
 
@@ -212,7 +214,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
 
-    if (filesToProcess.size() == 0) {
+    if (filesToProcess.isEmpty()) {
       return Collections.emptyList();
     }
     final Set<PsiFile> psiFilesToProcess = new HashSet<PsiFile>();
@@ -238,7 +240,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   @NotNull
   private List<UsageInfo> findAllStyleApplications() {
     Collection<PsiFile> psiFilesToProcess = collectFilesToProcess();
-    if (psiFilesToProcess.size() == 0) {
+    if (psiFilesToProcess.isEmpty()) {
       return Collections.emptyList();
     }
     final int n = psiFilesToProcess.size();
@@ -272,8 +274,9 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (f == null) {
       return;
     }
-    final List<ValueResourceInfoImpl> resolvedStyles = f.getLocalResourceManager().findValueResourceInfos(
-      ResourceType.STYLE.getName(), styleName, true, false);
+    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(f).getLocalResourceManager();
+    final List<ValueResourceInfoImpl> resolvedStyles =
+      resourceManager.findValueResourceInfos(ResourceType.STYLE.getName(), styleName, true, false);
 
     if (resolvedStyles.size() == 1) {
       final XmlAttributeValue resolvedStyleNameElement = resolvedStyles.get(0).computeXmlElement();

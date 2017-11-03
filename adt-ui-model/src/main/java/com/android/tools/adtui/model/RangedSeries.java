@@ -15,8 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * This class is the default implementation of a ranged series. It provides access to the DataSeries,
@@ -45,7 +46,7 @@ public class RangedSeries<E> {
    * @return A new {@link SeriesDataList} that is immutable. This allows the caller to get a scoped enumeration of items in the DataStore.
    */
   @NotNull
-  public ImmutableList<SeriesData<E>> getSeries() {
+  public List<SeriesData<E>> getSeries() {
     return mSeries.getDataForXRange(mXRange);
   }
 

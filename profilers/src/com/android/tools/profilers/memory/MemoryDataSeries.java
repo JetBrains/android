@@ -18,11 +18,10 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -36,22 +35,26 @@ public final class MemoryDataSeries implements DataSeries<Long> {
 
   private final int myProcessId;
 
-  @NotNull
-  private Function<MemorySample, Long> myFilter;
+  private final Common.Session mySession;
 
-  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id,
-                          @NotNull Function<MemorySample, Long> filter) {
+  @NotNull
+  private Function<MemorySample, Long> mySampleTransformer;
+
+  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session,
+                          @NotNull Function<MemorySample, Long> transformer) {
     myClient = client;
     myProcessId = id;
-    myFilter = filter;
+    mySession = session;
+    mySampleTransformer = transformer;
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
@@ -59,8 +62,8 @@ public final class MemoryDataSeries implements DataSeries<Long> {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
     for (MemoryProfiler.MemoryData.MemorySample sample : response.getMemSamplesList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-      seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
+      seriesData.add(new SeriesData<>(dataTimestamp, mySampleTransformer.apply(sample)));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

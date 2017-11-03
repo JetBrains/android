@@ -17,25 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AppCompatCallDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintAppCompatMethodInspection extends AndroidLintInspectionBase {
   public AndroidLintAppCompatMethodInspection() {
     super(AndroidBundle.message("android.lint.inspections.app.compat.method"), AppCompatCallDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String oldCall = AppCompatCallDetector.getOldCall(message, RAW);
-    String newCall = AppCompatCallDetector.getNewCall(message, RAW);
-    if (oldCall != null && newCall != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with " + newCall + "()", oldCall, newCall)};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

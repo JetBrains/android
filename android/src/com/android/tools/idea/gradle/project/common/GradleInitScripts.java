@@ -15,23 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import com.android.java.model.JavaProject;
+import com.android.java.model.builder.JavaLibraryPlugin;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
+import static com.intellij.openapi.application.PathManager.getJarPathForClass;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 public class GradleInitScripts {
+  @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
 
   @NotNull
@@ -39,61 +47,86 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
-  public GradleInitScripts() {
-    this(new ContentCreator());
+  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
+    this(embeddedDistributionPaths, new ContentCreator());
   }
 
   @VisibleForTesting
-  GradleInitScripts(@NotNull ContentCreator contentCreator) {
+  GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
+    myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;
   }
 
-  public void addLocalMavenRepoInitScriptCommandLineArgTo(@NotNull List<String> allArgs) {
+  public void addLocalMavenRepoInitScriptCommandLineArg(@NotNull List<String> allArgs) {
     File initScriptFile = createLocalMavenRepoInitScriptFile();
     if (initScriptFile != null) {
       addInitScriptCommandLineArg(initScriptFile, allArgs);
     }
   }
 
-  @VisibleForTesting
   @Nullable
-  File createLocalMavenRepoInitScriptFile() {
-    List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
+  private File createLocalMavenRepoInitScriptFile() {
+    List<File> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths();
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     if (content != null) {
-      return createInitScriptFile("asLocalRepo", content);
+      String fileName = "sync.local.repo";
+      try {
+        return createInitScriptFile(fileName, content);
+      }
+      catch (Throwable e) {
+        String message = String.format("Failed to set up Gradle init script: '%1$s'", fileName);
+        getLogger().warn(message, e);
+      }
     }
     return null;
   }
 
-  public void addProfilerClasspathInitScriptCommandLineArgTo(@NotNull List<String> allArgs) {
-    String content = "allprojects {\n" +
-                     "  buildscript {\n" +
-                     "    dependencies {\n" +
-                     "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
-                     "    }\n" +
-                     "  }\n" +
-                     "}\n";
-
-    File initScriptFile = createInitScriptFile("asPerfClasspath", content);
-    if (initScriptFile != null) {
+  public void addApplyJavaLibraryPluginInitScriptCommandLineArg(@NotNull List<String> allArgs) {
+    try {
+      File initScriptFile = createApplyJavaLibraryPluginInitScriptFile();
       addInitScriptCommandLineArg(initScriptFile, allArgs);
     }
+    catch (IOException e) {
+      // if the init script cannot be created, sync won't succeed. Unlikely to happen, but better fail now than later.
+      // No need for checked exception. Client code won't be able to recover from this.
+      throw new RuntimeException("Failed to create init script that applies the Java library plugin", e);
+    }
   }
 
-  @Nullable
-  private static File createInitScriptFile(@NotNull String fileName, @NotNull String content) {
-    try {
-      File file = createTempFile(fileName, DOT_GRADLE);
-      file.deleteOnExit();
-      writeToFile(file, content);
-      return file;
-    }
-    catch (Throwable e) {
-      String message = String.format("Failed to set up  Gradle init script: '%1$s'", fileName);
-      Logger.getInstance(GradleInitScripts.class).warn(message, e);
-    }
-    return null;
+  @NotNull
+  private File createApplyJavaLibraryPluginInitScriptFile() throws IOException {
+    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
+    return createInitScriptFile("sync.java.lib", content);
+  }
+
+  @NotNull
+  private static File createInitScriptFile(@NotNull String fileName, @NotNull String content) throws IOException {
+    File file = createTempFile(fileName, DOT_GRADLE);
+    file.deleteOnExit();
+    writeToFile(file, content);
+    getLogger().info(String.format("init script file %s contents %s", fileName, escapeAsStringLiteral(content)));
+    return file;
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(GradleInitScripts.class);
+  }
+
+  @NotNull
+  private static String escapeAsStringLiteral(@NotNull String s) {
+    // JLS 3.10.6: Escape Sequences for Character and String Literals
+    // @formatter:off
+    Escaper escaper = Escapers.builder().addEscape('\b', "\\b")
+                                        .addEscape('\t', "\\t")
+                                        .addEscape('\n', "\\n")
+                                        .addEscape('\f', "\\f")
+                                        .addEscape('\r', "\\r")
+                                        .addEscape('"', "\\\"")
+                                        .addEscape('\\', "\\\\")
+                                        .build();
+    // @formatter:on
+    return "\"" + escaper.escape(s) + "\"";
   }
 
   private static void addInitScriptCommandLineArg(@NotNull File initScriptFile, @NotNull List<String> allArgs) {
@@ -103,6 +136,16 @@ public class GradleInitScripts {
 
   @VisibleForTesting
   static class ContentCreator {
+    @NotNull private final JavaLibraryPluginJars myJavaLibraryPluginJars;
+
+    ContentCreator() {
+      this(new JavaLibraryPluginJars());
+    }
+
+    ContentCreator(@NotNull JavaLibraryPluginJars javaLibraryPluginJars) {
+      myJavaLibraryPluginJars = javaLibraryPluginJars;
+    }
+
     @Nullable
     String createLocalMavenRepoInitScriptContent(@NotNull List<File> repoPaths) {
       if (repoPaths.isEmpty()) {
@@ -122,6 +165,38 @@ public class GradleInitScripts {
              "  repositories {\n" + paths +
              "  }\n" +
              "}\n";
+    }
+
+    @NotNull
+    String createApplyJavaLibraryPluginInitScriptContent() {
+      List<String> paths = myJavaLibraryPluginJars.getJarPaths();
+      StringBuilder classpath = new StringBuilder();
+      classpath.append("classpath files([");
+      int pathCount = paths.size();
+      for (int i = 0; i < pathCount; i++) {
+        String jarPath = paths.get(i);
+        classpath.append("'").append(jarPath).append("'");
+        if (i < pathCount - 1) {
+          classpath.append(", ");
+        }
+      }
+      classpath.append("])");
+      return "initscript {\n" +
+             "    dependencies {\n" +
+             "        " + classpath.toString() + "\n" +
+             "    }\n" +
+             "}\n" +
+             "allprojects {\n" +
+             "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
+             "}\n";
+    }
+  }
+
+  @VisibleForTesting
+  static class JavaLibraryPluginJars {
+    @NotNull
+    List<String> getJarPaths() {
+      return Arrays.asList(getJarPathForClass(JavaProject.class), getJarPathForClass(JavaLibraryPlugin.class));
     }
   }
 }

@@ -28,19 +28,16 @@ import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.event.CaretEvent;
-import com.intellij.openapi.editor.event.CaretListener;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
@@ -202,7 +199,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     }
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    ConfigurationManager manager = facet.getConfigurationManager();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
 
     List<VirtualFile> variations = ResourceHelper.getResourceVariations(virtualFile, false /*includeSelf*/);
     if (variations.isEmpty()) {
@@ -210,13 +207,9 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     }
 
     // There is more than one resource folder available so make sure we select a configuration that only matches the current file.
-    Collection<FolderConfiguration> incompatible = Collections2.transform(variations, new Function<VirtualFile, FolderConfiguration>() {
-      @Nullable
-      @Override
-      public FolderConfiguration apply(VirtualFile input) {
-        assert input != null;
-        return ResourceHelper.getFolderConfiguration(input);
-      }
+    Collection<FolderConfiguration> incompatible = Collections2.transform(variations, input -> {
+      assert input != null;
+      return ResourceHelper.getFolderConfiguration(input);
     });
 
     FolderConfiguration selectedFileFolderConfiguration = ResourceHelper.getFolderConfiguration(psiFile);
@@ -269,6 +262,18 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     boolean available = false;
     if (newEditor != null && isApplicableEditor(newEditor)) {
+      if (DumbService.getInstance(myProject).isDumb()) {
+        // Delay getBestConfiguration until resource indexes have had a chance to run.
+        DumbService.getInstance(myProject).runWhenSmart(
+          () -> {
+            if (newEditor.isValid()) {
+              processFileEditorChange(newEditor);
+            }
+          }
+        );
+        myToolWindow.setAvailable(false, null);
+        return;
+      }
       myActiveEditor = newEditor;
       CaretModel caretModel = myActiveEditor.getEditor().getCaretModel();
       caretModel.addCaretListener(myCaretListener);
@@ -321,7 +326,15 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     return ThemeEditorProvider.isAndroidTheme(psiFile);
   }
-  
+
+  @Override
+  public void initComponent() {
+  }
+
+  @Override
+  public void disposeComponent() {
+  }
+
   private void updatePreview() {
     myToolWindowUpdateQueue.queue(myPreviewUpdate);
   }
@@ -375,32 +388,27 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          processFileEditorChange();
-        }
-      }, myProject.getDisposed());
+      ApplicationManager.getApplication().invokeLater(AndroidThemePreviewToolWindowManager.this::processFileEditorChange, myProject.getDisposed());
     }
 
     @Override
     public void selectionChanged(@NonNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
-      TextEditor layoutXmlEditor = null;
+      TextEditor applicableTextEditor = null;
       if (newEditor instanceof TextEditor) {
         final TextEditor textEditor = (TextEditor)newEditor;
         if (isApplicableEditor(textEditor)) {
-          layoutXmlEditor = textEditor;
+          applicableTextEditor = textEditor;
         }
       }
-      processFileEditorChange(layoutXmlEditor);
+      processFileEditorChange(applicableTextEditor);
     }
   }
 
   /**
    * CaretListener that detects when we move to a different theme.
    */
-  private class MyCaretListener implements CaretListener {
+  private class MyCaretListener extends CaretAdapter {
     @Override
     public void caretPositionChanged(CaretEvent e) {
       if (e == null || e.getCaret() == null) {
@@ -428,7 +436,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   /**
    * The document listener detects when there's been a change in the XML content and issues a refresh of the preview panel
    */
-  private class MyDocumentListener implements DocumentListener {
+  private class MyDocumentListener extends DocumentAdapter {
     @Override
     public void documentChanged(DocumentEvent event) {
       updatePreview();

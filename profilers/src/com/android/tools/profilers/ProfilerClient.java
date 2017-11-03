@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.*;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,21 +27,16 @@ public class ProfilerClient {
   @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
-  @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
   public ProfilerClient(String name) {
-    // Stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
-    ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).build();
-    Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-
+    // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and perfd-host without
+    // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in perfd-host.
+    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).directExecutor().build();
     myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
     myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
     myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
     myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     myEventClient = EventServiceGrpc.newBlockingStub(channel);
-    myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
   }
 
   @NotNull
@@ -68,11 +62,6 @@ public class ProfilerClient {
   @NotNull
   public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
     return myEventClient;
-  }
-
-  @NotNull
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
-    return myEnergyClient;
   }
 }
 

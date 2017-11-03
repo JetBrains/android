@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -32,17 +33,16 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 
@@ -67,20 +67,23 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       XmlFile manifest = getAndroidManifestPsi(module);
       if (manifest != null) {
         deepLinks.addAll(getAllDeepLinks(manifest.getRootTag()));
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && androidFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-          MergedManifest mergedManifest = MergedManifest.get(androidFacet);
-          deepLinks.addAll(new InstantAppUrlFinder(mergedManifest).getAllUrls());
+      }
+
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        List<Module> featureModules = findFeatureModules(facet);
+        for (Module featureModule : featureModules) {
+          deepLinks.addAll(new InstantAppUrlFinder(MergedManifest.get(featureModule)).getAllUrls());
         }
       }
     }
-    myList = new JBList(deepLinks.toArray(new String[deepLinks.size()]));
+    myList = new JBList((Object[])ArrayUtil.toStringArray(deepLinks));
     myList.setEmptyText("None found in AndroidManifest.xml");
     init();
   }
 
   @Nullable
-  public String getSelectedDeepLink()  {
+  public String getSelectedDeepLink() {
     return mySelectedDeepLink;
   }
 
@@ -117,14 +120,11 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   private static XmlFile getAndroidManifestPsi(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      File file = facet.getMainSourceProvider().getManifestFile();
-      if (file != null) {
-        VirtualFile manifest = LocalFileSystem.getInstance().findFileByIoFile(file);
-        if (manifest != null) {
-          PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(manifest);
-          if (psiFile instanceof XmlFile) {
-            return (XmlFile)psiFile;
-          }
+      VirtualFile manifest = LocalFileSystem.getInstance().findFileByIoFile(facet.getMainSourceProvider().getManifestFile());
+      if (manifest != null) {
+        PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(manifest);
+        if (psiFile instanceof XmlFile) {
+          return (XmlFile)psiFile;
         }
       }
     }
@@ -133,6 +133,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
   /**
    * Returns all match deep links from a root xml tag.
+   *
    * @param root The root xml tag, usually is the root tag of AndroidManifest.xml
    */
   @VisibleForTesting
@@ -194,7 +195,8 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       String name = category.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.NS_RESOURCES);
       if (name != null && name.equals(CATEGORY_DEFAULT)) {
         hasDefaultCategory = true;
-      } else if (name != null && name.equals(CATEGORY_BROWSABLE)) {
+      }
+      else if (name != null && name.equals(CATEGORY_BROWSABLE)) {
         hasBrowsableCategory = true;
       }
     }
@@ -204,9 +206,9 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
     // Parse deep link
     List<XmlTag> datas = searchXmlTagsByName(intentFilter, TAG_DATA);
-    String scheme=null, host=null, pathPrefix=null, path=null;
+    String scheme = null, host = null, pathPrefix = null, path = null;
     for (XmlTag data : datas) {
-      if(null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES)) {
+      if (null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES)) {
         scheme = data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES);
       }
       if (null != data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.NS_RESOURCES)) {
@@ -221,17 +223,18 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     }
 
     if (scheme != null) {
-      StringBuffer buf = new StringBuffer(scheme);
-      buf.append("://");
+      StringBuilder builder = new StringBuilder(scheme);
+      builder.append("://");
       if (host != null) {
-        buf.append(host);
+        builder.append(host);
         if (path != null) {
-          buf.append(path);
-        } else if (pathPrefix != null) {
-          buf.append(pathPrefix);
+          builder.append(path);
+        }
+        else if (pathPrefix != null) {
+          builder.append(pathPrefix);
         }
       }
-      return buf.toString();
+      return builder.toString();
     }
     return null;
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,6 +88,8 @@ public enum SegmentType {
       case END:
         me = textDirection == TextDirection.RIGHT_TO_LEFT ? LEFT : RIGHT;
         break;
+      default:
+        // No changes needed for RTL
     }
 
     // We pass in the bounds rather than look it up via node.getBounds() because
@@ -123,7 +126,7 @@ public enum SegmentType {
       case BOTTOM:
         return bounds.y + bounds.height;
       case BASELINE: {
-        int baseline = node != null ? node.getBaseline() : -1;
+        int baseline = node != null ? NlComponentHelperKt.getBaseline(node) : -1;
         if (node == null) {
           // This happens when you are dragging an element and we don't have
           // a node such as on a palette drag. For now just hack it.

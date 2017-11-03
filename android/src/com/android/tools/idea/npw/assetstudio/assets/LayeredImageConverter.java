@@ -496,7 +496,7 @@ class LayeredImageConverter {
     if (isRoot) out.write(" xmlns:android=\"http://schemas.android.com/apk/res/android\"");
     out.write("\n");
 
-    boolean hasChildren = element.children.size() > 0;
+    boolean hasChildren = !element.children.isEmpty();
 
     indent++;
     outputAttributes(element, out, indent);

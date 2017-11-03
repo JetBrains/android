@@ -16,7 +16,11 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
@@ -94,7 +98,28 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   @NotNull
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-    assert myResourceType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
+    assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
+
+    if (dependsOn(facet, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT)) {
+      myDefaultRootTag = SdkConstants.CONSTRAINT_LAYOUT;
+    }
+
+    List<String> roots = getPossibleRoots(facet);
+    assert roots.contains(myDefaultRootTag);
+
+    return roots;
+  }
+
+  @VisibleForTesting
+  boolean dependsOn(@NotNull AndroidFacet facet, @NotNull String artifact) {
+    AndroidModuleModel model = AndroidModuleModel.get(facet);
+    assert model != null;
+
+    return GradleUtil.dependsOn(model, artifact);
+  }
+
+  @VisibleForTesting
+  List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
     return AndroidLayoutUtil.getPossibleRoots(facet);
   }
 
@@ -145,11 +170,11 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       final String fileName = myFileNameField.getText().trim();
       myLastRootComponentName = myRootElementField.getText().trim();
 
-      if (fileName.length() == 0) {
+      if (fileName.isEmpty()) {
         Messages.showErrorDialog(myPanel, AndroidBundle.message("file.name.not.specified.error"), CommonBundle.getErrorTitle());
         return;
       }
-      if (myLastRootComponentName.length() == 0) {
+      if (myLastRootComponentName.isEmpty()) {
         Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
         return;
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;

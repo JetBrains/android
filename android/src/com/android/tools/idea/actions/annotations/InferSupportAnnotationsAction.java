@@ -20,8 +20,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
@@ -73,6 +74,7 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
@@ -225,7 +227,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     Set<Module> modulesWithoutAnnotations = new HashSet<>();
     Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
-      AndroidModuleInfo info = AndroidModuleInfo.get(module);
+      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
@@ -238,7 +240,9 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       boolean dependencyFound = false;
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
-        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
+        String configurationName =
+          GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
           String notation = dependency.compactNotation().value();
           if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
               notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
@@ -283,7 +287,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
+              TRIGGER_PROJECT_MODIFIED);
             GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
@@ -400,7 +405,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       ModuleRootModificationUtil.updateModel(module, model -> {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
-          buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+          String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+          buildModel.dependencies().addArtifact(name, libraryCoordinate);
           buildModel.applyChanges();
         }
       });

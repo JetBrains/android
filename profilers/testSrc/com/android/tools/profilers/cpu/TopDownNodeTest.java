@@ -15,16 +15,17 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class TopDownNodeTest {
 
   @Test
   public void testTreeMerger() throws Exception {
-    HNode<MethodModel> root = createTree();
+    CaptureNode root = createTree();
 
     // Once merged for top down view, the tree should become:
     // A
@@ -36,16 +37,49 @@ public class TopDownNodeTest {
     //    +-F
 
     TopDownNode topDown = new TopDownNode(root);
-    Assert.assertEquals(":A:", topDown.getId());
-    Assert.assertEquals(2, topDown.getChildren().size());
-    Assert.assertEquals(":B:", topDown.getChildren().get(0).getId());
-    Assert.assertEquals(3, topDown.getChildren().get(0).getChildren().size());
-    Assert.assertEquals(":D:", topDown.getChildren().get(0).getChildren().get(0).getId());
-    Assert.assertEquals(":E:", topDown.getChildren().get(0).getChildren().get(1).getId());
-    Assert.assertEquals(":G:", topDown.getChildren().get(0).getChildren().get(2).getId());
-    Assert.assertEquals(":C:", topDown.getChildren().get(1).getId());
-    Assert.assertEquals(1, topDown.getChildren().get(1).getChildren().size());
-    Assert.assertEquals(":F:", topDown.getChildren().get(1).getChildren().get(0).getId());
+    assertEquals("A", topDown.getId());
+    assertEquals(2, topDown.getChildren().size());
+    assertEquals("B", topDown.getChildren().get(0).getId());
+    assertEquals(3, topDown.getChildren().get(0).getChildren().size());
+    assertEquals("D", topDown.getChildren().get(0).getChildren().get(0).getId());
+    assertEquals("E", topDown.getChildren().get(0).getChildren().get(1).getId());
+    assertEquals("G", topDown.getChildren().get(0).getChildren().get(2).getId());
+    assertEquals("C", topDown.getChildren().get(1).getId());
+    assertEquals(1, topDown.getChildren().get(1).getChildren().size());
+    assertEquals("F", topDown.getChildren().get(1).getChildren().get(0).getId());
+  }
+
+  @Test
+  public void testTreeTime() {
+    CaptureNode root = newNode("A", 0, 10);
+    root.addChild(newNode("D", 3, 5));
+    root.addChild(newNode("E", 7, 9));
+
+    TopDownNode topDown = new TopDownNode(root);
+    topDown.update(new Range(root.getStart(), root.getEnd()));
+    for (TopDownNode child : topDown.getChildren()) {
+      child.update(new Range(root.getStart(), root.getEnd()));
+    }
+
+    assertEquals(10, topDown.getTotal(), 0);
+    assertEquals(6, topDown.getSelf(), 0);
+
+    topDown.reset();
+    assertEquals(0, topDown.getTotal(), 0);
+  }
+
+  @Test
+  public void testTreeData() {
+    MethodModel rootModel = new MethodModel("A", "com.package", "");
+    TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
+
+    assertEquals("com.package", topDown.getClassName());
+    assertEquals("A", topDown.getMethodName());
+
+    // Cover the case of null data
+    topDown = new TopDownNode(new CaptureNode());
+    assertEquals("", topDown.getClassName());
+    assertEquals("", topDown.getMethodName());
   }
 
   /**
@@ -62,22 +96,34 @@ public class TopDownNodeTest {
    *      +-G                              |---|
    */
   @NotNull
-  static HNode<MethodModel> createTree() {
-    HNode<MethodModel> root = new HNode<>(new MethodModel("A"), 0, 30);
+  static CaptureNode createTree() {
+    CaptureNode root = newNode("A", 0, 30);
 
-    HNode<MethodModel> node = new HNode<>(new MethodModel("B"), 1, 9);
-    node.addHNode(new HNode<>(new MethodModel("D"), 3, 5));
-    node.addHNode(new HNode<>(new MethodModel("E"), 7, 9));
-    root.addHNode(node);
+    CaptureNode node = newNode("B", 1, 9);
+    node.addChild(newNode("D", 3, 5));
+    node.addChild(newNode("E", 7, 9));
+    root.addChild(node);
 
-    node = new HNode<>(new MethodModel("C"), 13, 19);
-    node.addHNode(new HNode<>(new MethodModel("F"), 13, 15));
-    root.addHNode(node);
+    node = newNode("C", 13, 19);
+    node.addChild(newNode("F", 13, 15));
+    root.addChild(node);
 
-    node = new HNode<>(new MethodModel("B"), 22, 29);
-    node.addHNode(new HNode<>(new MethodModel("E"), 22, 25));
-    node.addHNode(new HNode<>(new MethodModel("G"), 25, 29));
-    root.addHNode(node);
+    node = newNode("B", 22, 29);
+    node.addChild(newNode("E", 22, 25));
+    node.addChild(newNode("G", 25, 29));
+    root.addChild(node);
     return root;
+  }
+
+  static CaptureNode newNode(String method, long start, long end) {
+    return newNode(new MethodModel(method), start, end);
+  }
+
+  static CaptureNode newNode(MethodModel method, long start, long end) {
+    CaptureNode node = new CaptureNode();
+    node.setMethodModel(method);
+    node.setStartGlobal(start);
+    node.setEndGlobal(end);
+    return node;
   }
 }

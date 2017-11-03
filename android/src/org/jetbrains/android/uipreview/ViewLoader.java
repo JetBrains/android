@@ -18,13 +18,13 @@ package org.jetbrains.android.uipreview;
 
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.layoutlib.bridge.MockView;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.InconvertibleClassError;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -36,6 +36,8 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
@@ -62,9 +64,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -78,6 +80,8 @@ public class ViewLoader {
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
 
+  private static final ViewLoaderExtension[] EMPTY_EXTENSION_LIST = new ViewLoaderExtension[0];
+
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
   /** Classes that are being loaded currently. */
@@ -86,13 +90,11 @@ public class ViewLoader {
   @NotNull private final Set<String> myRecentlyModifiedClasses = Sets.newHashSetWithExpectedSize(5);
   @Nullable private final Object myCredential;
   @NotNull private final LayoutLibrary myLayoutLibrary;
-  /**
-   * {@link RenderLogger} used to log loading problems. It can only be null during the dispose of this class.
-   */
-  @Nullable private RenderLogger myLogger;
+  /** {@link IRenderLogger} used to log loading problems. */
+  @NotNull private IRenderLogger myLogger;
   @Nullable private ModuleClassLoader myModuleClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
@@ -101,11 +103,11 @@ public class ViewLoader {
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems
+   * Sets the {@link LayoutLog} logger to use for error messages during problems.
    *
-   * @param logger the new logger to use, or null to clear it out
+   * @param logger the new logger to use
    */
-  public void setLogger(@Nullable RenderLogger logger) {
+  public void setLogger(@NotNull IRenderLogger logger) {
     myLogger = logger;
   }
 
@@ -300,6 +302,15 @@ public class ViewLoader {
   }
 
   @NotNull
+  private ViewLoaderExtension[] getExtensions() {
+    ExtensionsArea area = Extensions.getArea(myModule.getProject());
+    if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
+      return EMPTY_EXTENSION_LIST;
+    }
+    return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
+  }
+
+  @NotNull
   private ModuleClassLoader getModuleClassLoader() {
     if (myModuleClassLoader == null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
@@ -323,8 +334,6 @@ public class ViewLoader {
     }
 
     if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
-      assert myLogger != null;
-
       myRecentlyModifiedClasses.add(fqcn);
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
@@ -337,14 +346,13 @@ public class ViewLoader {
 
   @NotNull
   private MockView createMockView(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs)
-    throws
-    ClassNotFoundException,
-    InvocationTargetException,
-    NoSuchMethodException,
-    InstantiationException,
-    IllegalAccessException,
-    NoSuchFieldException {
-
+      throws
+          ClassNotFoundException,
+          InvocationTargetException,
+          NoSuchMethodException,
+          InstantiationException,
+          IllegalAccessException,
+          NoSuchFieldException {
     MockView mockView = (MockView)createNewInstance(MockView.class, constructorSignature, constructorArgs, true);
     String label = getShortClassName(className);
     switch (label) {
@@ -431,7 +439,7 @@ public class ViewLoader {
 
         for (int j = k + 1; j <= i; j++) {
           if (j == 2) {
-            sig[j - 1] = clazz.getClassLoader().loadClass(CLASS_ATTRIBUTE_SET);
+            sig[j - 1] = myLayoutLibrary.getClassLoader().loadClass(CLASS_ATTRIBUTE_SET);
             params[j - 1] = null;
           }
           else if (j == 3) {
@@ -448,7 +456,6 @@ public class ViewLoader {
           constructor = clazz.getConstructor(constructorSignature);
           if (constructor != null) {
             if (constructorSignature.length < 2) {
-              assert myLogger != null;
               LOG.info("wrong_constructor: Custom view " +
                        clazz.getSimpleName() +
                        " is not using the 2- or 3-argument " +
@@ -456,8 +463,7 @@ public class ViewLoader {
               myLogger.warning("wrongconstructor", //$NON-NLS-1$
                                String.format(
                                 "Custom view %1$s is not using the 2- or 3-argument View constructors; XML attributes will not work",
-                                clazz.getSimpleName()), null /*data*/);
-
+                                clazz.getSimpleName()), null, null);
             }
             break;
           }
@@ -482,11 +488,19 @@ public class ViewLoader {
     }
 
     try {
-      return getModuleClassLoader().loadClass(className);
+      ModuleClassLoader moduleClassLoader = getModuleClassLoader();
+
+      for (ViewLoaderExtension extension : getExtensions()) {
+        Class<?> loadedClass = extension.loadClass(className, moduleClassLoader);
+        if (loadedClass != null) {
+          return loadedClass;
+        }
+      }
+
+      return moduleClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
-        assert myLogger != null;
         myLogger.addMissingClass(className);
       }
       return null;
@@ -570,7 +584,6 @@ public class ViewLoader {
    * to local resources properly
    */
   public void loadAndParseRClassSilently() {
-    assert myLogger != null;
     final String rClassName = getRClassName(myModule);
     try {
       if (rClassName == null) {
@@ -581,7 +594,7 @@ public class ViewLoader {
       loadAndParseRClass(rClassName);
     }
     catch (ClassNotFoundException | NoClassDefFoundError e) {
-      myLogger.setMissingResourceClass(true);
+      myLogger.setMissingResourceClass();
     }
     catch (InconvertibleClassError e) {
       assert rClassName != null;
@@ -596,7 +609,7 @@ public class ViewLoader {
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myModule);
     if (aClass == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("  The R class is not loaded.");
@@ -633,9 +646,8 @@ public class ViewLoader {
           LOG.debug("  Class loaded");
         }
 
-        assert myLogger != null;
         myLoadedClasses.put(className, aClass);
-        myLogger.setHasLoadedClasses(true);
+        myLogger.setHasLoadedClasses();
       }
     }
 

@@ -16,11 +16,11 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,16 +55,18 @@ public class StateChartReducerVisualTest extends VisualTest {
   private int mySampleSize;
 
   @Override
-  protected List<Animatable> createComponentsList() {
-    myViewRange = new Range();
+  protected List<Updatable> createModelList() {
+    myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    myColorChart = new StateChart<>(COLOR_STATE_COLORS, (rectangles, values) -> {});
-    myColorChart.addSeries(series);
+    StateChartModel<ColorState> model = new StateChartModel<>();
+    myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, new StateChartConfig<>((rectangles, values) -> {}));
+    model.addSeries(series);
 
-    myOptimizedColorChart = new StateChart<>(COLOR_STATE_COLORS);
-    myOptimizedColorChart.addSeries(series);
-    return Arrays.asList(myColorChart, myOptimizedColorChart);
+    StateChartModel<ColorState> optimizedModel = new StateChartModel<>();
+    myOptimizedColorChart = new StateChart<>(optimizedModel, COLOR_STATE_COLORS);
+    optimizedModel.addSeries(series);
+    return Arrays.asList(model, optimizedModel);
   }
 
   @Override
@@ -101,8 +103,6 @@ public class StateChartReducerVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
-    myColorChart.setHeightGap(0.5f);
-    myOptimizedColorChart.setHeightGap(0.5f);
     myColorChart.setPreferredSize(new Dimension(0, 20));
     myOptimizedColorChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     myColorChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
@@ -122,21 +122,6 @@ public class StateChartReducerVisualTest extends VisualTest {
     chartPane.add(new JPanel(), gbc);
 
     final JPanel controls = VisualTest.createControlledPane(panel, chartPane);
-    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcWidth(v / 100f);
-        myOptimizedColorChart.setArcWidth(v / 100f);
-      }
-    }));
-
-    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcHeight(v / 100f);
-        myOptimizedColorChart.setArcHeight(v / 100f);
-      }
-    }));
 
     controls.add(VisualTest.createVariableSlider("Sample Size", 0, 10000, new VisualTests.ValueAdapter() {
       @Override

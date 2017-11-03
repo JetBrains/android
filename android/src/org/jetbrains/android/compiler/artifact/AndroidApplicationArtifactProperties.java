@@ -70,9 +70,9 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
     final String keyStorePath = myKeyStoreUrl != null
                                 ? VfsUtilCore.urlToPath(myKeyStoreUrl)
                                 : "";
-    final String keyStorePassword = myKeyStorePassword != null && myKeyStorePassword.length() > 0
+    final String keyStorePassword = myKeyStorePassword != null && !myKeyStorePassword.isEmpty()
                                     ? getPlainKeystorePassword() : null;
-    final String keyPassword = myKeyPassword != null && myKeyPassword.length() > 0
+    final String keyPassword = myKeyPassword != null && !myKeyPassword.isEmpty()
                                ? getPlainKeyPassword() : null;
     try {
       final Map<AndroidCompilerMessageKind,List<String>> messages =

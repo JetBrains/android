@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +30,6 @@ import java.util.Collections;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,7 +44,13 @@ public final class NlComponentTest extends AndroidTestCase {
     myModel = mock(NlModel.class);
   }
 
-  private static XmlTag createTag(String tagName) {
+  private NlComponent createComponent(@NotNull XmlTag tag) {
+    NlComponent result = new NlComponent(myModel, tag);
+    NlComponentHelper.INSTANCE.registerComponent(result);
+    return result;
+  }
+
+  static XmlTag createTag(String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
 
@@ -49,13 +58,13 @@ public final class NlComponentTest extends AndroidTestCase {
   }
 
   public void testNeedsDefaultId() {
-    assertFalse(new NlComponent(myModel, createTag("SwitchPreference")).needsDefaultId());
+    assertFalse(NlComponentHelperKt.needsDefaultId(createComponent(createTag("SwitchPreference"))));
   }
 
   public void testBasic() {
-    NlComponent linearLayout = new NlComponent(myModel, createTag("LinearLayout"));
-    NlComponent textView = new NlComponent(myModel, createTag("TextView"));
-    NlComponent button = new NlComponent(myModel, createTag("Button"));
+    NlComponent linearLayout = createComponent(createTag("LinearLayout"));
+    NlComponent textView = createComponent(createTag("TextView"));
+    NlComponent button = createComponent(createTag("Button"));
 
     assertThat(linearLayout.getChildren()).isEmpty();
 
@@ -71,13 +80,9 @@ public final class NlComponentTest extends AndroidTestCase {
     assertSame(textView, linearLayout.findViewByTag(textView.getTag()));
     assertEquals(Collections.singletonList(textView), linearLayout.findViewsByTag(textView.getTag()));
 
-    linearLayout.setBounds(0, 0, 1000, 800);
-    textView.setBounds(0, 0, 200, 100);
-    button.setBounds(10, 110, 400, 100);
-
-    assertSame(linearLayout, linearLayout.findLeafAt(500, 500));
-    assertSame(textView, linearLayout.findLeafAt(20, 20));
-    assertSame(button, linearLayout.findLeafAt(20, 120));
+    NlComponentHelperKt.setBounds(linearLayout, 0, 0, 1000, 800);
+    NlComponentHelperKt.setBounds(textView, 0, 0, 200, 100);
+    NlComponentHelperKt.setBounds(button, 10, 110, 400, 100);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
@@ -104,8 +109,8 @@ public final class NlComponentTest extends AndroidTestCase {
       " android:layout_width=\"wrap_content\"" +
       " android:layout_height=\"wrap_content\" />");
 
-    NlComponent linearLayout = new NlComponent(myModel, linearLayoutXmlTag);
-    NlComponent textView = new NlComponent(myModel, textViewXmlTag);
+    NlComponent linearLayout = createComponent(linearLayoutXmlTag);
+    NlComponent textView = createComponent(textViewXmlTag);
 
     linearLayout.addChild(textView);
 
@@ -184,8 +189,8 @@ public final class NlComponentTest extends AndroidTestCase {
       " android:layout_height=\"wrap_content\" />");
     linearLayoutXmlTag.addSubTag(textViewXmlTag, true);
 
-    NlComponent linearLayout = new NlComponent(myModel, linearLayoutXmlTag);
-    NlComponent textView = new NlComponent(myModel, textViewXmlTag);
+    NlComponent linearLayout = createComponent(linearLayoutXmlTag);
+    NlComponent textView = createComponent(textViewXmlTag);
 
     linearLayout.addChild(textView);
 

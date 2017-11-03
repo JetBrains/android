@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
@@ -53,7 +52,6 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateCategory;
   private final String myTemplateName;
   private final int myMinSdkVersion;
-  private final boolean myRequireAppTheme;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
@@ -61,7 +59,6 @@ public class NewAndroidComponentAction extends AnAction {
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
     myMinSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
-    myRequireAppTheme = metadata != null && metadata.isAppThemeRequired();
   }
 
   private boolean isActivityTemplate() {
@@ -75,7 +72,7 @@ public class NewAndroidComponentAction extends AnAction {
     if (module == null) {
       return;
     }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
     if (moduleInfo == null) {
       return;
     }
@@ -86,12 +83,10 @@ public class NewAndroidComponentAction extends AnAction {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkVersion));
       presentation.setEnabled(false);
     }
-    else if (myRequireAppTheme) {
-      ThemeHelper themeHelper = new ThemeHelper(module);
-      if (themeHelper.getAppThemeName() == null) {
-        presentation.setText(AndroidBundle.message("android.wizard.action.no.app.theme", myTemplateName));
-        presentation.setEnabled(false);
-      }
+    else {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+      presentation.setEnabled(isProjectReady);
     }
   }
 
@@ -112,23 +107,24 @@ public class NewAndroidComponentAction extends AnAction {
     if (facet == null || facet.getAndroidModel() == null) {
       return;
     }
-    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
-
-    assert targetFile != null;
-    VirtualFile targetDirectory = targetFile;
-    if (!targetDirectory.isDirectory()) {
-      targetDirectory = targetFile.getParent();
+    VirtualFile targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    // If the user selected a simulated folder entry (eg "Manifests"), there will be no target directory
+    if (targetDirectory != null && !targetDirectory.isDirectory()) {
+      targetDirectory = targetDirectory.getParent();
       assert targetDirectory != null;
     }
+
+    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
     List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-    assert sourceSets.size() > 0;
+    assert !sourceSets.isEmpty();
 
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+    String initialPackageSuggestion = targetDirectory == null
+                                      ? AndroidPackageUtils.getPackageForApplication(facet)
+                                      : AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(

@@ -95,7 +95,7 @@ public final class AssistSidePanel extends JPanel {
 
   private static TutorialBundleData getBundle(@NotNull URL config) {
     InputStream inputStream = null;
-    TutorialBundleData bundle = null;
+    TutorialBundleData bundle;
     try {
       inputStream = config.openStream();
       bundle = DefaultTutorialBundle.parse(inputStream);

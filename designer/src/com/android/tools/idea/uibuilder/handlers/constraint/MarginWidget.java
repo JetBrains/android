@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.plaf.basic.BasicArrowButton;
@@ -34,24 +35,24 @@ import java.util.ArrayList;
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JPanel {
-  String[] str = new String[]{"0", "8", "16", "24", "32"};
-  boolean mInternal;
+  private String[] str = new String[]{"0", "8", "16", "24", "32"};
+  private boolean mInternal;
   @SuppressWarnings("UndesirableClassUsage")
-  JComboBox<String> combo = new JComboBox<>(str);
+  private JComboBox<String> combo = new JComboBox<>(str);
   private static final String COMBO = "combo";
   private static final String TEXT = "text";
+
   public enum Show {
     IN_WIDGET,
     OUT_WIDGET,
     OUT_PANEL
   }
 
-  ColorSet mColorSet ;
-  ArrayList<ActionListener> mCallbacks = new ArrayList<>();
+  private ColorSet mColorSet;
+  private ArrayList<ActionListener> mCallbacks = new ArrayList<>();
 
-  JLabel label = new JLabel("0");
-  CardLayout layout;
-  JButton button;
+  private JLabel label = new JLabel("0");
+  private CardLayout layout;
 
   @Override
   public void setToolTipText(String text) {
@@ -64,73 +65,97 @@ public class MarginWidget extends JPanel {
     }
     switch (show) {
       case IN_WIDGET:
-        layout.show(this, COMBO );
+        layout.show(this, COMBO);
         label.setText((String)combo.getSelectedItem());
         break;
       case OUT_WIDGET:
         if (!combo.isPopupVisible()) {
-          layout.show(this, TEXT );
+          layout.show(this, TEXT);
         }
         break;
       case OUT_PANEL:
-        layout.show(this, TEXT );
+        layout.show(this, TEXT);
         break;
     }
     label.setText((String)combo.getSelectedItem());
   }
 
-  public MarginWidget(int alignment, ColorSet colorSet) {
+  public MarginWidget(@NotNull ColorSet colorSet, int alignment, @NotNull String name) {
     super(new CardLayout());
     mColorSet = colorSet;
     layout = (CardLayout)getLayout();
-    combo.setEditable(true);
+
+    initLabel(alignment);
+    initComboBox(name);
+
+    setBackground(null);
+    setName(name);
     setOpaque(false);
     setPreferredSize(new Dimension(42, 23));
-    setBackground(null);
-    label.setBackground(null);
-    label.setOpaque(false);
-    label.setHorizontalAlignment(alignment);
-    combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
-    label.setForeground(mColorSet.getInspectorStrokeColor());
-    combo.setAlignmentX(LEFT_ALIGNMENT);
-    combo.addActionListener(e -> {
-      if (mInternal) {
-        return;
-      }
-      label.setText((String)combo.getSelectedItem());
-      for (ActionListener cb : mCallbacks) {
-        cb.actionPerformed(e);
-      }
-    });
 
     add(label, TEXT);
     add(combo, COMBO);
-    combo.setUI(ui);
+  }
+
+  private void initLabel(int alignment) {
+    label.setBackground(null);
+    label.setForeground(mColorSet.getInspectorStrokeColor());
+    label.setHorizontalAlignment(alignment);
+    label.setOpaque(false);
+  }
+
+  private void initComboBox(@NotNull String name) {
+    combo.setAlignmentX(LEFT_ALIGNMENT);
+    combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
+    combo.setEditable(true);
+
+    // TODO I don't think we need this
     combo.setEditor(new BasicComboBoxEditor() {
+      @NotNull
       @Override
       public Component getEditorComponent() {
         return super.getEditorComponent();
       }
     });
+
+    combo.setName(name + "ComboBox");
+
+    // noinspection GtkPreferredJComboBoxRenderer
+    combo.setRenderer(new DefaultListCellRenderer() {
+      @NotNull
+      @Override
+      public Component getListCellRendererComponent(@NotNull JList list,
+                                                    @NotNull Object value,
+                                                    int index,
+                                                    boolean selected,
+                                                    boolean focused) {
+        Component component = super.getListCellRendererComponent(list, value, index, selected, focused);
+        ((JComponent)component).setBorder(new LineBorder(mColorSet.getSubduedFrames(), 1));
+
+        return component;
+      }
+    });
+
+    combo.setUI(ui);
+
     combo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
       @Override
-      public void focusLost(FocusEvent e) {
+      public void focusLost(@NotNull FocusEvent event) {
         showUI(Show.OUT_PANEL);
       }
     });
 
-    //noinspection GtkPreferredJComboBoxRenderer
-    combo.setRenderer(new DefaultListCellRenderer() {
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        Component ret = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        ((JLabel)ret).setBorder(new LineBorder(mColorSet.getSubduedFrames(), 1));
-        return ret;
+    combo.addActionListener(event -> {
+      if (mInternal) {
+        return;
       }
+
+      label.setText((String)combo.getSelectedItem());
+      mCallbacks.forEach(listener -> listener.actionPerformed(event));
     });
   }
 
-  BasicComboBoxUI ui = new BasicComboBoxUI() {
+  private BasicComboBoxUI ui = new BasicComboBoxUI() {
 
     @Override
     protected JButton createArrowButton() {
@@ -138,8 +163,8 @@ public class MarginWidget extends JPanel {
       Color shadow = mColorSet.getInspectorStrokeColor();
       Color darkShadow = mColorSet.getInspectorStrokeColor();
       Color highlight = mColorSet.getSubduedFrames();
-      button = new BasicArrowButton(SwingConstants.SOUTH, background, shadow, darkShadow, highlight);
-      button.setForeground(Color.RED);
+      JButton button = new BasicArrowButton(SwingConstants.SOUTH, background, shadow, darkShadow, highlight);
+      button.setForeground(JBColor.RED);
       button.setBorder(new MatteBorder(0, 1, 0, 0, mColorSet.getInspectorStrokeColor()));
       return button;
     }
@@ -156,7 +181,8 @@ public class MarginWidget extends JPanel {
   public int getMargin() {
     try {
       return Integer.parseInt(label.getText());
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       return 0;
     }
   }
@@ -165,4 +191,3 @@ public class MarginWidget extends JPanel {
     mCallbacks.add(actionListener);
   }
 }
-
