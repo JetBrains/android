@@ -383,7 +383,7 @@ class NlComponentMixin(component: NlComponent)
     return String.format("%s (%s, %s) %s × %s", super.toString(), data.x, data.y, data.w, data.h)
   }
 
-  override fun getAttribute(namespace: String, attribute: String): String? {
+  override fun getAttribute(namespace: String?, attribute: String): String? {
     val styleAttributeValue = component.getAttribute(null, "style") ?: return null
 
     val resources = component.model.configuration.resourceResolver ?: return null

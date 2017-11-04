@@ -20,9 +20,9 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 
 /**
- * Dummy property with simple implementations for some methods.
+ * Basic property with simple implementations for some methods.
  */
-open class PropertyAdapter(val myName: String, val myComponents: List<NlComponent>) : NlProperty {
+open class SimpleProperty(val myName: String, val myComponents: List<NlComponent>) : NlProperty {
   override fun getNamespace() = null
 
   override fun getResolvedValue() = null

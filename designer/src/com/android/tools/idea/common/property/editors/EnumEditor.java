@@ -52,7 +52,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
 
-abstract public class EnumEditor extends NlBaseComponentEditor implements NlComponentEditor {
+abstract public class EnumEditor extends BaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
 
   private EnumSupport myEnumSupport;

@@ -51,7 +51,7 @@ val NlComponent.visibleDestinations: List<NlComponent>
     val result = arrayListOf<NlComponent>()
     var p: NlComponent? = this
     while (p != null) {
-      p.getChildren().filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
+      p.children.filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
       p = p.parent
     }
     // The above won't add the root itself
@@ -63,7 +63,7 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
   val schema = NavigationSchema.getOrCreateSchema(model.facet)
   var p = parent
   while (p != null) {
-    p.getChildren().firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }
+    p.children.firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }
     p = p.parent
   }
   // The above won't pick up the root
@@ -90,7 +90,7 @@ class NavComponentMixin(component: NlComponent)
     return result
   })
 
-  override fun getAttribute(namespace: String, attribute: String): String? {
+  override fun getAttribute(namespace: String?, attribute: String): String? {
     if (component.tagName == NavigationSchema.TAG_INCLUDE) {
       if (attribute == NavigationSchema.ATTR_GRAPH) {
         // To avoid recursion

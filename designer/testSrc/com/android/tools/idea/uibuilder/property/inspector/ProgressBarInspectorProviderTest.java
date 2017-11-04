@@ -21,7 +21,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +109,7 @@ public class ProgressBarInspectorProviderTest extends PropertyTestCase {
     assertThat(isEditorVisible(inspector, ATTR_VISIBILITY, TOOLS_URI)).isTrue();
     assertThat(isEditorVisible(inspector, ATTR_INDETERMINATE)).isTrue();
 
-    NlBaseComponentEditor indeterminateEditor = (NlBaseComponentEditor)getEditor(inspector, ATTR_INDETERMINATE, ANDROID_URI);
+    BaseComponentEditor indeterminateEditor = (BaseComponentEditor)getEditor(inspector, ATTR_INDETERMINATE, ANDROID_URI);
     indeterminateEditor.stopEditing("true");
 
     assertThat(isEditorVisible(inspector, ATTR_STYLE, "")).isTrue();

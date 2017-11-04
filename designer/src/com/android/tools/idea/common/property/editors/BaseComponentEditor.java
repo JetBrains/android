@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.property.editors;
 
-import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.openapi.util.SystemInfo;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 
-public abstract class NlBaseComponentEditor implements NlComponentEditor, BrowsePanel.Context {
+public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePanel.Context {
   protected static final JBColor DEFAULT_VALUE_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   protected static final JBColor CHANGED_VALUE_TEXT_COLOR = JBColor.BLUE;
 
@@ -53,7 +52,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   private JLabel myLabel;
 
-  public NlBaseComponentEditor(@NotNull NlEditingListener listener) {
+  public BaseComponentEditor(@NotNull NlEditingListener listener) {
     myListener = listener;
   }
 

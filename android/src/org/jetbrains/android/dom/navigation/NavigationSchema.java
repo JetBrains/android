@@ -96,6 +96,7 @@ public class NavigationSchema implements Disposable {
   private Map<PsiClass, String> myNavigatorClassToTag;
 
   private final ClassMaps myClassMaps;
+  public static final String ATTR_DEFAULT_VALUE = "defaultValue";
 
   public enum DestinationType {
     NAVIGATION,

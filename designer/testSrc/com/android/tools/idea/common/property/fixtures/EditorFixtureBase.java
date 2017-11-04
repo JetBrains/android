@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.fixtures;
+package com.android.tools.idea.common.property.fixtures;
 
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.util.ui.UIUtil;
@@ -37,7 +37,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public abstract class NlEditorFixtureBase {
+public abstract class EditorFixtureBase {
   private final NlEditingListener myListener;
 
   private Component myFocusedComponent;
@@ -45,7 +45,7 @@ public abstract class NlEditorFixtureBase {
   private int myStopEditingCallCount;
   private int myCancelEditingCallCount;
 
-  protected NlEditorFixtureBase(@NotNull NlBaseComponentEditor editor) {
+  protected EditorFixtureBase(@NotNull BaseComponentEditor editor) {
     myListener = editor.getEditingListener();
     KeyboardFocusManager focusManager = mock(KeyboardFocusManager.class);
     doAnswer(invocation -> getFocusedComponent()).when(focusManager).getFocusOwner();
@@ -109,12 +109,12 @@ public abstract class NlEditorFixtureBase {
     return list;
   }
 
-  public NlEditorFixtureBase verifyStopEditingCalled(@NotNull NlBaseComponentEditor componentEditor) {
+  public EditorFixtureBase verifyStopEditingCalled(@NotNull BaseComponentEditor componentEditor) {
     verify(myListener, times(++myStopEditingCallCount)).stopEditing(eq(componentEditor), any());
     return this;
   }
 
-  public NlEditorFixtureBase verifyCancelEditingCalled(@NotNull NlBaseComponentEditor componentEditor) {
+  public EditorFixtureBase verifyCancelEditingCalled(@NotNull BaseComponentEditor componentEditor) {
     verify(myListener, times(++myCancelEditingCallCount)).cancelEditing(eq(componentEditor));
     return this;
   }

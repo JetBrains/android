@@ -20,6 +20,8 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.naveditor.property.*
 import com.intellij.openapi.Disposable
+import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.navigation.ArgumentElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -40,20 +42,18 @@ class NavInspectorPanel(parentDisposable: Disposable) : InspectorPanel<NavProper
 
     val schema = NavigationSchema.getOrCreateSchema(components[0].model.facet)
 
-    val actionContainingComponents =
-        components.filter { schema.getDestinationSubtags(it.tagName).containsKey(NavActionElement::class.java) }
-    if (!actionContainingComponents.isEmpty()) {
-      val actionsProperty = NavActionsProperty(actionContainingComponents)
-      propertiesByName.put(actionsProperty.name, actionsProperty)
-    }
+    addProperties(components, schema, propertiesByName, NavActionElement::class.java, ::NavActionsProperty)
+    addProperties(components, schema, propertiesByName, DeeplinkElement::class.java, ::NavDeeplinkProperty)
+    addProperties(components, schema, propertiesByName, ArgumentElement::class.java, { c -> NavArgumentsProperty(c, propertiesManager) } )
+  }
 
-    val deeplinkContainingComponents =
-        components.filter { schema.getDestinationSubtags(it.tagName).containsKey(DeeplinkElement::class.java) }
-    if (!deeplinkContainingComponents.isEmpty()) {
-      val deeplinkProperty = NavDeeplinkProperty(deeplinkContainingComponents)
-      propertiesByName.put(deeplinkProperty.name, deeplinkProperty)
+  private fun addProperties(components: List<NlComponent>, schema: NavigationSchema, propertiesByName: MutableMap<String, NlProperty>,
+                            elementClass: Class<out AndroidDomElement>, propertyConstructor: (List<NlComponent>) -> NlProperty) {
+    val relevantComponents =
+        components.filter { schema.getDestinationSubtags(it.tagName).containsKey(elementClass) }
+    if (!relevantComponents.isEmpty()) {
+      val property = propertyConstructor(relevantComponents)
+      propertiesByName.put(property.name, property)
     }
-
-    // TODO: arguments
   }
 }
