@@ -16,8 +16,6 @@
 
 package trebuchet.io
 
-import platform.*
-
 class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
     init {
         if (maxLineLength > stream.keepLoadedSize) {
@@ -26,7 +24,7 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
         }
     }
 
-    val tmpBuffer = DataBufferType(maxLineLength)
+    val tmpBuffer = ByteArray(maxLineLength)
     val tmpBufferSlice = tmpBuffer.asSlice()
     val tmpSlice = DataSlice()
 
@@ -64,6 +62,7 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
                         lineEndIndexInclusive - window.globalStartIndex + 1, tmpSlice))
             } else {
                 stream.copyTo(tmpBuffer, lineStartIndex, lineEndIndexInclusive)
+                tmpBufferSlice.set(tmpBuffer, 0, lineEndIndexInclusive - lineStartIndex + 1)
                 lineCallback(tmpBufferSlice)
             }
             lineStartIndex = nextStart

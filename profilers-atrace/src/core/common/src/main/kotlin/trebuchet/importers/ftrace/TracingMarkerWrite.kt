@@ -42,7 +42,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
 
     fun BufferReader.handleBegin(data: ImportData) {
         // Begin format: B|<tgid>|<title>
-        skip(2)
+        skipCount(2)
         data.line.tgid = readInt()
         skip()
         val thread = data.importer.threadFor(data.line)
@@ -61,7 +61,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
 
     fun BufferReader.handleCounter(data: ImportData) {
         // Counter format: C|<tgid>|<name>|<value>
-        skip(2)
+        skipCount(2)
         val tgid = readInt()
         skip()
         val name = stringTo { skipUntil { it == '|'.toByte() } }

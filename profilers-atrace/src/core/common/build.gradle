@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-apply plugin: 'kotlin-platform-js'
+apply plugin: 'kotlin-platform-jvm'
 
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+repositories {
+    mavenCentral()
+    jcenter()
 }
 
-compileKotlin2Js {
-    kotlinOptions.metaInfo = true
-    kotlinOptions.sourceMap = true
-    kotlinOptions.moduleKind = 'commonjs'
-    kotlinOptions.main = "call"
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation project(":core:model")
 }

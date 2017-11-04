@@ -39,6 +39,7 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
                 }
             }
         }
+        processBuilder.sortBy { it.id }
         processes = processBuilder
         this.beginTimestamp = minOf(beginTimestamp, endTimestamp)
         this.endTimestamp = endTimestamp

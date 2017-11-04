@@ -16,8 +16,6 @@
 
 package trebuchet.task
 
-import platform.DataBufferType
-import platform.toString
 import trebuchet.extractors.ExtractorRegistry
 import trebuchet.importers.ImportFeedback
 import trebuchet.importers.ImporterRegistry
@@ -25,17 +23,23 @@ import trebuchet.io.BufferProducer
 import trebuchet.io.StreamingReader
 import trebuchet.model.Model
 import trebuchet.model.fragments.ModelFragment
+import kotlin.system.measureTimeMillis
 
 class ImportTask(private val importFeedback: ImportFeedback) {
     private val fragments = mutableListOf<ModelFragment>()
 
     fun importBuffer(source: BufferProducer): Model {
-        return import(source);
+        return import(source)
     }
 
     fun import(source: BufferProducer): Model {
-        extractOrImport(source)
-        return finish()
+        var model: Model? = null
+        val duration = measureTimeMillis {
+            extractOrImport(source)
+            model = finish()
+        }
+        println("Took ${duration}ms to import")
+        return model!!
     }
 
     private fun extractOrImport(stream: BufferProducer) {

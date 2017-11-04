@@ -27,8 +27,6 @@ import java.util.Queue;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-import static platform.SystemKt.emptyDataBuffer;
-
 /**
  * This class takes concatenated compressed atrace files and will on the fly decompress them one line at a time.
  * As lines are requested from nextLine this class will read in a chunk of the compressed atrace file decompress it

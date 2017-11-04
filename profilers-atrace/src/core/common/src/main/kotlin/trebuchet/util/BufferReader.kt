@@ -18,20 +18,15 @@
 
 package trebuchet.util
 
-import platform.*
 import trebuchet.io.DataSlice
+import java.util.regex.Matcher
 
 inline fun Byte.isDigit() = this >= '0'.toByte() && this <= '9'.toByte()
 
-open class BufferReaderState(var buffer: DataBufferType, var index: Int, var endIndexExclusive: Int) {
+open class BufferReaderState(var buffer: ByteArray, var index: Int, var endIndexExclusive: Int) {
     constructor() : this(DataSlice.EmptyBuffer, 0, 0)
 
-    inline fun peek(): Byte {
-        if (index >= endIndexExclusive) {
-            throw IndexOutOfBoundsException()
-        }
-        return buffer[index]
-    }
+    inline fun peek() = buffer[index]
 
     inline fun isDigit() = buffer[index].isDigit()
 
@@ -39,12 +34,16 @@ open class BufferReaderState(var buffer: DataBufferType, var index: Int, var end
         index++
     }
 
-    inline fun skip(count: Int) {
+    inline fun skipCount(count: Int) {
         index += count
     }
 
-    inline fun skip(char: Char) {
-        while (index < endIndexExclusive && buffer[index] == char.toByte()) { index++ }
+    inline fun skipChar(char: Byte) {
+        while (index < endIndexExclusive && buffer[index] == char) { index++ }
+    }
+
+    inline fun skipSingle(char: Byte) {
+        if (peek() == char) skip()
     }
 
     inline fun skipUntil(cb: (Byte) -> Boolean) {
@@ -57,6 +56,8 @@ open class BufferReaderState(var buffer: DataBufferType, var index: Int, var end
         val foundAt = search.find(buffer, index, endIndexExclusive)
         index = if (foundAt != -1) foundAt else endIndexExclusive
     }
+
+    inline fun readByte() = buffer[index++]
 }
 
 class PreviewReader : BufferReaderState() {
@@ -70,6 +71,30 @@ class PreviewReader : BufferReaderState() {
     }
 }
 
+class MatchResult(val reader: BufferReader) {
+    var matcher: Matcher? = null
+    var startIndex: Int = 0
+
+    fun int(group: Int): Int {
+        reader.index = startIndex + matcher!!.start(group)
+        return reader.readInt()
+    }
+
+    fun string(group: Int): String {
+        reader.index = startIndex + matcher!!.start(group)
+        val endAt = startIndex + matcher!!.end(group)
+        return reader.stringTo { index = endAt }
+    }
+
+    fun <T> read(group: Int, cb: PreviewReader.() -> T): T {
+        val tempPreview = reader.tempPreview
+        tempPreview.buffer = reader.buffer
+        tempPreview.index = startIndex + matcher!!.start(group)
+        tempPreview.endIndexExclusive = startIndex + matcher!!.end(group)
+        return cb.invoke(tempPreview)
+    }
+}
+
 class BufferReader : BufferReaderState() {
     companion object {
         val PowerOf10s = intArrayOf(1, 10, 100, 1000, 10_000, 100_000, 1_000_000)
@@ -78,6 +103,21 @@ class BufferReader : BufferReaderState() {
     var stringCache: StringCache? = null
     val tempSlice = DataSlice()
     val tempPreview = PreviewReader()
+    val tempMatchResult = MatchResult(this)
+
+    val charWrapper = object : CharSequence {
+        override val length: Int
+            get() = endIndexExclusive - index
+
+        override fun get(index: Int): Char {
+            return buffer[this@BufferReader.index + index].toChar()
+        }
+
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+    }
 
     fun reset(slice: DataSlice, stringCache: StringCache?) {
         this.buffer = slice.buffer
@@ -112,7 +152,7 @@ class BufferReader : BufferReaderState() {
             return value
         }
         throw NumberFormatException(
-                "${buffer.toString(startIndex, index - startIndex)} is not an int")
+                "${String(buffer, startIndex, index - startIndex)} is not an int")
     }
 
     fun readDouble(): Double {
@@ -141,6 +181,18 @@ class BufferReader : BufferReaderState() {
         slice.set(buffer, index, tempPreview.index)
         index = tempPreview.index
         return slice
+    }
+
+    fun match(matcher: Matcher, result: MatchResult.() -> Unit) {
+        matcher.reset(charWrapper)
+        if (matcher.matches()) {
+            tempMatchResult.matcher = matcher
+            tempMatchResult.startIndex = index
+            result.invoke(tempMatchResult)
+            tempMatchResult.matcher = null
+        } else {
+            println("RE failed on '${stringTo { end() }}'")
+        }
     }
 }
 

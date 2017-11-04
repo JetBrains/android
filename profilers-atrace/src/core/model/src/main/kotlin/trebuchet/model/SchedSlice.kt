@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package platform
+package trebuchet.model
 
-enum class Platform {
-    Jvm,
-    JavaScript
-}
+import trebuchet.model.base.Slice
 
-object Build {
-    val Platform = platform.Platform.JavaScript
+interface SchedSlice : Slice {
+    val state: SchedulingState
 }

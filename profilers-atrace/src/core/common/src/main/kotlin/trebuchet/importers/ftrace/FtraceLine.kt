@@ -22,6 +22,9 @@ import trebuchet.model.InvalidId
 import trebuchet.util.BufferReader
 import trebuchet.util.StringCache
 
+@Suppress("unused")
+const val FtraceLineRE = """^ *(.{1,16})-(\d+) +(?:\( *([\d-]+)\) )?\[(\d+)] (?:[dX.]...)? *([\d.]*): ([^:]*): (.*)$"""
+
 class FtraceLine private constructor() {
     private var _task: String? = null
     private var _pid: Int = 0
@@ -66,14 +69,14 @@ class FtraceLine private constructor() {
         fun parseLine(line: DataSlice, callback: (FtraceLine) -> Unit) =
                 _reader.read(line, stringCache) {
             var tgid: Int = InvalidId
-            skip(' ')
+            skipChar(' '.toByte())
             val taskName = stringTo {
                 skipUntil { it == '-'.toByte() }
                 skipUntil { it == '('.toByte() || it == '['.toByte() }
                 rewindUntil { it == '-'.toByte() }
             }
             val pid = readInt()
-            skip(' ')
+            skipChar(' '.toByte())
             if (peek() == '('.toByte()) {
                 skip()
                 if (peek() != '-'.toByte()) {
@@ -82,15 +85,15 @@ class FtraceLine private constructor() {
                 skipUntil { it == ')'.toByte() }
             }
             val cpu = readInt()
-            skip(2)
+            skipCount(2)
             if (peek() == '.'.toByte() || peek() > '9'.toByte()) {
-                skip(5)
+                skipCount(5)
             }
-            skip(' ')
+            skipChar(' '.toByte())
             val timestamp = readDouble()
-            skip(1); skip(' ')
+            skipCount(1); skipChar(' '.toByte())
             val func = sliceTo(ftraceLine.function) { skipUntil { it == ':'.toByte() } }
-            skip(2)
+            skipCount(2)
             ftraceLine.set(if (taskName === NullTaskName) null else taskName, pid, tgid, cpu,
                     timestamp, func, _reader)
             callback(ftraceLine)

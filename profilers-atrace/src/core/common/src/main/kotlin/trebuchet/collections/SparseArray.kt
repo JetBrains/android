@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package platform.collections
-
-import platform.arraycopy
+package trebuchet.collections
 
 @Suppress("UNCHECKED_CAST", "unused")
 class SparseArray<E> constructor(initialCapacity: Int = 10) {
@@ -160,16 +158,16 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
                 val nkeys = IntArray(n)
                 val nvalues = arrayOfNulls<Any>(n)
 
-                arraycopy(mKeys, 0, nkeys, 0, mKeys.size)
-                arraycopy(mValues, 0, nvalues, 0, mValues.size)
+                System.arraycopy(mKeys, 0, nkeys, 0, mKeys.size)
+                System.arraycopy(mValues, 0, nvalues, 0, mValues.size)
 
                 mKeys = nkeys
                 mValues = nvalues
             }
 
             if (mSize - i != 0) {
-                arraycopy(mKeys, i, mKeys, i + 1, mSize - i)
-                arraycopy(mValues, i, mValues, i + 1, mSize - i)
+                System.arraycopy(mKeys, i, mKeys, i + 1, mSize - i)
+                System.arraycopy(mValues, i, mValues, i + 1, mSize - i)
             }
 
             mKeys[i] = key
@@ -302,8 +300,8 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
             val nkeys = IntArray(n)
             val nvalues = arrayOfNulls<Any>(n)
 
-            arraycopy(mKeys, 0, nkeys, 0, mKeys.size)
-            arraycopy(mValues, 0, nvalues, 0, mValues.size)
+            System.arraycopy(mKeys, 0, nkeys, 0, mKeys.size)
+            System.arraycopy(mValues, 0, nvalues, 0, mValues.size)
 
             mKeys = nkeys
             mValues = nvalues

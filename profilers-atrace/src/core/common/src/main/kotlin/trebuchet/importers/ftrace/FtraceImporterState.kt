@@ -16,7 +16,7 @@
 
 package trebuchet.importers.ftrace
 
-import platform.collections.SparseArray
+import trebuchet.collections.SparseArray
 import trebuchet.importers.ImportFeedback
 import trebuchet.model.InvalidId
 import trebuchet.model.fragments.ModelFragment
@@ -78,19 +78,21 @@ class FtraceImporterState(feedback: ImportFeedback) {
         })
     }
 
-    fun threadFor(line: FtraceLine): ThreadModelFragment {
-        var thread = pidMap[line.pid]
-        val processName = if (line.tgid == line.pid) line.task else null
+    fun threadFor(pid: Int, tgid: Int = InvalidId, task: String? = null): ThreadModelFragment {
+        var thread = pidMap[pid]
+        val processName = if (tgid == pid) task else null
         if (thread != null) {
-            thread.hint(name = line.task, tgid = line.tgid, processName = processName)
+            thread.hint(name = task, tgid = tgid, processName = processName)
             return thread
         }
         val process =
-                if (line.hasTgid) processFor(line.tgid)
+                if (tgid != InvalidId) processFor(tgid)
                 else createUnknownProcess()
-        thread = process.threadFor(line.pid, line.task)
+        thread = process.threadFor(pid, task)
         thread.hint(processName = processName)
-        pidMap.put(line.pid, thread)
+        pidMap.put(pid, thread)
         return thread
     }
+
+    fun threadFor(line: FtraceLine) = threadFor(line.pid, line.tgid, line.task)
 }
