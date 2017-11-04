@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.hchart
 
+import com.android.tools.adtui.model.DefaultHNode
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeUi
 import org.junit.Before
@@ -28,6 +29,12 @@ class HTreeChartTest {
   private lateinit var myUi: FakeUi
   private lateinit var myChart: HTreeChart<String>
   private lateinit var myRange: Range
+  // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
+  // towards north and south.
+  private val myContentHeight = 75
+  private val myViewHeight = 50
+  // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
+  private val myInitialYPosition = 0
 
   @Before
   fun setUp() {
@@ -37,9 +44,27 @@ class HTreeChartTest {
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
     myChart = HTreeChart<String>(myRange, orientation)
-    myChart.size = Dimension(100, 100)
+    myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
+    // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
+    myChart.setHTree(HNodeTree(0,5,2))
+    assertThat(myChart.maximumHeight).isEqualTo(myContentHeight)
+  }
+
+  /**
+   * Returns the root of a complete tree of DefaultHNode<String>. The root is at the given depth,
+   * and the subtree has the given height and branch factor.
+   */
+  private fun HNodeTree(depth: Int, height: Int, branch: Int): DefaultHNode<String> {
+    val subroot = DefaultHNode<String>()
+    subroot.depth = depth
+    if (height > 1) {
+      for (i in 1..branch) {
+        subroot.addChild(HNodeTree(depth + 1, height - 1, branch))
+      }
+    }
+    return subroot
   }
 
   @Test
@@ -77,6 +102,18 @@ class HTreeChartTest {
   }
 
   @Test
+  fun testMouseOverDragToSouth() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.press(5, 5)
+    myUi.mouse.dragTo(5, 45)
+
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+  }
+
+  @Test
   fun testMouseDragToNorth() {
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
@@ -86,6 +123,33 @@ class HTreeChartTest {
 
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(6.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(6.0)
+  }
+
+  @Test
+  fun testMouseOverDragToNorth() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.press(5, 45)
+    myUi.mouse.dragTo(5, 5)
+
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myInitialYPosition)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myInitialYPosition)
+  }
+
+  @Test
+  fun testMouseDragSouthWhenChartTallerThanTree() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    // Resize the chart so the view's height is larger than the content's.
+    // The drag should be no-op.
+    myChart.size = Dimension(100, myContentHeight + 20)
+    myUi.mouse.press(5, 5)
+    myUi.mouse.dragTo(5, 7)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
   }
 
   @Test
@@ -105,7 +169,7 @@ class HTreeChartTest {
   }
 
   @Test
-  fun testTopDownChartDragToEast() {
+  fun testTopDownChartDragToSouth() {
     setUp(HTreeChart.Orientation.TOP_DOWN)
 
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
@@ -117,7 +181,19 @@ class HTreeChartTest {
   }
 
   @Test
-  fun testTopDownChartDragToWest() {
+  fun testTopDownChartOverDragToSouth() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+    myUi.mouse.press(5, 5)
+    myUi.mouse.dragTo(5, 40)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myInitialYPosition)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myInitialYPosition)
+  }
+
+  @Test
+  fun testTopDownChartDragToNorth() {
     setUp(HTreeChart.Orientation.TOP_DOWN)
 
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
@@ -126,6 +202,18 @@ class HTreeChartTest {
     myUi.mouse.dragTo(5, 0)
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(15.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(15.0)
+  }
+
+  @Test
+  fun testTopDownChartOverDragToNorth() {
+    setUp(HTreeChart.Orientation.TOP_DOWN)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+    myUi.mouse.press(5, 45)
+    myUi.mouse.dragTo(5, 0)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
   }
 
   companion object {
