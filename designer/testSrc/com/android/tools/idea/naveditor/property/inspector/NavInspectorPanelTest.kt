@@ -20,11 +20,12 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.*
 import com.android.tools.idea.naveditor.NavigationTestCase
 import com.android.tools.idea.naveditor.property.NavActionsProperty
+import com.android.tools.idea.naveditor.property.NavArgumentsProperty
+import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.collect.Table
-import com.intellij.testFramework.UsefulTestCase
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
@@ -40,11 +41,14 @@ class NavInspectorPanelTest : NavigationTestCase() {
     model = model("nav.xml",
         rootComponent("root").unboundedChildren(
             fragmentComponent("f1")
-                .unboundedChildren(actionComponent("a1").withDestinationAttribute("f2"),
+                .unboundedChildren(
+                    actionComponent("a1").withDestinationAttribute("f2"),
                     actionComponent("a2").withDestinationAttribute("f3")),
             fragmentComponent("f2"),
             fragmentComponent("f3"),
-            activityComponent("activity")))
+            activityComponent("activity"),
+            includeComponent("navigation"),
+            navigationComponent("subnav")))
         .build()
     panel = NavInspectorPanel(testRootDisposable)
     manager = spy(NavPropertiesManager(myFacet, model.surface))
@@ -53,35 +57,75 @@ class NavInspectorPanelTest : NavigationTestCase() {
     properties = NlProperties.getInstance().getProperties(myFacet, manager, model.components)
   }
 
-  fun testMultipleActions() {
-    panel.setComponent(listOf(model.find("f1")!!), properties, manager)
+  fun testMultipleFragments() {
+    panel.setComponent(listOf(model.find("f1")!!, model.find("f2")!!), properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
-    UsefulTestCase.assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+    // All the properties will be there, but the specific inspectors can decline to show if more than one is selected
+    assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+    assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
   }
 
-  fun testNoActions() {
+  fun testMultipleTypes() {
+    panel.setComponent(listOf(model.find("a1")!!, model.find("nav")!!, model.find("activity")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    // Relevant properties will be there, but the specific inspectors can decline to show if different types are selected
+    assertFalse(captor.value.containsKey("Actions"))
+    assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+  }
+
+  fun testInclude() {
+    panel.setComponent(listOf(model.find("nav")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    assertFalse(captor.value.containsKey("Actions"))
+    assertFalse(captor.value.containsKey("Deeplinks"))
+    assertFalse(captor.value.containsKey("Arguments"))
+  }
+
+  fun testNested() {
     panel.setComponent(listOf(model.find("f2")!!), properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
-    UsefulTestCase.assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+    assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+    assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
   }
 
-  fun testNoActionsInActivity() {
+  fun testActivity() {
     panel.setComponent(listOf(model.find("activity")!!), properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
+    assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
   }
 
-  fun testNoActionsInAction() {
+  fun testAction() {
     panel.setComponent(listOf(model.find("a2")!!), properties, manager)
     @Suppress("UNCHECKED_CAST")
     val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
+    assertFalse(captor.value.containsKey("Deeplinks"))
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
+  }
+
+  fun testFragment() {
+    panel.setComponent(listOf(model.find("f3")!!), properties, manager)
+    @Suppress("UNCHECKED_CAST")
+    val captor = ArgumentCaptor.forClass(Map::class.java) as ArgumentCaptor<Map<String, NlProperty>>
+    verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
+    assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
+    assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
   }
 }

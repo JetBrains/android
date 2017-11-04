@@ -51,9 +51,9 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
 
     val f1Only = listOf(model.find("f1")!!)
 
-    val dummyProperty = PropertyAdapter("foo", f1Only)
+    val dummyProperty = SimpleProperty("foo", f1Only)
     val typeProperty = NavComponentTypeProperty(f1Only)
-    val idProperty = PropertyAdapter(ATTR_ID, f1Only)
+    val idProperty = SimpleProperty(ATTR_ID, f1Only)
     // TODO: add more properties once they're fully supported
 
     val properties = listOf(typeProperty, idProperty, dummyProperty).associateBy { it.name }
@@ -70,10 +70,10 @@ class NavigationPropertiesInspectorProviderTest : NavigationTestCase() {
 
     val a1Only = listOf(model.find("a1")!!)
 
-    val dummyProperty = PropertyAdapter("foo", a1Only)
-    val typeProperty = PropertyAdapter(TYPE_EDITOR_PROPERTY_LABEL, a1Only)
-    val idProperty = PropertyAdapter(ATTR_ID, a1Only)
-    val destinationProperty = PropertyAdapter(NavigationSchema.ATTR_DESTINATION, a1Only)
+    val dummyProperty = SimpleProperty("foo", a1Only)
+    val typeProperty = SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, a1Only)
+    val idProperty = SimpleProperty(ATTR_ID, a1Only)
+    val destinationProperty = SimpleProperty(NavigationSchema.ATTR_DESTINATION, a1Only)
     // TODO: add more properties once they're fully supported
 
     val properties = listOf(typeProperty, idProperty, destinationProperty, dummyProperty).associateBy { it.name }

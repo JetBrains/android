@@ -362,7 +362,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @Nullable
-  public String resolveAttribute(@NotNull String namespace, @NotNull String attribute) {
+  public String resolveAttribute(@Nullable String namespace, @NotNull String attribute) {
     String value = getAttribute(namespace, attribute);
     if (value != null) {
       return value;
@@ -606,7 +606,7 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     @Nullable
-    public String getAttribute(@NotNull String namespace, @NotNull String attribute) {
+    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
       return null;
     }
 

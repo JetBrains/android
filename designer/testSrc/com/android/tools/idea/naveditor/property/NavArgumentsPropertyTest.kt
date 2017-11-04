@@ -13,52 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property.inspector
+package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.ATTR_URI
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavigationTestCase
-import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
+import org.mockito.Mockito.mock
 
-class NavDeeplinksPropertyTest : NavigationTestCase() {
+class NavArgumentsPropertyTest : NavigationTestCase() {
   private lateinit var model: SyncNlModel
-  private val uri1 = "http://www.example.com"
-  private val uri2 = "http://www.example2.com/and/then/some/long/stuff/after"
 
   override fun setUp() {
     super.setUp()
     model = model("nav.xml",
         NavModelBuilderUtil.rootComponent("root").unboundedChildren(
             NavModelBuilderUtil.fragmentComponent("f1")
-                .unboundedChildren(NavModelBuilderUtil.actionComponent("a1").withDestinationAttribute("f2")),
+                .unboundedChildren(
+                    NavModelBuilderUtil.argumentComponent("arg1").withDefaultValueAttribute("val1"),
+                    NavModelBuilderUtil.argumentComponent("arg2").withDefaultValueAttribute("val2")),
             NavModelBuilderUtil.fragmentComponent("f2")
-                .unboundedChildren(NavModelBuilderUtil.deepLinkComponent(uri1),
-                    NavModelBuilderUtil.deepLinkComponent(uri2)),
+                .unboundedChildren(NavModelBuilderUtil.argumentComponent("arg3")),
             NavModelBuilderUtil.fragmentComponent("f3")))
         .build()
   }
 
-  fun testMultipleLinks() {
-    val property = NavDeeplinkProperty(listOf(model.find("f2")!!))
-    assertSameElements(property.properties.keys, listOf(uri1, uri2))
-    assertSameElements(property.properties.values.map { it.name }, listOf(uri1, uri2))
+  fun testMultipleArguments() {
+    val property = NavArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
+    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2"),
+        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
-  fun testNoActions() {
-    val property = NavDeeplinkProperty(listOf(model.find("f1")!!))
+  fun testNoArguments() {
+    val property = NavDeeplinkProperty(listOf(model.find("f3")!!))
     assertTrue(property.properties.isEmpty())
   }
 
   fun testModify() {
-    val fragment = model.find("f1")!!
-    val property = NavDeeplinkProperty(listOf(fragment))
-    val deeplink = model.find { it.getAttribute(AUTO_URI, ATTR_URI) == uri1 }!!
-    fragment.addChild(deeplink)
+    val fragment = model.find("f3")!!
+    val property = NavArgumentsProperty(listOf(fragment), mock(NavPropertiesManager::class.java))
+    val argument = model.find { it.getAttribute(null, SdkConstants.ATTR_NAME) == "arg1" }!!
+    fragment.addChild(argument)
     property.refreshList()
-    assertEquals(deeplink, property.getChildProperty(uri1).components[0])
-    fragment.removeChild(deeplink)
+    assertEquals(argument, property.properties[0].components[0])
+    fragment.removeChild(argument)
     property.refreshList()
     assertTrue(property.properties.isEmpty())
   }

@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
-import com.android.tools.idea.naveditor.property.inspector.PropertyAdapter
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.`when`
@@ -34,14 +34,14 @@ class NavPropertyEditorsTest : AndroidTestCase() {
     `when`(component.model).thenReturn(model)
 
     val navPropertyEditors = NavPropertyEditors.Factory.getInstance(project)
-    var editor = navPropertyEditors.create(PropertyAdapter(TYPE_EDITOR_PROPERTY_LABEL, listOf(component)))
+    var editor = navPropertyEditors.create(SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, listOf(component)))
     assertInstanceOf(editor, NonEditableEditor::class.java)
 
-    editor = navPropertyEditors.create(PropertyAdapter(NavigationSchema.ATTR_DESTINATION, listOf(component)))
+    editor = navPropertyEditors.create(SimpleProperty(NavigationSchema.ATTR_DESTINATION, listOf(component)))
     assertInstanceOf(editor, VisibleDestinationsEditor::class.java)
 
     // Try something else just to make sure it doesn't blow up
-    editor = navPropertyEditors.create(PropertyAdapter("foo", listOf(component)))
+    editor = navPropertyEditors.create(SimpleProperty("foo", listOf(component)))
     assertNotNull(editor)
   }
 }

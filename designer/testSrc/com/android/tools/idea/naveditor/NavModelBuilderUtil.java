@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -34,8 +35,10 @@ import java.awt.*;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION;
-import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
+import static com.android.SdkConstants.ATTR_GRAPH;
+import static com.android.SdkConstants.TAG_ACTION;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -127,6 +130,11 @@ public class NavModelBuilderUtil {
     return descriptor;
   }
 
+  @NotNull
+  public static ArgumentComponentDescriptor argumentComponent(@NotNull String name) {
+    return new ArgumentComponentDescriptor(name);
+  }
+
   public static class NavigationComponentDescriptor extends ComponentDescriptor {
     public NavigationComponentDescriptor() {
       super(TAG_NAVIGATION);
@@ -171,13 +179,13 @@ public class NavModelBuilderUtil {
 
   public static class ActivityComponentDescriptor extends ComponentDescriptor {
     public ActivityComponentDescriptor() {
-      super("activity");
+      super(TAG_ACTIVITY);
     }
   }
 
   public static class IncludeComponentDescriptor extends ComponentDescriptor {
     public IncludeComponentDescriptor() {
-      super("include");
+      super(TAG_INCLUDE);
     }
   }
 
@@ -189,6 +197,18 @@ public class NavModelBuilderUtil {
     @NotNull
     public DeepLinkComponentDescriptor withUriAttribute(@NotNull String uri) {
       withAttribute(AUTO_URI, "uri", uri);
+      return this;
+    }
+  }
+
+  public static class ArgumentComponentDescriptor extends ComponentDescriptor {
+    public ArgumentComponentDescriptor(@NotNull String name) {
+      super(TAG_ARGUMENT);
+      withAttribute(SdkConstants.ATTR_NAME, name);
+    }
+
+    public ArgumentComponentDescriptor withDefaultValueAttribute(@NotNull String defaultValue) {
+      withAttribute(NavigationSchema.ATTR_DEFAULT_VALUE, defaultValue);
       return this;
     }
   }

@@ -20,7 +20,7 @@ import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.common.property.editors.NlBaseComponentEditor;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
@@ -156,8 +156,8 @@ public class TextInspectorProviderTest extends PropertyTestCase {
       .findFirst();
     assertThat(textAppearanceEditor.isPresent()).isTrue();
     assert textAppearanceEditor.isPresent();
-    assertThat(textAppearanceEditor.get()).isInstanceOf(NlBaseComponentEditor.class);
-    NlBaseComponentEditor editor = (NlBaseComponentEditor)textAppearanceEditor.get();
+    assertThat(textAppearanceEditor.get()).isInstanceOf(BaseComponentEditor.class);
+    BaseComponentEditor editor = (BaseComponentEditor)textAppearanceEditor.get();
     editor.stopEditing("Material.Display1");
     UIUtil.dispatchAllInvocationEvents();
 

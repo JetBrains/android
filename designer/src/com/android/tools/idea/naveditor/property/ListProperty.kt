@@ -17,19 +17,12 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
-import com.android.tools.idea.naveditor.property.inspector.PropertyAdapter
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
-abstract class ListProperty(name: String, components: List<NlComponent>) : PropertyAdapter(name, components) {
-  val properties: MutableMap<String, ListPropertyItem> = mutableMapOf()
+abstract class ListProperty(name: String, components: List<NlComponent>) : SimpleProperty(name, components) {
+  val properties: MutableMap<String, NlProperty> = mutableMapOf()
 
   abstract fun refreshList()
 
   override fun getChildProperty(name: String): NlProperty = properties[name]!!
-
-  /**
-   * Property representing a single list item
-   */
-  class ListPropertyItem(name: String, components : List<NlComponent>) : PropertyAdapter(name, components) {
-    // Nothing?
-  }
 }
