@@ -17,6 +17,7 @@
 package trebuchet.model.fragments
 
 import trebuchet.model.InvalidId
+import trebuchet.model.SchedSlice
 import trebuchet.model.base.SliceGroup
 
 class ThreadModelFragment(var id: Int, var process: ProcessModelFragment, var name: String? = null) {
@@ -35,5 +36,10 @@ class ThreadModelFragment(var id: Int, var process: ProcessModelFragment, var na
             throw IllegalStateException("SliceBuilder has open slices, not finished")
         }
         return slicesBuilder.slices
+    }
+
+    val schedSlices: List<SchedSlice> get() {
+        // TODO: Close open slices
+        return schedulingStateBuilder.slices
     }
 }

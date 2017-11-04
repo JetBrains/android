@@ -16,7 +16,6 @@
 
 package trebuchet.util
 
-import platform.*
 import trebuchet.io.GenericByteBuffer
 import trebuchet.io.StreamingReader
 
@@ -149,7 +148,7 @@ class StringSearch(val lookFor: String) {
         return index
     }
 
-    fun find(buffer: DataBufferType, startIndex: Int = 0, endIndex: Int = buffer.size): Int {
+    fun find(buffer: ByteArray, startIndex: Int = 0, endIndex: Int = buffer.size): Int {
         var index = startIndex + lookFor.length - 1
         while (index < endIndex) {
             var lookForIndex = lookFor.length - 1

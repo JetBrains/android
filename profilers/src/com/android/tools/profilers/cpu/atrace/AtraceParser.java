@@ -27,7 +27,6 @@ import trebuchet.util.PrintlnImportFeedback;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.DataFormatException;
 
 /**
  * AtraceParser is a minimal implementation parsing the atrace file.

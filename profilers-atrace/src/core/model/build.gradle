@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-package platform.collections
+apply plugin: 'kotlin-platform-jvm'
 
-fun <T> SparseArray(capacity: Int): MutableMap<Int, T> = mutableMapOf()
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+}
