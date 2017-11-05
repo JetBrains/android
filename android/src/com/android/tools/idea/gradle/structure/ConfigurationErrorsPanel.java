@@ -433,9 +433,6 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
       myText.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       myFakeTextPane.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
       myText.setOpaque(false);
-      if (UIUtil.isUnderNimbusLookAndFeel()) {
-        myText.setBackground(UIUtil.TRANSPARENT_COLOR);
-      }
 
       myText.setEditable(false);
       myFakeTextPane.setEditable(false);
