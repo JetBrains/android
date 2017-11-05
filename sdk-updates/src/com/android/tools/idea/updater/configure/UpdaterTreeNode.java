@@ -171,9 +171,6 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
         final Color background = selected ? UIUtil.getTreeSelectionBackground() : UIUtil.getTreeTextBackground();
         UIUtil.changeBackGround(this, background);
       }
-      else if (UIUtil.isUnderNimbusLookAndFeel()) {
-        UIUtil.changeBackGround(this, UIUtil.TRANSPARENT_COLOR);
-      }
       node.customizeRenderer(this, tree, selected, expanded, leaf, row, hasFocus);
       revalidate();
 
