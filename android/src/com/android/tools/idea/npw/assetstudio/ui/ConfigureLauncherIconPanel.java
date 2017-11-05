@@ -551,68 +551,42 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     // when the "output icon type" changes in our parent component.
     // For example, we only want to validate the API level (see below) if the user is trying
     // to create an adaptive icon (from this component).
-    VisibleProperty isActive = new VisibleProperty(getRootComponent());
+    VisibleProperty isActive = new VisibleProperty(this);
 
-    // Validate the API level when our panel is active
-    Expression<AndroidVersion> buildSdkVersion = new Expression<AndroidVersion>(isActive) {
-      @NotNull
-      @Override
-      public AndroidVersion get() {
-        return myBuildSdkVersion;
-      }
-    };
-    myValidatorPanel.registerValidator(buildSdkVersion, buildSdk -> {
-      if (isActive.get() && buildSdk.getFeatureLevel() < 26) {
-        return new Validator.Result(Validator.Severity.ERROR, "Project must be built with SDK 26 or later to use adaptive icons");
-      }
-      else {
-        return Validator.Result.OK;
-      }
-    });
+    // Validate the API level when the panel is active.
+    myValidatorPanel.registerTest(BooleanExpression.create(() -> !isActive.get() || myBuildSdkVersion.getFeatureLevel() >= 26, isActive),
+                                  "Project must be built with SDK 26 or later to use adaptive icons");
 
-    // Validate foreground layer name when our panel is active
-    StringExpression foregroundName = new StringExpression(isActive, myForegroundLayerName) {
-      @NotNull
-      @Override
-      public String get() {
-        return myForegroundLayerName.get();
-      }
-    };
-    myValidatorPanel.registerValidator(foregroundName, name -> {
-      String trimmedName = name.trim();
-      if (isActive.get() && trimmedName.isEmpty()) {
-        return new Validator.Result(Validator.Severity.ERROR, "Foreground layer name must be set");
-      }
-      else {
-        return Validator.Result.OK;
-      }
-    });
-
-    // Validate background layer name when our panel is active
-    StringExpression backgroundName = new StringExpression(isActive, myBackgroundLayerName) {
-      @NotNull
-      @Override
-      public String get() {
-        return myBackgroundLayerName.get();
-      }
-    };
-    myValidatorPanel.registerValidator(backgroundName, name -> {
-      String trimmedName = name.trim();
-      if (isActive.get() && trimmedName.isEmpty()) {
-        return new Validator.Result(Validator.Severity.ERROR, "Background layer name must be set");
-      }
-      else {
-        return Validator.Result.OK;
-      }
-    });
+    // Validate foreground and background layer names when the panel is active.
+    myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myForegroundLayerName),
+                                  "Foreground layer name must be set");
+    myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myBackgroundLayerName),
+                                  "Background layer name must be set");
+    myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myForegroundLayerName),
+                                  "Foreground layer must have a name distinct from the icon name");
+    myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myBackgroundLayerName),
+                                  "Background layer must have a name distinct from the icon name");
+    myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
+                                  "Background and foreground layers must have distinct names");
 
     //TODO: Validate background layer drawable path
 
     //TODO: Validate foreground layer image path
   }
 
+  @NotNull
+  private static BooleanExpression nameIsNotEmptyExpression(@NotNull VisibleProperty isActive, @NotNull StringProperty name) {
+    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()), isActive, name);
+  }
+
+  @NotNull
+  private static BooleanExpression namesAreDistinctExpression(@NotNull VisibleProperty isActive,
+                                                              @NotNull StringProperty name1, @NotNull StringProperty name2) {
+    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.equalsTrimWhitespaces(name1.get(), name2.get()));
+  }
+
   /**
-   * Return an icon generator which will create Android icons using the panel's current settings.
+   * Returns an icon generator which will create Android icons using the panel's current settings.
    */
   @Override
   @NotNull
