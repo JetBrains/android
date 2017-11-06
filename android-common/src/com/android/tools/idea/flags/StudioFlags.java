@@ -162,11 +162,15 @@ public final class StudioFlags {
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
 
-  private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle/IDE");
+  private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
     GRADLE_IDE, "indexing.aware", "Execute gradle actions in indexing-aware mode",
     "Make Gradle actions and IDE indexing mutually exclusive to allow better utilisation of machine resources.",
     true);
+  public static final Flag<Boolean> NEW_SYNC_INFRA_ENABLED = Flag.create(
+    GRADLE_IDE, "new.sync.enabled", "Enable \"New Sync\" infrastructure",
+    "Turns on the new infrastructure for \"Gradle Sync\", resulting in faster Sync executions.",
+    false);
 
   private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
