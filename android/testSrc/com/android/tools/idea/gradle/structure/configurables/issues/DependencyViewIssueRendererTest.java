@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,6 +54,12 @@ public class DependencyViewIssueRendererTest {
           default:
             throw new AssertionError();
         }
+      }
+
+      @Nullable
+      @Override
+      public String getHyperlinkDestination() {
+        throw new UnsupportedOperationException();
       }
     };
   }

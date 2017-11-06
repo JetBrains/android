@@ -69,8 +69,14 @@ public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
 
   @NotNull
   private String getHtmlText() {
-    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
-    String href = QUICK_FIX_PATH_TYPE + path;
+    String href = getHyperlinkDestination();
     return String.format("<a href='%1$s'>%2$s</a>", href, myHrefText);
+  }
+
+  @Override
+  @NotNull
+  public String getHyperlinkDestination() {
+    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
+    return QUICK_FIX_PATH_TYPE + path;
   }
 }

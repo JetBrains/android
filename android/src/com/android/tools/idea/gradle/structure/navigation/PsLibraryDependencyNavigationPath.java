@@ -63,6 +63,13 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
 
   @NotNull
   private String getHtmlText() {
+    String href = getHyperlinkDestination();
+    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
+  }
+
+  @Override
+  @NotNull
+  public String getHyperlinkDestination() {
     Place place = new Place();
 
     ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
@@ -72,8 +79,7 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     putPath(place, target);
     target.putNavigationPath(place, myModuleName, myNavigationText);
 
-    String href = GO_TO_PATH_TYPE + serialize(place);
-    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
+    return GO_TO_PATH_TYPE + serialize(place);
   }
 
   @Override

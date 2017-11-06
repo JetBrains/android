@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class PsModulePath extends PsPath {
   @NotNull private final String myModuleName;
@@ -40,6 +41,12 @@ public final class PsModulePath extends PsPath {
       default:
         return "";
     }
+  }
+
+  @Nullable
+  @Override
+  public String getHyperlinkDestination() {
+    return null;
   }
 
   @Override
