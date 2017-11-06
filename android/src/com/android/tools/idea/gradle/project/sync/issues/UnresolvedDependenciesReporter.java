@@ -24,7 +24,6 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -208,17 +207,23 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     Project project = module.getProject();
     if (buildFile != null) {
       GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
-      if (!hasGoogleMavenRepository(moduleBuildModel.repositories())) {
-        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
+      if (hasGoogleMavenRepository(moduleBuildModel.repositories())) {
+        // Module already has Google repository, no need to add it
+        return;
       }
     }
+    GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
+    if (projectBuildModel != null) {
+      if (hasGoogleMavenRepository(projectBuildModel.repositories())) {
+        // Project already has Google repository, no need to to add it
+        return;
+      }
+      fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
+    }
     else {
-      GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
-      if (projectBuildModel != null) {
-        RepositoriesModel repositories = projectBuildModel.repositories();
-        if (!hasGoogleMavenRepository(repositories)) {
-          fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
-        }
+      // Cannot tell if project has Google repository, add to module build file if available
+      if (buildFile != null) {
+        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
       }
     }
   }
