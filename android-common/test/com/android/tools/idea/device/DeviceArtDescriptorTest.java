@@ -17,7 +17,6 @@ package com.android.tools.idea.device;
 
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.idea.device.DeviceArtDescriptor;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +25,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,10 +36,10 @@ public class DeviceArtDescriptorTest extends TestCase {
     WebpMetadata.ensureWebpRegistered();
   }
 
-  public void test1() throws IOException {
+  public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    assertEquals(22, specs.size());
+    assertEquals(24, specs.size());
 
     DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
     assertNotNull(nexus4);
@@ -104,7 +102,7 @@ public class DeviceArtDescriptorTest extends TestCase {
     }
   }
 
-  public void test2() throws FileNotFoundException {
+  public void testWearSpecs() {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
       if ("wear_round".equals(spec.getId())) {
