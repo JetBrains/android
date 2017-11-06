@@ -24,7 +24,7 @@ import java.util.Collection;
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class SingleModuleIssuesRenderer extends IssuesRenderer {
+public class SingleModuleIssuesRenderer extends DependencyViewIssuesRenderer {
   @Override
   @NotNull
   public String render(@NotNull Collection<PsIssue> issues) {

@@ -48,7 +48,7 @@ import static com.intellij.util.ui.UIUtil.getTreeFont;
 
 public class IssuesViewer {
   @NotNull private final PsContext myContext;
-  @NotNull private final IssuesRenderer myRenderer;
+  @NotNull private final DependencyViewIssuesRenderer myRenderer;
 
   private JBLabel myEmptyIssuesLabel;
 
@@ -65,7 +65,7 @@ public class IssuesViewer {
 
   private boolean myShowEmptyText;
 
-  public IssuesViewer(@NotNull PsContext context, @NotNull IssuesRenderer renderer) {
+  public IssuesViewer(@NotNull PsContext context, @NotNull DependencyViewIssuesRenderer renderer) {
     myContext = context;
     myRenderer = renderer;
   }
