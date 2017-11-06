@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,106 +37,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.io.File.separator;
 import static java.io.File.separatorChar;
+import static org.junit.Assert.*;
+
 
 /**
- * Base for unit tests which perform rendering; this test can generate configurations and perform
+ * Utilities for tests which perform rendering; these methods can generate configurations and perform
  * rendering, then check that the rendered result matches a known thumbnail (by a certain maximum
  * percentage difference). The test will generate the required thumbnail if it does not exist,
- * so to create a new render test just call {@link #checkRenderedImage(java.awt.image.BufferedImage, String)}
+ * so to create a new render test just call {@link RenderTestUtil#checkRenderedImage(BufferedImage, String)}
  * and run the test once; then verify that the thumbnail looks fine, and if so, check it in; the test
  * will now check that subsequent renders are similar.
  * <p>
  * The reason the test checks for similarity is that whenever rendering includes fonts, there are some
  * platform differences in text rendering etc which does not give us a pixel for pixel match.
  */
-public abstract class RenderTestBase extends AndroidTestCase {
-  protected static final String DEFAULT_DEVICE_ID = "Nexus 4";
+public class RenderTestUtil {
+  public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
-    RenderService.shutdownRenderExecutor(5);
-    RenderService.initializeRenderExecutor();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      RenderLogger.resetFidelityErrorsFilters();
-      waitForRenderTaskDisposeToFinish();
-    } finally {
-      super.tearDown();
-    }
-  }
-
-  protected RenderTask createRenderTask(VirtualFile file) throws Exception {
-    Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
-    return createRenderTask(file, configuration);
-  }
-
-  protected Configuration getConfiguration(VirtualFile file, String deviceId) {
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNotNull(facet);
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    assertNotNull(configurationManager);
-    Configuration configuration = configurationManager.getConfiguration(file);
-    configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
-
-    return configuration;
-  }
-
-  protected Configuration getConfiguration(VirtualFile file, String deviceId, String themeStyle) {
-    Configuration configuration = getConfiguration(file, deviceId);
-    configuration.setTheme(themeStyle);
-    return configuration;
-  }
-
-  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration, RenderLogger logger) throws IOException {
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNotNull(psiFile);
-    assertNotNull(facet);
-    RenderService renderService = RenderService.getInstance(facet);
-    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
-    assertNotNull(task);
-    task.disableSecurityManager();
-    return task;
-  }
-
-  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    return createRenderTask(file, configuration, RenderService.getInstance(facet).createLogger());
-  }
-
-    protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
-    // Next try a render
-    RenderResult result = Futures.getUnchecked(task.render());
-    RenderResult render = renderOnSeparateThread(task);
-    assertNotNull(render);
-
-    assertNotNull(result);
-    Result renderResult = result.getRenderResult();
-    assertEquals(String.format("Render failed with message: %s\n%s", renderResult.getErrorMessage(), renderResult.getException()),
-                 Result.Status.SUCCESS, result.getRenderResult().getStatus());
-    BufferedImage image = result.getRenderedImage().getCopy();
-    assertNotNull(image);
-    double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
-    if (UIUtil.isAppleRetina()) {
-      scale *= 2;
-      image = ImageUtils.convertToRetina(ImageUtils.scale(image, scale, scale));
-    }
-    else {
-      image = ImageUtils.scale(image, scale, scale);
-    }
-
-    image = ShadowPainter.createRectangularDropShadow(image);
-    checkRenderedImage(image, "render" + separator + "thumbnails" + separator + thumbnailPath.replace('/', separatorChar));
-  }
 
   @Nullable
   public static RenderResult renderOnSeparateThread(@NotNull final RenderTask task) {
@@ -161,7 +80,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
   }
 
   @NotNull
-  protected static Device findDeviceById(ConfigurationManager manager, String id) {
+  private static Device findDeviceById(ConfigurationManager manager, String id) {
     for (Device device : manager.getDevices()) {
       if (device.getId().equals(id)) {
         return device;
@@ -169,30 +88,6 @@ public abstract class RenderTestBase extends AndroidTestCase {
     }
     fail("Can't find device " + id);
     throw new IllegalStateException();
-  }
-
-  protected void checkRenderedImage(BufferedImage image, String relativePath) throws IOException {
-    relativePath = relativePath.replace('/', separatorChar);
-
-    final String testDataPath = getTestDataPath();
-    assert testDataPath != null : "test data path not specified";
-
-    File fromFile = new File(testDataPath + "/" + relativePath);
-    System.out.println("fromFile=" + fromFile);
-
-    if (fromFile.exists()) {
-      BufferedImage goldenImage = ImageIO.read(fromFile);
-      ImageDiffUtil.assertImageSimilar(relativePath, goldenImage, image, MAX_PERCENT_DIFFERENT);
-    } else {
-      File dir = fromFile.getParentFile();
-      assertNotNull(dir);
-      if (!dir.exists()) {
-        boolean ok = dir.mkdirs();
-        assertTrue(dir.getPath(), ok);
-      }
-      ImageIO.write(image, "PNG", fromFile);
-      fail("File did not exist, created " + fromFile);
-    }
   }
 
   /**
@@ -209,6 +104,102 @@ public abstract class RenderTestBase extends AndroidTestCase {
           e.printStackTrace();
         }
       });
+  }
 
+  @NotNull
+  protected static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file) {
+    Configuration configuration = getConfiguration(module, file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
+    return createRenderTask(module, file, configuration);
+  }
+
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file, @NotNull String deviceId) {
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
+    Configuration configuration = configurationManager.getConfiguration(file);
+    configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
+
+    return configuration;
+  }
+
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file) {
+    return getConfiguration(module, file, DEFAULT_DEVICE_ID);
+  }
+
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module,
+                                           @NotNull VirtualFile file,
+                                           @NotNull String deviceId,
+                                           @NotNull String themeStyle) {
+    Configuration configuration = getConfiguration(module, file, deviceId);
+    configuration.setTheme(themeStyle);
+    return configuration;
+  }
+
+  @NotNull
+  protected static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file, @NotNull Configuration configuration, @NotNull RenderLogger logger) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(file);
+    assertNotNull(psiFile);
+    assertNotNull(facet);
+    RenderService renderService = RenderService.getInstance(facet);
+    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
+    assertNotNull(task);
+    task.disableSecurityManager();
+    return task;
+  }
+
+  @NotNull
+  public static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return createRenderTask(module, file, configuration, RenderService.getInstance(facet).createLogger());
+  }
+
+  public static void checkRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {
+    // Next try a render
+    RenderResult result = Futures.getUnchecked(task.render());
+    RenderResult render = renderOnSeparateThread(task);
+    assertNotNull(render);
+
+    assertNotNull(result);
+    Result renderResult = result.getRenderResult();
+    assertEquals(String.format("Render failed with message: %s\n%s", renderResult.getErrorMessage(), renderResult.getException()),
+                 Result.Status.SUCCESS, result.getRenderResult().getStatus());
+    BufferedImage image = result.getRenderedImage().getCopy();
+    assertNotNull(image);
+    double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
+    if (UIUtil.isAppleRetina()) {
+      scale *= 2;
+      image = ImageUtils.convertToRetina(ImageUtils.scale(image, scale, scale));
+    }
+    else {
+      image = ImageUtils.scale(image, scale, scale);
+    }
+
+    image = ShadowPainter.createRectangularDropShadow(image);
+    checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
+  }
+
+  private static void checkRenderedImage(@NotNull BufferedImage image, @NotNull String fullPath) throws IOException {
+    fullPath = fullPath.replace('/', separatorChar);
+
+
+    File fromFile = new File(fullPath);
+    System.out.println("fromFile=" + fromFile);
+
+    if (fromFile.exists()) {
+      BufferedImage goldenImage = ImageIO.read(fromFile);
+      ImageDiffUtil.assertImageSimilar(fullPath, goldenImage, image, MAX_PERCENT_DIFFERENT);
+    }
+    else {
+      File dir = fromFile.getParentFile();
+      assertNotNull(dir);
+      if (!dir.exists()) {
+        boolean ok = dir.mkdirs();
+        assertTrue(dir.getPath(), ok);
+      }
+      ImageIO.write(image, "PNG", fromFile);
+      fail("File did not exist, created " + fromFile);
+    }
   }
 }

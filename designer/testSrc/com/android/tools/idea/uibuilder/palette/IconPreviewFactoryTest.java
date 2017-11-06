@@ -20,7 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.RenderTestBase;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
@@ -72,7 +72,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     try {
       RenderService.setForTesting(myFacet, null);
       Disposer.dispose(myFactory);
-      RenderTestBase.waitForRenderTaskDisposeToFinish();
+      RenderTestUtil.waitForRenderTaskDisposeToFinish();
     }
     finally {
       super.tearDown();

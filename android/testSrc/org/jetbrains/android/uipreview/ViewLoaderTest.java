@@ -20,15 +20,20 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTestBase;
+import com.android.tools.idea.rendering.RenderTest;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.junit.Rule;
 
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertThat;
 
-public class ViewLoaderTest extends RenderTestBase {
+public class ViewLoaderTest extends AndroidTestCase {
+  @Rule
+  public RenderTest myRenderTest = new RenderTest();
+
   @SuppressWarnings("ALL")
   public static class R {
     public static final class string {
