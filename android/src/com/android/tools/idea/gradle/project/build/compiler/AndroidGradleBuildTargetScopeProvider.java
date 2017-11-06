@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.build.compiler;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.compiler.impl.CompositeScope;
 import com.intellij.compiler.impl.ModuleCompileScope;
@@ -49,7 +49,7 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
                                                          @NotNull CompilerFilter filter,
                                                          @NotNull Project project,
                                                          boolean forceBuild) {
-    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return Collections.emptyList();
     }
     BuildSettings buildSettings = BuildSettings.getInstance(project);
