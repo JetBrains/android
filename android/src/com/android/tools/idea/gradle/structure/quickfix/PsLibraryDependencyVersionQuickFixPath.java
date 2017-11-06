@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.structure.configurables.issues.QuickFixLinkHandler.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX;
 

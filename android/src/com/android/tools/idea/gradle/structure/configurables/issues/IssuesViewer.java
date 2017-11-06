@@ -18,17 +18,13 @@ package com.android.tools.idea.gradle.structure.configurables.issues;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,11 +33,6 @@ import java.util.Map;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
-import static com.android.tools.idea.gradle.structure.model.PsPath.GO_TO_PATH_TYPE;
-import static com.android.tools.idea.gradle.structure.model.PsPath.QUICK_FIX_PATH_TYPE;
-import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
-import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.executeQuickFix;
-import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -184,7 +175,7 @@ public class IssuesViewer {
 
   private void createUIComponents() {
     Font font = getTreeFont();
-    NavigationHyperlinkListener hyperlinkListener = new NavigationHyperlinkListener();
+    NavigationHyperlinkListener hyperlinkListener = new NavigationHyperlinkListener(myContext);
 
     myIssuesPanel1 = new CollapsiblePanel();
     myIssuesView1 = new JEditorPane();
@@ -213,29 +204,6 @@ public class IssuesViewer {
     myIssuesView4.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView4, font);
     ((CollapsiblePanel)myIssuesPanel4).setContents(myIssuesView4);
-  }
-
-  private class NavigationHyperlinkListener extends HyperlinkAdapter {
-    @Override
-    protected void hyperlinkActivated(HyperlinkEvent e) {
-      String target = e.getDescription();
-
-      if (target.startsWith(GO_TO_PATH_TYPE)) {
-        String serializedPlace = target.substring(GO_TO_PATH_TYPE.length());
-        Place place = deserialize(serializedPlace);
-        ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
-        mainConfigurable.navigateTo(place, true);
-        return;
-      }
-      if (target.startsWith(QUICK_FIX_PATH_TYPE)) {
-        String quickFixPath = target.substring(QUICK_FIX_PATH_TYPE.length());
-        executeQuickFix(quickFixPath, myContext);
-        return;
-      }
-      if (target.startsWith("https://") || target.startsWith("http://")) {
-        browse(target);
-      }
-    }
   }
 
   public void setShowEmptyText(boolean showEmptyText) {

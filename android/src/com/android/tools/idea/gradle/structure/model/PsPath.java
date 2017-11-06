@@ -22,9 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
 
 public abstract class PsPath implements Comparable<PsPath> {
-  @NonNls public static final String GO_TO_PATH_TYPE = "psdGoTo://";
-  @NonNls public static final String QUICK_FIX_PATH_TYPE = "psdFix://";
-
   @NotNull
   public static final PsPath EMPTY_PATH = new PsPath() {
     @Override
