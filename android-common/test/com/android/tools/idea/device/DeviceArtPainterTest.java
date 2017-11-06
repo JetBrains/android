@@ -22,10 +22,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.idea.device.DeviceArtDescriptor;
-import com.android.tools.idea.device.DeviceArtPainter;
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +41,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import static com.android.tools.idea.device.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.device.DeviceArtPainter.FrameData;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * If adding a new device (new device art), run the tests to generate crop data and insert
@@ -96,8 +92,9 @@ public class DeviceArtPainterTest {
     }
   }
 
+  @SuppressWarnings("UseJBColor")
   @Test
-  public void testCroppedRendering() throws Exception {
+  public void testCroppedRendering() {
     File deviceArtPath = DeviceArtDescriptor.getBundledDescriptorsFolder();
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
 
@@ -145,7 +142,7 @@ public class DeviceArtPainterTest {
     return null;
   }
 
-  public void generateCropData() throws Exception {
+  private static void generateCropData() throws Exception {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     Device device = newDevice();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
@@ -170,12 +167,9 @@ public class DeviceArtPainterTest {
 
       BufferedImage effectsImage;
       Rectangle crop;
-      ImageUtils.CropFilter filter = new ImageUtils.CropFilter() {
-        @Override
-        public boolean crop(BufferedImage bufferedImage, int x, int y) {
-          int rgb = bufferedImage.getRGB(x, y);
-          return ((rgb & 0xFF000000) >>> 24) < 2;
-        }
+      ImageUtils.CropFilter filter = (bufferedImage, x, y) -> {
+        int rgb = bufferedImage.getRGB(x, y);
+        return ((rgb & 0xFF000000) >>> 24) < 2;
       };
 
       FrameData portraitData = data.getFrameData(ScreenOrientation.PORTRAIT, Integer.MAX_VALUE);
@@ -386,59 +380,27 @@ public class DeviceArtPainterTest {
         final Rectangle portraitCrop = spec.getCrop(ScreenOrientation.PORTRAIT);
         if (portraitCrop != null) {
           final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
-          layout = replace(layout, new String[]{"layouts {", "portrait {", "width "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              return portraitCrop.width;
-            }
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "width "}, input -> portraitCrop.width);
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "height "}, input -> portraitCrop.height);
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "x "}, input -> {
+            //noinspection ConstantConditions
+            return input - portraitCrop.x;
           });
-          layout = replace(layout, new String[]{"layouts {", "portrait {", "height "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              return portraitCrop.height;
-            }
-          });
-          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "x "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              //noinspection ConstantConditions
-              return input - portraitCrop.x;
-            }
-          });
-          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "y "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              //noinspection ConstantConditions
-              return input - portraitCrop.y;
-            }
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "y "}, input -> {
+            //noinspection ConstantConditions
+            return input - portraitCrop.y;
           });
 
           // landscape
-          layout = replace(layout, new String[]{"layouts {", "landscape {", "width "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              return landscapeCrop.width;
-            }
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "width "}, input -> landscapeCrop.width);
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "height "}, input -> landscapeCrop.height);
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "x "}, input -> {
+            //noinspection ConstantConditions
+            return input - landscapeCrop.x;
           });
-          layout = replace(layout, new String[]{"layouts {", "landscape {", "height "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              return landscapeCrop.height;
-            }
-          });
-          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "x "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              //noinspection ConstantConditions
-              return input - landscapeCrop.x;
-            }
-          });
-          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "y "}, new Function<Integer, Integer>() {
-            @Override
-            public Integer apply(@Nullable Integer input) {
-              //noinspection ConstantConditions
-              return input - landscapeCrop.y;
-            }
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "y "}, input -> {
+            //noinspection ConstantConditions
+            return input - landscapeCrop.y;
           });
 
           File outputLayoutFile = new File(destDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
@@ -447,9 +409,7 @@ public class DeviceArtPainterTest {
             assertTrue(mkdirs);
           }
           Files.write(layout, outputLayoutFile, Charsets.UTF_8);
-        } else {
-          // No crop data found; this device frame has already been cropped
-        }
+        } // else: No crop data found; this device frame has already been cropped
       }
 
       sb.append("  </device>\n\n");
