@@ -28,7 +28,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -42,7 +44,10 @@ import java.util.concurrent.*;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
-public class RenderTaskTest extends RenderTestBase {
+public class RenderTaskTest extends AndroidTestCase {
+  @Rule
+  public RenderTest myRenderTest = new RenderTest();
+
   @Language("XML")
   private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    android:layout_height=\"match_parent\"\n" +
@@ -67,11 +72,11 @@ public class RenderTaskTest extends RenderTestBase {
 
   public void testCrashReport() throws Exception {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
-    Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
     CrashReporter mockCrashReporter = mock(CrashReporter.class);
 
-    RenderTask task = createRenderTask(layoutFile, configuration, logger);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, layoutFile, configuration, logger);
     task.setCrashReporter(mockCrashReporter);
     // Make sure we throw an exception during the inflate call
     task.render((w, h) -> { throw new NullPointerException(); }).get();
@@ -87,10 +92,10 @@ public class RenderTaskTest extends RenderTestBase {
                                                           "    android:shape=\"rectangle\"\n" +
                                                           "    android:tint=\"#FF0000\">\n" +
                                                           "</shape>").getVirtualFile();
-    Configuration configuration = getConfiguration(drawableFile, DEFAULT_DEVICE_ID);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = createRenderTask(drawableFile, configuration, logger);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
     // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
     task.render().get();
     ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
@@ -140,10 +145,10 @@ public class RenderTaskTest extends RenderTestBase {
 
   public void testRender() throws Exception {
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
-    Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = createRenderTask(file, configuration, logger);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file, configuration, logger);
     checkSimpleLayoutResult(task.render());
     // Try a second render
     checkSimpleLayoutResult(task.render());
@@ -152,19 +157,19 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose().get(5, TimeUnit.SECONDS);
 
     // Now call inflate and check
-    task = createRenderTask(file, configuration, logger);
+    task = RenderTestUtil.createRenderTask(myModule, file, configuration, logger);
     checkSimpleLayoutResult(task.inflate());
     checkSimpleLayoutResult(task.render());
     task.dispose().get(5, TimeUnit.SECONDS);
 
     // Now call inflate and layout
-    task = createRenderTask(file, configuration, logger);
+    task = RenderTestUtil.createRenderTask(myModule, file, configuration, logger);
     checkSimpleLayoutResult(task.inflate());
     checkSimpleLayoutResult(task.layout());
     task.dispose().get(5, TimeUnit.SECONDS);
 
     // layout without inflate should return null
-    task = createRenderTask(file, configuration, logger);
+    task = RenderTestUtil.createRenderTask(myModule, file, configuration, logger);
     assertNull(Futures.getUnchecked((task.layout())));
     task.dispose().get(5, TimeUnit.SECONDS);
   }
@@ -172,11 +177,11 @@ public class RenderTaskTest extends RenderTestBase {
   public void testAsyncCallAndDispose()
     throws IOException, ExecutionException, InterruptedException, BrokenBarrierException, TimeoutException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
-    Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
 
     for (int i = 0; i < 5; i++) {
-      RenderTask task = createRenderTask(layoutFile, configuration, logger);
+      RenderTask task = RenderTestUtil.createRenderTask(myModule, layoutFile, configuration, logger);
       Semaphore semaphore = new Semaphore(0);
       task.runAsyncRenderAction(() -> {
         semaphore.acquire();
@@ -243,10 +248,10 @@ public class RenderTaskTest extends RenderTestBase {
                            "</vector>\n";
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
                                                           content).getVirtualFile();
-    Configuration configuration = getConfiguration(drawableFile, DEFAULT_DEVICE_ID);
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = createRenderTask(drawableFile, configuration, logger);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, drawableFile, configuration, logger);
     ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
                                                     "@drawable/test",
                                                     null);

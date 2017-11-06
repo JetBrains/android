@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.SceneMouseInteraction;
-import com.android.tools.idea.rendering.RenderTestBase;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -64,7 +64,7 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myModel);
-      RenderTestBase.waitForRenderTaskDisposeToFinish();
+      RenderTestUtil.waitForRenderTaskDisposeToFinish();
       myModel = null;
       myScene = null;
       mySceneManager = null;

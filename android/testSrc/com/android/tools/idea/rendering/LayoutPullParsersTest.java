@@ -27,7 +27,9 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -37,7 +39,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
-public class LayoutPullParsersTest extends RenderTestBase {
+public class LayoutPullParsersTest extends AndroidTestCase {
+  @Rule
+  public RenderTest myRenderTest = new RenderTest();
+
   private DownloadableFontCacheService myFontCacheServiceMock;
 
   @Override
@@ -63,7 +68,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
   public void testRenderDrawable() throws Exception {
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/drawable/progress_horizontal.xml");
     assertNotNull(file);
-    RenderTask task = createRenderTask(file);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -81,7 +86,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    checkRendering(task, "drawable/progress_horizontal.png");
+    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/drawable/progress_horizontal.png");
   }
 
   /**
@@ -99,7 +104,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
     VirtualFile redBox = myFixture.addFileToProject("res/drawable/box.xml", redBoxContent).getVirtualFile();
     VirtualFile blueBox = myFixture.addFileToProject("res/drawable-xxxhdpi/box.xml", blueBoxContent).getVirtualFile();
 
-    RenderTask task = createRenderTask(redBox);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, redBox);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -117,7 +122,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    task = createRenderTask(blueBox);
+    task = RenderTestUtil.createRenderTask(myModule, blueBox);
     assertNotNull(task);
     parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -139,7 +144,8 @@ public class LayoutPullParsersTest extends RenderTestBase {
 
 
   public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
-    RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
+    RenderTask task = RenderTestUtil
+      .createRenderTask(myModule, myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
 
     DomPullParser parser = (DomPullParser)LayoutPullParsers.create(task);
     assert parser != null;
@@ -160,7 +166,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
     // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
     assertNotNull(file);
-    RenderTask task = createRenderTask(file);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -188,7 +194,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
     VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     assertNotNull(file);
-    RenderTask task = createRenderTask(file);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -225,7 +231,7 @@ public class LayoutPullParsersTest extends RenderTestBase {
 
     assertEquals(expectedLayout, actualLayout);
 
-    checkRendering(task, "fonts/fontFamily.png");
+    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/fonts/fontFamily.png");
   }
 
   private static FontFamily createRobotoFontFamily() {
