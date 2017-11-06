@@ -743,22 +743,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // Simpleperf/Atrace profiling is not supported by devices older than O
     Profiler.Device selectedDevice = getStudioProfilers().getDevice();
     boolean isDeviceAtLeastO = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
-    boolean isSimplePerfEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled();
-    boolean isAtraceEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isAtraceEnabled();
-    Predicate<ProfilingConfiguration> filter = pref -> true;
-
-    // If neither simpleperf, or atrace is enabled, filter both out.
-    // else if only atrace is disabled filter that out.
-    // else if only simpleperf is disabled filter that out.
-    // else we don't filter anything use the default filer.
-    if (!isDeviceAtLeastO || (!isSimplePerfEnabled && !isAtraceEnabled)) {
-      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF
-                       && pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
-    } else if (!isAtraceEnabled) {
-      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.ATRACE;
-    } else if (!isSimplePerfEnabled) {
-      filter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLEPERF;
-    }
+    boolean isSimplePerfEnabled = isDeviceAtLeastO && getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+    boolean isAtraceEnabled = isDeviceAtLeastO && getStudioProfilers().getIdeServices().getFeatureConfig().isAtraceEnabled();
+    Predicate<ProfilingConfiguration> filter = pref -> {
+      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+        return isSimplePerfEnabled;
+      }
+      if (pref.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+        return isAtraceEnabled;
+      }
+      return true;
+    };
 
     savedConfigs = savedConfigs.stream().filter(filter).collect(Collectors.toList());
     defaultConfigs = defaultConfigs.stream().filter(filter).collect(Collectors.toList());
@@ -776,7 +771,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
     int suggestedConfigurationIndex = DUMMY_CONFIGURATIONS_ENTRY_COUNT + savedConfigs.size();
     // If there is a preference for a native configuration, we select simpleperf.
-    if (getStudioProfilers().getIdeServices().isNativeProfilingConfigurationPreferred() && isDeviceAtLeastO && isSimplePerfEnabled) {
+    if (getStudioProfilers().getIdeServices().isNativeProfilingConfigurationPreferred() && isSimplePerfEnabled) {
       suggestedConfigurationIndex +=
         Iterables.indexOf(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF);
     }
