@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.messages;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.issues.DependencyViewIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemon;
@@ -56,7 +56,7 @@ class MessagesForm implements Disposable {
       analyzeProject();
     }, this));
 
-    myIssuesViewer = new IssuesViewer(context, new IssuesRenderer());
+    myIssuesViewer = new IssuesViewer(context, new DependencyViewIssuesRenderer());
 
     JPanel issuesViewerPanel = myIssuesViewer.getPanel();
     JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);

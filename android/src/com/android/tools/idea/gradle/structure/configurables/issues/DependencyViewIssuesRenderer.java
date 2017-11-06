@@ -23,7 +23,7 @@ import java.util.Collection;
 
 import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 
-public class IssuesRenderer {
+public class DependencyViewIssuesRenderer {
   @NotNull
   public String render(@NotNull Collection<PsIssue> issues) {
     StringBuilder buffer = new StringBuilder();
