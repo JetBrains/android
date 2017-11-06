@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.issues;
 
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
-public class SingleModuleIssuesRenderer extends DependencyViewIssuesRenderer {
-  private final IssueRenderer myIssueRenderer = new DependencyViewIssueRenderer(false, true);
-
-  @Override
-  @NotNull
-  public String render(@NotNull Collection<PsIssue> issues) {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append("<html><body><ol>");
-
-    for (PsIssue issue : issues) {
-      buffer.append("<li>");
-      myIssueRenderer.renderIssue(buffer, issue);
-      buffer.append("</li>");
-    }
-
-    buffer.append("</ol></body></html>");
-    return buffer.toString();
-  }
+public interface IssueRenderer {
+  void renderIssue(StringBuilder buffer, PsIssue issue);
 }
