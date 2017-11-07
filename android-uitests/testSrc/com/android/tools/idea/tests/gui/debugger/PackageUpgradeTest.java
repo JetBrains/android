@@ -20,7 +20,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
@@ -99,13 +101,7 @@ public class PackageUpgradeTest extends DebuggerTestBase {
     ideSettingsDialogFixture.clickOK();
     try {
       // Complete unstallation process.
-      MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change").clickOk();
-      DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
-          .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-      JButtonFixture finish = downloadDialog.button(withText("Finish"));
-      Wait.seconds(120)
-          .expecting("Android source to be installed").until(finish::isEnabled);
-      finish.click();
+      finishInstallUninstallProcess(guiTest.robot());
     } catch (Exception e) {
       // The latest lldb is not installed, don't need to uninstall it. Just do nothing here.
     }
@@ -207,5 +203,4 @@ public class PackageUpgradeTest extends DebuggerTestBase {
         }
     });
   }
-
 }

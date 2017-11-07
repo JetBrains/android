@@ -17,7 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.intellij.ide.errorTreeView.*;
+import com.intellij.ide.errorTreeView.ErrorTreeElement;
+import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
+import com.intellij.ide.errorTreeView.ErrorViewStructure;
+import com.intellij.ide.errorTreeView.GroupingElement;
+import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.externalSystem.service.notification.NotificationMessageElement;
@@ -32,7 +36,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.JEditorPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.TreeCellEditor;
 import java.io.File;
@@ -165,6 +169,9 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     public abstract HyperlinkFixture findHyperlink(@NotNull String hyperlinkText);
 
     @NotNull
+    public abstract HyperlinkFixture findHyperlinkByContainedText(@NotNull String hyperlinkText);
+
+    @NotNull
     protected String extractUrl(@NotNull String wholeText, @NotNull String hyperlinkText) {
       String url = null;
       Matcher matcher = ANCHOR_TAG_PATTERN.matcher(wholeText);
@@ -174,6 +181,25 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         if (anchorText != null) {
           anchorText = anchorText.replaceAll("[\\s]+", " ");
           if (anchorText.equals(hyperlinkText)) {
+            url = matcher.group(1);
+            break;
+          }
+        }
+      }
+      assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
+      return url;
+    }
+
+    @NotNull
+    protected String extractUrlByContainedText(@NotNull String wholeText, @NotNull String hyperlinkText) {
+      String url = null;
+      Matcher matcher = ANCHOR_TAG_PATTERN.matcher(wholeText);
+      while (matcher.find()) {
+        String anchorText = matcher.group(2);
+        // Text may be spread across multiple lines. Put everything in one line.
+        if (anchorText != null) {
+          anchorText = anchorText.replaceAll("[\\s]+", " ");
+          if (anchorText.contains(hyperlinkText)) {
             url = matcher.group(1);
             break;
           }
@@ -217,6 +243,14 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     public HyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
       Pair<JEditorPane, String> cellEditorAndText = getCellEditorAndText();
       String url = extractUrl(cellEditorAndText.getSecond(), hyperlinkText);
+      return new SyncHyperlinkFixture(myRobot, url, cellEditorAndText.getFirst());
+    }
+
+    @Override
+    @NotNull
+    public HyperlinkFixture findHyperlinkByContainedText(@NotNull String hyperlinkText) {
+      Pair<JEditorPane, String> cellEditorAndText = getCellEditorAndText();
+      String url = extractUrlByContainedText(cellEditorAndText.getSecond(), hyperlinkText);
       return new SyncHyperlinkFixture(myRobot, url, cellEditorAndText.getFirst());
     }
 
