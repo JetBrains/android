@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -28,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Properties;
 
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
@@ -55,80 +52,5 @@ public class GradlePropertiesModel extends GradleFileModelImpl {
 
   private GradlePropertiesModel(@NotNull GradleDslFile gradleDslFile) {
     super(gradleDslFile);
-  }
-
-  private static final class GradlePropertiesFile extends GradleDslFile {
-    private final Properties myProperties;
-
-    private GradlePropertiesFile(@NotNull Properties properties,
-                                 @NotNull VirtualFile file,
-                                 @NotNull Project project,
-                                 @NotNull String moduleName) {
-      super(file, project, moduleName);
-      myProperties = properties;
-    }
-
-    @Override
-    public void parse() {
-      // There is nothing to parse in a properties file as it's just a java properties file.
-    }
-
-    @Override
-    @Nullable
-    public GradleDslExpression getPropertyElement(@NotNull String property) {
-      String value = myProperties.getProperty(property);
-      if (value == null) {
-        return null;
-      }
-
-      GradlePropertyElement propertyElement = new GradlePropertyElement(this, property);
-      propertyElement.setValue(value);
-      return propertyElement;
-    }
-  }
-
-  private static class GradlePropertyElement extends GradleDslExpression {
-    @Nullable private Object myValue;
-
-    private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull String name) {
-      super(parent, null, name, null);
-    }
-
-    @Nullable
-    @Override
-    public Object getValue() {
-      return myValue;
-    }
-
-    @Nullable
-    @Override
-    public <T> T getValue(@NotNull Class<T> clazz) {
-      Object value = getValue();
-      if (clazz.isInstance(value)) {
-        return clazz.cast(value);
-      }
-      return null;
-    }
-
-    @Override
-    public void setValue(@NotNull Object value) {
-      myValue = value;
-    }
-
-    @NotNull
-    @Override
-    protected Collection<GradleDslElement> getChildren() {
-      return ImmutableList.of();
-    }
-
-    @Override
-    protected void apply() {
-      // There is nothing to apply here as this is just a dummy dsl element to represent a property.
-    }
-
-    @Override
-    protected void reset() {
-      // There is nothing to reset here as this is just a dummy dsl element to represent a property.
-    }
   }
 }

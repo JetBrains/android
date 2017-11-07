@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
@@ -37,7 +36,7 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
-  private static final String INCLUDE = "include";
+  public static final String INCLUDE = "include";
 
   @Nullable
   public static GradleSettingsModel get(@NotNull Project project) {
@@ -47,12 +46,12 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
   @NotNull
   public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleSettingsDslFile settingsFile = new GradleSettingsDslFile(file, project, moduleName);
+    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName);
     settingsFile.parse();
     return new GradleSettingsModelImpl(settingsFile);
   }
 
-  private GradleSettingsModelImpl(@NotNull GradleSettingsDslFile parsedModel) {
+  private GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
   }
 
@@ -233,20 +232,5 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
   private static String standardiseModulePath(@NotNull String modulePath) {
     return modulePath.startsWith(":") ? modulePath : ":" + modulePath;
-  }
-
-  private static class GradleSettingsDslFile extends GradleDslFile {
-    private GradleSettingsDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-      super(file, project, moduleName);
-    }
-
-    @Override
-    public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-      if (property.equals(INCLUDE)) {
-        addToParsedExpressionList(property, element);
-        return;
-      }
-      super.addParsedElement(property, element);
-    }
   }
 }

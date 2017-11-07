@@ -52,7 +52,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * ensure that {@code myVariables} is also updated.
    *
    * @param property the name of the property to add
-   * @param element the {@code GradleDslElement} for the property.
+   * @param element  the {@code GradleDslElement} for the property.
    */
   private void addPropertyInternal(@NotNull String property, @NotNull GradleDslElement element) {
     myVariables.put(property, element);

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -312,7 +312,7 @@ public abstract class GradleDslElement {
       final Boolean[] isEmpty = new Boolean[]{true};
       ((GrClosableBlock)element).acceptChildren(new GroovyElementVisitor() {
         @Override
-        public void visitElement(GroovyPsiElement child) {
+        public void visitElement(@NotNull GroovyPsiElement child) {
           if (child instanceof GrParameterList) {
             if (((GrParameterList)child).getParameters().length == 0) {
               return; // Ignore the empty parameter list.
