@@ -80,6 +80,16 @@ class MatchResult(val reader: BufferReader) {
         return reader.readInt()
     }
 
+    fun double(group: Int): Double {
+        reader.index = startIndex + matcher!!.start(group)
+        return reader.readDouble()
+    }
+
+    fun long(group: Int): Long {
+        reader.index = startIndex + matcher!!.start(group)
+        return reader.readLong()
+    }
+
     fun string(group: Int): String {
         reader.index = startIndex + matcher!!.start(group)
         val endAt = startIndex + matcher!!.end(group)
@@ -134,7 +144,11 @@ class BufferReader : BufferReaderState() {
     }
 
     fun readInt(): Int {
-        var value: Int = 0
+        return readLong().toInt()
+    }
+
+    fun readLong(): Long {
+        var value: Long = 0
         var foundDigit = false
         val startIndex = index
         while (index < endIndexExclusive) {
@@ -184,15 +198,20 @@ class BufferReader : BufferReaderState() {
     }
 
     fun match(matcher: Matcher, result: MatchResult.() -> Unit) {
+        if (!tryMatch(matcher, result)) {
+            println("RE failed on '${stringTo { end() }}'")
+        }
+    }
+    fun tryMatch(matcher: Matcher, result: MatchResult.() -> Unit): Boolean {
         matcher.reset(charWrapper)
         if (matcher.matches()) {
             tempMatchResult.matcher = matcher
             tempMatchResult.startIndex = index
             result.invoke(tempMatchResult)
             tempMatchResult.matcher = null
-        } else {
-            println("RE failed on '${stringTo { end() }}'")
+            return true
         }
+        return false
     }
 }
 

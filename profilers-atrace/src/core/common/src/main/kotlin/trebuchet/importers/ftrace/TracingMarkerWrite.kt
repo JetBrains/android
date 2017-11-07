@@ -32,12 +32,33 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
             Begin -> handleBegin(data)
             End -> handleEnd(data)
             Counter -> handleCounter(data)
-            else -> handleClockSyncMarker()
+            else -> handleClockSyncMarker(data)
         }
     }
 
-    fun handleClockSyncMarker() {
-        // TODO
+
+    // tracing_mark_write: trace_event_clock_sync: parent_ts=23816.083984
+    val parentTsMatcher = matcher(
+            "trace_event_clock_sync: parent_ts=(.*)")
+
+
+    // tracing_mark_write: trace_event_clock_sync: realtime_ts=1491850748338
+    val realtimeTsMatcher = matcher(
+            "trace_event_clock_sync: realtime_ts=(.*)")
+
+
+    fun BufferReader.handleClockSyncMarker(data: ImportData) {
+        // First check if the line we are importing is the parent timestamp line.
+        tryMatch(parentTsMatcher) {
+            val timestamp = double(1)
+            data.importer.modelFragment.parentTimestamp = timestamp
+        }
+
+        // Test if the line we are testing has the realtime timestamp.
+        tryMatch(realtimeTsMatcher) {
+            val timestamp = long(1)
+            data.importer.modelFragment.realtimeTimestamp = timestamp
+        }
     }
 
     fun BufferReader.handleBegin(data: ImportData) {
