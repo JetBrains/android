@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +99,7 @@ public interface IdeProfilerServices {
    * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
    *                         that was selected on the configurations list when the dialog was closed.
    */
-  void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, boolean isDeviceAtLeastO,
                                             Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
