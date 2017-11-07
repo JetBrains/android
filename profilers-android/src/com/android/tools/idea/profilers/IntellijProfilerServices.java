@@ -25,6 +25,7 @@ import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
@@ -205,11 +206,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, boolean isDeviceAtLeastO,
                                                    Consumer<ProfilingConfiguration> dialogCallback) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
                                                                                    isDeviceAtLeastO,
-                                                                                   configuration,
+                                                                                   model,
                                                                                    dialogCallback,
                                                                                    myFeatureTracker);
     dialog.show();

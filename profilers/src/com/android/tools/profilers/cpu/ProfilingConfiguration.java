@@ -61,6 +61,11 @@ public class ProfilingConfiguration {
    */
   private int myProfilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US;
 
+  /**
+   * Used to determine if the config is a default config or a custom config.
+   */
+  private boolean myIsDefault = false;
+
   public ProfilingConfiguration() {
     // Default constructor to be used by CpuProfilingConfigService
   }
@@ -68,9 +73,17 @@ public class ProfilingConfiguration {
   public ProfilingConfiguration(String name,
                                 CpuProfiler.CpuProfilerType profilerType,
                                 CpuProfiler.CpuProfilingAppStartRequest.Mode mode) {
+    this(name, profilerType, mode, false);
+  }
+
+  private ProfilingConfiguration(String name,
+                                CpuProfiler.CpuProfilerType profilerType,
+                                CpuProfiler.CpuProfilingAppStartRequest.Mode mode,
+                                boolean isDefault) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
+    myIsDefault = isDefault;
   }
 
   public CpuProfiler.CpuProfilingAppStartRequest.Mode getMode() {
@@ -109,6 +122,10 @@ public class ProfilingConfiguration {
     return myProfilingSamplingIntervalUs;
   }
 
+  public boolean isDefault() {
+    return myIsDefault;
+  }
+
   public void setProfilingSamplingIntervalUs(int profilingSamplingIntervalUs) {
     myProfilingSamplingIntervalUs = profilingSamplingIntervalUs;
   }
@@ -117,16 +134,20 @@ public class ProfilingConfiguration {
     if (ourDefaultConfigurations == null) {
       ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
                                                                      CpuProfiler.CpuProfilerType.ART,
-                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                     true);
       ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
                                                                           CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED,
+                                                                          true);
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                      CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                     true);
       ProfilingConfiguration atrace = new ProfilingConfiguration(ATRACE,
                                                                  CpuProfiler.CpuProfilerType.ATRACE,
-                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                 true);
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
     return ourDefaultConfigurations;
