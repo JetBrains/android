@@ -67,6 +67,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean isLiveTrackingEnabled = false;
 
   /**
+   * Toggle for faking memory snapshot support in tests.
+   */
+  private boolean isMemorySnapshotEnabled = false;
+
+  /**
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
@@ -154,7 +159,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isAtraceEnabled() { return isAtraceEnabled; }
+      public boolean isMemorySnapshotEnabled() {
+        return isMemorySnapshotEnabled;
+      }
+
+      @Override
+      public boolean isAtraceEnabled() {
+        return isAtraceEnabled;
+      }
     };
   }
 
@@ -214,5 +226,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLiveAllocationTracking(boolean enabled) {
     isLiveTrackingEnabled = enabled;
+  }
+
+  public void enableMemorySnapshot(boolean enabled) {
+    isMemorySnapshotEnabled = enabled;
   }
 }

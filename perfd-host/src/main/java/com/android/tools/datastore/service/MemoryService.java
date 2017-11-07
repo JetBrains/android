@@ -24,7 +24,6 @@ import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -72,7 +71,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       myRunners.put(processId, new MemoryDataPoller(processId, session, myStatsTable, client, myFetchExecutor));
       myFetchExecutor.accept(myJvmtiRunners.get(processId));
       myFetchExecutor.accept(myRunners.get(processId));
-
     }
     else {
       observer.onNext(MemoryStartResponse.getDefaultInstance());
@@ -285,8 +283,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
-    BatchAllocationSample response = myAllocationsTable.getAllocations(
-      request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
+    BatchAllocationSample response;
+    if (request.getLiveObjectsOnly()) {
+      response = myAllocationsTable.getSnapshot(request.getProcessId(), request.getSession(), request.getEndTime());
+    }
+    else {
+      response =
+        myAllocationsTable.getAllocations(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
+    }
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

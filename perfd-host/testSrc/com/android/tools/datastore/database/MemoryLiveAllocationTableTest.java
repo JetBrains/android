@@ -168,6 +168,20 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(querySample.getEventsCount()).isEqualTo(1);
     Truth.assertThat(querySample.getEvents(0)).isEqualTo(dealloc1);
     Truth.assertThat(querySample.getTimestamp()).isEqualTo(dealloc1.getTimestamp());
+
+    // A query that asks for a snapshot at t == 6
+    querySample = myAllocationTable.getSnapshot(VALID_PID, VALID_SESSION, 6);
+    // .... should return the first instance
+    Truth.assertThat(querySample.getEventsCount()).isEqualTo(1);
+    Truth.assertThat(querySample.getEvents(0)).isEqualTo(alloc1);
+    Truth.assertThat(querySample.getTimestamp()).isEqualTo(alloc1.getTimestamp());
+
+    // A query that asks for a snapshot at t == 7
+    querySample = myAllocationTable.getSnapshot(VALID_PID, VALID_SESSION, 7);
+    // .... should return only the second instance
+    Truth.assertThat(querySample.getEventsCount()).isEqualTo(1);
+    Truth.assertThat(querySample.getEvents(0)).isEqualTo(alloc2);
+    Truth.assertThat(querySample.getTimestamp()).isEqualTo(alloc2.getTimestamp());
   }
 
   @Test

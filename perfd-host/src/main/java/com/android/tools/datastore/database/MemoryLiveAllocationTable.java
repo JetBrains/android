@@ -47,6 +47,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_SNAPSHOT(
+      "SELECT Tag, ClassTag, AllocTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
+      "WHERE Pid = ? AND Session = ? AND AllocTime < ? AND FreeTime > ?"),
     QUERY_ALLOC_BY_ALLOC_TIME(
       "SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, ThreadId, StackId, HeapId FROM Memory_AllocationEvents " +
       "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
@@ -136,6 +139,31 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
+  public MemoryProfiler.BatchAllocationSample getSnapshot(int pid, Common.Session session, long endTime) {
+    MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+    try {
+      ResultSet allocResult = executeQuery(QUERY_SNAPSHOT, pid, session, endTime, endTime);
+      long timestamp = Long.MIN_VALUE;
+      while (allocResult.next()) {
+        long allocTime = allocResult.getLong(3);
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+          .setAllocData(
+            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
+              .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5)).setThreadId(allocResult.getInt(6))
+              .setStackId(allocResult.getInt(7)).setHeapId(allocResult.getInt(8)).build())
+          .setTimestamp(allocTime).build();
+        sampleBuilder.addEvents(event);
+        timestamp = Math.max(timestamp, allocTime);
+      }
+      sampleBuilder.setTimestamp(timestamp);
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return sampleBuilder.build();
+  }
+
   public MemoryProfiler.BatchAllocationSample getAllocations(int pid, Common.Session session, long startTime, long endTime) {
     MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
     try {
@@ -145,31 +173,27 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
 
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        if (allocTime >= startTime) {
-          MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
-            .setAllocData(
-              MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
-                .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7))
-                .setStackId(allocResult.getInt(8)).setHeapId(allocResult.getInt(9)).build())
-            .setTimestamp(allocTime).build();
-          sampleBuilder.addEvents(event);
-          timestamp = Math.max(timestamp, allocTime);
-        }
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+          .setAllocData(
+            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
+              .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7))
+              .setStackId(allocResult.getInt(8)).setHeapId(allocResult.getInt(9)).build())
+          .setTimestamp(allocTime).build();
+        sampleBuilder.addEvents(event);
+        timestamp = Math.max(timestamp, allocTime);
       }
 
       ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, pid, session, startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
-        if (freeTime < endTime) {
-          MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
-            .setFreeData(
-              MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2))
-                .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7))
-                .setStackId(freeResult.getInt(8)).setHeapId(freeResult.getInt(9)).build())
-            .setTimestamp(freeTime).build();
-          sampleBuilder.addEvents(event);
-          timestamp = Math.max(timestamp, freeTime);
-        }
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+          .setFreeData(
+            MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2))
+              .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7))
+              .setStackId(freeResult.getInt(8)).setHeapId(freeResult.getInt(9)).build())
+          .setTimestamp(freeTime).build();
+        sampleBuilder.addEvents(event);
+        timestamp = Math.max(timestamp, freeTime);
       }
 
       sampleBuilder.setTimestamp(timestamp);

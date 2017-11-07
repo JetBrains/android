@@ -58,10 +58,12 @@ public class LiveAllocationCaptureObjectTest {
 
   private final AspectObserver myAspectObserver = new AspectObserver();
 
+  @NotNull private FakeIdeProfilerServices myIdeProfilerServices;
+
   @Before
   public void before() {
-    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices));
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices));
   }
 
   // Simple test to check that we get the correct data on load.
@@ -103,6 +105,43 @@ public class LiveAllocationCaptureObjectTest {
     capture.load(loadRange, LOAD_JOINER);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_0_to_4, 0);
+  }
+
+  // Simple test to check that we get the correct snapshot data on load.
+  @Test
+  public void testBasicSnapshotLoad() throws Exception {
+    myIdeProfilerServices.enableMemorySnapshot(true);
+    // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
+    boolean[] loadSuccess = new boolean[1];
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA,
+                                                                          APP_ID,
+                                                                          CAPTURE_START_TIME,
+                                                                          LOAD_SERVICE,
+                                                                          myStage);
+
+    // Heap set should start out empty.
+    HeapSet heapSet = capture.getHeapSet(LiveAllocationCaptureObject.DEFAULT_HEAP_ID);
+    assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
+    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+
+    // Listens to the aspect change when load is called, then check the content of the changedNode parameter
+    myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+
+    Queue<String> expected_snapshot_4 = new LinkedList<>();
+    expected_snapshot_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 0, 2, 2, true));
+    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "This", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "That", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+
+    Range loadRange = new Range(CAPTURE_START_TIME + 4, CAPTURE_START_TIME + 4);
+    loadSuccess[0] = false;
+    capture.load(loadRange, LOAD_JOINER);
+    assertThat(loadSuccess[0]).isTrue();
+    verifyClassifierResult(heapSet, expected_snapshot_4, 0);
   }
 
   // This test checks that optimization by canceling outstanding queries works properly.
@@ -246,7 +285,6 @@ public class LiveAllocationCaptureObjectTest {
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
   }
 
-
   @Test
   public void testSelectionMinChanges() throws Exception {
     // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
@@ -328,6 +366,21 @@ public class LiveAllocationCaptureObjectTest {
     loadRange.setMin(CAPTURE_START_TIME + 2);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_2_to_4), 0);
+
+    // Snapshot mode at {4,4}
+    myIdeProfilerServices.enableMemorySnapshot(true);
+    Queue<String> expected_snapshot_4 = new LinkedList<>();
+    expected_snapshot_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 0, 2, 2, true));
+    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "This", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_snapshot_4.add(" " + String.format(NODE_FORMAT, "That", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_snapshot_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    loadSuccess[0] = false;
+    loadRange.setMin(CAPTURE_START_TIME + 4);
+    assertThat(loadSuccess[0]).isTrue();
+    verifyClassifierResult(heapSet, expected_snapshot_4, 0);
   }
 
   @Test
