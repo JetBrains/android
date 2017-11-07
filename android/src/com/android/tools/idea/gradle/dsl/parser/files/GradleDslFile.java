@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,6 +43,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
+  @NotNull private final GradleDslParser myGradleDslParser;
 
   @Nullable private GradleDslFile myParentModuleDslFile;
   @Nullable private GradleDslFile mySiblingDslFile;
@@ -53,6 +52,24 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     super(null, null, moduleName);
     myFile = file;
     myProject = project;
+
+    Application application = ApplicationManager.getApplication();
+    PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
+
+    // Pick the language that should be used by this GradleDslFile, we do this by selecting the parser implementation.
+    GroovyFile groovyPsiFile;
+    if (psiFile instanceof GroovyFile) {
+      groovyPsiFile = (GroovyFile)psiFile;
+      myGradleDslParser = new GroovyDslParser(groovyPsiFile, this);
+    }
+    else {
+      // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
+      // This means this file will produce an empty model.
+      myGradleDslParser = new GradleDslParser.Adapter();
+      return;
+    }
+
+    setPsiElement(groovyPsiFile);
   }
 
   /**
@@ -66,42 +83,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   public void parse() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
-
-    GroovyFile myPsiFile = null;
-    if (psiFile instanceof GroovyFile) {
-      myPsiFile = (GroovyFile)psiFile;
-    }
-
-    if (myPsiFile == null) {
-      return;
-    }
-    setPsiElement(myPsiFile);
-
-    parse(myPsiFile);
-  }
-
-  protected void parse(@NotNull GroovyFile myPsiFile) {
-    myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
-      @Override
-      public void visitMethodCallExpression(GrMethodCallExpression e) {
-        process(e);
-      }
-
-      @Override
-      public void visitAssignmentExpression(GrAssignmentExpression e) {
-        process(e);
-      }
-
-      @Override
-      public void visitApplicationStatement(GrApplicationStatement e) {
-        process(e);
-      }
-
-      void process(GroovyPsiElement e) {
-        GradleDslParser.parse(e, GradleDslFile.this);
-      }
-    }));
+    myGradleDslParser.parse();
   }
 
   @NotNull

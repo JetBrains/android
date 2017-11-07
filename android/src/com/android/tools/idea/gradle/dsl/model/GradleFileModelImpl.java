@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

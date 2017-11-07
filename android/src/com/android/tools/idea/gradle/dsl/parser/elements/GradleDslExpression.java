@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.Projects;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
