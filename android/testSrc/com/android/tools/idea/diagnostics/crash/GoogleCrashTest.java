@@ -52,7 +52,7 @@ public class GoogleCrashTest {
     STACK_TRACE;
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, new IndexNotReadyException());
+  private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, IndexNotReadyException.create());
 
   // Most of the tests do a future.get(), but since they are uploaded to a local server, they should complete relatively quickly.
   // This rule enforces a shorter timeout for the tests. If you are debugging, you probably want to comment this out.

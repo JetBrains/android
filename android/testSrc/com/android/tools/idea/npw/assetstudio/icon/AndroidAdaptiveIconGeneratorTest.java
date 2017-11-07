@@ -108,7 +108,7 @@ public class AndroidAdaptiveIconGeneratorTest extends AndroidTestCase {
     try {
       myIconGenerator.dispose();
       // Wait for asynchronous layoutlib disposal to finish.
-      ThreadTracker.awaitThreadTerminationWithParentParentGroup("main", 10, TimeUnit.SECONDS);
+      ThreadTracker.awaitJDIThreadsTermination(10, TimeUnit.SECONDS);
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());
     } finally {
       super.tearDown();
