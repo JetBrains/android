@@ -18,7 +18,6 @@ package com.android.tools.idea.actions;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
@@ -35,10 +34,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
@@ -52,15 +51,15 @@ import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileType
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
 /**
- * Opens existing project into Android Stduio
+ * Opens existing project or file in Android Stduio
  * This action replaces the default File -> Open action.
  */
-public class AndroidOpenProjectAction extends DumbAwareAction {
-  public AndroidOpenProjectAction() {
+public class AndroidOpenFileAction extends DumbAwareAction {
+  public AndroidOpenFileAction() {
     this("Open...");
   }
 
-  public AndroidOpenProjectAction(@NotNull String text) {
+  public AndroidOpenFileAction(@NotNull String text) {
     super(text);
   }
 
@@ -80,7 +79,7 @@ public class AndroidOpenProjectAction extends DumbAwareAction {
 
     VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
     chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
-      ValidationIssue issue = validateFiles(files, descriptor, new ProjectImportPathValidator("project file"));
+      ValidationIssue issue = validateFiles(files, descriptor);
       if (issue.result.getSeverity() != Validator.Severity.OK) {
         boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
         String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
@@ -98,16 +97,11 @@ public class AndroidOpenProjectAction extends DumbAwareAction {
    */
   @VisibleForTesting
   @NotNull
-  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor, Validator<File> validator) {
+  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
     for (VirtualFile file : files) {
       if (!descriptor.isFileSelectable(file)) {
         Validator.Result result =
-          new Validator.Result(Validator.Severity.ERROR, IdeBundle.message("error.dir.contains.no.project", file.getPresentableUrl()));
-        return new ValidationIssue(result, file);
-      }
-
-      Validator.Result result = validator.validate(new File(file.getPath()));
-      if (result.getSeverity() != Validator.Severity.OK) {
+          new Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("title.cannot.open.file", file.getPresentableUrl()));
         return new ValidationIssue(result, file);
       }
     }
