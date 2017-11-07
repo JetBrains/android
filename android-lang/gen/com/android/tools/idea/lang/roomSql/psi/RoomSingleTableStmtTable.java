@@ -21,25 +21,18 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.SqlTableElement;
+import com.android.tools.idea.lang.roomSql.SqlTable;
 
-public interface RoomLimitedUpdateStmt extends RoomStmt {
-
-  @NotNull
-  List<RoomColumnName> getColumnNameList();
-
-  @NotNull
-  List<RoomExpr> getExprList();
+public interface RoomSingleTableStmtTable extends SqlTableElement {
 
   @Nullable
-  RoomOrderClause getOrderClause();
+  RoomDatabaseName getDatabaseName();
 
   @NotNull
-  RoomTableNameQualified getTableNameQualified();
+  RoomTableName getTableName();
 
   @Nullable
-  RoomWhereClause getWhereClause();
-
-  @Nullable
-  RoomWithClause getWithClause();
+  SqlTable getSqlTable();
 
 }

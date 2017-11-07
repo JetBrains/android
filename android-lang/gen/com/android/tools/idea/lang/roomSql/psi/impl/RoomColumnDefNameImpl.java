@@ -25,52 +25,22 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomDeleteStmtLimitedImpl extends ASTWrapperPsiElement implements RoomDeleteStmtLimited {
+public class RoomColumnDefNameImpl extends AbstractRoomNameElement implements RoomColumnDefName {
 
-  public RoomDeleteStmtLimitedImpl(ASTNode node) {
+  public RoomColumnDefNameImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitDeleteStmtLimited(this);
+    visitor.visitColumnDefName(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public List<RoomExpr> getExprList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomExpr.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomOrderClause getOrderClause() {
-    return findChildByClass(RoomOrderClause.class);
-  }
-
-  @Override
-  @NotNull
-  public RoomTableNameQualified getTableNameQualified() {
-    return findNotNullChildByClass(RoomTableNameQualified.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomWhereClause getWhereClause() {
-    return findChildByClass(RoomWhereClause.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomWithClause getWithClause() {
-    return findChildByClass(RoomWithClause.class);
   }
 
 }

@@ -43,15 +43,9 @@ public class RoomInsertStmtImpl extends RoomStmtImpl implements RoomInsertStmt {
   }
 
   @Override
-  @NotNull
-  public List<RoomColumnName> getColumnNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnName.class);
-  }
-
-  @Override
   @Nullable
-  public RoomDatabaseName getDatabaseName() {
-    return findChildByClass(RoomDatabaseName.class);
+  public RoomInsertColumns getInsertColumns() {
+    return findChildByClass(RoomInsertColumns.class);
   }
 
   @Override
@@ -68,8 +62,8 @@ public class RoomInsertStmtImpl extends RoomStmtImpl implements RoomInsertStmt {
 
   @Override
   @NotNull
-  public RoomTableName getTableName() {
-    return findNotNullChildByClass(RoomTableName.class);
+  public RoomSingleTableStmtTable getSingleTableStmtTable() {
+    return findNotNullChildByClass(RoomSingleTableStmtTable.class);
   }
 
   @Override

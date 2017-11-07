@@ -44,15 +44,9 @@ public class RoomStmtImpl extends ASTWrapperPsiElement implements RoomStmt {
   }
 
   @Override
-  @Nullable
-  public RoomDeleteStmtLimited getDeleteStmtLimited() {
-    return findChildByClass(RoomDeleteStmtLimited.class);
-  }
-
-  @Override
-  @Nullable
+  @NotNull
   public RoomStmt getStmt() {
-    return findChildByClass(RoomStmt.class);
+    return findNotNullChildByClass(RoomStmt.class);
   }
 
 }

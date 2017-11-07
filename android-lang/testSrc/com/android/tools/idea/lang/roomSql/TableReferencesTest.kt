@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.roomSql
 
 import com.android.tools.idea.lang.roomSql.psi.RoomTableAliasName
-import com.android.tools.idea.lang.roomSql.psi.RoomTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomTableDefName
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
@@ -563,7 +563,7 @@ class TableReferencesTest : LightRoomTestCase() {
     """.trimIndent())
 
     val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(RoomTableName::class.java)
+    assertThat(elementAtCaret).isInstanceOf(RoomTableDefName::class.java)
     assertThat(elementAtCaret.text).isEqualTo("ids")
     assertThat(elementAtCaret.parent.parent.text).startsWith("ids AS (SELECT ")
   }
@@ -603,5 +603,26 @@ class TableReferencesTest : LightRoomTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User", "Book", "ids")
+  }
+
+  fun testViews() {
+    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+
+    myFixture.configureByText("UserDao.java", """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH ids AS (SELECT id from user) DELETE FROM <caret>")
+          void deleteAdults();
+        }
+    """.trimIndent())
+
+    // "ids" is a view, you cannot delete from it.
+    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
   }
 }

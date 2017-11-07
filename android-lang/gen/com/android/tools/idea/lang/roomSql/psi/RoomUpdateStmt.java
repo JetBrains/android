@@ -31,12 +31,27 @@ public interface RoomUpdateStmt extends RoomStmt {
   List<RoomExpr> getExprList();
 
   @NotNull
-  RoomTableNameQualified getTableNameQualified();
+  RoomSingleTableStmtTable getSingleTableStmtTable();
 
   @Nullable
   RoomWhereClause getWhereClause();
 
   @Nullable
   RoomWithClause getWithClause();
+
+  @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

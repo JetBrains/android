@@ -22,21 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomDeleteStmtLimited extends PsiElement {
-
-  @NotNull
-  List<RoomExpr> getExprList();
-
-  @Nullable
-  RoomOrderClause getOrderClause();
-
-  @NotNull
-  RoomTableNameQualified getTableNameQualified();
-
-  @Nullable
-  RoomWhereClause getWhereClause();
-
-  @Nullable
-  RoomWithClause getWithClause();
+public interface RoomTableDefName extends RoomNameElement {
 
 }

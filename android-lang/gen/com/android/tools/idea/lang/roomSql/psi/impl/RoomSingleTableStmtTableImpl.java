@@ -27,15 +27,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.android.tools.idea.lang.roomSql.SqlTable;
 
-public class RoomWithClauseTableDefImpl extends ASTWrapperPsiElement implements RoomWithClauseTableDef {
+public class RoomSingleTableStmtTableImpl extends ASTWrapperPsiElement implements RoomSingleTableStmtTable {
 
-  public RoomWithClauseTableDefImpl(ASTNode node) {
+  public RoomSingleTableStmtTableImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitWithClauseTableDef(this);
+    visitor.visitSingleTableStmtTable(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,15 +45,20 @@ public class RoomWithClauseTableDefImpl extends ASTWrapperPsiElement implements 
   }
 
   @Override
-  @NotNull
-  public List<RoomColumnDefName> getColumnDefNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomColumnDefName.class);
+  @Nullable
+  public RoomDatabaseName getDatabaseName() {
+    return findChildByClass(RoomDatabaseName.class);
   }
 
   @Override
   @NotNull
-  public RoomTableDefName getTableDefName() {
-    return findNotNullChildByClass(RoomTableDefName.class);
+  public RoomTableName getTableName() {
+    return findNotNullChildByClass(RoomTableName.class);
+  }
+
+  @Nullable
+  public SqlTable getSqlTable() {
+    return PsiImplUtil.getSqlTable(this);
   }
 
 }

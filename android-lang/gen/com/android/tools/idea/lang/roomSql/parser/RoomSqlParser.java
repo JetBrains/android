@@ -67,6 +67,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     else if (t == COLUMN_DEF) {
       r = column_def(b, 0);
     }
+    else if (t == COLUMN_DEF_NAME) {
+      r = column_def_name(b, 0);
+    }
     else if (t == COLUMN_NAME) {
       r = column_name(b, 0);
     }
@@ -99,9 +102,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     }
     else if (t == DELETE_STMT) {
       r = delete_stmt(b, 0);
-    }
-    else if (t == DELETE_STMT_LIMITED) {
-      r = delete_stmt_limited(b, 0);
     }
     else if (t == DETACH_STMT) {
       r = detach_stmt(b, 0);
@@ -145,6 +145,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     else if (t == INDEXED_COLUMN) {
       r = indexed_column(b, 0);
     }
+    else if (t == INSERT_COLUMNS) {
+      r = insert_columns(b, 0);
+    }
     else if (t == INSERT_STMT) {
       r = insert_stmt(b, 0);
     }
@@ -159,9 +162,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     }
     else if (t == LIMIT_CLAUSE) {
       r = limit_clause(b, 0);
-    }
-    else if (t == LIMITED_UPDATE_STMT) {
-      r = limited_update_stmt(b, 0);
     }
     else if (t == LITERAL_VALUE) {
       r = literal_value(b, 0);
@@ -223,6 +223,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     else if (t == SIGNED_NUMBER) {
       r = signed_number(b, 0);
     }
+    else if (t == SINGLE_TABLE_STMT_TABLE) {
+      r = single_table_stmt_table(b, 0);
+    }
     else if (t == STMT) {
       r = stmt(b, 0);
     }
@@ -235,11 +238,11 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     else if (t == TABLE_CONSTRAINT) {
       r = table_constraint(b, 0);
     }
+    else if (t == TABLE_DEF_NAME) {
+      r = table_def_name(b, 0);
+    }
     else if (t == TABLE_NAME) {
       r = table_name(b, 0);
-    }
-    else if (t == TABLE_NAME_QUALIFIED) {
-      r = table_name_qualified(b, 0);
     }
     else if (t == TABLE_OR_INDEX_NAME) {
       r = table_or_index_name(b, 0);
@@ -295,9 +298,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
       COMMIT_STMT, CREATE_INDEX_STMT, CREATE_TABLE_STMT, CREATE_TRIGGER_STMT,
       CREATE_VIEW_STMT, CREATE_VIRTUAL_TABLE_STMT, DELETE_STMT, DETACH_STMT,
       DROP_INDEX_STMT, DROP_TABLE_STMT, DROP_TRIGGER_STMT, DROP_VIEW_STMT,
-      INSERT_STMT, LIMITED_UPDATE_STMT, PRAGMA_STMT, REINDEX_STMT,
-      RELEASE_STMT, ROLLBACK_STMT, SAVEPOINT_STMT, SELECT_STMT,
-      STMT, UPDATE_STMT, VACUUM_STMT),
+      INSERT_STMT, PRAGMA_STMT, REINDEX_STMT, RELEASE_STMT,
+      ROLLBACK_STMT, SAVEPOINT_STMT, SELECT_STMT, STMT,
+      UPDATE_STMT, VACUUM_STMT),
   };
 
   /* ********************************************************** */
@@ -739,6 +742,17 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = column_constraint(b, l + 1);
     exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // name
+  public static boolean column_def_name(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "column_def_name")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, COLUMN_DEF_NAME, "<column def name>");
+    r = name(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -1519,8 +1533,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ( with_clause )? DELETE FROM table_name_qualified
-  // where_clause?
+  // ( with_clause )?
+  //   DELETE FROM single_table_stmt_table ( INDEXED BY index_name | NOT INDEXED )?
+  //   where_clause?
+  //   ( order_clause? LIMIT expr ( ( OFFSET | ',' ) expr )? )?
   public static boolean delete_stmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "delete_stmt")) return false;
     if (!nextTokenIs(b, "<delete stmt>", DELETE, WITH)) return false;
@@ -1528,8 +1544,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, DELETE_STMT, "<delete stmt>");
     r = delete_stmt_0(b, l + 1);
     r = r && consumeTokens(b, 0, DELETE, FROM);
-    r = r && table_name_qualified(b, l + 1);
+    r = r && single_table_stmt_table(b, l + 1);
     r = r && delete_stmt_4(b, l + 1);
+    r = r && delete_stmt_5(b, l + 1);
+    r = r && delete_stmt_6(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -1551,106 +1569,90 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // where_clause?
+  // ( INDEXED BY index_name | NOT INDEXED )?
   private static boolean delete_stmt_4(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "delete_stmt_4")) return false;
-    where_clause(b, l + 1);
+    delete_stmt_4_0(b, l + 1);
     return true;
   }
 
-  /* ********************************************************** */
-  // ( with_clause )? DELETE FROM table_name_qualified
-  //   where_clause?
-  //   ( order_clause?
-  //   LIMIT expr ( ( OFFSET | ',' ) expr )? )?
-  public static boolean delete_stmt_limited(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited")) return false;
-    if (!nextTokenIs(b, "<delete stmt limited>", DELETE, WITH)) return false;
+  // INDEXED BY index_name | NOT INDEXED
+  private static boolean delete_stmt_4_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_4_0")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, DELETE_STMT_LIMITED, "<delete stmt limited>");
-    r = delete_stmt_limited_0(b, l + 1);
-    r = r && consumeTokens(b, 0, DELETE, FROM);
-    r = r && table_name_qualified(b, l + 1);
-    r = r && delete_stmt_limited_4(b, l + 1);
-    r = r && delete_stmt_limited_5(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
+    Marker m = enter_section_(b);
+    r = delete_stmt_4_0_0(b, l + 1);
+    if (!r) r = parseTokens(b, 0, NOT, INDEXED);
+    exit_section_(b, m, null, r);
     return r;
   }
 
-  // ( with_clause )?
-  private static boolean delete_stmt_limited_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_0")) return false;
-    delete_stmt_limited_0_0(b, l + 1);
-    return true;
-  }
-
-  // ( with_clause )
-  private static boolean delete_stmt_limited_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_0_0")) return false;
+  // INDEXED BY index_name
+  private static boolean delete_stmt_4_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_4_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = with_clause(b, l + 1);
+    r = consumeTokens(b, 0, INDEXED, BY);
+    r = r && index_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // where_clause?
-  private static boolean delete_stmt_limited_4(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_4")) return false;
+  private static boolean delete_stmt_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_5")) return false;
     where_clause(b, l + 1);
     return true;
   }
 
-  // ( order_clause?
-  //   LIMIT expr ( ( OFFSET | ',' ) expr )? )?
-  private static boolean delete_stmt_limited_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5")) return false;
-    delete_stmt_limited_5_0(b, l + 1);
+  // ( order_clause? LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+  private static boolean delete_stmt_6(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6")) return false;
+    delete_stmt_6_0(b, l + 1);
     return true;
   }
 
-  // order_clause?
-  //   LIMIT expr ( ( OFFSET | ',' ) expr )?
-  private static boolean delete_stmt_limited_5_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5_0")) return false;
+  // order_clause? LIMIT expr ( ( OFFSET | ',' ) expr )?
+  private static boolean delete_stmt_6_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = delete_stmt_limited_5_0_0(b, l + 1);
+    r = delete_stmt_6_0_0(b, l + 1);
     r = r && consumeToken(b, LIMIT);
     r = r && expr(b, l + 1, -1);
-    r = r && delete_stmt_limited_5_0_3(b, l + 1);
+    r = r && delete_stmt_6_0_3(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // order_clause?
-  private static boolean delete_stmt_limited_5_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5_0_0")) return false;
+  private static boolean delete_stmt_6_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6_0_0")) return false;
     order_clause(b, l + 1);
     return true;
   }
 
   // ( ( OFFSET | ',' ) expr )?
-  private static boolean delete_stmt_limited_5_0_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5_0_3")) return false;
-    delete_stmt_limited_5_0_3_0(b, l + 1);
+  private static boolean delete_stmt_6_0_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6_0_3")) return false;
+    delete_stmt_6_0_3_0(b, l + 1);
     return true;
   }
 
   // ( OFFSET | ',' ) expr
-  private static boolean delete_stmt_limited_5_0_3_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5_0_3_0")) return false;
+  private static boolean delete_stmt_6_0_3_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = delete_stmt_limited_5_0_3_0_0(b, l + 1);
+    r = delete_stmt_6_0_3_0_0(b, l + 1);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // OFFSET | ','
-  private static boolean delete_stmt_limited_5_0_3_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "delete_stmt_limited_5_0_3_0_0")) return false;
+  private static boolean delete_stmt_6_0_3_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "delete_stmt_6_0_3_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OFFSET);
@@ -2331,8 +2333,47 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ( with_clause )? ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
-  //   ( database_name '.' )? table_name ( '(' column_name ( ',' column_name )* ')' )?
+  // '(' column_name ( ',' column_name )* ')'
+  public static boolean insert_columns(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "insert_columns")) return false;
+    if (!nextTokenIs(b, LPAREN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LPAREN);
+    r = r && column_name(b, l + 1);
+    r = r && insert_columns_2(b, l + 1);
+    r = r && consumeToken(b, RPAREN);
+    exit_section_(b, m, INSERT_COLUMNS, r);
+    return r;
+  }
+
+  // ( ',' column_name )*
+  private static boolean insert_columns_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "insert_columns_2")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!insert_columns_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "insert_columns_2", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' column_name
+  private static boolean insert_columns_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "insert_columns_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && column_name(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ( with_clause )?
+  //   ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
+  //   single_table_stmt_table insert_columns?
   //   ( select_core_values | select_stmt | DEFAULT VALUES )
   public static boolean insert_stmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "insert_stmt")) return false;
@@ -2341,10 +2382,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = insert_stmt_0(b, l + 1);
     r = r && insert_stmt_1(b, l + 1);
     r = r && consumeToken(b, INTO);
-    r = r && insert_stmt_3(b, l + 1);
-    r = r && table_name(b, l + 1);
+    r = r && single_table_stmt_table(b, l + 1);
+    r = r && insert_stmt_4(b, l + 1);
     r = r && insert_stmt_5(b, l + 1);
-    r = r && insert_stmt_6(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -2420,70 +2460,16 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ( database_name '.' )?
-  private static boolean insert_stmt_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_3")) return false;
-    insert_stmt_3_0(b, l + 1);
+  // insert_columns?
+  private static boolean insert_stmt_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "insert_stmt_4")) return false;
+    insert_columns(b, l + 1);
     return true;
-  }
-
-  // database_name '.'
-  private static boolean insert_stmt_3_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_3_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = database_name(b, l + 1);
-    r = r && consumeToken(b, DOT);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ( '(' column_name ( ',' column_name )* ')' )?
-  private static boolean insert_stmt_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_5")) return false;
-    insert_stmt_5_0(b, l + 1);
-    return true;
-  }
-
-  // '(' column_name ( ',' column_name )* ')'
-  private static boolean insert_stmt_5_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_5_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, LPAREN);
-    r = r && column_name(b, l + 1);
-    r = r && insert_stmt_5_0_2(b, l + 1);
-    r = r && consumeToken(b, RPAREN);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ( ',' column_name )*
-  private static boolean insert_stmt_5_0_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_5_0_2")) return false;
-    int c = current_position_(b);
-    while (true) {
-      if (!insert_stmt_5_0_2_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "insert_stmt_5_0_2", c)) break;
-      c = current_position_(b);
-    }
-    return true;
-  }
-
-  // ',' column_name
-  private static boolean insert_stmt_5_0_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_5_0_2_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && column_name(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
   }
 
   // select_core_values | select_stmt | DEFAULT VALUES
-  private static boolean insert_stmt_6(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "insert_stmt_6")) return false;
+  private static boolean insert_stmt_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "insert_stmt_5")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = select_core_values(b, l + 1);
@@ -2703,159 +2689,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   // OFFSET | ','
   private static boolean limit_clause_2_0_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "limit_clause_2_0_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, OFFSET);
-    if (!r) r = consumeToken(b, COMMA);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
-  // SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
-  // ( order_clause?
-  // LIMIT expr ( ( OFFSET | ',' ) expr )? )?
-  public static boolean limited_update_stmt(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt")) return false;
-    if (!nextTokenIs(b, "<limited update stmt>", UPDATE, WITH)) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, LIMITED_UPDATE_STMT, "<limited update stmt>");
-    r = limited_update_stmt_0(b, l + 1);
-    r = r && consumeToken(b, UPDATE);
-    r = r && limited_update_stmt_2(b, l + 1);
-    r = r && table_name_qualified(b, l + 1);
-    r = r && consumeToken(b, SET);
-    r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, EQ);
-    r = r && expr(b, l + 1, -1);
-    r = r && limited_update_stmt_8(b, l + 1);
-    r = r && limited_update_stmt_9(b, l + 1);
-    r = r && limited_update_stmt_10(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // ( with_clause )?
-  private static boolean limited_update_stmt_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_0")) return false;
-    limited_update_stmt_0_0(b, l + 1);
-    return true;
-  }
-
-  // ( with_clause )
-  private static boolean limited_update_stmt_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_0_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = with_clause(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )?
-  private static boolean limited_update_stmt_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_2")) return false;
-    limited_update_stmt_2_0(b, l + 1);
-    return true;
-  }
-
-  // OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE
-  private static boolean limited_update_stmt_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_2_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = parseTokens(b, 0, OR, ROLLBACK);
-    if (!r) r = parseTokens(b, 0, OR, ABORT);
-    if (!r) r = parseTokens(b, 0, OR, REPLACE);
-    if (!r) r = parseTokens(b, 0, OR, FAIL);
-    if (!r) r = parseTokens(b, 0, OR, IGNORE);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ( ',' column_name '=' expr )*
-  private static boolean limited_update_stmt_8(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_8")) return false;
-    int c = current_position_(b);
-    while (true) {
-      if (!limited_update_stmt_8_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "limited_update_stmt_8", c)) break;
-      c = current_position_(b);
-    }
-    return true;
-  }
-
-  // ',' column_name '=' expr
-  private static boolean limited_update_stmt_8_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_8_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, EQ);
-    r = r && expr(b, l + 1, -1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // where_clause?
-  private static boolean limited_update_stmt_9(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_9")) return false;
-    where_clause(b, l + 1);
-    return true;
-  }
-
-  // ( order_clause?
-  // LIMIT expr ( ( OFFSET | ',' ) expr )? )?
-  private static boolean limited_update_stmt_10(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10")) return false;
-    limited_update_stmt_10_0(b, l + 1);
-    return true;
-  }
-
-  // order_clause?
-  // LIMIT expr ( ( OFFSET | ',' ) expr )?
-  private static boolean limited_update_stmt_10_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = limited_update_stmt_10_0_0(b, l + 1);
-    r = r && consumeToken(b, LIMIT);
-    r = r && expr(b, l + 1, -1);
-    r = r && limited_update_stmt_10_0_3(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // order_clause?
-  private static boolean limited_update_stmt_10_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10_0_0")) return false;
-    order_clause(b, l + 1);
-    return true;
-  }
-
-  // ( ( OFFSET | ',' ) expr )?
-  private static boolean limited_update_stmt_10_0_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10_0_3")) return false;
-    limited_update_stmt_10_0_3_0(b, l + 1);
-    return true;
-  }
-
-  // ( OFFSET | ',' ) expr
-  private static boolean limited_update_stmt_10_0_3_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10_0_3_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = limited_update_stmt_10_0_3_0_0(b, l + 1);
-    r = r && expr(b, l + 1, -1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // OFFSET | ','
-  private static boolean limited_update_stmt_10_0_3_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "limited_update_stmt_10_0_3_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OFFSET);
@@ -3617,6 +3450,36 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // ( database_name '.' )? table_name
+  public static boolean single_table_stmt_table(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "single_table_stmt_table")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, SINGLE_TABLE_STMT_TABLE, "<single table stmt table>");
+    r = single_table_stmt_table_0(b, l + 1);
+    r = r && table_name(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // ( database_name '.' )?
+  private static boolean single_table_stmt_table_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "single_table_stmt_table_0")) return false;
+    single_table_stmt_table_0_0(b, l + 1);
+    return true;
+  }
+
+  // database_name '.'
+  private static boolean single_table_stmt_table_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "single_table_stmt_table_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = database_name(b, l + 1);
+    r = r && consumeToken(b, DOT);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // ( stmt )? ( ';' ( stmt )? )*
   static boolean sql_stmt_list(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "sql_stmt_list")) return false;
@@ -3698,7 +3561,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   //   | create_view_stmt
   //   | create_virtual_table_stmt
   //   | delete_stmt
-  //   | delete_stmt_limited
   //   | detach_stmt
   //   | drop_index_stmt
   //   | drop_table_stmt
@@ -3712,7 +3574,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   //   | savepoint_stmt
   //   | select_stmt
   //   | update_stmt
-  //   | limited_update_stmt
   //   | vacuum_stmt
   //   )
   public static boolean stmt(PsiBuilder b, int l) {
@@ -3771,7 +3632,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   //   | create_view_stmt
   //   | create_virtual_table_stmt
   //   | delete_stmt
-  //   | delete_stmt_limited
   //   | detach_stmt
   //   | drop_index_stmt
   //   | drop_table_stmt
@@ -3785,7 +3645,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   //   | savepoint_stmt
   //   | select_stmt
   //   | update_stmt
-  //   | limited_update_stmt
   //   | vacuum_stmt
   private static boolean stmt_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "stmt_1")) return false;
@@ -3802,7 +3661,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!r) r = create_view_stmt(b, l + 1);
     if (!r) r = create_virtual_table_stmt(b, l + 1);
     if (!r) r = delete_stmt(b, l + 1);
-    if (!r) r = delete_stmt_limited(b, l + 1);
     if (!r) r = detach_stmt(b, l + 1);
     if (!r) r = drop_index_stmt(b, l + 1);
     if (!r) r = drop_table_stmt(b, l + 1);
@@ -3816,7 +3674,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!r) r = savepoint_stmt(b, l + 1);
     if (!r) r = select_stmt(b, l + 1);
     if (!r) r = update_stmt(b, l + 1);
-    if (!r) r = limited_update_stmt(b, l + 1);
     if (!r) r = vacuum_stmt(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4033,72 +3890,23 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // name
-  public static boolean table_name(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name")) return false;
+  public static boolean table_def_name(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "table_def_name")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, TABLE_NAME, "<table name>");
+    Marker m = enter_section_(b, l, _NONE_, TABLE_DEF_NAME, "<table def name>");
     r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // ( database_name '.' )? table_name ( INDEXED BY index_name | NOT INDEXED )?
-  public static boolean table_name_qualified(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified")) return false;
+  // name
+  public static boolean table_name(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "table_name")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, TABLE_NAME_QUALIFIED, "<table name qualified>");
-    r = table_name_qualified_0(b, l + 1);
-    r = r && table_name(b, l + 1);
-    r = r && table_name_qualified_2(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, TABLE_NAME, "<table name>");
+    r = name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // ( database_name '.' )?
-  private static boolean table_name_qualified_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified_0")) return false;
-    table_name_qualified_0_0(b, l + 1);
-    return true;
-  }
-
-  // database_name '.'
-  private static boolean table_name_qualified_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified_0_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = database_name(b, l + 1);
-    r = r && consumeToken(b, DOT);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ( INDEXED BY index_name | NOT INDEXED )?
-  private static boolean table_name_qualified_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified_2")) return false;
-    table_name_qualified_2_0(b, l + 1);
-    return true;
-  }
-
-  // INDEXED BY index_name | NOT INDEXED
-  private static boolean table_name_qualified_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified_2_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = table_name_qualified_2_0_0(b, l + 1);
-    if (!r) r = parseTokens(b, 0, NOT, INDEXED);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // INDEXED BY index_name
-  private static boolean table_name_qualified_2_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "table_name_qualified_2_0_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, INDEXED, BY);
-    r = r && index_name(b, l + 1);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -4193,8 +4001,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
-  // SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
+  // ( with_clause )?
+  //   UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_stmt_table ( INDEXED BY index_name | NOT INDEXED )?
+  //   SET column_name '=' expr ( ',' column_name '=' expr )*
+  //   where_clause?
   public static boolean update_stmt(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "update_stmt")) return false;
     if (!nextTokenIs(b, "<update stmt>", UPDATE, WITH)) return false;
@@ -4203,13 +4013,14 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = update_stmt_0(b, l + 1);
     r = r && consumeToken(b, UPDATE);
     r = r && update_stmt_2(b, l + 1);
-    r = r && table_name_qualified(b, l + 1);
+    r = r && single_table_stmt_table(b, l + 1);
+    r = r && update_stmt_4(b, l + 1);
     r = r && consumeToken(b, SET);
     r = r && column_name(b, l + 1);
     r = r && consumeToken(b, EQ);
     r = r && expr(b, l + 1, -1);
-    r = r && update_stmt_8(b, l + 1);
     r = r && update_stmt_9(b, l + 1);
+    r = r && update_stmt_10(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -4252,21 +4063,50 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
+  // ( INDEXED BY index_name | NOT INDEXED )?
+  private static boolean update_stmt_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_4")) return false;
+    update_stmt_4_0(b, l + 1);
+    return true;
+  }
+
+  // INDEXED BY index_name | NOT INDEXED
+  private static boolean update_stmt_4_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_4_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = update_stmt_4_0_0(b, l + 1);
+    if (!r) r = parseTokens(b, 0, NOT, INDEXED);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // INDEXED BY index_name
+  private static boolean update_stmt_4_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_4_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, INDEXED, BY);
+    r = r && index_name(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
   // ( ',' column_name '=' expr )*
-  private static boolean update_stmt_8(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "update_stmt_8")) return false;
+  private static boolean update_stmt_9(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_9")) return false;
     int c = current_position_(b);
     while (true) {
-      if (!update_stmt_8_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "update_stmt_8", c)) break;
+      if (!update_stmt_9_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "update_stmt_9", c)) break;
       c = current_position_(b);
     }
     return true;
   }
 
   // ',' column_name '=' expr
-  private static boolean update_stmt_8_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "update_stmt_8_0")) return false;
+  private static boolean update_stmt_9_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_9_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
@@ -4278,8 +4118,8 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   // where_clause?
-  private static boolean update_stmt_9(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "update_stmt_9")) return false;
+  private static boolean update_stmt_10(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "update_stmt_10")) return false;
     where_clause(b, l + 1);
     return true;
   }
@@ -4380,38 +4220,38 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // table_name ( '(' column_name ( ',' column_name )* ')' )?
+  // table_def_name ( '(' column_def_name ( ',' column_def_name )* ')' )?
   public static boolean with_clause_table_def(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "with_clause_table_def")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, WITH_CLAUSE_TABLE_DEF, "<with clause table def>");
-    r = table_name(b, l + 1);
+    r = table_def_name(b, l + 1);
     r = r && with_clause_table_def_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // ( '(' column_name ( ',' column_name )* ')' )?
+  // ( '(' column_def_name ( ',' column_def_name )* ')' )?
   private static boolean with_clause_table_def_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "with_clause_table_def_1")) return false;
     with_clause_table_def_1_0(b, l + 1);
     return true;
   }
 
-  // '(' column_name ( ',' column_name )* ')'
+  // '(' column_def_name ( ',' column_def_name )* ')'
   private static boolean with_clause_table_def_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "with_clause_table_def_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, LPAREN);
-    r = r && column_name(b, l + 1);
+    r = r && column_def_name(b, l + 1);
     r = r && with_clause_table_def_1_0_2(b, l + 1);
     r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // ( ',' column_name )*
+  // ( ',' column_def_name )*
   private static boolean with_clause_table_def_1_0_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "with_clause_table_def_1_0_2")) return false;
     int c = current_position_(b);
@@ -4423,13 +4263,13 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // ',' column_name
+  // ',' column_def_name
   private static boolean with_clause_table_def_1_0_2_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "with_clause_table_def_1_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && column_name(b, l + 1);
+    r = r && column_def_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

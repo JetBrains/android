@@ -41,11 +41,17 @@ class UnresolvedRoomSqlReferenceInspection : LocalInspectionTool() {
         // Make sure we're inside Room's @Query annotation, otherwise we don't know the schema.
         if ((referenceElement.containingFile as RoomSqlFile).queryAnnotation == null) return
 
-        // For now only check references inside SELECT statements, which should be properly handled by [processSqlTables].
-        if (PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement) !is RoomSelectStmt) return
+        if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
         val reference = referenceElement.reference ?: return
         if (reference.resolve() == null) holder.registerProblem(reference)
+      }
+
+      /**
+       * Checks if we have understand the given query type enough to highlight unresolved references.
+       */
+      private fun isWellUnderstood(stmt: PsiElement): Boolean {
+        return stmt is RoomSelectStmt || stmt is RoomDeleteStmt || stmt is RoomUpdateStmt || stmt is RoomInsertStmt
       }
     }
   }

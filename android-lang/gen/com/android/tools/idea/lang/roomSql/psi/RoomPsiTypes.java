@@ -41,6 +41,7 @@ public interface RoomPsiTypes {
   IElementType COLUMN_ALIAS_NAME = new RoomAstNodeType("COLUMN_ALIAS_NAME");
   IElementType COLUMN_CONSTRAINT = new RoomAstNodeType("COLUMN_CONSTRAINT");
   IElementType COLUMN_DEF = new RoomAstNodeType("COLUMN_DEF");
+  IElementType COLUMN_DEF_NAME = new RoomAstNodeType("COLUMN_DEF_NAME");
   IElementType COLUMN_NAME = new RoomAstNodeType("COLUMN_NAME");
   IElementType COLUMN_REF_EXPR = new RoomAstNodeType("COLUMN_REF_EXPR");
   IElementType COMMIT_STMT = new RoomAstNodeType("COMMIT_STMT");
@@ -55,7 +56,6 @@ public interface RoomPsiTypes {
   IElementType CREATE_VIRTUAL_TABLE_STMT = new RoomAstNodeType("CREATE_VIRTUAL_TABLE_STMT");
   IElementType DATABASE_NAME = new RoomAstNodeType("DATABASE_NAME");
   IElementType DELETE_STMT = new RoomAstNodeType("DELETE_STMT");
-  IElementType DELETE_STMT_LIMITED = new RoomAstNodeType("DELETE_STMT_LIMITED");
   IElementType DETACH_STMT = new RoomAstNodeType("DETACH_STMT");
   IElementType DROP_INDEX_STMT = new RoomAstNodeType("DROP_INDEX_STMT");
   IElementType DROP_TABLE_STMT = new RoomAstNodeType("DROP_TABLE_STMT");
@@ -73,6 +73,7 @@ public interface RoomPsiTypes {
   IElementType FUNCTION_NAME = new RoomAstNodeType("FUNCTION_NAME");
   IElementType GROUP_BY_CLAUSE = new RoomAstNodeType("GROUP_BY_CLAUSE");
   IElementType INDEXED_COLUMN = new RoomAstNodeType("INDEXED_COLUMN");
+  IElementType INSERT_COLUMNS = new RoomAstNodeType("INSERT_COLUMNS");
   IElementType INSERT_STMT = new RoomAstNodeType("INSERT_STMT");
   IElementType IN_EXPR = new RoomAstNodeType("IN_EXPR");
   IElementType ISNULL_EXPR = new RoomAstNodeType("ISNULL_EXPR");
@@ -80,7 +81,6 @@ public interface RoomPsiTypes {
   IElementType JOIN_CONSTRAINT = new RoomAstNodeType("JOIN_CONSTRAINT");
   IElementType JOIN_OPERATOR = new RoomAstNodeType("JOIN_OPERATOR");
   IElementType LIKE_EXPR = new RoomAstNodeType("LIKE_EXPR");
-  IElementType LIMITED_UPDATE_STMT = new RoomAstNodeType("LIMITED_UPDATE_STMT");
   IElementType LIMIT_CLAUSE = new RoomAstNodeType("LIMIT_CLAUSE");
   IElementType LITERAL_EXPR = new RoomAstNodeType("LITERAL_EXPR");
   IElementType LITERAL_VALUE = new RoomAstNodeType("LITERAL_VALUE");
@@ -107,12 +107,13 @@ public interface RoomPsiTypes {
   IElementType SELECT_CORE_VALUES = new RoomAstNodeType("SELECT_CORE_VALUES");
   IElementType SELECT_STMT = new RoomAstNodeType("SELECT_STMT");
   IElementType SIGNED_NUMBER = new RoomAstNodeType("SIGNED_NUMBER");
+  IElementType SINGLE_TABLE_STMT_TABLE = new RoomAstNodeType("SINGLE_TABLE_STMT_TABLE");
   IElementType STMT = new RoomAstNodeType("STMT");
   IElementType SUBQUERY = new RoomAstNodeType("SUBQUERY");
   IElementType TABLE_ALIAS_NAME = new RoomAstNodeType("TABLE_ALIAS_NAME");
   IElementType TABLE_CONSTRAINT = new RoomAstNodeType("TABLE_CONSTRAINT");
+  IElementType TABLE_DEF_NAME = new RoomAstNodeType("TABLE_DEF_NAME");
   IElementType TABLE_NAME = new RoomAstNodeType("TABLE_NAME");
-  IElementType TABLE_NAME_QUALIFIED = new RoomAstNodeType("TABLE_NAME_QUALIFIED");
   IElementType TABLE_OR_INDEX_NAME = new RoomAstNodeType("TABLE_OR_INDEX_NAME");
   IElementType TABLE_OR_SUBQUERY = new RoomAstNodeType("TABLE_OR_SUBQUERY");
   IElementType TRIGGER_NAME = new RoomAstNodeType("TRIGGER_NAME");
@@ -336,6 +337,9 @@ public interface RoomPsiTypes {
       else if (type == COLUMN_DEF) {
         return new RoomColumnDefImpl(node);
       }
+      else if (type == COLUMN_DEF_NAME) {
+        return new RoomColumnDefNameImpl(node);
+      }
       else if (type == COLUMN_NAME) {
         return new RoomColumnNameImpl(node);
       }
@@ -377,9 +381,6 @@ public interface RoomPsiTypes {
       }
       else if (type == DELETE_STMT) {
         return new RoomDeleteStmtImpl(node);
-      }
-      else if (type == DELETE_STMT_LIMITED) {
-        return new RoomDeleteStmtLimitedImpl(node);
       }
       else if (type == DETACH_STMT) {
         return new RoomDetachStmtImpl(node);
@@ -429,6 +430,9 @@ public interface RoomPsiTypes {
       else if (type == INDEXED_COLUMN) {
         return new RoomIndexedColumnImpl(node);
       }
+      else if (type == INSERT_COLUMNS) {
+        return new RoomInsertColumnsImpl(node);
+      }
       else if (type == INSERT_STMT) {
         return new RoomInsertStmtImpl(node);
       }
@@ -449,9 +453,6 @@ public interface RoomPsiTypes {
       }
       else if (type == LIKE_EXPR) {
         return new RoomLikeExprImpl(node);
-      }
-      else if (type == LIMITED_UPDATE_STMT) {
-        return new RoomLimitedUpdateStmtImpl(node);
       }
       else if (type == LIMIT_CLAUSE) {
         return new RoomLimitClauseImpl(node);
@@ -531,6 +532,9 @@ public interface RoomPsiTypes {
       else if (type == SIGNED_NUMBER) {
         return new RoomSignedNumberImpl(node);
       }
+      else if (type == SINGLE_TABLE_STMT_TABLE) {
+        return new RoomSingleTableStmtTableImpl(node);
+      }
       else if (type == STMT) {
         return new RoomStmtImpl(node);
       }
@@ -543,11 +547,11 @@ public interface RoomPsiTypes {
       else if (type == TABLE_CONSTRAINT) {
         return new RoomTableConstraintImpl(node);
       }
+      else if (type == TABLE_DEF_NAME) {
+        return new RoomTableDefNameImpl(node);
+      }
       else if (type == TABLE_NAME) {
         return new RoomTableNameImpl(node);
-      }
-      else if (type == TABLE_NAME_QUALIFIED) {
-        return new RoomTableNameQualifiedImpl(node);
       }
       else if (type == TABLE_OR_INDEX_NAME) {
         return new RoomTableOrIndexNameImpl(node);
