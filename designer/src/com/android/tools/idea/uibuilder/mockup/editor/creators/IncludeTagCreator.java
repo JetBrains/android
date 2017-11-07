@@ -130,7 +130,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    NlModel nlModel = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile.getVirtualFile());
+    NlModel nlModel = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile);
     ModelListener listener = new ModelListener() {
 
       @Override

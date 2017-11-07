@@ -10,6 +10,6 @@
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="util" />
     <orderEntry type="module" module-name="core-api" />
-    <orderEntry type="library" name="google-analytics-library" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
   </component>
 </module>
