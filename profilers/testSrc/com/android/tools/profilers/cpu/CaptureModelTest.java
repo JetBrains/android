@@ -103,6 +103,12 @@ public class CaptureModelTest {
                                                              "otherPackage.method3", "otherPackage.method4");
   }
 
+  @Test
+  public void getPossibleFiltersEmptyCapture() {
+    myModel.setCapture(null);
+    assertThat(myModel.getPossibleFilters()).isEmpty();
+  }
+
   private static void checkChildren(CaptureNode node, String... childrenId) {
     assertThat(node.getChildCount()).isEqualTo(childrenId.length);
     for (int i = 0; i < node.getChildCount(); ++i) {

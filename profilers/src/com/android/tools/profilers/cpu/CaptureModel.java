@@ -144,6 +144,9 @@ class CaptureModel {
   @NotNull
   Collection<String> getPossibleFilters() {
     CaptureNode node = getNode();
+    if (node == null) {
+      return Collections.emptySet();
+    }
     Set<String> filters = new HashSet<>();
     Queue<CaptureNode> queue = new LinkedList<>();
     queue.add(node);
