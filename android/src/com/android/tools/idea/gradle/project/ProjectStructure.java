@@ -145,6 +145,14 @@ public class ProjectStructure {
     }
   }
 
+  public void clearData() {
+    synchronized (myLock) {
+      myPluginVersionsInProject.clear();
+      myAppModules.clear();
+      myLeafModules.clear();
+    }
+  }
+
   public static class AndroidPluginVersionsInProject {
     @NotNull private final Map<String, GradleVersion> myAgpVersionsPerModule = new HashMap<>();
 
