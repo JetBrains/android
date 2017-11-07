@@ -69,11 +69,11 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
     IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
+    // when sync fails, the list of "leaf" modules is empty.
+    when(myProjectStructure.getLeafModules()).thenReturn(ImmutableList.of());
+
     // Method to test.
     myAction.doPerform(new TestActionEvent(), getProject());
-
-    // There is no point on invoking "getLeafModules" on failed sync.
-    verify(myProjectStructure, never()).getLeafModules();
 
     verify(myBuildInvoker).assemble(eq(Module.EMPTY_ARRAY), eq(TestCompileType.ALL));
   }

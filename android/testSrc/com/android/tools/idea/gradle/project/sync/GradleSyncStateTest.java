@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.testFramework.IdeaTestCase;
@@ -41,6 +42,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
+  @Mock private ProjectStructure myProjectStructure;
 
   private GradleSyncState mySyncState;
 
@@ -52,7 +54,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     MessageBus messageBus = mock(MessageBus.class);
 
     mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
-                                      myGradleFiles, messageBus, myChangeNotification, mySummary);
+                                      myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
     when(messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)).thenReturn(mySyncResultListener);
@@ -117,6 +119,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(mySummary, times(1)).setSyncErrorsFound(true);
     verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
     verify(mySyncResultListener, times(1)).syncEnded(ProjectSystemSyncManager.SyncResult.FAILURE);
+    verify(myProjectStructure, times(1)).clearData();
   }
 
   public void testSyncFailedWithoutSyncStarted() {
