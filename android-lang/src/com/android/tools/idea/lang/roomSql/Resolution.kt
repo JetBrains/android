@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.roomSql
 import com.android.tools.idea.lang.roomSql.psi.*
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 import com.intellij.util.containers.Stack
 
@@ -90,71 +89,66 @@ private fun pushNextElements(
     }
   }
   else {
+    // The rule for [RoomTableName] below means that `previous` may not be a direct child.
+    val child = previous?.let { PsiTreeUtil.findPrevParent(element, it) }
+
     when (element) {
       is RoomSqlFile -> return // Stop walking up, no point leaving the SQL tree.
-      is RoomSelectCoreSelect -> when (previous) {
-        element.fromClause -> pushIfNotNull(element.context) // Keep walking up the tree to find the schema in [RoomSqlFile].
+      is RoomSelectCoreSelect -> when (child) {
+        element.fromClause -> pushIfNotNull(element.parent) // Keep walking up the tree to find the schema in [RoomSqlFile].
         else -> pushIfNotNull(element.fromClause) // Reverse direction, start downwards traversal of the FROM clause.
       }
       is RoomSelectStmt -> {
         // Visit the WITH clause before continuing up the tree.
-        pushIfNotNull(element.context)
+        pushIfNotNull(element.parent)
         pushIfNotNull(element.withClause)
       }
-      is RoomJoinClause -> when (previous) {
+      is RoomDeleteStmt -> when (child) {
+        element.withClause -> pushIfNotNull(element.parent)
+        element.singleTableStmtTable -> {
+          // Visit the WITH clause before continuing up the tree.
+          pushIfNotNull(element.parent)
+          pushIfNotNull(element.withClause)
+        }
+        else -> pushIfNotNull(element.singleTableStmtTable)
+      }
+      is RoomUpdateStmt -> when (child) {
+        element.withClause -> pushIfNotNull(element.parent)
+        element.singleTableStmtTable -> {
+          // Visit the WITH clause before continuing up the tree.
+          pushIfNotNull(element.parent)
+          pushIfNotNull(element.withClause)
+        }
+        else -> pushIfNotNull(element.singleTableStmtTable)
+      }
+      is RoomInsertStmt -> when (child) {
+        element.withClause -> pushIfNotNull(element.parent)
+        else -> {
+          // Visit the WITH clause before continuing up the tree.
+          pushIfNotNull(element.parent)
+          pushIfNotNull(element.withClause)
+        }
+      }
+      is RoomJoinClause -> when (child) {
         is RoomJoinConstraint -> {
           // Reverse direction, visit all tables in the join.
           element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
         }
-        else -> pushIfNotNull(element.context) // Keep walking up the tree to find the schema in [RoomSqlFile].
+        else -> pushIfNotNull(element.parent) // Keep walking up the tree to find the schema in [RoomSqlFile].
       }
       is RoomTableName -> {
-        val context = element.context
-        if (context is RoomFromTable || context is RoomWithClauseTableDef) {
+        val parent = element.parent
+        if (parent is RoomFromTable || parent is RoomWithClauseTableDef || parent is RoomSingleTableStmtTable) {
           // [element] is part of a table definition that will try to resolve it when asked to create a [SqlTable]. To avoid this circular
           // dependency, skip some nodes and start walking once we are outside of the table definition.
-          pushIfNotNull(PsiTreeUtil.getContextOfType(element, SqlTableElement::class.java)?.context)
-        } else {
-          pushIfNotNull(element.context)
+          pushIfNotNull(PsiTreeUtil.getContextOfType(element, SqlTableElement::class.java)?.parent)
+        }
+        else {
+          pushIfNotNull(element.parent)
         }
       }
-      else -> pushIfNotNull(element.context)
+      else -> pushIfNotNull(element.parent)
     }
-  }
-
-}
-
-/**
- * [Processor] that finds a table/column with a given name.
- */
-class FindByNameProcessor<T : SqlDefinition>(private val nameToLookFor: String) : CommonProcessors.FindProcessor<T>() {
-  override fun accept(t: T): Boolean = nameToLookFor.equals(t.name, ignoreCase = true)
-}
-
-/**
- * [Processor] that records all available tables/columns that have a name.
- */
-class CollectUniqueNamesProcessor<T : SqlDefinition> : Processor<T> {
-  val map: HashMap<String, T> = hashMapOf()
-  val result: Collection<T> get() = map.values
-
-  override fun process(t: T): Boolean {
-    val name = t.name
-    if (name != null) map.putIfAbsent(name, t)
-    return true
-  }
-}
-
-/**
- * Runs a [delegate] [Processor] on every [SqlColumn] of every processed [SqlTable].
- */
-class AllColumnsProcessor(private val delegate: Processor<SqlColumn>) : Processor<SqlTable> {
-  var tablesProcessed = 0
-
-  override fun process(t: SqlTable): Boolean {
-    t.processColumns(delegate)
-    tablesProcessed++
-    return true
   }
 }
 
@@ -165,6 +159,7 @@ class AllColumnsProcessor(private val delegate: Processor<SqlColumn>) : Processo
 class SubqueryTable(private val selectStmt: RoomSelectStmt) : SqlTable {
   override val name get() = null
   override val definingElement get() = selectStmt
+  override val isView: Boolean get() = true
 
   override fun processColumns(processor: Processor<SqlColumn>): Boolean {
     for (selectCore in selectStmt.selectCoreList) {

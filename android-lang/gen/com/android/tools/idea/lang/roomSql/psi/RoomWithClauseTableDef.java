@@ -25,9 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface RoomWithClauseTableDef extends PsiElement {
 
   @NotNull
-  List<RoomColumnName> getColumnNameList();
+  List<RoomColumnDefName> getColumnDefNameList();
 
   @NotNull
-  RoomTableName getTableName();
+  RoomTableDefName getTableDefName();
 
 }

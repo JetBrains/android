@@ -117,7 +117,6 @@ stmt ::=
   | create_view_stmt
   | create_virtual_table_stmt
   | delete_stmt
-  | delete_stmt_limited
   | detach_stmt
   | drop_index_stmt
   | drop_table_stmt
@@ -131,7 +130,6 @@ stmt ::=
   | savepoint_stmt
   | select_stmt
   | update_stmt
-  | limited_update_stmt
   | vacuum_stmt
   )
 
@@ -140,6 +138,8 @@ alter_table_stmt ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO t
 table_name ::= name {
   methods=[getReference]
 }
+
+table_def_name ::= name
 
 database_name ::= name
 
@@ -173,6 +173,8 @@ indexed_column ::= column_name ( COLLATE collation_name )? ( ASC | DESC )?
 column_name ::= name {
   methods=[getReference]
 }
+
+column_def_name ::= name
 
 collation_name ::= name
 
@@ -241,16 +243,13 @@ with_clause_table ::= with_clause_table_def AS '(' select_stmt ')'  {
   methods=[getSqlTable]
 }
 
-with_clause_table_def ::= table_name ( '(' column_name ( ',' column_name )* ')' )?
+with_clause_table_def ::= table_def_name ( '(' column_def_name ( ',' column_def_name )* ')' )?
 
-delete_stmt ::= ( with_clause )? DELETE FROM table_name_qualified
-where_clause?
-
-delete_stmt_limited ::=
-  ( with_clause )? DELETE FROM table_name_qualified
+delete_stmt ::=
+  ( with_clause )?
+  DELETE FROM single_table_stmt_table ( INDEXED BY index_name | NOT INDEXED )?
   where_clause?
-  ( order_clause?
-  LIMIT expr ( ( OFFSET | ',' ) expr )? )?
+  ( order_clause? LIMIT expr ( ( OFFSET | ',' ) expr )? )?
 
 detach_stmt ::= DETACH ( DATABASE )? database_name
 
@@ -362,9 +361,12 @@ literal_value ::=
   | CURRENT_TIMESTAMP
 
 insert_stmt ::=
-  ( with_clause )? ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
-  ( database_name '.' )? table_name ( '(' column_name ( ',' column_name )* ')' )?
+  ( with_clause )?
+  ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
+  single_table_stmt_table insert_columns?
   ( select_core_values | select_stmt | DEFAULT VALUES )
+
+insert_columns ::= '(' column_name ( ',' column_name )* ')'
 
 pragma_stmt ::= PRAGMA ( database_name '.' )? pragma_name ( '=' pragma_value | '(' pragma_value ')' )?
 
@@ -429,15 +431,16 @@ ordering_term ::= expr ( COLLATE collation_name )? ( ASC | DESC )?
 
 compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
 
-update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
-SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
+update_stmt ::=
+  ( with_clause )?
+  UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_stmt_table ( INDEXED BY index_name | NOT INDEXED )?
+  SET column_name '=' expr ( ',' column_name '=' expr )*
+  where_clause?
 
-limited_update_stmt ::= ( with_clause )? UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? table_name_qualified
-SET column_name '=' expr ( ',' column_name '=' expr )* where_clause?
-( order_clause?
-LIMIT expr ( ( OFFSET | ',' ) expr )? )?
-
-table_name_qualified ::= ( database_name '.' )? table_name ( INDEXED BY index_name | NOT INDEXED )?
+single_table_stmt_table ::= ( database_name '.' )? table_name {
+  implements="com.android.tools.idea.lang.roomSql.SqlTableElement"
+  methods=[getSqlTable]
+}
 
 vacuum_stmt ::= VACUUM
 

@@ -89,6 +89,10 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitColumnDefName(@NotNull RoomColumnDefName o) {
+    visitNameElement(o);
+  }
+
   public void visitColumnName(@NotNull RoomColumnName o) {
     visitNameElement(o);
   }
@@ -143,10 +147,6 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitDeleteStmt(@NotNull RoomDeleteStmt o) {
     visitStmt(o);
-  }
-
-  public void visitDeleteStmtLimited(@NotNull RoomDeleteStmtLimited o) {
-    visitPsiElement(o);
   }
 
   public void visitDetachStmt(@NotNull RoomDetachStmt o) {
@@ -221,6 +221,10 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitInsertColumns(@NotNull RoomInsertColumns o) {
+    visitPsiElement(o);
+  }
+
   public void visitInsertStmt(@NotNull RoomInsertStmt o) {
     visitStmt(o);
   }
@@ -247,10 +251,6 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitLimitClause(@NotNull RoomLimitClause o) {
     visitPsiElement(o);
-  }
-
-  public void visitLimitedUpdateStmt(@NotNull RoomLimitedUpdateStmt o) {
-    visitStmt(o);
   }
 
   public void visitLiteralExpr(@NotNull RoomLiteralExpr o) {
@@ -353,6 +353,10 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitSingleTableStmtTable(@NotNull RoomSingleTableStmtTable o) {
+    visitSqlTableElement(o);
+  }
+
   public void visitStmt(@NotNull RoomStmt o) {
     visitPsiElement(o);
   }
@@ -369,12 +373,12 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitTableName(@NotNull RoomTableName o) {
+  public void visitTableDefName(@NotNull RoomTableDefName o) {
     visitNameElement(o);
   }
 
-  public void visitTableNameQualified(@NotNull RoomTableNameQualified o) {
-    visitPsiElement(o);
+  public void visitTableName(@NotNull RoomTableName o) {
+    visitNameElement(o);
   }
 
   public void visitTableOrIndexName(@NotNull RoomTableOrIndexName o) {

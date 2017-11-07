@@ -53,6 +53,7 @@ data class Entity(
     override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
     override val definingElement: PsiElement get() = psiClass.element!!
     override val resolveTo: PsiElement get() = nameElement.element!!
+    override val isView: Boolean get() = false
 }
 
 data class EntityColumn(

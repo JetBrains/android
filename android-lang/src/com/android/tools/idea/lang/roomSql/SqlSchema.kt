@@ -39,6 +39,7 @@ interface SqlDefinition {
 
 interface SqlTable : SqlDefinition {
   fun processColumns(processor: Processor<SqlColumn>): Boolean
+  val isView: Boolean
 }
 
 interface SqlColumn : SqlDefinition {
@@ -51,7 +52,7 @@ interface SqlTableElement : PsiElement {
 
 class AliasedTable(
     val delegate: SqlTable,
-    override val name: String,
+    override val name: String?,
     override val resolveTo: PsiElement
 ) : SqlTable by delegate
 

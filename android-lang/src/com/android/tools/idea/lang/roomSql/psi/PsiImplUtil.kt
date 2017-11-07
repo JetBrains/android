@@ -22,7 +22,9 @@ import com.android.tools.idea.lang.roomSql.*
 import com.intellij.psi.PsiReference
 
 
-fun getReference(table: RoomTableName): RoomTablePsiReference = RoomTablePsiReference(table)
+fun getReference(tableName: RoomTableName): RoomTablePsiReference {
+  return RoomTablePsiReference(tableName, acceptViews = tableName.parent !is RoomSingleTableStmtTable)
+}
 
 fun getReference(columnName: RoomColumnName): RoomColumnPsiReference {
   val parent = columnName.parent
@@ -53,6 +55,8 @@ fun getSqlTable(subquery: RoomSubquery): SqlTable? {
 }
 
 fun getSqlTable(withClauseTable: RoomWithClauseTable): SqlTable? {
-  val tableName = withClauseTable.withClauseTableDef.tableName
+  val tableName = withClauseTable.withClauseTableDef.tableDefName
   return AliasedTable(name = tableName.nameAsString, resolveTo = tableName, delegate = SubqueryTable(withClauseTable.selectStmt))
 }
+
+fun getSqlTable(table: RoomSingleTableStmtTable): SqlTable? = table.tableName.reference.resolveSqlTable()

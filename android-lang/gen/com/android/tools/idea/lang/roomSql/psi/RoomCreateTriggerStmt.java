@@ -34,9 +34,6 @@ public interface RoomCreateTriggerStmt extends RoomStmt {
   RoomExpr getExpr();
 
   @NotNull
-  RoomStmt getStmt();
-
-  @NotNull
   RoomTableName getTableName();
 
   @NotNull

@@ -62,12 +62,6 @@ public class RoomCreateTriggerStmtImpl extends RoomStmtImpl implements RoomCreat
 
   @Override
   @NotNull
-  public RoomStmt getStmt() {
-    return findNotNullChildByClass(RoomStmt.class);
-  }
-
-  @Override
-  @NotNull
   public RoomTableName getTableName() {
     return findNotNullChildByClass(RoomTableName.class);
   }

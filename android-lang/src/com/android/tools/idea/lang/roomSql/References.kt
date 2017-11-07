@@ -112,7 +112,10 @@ private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
  *
  * @see Entity.nameElement
  */
-class RoomTablePsiReference(tableName: RoomTableName) : PsiReferenceBase<RoomTableName>(tableName) {
+class RoomTablePsiReference(
+    tableName: RoomTableName,
+    private val acceptViews: Boolean = true
+) : PsiReferenceBase<RoomTableName>(tableName) {
 
   override fun resolve(): PsiElement? {
     return resolveSqlTable()?.resolveTo
@@ -120,13 +123,13 @@ class RoomTablePsiReference(tableName: RoomTableName) : PsiReferenceBase<RoomTab
 
   fun resolveSqlTable(): SqlTable? {
     val processor = FindByNameProcessor<SqlTable>(element.nameAsString)
-    processSqlTables(element, processor)
+    processSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
     return processor.foundValue
   }
 
   override fun getVariants(): Array<Any> {
     val processor = CollectUniqueNamesProcessor<SqlTable>()
-    processSqlTables(element, processor)
+    processSqlTables(element, if (acceptViews) processor else IgnoreViewsProcessor(processor))
 
     return processor.result
         .map { table ->
@@ -146,6 +149,7 @@ class RoomTablePsiReference(tableName: RoomTableName) : PsiReferenceBase<RoomTab
         }
         .toTypedArray()
   }
+
 }
 
 /**

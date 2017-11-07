@@ -22,21 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomInsertStmt extends RoomStmt {
-
-  @Nullable
-  RoomInsertColumns getInsertColumns();
-
-  @Nullable
-  RoomSelectCoreValues getSelectCoreValues();
-
-  @Nullable
-  RoomSelectStmt getSelectStmt();
-
-  @NotNull
-  RoomSingleTableStmtTable getSingleTableStmtTable();
-
-  @Nullable
-  RoomWithClause getWithClause();
+public interface RoomColumnDefName extends RoomNameElement {
 
 }

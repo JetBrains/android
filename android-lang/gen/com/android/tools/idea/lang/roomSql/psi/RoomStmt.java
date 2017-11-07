@@ -24,10 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomStmt extends PsiElement {
 
-  @Nullable
-  RoomDeleteStmtLimited getDeleteStmtLimited();
-
-  @Nullable
+  @NotNull
   RoomStmt getStmt();
 
 }

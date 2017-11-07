@@ -25,12 +25,33 @@ import com.intellij.psi.PsiElement;
 public interface RoomDeleteStmt extends RoomStmt {
 
   @NotNull
-  RoomTableNameQualified getTableNameQualified();
+  List<RoomExpr> getExprList();
+
+  @Nullable
+  RoomOrderClause getOrderClause();
+
+  @NotNull
+  RoomSingleTableStmtTable getSingleTableStmtTable();
 
   @Nullable
   RoomWhereClause getWhereClause();
 
   @Nullable
   RoomWithClause getWithClause();
+
+  @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }
