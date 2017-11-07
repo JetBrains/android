@@ -36,10 +36,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private List<PTableItem> myItems;
@@ -51,6 +49,8 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private boolean myExpanded;
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
+  private static final Set<String> GRAVITY_OVERRIDES = Sets.newHashSet("top", "bottom", "right", "left", "start", "end");
+  private static final int GRAVITY_MAPPED_VALUE_CENTER = 0x11;
 
   protected NlFlagPropertyItem(@NotNull XmlName name,
                                @Nullable AttributeDefinition attributeDefinition,
@@ -83,13 +83,39 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   private int lookupMaskValue(@NotNull String value) {
-    assert myDefinition != null;
-    Integer mappedValue = myDefinition.getValueMapping(value);
+    Integer mappedValue = getValueMapping(value);
     if (mappedValue != null) {
       return mappedValue;
     }
+    assert myDefinition != null;
     int index = ArrayUtil.indexOf(myDefinition.getValues(), value);
     return index < 0 ? 0 : 1 << index;
+  }
+
+  @Nullable
+  private Integer getValueMapping(@NotNull String value) {
+    assert myDefinition != null;
+    Integer mappedValue = myDefinition.getValueMapping(value);
+    if (mappedValue == null) {
+      return null;
+    }
+
+    // b/68335041 The values for gravity center_vertical and center_horizontal are
+    // special values that just means that the "axis is specified".
+    // See documentation for Gravity.java in the framework.
+    //
+    // This implies that the mapped values for top & bottom also include the mapped
+    // value for vertical_center in attrs.xml. The UI would then show center_vertical
+    // checked when top or bottom was selected. This does not make sense in the UI.
+    // Similarly with left, right, start, end and center_horizontal.
+    //
+    // Override the value mapping for gravity: top, bottom, left, right, start, end
+    // to NOT include the center values.
+    if (Objects.equals(getNamespace(), SdkConstants.ANDROID_URI) && getName().equals(SdkConstants.ATTR_GRAVITY) &&
+        GRAVITY_OVERRIDES.contains(value)) {
+      mappedValue &= ~GRAVITY_MAPPED_VALUE_CENTER;
+    }
+    return mappedValue;
   }
 
   @NotNull
@@ -144,6 +170,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   public int getMaskValue() {
+    cacheValues();
     return myMaskValue;
   }
 
@@ -195,7 +222,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     return isItemSet(item.getName());
   }
 
-  public boolean isItemSet(@NotNull String itemName) {
+  private boolean isItemSet(@NotNull String itemName) {
     return getValues().contains(itemName);
   }
 
@@ -205,7 +232,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     updateItems(added, removed);
   }
 
-  public void updateItems(@NotNull Set<String> added, @NotNull Set<String> removed) {
+  private void updateItems(@NotNull Set<String> added, @NotNull Set<String> removed) {
     Set<String> values = getValues();
     StringBuilder builder = new StringBuilder();
     // Enumerate over myItems in order to generate a string with the elements in a predictable order:

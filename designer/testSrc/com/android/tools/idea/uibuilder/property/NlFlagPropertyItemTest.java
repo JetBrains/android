@@ -53,6 +53,24 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
     assertThat(top.getMaskValue()).isFalse();
   }
 
+  public void testGetGravityValueWithDefaultValue() {
+    NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
+    gravity.setDefaultValue(new PropertiesMap.Property("center_vertical", "center_vertical"));
+    assertThat(gravity.getName()).isEqualTo(ATTR_GRAVITY);
+    assertThat(gravity.getNamespace()).isEqualTo(ANDROID_URI);
+    assertThat(gravity.getValue()).isNull();
+    assertThat(gravity.getMaskValue()).isEqualTo(0x10);
+    assertThat(gravity.getFormattedValue()).isEqualTo("[]");
+  }
+
+  public void testSetGravityValueWithDefaultValue() {
+    NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
+    gravity.setDefaultValue(new PropertiesMap.Property("center_vertical", "center_vertical"));
+    gravity.setValue("top");
+    assertThat(gravity.getMaskValue()).isEqualTo(0x20);
+    assertThat(gravity.getFormattedValue()).isEqualTo("[top]");
+  }
+
   public void testGetNonExistingChildValue() {
     NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
     try {
