@@ -57,6 +57,22 @@ public class RenderTestUtil {
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
 
+  /**
+   * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTest} instead.
+   */
+  public static void beforeRenderTestCase() {
+    RenderService.shutdownRenderExecutor(5);
+    RenderService.initializeRenderExecutor();
+  }
+
+  /**
+   * Method to be called before every after test case. If you are using JUnit 4, use the {@link RenderTest} instead.
+   */
+  public static void afterRenderTestCase() {
+    RenderLogger.resetFidelityErrorsFilters();
+    RenderTestUtil.waitForRenderTaskDisposeToFinish();
+  }
+
   @Nullable
   public static RenderResult renderOnSeparateThread(@NotNull final RenderTask task) {
     // Ensure that we don't render on the read lock (since we want to test that all parts of the

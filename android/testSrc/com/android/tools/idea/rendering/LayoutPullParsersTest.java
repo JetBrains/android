@@ -29,7 +29,6 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -40,16 +39,23 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParsersTest extends AndroidTestCase {
-  @Rule
-  public RenderTest myRenderTest = new RenderTest();
-
   private DownloadableFontCacheService myFontCacheServiceMock;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
     myFontCacheServiceMock = mock(DownloadableFontCacheService.class);
     registerApplicationComponent(DownloadableFontCacheService.class, myFontCacheServiceMock);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @SuppressWarnings("ConstantConditions")
