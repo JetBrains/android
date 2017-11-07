@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -86,6 +87,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
   private static final int MIN_CONTROL_WIDTH = 20;
 
+  private final Project myProject;
   private final DependencyManager myDependencyManager;
   private final DataModel myDataModel;
   private final ComponentsSplitter mySplitter;
@@ -112,6 +114,7 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
   @VisibleForTesting
   PalettePanel(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
     super(new BorderLayout());
+    myProject = project;
     myDependencyManager = dependencyManager;
     myDependencyManager.registerDependencyUpdates(this, this);
     myDataModel = new DataModel(myDependencyManager);
@@ -482,6 +485,11 @@ public class PalettePanel extends JPanel implements Disposable, DataProvider, To
     protected Transferable createTransferable(@NotNull JComponent component) {
       Palette.Item item = myItemSupplier.get();
       if (item == null) {
+        return null;
+      }
+      DumbService dumbService = DumbService.getInstance(myProject);
+      if (dumbService.isDumb()) {
+        dumbService.showDumbModeNotification("Dragging from the Palette is not available while indices are updating.");
         return null;
       }
 
