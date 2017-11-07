@@ -21,14 +21,25 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Rule;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
 
 public class MenuPreviewRendererTest extends AndroidTestCase {
-  @Rule
-  public RenderTest myRenderTest = new RenderTest();
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   public void test() throws Exception {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");

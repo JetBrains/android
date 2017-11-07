@@ -20,20 +20,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTest;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.junit.Rule;
 
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertThat;
 
 public class ViewLoaderTest extends AndroidTestCase {
-  @Rule
-  public RenderTest myRenderTest = new RenderTest();
-
   @SuppressWarnings("ALL")
   public static class R {
     public static final class string {
@@ -52,11 +48,21 @@ public class ViewLoaderTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
+    RenderTestUtil.beforeRenderTestCase();
     Module module = myFacet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assertNotNull(platform);
     myLayoutLib = RenderService.getLayoutLibrary(module, ConfigurationManager.create(module).getHighestApiTarget());
     assertNotNull(myLayoutLib);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testMissingClass() throws Exception {

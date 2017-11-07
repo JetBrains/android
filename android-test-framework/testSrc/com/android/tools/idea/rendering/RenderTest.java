@@ -27,15 +27,13 @@ public class RenderTest extends ExternalResource {
   protected void before() throws Throwable {
     super.before();
 
-    RenderService.shutdownRenderExecutor(5);
-    RenderService.initializeRenderExecutor();
+    RenderTestUtil.beforeRenderTestCase();
   }
 
   @Override
   protected void after() {
     try {
-      RenderLogger.resetFidelityErrorsFilters();
-      RenderTestUtil.waitForRenderTaskDisposeToFinish();
+      RenderTestUtil.afterRenderTestCase();
     }
     finally {
       super.after();

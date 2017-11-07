@@ -45,9 +45,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 public class RenderTaskTest extends AndroidTestCase {
-  @Rule
-  public RenderTest myRenderTest = new RenderTest();
-
   @Language("XML")
   private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    android:layout_height=\"match_parent\"\n" +
@@ -69,6 +66,21 @@ public class RenderTaskTest extends AndroidTestCase {
                                               "    \n" +
                                               "\n" +
                                               "</LinearLayout>";
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   public void testCrashReport() throws Exception {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
