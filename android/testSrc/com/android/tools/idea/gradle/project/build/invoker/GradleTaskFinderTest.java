@@ -74,12 +74,17 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     assertEquals(":assemble", task);
   }
 
-  public void testFindTasksToExecuteWhenAssemblingAndroidProjectAndLastSyncFailed() {
+  public void testFindTasksToExecuteWhenLastSyncFailed() {
     GradleSyncState syncState = mock(GradleSyncState.class);
     IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);
+    assertThat(tasks).containsExactly("assemble");
+  }
+
+  public void testFindTasksToExecuteWhenAssemblingEmptyModuleList() {
+    List<String> tasks = myTaskFinder.findTasksToExecute(Module.EMPTY_ARRAY, ASSEMBLE, myTestCompileType);
     assertThat(tasks).containsExactly("assemble");
   }
 
