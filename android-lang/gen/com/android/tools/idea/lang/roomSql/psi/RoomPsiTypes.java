@@ -189,6 +189,7 @@ public interface RoomPsiTypes {
   IElementType FOR = new RoomTokenType("FOR");
   IElementType FOREIGN = new RoomTokenType("FOREIGN");
   IElementType FROM = new RoomTokenType("FROM");
+  IElementType FULL = new RoomTokenType("FULL");
   IElementType GLOB = new RoomTokenType("GLOB");
   IElementType GROUP = new RoomTokenType("GROUP");
   IElementType GT = new RoomTokenType(">");
@@ -249,6 +250,7 @@ public interface RoomPsiTypes {
   IElementType RENAME = new RoomTokenType("RENAME");
   IElementType REPLACE = new RoomTokenType("REPLACE");
   IElementType RESTRICT = new RoomTokenType("RESTRICT");
+  IElementType RIGHT = new RoomTokenType("RIGHT");
   IElementType ROLLBACK = new RoomTokenType("ROLLBACK");
   IElementType ROW = new RoomTokenType("ROW");
   IElementType ROWID = new RoomTokenType("ROWID");

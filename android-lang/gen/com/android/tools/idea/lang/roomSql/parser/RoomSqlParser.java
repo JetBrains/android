@@ -3093,7 +3093,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // signed_number | name | string_literal
+  // signed_number | name | string_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
   public static boolean pragma_value(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "pragma_value")) return false;
     boolean r;
@@ -3101,6 +3101,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = signed_number(b, l + 1);
     if (!r) r = name(b, l + 1);
     if (!r) r = string_literal(b, l + 1);
+    if (!r) r = consumeToken(b, ON);
+    if (!r) r = consumeToken(b, NO);
+    if (!r) r = consumeToken(b, FULL);
+    if (!r) r = consumeToken(b, DELETE);
+    if (!r) r = consumeToken(b, EXCLUSIVE);
+    if (!r) r = consumeToken(b, DEFAULT);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
