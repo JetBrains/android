@@ -84,6 +84,11 @@
     TILDE='~'
     UNEQ='<>'
 
+    // More keywords from https://sqlite.org/lang_keywords.html that don't appear in the grammar below, but we want to treat them as
+    // keywords (so that the IDE escapes them just in case).
+    FULL='FULL'
+    RIGHT='RIGHT'
+
     // Grammar-Kit's live preview emulates PsiBuilder's behavior of ignoring whitespace, by
     // looking for a token type that matches a space and is not used otherwise. Here's one:
     WHITE_SPACE_FOR_LIVE_PREVIEW='regexp:\s+'
@@ -365,7 +370,9 @@ pragma_stmt ::= PRAGMA ( database_name '.' )? pragma_name ( '=' pragma_value | '
 
 pragma_name ::= name // TODO: check
 
-pragma_value ::= signed_number | name | string_literal // TODO: check
+// SQLite has special parsing code for pragmas, we try to keep up by listing keywords that happen to be allowed values for certain pragmas.
+// See https://sqlite.org/pragma.html
+pragma_value ::= signed_number | name | string_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
 
 reindex_stmt ::= REINDEX ( collation_name | ( database_name '.' )? ( table_name | index_name ) )?
 
