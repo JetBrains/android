@@ -202,6 +202,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
     BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
     for (long i = startTime; i < endTime; i += US_TO_NS) {
+      // Skip instance creation for snapshot mode
+      if (request.getLiveObjectsOnly() && i < endTime - ALLOC_EVENT_DURATION_NS) {
+        continue;
+      }
+
       int tag = (int)(i / US_TO_NS);
       int contextId = tag % ALLOC_CONTEXT_NUM + 1;
       AllocationEvent event = AllocationEvent.newBuilder()
@@ -214,6 +219,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     }
 
     for (long i = startTime; i < endTime; i += US_TO_NS) {
+      // Skip instance creation for snapshot mode
+      if (request.getLiveObjectsOnly()) {
+        break;
+      }
+
       long allocTime = i - ALLOC_EVENT_DURATION_NS;
       // Do not create allocation events into the negatives.
       if (allocTime < 0) {

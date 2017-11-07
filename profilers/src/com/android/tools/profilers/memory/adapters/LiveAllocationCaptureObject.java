@@ -268,6 +268,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         myCurrentTask.cancel(false);
       }
       myCurrentTask = myExecutorService.submit(() -> {
+        // Keep the point selection logic behind a flag.
+        boolean isPointSelection =
+          myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled() && queryRange.isPoint();
         long newStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMin());
         long newEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMax());
         // Special case for max-value newEndTimeNs, as that indicates querying the latest events.
@@ -282,6 +285,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
         // We +1 because current range is left close and right open
         if (newEndTimeNs > myEventsEndTimeNs + 1) {
+          // TODO - optimize. We should't need to query allocations just to retrieve a timestamp.
           BatchAllocationSample sampleResponse =
             myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
                                       .setStartTime(myEventsEndTimeNs + 1).setEndTime(newEndTimeNs).build());
@@ -293,76 +297,26 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           }
         }
 
-        // Split the two ranges into three segments by sorting their end points and analyzing segments with adjacent points
-        long[] timestamps = {myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs};
-        // Clear myDefaultHeapSet If previous range does not intersect with the new one
-        boolean clear = myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs;
-        if (clear) {
-          long[] newTimeStamps = {newStartTimeNs, newEndTimeNs};
-          timestamps = newTimeStamps;
-          myInstanceMap.clear();
-        }
-
-        Arrays.sort(timestamps);
         List<InstanceObject> setAllocationList = new ArrayList<>();
         List<InstanceObject> resetAllocationList = new ArrayList<>();
         List<InstanceObject> setDeallocationList = new ArrayList<>();
         List<InstanceObject> resetDeallocationList = new ArrayList<>();
 
-        // For each segment, if it is only within previous range, we remove events in this segment
-        // If it is only within current range, we add events in this segments
-        // Otherwise, we do nothing since we already processed events in this segment
-        for (int stampNumber = 0; stampNumber + 1 < timestamps.length; ++stampNumber) {
-          long startTimeNs = timestamps[stampNumber];
-          long endTimeNs = timestamps[stampNumber + 1];
-          if (startTimeNs == endTimeNs) {
-            continue;
-          }
-
-          boolean insidePreviousRange = startTimeNs >= myPreviousQueryStartTimeNs && endTimeNs <= myPreviousQueryEndTimeNs;
-          boolean insideCurrentRange = startTimeNs >= newStartTimeNs && endTimeNs <= newEndTimeNs;
-
-          if (insidePreviousRange == insideCurrentRange) {
-            continue;
-          }
-
-          BatchAllocationSample sampleResponse =
-            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                      .setStartTime(startTimeNs).setEndTime(endTimeNs).build());
-
-          for (AllocationEvent event : sampleResponse.getEventsList()) {
-            if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-              AllocationEvent.Allocation allocation = event.getAllocData();
-              LiveAllocationInstanceObject instance =
-                getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
-                                          allocation.getSize(), allocation.getHeapId());
-              if (insideCurrentRange) {
-                instance.setAllocationTime(event.getTimestamp());
-                setAllocationList.add(instance);
-              }
-              else {
-                instance.setAllocationTime(Long.MIN_VALUE);
-                resetAllocationList.add(instance);
-              }
-            }
-            else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
-              AllocationEvent.Deallocation deallocation = event.getFreeData();
-              LiveAllocationInstanceObject instance =
-                getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
-                                          deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
-              if (insideCurrentRange) {
-                instance.setDeallocTime(event.getTimestamp());
-                setDeallocationList.add(instance);
-              }
-              else {
-                instance.setDeallocTime(Long.MAX_VALUE);
-                resetDeallocationList.add(instance);
-              }
-            }
-            else {
-              assert false;
-            }
-          }
+        // Clear and recreate the instance/heap sets if:
+        // 1. previous range does not intersect with the new one
+        // 2. the selection mode has changed (from point to range selections)
+        // 3. the selection mode is a point selection
+        boolean clear = (myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs)
+                        || myPreviousQueryStartTimeNs == myPreviousQueryEndTimeNs || isPointSelection;
+        if (clear) {
+          myInstanceMap.clear();
+        }
+        if (isPointSelection) {
+          querySnapshotData(newEndTimeNs, setAllocationList);
+        }
+        else {
+          queryAllocationData(clear, myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs,
+                              setAllocationList, resetAllocationList, setDeallocationList, resetDeallocationList);
         }
 
         myPreviousQueryStartTimeNs = newStartTimeNs;
@@ -378,18 +332,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                 myStage.selectClassSet(ClassSet.EMPTY_SET);
               }
             }
-            setAllocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).addInstanceObject(instance);
-            });
-            setDeallocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).freeInstanceObject(instance);
-            });
-            resetAllocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).removeAddingInstanceObject(instance);
-            });
-            resetDeallocationList.forEach(instance -> {
-              myHeapSets.get(instance.getHeapId()).removeFreeingInstanceObject(instance);
-            });
+            setAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).addInstanceObject(instance));
+            setDeallocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).freeInstanceObject(instance));
+            resetAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeAddingInstanceObject(instance));
+            resetDeallocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeFreeingInstanceObject(instance));
             myStage.refreshSelectedHeap();
           }
         });
@@ -422,5 +368,98 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
 
     return instance;
+  }
+
+  private void querySnapshotData(long newTimeNs, @NotNull List<InstanceObject> setAllocationList) {
+    BatchAllocationSample sampleResponse =
+      myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+                                .setEndTime(newTimeNs).setLiveObjectsOnly(true).build());
+
+    for (AllocationEvent event : sampleResponse.getEventsList()) {
+      if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+        AllocationEvent.Allocation allocation = event.getAllocData();
+        LiveAllocationInstanceObject instance =
+          getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
+                                    allocation.getSize(), allocation.getHeapId());
+        instance.setAllocationTime(event.getTimestamp());
+        setAllocationList.add(instance);
+      }
+      else {
+        assert false;
+      }
+    }
+  }
+
+  private void queryAllocationData(boolean clear,
+                                   long previousQueryStartTimeNs,
+                                   long previousQueryEndTimeNs,
+                                   long newStartTimeNs,
+                                   long newEndTimeNs,
+                                   @NotNull List<InstanceObject> setAllocationList,
+                                   @NotNull List<InstanceObject> resetAllocationList,
+                                   @NotNull List<InstanceObject> setDeallocationList,
+                                   @NotNull List<InstanceObject> resetDeallocationList) {
+    // Split the two ranges into three segments by sorting their end points and analyzing segments with adjacent points
+    long[] timestamps = {previousQueryStartTimeNs, previousQueryEndTimeNs, newStartTimeNs, newEndTimeNs};
+    if (clear) {
+      long[] newTimeStamps = {newStartTimeNs, newEndTimeNs};
+      timestamps = newTimeStamps;
+    }
+    Arrays.sort(timestamps);
+
+    // For each segment, if it is only within previous range, we remove events in this segment
+    // If it is only within current range, we add events in this segments
+    // Otherwise, we do nothing since we already processed events in this segment
+    for (int stampNumber = 0; stampNumber + 1 < timestamps.length; ++stampNumber) {
+      long startTimeNs = timestamps[stampNumber];
+      long endTimeNs = timestamps[stampNumber + 1];
+      if (startTimeNs == endTimeNs) {
+        continue;
+      }
+
+      boolean insidePreviousRange = startTimeNs >= previousQueryStartTimeNs && endTimeNs <= previousQueryEndTimeNs;
+      boolean insideCurrentRange = startTimeNs >= newStartTimeNs && endTimeNs <= newEndTimeNs;
+      if (insidePreviousRange == insideCurrentRange) {
+        continue;
+      }
+
+      BatchAllocationSample sampleResponse =
+        myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+                                  .setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+
+      for (AllocationEvent event : sampleResponse.getEventsList()) {
+        if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+          AllocationEvent.Allocation allocation = event.getAllocData();
+          LiveAllocationInstanceObject instance =
+            getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
+                                      allocation.getSize(), allocation.getHeapId());
+          if (insideCurrentRange) {
+            instance.setAllocationTime(event.getTimestamp());
+            setAllocationList.add(instance);
+          }
+          else {
+            instance.setAllocationTime(Long.MIN_VALUE);
+            resetAllocationList.add(instance);
+          }
+        }
+        else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
+          AllocationEvent.Deallocation deallocation = event.getFreeData();
+          LiveAllocationInstanceObject instance =
+            getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
+                                      deallocation.getThreadId(), deallocation.getSize(), deallocation.getHeapId());
+          if (insideCurrentRange) {
+            instance.setDeallocTime(event.getTimestamp());
+            setDeallocationList.add(instance);
+          }
+          else {
+            instance.setDeallocTime(Long.MAX_VALUE);
+            resetDeallocationList.add(instance);
+          }
+        }
+        else {
+          assert false;
+        }
+      }
+    }
   }
 }
