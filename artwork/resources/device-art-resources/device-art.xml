@@ -36,18 +36,18 @@
   </device>
 
   <device id="pixel_c" name="Pixel C">
-    <orientation name="port" size="2307,2971" screenPos="259,181" screenSize="1800,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="3096,2215" screenPos="269,188" screenSize="2560,1800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="2307,2971" screenPos="259,181" screenSize="1800,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3096,2215" screenPos="269,188" screenSize="2560,1800" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_5x" name="Nexus 5X">
-    <orientation name="port" size="1370,2446" screenPos="147,233" screenSize="1080,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="2497,1234" screenPos="278,63" screenSize="1920,1080" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1370,2446" screenPos="147,233" screenSize="1080,1920" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2497,1234" screenPos="278,63" screenSize="1920,1080" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_6p" name="Nexus 6P">
-    <orientation name="port" size="1840,3251" screenPos="195,329" screenSize="1440,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="3427,1620" screenPos="442,71" screenSize="2560,1440" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1840,3251" screenPos="195,329" screenSize="1440,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3427,1620" screenPos="442,71" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="wear_square" name="Android Wear Square">
@@ -69,58 +69,58 @@
   </device>
 
   <device id="nexus_9" name="Nexus 9">
-    <orientation name="port" size="1978,2631" screenPos="219,264" screenSize="1536,2048" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="2854,1785" screenPos="401,100" screenSize="2048,1536" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1978,2631" screenPos="219,264" screenSize="1536,2048" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2854,1785" screenPos="401,100" screenSize="2048,1536" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_6" name="Nexus 6">
-    <orientation name="port" size="1896,3054" screenPos="229,239" screenSize="1440,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="3142,1639" screenPos="318,76" screenSize="2560,1440" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1896,3054" screenPos="229,239" screenSize="1440,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3142,1639" screenPos="318,76" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_5" name="Nexus 5">
-    <orientation name="port" size="1370,2405" screenPos="144,195" screenSize="1080,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="2497,1235" screenPos="261,65" screenSize="1920,1080" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1370,2405" screenPos="144,195" screenSize="1080,1920" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2497,1235" screenPos="261,65" screenSize="1920,1080" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_4" name="Nexus 4">
-    <orientation name="port" size="958,1678" screenPos="94,187" screenSize="768,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1799,885" screenPos="257,45" screenSize="1280,768" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="958,1678" screenPos="94,187" screenSize="768,1280" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="1799,885" screenPos="257,45" screenSize="1280,768" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_7_2013" name="Nexus 7">
-    <orientation name="port" size="1596,2571" screenPos="195,301" screenSize="1200,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="2772,1479" screenPos="423,120" screenSize="1920,1200" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1596,2571" screenPos="195,301" screenSize="1200,1920" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2772,1479" screenPos="423,120" screenSize="1920,1200" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_7" name="Nexus 7 (2012)">
-    <orientation name="port" size="1094,1689" screenPos="142,190" screenSize="800,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1803,1045" screenPos="260,105" screenSize="1280,800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1094,1689" screenPos="142,190" screenSize="800,1280" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="1803,1045" screenPos="260,105" screenSize="1280,800" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_10" name="Nexus 10">
-    <orientation name="port" size="2330,3136" screenPos="366,266" screenSize="1600,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="3340,2176" screenPos="388,266" screenSize="2560,1600" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="2330,3136" screenPos="366,266" screenSize="1600,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3340,2176" screenPos="388,266" screenSize="2560,1600" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="xoom" name="Motorola XOOM">
-    <orientation name="port" size="1170,1471" screenPos="185,83" screenSize="800,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1569,998" screenPos="152,89" screenSize="1280,800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1170,1471" screenPos="185,83" screenSize="800,1280" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="1569,998" screenPos="152,89" screenSize="1280,800" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="galaxy_nexus" name="Galaxy Nexus">
-    <orientation name="port" size="1101,1709" screenPos="192,213" screenSize="720,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1847,886" screenPos="304,68" screenSize="1280,720" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1101,1709" screenPos="192,213" screenSize="720,1280" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="1847,886" screenPos="304,68" screenSize="1280,720" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_s" name="Nexus S">
-    <orientation name="port" size="719,1139" screenPos="119,160" screenSize="480,800" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1210,586" screenPos="208,44" screenSize="800,480" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="719,1139" screenPos="119,160" screenSize="480,800" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="1210,586" screenPos="208,44" screenSize="800,480" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
   <device id="nexus_one" name="Nexus One">
-    <orientation name="port" size="732,1178" screenPos="125,131" screenSize="480,800" shadow="port_shadow.png" back="port_back.png"/>
-    <orientation name="land" size="1300,612" screenPos="200,52" screenSize="800,480" shadow="land_shadow.png" back="land_back.png"/>
+    <orientation name="port" size="732,1178" screenPos="125,131" screenSize="480,800" shadow="port_shadow.webp" back="port_back.webp"/>
+    <orientation name="land" size="1300,612" screenPos="200,52" screenSize="800,480" shadow="land_shadow.webp" back="land_back.webp"/>
   </device>
 
   <device id="phone" name="Generic Phone">
