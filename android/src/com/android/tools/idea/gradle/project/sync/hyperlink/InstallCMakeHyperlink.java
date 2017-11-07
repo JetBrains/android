@@ -55,7 +55,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = sdkHandler.getSdkManager(progressIndicator);
 
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", project);
+    StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
     RepoManager.RepoLoadedCallback onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         Collection<RemotePackage> cmakePackages = packages.getRemotePackagesForPrefix(FD_CMAKE);

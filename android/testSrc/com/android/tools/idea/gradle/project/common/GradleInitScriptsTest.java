@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.intellij.idea.IdeaTestApplication;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import org.junit.Before;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
@@ -43,18 +41,6 @@ public class GradleInitScriptsTest extends IdeaTestCase {
   private File myInitScriptPath;
   private GradleInitScripts myInitScripts;
 
-  @Before
-  public void setUp() {
-    IdeaTestApplication.getInstance();
-  }
-
-  @After
-  public void tearDown() {
-    if (myInitScriptPath != null) {
-      boolean deleted = myInitScriptPath.delete();
-      if (!deleted) {
-        // We need to delete the file, otherwise the file names will end with numbers (e.g. "asLocalRepo1.gradle".
-        fail(String.format("Failed to delete file '%1$s'", myInitScriptPath.getPath()));
   @Override
   protected void setUp() throws Exception {
     super.setUp();

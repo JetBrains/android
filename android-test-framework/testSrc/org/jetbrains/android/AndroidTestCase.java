@@ -396,7 +396,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
 
-    return globalContext.getPresentation(wrapper).getProblemElements();
+    return globalContext.getPresentation(wrapper).getProblemElements().getMap();
   }
 
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
