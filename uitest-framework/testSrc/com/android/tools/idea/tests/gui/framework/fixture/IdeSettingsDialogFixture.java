@@ -15,25 +15,34 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
+import com.intellij.openapi.util.Ref;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
@@ -100,6 +109,21 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   public void clickOK() {
     findAndClickButtonWhenEnabled(this, "OK");
+  }
+
+  public void selectShowPackageDetails() {
+    Collection<JCheckBox> allFound = robot().finder().findAll(
+      target(),
+      Matchers.byText(JCheckBox.class, "Show Package Details"));
+
+    for (JCheckBox jCheckBox : allFound) {
+      if (jCheckBox.isShowing()) {
+        new JCheckBoxFixture(robot(), jCheckBox).select();
+        return;
+      }
+    }
+
+    throw new ComponentLookupException("Show Package Details checkbox is not found", allFound);
   }
 
   private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {

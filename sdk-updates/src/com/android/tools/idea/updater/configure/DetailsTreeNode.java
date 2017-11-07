@@ -87,6 +87,11 @@ class DetailsTreeNode extends UpdaterTreeNode {
            myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
   }
 
+  @Nullable
+  private String getDisplayName() {
+    return myModel.getTitle();
+  }
+
   @Override
   public boolean isPrimary() {
     return myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
@@ -101,7 +106,7 @@ class DetailsTreeNode extends UpdaterTreeNode {
                                 int row,
                                 boolean hasFocus) {
     SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    renderer.getTextRenderer().append(myModel.getTitle(), attributes);
+    renderer.getTextRenderer().append(getDisplayName(), attributes);
   }
 
   @NotNull

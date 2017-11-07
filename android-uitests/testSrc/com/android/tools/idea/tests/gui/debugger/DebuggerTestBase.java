@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
+import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 
 public class DebuggerTestBase {
 
@@ -107,6 +113,16 @@ public class DebuggerTestBase {
   @NotNull
   public static String variableToSearchPattern(String name, String value) {
     return String.format("%s = %s", name, value);
+  }
+
+  protected static void finishInstallUninstallProcess(@NotNull Robot robot) {
+    MessagesFixture.findByTitle(robot, "Confirm Change").clickOk();
+    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
+      .withTimeout(SECONDS.toMillis(30)).using(robot);
+    JButtonFixture finish = downloadDialog.button(withText("Finish"));
+    Wait.seconds(120)
+      .expecting("Android source to be installed").until(finish::isEnabled);
+    finish.click();
   }
 
   void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
