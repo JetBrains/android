@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -27,8 +28,7 @@ import com.intellij.testFramework.TestActionEvent;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -61,5 +61,20 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
 
     // Verify that only "leaf" modules were built.
     verify(myBuildInvoker).assemble(eq(leafModules.toArray(new Module[leafModules.size()])), eq(TestCompileType.ALL));
+  }
+
+  public void testDoPerformWithFailedSync() {
+    // Simulate failed sync.
+    GradleSyncState syncState = mock(GradleSyncState.class);
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    when(syncState.lastSyncFailed()).thenReturn(true);
+
+    // Method to test.
+    myAction.doPerform(new TestActionEvent(), getProject());
+
+    // There is no point on invoking "getLeafModules" on failed sync.
+    verify(myProjectStructure, never()).getLeafModules();
+
+    verify(myBuildInvoker).assemble(eq(Module.EMPTY_ARRAY), eq(TestCompileType.ALL));
   }
 }

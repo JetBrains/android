@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
@@ -26,6 +26,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MakeGradleProjectAction extends AndroidStudioGradleAction {
   public MakeGradleProjectAction() {
@@ -48,7 +51,10 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
     // The modules that are not in this list will be built anyway because they can be transitively reached by the "leaf" modules.
     // This is necessary to avoid unnecessary work by attempting to build a module twice.
     // See: http://b/68723121
-    ImmutableList<Module> modules = ProjectStructure.getInstance(project).getLeafModules();
+    List<Module> modules = Collections.emptyList();
+    if (!GradleSyncState.getInstance(project).lastSyncFailed()) {
+      modules = ProjectStructure.getInstance(project).getLeafModules();
+    }
     GradleBuildInvoker.getInstance(project).assemble(modules.toArray(new Module[modules.size()]), TestCompileType.ALL);
   }
 }
