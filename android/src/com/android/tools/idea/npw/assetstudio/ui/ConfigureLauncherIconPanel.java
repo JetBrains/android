@@ -576,13 +576,15 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
 
   @NotNull
   private static BooleanExpression nameIsNotEmptyExpression(@NotNull VisibleProperty isActive, @NotNull StringProperty name) {
-    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()), isActive, name);
+    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()),
+                                    isActive, name);
   }
 
   @NotNull
   private static BooleanExpression namesAreDistinctExpression(@NotNull VisibleProperty isActive,
                                                               @NotNull StringProperty name1, @NotNull StringProperty name2) {
-    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.equalsTrimWhitespaces(name1.get(), name2.get()));
+    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.equalsTrimWhitespaces(name1.get(), name2.get()),
+                                    isActive, name1, name2);
   }
 
   /**
