@@ -46,7 +46,7 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.L
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
-  public static final String ADT_SOURCE_TREE = "ADT_SOURCE_TREE";
+  private static final String ADT_SOURCE_TREE = "ADT_SOURCE_TREE";
 
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(
@@ -56,7 +56,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static boolean ourDone;
   @SuppressWarnings("deprecation")
-  public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
+  private static boolean checkAllLintChecksRegistered(Project project) throws Exception {
     if (ourDone) {
       return true;
     }
