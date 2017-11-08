@@ -21,6 +21,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 public class AndroidEditorTitleProvider implements EditorTabTitleProvider {
   @Nullable
   @Override
-  public String getEditorTabTitle(Project project, VirtualFile file) {
+  public String getEditorTabTitle(@NotNull Project project, @NotNull VirtualFile file) {
     if (DumbService.isDumb(project)) {
       return null;
     }
