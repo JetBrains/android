@@ -496,7 +496,11 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewProjectWithScrollActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "ScrollActivity", true, withKotlin);
+    checkCreateTemplate("activities", "ScrollActivity", true,
+                        (templateMap, projectMap) -> {
+                          withKotlin.customize(templateMap, projectMap);
+                          templateMap.put("menuName", "menu_scroll_activity");
+                        });
   }
 
   @TemplateCheck
