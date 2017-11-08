@@ -71,6 +71,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/data-binding/data_binding_runtime_repo.zip", "prebuilts/tools/common/m2/repository");
 
     // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
     System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
